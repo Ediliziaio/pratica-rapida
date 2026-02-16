@@ -1,36 +1,53 @@
 
 
-# Modifiche Login e Creazione Super Admin
+# Correzione Sidebar Super Admin e Setup Utente
 
-## 1. Semplificazione pagina Login
-Rimuovere il titolo "Pratica Rapida" dalla pagina di login, lasciando solo il logo e la tagline.
+## Problemi identificati
 
-**File:** `src/pages/Auth.tsx`
-- Rimuovere la riga `<h1>Pratica Rapida</h1>`
-- Mantenere solo il logo e il sottotitolo "La tua Pratica ENEA, semplice e veloce"
+1. **Profilo mancante**: L'utente `f.andriciuc@overthemol.com` esiste nel sistema di autenticazione ma non ha un profilo nella tabella `profiles` (probabilmente registrato prima che il trigger automatico fosse attivo)
+2. **Ruolo non assegnato**: Non ha il ruolo `super_admin` nella tabella `user_roles`
+3. **Sidebar non corretta**: La sidebar mostra solo "Area Azienda" invece delle sezioni da super admin
 
-## 2. Creazione utente Super Admin
-Creare l'utente **f.andriciuc@overthemol.com** con ruolo `super_admin`.
+## Cosa faremo
 
-Il processo sara':
-1. Registrare l'utente tramite la pagina di registrazione dell'app (con email e password forniti)
-2. Assegnare il ruolo `super_admin` tramite una migrazione SQL che cerca l'utente per email nella tabella `profiles` e inserisce il ruolo in `user_roles`
+### 1. Migrazione SQL
+Creare il profilo mancante e assegnare il ruolo `super_admin`:
 
-**Migrazione SQL:**
 ```sql
+-- Creare il profilo mancante
+INSERT INTO public.profiles (id, email, nome, cognome)
+SELECT id, email, '', ''
+FROM auth.users
+WHERE email = 'f.andriciuc@overthemol.com'
+ON CONFLICT (id) DO NOTHING;
+
+-- Assegnare il ruolo super_admin
 INSERT INTO public.user_roles (user_id, role)
 SELECT id, 'super_admin'::app_role
-FROM public.profiles
+FROM auth.users
 WHERE email = 'f.andriciuc@overthemol.com'
 ON CONFLICT (user_id, role) DO NOTHING;
 ```
 
-**Nota:** Per prima cosa dovrai registrarti sulla pagina di login con l'email `f.andriciuc@overthemol.com` e la password scelta. Dopo la registrazione, la migrazione assegnera' automaticamente il ruolo di super admin.
+### 2. Aggiornare la Sidebar per Super Admin
+Modificare `src/components/AppSidebar.tsx` per mostrare al super admin le voci richieste:
+
+**Sezione Super Admin:**
+- Dashboard (/)
+- Aziende (/aziende)
+- Attivita' (/coda-pratiche) -- rinominata da "Coda Pratiche"
+- Impostazioni (/utenti) -- pagina gestione utenti/ruoli
+
+Il super admin potra' anche accedere all'area azienda tramite il meccanismo di impersonation gia' presente.
+
+### 3. Aggiornare le Routes
+Aggiungere la route `/impostazioni` se necessario, oppure riutilizzare `/utenti` rinominandola.
 
 ## Dettagli tecnici
 
 | File | Modifica |
 |------|----------|
-| `src/pages/Auth.tsx` | Rimuovere `<h1>` con il nome brand |
-| Migrazione SQL | Inserire ruolo `super_admin` per l'utente |
+| Migrazione SQL | Creare profilo + assegnare ruolo super_admin |
+| `src/components/AppSidebar.tsx` | Aggiornare le voci del menu super admin: Dashboard, Aziende, Attivita', Impostazioni |
 
+La logica della sidebar gia' gestisce la visibilita' delle sezioni in base ai ruoli (`showSuperAdmin`, `showInternal`). Servira' solo aggiornare gli array di voci menu.

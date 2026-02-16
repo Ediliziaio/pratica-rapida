@@ -49,6 +49,7 @@ export function AppSidebar() {
   const internalItems = [
     { title: "Dashboard", url: "/", icon: LayoutDashboard },
     { title: "Aziende", url: "/aziende", icon: Building2 },
+    { title: "Pratiche", url: "/admin/pratiche", icon: FolderOpen },
     { title: "Attività", url: "/coda-pratiche", icon: ListChecks },
     { title: "Impostazioni", url: "/utenti", icon: Settings },
   ];

@@ -1,19 +1,33 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Building2, Plus, Search, Wallet, Users, FolderOpen, CreditCard, LogIn } from "lucide-react";
+import {
+  Building2, Plus, Search, Wallet, Users, FolderOpen, CreditCard, LogIn,
+  FileEdit, Clock, AlertCircle, CheckCircle2, Ban, Send,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCompany } from "@/hooks/useCompany";
 import { isSuperAdmin } from "@/hooks/useAuth";
+import type { Database } from "@/integrations/supabase/types";
+
+type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
+
+const STATO_BADGE: Record<PraticaStato, { label: string; icon: any; className: string }> = {
+  bozza: { label: "Bozza", icon: FileEdit, className: "bg-muted text-muted-foreground" },
+  inviata: { label: "Inviata", icon: Send, className: "bg-primary/10 text-primary" },
+  in_lavorazione: { label: "In Lav.", icon: Clock, className: "bg-warning/10 text-warning" },
+  in_attesa_documenti: { label: "Attesa Doc.", icon: AlertCircle, className: "bg-destructive/10 text-destructive" },
+  completata: { label: "Completata", icon: CheckCircle2, className: "bg-success/10 text-success" },
+  annullata: { label: "Annullata", icon: Ban, className: "bg-muted text-muted-foreground" },
+};
 
 export default function Aziende() {
   const { toast } = useToast();
@@ -28,7 +42,6 @@ export default function Aziende() {
   const { setImpersonatedCompany } = useCompany();
   const superAdmin = isSuperAdmin(roles);
 
-  // Form state
   const [form, setForm] = useState({
     ragione_sociale: "", piva: "", codice_fiscale: "", email: "",
     telefono: "", indirizzo: "", citta: "", cap: "", provincia: "", settore: "",
@@ -37,23 +50,23 @@ export default function Aziende() {
   const { data: companies = [], isLoading } = useQuery({
     queryKey: ["admin-companies"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("companies")
-        .select("*")
-        .order("ragione_sociale");
+      const { data, error } = await supabase.from("companies").select("*").order("ragione_sociale");
       if (error) throw error;
       return data;
     },
   });
 
-  // Count pratiche per company
-  const { data: praticheCounts = {} } = useQuery({
-    queryKey: ["admin-pratiche-counts"],
+  // Pratiche counts per company per stato
+  const { data: praticheByCompany = {} } = useQuery({
+    queryKey: ["admin-pratiche-by-stato"],
     queryFn: async () => {
-      const { data } = await supabase.from("pratiche").select("company_id");
-      const counts: Record<string, number> = {};
-      (data || []).forEach(p => { counts[p.company_id] = (counts[p.company_id] || 0) + 1; });
-      return counts;
+      const { data } = await supabase.from("pratiche").select("company_id, stato");
+      const result: Record<string, Record<string, number>> = {};
+      (data || []).forEach(p => {
+        if (!result[p.company_id]) result[p.company_id] = {};
+        result[p.company_id][p.stato] = (result[p.company_id][p.stato] || 0) + 1;
+      });
+      return result;
     },
   });
 
@@ -155,42 +168,65 @@ export default function Aziende() {
         </Card>
       ) : (
         <div className="grid gap-4">
-          {filtered.map(c => (
-            <Card key={c.id}>
-              <CardContent className="flex items-center gap-4 p-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                  <Building2 className="h-6 w-6 text-primary" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold truncate">{c.ragione_sociale}</p>
-                  <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                    {c.piva && <span>P.IVA: {c.piva}</span>}
-                    {c.email && <span>{c.email}</span>}
-                    {c.settore && <Badge variant="outline" className="text-xs">{c.settore}</Badge>}
+          {filtered.map(c => {
+            const statoCounts = praticheByCompany[c.id] || {};
+            const totalPratiche = Object.values(statoCounts).reduce((s: number, v) => s + (v as number), 0);
+            return (
+              <Card key={c.id}>
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                      <Building2 className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold truncate">{c.ragione_sociale}</p>
+                      <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                        {c.piva && <span>P.IVA: {c.piva}</span>}
+                        {c.email && <span>{c.email}</span>}
+                        {c.settore && <Badge variant="outline" className="text-xs">{c.settore}</Badge>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <FolderOpen className="h-4 w-4" />{totalPratiche}
+                      </div>
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Users className="h-4 w-4" />{userCounts[c.id] || 0}
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold">€ {c.wallet_balance.toFixed(2)}</p>
+                        <Button variant="ghost" size="sm" className="h-auto p-0 text-xs text-primary" onClick={() => setShowTopup(c.id)}>
+                          <CreditCard className="mr-1 h-3 w-3" />Ricarica
+                        </Button>
+                      </div>
+                      {superAdmin && (
+                        <Button variant="outline" size="sm" onClick={() => { setImpersonatedCompany(c.id, c.ragione_sociale); navigate("/"); }}>
+                          <LogIn className="mr-1 h-4 w-4" />Accedi
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <FolderOpen className="h-4 w-4" />{praticheCounts[c.id] || 0}
-                  </div>
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Users className="h-4 w-4" />{userCounts[c.id] || 0}
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">€ {c.wallet_balance.toFixed(2)}</p>
-                    <Button variant="ghost" size="sm" className="h-auto p-0 text-xs text-primary" onClick={() => setShowTopup(c.id)}>
-                      <CreditCard className="mr-1 h-3 w-3" />Ricarica
-                    </Button>
-                  </div>
-                  {superAdmin && (
-                    <Button variant="outline" size="sm" onClick={() => { setImpersonatedCompany(c.id, c.ragione_sociale); navigate("/"); }}>
-                      <LogIn className="mr-1 h-4 w-4" />Accedi
-                    </Button>
+
+                  {/* Mini-badges breakdown per stato */}
+                  {totalPratiche > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pl-16">
+                      {(Object.entries(STATO_BADGE) as [PraticaStato, typeof STATO_BADGE[PraticaStato]][]).map(([stato, cfg]) => {
+                        const count = statoCounts[stato] || 0;
+                        if (count === 0) return null;
+                        const Icon = cfg.icon;
+                        return (
+                          <Badge key={stato} variant="outline" className={`text-[10px] gap-1 ${cfg.className}`}>
+                            <Icon className="h-3 w-3" />
+                            {cfg.label}: {count}
+                          </Badge>
+                        );
+                      })}
+                    </div>
                   )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 

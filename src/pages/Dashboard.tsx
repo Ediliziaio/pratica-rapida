@@ -12,6 +12,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   FolderOpen, Clock, FileCheck, Wallet, TrendingUp, AlertCircle,
   ArrowRight, Plus, CreditCard, FileEdit, Ban, CheckCircle2,
+  Building2, Send,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
@@ -64,6 +65,15 @@ export default function Dashboard() {
     queryKey: ["all-pratiche-stats"],
     queryFn: async () => {
       const { data } = await supabase.from("pratiche").select("stato, prezzo, created_at, company_id, pagamento_stato");
+      return data || [];
+    },
+    enabled: isInternalUser,
+  });
+
+  const { data: allCompanies = [] } = useQuery({
+    queryKey: ["all-companies-dashboard"],
+    queryFn: async () => {
+      const { data } = await supabase.from("companies").select("id, ragione_sociale");
       return data || [];
     },
     enabled: isInternalUser,
@@ -123,14 +133,94 @@ export default function Dashboard() {
 
   const recentPratiche = pratiche.slice(0, 5);
 
-  // Internal KPIs
+  // ---- Internal KPIs ----
   const totalRevenue = allPratiche.reduce((s, p) => s + (p.prezzo || 0), 0);
   const totalPratiche = allPratiche.length;
   const completate = allPratiche.filter(p => p.stato === "completata").length;
   const backlog = allPratiche.filter(p => !["completata", "annullata"].includes(p.stato)).length;
 
+  // Monthly variations for internal KPIs
+  const revenueThisMonth = allPratiche.filter(p => {
+    const d = new Date(p.created_at);
+    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+  }).reduce((s, p) => s + (p.prezzo || 0), 0);
+  const revenueLastMonth = allPratiche.filter(p => {
+    const d = new Date(p.created_at);
+    return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+  }).reduce((s, p) => s + (p.prezzo || 0), 0);
+  const revenueDiff = revenueThisMonth - revenueLastMonth;
+
+  const praticheThisMonth = allPratiche.filter(p => {
+    const d = new Date(p.created_at);
+    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+  }).length;
+  const praticheLastMonth = allPratiche.filter(p => {
+    const d = new Date(p.created_at);
+    return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+  }).length;
+  const praticheDiff = praticheThisMonth - praticheLastMonth;
+
+  const completateThisMonthGlobal = allPratiche.filter(p => {
+    const d = new Date(p.created_at);
+    return p.stato === "completata" && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+  }).length;
+  const completateLastMonthGlobal = allPratiche.filter(p => {
+    const d = new Date(p.created_at);
+    return p.stato === "completata" && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+  }).length;
+  const completateDiffGlobal = completateThisMonthGlobal - completateLastMonthGlobal;
+
+  // Global chart data
+  const globalChartData = useMemo(() => {
+    const months: { name: string; completate: number; in_corso: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(thisYear, thisMonth - i, 1);
+      const m = d.getMonth();
+      const y = d.getFullYear();
+      const monthPratiche = allPratiche.filter(p => {
+        const pd = new Date(p.created_at);
+        return pd.getMonth() === m && pd.getFullYear() === y;
+      });
+      months.push({
+        name: MONTH_NAMES[m],
+        completate: monthPratiche.filter(p => p.stato === "completata").length,
+        in_corso: monthPratiche.filter(p => !["completata", "annullata"].includes(p.stato)).length,
+      });
+    }
+    return months;
+  }, [allPratiche, thisMonth, thisYear]);
+
+  // Top 5 aziende per pratiche
+  const top5Aziende = useMemo(() => {
+    const counts: Record<string, number> = {};
+    allPratiche.forEach(p => { counts[p.company_id] = (counts[p.company_id] || 0) + 1; });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([id, count]) => ({
+        id,
+        name: allCompanies.find(c => c.id === id)?.ragione_sociale || "—",
+        count,
+      }));
+  }, [allPratiche, allCompanies]);
+
+  // Pratiche in attesa (inviate + in_attesa_documenti) globali
+  const praticheInAttesa = allPratiche.filter(p => p.stato === "inviata" || p.stato === "in_attesa_documenti").length;
+  const praticheInviate = allPratiche.filter(p => p.stato === "inviata").length;
+  const praticheAttesaDocGlobal = allPratiche.filter(p => p.stato === "in_attesa_documenti").length;
+
   const diffAperte = aperte - aperteMesePrec;
   const diffCompletate = completateMese - completateMesePrec;
+
+  const DiffBadge = ({ diff, invert }: { diff: number; invert?: boolean }) => {
+    if (diff === 0) return null;
+    const positive = invert ? diff < 0 : diff > 0;
+    return (
+      <span className={`text-xs ${positive ? "text-success" : "text-destructive"}`}>
+        {diff > 0 ? "+" : ""}{diff} vs mese prec.
+      </span>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -208,7 +298,6 @@ export default function Dashboard() {
 
           {/* Chart + Recent practices */}
           <div className="grid gap-4 lg:grid-cols-2">
-            {/* Monthly chart */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium">Andamento ultimi 6 mesi</CardTitle>
@@ -227,7 +316,6 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* Recent practices */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-sm font-medium">Pratiche recenti</CardTitle>
@@ -287,27 +375,38 @@ export default function Dashboard() {
           <div className="border-t pt-6">
             <h2 className="font-display text-lg font-semibold mb-4">📊 KPI Interni</h2>
           </div>
+
+          {/* KPI con variazioni */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Revenue Totale</CardTitle>
                 <TrendingUp className="h-4 w-4 text-success" />
               </CardHeader>
-              <CardContent><div className="text-3xl font-bold">€ {totalRevenue.toFixed(2)}</div></CardContent>
+              <CardContent>
+                <div className="text-3xl font-bold">€ {totalRevenue.toFixed(2)}</div>
+                <DiffBadge diff={revenueDiff} />
+              </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Pratiche Totali</CardTitle>
                 <FolderOpen className="h-4 w-4 text-primary" />
               </CardHeader>
-              <CardContent><div className="text-3xl font-bold">{totalPratiche}</div></CardContent>
+              <CardContent>
+                <div className="text-3xl font-bold">{totalPratiche}</div>
+                <DiffBadge diff={praticheDiff} />
+              </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Completate</CardTitle>
                 <FileCheck className="h-4 w-4 text-success" />
               </CardHeader>
-              <CardContent><div className="text-3xl font-bold">{completate}</div></CardContent>
+              <CardContent>
+                <div className="text-3xl font-bold">{completate}</div>
+                <DiffBadge diff={completateDiffGlobal} />
+              </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -315,6 +414,72 @@ export default function Dashboard() {
                 <Clock className="h-4 w-4 text-warning" />
               </CardHeader>
               <CardContent><div className="text-3xl font-bold">{backlog}</div></CardContent>
+            </Card>
+          </div>
+
+          {/* Alert pratiche in attesa */}
+          {praticheInAttesa > 0 && (
+            <Card className="border-warning/50 bg-warning/5">
+              <CardContent className="flex items-center gap-4 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-warning/10">
+                  <AlertCircle className="h-5 w-5 text-warning" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold">⚠️ {praticheInAttesa} pratiche richiedono attenzione</p>
+                  <p className="text-sm text-muted-foreground">
+                    {praticheInviate > 0 && <span>{praticheInviate} inviate (non ancora prese in carico)</span>}
+                    {praticheInviate > 0 && praticheAttesaDocGlobal > 0 && " · "}
+                    {praticheAttesaDocGlobal > 0 && <span>{praticheAttesaDocGlobal} in attesa documenti</span>}
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => navigate("/admin/pratiche")}>
+                  Gestisci <ArrowRight className="ml-1 h-3 w-3" />
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Grafico globale + Top 5 aziende */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Andamento globale (tutte le aziende)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={chartConfig} className="h-[220px] w-full">
+                  <BarChart data={globalChartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="completate" fill="var(--color-completate)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="in_corso" fill="var(--color-in_corso)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">🏆 Top 5 Aziende per pratiche</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {top5Aziende.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">Nessun dato.</p>
+                ) : (
+                  top5Aziende.map((a, i) => (
+                    <div key={a.id} className="flex items-center gap-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                        {i + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{a.name}</p>
+                      </div>
+                      <Badge variant="outline">{a.count} pratiche</Badge>
+                    </div>
+                  ))
+                )}
+              </CardContent>
             </Card>
           </div>
         </>

@@ -15,6 +15,7 @@ import PraticaDetail from "./pages/PraticaDetail";
 import Aziende from "./pages/Aziende";
 import Utenti from "./pages/Utenti";
 import CodaPratiche from "./pages/CodaPratiche";
+import AdminPratiche from "./pages/AdminPratiche";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="/aziende" element={<ProtectedRoute><Aziende /></ProtectedRoute>} />
             <Route path="/utenti" element={<ProtectedRoute><Utenti /></ProtectedRoute>} />
             <Route path="/coda-pratiche" element={<ProtectedRoute><CodaPratiche /></ProtectedRoute>} />
+            <Route path="/admin/pratiche" element={<ProtectedRoute><AdminPratiche /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

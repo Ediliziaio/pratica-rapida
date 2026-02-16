@@ -65,9 +65,9 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <div className="flex items-center gap-3 px-2 py-4">
               {collapsed ? (
-                <img src="/impresa-logo.png" alt="Pratica Rapida" className="h-9 w-9 shrink-0 rounded-xl object-cover" />
+                <img src="/pratica-rapida-logo.png" alt="Pratica Rapida" className="h-9 w-9 shrink-0 rounded-xl object-cover" />
               ) : (
-                <img src="/impresa-logo.png" alt="Pratica Rapida" className="h-9" />
+                <img src="/pratica-rapida-logo.png" alt="Pratica Rapida" className="h-9" />
               )}
             </div>
           </SidebarGroupContent>

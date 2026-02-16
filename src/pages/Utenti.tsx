@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Shield, Search, UserPlus, X, Building2, Plus } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
@@ -42,6 +42,10 @@ export default function Utenti() {
   const [newRole, setNewRole] = useState<AppRole | "">("");
   const [assignCompanyUser, setAssignCompanyUser] = useState<string | null>(null);
   const [selectedCompany, setSelectedCompany] = useState("");
+  
+  // New user dialog state
+  const [showNewUser, setShowNewUser] = useState(false);
+  const [newUserForm, setNewUserForm] = useState({ nome: "", cognome: "", email: "", password: "", role: "" as AppRole | "" });
 
   // Fetch all profiles (internal users can see all)
   const { data: profiles = [], isLoading } = useQuery({
@@ -133,6 +137,36 @@ export default function Utenti() {
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
 
+  // Create user mutation via edge function
+  const createUser = useMutation({
+    mutationFn: async (form: typeof newUserForm) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Non autenticato");
+
+      const response = await supabase.functions.invoke("create-user", {
+        body: {
+          email: form.email,
+          password: form.password,
+          nome: form.nome,
+          cognome: form.cognome,
+          role: form.role,
+        },
+      });
+
+      if (response.error) throw new Error(response.error.message);
+      if (response.data?.error) throw new Error(response.data.error);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-all-roles"] });
+      setShowNewUser(false);
+      setNewUserForm({ nome: "", cognome: "", email: "", password: "", role: "" });
+      toast({ title: "Utente creato con successo" });
+    },
+    onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
   const filtered = profiles.filter(p =>
     `${p.nome} ${p.cognome} ${p.email}`.toLowerCase().includes(search.toLowerCase())
   );
@@ -142,9 +176,15 @@ export default function Utenti() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight">Utenti & Ruoli</h1>
-        <p className="text-muted-foreground">Gestisci utenti, ruoli e assegnazioni aziendali</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Utenti & Ruoli</h1>
+          <p className="text-muted-foreground">Gestisci utenti, ruoli e assegnazioni aziendali</p>
+        </div>
+        <Button onClick={() => setShowNewUser(true)}>
+          <UserPlus className="mr-2 h-4 w-4" />
+          Nuovo Utente
+        </Button>
       </div>
 
       <div className="relative">
@@ -257,6 +297,54 @@ export default function Utenti() {
           })}
         </div>
       )}
+
+      {/* New User Dialog */}
+      <Dialog open={showNewUser} onOpenChange={setShowNewUser}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Crea Nuovo Utente</DialogTitle>
+            <DialogDescription>Crea un nuovo utente con ruolo assegnato. L'utente potrà accedere immediatamente.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Nome</Label>
+                <Input value={newUserForm.nome} onChange={e => setNewUserForm(f => ({ ...f, nome: e.target.value }))} placeholder="Mario" />
+              </div>
+              <div>
+                <Label>Cognome</Label>
+                <Input value={newUserForm.cognome} onChange={e => setNewUserForm(f => ({ ...f, cognome: e.target.value }))} placeholder="Rossi" />
+              </div>
+            </div>
+            <div>
+              <Label>Email</Label>
+              <Input type="email" value={newUserForm.email} onChange={e => setNewUserForm(f => ({ ...f, email: e.target.value }))} placeholder="mario@esempio.it" />
+            </div>
+            <div>
+              <Label>Password</Label>
+              <Input type="password" value={newUserForm.password} onChange={e => setNewUserForm(f => ({ ...f, password: e.target.value }))} placeholder="Minimo 6 caratteri" />
+            </div>
+            <div>
+              <Label>Ruolo</Label>
+              <Select value={newUserForm.role} onValueChange={v => setNewUserForm(f => ({ ...f, role: v as AppRole }))}>
+                <SelectTrigger><SelectValue placeholder="Seleziona ruolo..." /></SelectTrigger>
+                <SelectContent>
+                  {Constants.public.Enums.app_role.map(r => (
+                    <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              className="w-full"
+              disabled={!newUserForm.nome || !newUserForm.cognome || !newUserForm.email || !newUserForm.password || !newUserForm.role || createUser.isPending}
+              onClick={() => createUser.mutate(newUserForm)}
+            >
+              {createUser.isPending ? "Creazione in corso..." : "Crea Utente"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

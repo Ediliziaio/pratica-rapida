@@ -4,7 +4,7 @@ import {
   FilePlus,
   Wallet,
   Building2,
-  Shield,
+  Settings,
   ListChecks,
   LogOut,
 } from "lucide-react";
@@ -37,8 +37,7 @@ export function AppSidebar() {
   const azienda = isAzienda(roles);
 
   const showAzienda = azienda || isImpersonating || !roles.length;
-  const showInternal = internal && !isImpersonating;
-  const showSuperAdmin = superAdmin && !isImpersonating;
+  const showInternal = internal;
 
   const aziendaItems = [
     { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -49,12 +48,9 @@ export function AppSidebar() {
 
   const internalItems = [
     { title: "Dashboard", url: "/", icon: LayoutDashboard },
-    { title: "Coda Pratiche", url: "/coda-pratiche", icon: ListChecks },
     { title: "Aziende", url: "/aziende", icon: Building2 },
-  ];
-
-  const superAdminItems = [
-    { title: "Utenti & Ruoli", url: "/utenti", icon: Shield },
+    { title: "Attività", url: "/coda-pratiche", icon: ListChecks },
+    { title: "Impostazioni", url: "/utenti", icon: Settings },
   ];
 
   return (
@@ -95,35 +91,15 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {showInternal && (
+        {showInternal && !isImpersonating && (
           <SidebarGroup>
-            <SidebarGroupLabel>Area Interna</SidebarGroupLabel>
+            <SidebarGroupLabel>Super Admin</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {internalItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
                       <NavLink to={item.url} end={item.url === "/"} className="hover:bg-accent" activeClassName="bg-accent text-primary font-medium">
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {showSuperAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Super Admin</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {superAdminItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
-                      <NavLink to={item.url} className="hover:bg-accent" activeClassName="bg-accent text-primary font-medium">
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </NavLink>

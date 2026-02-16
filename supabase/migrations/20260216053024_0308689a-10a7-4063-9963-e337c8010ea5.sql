@@ -1,0 +1,23 @@
+
+ALTER TABLE public.fatture
+ADD COLUMN IF NOT EXISTS oggetto_interno text DEFAULT '',
+ADD COLUMN IF NOT EXISTS numerazione text DEFAULT 'principale',
+ADD COLUMN IF NOT EXISTS centro_ricavo text DEFAULT '',
+ADD COLUMN IF NOT EXISTS pubblica_amministrazione boolean DEFAULT false,
+ADD COLUMN IF NOT EXISTS codice_destinatario text DEFAULT '',
+ADD COLUMN IF NOT EXISTS indirizzo_pec text DEFAULT '',
+ADD COLUMN IF NOT EXISTS esigibilita_iva text DEFAULT 'non_specificata',
+ADD COLUMN IF NOT EXISTS emesso_in_seguito_a text DEFAULT 'non_specificato',
+ADD COLUMN IF NOT EXISTS nome_istituto_credito text DEFAULT '',
+ADD COLUMN IF NOT EXISTS iban text DEFAULT '',
+ADD COLUMN IF NOT EXISTS nome_beneficiario text DEFAULT '',
+ADD COLUMN IF NOT EXISTS documento_trasporto boolean DEFAULT false,
+ADD COLUMN IF NOT EXISTS fatt_accompagnatoria boolean DEFAULT false,
+ADD COLUMN IF NOT EXISTS marca_bollo boolean DEFAULT false,
+ADD COLUMN IF NOT EXISTS sconto_maggiorazione_totale boolean DEFAULT false,
+ADD COLUMN IF NOT EXISTS cassa_professionisti boolean DEFAULT false,
+ADD COLUMN IF NOT EXISTS rivalsa boolean DEFAULT true,
+ADD COLUMN IF NOT EXISTS rivalsa_pct numeric DEFAULT 4,
+ADD COLUMN IF NOT EXISTS rivalsa_base_pct numeric DEFAULT 100,
+ADD COLUMN IF NOT EXISTS ritenuta_acconto boolean DEFAULT false,
+ADD COLUMN IF NOT EXISTS altra_ritenuta boolean DEFAULT false;

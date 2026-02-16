@@ -1,73 +1,67 @@
 
 
-# Miglioramento Dashboard e Pratiche con vista Pipeline
+# Drag & Drop Pipeline + Filtri Data/Cliente
 
-## Dashboard - Miglioramenti
+## 1. Drag & Drop nella Pipeline
 
-La dashboard attuale mostra solo KPI statici in card. Verra' arricchita con:
+Installare `@dnd-kit/core` e `@dnd-kit/sortable` (libreria leggera e moderna per React DnD) e integrarlo nella `PipelineView`.
 
-### 1. Pratiche recenti
-- Aggiungere una sezione sotto le card KPI che mostra le ultime 5 pratiche con stato, cliente e data
-- Click su una pratica porta al dettaglio
-- Link "Vedi tutte" che porta a `/pratiche`
+### Comportamento
+- Ogni card pratica diventa **draggable**
+- Ogni colonna di stato diventa una **drop zone**
+- Trascinando una card da una colonna all'altra, lo stato della pratica viene aggiornato nel database
+- Feedback visivo: la colonna di destinazione si evidenzia durante il drag
+- Aggiornamento ottimistico: la card si sposta subito, poi conferma col database
+- Toast di conferma dopo lo spostamento (es. "Pratica spostata in In Lavorazione")
 
-### 2. Grafico andamento mensile
-- Usare `recharts` (gia' installato) per un grafico a barre che mostra pratiche create negli ultimi 6 mesi
-- Raggruppamento per mese con colori per stato (completate vs in lavorazione)
+### Implementazione tecnica
+- Wrappare la `PipelineView` con `DndContext` di `@dnd-kit/core`
+- Ogni colonna usa `useDroppable` con id = stato
+- Ogni card usa `useDraggable` con id = pratica.id
+- `onDragEnd`: se la colonna di destinazione e' diversa da quella di origine, eseguire `supabase.from("pratiche").update({ stato: newStato }).eq("id", praticaId)`
+- Invalidare la query `["pratiche", companyId]` dopo l'update
 
-### 3. Card KPI migliorate
-- Aggiungere sotto-testo con variazione rispetto al mese precedente (es. "+3 rispetto al mese scorso")
-- Aggiungere progress bar nella card "Completate (mese)" per mostrare il rapporto completate/totali
+## 2. Filtri per Data e Cliente
 
-### 4. Azioni rapide
-- Sezione con bottoni per azioni frequenti: "Nuova Pratica", "Ricarica Wallet"
+Aggiungere nella barra filtri (sopra la lista/pipeline):
 
----
+### Filtro per data
+- Un **date range picker** con due campi "Da" e "A" usando il componente `Calendar` + `Popover` gia' presenti
+- Filtra le pratiche per `created_at` nel range selezionato
+- Bottone "Reset" per togliere il filtro data
 
-## Pratiche - Vista Pipeline (Kanban)
+### Filtro per cliente
+- Un **Select** (combobox) che mostra la lista dei clienti unici presenti nelle pratiche
+- Popolato dai dati gia' caricati (nomi unici da `clienti_finali`)
+- Opzione "Tutti i clienti" per resettare
 
-La pagina Pratiche attualmente mostra solo una lista. Verra' aggiunta una vista pipeline/kanban con toggle per passare tra le due visualizzazioni.
+### Layout filtri
+I filtri saranno in una riga sotto la barra di ricerca, visibili in entrambe le viste (lista e pipeline):
 
-### 1. Toggle Lista/Pipeline
-- Aggiungere due bottoni icona (lista e griglia/kanban) sopra i filtri
-- Lo stato viene salvato in `useState`
-
-### 2. Vista Pipeline (Kanban)
-- Colonne orizzontali scrollabili, una per ogni stato: Bozza, Inviata, In Lavorazione, Attesa Documenti, Completata, Annullata
-- Ogni colonna mostra:
-  - Header con nome stato, icona e conteggio pratiche
-  - Card pratica compatte con: titolo, nome cliente, prezzo
-- Click sulla card porta al dettaglio della pratica
-- Le colonne vuote mostrano un placeholder discreto
-
-### 3. Contatori per stato
-- Sopra la pipeline, mostrare badge con il conteggio per ogni stato (gia' presente, verra' mantenuto)
-
----
+```text
+[Cerca pratiche...______] [Lista|Pipeline]
+[Da: gg/mm/aaaa] [A: gg/mm/aaaa] [Cliente: Tutti ▼] [Reset filtri]
+```
 
 ## Dettagli tecnici
 
 | File | Modifica |
 |------|----------|
-| `src/pages/Dashboard.tsx` | Aggiungere sezione pratiche recenti, grafico recharts, azioni rapide |
-| `src/pages/Pratiche.tsx` | Aggiungere toggle lista/pipeline, implementare vista Kanban con colonne per stato |
+| `package.json` | Aggiungere `@dnd-kit/core` e `@dnd-kit/utilities` |
+| `src/pages/Pratiche.tsx` | Aggiungere stati per filtri data/cliente, logica di filtro, UI filtri, integrare DnD nella PipelineView |
 
-### Vista Pipeline - Struttura UI
+### Nuove dipendenze
+- `@dnd-kit/core` - gestione drag & drop
+- `@dnd-kit/utilities` - utility CSS per trasformazioni
 
-Ogni colonna della pipeline sara' un contenitore verticale con scroll interno:
+### Nuovi stati nel componente Pratiche
+- `filterDateFrom: Date | undefined`
+- `filterDateTo: Date | undefined`
+- `filterCliente: string` (id del cliente o stringa vuota per "tutti")
 
-```text
-+----------+----------+----------+----------+----------+----------+
-|  Bozza   | Inviata  |In Lavor. | Att.Doc  |Completat.| Annullat.|
-|  (2)     |  (3)     |  (1)     |  (2)     |  (5)     |  (0)     |
-+----------+----------+----------+----------+----------+----------+
-| [Card 1] | [Card 1] | [Card 1] | [Card 1] | [Card 1] |          |
-| [Card 2] | [Card 2] |          | [Card 2] | [Card 2] | Nessuna  |
-|          | [Card 3] |          |          | [Card 3] | pratica  |
-|          |          |          |          | [Card 4] |          |
-|          |          |          |          | [Card 5] |          |
-+----------+----------+----------+----------+----------+----------+
-```
-
-Le colonne saranno scrollabili orizzontalmente su mobile e avranno una larghezza minima fissa su desktop.
+### Logica di filtro aggiornata
+Il filtro `filtered` terra' conto anche di:
+- `created_at >= filterDateFrom` (se impostato)
+- `created_at <= filterDateTo` (se impostato)
+- `cliente_finale_id === filterCliente` (se impostato)
 

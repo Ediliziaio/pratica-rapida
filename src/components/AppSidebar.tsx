@@ -1,15 +1,11 @@
 import {
   LayoutDashboard,
-  Users,
   FolderOpen,
   FilePlus,
-  FileText,
   Wallet,
   Building2,
-  Settings,
-  ListChecks,
-  BarChart3,
   Shield,
+  ListChecks,
   LogOut,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
@@ -46,10 +42,8 @@ export function AppSidebar() {
 
   const aziendaItems = [
     { title: "Dashboard", url: "/", icon: LayoutDashboard },
-    { title: "Clienti", url: "/clienti", icon: Users },
-    { title: "Nuova Pratica", url: "/pratiche/nuova", icon: FilePlus },
+    { title: "Nuova Pratica ENEA", url: "/pratiche/nuova", icon: FilePlus },
     { title: "Pratiche", url: "/pratiche", icon: FolderOpen },
-    { title: "Fatturazione", url: "/fatturazione", icon: FileText },
     { title: "Wallet", url: "/wallet", icon: Wallet },
   ];
 
@@ -61,8 +55,6 @@ export function AppSidebar() {
 
   const superAdminItems = [
     { title: "Utenti & Ruoli", url: "/utenti", icon: Shield },
-    { title: "Listino Servizi", url: "/listino", icon: Settings },
-    { title: "Analytics", url: "/analytics", icon: BarChart3 },
   ];
 
   return (
@@ -73,9 +65,9 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <div className="flex items-center gap-3 px-2 py-4">
               {collapsed ? (
-                <img src="/impresa-logo.png" alt="Impresa Leggera" className="h-9 w-9 shrink-0 rounded-xl object-cover" />
+                <img src="/impresa-logo.png" alt="Pratica Rapida" className="h-9 w-9 shrink-0 rounded-xl object-cover" />
               ) : (
-                <img src="/impresa-logo.png" alt="Impresa Leggera" className="h-9" />
+                <img src="/impresa-logo.png" alt="Pratica Rapida" className="h-9" />
               )}
             </div>
           </SidebarGroupContent>
@@ -83,7 +75,6 @@ export function AppSidebar() {
 
         <Separator />
 
-        {/* Azienda section */}
         {showAzienda && (
           <SidebarGroup>
             <SidebarGroupLabel>Area Azienda</SidebarGroupLabel>
@@ -104,7 +95,6 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Internal section */}
         {showInternal && (
           <SidebarGroup>
             <SidebarGroupLabel>Area Interna</SidebarGroupLabel>
@@ -125,7 +115,6 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Super Admin section */}
         {showSuperAdmin && (
           <SidebarGroup>
             <SidebarGroupLabel>Super Admin</SidebarGroupLabel>

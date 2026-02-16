@@ -25,14 +25,6 @@ const STATO_CONFIG: Record<PraticaStato, { label: string; color: string; icon: a
   annullata: { label: "Annullata", color: "bg-muted text-muted-foreground", icon: Ban },
 };
 
-const CATEGORY_LABELS: Record<string, string> = {
-  fatturazione: "Fatturazione",
-  enea_bonus: "ENEA / Bonus",
-  finanziamenti: "Finanziamenti",
-  pratiche_edilizie: "Pratiche Edilizie",
-  altro: "Altro",
-};
-
 export default function PraticaDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -48,7 +40,7 @@ export default function PraticaDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pratiche")
-        .select("*, clienti_finali(nome, cognome, email), service_catalog(nome, categoria)")
+        .select("*, clienti_finali(nome, cognome, email, codice_fiscale, telefono, indirizzo), service_catalog(nome)")
         .eq("id", id!)
         .single();
       if (error) throw error;
@@ -83,6 +75,8 @@ export default function PraticaDetail() {
 
   const statoConf = STATO_CONFIG[pratica.stato];
   const Icon = statoConf.icon;
+  const datiPratica = (pratica.dati_pratica as any) || {};
+  const cliente = pratica.clienti_finali as any;
 
   return (
     <div className="space-y-6">
@@ -93,63 +87,104 @@ export default function PraticaDetail() {
         <div className="flex-1">
           <h1 className="font-display text-2xl font-bold tracking-tight">{pratica.titolo}</h1>
           <div className="flex items-center gap-2 mt-1">
-            <Badge variant="outline">{CATEGORY_LABELS[pratica.categoria] || pratica.categoria}</Badge>
+            <Badge variant="outline">Pratica ENEA</Badge>
             <Badge className={statoConf.color}><Icon className="mr-1 h-3 w-3" />{statoConf.label}</Badge>
           </div>
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Details */}
         <div className="space-y-4 lg:col-span-2">
+          {/* Cliente info */}
+          {cliente && (
+            <Card>
+              <CardHeader><CardTitle>Dati Cliente</CardTitle></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Nome</span>
+                    <p className="font-medium">{cliente.nome} {cliente.cognome}</p>
+                  </div>
+                  {cliente.codice_fiscale && (
+                    <div>
+                      <span className="text-muted-foreground">Codice Fiscale</span>
+                      <p className="font-medium">{cliente.codice_fiscale}</p>
+                    </div>
+                  )}
+                  {cliente.email && (
+                    <div>
+                      <span className="text-muted-foreground">Email</span>
+                      <p className="font-medium">{cliente.email}</p>
+                    </div>
+                  )}
+                  {cliente.telefono && (
+                    <div>
+                      <span className="text-muted-foreground">Telefono</span>
+                      <p className="font-medium">{cliente.telefono}</p>
+                    </div>
+                  )}
+                  {cliente.indirizzo && (
+                    <div className="col-span-2">
+                      <span className="text-muted-foreground">Indirizzo immobile</span>
+                      <p className="font-medium">{cliente.indirizzo}</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Dati ENEA */}
           <Card>
-            <CardHeader><CardTitle>Dettagli</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
+            <CardHeader><CardTitle>Dati Pratica ENEA</CardTitle></CardHeader>
+            <CardContent>
               <div className="grid grid-cols-2 gap-4 text-sm">
+                {datiPratica.tipo_intervento && (
+                  <div>
+                    <span className="text-muted-foreground">Tipo Intervento</span>
+                    <p className="font-medium">{datiPratica.tipo_intervento}</p>
+                  </div>
+                )}
+                {datiPratica.dati_catastali && (
+                  <div>
+                    <span className="text-muted-foreground">Dati Catastali</span>
+                    <p className="font-medium">{datiPratica.dati_catastali}</p>
+                  </div>
+                )}
+                {datiPratica.data_fine_lavori && (
+                  <div>
+                    <span className="text-muted-foreground">Data Fine Lavori</span>
+                    <p className="font-medium">{new Date(datiPratica.data_fine_lavori).toLocaleDateString("it-IT")}</p>
+                  </div>
+                )}
+                {datiPratica.importo_lavori > 0 && (
+                  <div>
+                    <span className="text-muted-foreground">Importo Lavori</span>
+                    <p className="font-medium">€ {datiPratica.importo_lavori.toFixed(2)}</p>
+                  </div>
+                )}
                 <div>
-                  <span className="text-muted-foreground">Servizio</span>
-                  <p className="font-medium">{(pratica.service_catalog as any)?.nome || "—"}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Cliente</span>
-                  <p className="font-medium">
-                    {pratica.clienti_finali ? `${(pratica.clienti_finali as any).nome} ${(pratica.clienti_finali as any).cognome}` : "—"}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Priorità</span>
-                  <p className="font-medium capitalize">{pratica.priorita}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Prezzo</span>
+                  <span className="text-muted-foreground">Prezzo Servizio</span>
                   <p className="font-medium">€ {pratica.prezzo.toFixed(2)}</p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Pagamento</span>
                   <Badge variant="outline" className="capitalize">{pratica.pagamento_stato.replace("_", " ")}</Badge>
                 </div>
-                <div>
-                  <span className="text-muted-foreground">Creata</span>
-                  <p className="font-medium">{new Date(pratica.created_at).toLocaleDateString("it-IT")}</p>
-                </div>
               </div>
               {pratica.descrizione && (
-                <div className="border-t pt-3">
-                  <span className="text-sm text-muted-foreground">Descrizione</span>
+                <div className="border-t pt-3 mt-3">
+                  <span className="text-sm text-muted-foreground">Note</span>
                   <p className="mt-1 text-sm">{pratica.descrizione}</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Documents */}
           <DocumentUpload praticaId={pratica.id} companyId={pratica.company_id} />
-
-          {/* Chat */}
           <PracticeChat praticaId={pratica.id} companyId={pratica.company_id} />
         </div>
 
-        {/* Sidebar actions */}
         <div className="space-y-4">
           {isInternalUser && (
             <Card>
@@ -167,7 +202,6 @@ export default function PraticaDetail() {
             </Card>
           )}
 
-          {/* Checklist */}
           <ChecklistPanel praticaId={pratica.id} companyId={pratica.company_id} serviceId={pratica.service_id} />
 
           <Card>
@@ -177,16 +211,16 @@ export default function PraticaDetail() {
                 <p className="text-sm text-muted-foreground">Completa i dati e invia la pratica.</p>
               )}
               {pratica.stato === "inviata" && (
-                <p className="text-sm text-muted-foreground">La pratica è in attesa di presa in carico.</p>
+                <p className="text-sm text-muted-foreground">La pratica è in attesa di presa in carico da Pratica Rapida.</p>
               )}
               {pratica.stato === "in_lavorazione" && (
-                <p className="text-sm text-muted-foreground">La pratica è in fase di lavorazione. Riceverai aggiornamenti.</p>
+                <p className="text-sm text-muted-foreground">La pratica ENEA è in fase di lavorazione. Riceverai aggiornamenti.</p>
               )}
               {pratica.stato === "in_attesa_documenti" && (
                 <p className="text-sm text-warning">Documenti mancanti! Carica i documenti richiesti.</p>
               )}
               {pratica.stato === "completata" && (
-                <p className="text-sm text-success">Pratica completata con successo!</p>
+                <p className="text-sm text-success">Pratica ENEA completata con successo!</p>
               )}
               {pratica.stato === "annullata" && (
                 <p className="text-sm text-muted-foreground">Questa pratica è stata annullata.</p>

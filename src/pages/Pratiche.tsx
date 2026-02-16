@@ -11,12 +11,14 @@ import type { Database } from "@/integrations/supabase/types";
 import { STATO_ORDER, STATO_CONFIG, ListView } from "@/components/pratiche/PraticaCard";
 import { PipelineView } from "@/components/pratiche/PipelineView";
 import { PraticheFilters } from "@/components/pratiche/PraticheFilters";
+import { usePraticheRealtime } from "@/hooks/usePraticheRealtime";
 
 type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
 type ViewMode = "list" | "pipeline";
 
 export default function Pratiche() {
   const { companyId } = useCompany();
+  usePraticheRealtime();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filterStato, setFilterStato] = useState<PraticaStato | "">("");

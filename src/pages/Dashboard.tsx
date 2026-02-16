@@ -1,11 +1,33 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FolderOpen, Clock, FileCheck, Wallet, TrendingUp, AlertCircle, ArrowRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import {
+  FolderOpen, Clock, FileCheck, Wallet, TrendingUp, AlertCircle,
+  ArrowRight, Plus, CreditCard, FileEdit, Ban, CheckCircle2,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import type { Database } from "@/integrations/supabase/types";
+
+type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
+
+const STATO_CONFIG: Record<PraticaStato, { label: string; color: string; icon: any }> = {
+  bozza: { label: "Bozza", color: "bg-muted text-muted-foreground", icon: FileEdit },
+  inviata: { label: "Inviata", color: "bg-primary/10 text-primary", icon: Clock },
+  in_lavorazione: { label: "In Lavorazione", color: "bg-warning/10 text-warning", icon: AlertCircle },
+  in_attesa_documenti: { label: "Attesa Documenti", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
+  completata: { label: "Completata", color: "bg-success/10 text-success", icon: CheckCircle2 },
+  annullata: { label: "Annullata", color: "bg-muted text-muted-foreground", icon: Ban },
+};
+
+const MONTH_NAMES = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
 
 export default function Dashboard() {
   const { user, roles } = useAuth();
@@ -25,10 +47,14 @@ export default function Dashboard() {
   });
 
   const { data: pratiche = [] } = useQuery({
-    queryKey: ["pratiche-stats", companyId],
+    queryKey: ["pratiche-dashboard", companyId],
     queryFn: async () => {
       if (!companyId) return [];
-      const { data } = await supabase.from("pratiche").select("stato, prezzo, created_at").eq("company_id", companyId);
+      const { data } = await supabase
+        .from("pratiche")
+        .select("id, titolo, stato, prezzo, created_at, clienti_finali(nome, cognome)")
+        .eq("company_id", companyId)
+        .order("created_at", { ascending: false });
       return data || [];
     },
     enabled: !!companyId,
@@ -46,6 +72,8 @@ export default function Dashboard() {
   const now = new Date();
   const thisMonth = now.getMonth();
   const thisYear = now.getFullYear();
+  const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+  const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
 
   const aperte = pratiche.filter(p => !["completata", "annullata"].includes(p.stato)).length;
   const attesaDoc = pratiche.filter(p => p.stato === "in_attesa_documenti").length;
@@ -53,6 +81,47 @@ export default function Dashboard() {
     const d = new Date(p.created_at);
     return p.stato === "completata" && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
   }).length;
+  const completateMesePrec = pratiche.filter(p => {
+    const d = new Date(p.created_at);
+    return p.stato === "completata" && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+  }).length;
+  const aperteMesePrec = pratiche.filter(p => {
+    const d = new Date(p.created_at);
+    return !["completata", "annullata"].includes(p.stato) && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+  }).length;
+
+  const totalThisMonth = pratiche.filter(p => {
+    const d = new Date(p.created_at);
+    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+  }).length;
+  const completateProgress = totalThisMonth > 0 ? (completateMese / totalThisMonth) * 100 : 0;
+
+  // Chart data: last 6 months
+  const chartData = useMemo(() => {
+    const months: { name: string; completate: number; in_corso: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(thisYear, thisMonth - i, 1);
+      const m = d.getMonth();
+      const y = d.getFullYear();
+      const monthPratiche = pratiche.filter(p => {
+        const pd = new Date(p.created_at);
+        return pd.getMonth() === m && pd.getFullYear() === y;
+      });
+      months.push({
+        name: MONTH_NAMES[m],
+        completate: monthPratiche.filter(p => p.stato === "completata").length,
+        in_corso: monthPratiche.filter(p => !["completata", "annullata"].includes(p.stato)).length,
+      });
+    }
+    return months;
+  }, [pratiche, thisMonth, thisYear]);
+
+  const chartConfig = {
+    completate: { label: "Completate", color: "hsl(var(--success))" },
+    in_corso: { label: "In corso", color: "hsl(var(--primary))" },
+  };
+
+  const recentPratiche = pratiche.slice(0, 5);
 
   // Internal KPIs
   const totalRevenue = allPratiche.reduce((s, p) => s + (p.prezzo || 0), 0);
@@ -60,24 +129,45 @@ export default function Dashboard() {
   const completate = allPratiche.filter(p => p.stato === "completata").length;
   const backlog = allPratiche.filter(p => !["completata", "annullata"].includes(p.stato)).length;
 
+  const diffAperte = aperte - aperteMesePrec;
+  const diffCompletate = completateMese - completateMesePrec;
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight">
-          Bentornato{user?.user_metadata?.nome ? `, ${user.user_metadata.nome}` : ""}
-        </h1>
-        <p className="text-muted-foreground">Ecco la situazione delle tue pratiche ENEA.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-bold tracking-tight">
+            Bentornato{user?.user_metadata?.nome ? `, ${user.user_metadata.nome}` : ""}
+          </h1>
+          <p className="text-muted-foreground">Ecco la situazione delle tue pratiche ENEA.</p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={() => navigate("/pratiche/nuova")} size="sm">
+            <Plus className="mr-2 h-4 w-4" />Nuova Pratica
+          </Button>
+          <Button variant="outline" onClick={() => navigate("/wallet")} size="sm">
+            <CreditCard className="mr-2 h-4 w-4" />Wallet
+          </Button>
+        </div>
       </div>
 
       {companyId && (
         <>
+          {/* KPI Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Pratiche Aperte</CardTitle>
                 <FolderOpen className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
-              <CardContent><div className="text-3xl font-bold">{aperte}</div></CardContent>
+              <CardContent>
+                <div className="text-3xl font-bold">{aperte}</div>
+                {diffAperte !== 0 && (
+                  <p className={`text-xs mt-1 ${diffAperte > 0 ? "text-warning" : "text-success"}`}>
+                    {diffAperte > 0 ? "+" : ""}{diffAperte} vs mese scorso
+                  </p>
+                )}
+              </CardContent>
             </Card>
             <Card className={attesaDoc > 0 ? "border-warning/50" : ""}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -98,7 +188,14 @@ export default function Dashboard() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Completate (mese)</CardTitle>
                 <FileCheck className="h-4 w-4 text-success" />
               </CardHeader>
-              <CardContent><div className="text-3xl font-bold">{completateMese}</div></CardContent>
+              <CardContent>
+                <div className="text-3xl font-bold">{completateMese}</div>
+                <Progress value={completateProgress} className="mt-2 h-1.5" />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {completateMese}/{totalThisMonth} questo mese
+                  {diffCompletate !== 0 && <span className={diffCompletate > 0 ? " text-success" : " text-destructive"}> ({diffCompletate > 0 ? "+" : ""}{diffCompletate})</span>}
+                </p>
+              </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -109,7 +206,70 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {aperte === 0 && (
+          {/* Chart + Recent practices */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            {/* Monthly chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Andamento ultimi 6 mesi</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={chartConfig} className="h-[220px] w-full">
+                  <BarChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="completate" fill="var(--color-completate)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="in_corso" fill="var(--color-in_corso)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
+            {/* Recent practices */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-sm font-medium">Pratiche recenti</CardTitle>
+                <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate("/pratiche")}>
+                  Vedi tutte <ArrowRight className="ml-1 h-3 w-3" />
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {recentPratiche.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">Nessuna pratica ancora.</p>
+                ) : (
+                  recentPratiche.map(p => {
+                    const conf = STATO_CONFIG[p.stato as PraticaStato];
+                    const Icon = conf?.icon || FolderOpen;
+                    return (
+                      <div
+                        key={p.id}
+                        className="flex items-center gap-3 rounded-lg p-2 cursor-pointer transition-colors hover:bg-accent/50"
+                        onClick={() => navigate(`/pratiche/${p.id}`)}
+                      >
+                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${conf?.color}`}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{p.titolo}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(p.clienti_finali as any)?.nome} {(p.clienti_finali as any)?.cognome}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold">€ {p.prezzo.toFixed(2)}</p>
+                          <Badge variant="outline" className={`text-[10px] ${conf?.color}`}>{conf?.label}</Badge>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {aperte === 0 && pratiche.length === 0 && (
             <Card className="border-dashed">
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <FolderOpen className="mb-4 h-12 w-12 text-muted-foreground/40" />

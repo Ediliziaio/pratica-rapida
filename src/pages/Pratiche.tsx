@@ -1,29 +1,18 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/hooks/useCompany";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { FolderOpen, Search, Plus, Clock, CheckCircle2, AlertCircle, FileEdit, Ban, List, Columns3 } from "lucide-react";
+import { FolderOpen, Search, Plus, List, Columns3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
+import { STATO_ORDER, STATO_CONFIG, ListView } from "@/components/pratiche/PraticaCard";
+import { PipelineView } from "@/components/pratiche/PipelineView";
+import { PraticheFilters } from "@/components/pratiche/PraticheFilters";
 
 type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
-
-const STATO_ORDER: PraticaStato[] = ["bozza", "inviata", "in_lavorazione", "in_attesa_documenti", "completata", "annullata"];
-
-const STATO_CONFIG: Record<PraticaStato, { label: string; color: string; bgColumn: string; icon: any }> = {
-  bozza: { label: "Bozza", color: "bg-muted text-muted-foreground", bgColumn: "bg-muted/30", icon: FileEdit },
-  inviata: { label: "Inviata", color: "bg-primary/10 text-primary", bgColumn: "bg-primary/5", icon: Clock },
-  in_lavorazione: { label: "In Lavorazione", color: "bg-warning/10 text-warning", bgColumn: "bg-warning/5", icon: AlertCircle },
-  in_attesa_documenti: { label: "Attesa Documenti", color: "bg-destructive/10 text-destructive", bgColumn: "bg-destructive/5", icon: AlertCircle },
-  completata: { label: "Completata", color: "bg-success/10 text-success", bgColumn: "bg-success/5", icon: CheckCircle2 },
-  annullata: { label: "Annullata", color: "bg-muted text-muted-foreground", bgColumn: "bg-muted/20", icon: Ban },
-};
-
 type ViewMode = "list" | "pipeline";
 
 export default function Pratiche() {
@@ -32,6 +21,9 @@ export default function Pratiche() {
   const [search, setSearch] = useState("");
   const [filterStato, setFilterStato] = useState<PraticaStato | "">("");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>();
+  const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
+  const [filterCliente, setFilterCliente] = useState("");
 
   const { data: pratiche = [], isLoading } = useQuery({
     queryKey: ["pratiche", companyId],
@@ -39,7 +31,7 @@ export default function Pratiche() {
       if (!companyId) return [];
       const { data, error } = await supabase
         .from("pratiche")
-        .select("*, clienti_finali(nome, cognome)")
+        .select("*, clienti_finali(id, nome, cognome)")
         .eq("company_id", companyId)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -48,11 +40,33 @@ export default function Pratiche() {
     enabled: !!companyId,
   });
 
+  // Extract unique clients from loaded pratiche
+  const uniqueClienti = useMemo(() => {
+    const map = new Map<string, { id: string; nome: string; cognome: string }>();
+    pratiche.forEach((p) => {
+      if (p.clienti_finali && (p.clienti_finali as any).id) {
+        const c = p.clienti_finali as any;
+        map.set(c.id, { id: c.id, nome: c.nome, cognome: c.cognome });
+      }
+    });
+    return Array.from(map.values());
+  }, [pratiche]);
+
   const filtered = pratiche.filter((p) => {
     const matchSearch = `${p.titolo} ${p.descrizione}`.toLowerCase().includes(search.toLowerCase());
     const matchStato = !filterStato || p.stato === filterStato;
-    return matchSearch && matchStato;
+    const matchCliente = !filterCliente || (p.clienti_finali as any)?.id === filterCliente;
+    const createdAt = new Date(p.created_at);
+    const matchDateFrom = !filterDateFrom || createdAt >= filterDateFrom;
+    const matchDateTo = !filterDateTo || createdAt <= new Date(filterDateTo.getTime() + 86400000);
+    return matchSearch && matchStato && matchCliente && matchDateFrom && matchDateTo;
   });
+
+  const resetFilters = () => {
+    setFilterDateFrom(undefined);
+    setFilterDateTo(undefined);
+    setFilterCliente("");
+  };
 
   if (!companyId) {
     return (
@@ -101,6 +115,17 @@ export default function Pratiche() {
           </div>
         </div>
 
+        <PraticheFilters
+          filterDateFrom={filterDateFrom}
+          filterDateTo={filterDateTo}
+          filterCliente={filterCliente}
+          onDateFromChange={setFilterDateFrom}
+          onDateToChange={setFilterDateTo}
+          onClienteChange={setFilterCliente}
+          onReset={resetFilters}
+          clienti={uniqueClienti}
+        />
+
         {viewMode === "list" && (
           <div className="flex flex-wrap gap-2">
             <Badge variant={!filterStato ? "default" : "outline"} className="cursor-pointer" onClick={() => setFilterStato("")}>Tutte</Badge>
@@ -118,114 +143,8 @@ export default function Pratiche() {
       ) : viewMode === "list" ? (
         <ListView pratiche={filtered} navigate={navigate} />
       ) : (
-        <PipelineView pratiche={filtered} navigate={navigate} search={search} />
+        <PipelineView pratiche={filtered} navigate={navigate} />
       )}
     </div>
-  );
-}
-
-function ListView({ pratiche, navigate }: { pratiche: any[]; navigate: (path: string) => void }) {
-  if (pratiche.length === 0) {
-    return (
-      <Card className="border-dashed">
-        <CardContent className="flex flex-col items-center py-12 text-center">
-          <FolderOpen className="mb-4 h-12 w-12 text-muted-foreground/40" />
-          <h3 className="font-display text-lg font-semibold">Nessuna pratica</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Crea la tua prima pratica ENEA per iniziare.</p>
-          <Button className="mt-4" onClick={() => navigate("/pratiche/nuova")}>
-            <Plus className="mr-2 h-4 w-4" />Nuova Pratica ENEA
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <div className="grid gap-3">
-      {pratiche.map((p) => {
-        const statoConf = STATO_CONFIG[p.stato as PraticaStato];
-        const Icon = statoConf.icon;
-        return (
-          <Card key={p.id} className="cursor-pointer transition-colors hover:bg-accent/50" onClick={() => navigate(`/pratiche/${p.id}`)}>
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${statoConf.color}`}>
-                <Icon className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-medium truncate">{p.titolo}</p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  {p.clienti_finali && <span>{(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}</span>}
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold">€ {p.prezzo.toFixed(2)}</p>
-                <Badge className={`text-xs ${statoConf.color}`}>{statoConf.label}</Badge>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  );
-}
-
-function PipelineView({ pratiche, navigate, search }: { pratiche: any[]; navigate: (path: string) => void; search: string }) {
-  // In pipeline view, show all statuses regardless of filter
-  const allByStato = STATO_ORDER.reduce((acc, stato) => {
-    acc[stato] = pratiche.filter(p => p.stato === stato);
-    return acc;
-  }, {} as Record<PraticaStato, any[]>);
-
-  return (
-    <ScrollArea className="w-full">
-      <div className="flex gap-3 pb-4" style={{ minWidth: STATO_ORDER.length * 260 }}>
-        {STATO_ORDER.map(stato => {
-          const conf = STATO_CONFIG[stato];
-          const Icon = conf.icon;
-          const items = allByStato[stato];
-
-          return (
-            <div key={stato} className={`flex w-[250px] shrink-0 flex-col rounded-xl ${conf.bgColumn} border`}>
-              {/* Column header */}
-              <div className="flex items-center gap-2 p-3 border-b">
-                <div className={`flex h-7 w-7 items-center justify-center rounded-md ${conf.color}`}>
-                  <Icon className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-sm font-semibold flex-1">{conf.label}</span>
-                <Badge variant="secondary" className="text-xs h-5 px-1.5">{items.length}</Badge>
-              </div>
-
-              {/* Column body */}
-              <div className="flex flex-col gap-2 p-2 min-h-[120px] max-h-[60vh] overflow-y-auto">
-                {items.length === 0 ? (
-                  <div className="flex items-center justify-center py-8 text-xs text-muted-foreground">
-                    Nessuna pratica
-                  </div>
-                ) : (
-                  items.map(p => (
-                    <Card
-                      key={p.id}
-                      className="cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5"
-                      onClick={() => navigate(`/pratiche/${p.id}`)}
-                    >
-                      <CardContent className="p-3 space-y-1.5">
-                        <p className="text-sm font-medium truncate">{p.titolo}</p>
-                        {p.clienti_finali && (
-                          <p className="text-xs text-muted-foreground truncate">
-                            {(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}
-                          </p>
-                        )}
-                        <p className="text-sm font-semibold">€ {p.prezzo.toFixed(2)}</p>
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <ScrollBar orientation="horizontal" />
-    </ScrollArea>
   );
 }

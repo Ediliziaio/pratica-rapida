@@ -58,18 +58,30 @@ export default function AdminPratiche() {
     },
   });
 
-  const { data: assigneeProfiles = {} } = useQuery({
-    queryKey: ["admin-assignee-profiles", pratiche.map(p => p.assegnatario_id).filter(Boolean)],
+  // Fetch internal operators (super_admin, admin_interno, operatore)
+  const { data: internalOperators = [] } = useQuery({
+    queryKey: ["admin-internal-operators"],
     queryFn: async () => {
-      const ids = [...new Set(pratiche.map(p => p.assegnatario_id).filter(Boolean))] as string[];
-      if (!ids.length) return {};
-      const { data } = await supabase.from("profiles").select("id, nome, cognome").in("id", ids);
-      const map: Record<string, { nome: string; cognome: string }> = {};
-      (data || []).forEach(p => { map[p.id] = p; });
-      return map;
+      const { data: roles, error } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .in("role", ["super_admin", "admin_interno", "operatore"]);
+      if (error) throw error;
+      const uniqueIds = [...new Set((roles || []).map(r => r.user_id))];
+      if (!uniqueIds.length) return [];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, nome, cognome")
+        .in("id", uniqueIds);
+      return profiles || [];
     },
-    enabled: pratiche.length > 0,
   });
+
+  const assigneeMap = useMemo(() => {
+    const map: Record<string, { nome: string; cognome: string }> = {};
+    internalOperators.forEach(p => { map[p.id] = p; });
+    return map;
+  }, [internalOperators]);
 
   const quickChangeStato = useMutation({
     mutationFn: async ({ praticaId, stato }: { praticaId: string; stato: PraticaStato }) => {
@@ -79,6 +91,17 @@ export default function AdminPratiche() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
       toast({ title: "Stato aggiornato" });
+    },
+  });
+
+  const assignOperator = useMutation({
+    mutationFn: async ({ praticaId, assegnatarioId }: { praticaId: string; assegnatarioId: string | null }) => {
+      const { error } = await supabase.from("pratiche").update({ assegnatario_id: assegnatarioId }).eq("id", praticaId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
+      toast({ title: "Operatore assegnato" });
     },
   });
 
@@ -97,6 +120,13 @@ export default function AdminPratiche() {
     filtered.forEach(p => { if (cols[p.stato]) cols[p.stato].push(p); });
     return cols;
   }, [filtered]);
+
+  const handleAssignOperator = (praticaId: string, value: string) => {
+    assignOperator.mutate({
+      praticaId,
+      assegnatarioId: value === "unassigned" ? null : value,
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -166,7 +196,7 @@ export default function AdminPratiche() {
             {filtered.map(p => {
               const conf = STATO_CONFIG[p.stato];
               const Icon = conf.icon;
-              const assignee = p.assegnatario_id ? assigneeProfiles[p.assegnatario_id] : null;
+              const assignee = p.assegnatario_id ? assigneeMap[p.assegnatario_id] : null;
               return (
                 <Card key={p.id} className="transition-colors hover:bg-accent/50">
                   <CardContent className="flex items-center gap-4 p-4">
@@ -183,15 +213,26 @@ export default function AdminPratiche() {
                         {p.clienti_finali && (
                           <span>{(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}</span>
                         )}
-                        {assignee && (
-                          <span className="flex items-center gap-1">
-                            <User className="h-3 w-3" />{assignee.nome} {assignee.cognome}
-                          </span>
-                        )}
                         <span className="text-xs">€ {p.prezzo.toFixed(2)}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      <Select
+                        value={p.assegnatario_id || "unassigned"}
+                        onValueChange={v => handleAssignOperator(p.id, v)}
+                      >
+                        <SelectTrigger className="h-8 w-40 text-xs">
+                          <SelectValue placeholder="Non assegnato" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unassigned">Non assegnato</SelectItem>
+                          {internalOperators.map(op => (
+                            <SelectItem key={op.id} value={op.id}>
+                              {op.nome} {op.cognome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <Select value={p.stato} onValueChange={v => quickChangeStato.mutate({ praticaId: p.id, stato: v as PraticaStato })}>
                         <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -225,18 +266,26 @@ export default function AdminPratiche() {
                   <Badge variant="secondary" className="ml-auto text-xs">{items.length}</Badge>
                 </div>
                 <div className="space-y-2">
-                  {items.map(p => (
-                    <Card key={p.id} className="cursor-pointer transition-colors hover:bg-accent/50" onClick={() => navigate(`/pratiche/${p.id}`)}>
-                      <CardContent className="p-3">
-                        <p className="text-sm font-medium truncate">{p.titolo}</p>
-                        <div className="mt-1 flex flex-col gap-0.5 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1"><Building2 className="h-3 w-3" />{(p.companies as any)?.ragione_sociale}</span>
-                          {p.clienti_finali && <span>{(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}</span>}
-                        </div>
-                        <p className="mt-1 text-xs font-semibold">€ {p.prezzo.toFixed(2)}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {items.map(p => {
+                    const assignee = p.assegnatario_id ? assigneeMap[p.assegnatario_id] : null;
+                    return (
+                      <Card key={p.id} className="cursor-pointer transition-colors hover:bg-accent/50" onClick={() => navigate(`/pratiche/${p.id}`)}>
+                        <CardContent className="p-3">
+                          <p className="text-sm font-medium truncate">{p.titolo}</p>
+                          <div className="mt-1 flex flex-col gap-0.5 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1"><Building2 className="h-3 w-3" />{(p.companies as any)?.ragione_sociale}</span>
+                            {p.clienti_finali && <span>{(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}</span>}
+                            {assignee && (
+                              <span className="flex items-center gap-1">
+                                <User className="h-3 w-3" />{assignee.nome} {assignee.cognome}
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 text-xs font-semibold">€ {p.prezzo.toFixed(2)}</p>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                   {items.length === 0 && <p className="text-xs text-muted-foreground text-center py-4">Nessuna</p>}
                 </div>
               </div>

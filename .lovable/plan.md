@@ -1,67 +1,53 @@
 
 
-# Drag & Drop Pipeline + Filtri Data/Cliente
+# Miglioramenti Area Super Admin
 
-## 1. Drag & Drop nella Pipeline
+## 1. Dashboard Super Admin migliorata
 
-Installare `@dnd-kit/core` e `@dnd-kit/sortable` (libreria leggera e moderna per React DnD) e integrarlo nella `PipelineView`.
+La sezione "KPI Interni" attuale mostra solo 4 card basiche. Verra' arricchita con:
 
-### Comportamento
-- Ogni card pratica diventa **draggable**
-- Ogni colonna di stato diventa una **drop zone**
-- Trascinando una card da una colonna all'altra, lo stato della pratica viene aggiornato nel database
-- Feedback visivo: la colonna di destinazione si evidenzia durante il drag
-- Aggiornamento ottimistico: la card si sposta subito, poi conferma col database
-- Toast di conferma dopo lo spostamento (es. "Pratica spostata in In Lavorazione")
+- **KPI con variazioni mensili**: Revenue, Pratiche Totali, Completate e Backlog mostreranno la variazione rispetto al mese precedente
+- **Grafico andamento globale**: grafico a barre con tutte le pratiche di tutte le aziende (ultimi 6 mesi), divise per completate/in corso
+- **Top 5 aziende per pratiche**: mini-classifica delle aziende piu' attive
+- **Pratiche in attesa**: alert visivo con conteggio delle pratiche che richiedono attenzione (in_attesa_documenti, inviate non ancora prese in carico)
 
-### Implementazione tecnica
-- Wrappare la `PipelineView` con `DndContext` di `@dnd-kit/core`
-- Ogni colonna usa `useDroppable` con id = stato
-- Ogni card usa `useDraggable` con id = pratica.id
-- `onDragEnd`: se la colonna di destinazione e' diversa da quella di origine, eseguire `supabase.from("pratiche").update({ stato: newStato }).eq("id", praticaId)`
-- Invalidare la query `["pratiche", companyId]` dopo l'update
+## 2. Sezione Aziende migliorata
 
-## 2. Filtri per Data e Cliente
+Ogni card azienda mostrera' un breakdown dettagliato delle pratiche per stato:
 
-Aggiungere nella barra filtri (sopra la lista/pipeline):
+- Icone colorate con conteggi per: Bozza, Inviata, In Lavorazione, Attesa Documenti, Completata, Annullata
+- Solo gli stati con conteggio > 0 verranno mostrati come mini-badge nella card
+- Query aggiornata per caricare i conteggi raggruppati per company_id e stato
 
-### Filtro per data
-- Un **date range picker** con due campi "Da" e "A" usando il componente `Calendar` + `Popover` gia' presenti
-- Filtra le pratiche per `created_at` nel range selezionato
-- Bottone "Reset" per togliere il filtro data
+## 3. Nuova pagina "Tutte le Pratiche" (Super Admin)
 
-### Filtro per cliente
-- Un **Select** (combobox) che mostra la lista dei clienti unici presenti nelle pratiche
-- Popolato dai dati gia' caricati (nomi unici da `clienti_finali`)
-- Opzione "Tutti i clienti" per resettare
+Pagina dedicata accessibile dalla sidebar Super Admin che mostra tutte le pratiche di tutte le aziende:
 
-### Layout filtri
-I filtri saranno in una riga sotto la barra di ricerca, visibili in entrambe le viste (lista e pipeline):
+- **Tabella/lista** con: Titolo, Azienda, Cliente, Stato, Prezzo, Data creazione, Assegnatario
+- **Filtri**: ricerca testuale, filtro per stato, filtro per azienda (select con tutte le aziende)
+- **Toggle lista/pipeline** come nella pagina Pratiche dell'area azienda
+- **Cambio stato rapido** tramite select inline (come nella Coda Pratiche)
+- **Click** sulla riga porta al dettaglio della pratica
 
-```text
-[Cerca pratiche...______] [Lista|Pipeline]
-[Da: gg/mm/aaaa] [A: gg/mm/aaaa] [Cliente: Tutti ▼] [Reset filtri]
-```
+### Sidebar aggiornata
+- Aggiungere voce "Pratiche" nel menu Super Admin tra "Aziende" e "Attivita'"
+- Nuova route `/admin/pratiche`
 
 ## Dettagli tecnici
 
 | File | Modifica |
 |------|----------|
-| `package.json` | Aggiungere `@dnd-kit/core` e `@dnd-kit/utilities` |
-| `src/pages/Pratiche.tsx` | Aggiungere stati per filtri data/cliente, logica di filtro, UI filtri, integrare DnD nella PipelineView |
+| `src/pages/Dashboard.tsx` | Arricchire sezione KPI Interni con grafico globale, top aziende, alert pratiche in attesa |
+| `src/pages/Aziende.tsx` | Aggiungere query per conteggi pratiche per stato per company, mostrare mini-badge stati nella card |
+| `src/pages/AdminPratiche.tsx` | **Nuovo file** - lista globale pratiche con filtri, pipeline view, cambio stato rapido |
+| `src/components/AppSidebar.tsx` | Aggiungere voce "Pratiche" nel menu Super Admin |
+| `src/App.tsx` | Aggiungere route `/admin/pratiche` |
 
-### Nuove dipendenze
-- `@dnd-kit/core` - gestione drag & drop
-- `@dnd-kit/utilities` - utility CSS per trasformazioni
+### Query principali (AdminPratiche)
+- Carica tutte le pratiche con join su `companies(ragione_sociale)` e `clienti_finali(nome, cognome)`
+- Carica lista aziende per il filtro select
+- Carica profili assegnatari per mostrare nome operatore
 
-### Nuovi stati nel componente Pratiche
-- `filterDateFrom: Date | undefined`
-- `filterDateTo: Date | undefined`
-- `filterCliente: string` (id del cliente o stringa vuota per "tutti")
-
-### Logica di filtro aggiornata
-Il filtro `filtered` terra' conto anche di:
-- `created_at >= filterDateFrom` (se impostato)
-- `created_at <= filterDateTo` (se impostato)
-- `cliente_finale_id === filterCliente` (se impostato)
+### Query aggiornata (Aziende)
+- Carica pratiche con `company_id` e `stato` per calcolare i conteggi raggruppati
 

@@ -8,23 +8,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, ArrowRight, Check, FileText, Briefcase, Send } from "lucide-react";
 
-const STEPS = ["Dati Cliente", "Dati Pratica ENEA", "Riepilogo"];
-
-const TIPO_INTERVENTO_OPTIONS = [
-  "Sostituzione infissi",
-  "Installazione caldaia a condensazione",
-  "Installazione pompa di calore",
-  "Installazione pannelli solari termici",
-  "Coibentazione strutture opache",
-  "Schermature solari",
-  "Building automation",
-  "Altro",
-];
+const STEPS = ["Dati Cliente", "Riepilogo"];
 
 export default function NuovaPratica() {
   const { user } = useAuth();
@@ -42,13 +29,6 @@ export default function NuovaPratica() {
   const [clienteEmail, setClienteEmail] = useState("");
   const [clienteTelefono, setClienteTelefono] = useState("");
   const [clienteIndirizzo, setClienteIndirizzo] = useState("");
-
-  // Step 2: Dati Pratica ENEA
-  const [tipoIntervento, setTipoIntervento] = useState("");
-  const [datiCatastali, setDatiCatastali] = useState("");
-  const [dataFineLavori, setDataFineLavori] = useState("");
-  const [importoLavori, setImportoLavori] = useState("");
-  const [note, setNote] = useState("");
 
   // Fetch ENEA service from catalog
   const { data: eneaService } = useQuery({
@@ -112,17 +92,10 @@ export default function NuovaPratica() {
         cliente_finale_id: cliente.id,
         categoria: "enea_bonus" as const,
         titolo: `Pratica ENEA - ${clienteNome} ${clienteCognome}`,
-        descrizione: note || null,
         stato: asBozza ? "bozza" : "inviata",
         priorita: "normale",
         prezzo,
         pagamento_stato: asBozza ? "non_pagata" : "pagata",
-        dati_pratica: {
-          tipo_intervento: tipoIntervento,
-          dati_catastali: datiCatastali,
-          data_fine_lavori: dataFineLavori,
-          importo_lavori: parseFloat(importoLavori) || 0,
-        },
       }).select().single();
       if (error) throw error;
 
@@ -149,7 +122,6 @@ export default function NuovaPratica() {
 
   const canNext = () => {
     if (step === 0) return clienteNome.trim() !== "" && clienteCognome.trim() !== "";
-    if (step === 1) return tipoIntervento !== "";
     return true;
   };
 
@@ -225,49 +197,8 @@ export default function NuovaPratica() {
         </Card>
       )}
 
-      {/* Step 1: Dati Pratica ENEA */}
+      {/* Step 1: Riepilogo */}
       {step === 1 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Dati Pratica ENEA</CardTitle>
-            <CardDescription>Inserisci i dettagli dell'intervento</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Tipo Intervento *</Label>
-              <Select value={tipoIntervento} onValueChange={setTipoIntervento}>
-                <SelectTrigger><SelectValue placeholder="Seleziona tipo intervento..." /></SelectTrigger>
-                <SelectContent>
-                  {TIPO_INTERVENTO_OPTIONS.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Dati Catastali</Label>
-              <Input value={datiCatastali} onChange={(e) => setDatiCatastali(e.target.value)} placeholder="Foglio 10, Particella 123, Sub 4" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Data Fine Lavori</Label>
-                <Input type="date" value={dataFineLavori} onChange={(e) => setDataFineLavori(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>Importo Lavori (€)</Label>
-                <Input type="number" step="0.01" value={importoLavori} onChange={(e) => setImportoLavori(e.target.value)} placeholder="10000.00" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Note aggiuntive</Label>
-              <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="Eventuali note..." />
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 2: Riepilogo */}
-      {step === 2 && (
         <Card>
           <CardHeader>
             <CardTitle>Riepilogo</CardTitle>
@@ -282,16 +213,6 @@ export default function NuovaPratica() {
                 {clienteEmail && <div><span className="text-muted-foreground">Email:</span> {clienteEmail}</div>}
                 {clienteTelefono && <div><span className="text-muted-foreground">Tel:</span> {clienteTelefono}</div>}
                 {clienteIndirizzo && <div className="col-span-2"><span className="text-muted-foreground">Indirizzo:</span> {clienteIndirizzo}</div>}
-              </div>
-
-              <div className="border-t pt-3">
-                <h3 className="font-semibold text-sm">Pratica ENEA</h3>
-                <div className="grid grid-cols-2 gap-2 text-sm mt-2">
-                  <div><span className="text-muted-foreground">Intervento:</span> {tipoIntervento}</div>
-                  {datiCatastali && <div><span className="text-muted-foreground">Catastali:</span> {datiCatastali}</div>}
-                  {dataFineLavori && <div><span className="text-muted-foreground">Fine lavori:</span> {new Date(dataFineLavori).toLocaleDateString("it-IT")}</div>}
-                  {importoLavori && <div><span className="text-muted-foreground">Importo:</span> € {parseFloat(importoLavori).toFixed(2)}</div>}
-                </div>
               </div>
 
               <div className="border-t pt-3 space-y-2">
@@ -322,12 +243,12 @@ export default function NuovaPratica() {
           <ArrowLeft className="mr-2 h-4 w-4" />{step === 0 ? "Annulla" : "Indietro"}
         </Button>
         <div className="flex gap-2">
-          {step === 2 && (
+          {step === 1 && (
             <Button variant="outline" onClick={() => submitPratica.mutate(true)} disabled={submitPratica.isPending}>
               <FileText className="mr-2 h-4 w-4" />Salva Bozza
             </Button>
           )}
-          {step < 2 ? (
+          {step < 1 ? (
             <Button onClick={() => setStep(step + 1)} disabled={!canNext()}>
               Avanti<ArrowRight className="ml-2 h-4 w-4" />
             </Button>

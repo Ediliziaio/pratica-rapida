@@ -62,7 +62,7 @@ export default function Auth() {
     <div className="flex min-h-screen items-center justify-center bg-secondary/30 px-4">
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-2">
-          <img src="/impresa-logo.png" alt="Pratica Rapida" className="w-[200px]" />
+          <img src="/pratica-rapida-logo.png" alt="Pratica Rapida" className="w-[200px]" />
           <h1 className="font-display text-2xl font-bold">Pratica Rapida</h1>
           <p className="text-sm text-muted-foreground">La tua Pratica ENEA, semplice e veloce</p>
         </div>

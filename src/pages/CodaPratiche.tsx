@@ -12,14 +12,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import {
   ListChecks, Search, Clock, CheckCircle2, AlertCircle, FileEdit, Ban, Send,
-  User, Building2, ArrowRight, Filter,
+  User, Building2, ArrowRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Constants } from "@/integrations/supabase/types";
 import type { Database } from "@/integrations/supabase/types";
 
 type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
-type ServiceCategory = Database["public"]["Enums"]["service_category"];
 
 const STATO_CONFIG: Record<PraticaStato, { label: string; color: string; icon: any }> = {
   bozza: { label: "Bozza", color: "bg-muted text-muted-foreground", icon: FileEdit },
@@ -30,11 +28,6 @@ const STATO_CONFIG: Record<PraticaStato, { label: string; color: string; icon: a
   annullata: { label: "Annullata", color: "bg-muted text-muted-foreground", icon: Ban },
 };
 
-const CATEGORY_LABELS: Record<ServiceCategory, string> = {
-  fatturazione: "Fatturazione", enea_bonus: "ENEA / Bonus",
-  finanziamenti: "Finanziamenti", pratiche_edilizie: "Pratiche Edilizie", altro: "Altro",
-};
-
 export default function CodaPratiche() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -42,7 +35,6 @@ export default function CodaPratiche() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterStato, setFilterStato] = useState<string>("all");
-  const [filterCat, setFilterCat] = useState<string>("all");
   const [assignDialog, setAssignDialog] = useState<string | null>(null);
   const [selectedOperatore, setSelectedOperatore] = useState("");
 
@@ -51,14 +43,13 @@ export default function CodaPratiche() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pratiche")
-        .select("*, companies(ragione_sociale), clienti_finali(nome, cognome), service_catalog(nome)")
+        .select("*, companies(ragione_sociale), clienti_finali(nome, cognome)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
 
-  // Get internal operators
   const { data: operators = [] } = useQuery({
     queryKey: ["internal-operators"],
     queryFn: async () => {
@@ -76,7 +67,6 @@ export default function CodaPratiche() {
     },
   });
 
-  // Get assignee profiles
   const { data: assigneeProfiles = {} } = useQuery({
     queryKey: ["assignee-profiles", pratiche.map(p => p.assegnatario_id).filter(Boolean)],
     queryFn: async () => {
@@ -118,17 +108,15 @@ export default function CodaPratiche() {
   const filtered = pratiche.filter(p => {
     const matchSearch = `${p.titolo} ${(p.companies as any)?.ragione_sociale || ""}`.toLowerCase().includes(search.toLowerCase());
     const matchStato = filterStato === "all" || p.stato === filterStato;
-    const matchCat = filterCat === "all" || p.categoria === filterCat;
-    return matchSearch && matchStato && matchCat;
+    return matchSearch && matchStato;
   });
 
-  // Group by stato for kanban-like display
   const statoOrder: PraticaStato[] = ["inviata", "in_lavorazione", "in_attesa_documenti", "bozza", "completata", "annullata"];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight">Coda Pratiche</h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight">Coda Pratiche ENEA</h1>
         <p className="text-muted-foreground">Gestisci e assegna le pratiche in lavorazione</p>
       </div>
 
@@ -142,13 +130,6 @@ export default function CodaPratiche() {
           <SelectContent>
             <SelectItem value="all">Tutti gli stati</SelectItem>
             {statoOrder.map(s => <SelectItem key={s} value={s}>{STATO_CONFIG[s].label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={filterCat} onValueChange={v => setFilterCat(v)}>
-          <SelectTrigger className="w-48"><SelectValue placeholder="Filtra categoria..." /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tutte le categorie</SelectItem>
-            {Constants.public.Enums.service_category.map(c => <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
@@ -195,7 +176,9 @@ export default function CodaPratiche() {
                         <Building2 className="h-3 w-3" />
                         {(p.companies as any)?.ragione_sociale}
                       </span>
-                      <Badge variant="outline" className="text-xs">{CATEGORY_LABELS[p.categoria]}</Badge>
+                      {p.clienti_finali && (
+                        <span>{(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}</span>
+                      )}
                       {assignee && (
                         <span className="flex items-center gap-1">
                           <User className="h-3 w-3" />{assignee.nome} {assignee.cognome}
@@ -224,7 +207,6 @@ export default function CodaPratiche() {
         </div>
       )}
 
-      {/* Assign dialog */}
       <Dialog open={!!assignDialog} onOpenChange={o => !o && setAssignDialog(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>Assegna Operatore</DialogTitle></DialogHeader>

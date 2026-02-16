@@ -147,7 +147,7 @@ export default function WalletPage() {
       </Card>
 
       <p className="text-center text-xs text-muted-foreground">
-        Per ricaricare il wallet, contatta l'amministratore di Impresa Leggera.
+        Per ricaricare il wallet, contatta l'amministratore di Pratica Rapida.
       </p>
     </div>
   );

@@ -8,17 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 
-
 export default function Auth() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Login
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
-  // Signup
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [nome, setNome] = useState("");
@@ -65,9 +62,9 @@ export default function Auth() {
     <div className="flex min-h-screen items-center justify-center bg-secondary/30 px-4">
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-2">
-          <img src="/impresa-logo.png" alt="Impresa Leggera" className="w-[200px]" />
-          <h1 className="font-display text-2xl font-bold">Impresa Leggera</h1>
-          <p className="text-sm text-muted-foreground">Meno burocrazia, più business</p>
+          <img src="/impresa-logo.png" alt="Pratica Rapida" className="w-[200px]" />
+          <h1 className="font-display text-2xl font-bold">Pratica Rapida</h1>
+          <p className="text-sm text-muted-foreground">La tua Pratica ENEA, semplice e veloce</p>
         </div>
 
         <Card>
@@ -131,8 +128,8 @@ export default function Auth() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          Impresa Leggera gestisce il flusso documentale e amministrativo.<br />
-          Le attività riservate a professionisti abilitati vengono coordinate con partner abilitati.
+          Pratica Rapida gestisce le pratiche ENEA per conto delle aziende,<br />
+          coordinando le attività con professionisti abilitati.
         </p>
       </div>
     </div>

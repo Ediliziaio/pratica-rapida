@@ -11,22 +11,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, ArrowRight, Check, Plus, FileText, Users, Briefcase, Send } from "lucide-react";
-import type { Database } from "@/integrations/supabase/types";
+import { ArrowLeft, ArrowRight, Check, FileText, Briefcase, Send } from "lucide-react";
 
-type ServiceCategory = Database["public"]["Enums"]["service_category"];
+const STEPS = ["Dati Cliente", "Dati Pratica ENEA", "Riepilogo"];
 
-const CATEGORY_LABELS: Record<ServiceCategory, string> = {
-  fatturazione: "Fatturazione",
-  enea_bonus: "ENEA / Bonus",
-  finanziamenti: "Finanziamenti",
-  pratiche_edilizie: "Pratiche Edilizie",
-  altro: "Altro",
-};
-
-const STEPS = ["Servizio", "Cliente", "Dettagli", "Riepilogo"];
+const TIPO_INTERVENTO_OPTIONS = [
+  "Sostituzione infissi",
+  "Installazione caldaia a condensazione",
+  "Installazione pompa di calore",
+  "Installazione pannelli solari termici",
+  "Coibentazione strutture opache",
+  "Schermature solari",
+  "Building automation",
+  "Altro",
+];
 
 export default function NuovaPratica() {
   const { user } = useAuth();
@@ -36,76 +34,35 @@ export default function NuovaPratica() {
   const queryClient = useQueryClient();
 
   const [step, setStep] = useState(0);
-  const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | "">("");
-  const [selectedServiceId, setSelectedServiceId] = useState("");
-  const [selectedClientId, setSelectedClientId] = useState("");
-  const [titolo, setTitolo] = useState("");
-  const [descrizione, setDescrizione] = useState("");
-  const [priorita, setPriorita] = useState<string>("normale");
 
-  // Quick client creation
-  const [showNewClient, setShowNewClient] = useState(false);
-  const [newNome, setNewNome] = useState("");
-  const [newCognome, setNewCognome] = useState("");
-  const [newEmail, setNewEmail] = useState("");
+  // Step 1: Dati Cliente
+  const [clienteNome, setClienteNome] = useState("");
+  const [clienteCognome, setClienteCognome] = useState("");
+  const [clienteCF, setClienteCF] = useState("");
+  const [clienteEmail, setClienteEmail] = useState("");
+  const [clienteTelefono, setClienteTelefono] = useState("");
+  const [clienteIndirizzo, setClienteIndirizzo] = useState("");
 
-  // Fetch services
-  const { data: services = [] } = useQuery({
-    queryKey: ["services"],
+  // Step 2: Dati Pratica ENEA
+  const [tipoIntervento, setTipoIntervento] = useState("");
+  const [datiCatastali, setDatiCatastali] = useState("");
+  const [dataFineLavori, setDataFineLavori] = useState("");
+  const [importoLavori, setImportoLavori] = useState("");
+  const [note, setNote] = useState("");
+
+  // Fetch ENEA service from catalog
+  const { data: eneaService } = useQuery({
+    queryKey: ["enea-service"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("service_catalog")
         .select("*")
+        .eq("categoria", "enea_bonus")
         .eq("attivo", true)
-        .order("categoria");
-      if (error) throw error;
+        .limit(1)
+        .maybeSingle();
       return data;
     },
-  });
-
-  // Fetch clients
-  const { data: clienti = [] } = useQuery({
-    queryKey: ["clienti", companyId],
-    queryFn: async () => {
-      if (!companyId) return [];
-      const { data, error } = await supabase
-        .from("clienti_finali")
-        .select("*")
-        .eq("company_id", companyId)
-        .order("cognome");
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!companyId,
-  });
-
-  const selectedService = services.find((s) => s.id === selectedServiceId);
-  const selectedClient = clienti.find((c) => c.id === selectedClientId);
-
-  const filteredServices = selectedCategory
-    ? services.filter((s) => s.categoria === selectedCategory)
-    : services;
-
-  // Create quick client
-  const createQuickClient = useMutation({
-    mutationFn: async () => {
-      if (!companyId) throw new Error("No company");
-      const { data, error } = await supabase
-        .from("clienti_finali")
-        .insert({ company_id: companyId, nome: newNome, cognome: newCognome, email: newEmail })
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["clienti"] });
-      setSelectedClientId(data.id);
-      setShowNewClient(false);
-      setNewNome(""); setNewCognome(""); setNewEmail("");
-      toast({ title: "Cliente creato" });
-    },
-    onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
 
   // Fetch company balance
@@ -113,39 +70,59 @@ export default function NuovaPratica() {
     queryKey: ["company-balance", companyId],
     queryFn: async () => {
       if (!companyId) return null;
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("companies")
         .select("wallet_balance")
         .eq("id", companyId)
         .single();
-      if (error) throw error;
       return data;
     },
     enabled: !!companyId,
   });
 
   const walletBalance = companyData?.wallet_balance ?? 0;
-  const prezzo = selectedService?.prezzo_base || 0;
+  const prezzo = eneaService?.prezzo_base || 0;
   const hasSufficientCredit = walletBalance >= prezzo;
 
-  // Submit practice
   const submitPratica = useMutation({
     mutationFn: async (asBozza: boolean) => {
       if (!companyId || !user) throw new Error("Missing data");
 
-      // Insert practice first
+      // Create client first
+      const { data: cliente, error: clienteError } = await supabase
+        .from("clienti_finali")
+        .insert({
+          company_id: companyId,
+          nome: clienteNome,
+          cognome: clienteCognome,
+          codice_fiscale: clienteCF || null,
+          email: clienteEmail || null,
+          telefono: clienteTelefono || null,
+          indirizzo: clienteIndirizzo || null,
+        })
+        .select()
+        .single();
+      if (clienteError) throw clienteError;
+
+      // Create practice
       const { data: pratica, error } = await supabase.from("pratiche").insert({
         company_id: companyId,
         creato_da: user.id,
-        service_id: selectedServiceId || null,
-        cliente_finale_id: selectedClientId || null,
-        categoria: (selectedService?.categoria || selectedCategory || "altro") as ServiceCategory,
-        titolo: titolo || selectedService?.nome || "Nuova pratica",
-        descrizione,
+        service_id: eneaService?.id || null,
+        cliente_finale_id: cliente.id,
+        categoria: "enea_bonus" as const,
+        titolo: `Pratica ENEA - ${clienteNome} ${clienteCognome}`,
+        descrizione: note || null,
         stato: asBozza ? "bozza" : "inviata",
-        priorita: priorita as any,
+        priorita: "normale",
         prezzo,
         pagamento_stato: asBozza ? "non_pagata" : "pagata",
+        dati_pratica: {
+          tipo_intervento: tipoIntervento,
+          dati_catastali: datiCatastali,
+          data_fine_lavori: dataFineLavori,
+          importo_lavori: parseFloat(importoLavori) || 0,
+        },
       }).select().single();
       if (error) throw error;
 
@@ -164,17 +141,15 @@ export default function NuovaPratica() {
     onSuccess: (_, asBozza) => {
       queryClient.invalidateQueries({ queryKey: ["pratiche"] });
       queryClient.invalidateQueries({ queryKey: ["company-balance"] });
-      queryClient.invalidateQueries({ queryKey: ["wallet-movements"] });
-      toast({ title: asBozza ? "Bozza salvata" : "Pratica inviata con successo!" });
+      toast({ title: asBozza ? "Bozza salvata" : "Pratica ENEA inviata con successo!" });
       navigate("/pratiche");
     },
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
 
   const canNext = () => {
-    if (step === 0) return !!selectedServiceId;
-    if (step === 1) return true; // client is optional
-    if (step === 2) return true;
+    if (step === 0) return clienteNome.trim() !== "" && clienteCognome.trim() !== "";
+    if (step === 1) return tipoIntervento !== "";
     return true;
   };
 
@@ -191,8 +166,8 @@ export default function NuovaPratica() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica</h1>
-        <p className="text-muted-foreground">Crea una pratica in pochi passaggi</p>
+        <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica ENEA</h1>
+        <p className="text-muted-foreground">Inserisci i dati per la pratica ENEA</p>
       </div>
 
       {/* Step indicator */}
@@ -200,9 +175,7 @@ export default function NuovaPratica() {
         {STEPS.map((s, i) => (
           <div key={s} className="flex items-center gap-2">
             <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
-              i < step ? "bg-primary text-primary-foreground" :
-              i === step ? "bg-primary text-primary-foreground" :
-              "bg-muted text-muted-foreground"
+              i <= step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
             }`}>
               {i < step ? <Check className="h-4 w-4" /> : i + 1}
             </div>
@@ -212,170 +185,132 @@ export default function NuovaPratica() {
         ))}
       </div>
 
-      {/* Step 0: Select Service */}
+      {/* Step 0: Dati Cliente */}
       {step === 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Scegli il servizio</CardTitle>
-            <CardDescription>Seleziona la categoria e il servizio dal listino</CardDescription>
+            <CardTitle>Dati del Cliente</CardTitle>
+            <CardDescription>Inserisci i dati del cliente per la pratica ENEA</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              <Badge variant={!selectedCategory ? "default" : "outline"} className="cursor-pointer" onClick={() => setSelectedCategory("")}>Tutti</Badge>
-              {(Object.keys(CATEGORY_LABELS) as ServiceCategory[]).map((cat) => (
-                <Badge key={cat} variant={selectedCategory === cat ? "default" : "outline"} className="cursor-pointer" onClick={() => setSelectedCategory(cat)}>
-                  {CATEGORY_LABELS[cat]}
-                </Badge>
-              ))}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Nome *</Label>
+                <Input value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} placeholder="Mario" required />
+              </div>
+              <div className="space-y-2">
+                <Label>Cognome *</Label>
+                <Input value={clienteCognome} onChange={(e) => setClienteCognome(e.target.value)} placeholder="Rossi" required />
+              </div>
             </div>
-            <div className="grid gap-3">
-              {filteredServices.map((s) => (
-                <div
-                  key={s.id}
-                  onClick={() => { setSelectedServiceId(s.id); setTitolo(s.nome); }}
-                  className={`cursor-pointer rounded-lg border p-4 transition-colors hover:bg-accent ${
-                    selectedServiceId === s.id ? "border-primary bg-accent" : ""
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{s.nome}</p>
-                      <p className="text-sm text-muted-foreground">{s.descrizione}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold">€ {s.prezzo_base.toFixed(2)}</p>
-                      <Badge variant="outline" className="text-xs">{CATEGORY_LABELS[s.categoria as ServiceCategory]}</Badge>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="space-y-2">
+              <Label>Codice Fiscale</Label>
+              <Input value={clienteCF} onChange={(e) => setClienteCF(e.target.value.toUpperCase())} placeholder="RSSMRA80A01H501Z" maxLength={16} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input type="email" value={clienteEmail} onChange={(e) => setClienteEmail(e.target.value)} placeholder="mario@esempio.it" />
+              </div>
+              <div className="space-y-2">
+                <Label>Telefono</Label>
+                <Input value={clienteTelefono} onChange={(e) => setClienteTelefono(e.target.value)} placeholder="+39 333 1234567" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Indirizzo dell'immobile</Label>
+              <Input value={clienteIndirizzo} onChange={(e) => setClienteIndirizzo(e.target.value)} placeholder="Via Roma 1, 00100 Roma (RM)" />
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Step 1: Select Client */}
+      {/* Step 1: Dati Pratica ENEA */}
       {step === 1 && (
         <Card>
           <CardHeader>
-            <CardTitle>Seleziona cliente</CardTitle>
-            <CardDescription>Scegli un cliente esistente o creane uno nuovo (opzionale)</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <div
-                onClick={() => setSelectedClientId("")}
-                className={`cursor-pointer rounded-lg border p-3 text-sm transition-colors hover:bg-accent ${!selectedClientId ? "border-primary bg-accent" : ""}`}
-              >
-                Nessun cliente (pratica generica)
-              </div>
-              {clienti.map((c) => (
-                <div
-                  key={c.id}
-                  onClick={() => setSelectedClientId(c.id)}
-                  className={`cursor-pointer rounded-lg border p-3 transition-colors hover:bg-accent ${selectedClientId === c.id ? "border-primary bg-accent" : ""}`}
-                >
-                  <p className="font-medium">{c.nome} {c.cognome}</p>
-                  {c.email && <p className="text-sm text-muted-foreground">{c.email}</p>}
-                </div>
-              ))}
-            </div>
-            <Dialog open={showNewClient} onOpenChange={setShowNewClient}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full"><Plus className="mr-2 h-4 w-4" />Nuovo Cliente</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Crea cliente rapido</DialogTitle></DialogHeader>
-                <form onSubmit={(e) => { e.preventDefault(); createQuickClient.mutate(); }} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label>Nome</Label><Input value={newNome} onChange={(e) => setNewNome(e.target.value)} required /></div>
-                    <div className="space-y-2"><Label>Cognome</Label><Input value={newCognome} onChange={(e) => setNewCognome(e.target.value)} required /></div>
-                  </div>
-                  <div className="space-y-2"><Label>Email</Label><Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} /></div>
-                  <Button type="submit" className="w-full" disabled={createQuickClient.isPending}>Crea</Button>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 2: Details */}
-      {step === 2 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Dettagli pratica</CardTitle>
-            <CardDescription>Inserisci i dettagli aggiuntivi</CardDescription>
+            <CardTitle>Dati Pratica ENEA</CardTitle>
+            <CardDescription>Inserisci i dettagli dell'intervento</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Titolo</Label>
-              <Input value={titolo} onChange={(e) => setTitolo(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Descrizione / Note</Label>
-              <Textarea value={descrizione} onChange={(e) => setDescrizione(e.target.value)} rows={4} placeholder="Dettagli aggiuntivi..." />
-            </div>
-            <div className="space-y-2">
-              <Label>Priorità</Label>
-              <Select value={priorita} onValueChange={setPriorita}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Label>Tipo Intervento *</Label>
+              <Select value={tipoIntervento} onValueChange={setTipoIntervento}>
+                <SelectTrigger><SelectValue placeholder="Seleziona tipo intervento..." /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="bassa">Bassa</SelectItem>
-                  <SelectItem value="normale">Normale</SelectItem>
-                  <SelectItem value="alta">Alta</SelectItem>
-                  <SelectItem value="urgente">Urgente</SelectItem>
+                  {TIPO_INTERVENTO_OPTIONS.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label>Dati Catastali</Label>
+              <Input value={datiCatastali} onChange={(e) => setDatiCatastali(e.target.value)} placeholder="Foglio 10, Particella 123, Sub 4" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Data Fine Lavori</Label>
+                <Input type="date" value={dataFineLavori} onChange={(e) => setDataFineLavori(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Importo Lavori (€)</Label>
+                <Input type="number" step="0.01" value={importoLavori} onChange={(e) => setImportoLavori(e.target.value)} placeholder="10000.00" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Note aggiuntive</Label>
+              <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="Eventuali note..." />
+            </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Step 3: Summary */}
-      {step === 3 && (
+      {/* Step 2: Riepilogo */}
+      {step === 2 && (
         <Card>
           <CardHeader>
             <CardTitle>Riepilogo</CardTitle>
             <CardDescription>Verifica i dettagli prima di inviare</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
             <div className="rounded-lg bg-muted p-4 space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Servizio</span>
-                <span className="font-medium">{selectedService?.nome || "—"}</span>
+              <h3 className="font-semibold text-sm">Cliente</h3>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div><span className="text-muted-foreground">Nome:</span> {clienteNome} {clienteCognome}</div>
+                {clienteCF && <div><span className="text-muted-foreground">CF:</span> {clienteCF}</div>}
+                {clienteEmail && <div><span className="text-muted-foreground">Email:</span> {clienteEmail}</div>}
+                {clienteTelefono && <div><span className="text-muted-foreground">Tel:</span> {clienteTelefono}</div>}
+                {clienteIndirizzo && <div className="col-span-2"><span className="text-muted-foreground">Indirizzo:</span> {clienteIndirizzo}</div>}
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Categoria</span>
-                <Badge variant="outline">{CATEGORY_LABELS[(selectedService?.categoria || "altro") as ServiceCategory]}</Badge>
+
+              <div className="border-t pt-3">
+                <h3 className="font-semibold text-sm">Pratica ENEA</h3>
+                <div className="grid grid-cols-2 gap-2 text-sm mt-2">
+                  <div><span className="text-muted-foreground">Intervento:</span> {tipoIntervento}</div>
+                  {datiCatastali && <div><span className="text-muted-foreground">Catastali:</span> {datiCatastali}</div>}
+                  {dataFineLavori && <div><span className="text-muted-foreground">Fine lavori:</span> {new Date(dataFineLavori).toLocaleDateString("it-IT")}</div>}
+                  {importoLavori && <div><span className="text-muted-foreground">Importo:</span> € {parseFloat(importoLavori).toFixed(2)}</div>}
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Cliente</span>
-                <span className="font-medium">{selectedClient ? `${selectedClient.nome} ${selectedClient.cognome}` : "Nessuno"}</span>
+
+              <div className="border-t pt-3 space-y-2">
+                <div className="flex justify-between">
+                  <span className="font-semibold">Costo servizio</span>
+                  <span className="text-lg font-bold">€ {prezzo.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Saldo Wallet</span>
+                  <span className={`font-semibold ${hasSufficientCredit ? "text-success" : "text-destructive"}`}>
+                    € {walletBalance.toFixed(2)}
+                  </span>
+                </div>
+                {!hasSufficientCredit && prezzo > 0 && (
+                  <p className="text-sm text-destructive">
+                    ⚠️ Credito insufficiente. Puoi salvare come bozza e ricaricare il wallet.
+                  </p>
+                )}
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Titolo</span>
-                <span className="font-medium">{titolo}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Priorità</span>
-                <Badge variant={priorita === "urgente" ? "destructive" : "outline"}>{priorita}</Badge>
-              </div>
-              <div className="flex justify-between border-t pt-3">
-                <span className="font-semibold">Costo</span>
-                <span className="text-lg font-bold">€ {prezzo.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Saldo Wallet</span>
-                <span className={`font-semibold ${hasSufficientCredit ? "text-success" : "text-destructive"}`}>
-                  € {walletBalance.toFixed(2)}
-                </span>
-              </div>
-              {!hasSufficientCredit && prezzo > 0 && (
-                <p className="text-sm text-destructive">
-                  ⚠️ Credito insufficiente. Puoi salvare come bozza e ricaricare il wallet.
-                </p>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -387,18 +322,18 @@ export default function NuovaPratica() {
           <ArrowLeft className="mr-2 h-4 w-4" />{step === 0 ? "Annulla" : "Indietro"}
         </Button>
         <div className="flex gap-2">
-          {step === 3 && (
+          {step === 2 && (
             <Button variant="outline" onClick={() => submitPratica.mutate(true)} disabled={submitPratica.isPending}>
               <FileText className="mr-2 h-4 w-4" />Salva Bozza
             </Button>
           )}
-          {step < 3 ? (
+          {step < 2 ? (
             <Button onClick={() => setStep(step + 1)} disabled={!canNext()}>
               Avanti<ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
             <Button onClick={() => submitPratica.mutate(false)} disabled={submitPratica.isPending || (!hasSufficientCredit && prezzo > 0)}>
-              <Send className="mr-2 h-4 w-4" />Invia Pratica
+              <Send className="mr-2 h-4 w-4" />Invia Pratica ENEA
             </Button>
           )}
         </div>

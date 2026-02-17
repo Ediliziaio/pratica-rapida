@@ -1,114 +1,95 @@
 
 
-# Miglioramento Sezione "Due Garanzie" - Livello Superiore
+# Redesign Sezione "Chi c'e' dietro Pratica Rapida"
 
 ## Stato attuale
-La sezione ha gia' un buon layout a due colonne con illustrazioni a cerchi concentrici e bullet points. Pero' le illustrazioni sono ancora "statiche" e minimali (solo cerchi + icona), le card si assomigliano troppo tra loro, e manca un effetto "wow" visivo.
+La sezione (righe 843-866) ha un layout semplice a due colonne: testo a sinistra e immagine a destra. Il testo e' lungo e uniforme, senza elementi visivi che spezzino la lettura. Manca il riferimento ai 10+ anni di esperienza e al supporto durante il bonus sconto in fattura.
 
-## Miglioramenti proposti
+## Contenuto aggiornato
+- Aggiungere il riferimento a **oltre 10 anni di esperienza** nel settore
+- Menzionare il **supporto durante il bonus dello sconto in fattura** come prova concreta di competenza
+- Riscrivere i paragrafi per essere piu' concisi e incisivi
 
-### 1. Illustrazione Garanzia #1 - Effetto scudo animato con floating badges
-- Aggiungere un **anello esterno pulsante** (animazione CSS `animate-pulse`) per dare vita allo scudo
-- Aggiungere **3 piccoli badge floating** intorno ai cerchi con testi brevi ("100%", icona Lock, icona ShieldCheck) posizionati con `absolute` e con animazione `animate-float` / `animate-float-delayed`
-- L'icona Shield centrale diventa piu' grande (w-12 h-12) con un **effetto glow verde** (`boxShadow: 0 0 30px ${PR_GREEN}40`)
-- Aggiungere un **gradiente radiale** di sfondo dietro i cerchi per creare profondita'
+## Miglioramenti grafici
 
-### 2. Illustrazione Garanzia #2 - "Calcolatrice visiva" con risparmio
-- Sostituire i semplici cerchi concentrici con una composizione piu' narrativa:
-  - Icona CreditCard grande al centro con glow
-  - I costi barrati diventano **card mini** con sfondo rosso traslucido (`bg-red-500/10`) e icona X, invece di semplice testo
-  - Aggiungere una **freccia verso il basso** che porta al badge "0 euro anticipati" piu' grande e con effetto glow
-  - Badge floating "GRATIS" e "NO VINCOLI" che orbitano intorno
+### 1. Header con badge e sottotitolo
+- Badge "IL NOSTRO TEAM" con icona Users sopra il titolo
+- Separatore decorativo verde sotto il titolo
 
-### 3. Card con sfondo differenziato
-- **Garanzia #1**: aggiungere un gradiente radiale verde molto sottile nell'angolo in alto a sinistra (`radial-gradient(circle at 0% 0%, ${PR_GREEN}08 0%, transparent 50%)`) per dare calore
-- **Garanzia #2**: aggiungere un gradiente radiale ambra/oro nell'angolo in alto a destra per differenziarla visivamente dalla prima
+### 2. Contatori di esperienza (stats bar)
+- Una riga di 3 numeri impattanti tra titolo e testo:
+  - **10+** anni di esperienza
+  - **Migliaia** di pratiche gestite
+  - **100%** pratiche assicurate
+- Stile: numeri grandi in verde, testo descrittivo piccolo sotto in grigio
+- Sfondo leggero verde (`bg-green-50`) con bordo arrotondato
 
-### 4. Testo piu' impattante
-- Ogni bullet point avra' il testo principale in **bianco** (`text-white`) e un sotto-testo in `text-white/40` per aggiungere dettaglio
-- Aggiungere un **footer card** con un mini-riassunto: es. "Protetto al 100%" per la #1, "Zero euro anticipati" per la #2, dentro un box con sfondo verde
+### 3. Testo riorganizzato con punti chiave evidenziati
+- Primo paragrafo: introduzione con enfasi sull'esperienza decennale
+- Secondo paragrafo: menzione esplicita del supporto durante lo sconto in fattura
+- Terzo paragrafo: il team e la cura per i clienti
+- Parole chiave in **grassetto** per facilitare la scansione
 
-### 5. Numerazione grande decorativa
-- Aggiungere un grande "01" e "02" semi-trasparente (`text-8xl font-black text-white/[0.03]`) posizionato in absolute nell'angolo della card per dare gerarchia
+### 4. Immagine migliorata
+- Bordo verde sottile invece del grigio
+- Ombra piu' definita (`shadow-lg`)
+- Badge sovrapposto sull'immagine: "Oltre 10 anni nel settore" posizionato in basso a sinistra con sfondo verde
+
+### 5. Citazione con stile migliorato
+- Box dedicato con icona virgolette e sfondo verde chiaro
+- Testo della citazione piu' grande e leggibile
 
 ## Dettaglio tecnico
 
-**Illustrazione migliorata Garanzia #1**:
+### Stats bar:
 ```text
-<div className="flex items-center justify-center order-1">
-  <div className="relative">
-    <!-- Numero decorativo -->
-    <span className="absolute -top-8 -left-8 text-8xl font-black select-none" style={{ color: `${PR_GREEN}06` }}>01</span>
-    <!-- Anello esterno pulsante -->
-    <div className="w-52 h-52 rounded-full border flex items-center justify-center animate-pulse" style={{ borderColor: `${PR_GREEN}08` }}>
-      <div className="w-40 h-40 rounded-full border-2 flex items-center justify-center" style={{ borderColor: `${PR_GREEN}15` }}>
-        <div className="w-28 h-28 rounded-full border-2 flex items-center justify-center" style={{ borderColor: `${PR_GREEN}25` }}>
-          <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}15`, boxShadow: `0 0 30px ${PR_GREEN}30` }}>
-            <Shield className="w-12 h-12" style={{ color: PR_GREEN }} />
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Badge floating decorativi -->
-    <div className="absolute -top-3 right-4 px-2 py-1 rounded-lg text-[10px] font-bold text-white animate-float" style={{ backgroundColor: PR_GREEN }}>100%</div>
-    <div className="absolute top-1/2 -right-6 w-8 h-8 rounded-full flex items-center justify-center animate-float-delayed" style={{ backgroundColor: `${PR_GREEN}20` }}>
-      <Lock className="w-4 h-4" style={{ color: PR_GREEN }} />
-    </div>
-    <div className="absolute -bottom-3 left-4 px-2 py-1 rounded-lg text-[10px] font-bold text-white animate-float-slow" style={{ backgroundColor: `${PR_GREEN}80` }}>SICURA</div>
+<div className="grid grid-cols-3 gap-4 my-8 bg-green-50 rounded-xl p-6 border border-green-100">
+  <div className="text-center">
+    <span className="text-3xl font-black" style={{ color: PR_GREEN }}>10+</span>
+    <p className="text-xs text-gray-500 mt-1">Anni di esperienza</p>
+  </div>
+  <div className="text-center border-x border-green-200">
+    <span className="text-3xl font-black" style={{ color: PR_GREEN }}>Migliaia</span>
+    <p className="text-xs text-gray-500 mt-1">Pratiche gestite</p>
+  </div>
+  <div className="text-center">
+    <span className="text-3xl font-black" style={{ color: PR_GREEN }}>100%</span>
+    <p className="text-xs text-gray-500 mt-1">Pratiche assicurate</p>
   </div>
 </div>
 ```
 
-**Illustrazione migliorata Garanzia #2 (mini-card costi)**:
+### Immagine con badge:
 ```text
-<div className="flex flex-col items-center gap-4">
-  <div className="relative">
-    <div className="w-24 h-24 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}15`, boxShadow: `0 0 30px ${PR_GREEN}30` }}>
-      <CreditCard className="w-12 h-12" style={{ color: PR_GREEN }} />
-    </div>
-    <div className="absolute -top-2 -right-2 px-2 py-0.5 rounded text-[10px] font-bold text-white animate-float" style={{ backgroundColor: PR_GREEN }}>GRATIS</div>
-  </div>
-  <!-- Mini card costi eliminati -->
-  <div className="space-y-2 w-full max-w-[200px]">
-    <div className="flex items-center gap-2 bg-red-500/10 rounded-lg px-3 py-2">
-      <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-      <span className="line-through text-red-400/60 text-xs">Canone mensile</span>
-    </div>
-    <div className="flex items-center gap-2 bg-red-500/10 rounded-lg px-3 py-2">
-      <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-      <span className="line-through text-red-400/60 text-xs">Abbonamento</span>
-    </div>
-    <div className="flex items-center gap-2 bg-red-500/10 rounded-lg px-3 py-2">
-      <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-      <span className="line-through text-red-400/60 text-xs">Costo attivazione</span>
-    </div>
-  </div>
-  <!-- Badge risultato -->
-  <div className="px-4 py-2 rounded-xl font-black text-lg" style={{ backgroundColor: `${PR_GREEN}15`, color: PR_GREEN, boxShadow: `0 0 20px ${PR_GREEN}20` }}>
-    0€ anticipati
+<div className="relative rounded-xl overflow-hidden shadow-lg border" style={{ borderColor: `${PR_GREEN}30` }}>
+  <img src={teamImg} alt="Il team di Pratica Rapida" className="w-full h-auto" />
+  <div className="absolute bottom-4 left-4 px-4 py-2 rounded-lg text-white text-sm font-bold" style={{ backgroundColor: PR_GREEN }}>
+    Oltre 10 anni nel settore
   </div>
 </div>
 ```
 
-**Footer card riassuntivo** (aggiunto in fondo a ogni card):
+### Testo aggiornato (paragrafi):
+- "Da oltre 10 anni ci occupiamo di pratiche nel settore degli infissi, delle tende da sole, delle pergole e dei serramenti. Non siamo l'ennesima startup che ha scoperto ieri cosa sia una pratica ENEA."
+- "Abbiamo supportato centinaia di aziende durante il periodo del bonus dello sconto in fattura, gestendo volumi enormi di pratiche con precisione e puntualita'. Quella esperienza ci ha reso ancora piu' veloci, affidabili e organizzati."
+- "Il nostro team e' composto da professionisti specializzati. Ogni pratica e' seguita con cura, verificata e assicurata. Ci presentiamo a nome della vostra azienda e trattiamo i vostri clienti come se fossero i nostri."
+
+### Citazione rivisitata:
 ```text
-<div className="mt-8 pt-6 border-t border-white/10 flex items-center gap-3">
-  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}15` }}>
-    <ShieldCheck className="w-5 h-5" style={{ color: PR_GREEN }} />
-  </div>
-  <p className="text-sm font-semibold text-white/80">Protetto al 100% — senza costi aggiuntivi</p>
+<div className="mt-8 bg-green-50 border-l-4 rounded-r-lg p-5" style={{ borderColor: PR_GREEN }}>
+  <p className="text-gray-700 font-semibold italic text-lg">
+    "Permetterti di offrire un servizio completo ai tuoi clienti senza aggiungere un solo minuto di lavoro alla tua giornata."
+  </p>
 </div>
 ```
 
-**Gradiente sfondo card**: aggiunto via `background` inline style.
-
-### Icone aggiuntive da importare
-- `Lock` da lucide-react (se non gia' importata)
-- `ShieldCheck` da lucide-react (se non gia' importata)
+### Icone da importare
+- `Users` da lucide-react (se non gia' importata)
+- `Quote` non necessaria, usiamo il border-left come indicatore visivo
 
 ### File modificato
 
 | File | Modifica |
 |------|----------|
-| `src/pages/Home.tsx` | Righe 687-788: redesign avanzato illustrazioni garanzie con floating badges animati, mini-card costi, gradienti, numeri decorativi e footer riassuntivi |
+| `src/pages/Home.tsx` | Righe 843-866: redesign completo sezione "Chi c'e' dietro" con stats bar, testo aggiornato (10+ anni, sconto in fattura), immagine con badge, citazione stilizzata |
 

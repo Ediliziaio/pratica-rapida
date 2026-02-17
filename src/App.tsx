@@ -17,6 +17,7 @@ import Utenti from "./pages/Utenti";
 import CodaPratiche from "./pages/CodaPratiche";
 import AdminPratiche from "./pages/AdminPratiche";
 import NotFound from "./pages/NotFound";
+import Home from "./pages/Home";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            <Route path="/home" element={<Home />} />
             <Route path="/auth" element={<AuthRoute />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/pratiche" element={<ProtectedRoute><Pratiche /></ProtectedRoute>} />

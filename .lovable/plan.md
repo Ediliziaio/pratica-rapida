@@ -1,62 +1,67 @@
 
 
-# Miglioramento Grafico Sezione "Parliamoci chiaro" + Trappole
+# Miglioramento Grafico Sezione "Come Funziona"
 
 ## Modifiche previste
 
-### 1. Intestazione "Parliamoci chiaro" piu' impattante
-- Aggiungere un'icona o un badge sopra il titolo (es. icona Target o AlertTriangle con sfondo verde semitrasparente)
-- Titolo piu' grande (da `text-3xl md:text-4xl` a `text-3xl md:text-5xl`) con punto verde evidenziato
-- Aggiungere un separatore decorativo sotto il titolo (linea verde corta centrata)
+### 1. Header della sezione piu' impattante
+- Aggiungere un badge "3 SEMPLICI PASSI" sopra il titolo con icona Sparkles
+- Sottotitolo "Tre passi. Zero sforzo." con testo piu' grande e colore piu' visibile (da `text-gray-400` a `text-gray-500 text-xl`)
+- Aggiungere un separatore decorativo verde sotto il sottotitolo
 
-### 2. Testo introduttivo con evidenziazioni migliori
-- Evidenziare parole chiave con colore verde o bianco forte anziche' lasciare tutto in `text-white/50`
-- La citazione centrale ("Non e' il migliore che vince...") trasformata in un blockquote con bordo verde a sinistra, sfondo semitrasparente e tipografia piu' grande
-- Aggiungere iconcine inline per i concetti chiave (es. icona spada per "campo di battaglia", icona bilancia per "margini")
+### 2. Icone piu' grandi e con animazione
+- Aumentare il contenitore icona da `w-14 h-14` a `w-20 h-20`
+- Aumentare le icone da `w-7 h-7` a `w-10 h-10`
+- Aggiungere un anello esterno decorativo attorno al contenitore icona (ring verde semitrasparente)
+- Aggiungere la classe `hover-scale` alle card per animazione hover
 
-### 3. Sottotitolo "Le 2 trappole" con badge numerico
-- Aggiungere un badge rosso/warning "ATTENZIONE" sopra il titolo trappole
-- Titolo piu' grande e con icona AlertTriangle
+### 3. Step number piu' visibile
+- Aumentare il numero step da `text-4xl` a `text-6xl` per renderlo piu' decorativo
+- Spostare leggermente la posizione per non sovrapporsi al contenuto
 
-### 4. Card Trappole ridisegnate
-- Aggiungere un numero grande semitrasparente in alto a destra (stile step cards della sezione "Come Funziona")
-- Bordo rosso sottile invece di bianco/10 per comunicare pericolo
-- Header della card con sfondo rosso sfumato
-- Separare i paragrafi con bullet points per i punti chiave (es. "Sei tu che devi..." come lista puntata con icone X rosse)
-- Aggiungere in fondo a ogni card un "costo reale" evidenziato (es. box con il vero costo stimato)
+### 4. Connettori tra le card (solo desktop)
+- Aggiungere frecce o linee tratteggiate tra le 3 card per comunicare sequenza visiva
+- Implementato con pseudo-elementi o div assoluti tra le colonne
+
+### 5. Card con bordo verde al hover
+- Aggiungere transizione del bordo: da `border-gray-200` a `border-green` al hover
+- Ombra verde sottile al hover invece della generica `card-hover-glow`
 
 ### File modificato
 
 | File | Modifica |
 |------|----------|
-| `src/pages/Home.tsx` | Righe 312-360: redesign sezione Parliamoci chiaro + Trappole |
+| `src/pages/Home.tsx` | Righe 426-465: redesign sezione Come Funziona |
 
 ### Dettaglio tecnico
 
-**Titolo**: badge + titolo piu' grande + divider verde
-
+**Badge sopra il titolo**:
 ```text
-<span badge verde> IL PROBLEMA DEL SETTORE </span>
-<h2 text-5xl> Parliamoci chiaro. </h2>
-<div className="w-16 h-1 bg-green mx-auto mt-4 mb-8 rounded" />
+<span className="inline-flex items-center gap-2 bg-green/10 text-green px-4 py-1.5 rounded-full text-sm font-semibold mb-4">
+  <Sparkles className="w-4 h-4" /> 3 SEMPLICI PASSI
+</span>
 ```
 
-**Citazione centrale**: blockquote con stile
-
+**Icone piu' grandi con anello**:
 ```text
-<blockquote className="border-l-4 border-green bg-green/5 p-6 rounded-r-xl my-8">
-  <p className="text-white/90 text-xl italic font-medium">
-    "Non e' il migliore che vince..."
-  </p>
-</blockquote>
+<div className="relative mx-auto mb-6">
+  <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto bg-green/10 ring-4 ring-green/5">
+    <item.icon className="w-10 h-10 text-green" />
+  </div>
+</div>
 ```
 
-**Card Trappole**: layout migliorato
-
+**Connettori tra card** (visibili solo su md+):
 ```text
-- Bordo: border-red-500/20 invece di border-white/10
-- Numero grande "#1" semitrasparente in alto a destra
-- Lista puntata con icone XCircle rosse per ogni "Sei tu che devi..."
-- Box finale evidenziato: "Costo reale: 3-5x di piu'"
+// Dopo la prima e seconda card, un div con freccia
+<div className="hidden md:flex items-center justify-center">
+  <ArrowRight className="w-8 h-8 text-green/30" />
+</div>
 ```
 
+Per i connettori, il grid passera' da `md:grid-cols-3` a `md:grid-cols-5` con le card nelle colonne 1, 3, 5 e le frecce nelle colonne 2 e 4.
+
+**Card hover migliorato**:
+```text
+className="bg-gray-50 border border-gray-200 hover:border-green/40 rounded-xl p-8 text-center relative transition-all duration-300 hover:shadow-lg hover:shadow-green/5"
+```

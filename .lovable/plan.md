@@ -1,95 +1,73 @@
 
+# Tre Miglioramenti alla Landing Page
 
-# Redesign Sezione "Chi c'e' dietro Pratica Rapida"
+## 1. Trustpilot Badge in alto (nella Hero)
 
-## Stato attuale
-La sezione (righe 843-866) ha un layout semplice a due colonne: testo a sinistra e immagine a destra. Il testo e' lungo e uniforme, senza elementi visivi che spezzino la lettura. Manca il riferimento ai 10+ anni di esperienza e al supporto durante il bonus sconto in fattura.
+Aggiungere subito sotto gli stats della Hero (riga 287) un blocco Trustpilot con:
+- 5 stelle verdi/gialle
+- Testo "Oltre 122 recensioni su Trustpilot"
+- Link cliccabile a `https://it.trustpilot.com/review/praticarapida.it` che apre in nuova tab
+- Stile: stelle colorate, testo `text-white/50`, icona Star di lucide-react, link con hover underline
 
-## Contenuto aggiornato
-- Aggiungere il riferimento a **oltre 10 anni di esperienza** nel settore
-- Menzionare il **supporto durante il bonus dello sconto in fattura** come prova concreta di competenza
-- Riscrivere i paragrafi per essere piu' concisi e incisivi
+## 2. Logo Slider delle aziende partner (dopo la Hero, prima della sezione "Il Problema")
 
-## Miglioramenti grafici
+Inserire dopo la Hero (riga 289) e prima della sezione "Il Problema" (riga 291) un banner scuro con:
+- Testo sopra: "Ci hanno scelto" in `text-white/30` uppercase piccolo
+- Una riga di loghi placeholder (testi stilizzati in assenza di loghi reali) che scorrono con animazione CSS `marquee` infinita
+- Loghi placeholder: "Serramenti Rossi", "Infissi Bianchi", "Pergole Italia", "TendeSu", "Finestre Top", "Alluminio Pro", "Serramenti Milano", "InfissiGroup"
+- Animazione: `@keyframes marquee` da `translateX(0)` a `translateX(-50%)` con duplicazione dei loghi per loop seamless
+- Lo slider va aggiunto in `src/index.css` come keyframe custom
 
-### 1. Header con badge e sottotitolo
-- Badge "IL NOSTRO TEAM" con icona Users sopra il titolo
-- Separatore decorativo verde sotto il titolo
+## 3. CTA Finale migliorata (righe 900-927)
 
-### 2. Contatori di esperienza (stats bar)
-- Una riga di 3 numeri impattanti tra titolo e testo:
-  - **10+** anni di esperienza
-  - **Migliaia** di pratiche gestite
-  - **100%** pratiche assicurate
-- Stile: numeri grandi in verde, testo descrittivo piccolo sotto in grigio
-- Sfondo leggero verde (`bg-green-50`) con bordo arrotondato
-
-### 3. Testo riorganizzato con punti chiave evidenziati
-- Primo paragrafo: introduzione con enfasi sull'esperienza decennale
-- Secondo paragrafo: menzione esplicita del supporto durante lo sconto in fattura
-- Terzo paragrafo: il team e la cura per i clienti
-- Parole chiave in **grassetto** per facilitare la scansione
-
-### 4. Immagine migliorata
-- Bordo verde sottile invece del grigio
-- Ombra piu' definita (`shadow-lg`)
-- Badge sovrapposto sull'immagine: "Oltre 10 anni nel settore" posizionato in basso a sinistra con sfondo verde
-
-### 5. Citazione con stile migliorato
-- Box dedicato con icona virgolette e sfondo verde chiaro
-- Testo della citazione piu' grande e leggibile
+Redesign completo della CTA con:
+- **Badge** "NON ASPETTARE" con icona Zap sopra il titolo
+- **Titolo** piu' grande e incisivo
+- **3 mini-card** orizzontali sotto il testo principale che riassumono i benefit:
+  - "Zero Rischi" con Shield icon
+  - "65euro/pratica" con CreditCard icon  
+  - "Consegna 24h" con Clock icon
+- **CTA button** piu' grande con effetto glow e freccia
+- **Gradiente radiale verde** di sfondo per dare calore
+- **PS e PPS** restano ma con stile migliorato: icona a sinistra e sfondo leggermente diverso per ognuno
+- **Trustpilot** anche qui: una riga con stelle e "122+ recensioni" per rafforzare la fiducia prima del click
 
 ## Dettaglio tecnico
 
-### Stats bar:
+### Trustpilot nella Hero (dopo riga 287):
 ```text
-<div className="grid grid-cols-3 gap-4 my-8 bg-green-50 rounded-xl p-6 border border-green-100">
-  <div className="text-center">
-    <span className="text-3xl font-black" style={{ color: PR_GREEN }}>10+</span>
-    <p className="text-xs text-gray-500 mt-1">Anni di esperienza</p>
+<a href="https://it.trustpilot.com/review/praticarapida.it" target="_blank" rel="noopener noreferrer"
+   className="inline-flex items-center gap-2 mt-6 text-white/40 hover:text-white/60 transition-colors text-sm">
+  <div className="flex gap-0.5">
+    {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-green-400 text-green-400" />)}
   </div>
-  <div className="text-center border-x border-green-200">
-    <span className="text-3xl font-black" style={{ color: PR_GREEN }}>Migliaia</span>
-    <p className="text-xs text-gray-500 mt-1">Pratiche gestite</p>
-  </div>
-  <div className="text-center">
-    <span className="text-3xl font-black" style={{ color: PR_GREEN }}>100%</span>
-    <p className="text-xs text-gray-500 mt-1">Pratiche assicurate</p>
-  </div>
-</div>
+  <span>Oltre 122 recensioni su <strong className="text-white/60">Trustpilot</strong></span>
+</a>
 ```
 
-### Immagine con badge:
-```text
-<div className="relative rounded-xl overflow-hidden shadow-lg border" style={{ borderColor: `${PR_GREEN}30` }}>
-  <img src={teamImg} alt="Il team di Pratica Rapida" className="w-full h-auto" />
-  <div className="absolute bottom-4 left-4 px-4 py-2 rounded-lg text-white text-sm font-bold" style={{ backgroundColor: PR_GREEN }}>
-    Oltre 10 anni nel settore
-  </div>
-</div>
+### Logo slider (nuovo blocco tra Hero e "Il Problema"):
+- CSS in `src/index.css`:
+```css
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
 ```
+- JSX: div con `overflow-hidden`, dentro un flex con i loghi duplicati (array ripetuto 2x) che scorre con `animate-marquee`
+- I loghi saranno testi stilizzati in box con bordo `border-white/10` e font bold `text-white/20` per sembrare placeholder professionali, facilmente sostituibili con immagini reali
 
-### Testo aggiornato (paragrafi):
-- "Da oltre 10 anni ci occupiamo di pratiche nel settore degli infissi, delle tende da sole, delle pergole e dei serramenti. Non siamo l'ennesima startup che ha scoperto ieri cosa sia una pratica ENEA."
-- "Abbiamo supportato centinaia di aziende durante il periodo del bonus dello sconto in fattura, gestendo volumi enormi di pratiche con precisione e puntualita'. Quella esperienza ci ha reso ancora piu' veloci, affidabili e organizzati."
-- "Il nostro team e' composto da professionisti specializzati. Ogni pratica e' seguita con cura, verificata e assicurata. Ci presentiamo a nome della vostra azienda e trattiamo i vostri clienti come se fossero i nostri."
+### CTA Finale redesign:
+- Gradiente radiale verde di sfondo: `radial-gradient(circle at 50% 0%, ${PR_GREEN}12 0%, transparent 50%)`
+- 3 mini benefit card in `grid grid-cols-3` con icona + testo, sfondo `bg-white/5` e bordo `border-white/10`
+- Trustpilot ripetuto sotto il bottone CTA
+- PS/PPS in card separate con icone `FileText` e `Sparkles`
 
-### Citazione rivisitata:
-```text
-<div className="mt-8 bg-green-50 border-l-4 rounded-r-lg p-5" style={{ borderColor: PR_GREEN }}>
-  <p className="text-gray-700 font-semibold italic text-lg">
-    "Permetterti di offrire un servizio completo ai tuoi clienti senza aggiungere un solo minuto di lavoro alla tua giornata."
-  </p>
-</div>
-```
-
-### Icone da importare
-- `Users` da lucide-react (se non gia' importata)
-- `Quote` non necessaria, usiamo il border-left come indicatore visivo
-
-### File modificato
+### File modificati
 
 | File | Modifica |
 |------|----------|
-| `src/pages/Home.tsx` | Righe 843-866: redesign completo sezione "Chi c'e' dietro" con stats bar, testo aggiornato (10+ anni, sconto in fattura), immagine con badge, citazione stilizzata |
-
+| `src/pages/Home.tsx` | 1) Trustpilot badge dopo stats Hero (riga ~287), 2) Logo slider tra Hero e sezione Problema (riga ~289), 3) Redesign CTA finale (righe 900-927) |
+| `src/index.css` | Aggiunta keyframe `marquee` e classe `animate-marquee` |

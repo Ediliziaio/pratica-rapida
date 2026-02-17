@@ -189,13 +189,13 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a1628] text-white font-sans relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#0a1628] text-white font-sans relative overflow-x-hidden pt-10 pb-28">
       <FloatingIcons />
 
       {/* ── Top Banner ── */}
-      <div className="text-white text-center py-2.5 text-xs md:text-sm font-semibold tracking-wide flex items-center justify-center gap-2" style={{ backgroundColor: PR_GREEN }}>
+      <div className="fixed top-0 left-0 right-0 z-[60] text-white text-center py-2.5 text-xs md:text-sm font-semibold tracking-wide flex items-center justify-center gap-2" style={{ backgroundColor: PR_GREEN }}>
         <Gift className="w-4 h-4" />
-        ZERO VINCOLI. PAGHI SOLO A PRATICA COMPLETATA.
+        PAGHI SOLO A PRATICA EFFETTUATA
       </div>
 
       {/* ── Navbar ── */}
@@ -1109,6 +1109,30 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* ── Sticky Bottom Bar ── */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a1628] border-t border-white/10 shadow-2xl">
+        <div className="max-w-5xl mx-auto px-4 py-3 md:py-4 flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="text-center md:text-left">
+            <p className="text-white text-sm md:text-base font-semibold">
+              Iscriviti alla Piattaforma e Ricevi in Regalo il Documento:
+            </p>
+            <p className="text-xs md:text-sm font-bold" style={{ color: PR_GREEN }}>
+              "Come Trasformare un Preventivo in una Vendita (Senza Rincorrere il Cliente)"
+            </p>
+            <p className="text-[10px] md:text-xs text-white/40">
+              Il Metodo per Far Dire "Sì" al Cliente Senza Pressioni, Telefonate Inutili o Sconti Forzati
+            </p>
+          </div>
+          <Link
+            to="/auth"
+            className="whitespace-nowrap px-6 py-3 rounded-lg font-bold text-white text-sm md:text-base transition-all hover:scale-105 animate-pulse-glow w-full md:w-auto text-center"
+            style={{ backgroundColor: PR_GREEN }}
+          >
+            Iscriviti Gratis
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

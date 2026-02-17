@@ -53,11 +53,11 @@ function useCounter(end: number, duration = 1500) {
   return { count, ref };
 }
 
-/* ── Section wrapper ── */
-function Section({ children, className = "", id }: { children: React.ReactNode; className?: string; id?: string }) {
+/* ── Section wrapper with light/dark support ── */
+function Section({ children, className = "", id, light = false }: { children: React.ReactNode; className?: string; id?: string; light?: boolean }) {
   const ref = useScrollFadeIn();
   return (
-    <section ref={ref} id={id} className={`landing-fade-in py-20 md:py-28 ${className}`}>
+    <section ref={ref} id={id} className={`landing-fade-in py-20 md:py-28 ${light ? "bg-white" : ""} ${className}`}>
       {children}
     </section>
   );
@@ -197,25 +197,29 @@ export default function Home() {
       </div>
 
       {/* ── Navbar ── */}
-      <nav className={`sticky top-0 z-50 bg-[#0a1628]/90 backdrop-blur-md border-b border-white/5 transition-all duration-300 ${scrolled ? "navbar-scrolled" : ""}`}>
+      <nav className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? "navbar-scrolled" : "bg-[#0a1628]/90 backdrop-blur-md border-b border-white/5"}`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4 transition-all duration-300">
           <Link to="/home" className="flex items-center gap-2">
-            <img src="/pratica-rapida-logo.png" alt="Pratica Rapida" className="h-8" />
+            <img
+              src="/pratica-rapida-logo.png"
+              alt="Pratica Rapida"
+              className={`h-8 transition-all duration-300 ${scrolled ? "" : "logo-white"}`}
+            />
           </Link>
-          <div className="hidden md:flex items-center gap-8 text-sm text-white/70">
+          <div className={`hidden md:flex items-center gap-8 text-sm ${scrolled ? "text-gray-600" : "text-white/70"}`}>
             {navLinks.map(l => (
-              <a key={l.href} href={l.href} className="hover:text-white transition-colors">{l.label}</a>
+              <a key={l.href} href={l.href} className={`nav-link transition-colors ${scrolled ? "hover:text-[#00843D]" : "hover:text-white"}`}>{l.label}</a>
             ))}
-            <Link to="/auth" className="hover:text-white transition-colors">Accedi</Link>
+            <Link to="/auth" className={`nav-link transition-colors ${scrolled ? "hover:text-[#00843D]" : "hover:text-white"}`}>Accedi</Link>
           </div>
           <Link to="/auth" className="hidden md:inline-flex text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-all animate-pulse-glow" style={{ backgroundColor: PR_GREEN }}>
             Attiva Ora
           </Link>
           {/* Hamburger */}
           <button className={`md:hidden flex flex-col gap-1.5 z-[60] ${mobileMenuOpen ? "hamburger-open" : ""}`} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            <span className="hamburger-line w-6 h-0.5 bg-white rounded-full block" />
-            <span className="hamburger-line w-6 h-0.5 bg-white rounded-full block" />
-            <span className="hamburger-line w-6 h-0.5 bg-white rounded-full block" />
+            <span className={`hamburger-line w-6 h-0.5 rounded-full block transition-colors duration-300 ${scrolled ? "bg-gray-800" : "bg-white"}`} />
+            <span className={`hamburger-line w-6 h-0.5 rounded-full block transition-colors duration-300 ${scrolled ? "bg-gray-800" : "bg-white"}`} />
+            <span className={`hamburger-line w-6 h-0.5 rounded-full block transition-colors duration-300 ${scrolled ? "bg-gray-800" : "bg-white"}`} />
           </button>
         </div>
       </nav>
@@ -236,7 +240,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* ── Hero ── */}
+      {/* ── Hero (SCURO) ── */}
       <section className="relative pt-16 pb-8 px-6">
         <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at center top, ${PR_GREEN}08 0%, transparent 60%)` }} />
         <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-[0.04] pointer-events-none" />
@@ -283,29 +287,29 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Il Problema ── */}
-      <Section id="vantaggi">
+      {/* ── Il Problema (BIANCO) ── */}
+      <Section id="vantaggi" light>
         <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-3xl md:text-5xl font-bold text-center mb-8">
+          <h2 className="text-3xl md:text-5xl font-bold text-center mb-8 text-gray-900">
             Sai qual è il modo più veloce per{" "}
             <span style={{ color: PR_GREEN }}>perdere un cliente</span> nel 2025?
           </h2>
-          <p className="text-white/60 text-center max-w-3xl mx-auto text-lg mb-6">
-            Dirgli: <em className="text-white">"La pratica ENEA? Ah, quella se la deve fare lei."</em>
+          <p className="text-gray-500 text-center max-w-3xl mx-auto text-lg mb-6">
+            Dirgli: <em className="text-gray-900 font-medium">"La pratica ENEA? Ah, quella se la deve fare lei."</em>
           </p>
-          <div className="max-w-3xl mx-auto space-y-4 text-white/50 leading-relaxed mb-6">
+          <div className="max-w-3xl mx-auto space-y-4 text-gray-500 leading-relaxed mb-6">
             <p>Forse fino a qualche anno fa funzionava. Il cliente annuiva, tornava a casa e — forse — si arrangiava. Ma oggi? Oggi il mercato è cambiato. E se non te ne sei accorto, il tuo fatturato probabilmente te lo sta già urlando.</p>
             <p>Perché nel frattempo, il tuo concorrente dall'altra parte della strada ha capito una cosa semplicissima:</p>
-            <p className="text-white/80 font-medium text-center italic">"Il cliente non vuole pensare alla burocrazia. Vuole che qualcuno gli risolva il problema. E chi glielo risolve… si prende la vendita."</p>
-            <p>Pensa a quante volte è successo. Il cliente ti chiede un preventivo. Gli piace il prodotto. Gli piace il prezzo. Poi arriva la domanda fatidica: <em className="text-white">"Ma per la pratica ENEA come funziona?"</em></p>
+            <p className="text-gray-700 font-medium text-center italic">"Il cliente non vuole pensare alla burocrazia. Vuole che qualcuno gli risolva il problema. E chi glielo risolve… si prende la vendita."</p>
+            <p>Pensa a quante volte è successo. Il cliente ti chiede un preventivo. Gli piace il prodotto. Gli piace il prezzo. Poi arriva la domanda fatidica: <em className="text-gray-900 font-medium">"Ma per la pratica ENEA come funziona?"</em></p>
             <p>E tu rispondi: "Guardi, quella la deve fare lei, oppure il suo commercialista…"</p>
-            <p>In quel momento — in quel preciso istante — hai perso il vantaggio competitivo. Hai dato al cliente un motivo per andare a chiedere un preventivo anche al tuo concorrente. Quello che risponde: <em className="text-white">"Non si preoccupi, a tutto ci pensiamo noi."</em></p>
-            <p>Domanda scomoda: quante vendite hai perso negli ultimi 12 mesi per questa ragione? 5? 10? 20? Fai il conto in euro. Quanti soldi sono rimasti sul tavolo perché non offrivi un servizio che avresti potuto attivare per soli <strong className="text-white">65€ a pratica</strong>?</p>
+            <p>In quel momento — in quel preciso istante — hai perso il vantaggio competitivo. Hai dato al cliente un motivo per andare a chiedere un preventivo anche al tuo concorrente. Quello che risponde: <em className="text-gray-900 font-medium">"Non si preoccupi, a tutto ci pensiamo noi."</em></p>
+            <p>Domanda scomoda: quante vendite hai perso negli ultimi 12 mesi per questa ragione? 5? 10? 20? Fai il conto in euro. Quanti soldi sono rimasti sul tavolo perché non offrivi un servizio che avresti potuto attivare per soli <strong className="text-gray-900">65€ a pratica</strong>?</p>
           </div>
         </div>
       </Section>
 
-      {/* ── Parliamoci chiaro ── */}
+      {/* ── Parliamoci chiaro + Trappole (SCURO) ── */}
       <Section className="bg-[#0d1a2d]">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-8" style={{ color: PR_GREEN }}>Parliamoci chiaro.</h2>
@@ -355,14 +359,14 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* ── Come Funziona ── */}
-      <Section id="come-funziona">
+      {/* ── Come Funziona (BIANCO) ── */}
+      <Section id="come-funziona" light>
         <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-3xl md:text-5xl font-bold text-center mb-4">
+          <h2 className="text-3xl md:text-5xl font-bold text-center mb-4 text-gray-900">
             Come funziona? È{" "}
             <span style={{ color: PR_GREEN }}>imbarazzantemente semplice</span>.
           </h2>
-          <p className="text-white/50 text-center mb-14 text-lg">Tre passi. Zero sforzo.</p>
+          <p className="text-gray-400 text-center mb-14 text-lg">Tre passi. Zero sforzo.</p>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
@@ -378,25 +382,25 @@ export default function Home() {
                 step: "03", icon: Zap, title: "In 24 ore la pratica è pronta",
                 desc: "Entro 24 ore, sia tu che il tuo cliente ricevete la Pratica ENEA completa e pronta. Nessun ritardo. Nessun sollecito. Nessuna telefonata di follow-up. Fatto.",
               },
-            ].map((item, i) => (
-              <div key={item.step} className="bg-[#0f1d32] border border-white/10 rounded-xl p-8 text-center relative card-hover-glow stagger-child">
+            ].map((item) => (
+              <div key={item.step} className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center relative card-hover-glow stagger-child">
                 <span className="absolute top-4 right-4 text-4xl font-bold" style={{ color: `${PR_GREEN}20` }}>{item.step}</span>
                 <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: `${PR_GREEN}15` }}>
                   <item.icon className="w-7 h-7" style={{ color: PR_GREEN }} />
                 </div>
-                <h3 className="text-lg font-bold mb-3">{item.title}</h3>
-                <p className="text-white/50 text-sm leading-relaxed">{item.desc}</p>
+                <h3 className="text-lg font-bold mb-3 text-gray-900">{item.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
 
-          <p className="text-white/50 text-center max-w-3xl mx-auto mt-10 text-base leading-relaxed">
-            Il risultato? Tu offri un servizio completo ai tuoi clienti, non perdi più vendite, non sprechi più ore in burocrazia — e paghi solo <strong className="text-white">65€ a pratica completata</strong>. Non un centesimo prima.
+          <p className="text-gray-500 text-center max-w-3xl mx-auto mt-10 text-base leading-relaxed">
+            Il risultato? Tu offri un servizio completo ai tuoi clienti, non perdi più vendite, non sprechi più ore in burocrazia — e paghi solo <strong className="text-gray-900">65€ a pratica completata</strong>. Non un centesimo prima.
           </p>
         </div>
       </Section>
 
-      {/* ── Confronto ── */}
+      {/* ── Confronto (SCURO) ── */}
       <Section id="confronto" className="bg-[#0d1a2d]">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-3xl md:text-5xl font-bold text-center mb-14">
@@ -449,22 +453,22 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* ── Prezzi ── */}
-      <Section id="prezzi">
+      {/* ── Prezzi (BIANCO) ── */}
+      <Section id="prezzi" light>
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-white/40 text-sm mb-3">Il prezzo che cambia tutto</p>
-          <p className="text-white/50 text-lg mb-2">Non 200€. Non 150€. Non 100€.</p>
-          <h2 ref={priceCounter.ref} className="text-5xl md:text-7xl font-bold mb-4">
+          <p className="text-gray-400 text-sm mb-3">Il prezzo che cambia tutto</p>
+          <p className="text-gray-500 text-lg mb-2">Non 200€. Non 150€. Non 100€.</p>
+          <h2 ref={priceCounter.ref} className="text-5xl md:text-7xl font-bold mb-4 text-gray-900">
             <span style={{ color: PR_GREEN }}>{priceCounter.count}€</span> a pratica completata
           </h2>
-          <p className="text-white/50 text-lg mb-2">Tutto incluso, nessun canone</p>
-          <p className="text-white/40 text-sm mb-10">
+          <p className="text-gray-500 text-lg mb-2">Tutto incluso, nessun canone</p>
+          <p className="text-gray-400 text-sm mb-10">
             Mentre i tuoi concorrenti pagano 1.000€ per un software che fa 3 pratiche, tu con lo stesso budget ne fai 15. E non devi muovere un dito.
           </p>
 
           <div className="grid md:grid-cols-2 gap-8 text-left mb-10">
-            <div className="bg-[#0f1d32] border border-white/10 rounded-xl p-8 card-hover-glow">
-              <h3 className="font-bold mb-4 flex items-center gap-2">
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 card-hover-glow">
+              <h3 className="font-bold mb-4 flex items-center gap-2 text-gray-900">
                 <CheckCircle2 className="w-5 h-5" style={{ color: PR_GREEN }} /> Tutto quello che ottieni
               </h3>
               <ul className="space-y-2.5">
@@ -480,15 +484,15 @@ export default function Home() {
                   "Nessun canone, nessun abbonamento, nessun software da comprare",
                   "Paghi solo a pratica completata: 65€",
                 ].map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-white/60 text-sm">
+                  <li key={item} className="flex items-start gap-2 text-gray-500 text-sm">
                     <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" style={{ color: PR_GREEN }} />
                     {item}
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="bg-[#0f1d32] border border-white/10 rounded-xl p-8 card-hover-glow">
-              <h3 className="font-bold mb-4 flex items-center gap-2">
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 card-hover-glow">
+              <h3 className="font-bold mb-4 flex items-center gap-2 text-gray-900">
                 <XCircle className="w-5 h-5 text-red-400" /> Cosa NON devi più fare
               </h3>
               <ul className="space-y-2.5">
@@ -500,7 +504,7 @@ export default function Home() {
                   "Fare il lavoro sporco per un fornitore \"low cost\"",
                   "Dire ai clienti \"se la faccia lei\" e perderli",
                 ].map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-white/50 text-sm">
+                  <li key={item} className="flex items-start gap-2 text-gray-500 text-sm">
                     <XCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
                     {item}
                   </li>
@@ -512,11 +516,11 @@ export default function Home() {
           <Link to="/auth" className="inline-flex items-center gap-2 text-white font-semibold px-8 py-3.5 rounded-lg text-base transition-all animate-pulse-glow hover:brightness-110" style={{ backgroundColor: PR_GREEN }}>
             Attiva Pratica Rapida Adesso <ArrowRight className="w-4 h-4" />
           </Link>
-          <p className="text-white/30 text-sm mt-3">Nessun costo iniziale. Paghi solo a pratica effettuata.</p>
+          <p className="text-gray-400 text-sm mt-3">Nessun costo iniziale. Paghi solo a pratica effettuata.</p>
         </div>
       </Section>
 
-      {/* ── Garanzie ── */}
+      {/* ── Garanzie (SCURO) ── */}
       <Section className="bg-[#0d1a2d]">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-3xl md:text-5xl font-bold text-center mb-14">
@@ -546,15 +550,15 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* ── Chi c'è dietro ── */}
-      <Section>
+      {/* ── Chi c'è dietro (BIANCO) ── */}
+      <Section light>
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-5xl font-bold mb-8">
+              <h2 className="text-3xl md:text-5xl font-bold mb-8 text-gray-900">
                 Chi c'è dietro <span style={{ color: PR_GREEN }}>Pratica Rapida</span>?
               </h2>
-              <div className="space-y-4 text-white/50 leading-relaxed">
+              <div className="space-y-4 text-gray-500 leading-relaxed">
                 <p>Non siamo l'ennesima startup che ha scoperto ieri cosa sia una pratica ENEA.</p>
                 <p>Pratica Rapida è nata dall'esperienza diretta nel settore degli infissi, delle tende da sole, delle pergole e dei serramenti. Conosciamo le vostre sfide perché le abbiamo vissute in prima persona. Sappiamo cosa significa perdere una vendita per un cavillo burocratico. Sappiamo cosa significa inseguire un cliente per un documento catastale.</p>
                 <p>Ed è proprio per questo che abbiamo costruito un servizio che elimina completamente questo problema dalla vostra vita lavorativa. Un servizio pensato da chi lavora nel vostro settore, per chi lavora nel vostro settore.</p>
@@ -564,14 +568,14 @@ export default function Home() {
                 "Permetterti di offrire un servizio completo ai tuoi clienti senza aggiungere un solo minuto di lavoro alla tua giornata."
               </p>
             </div>
-            <div className="rounded-xl overflow-hidden border border-white/10">
+            <div className="rounded-xl overflow-hidden border border-gray-200">
               <img src={teamImg} alt="Il team di Pratica Rapida" className="w-full h-auto" />
             </div>
           </div>
         </div>
       </Section>
 
-      {/* ── CTA Finale ── */}
+      {/* ── CTA Finale (SCURO) ── */}
       <Section className="bg-[#0d1a2d]">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
@@ -599,11 +603,11 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* ── Footer ── */}
-      <footer className="border-t border-white/5 py-10 px-6">
+      {/* ── Footer (SCURO) ── */}
+      <footer className="border-t border-white/5 py-10 px-6 bg-[#0a1628]">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <img src="/pratica-rapida-logo.png" alt="Pratica Rapida" className="h-6" />
+            <img src="/pratica-rapida-logo.png" alt="Pratica Rapida" className="h-6 logo-white" />
           </div>
           <div className="flex items-center gap-6 text-sm text-white/40">
             <a href="#come-funziona" className="hover:text-white/70 transition-colors">Come Funziona</a>

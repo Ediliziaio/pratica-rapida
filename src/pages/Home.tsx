@@ -171,12 +171,25 @@ function HeroTitle() {
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showBottomBar, setShowBottomBar] = useState(true);
+  const teamSectionRef = useRef<HTMLDivElement>(null);
   const priceCounter = useCounter(65);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 40);
+      if (window.scrollY > 200) setShowBottomBar(false);
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+
+    const el = teamSectionRef.current;
+    if (!el) return () => window.removeEventListener("scroll", onScroll);
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setShowBottomBar(true); },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => { window.removeEventListener("scroll", onScroll); observer.disconnect(); };
   }, []);
 
   const closeMobile = useCallback(() => setMobileMenuOpen(false), []);
@@ -868,7 +881,7 @@ export default function Home() {
 
       {/* ── Chi c'è dietro (BIANCO) ── */}
       <Section light>
-        <div className="max-w-5xl mx-auto px-6">
+        <div ref={teamSectionRef} className="max-w-5xl mx-auto px-6">
           {/* Badge + Titolo */}
           <div className="flex items-center gap-2 mb-4">
             <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}15` }}>
@@ -1111,7 +1124,7 @@ export default function Home() {
       </footer>
 
       {/* ── Sticky Bottom Bar ── */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a1628] border-t border-white/10 shadow-2xl">
+      <div className={`fixed bottom-0 left-0 right-0 z-50 bg-[#0a1628] border-t border-white/10 shadow-2xl transition-transform duration-500 ${showBottomBar ? 'translate-y-0' : 'translate-y-full'}`}>
         <div className="max-w-5xl mx-auto px-4 py-2 md:py-4 flex flex-col md:flex-row items-center justify-between gap-2 md:gap-3">
           <div className="text-center md:text-left">
             {/* Mobile: testo compatto */}

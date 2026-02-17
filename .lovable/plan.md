@@ -1,57 +1,42 @@
 
 
-# Miglioramenti Home Page Pratica Rapida
+# Fix Logo e Navbar Fissa
 
-## Modifiche previste
+## Problemi identificati
 
-### 1. Nuovo logo
-- Copiare il logo caricato (`pratica_rapida_logo-2.png`) come `public/pratica-rapida-logo.png` (sostituisce il precedente)
-- Il logo e' verde su sfondo trasparente, quindi serve una versione bianca per la navbar scura
-- Creare una versione bianca del logo usando CSS filter (`brightness(0) invert(1)`) quando la navbar ha sfondo scuro
+1. **Logo non visibile**: Il logo appare come un rettangolo bianco. Il file potrebbe non essere stato copiato correttamente, oppure il filtro CSS `brightness(0) invert(1)` lo rende invisibile. Bisogna verificare il file e assicurarsi che il logo sia visibile sia su sfondo scuro (bianco) che su sfondo bianco (verde naturale).
 
-### 2. Navbar: fissa in alto con transizione scuro -> bianco
-- La navbar parte con sfondo scuro trasparente (come ora)
-- Al scroll (dopo ~40px), la navbar diventa **bianca** (`bg-white`) con ombra, e il logo torna verde (naturale)
-- I link del menu diventano scuri (`text-gray-700`) quando la navbar e' bianca
-- Il bottone CTA "Attiva Ora" resta verde in entrambi gli stati
-- Su mobile, l'hamburger cambia colore (bianco su scuro, scuro su bianco)
+2. **Navbar non resta fissa**: Attualmente usa `sticky top-0`, ma essendo posizionata dopo il banner verde nel DOM, scorre via con la pagina. Serve `fixed` positioning.
 
-### 3. Sezioni alternate: sfondo scuro e bianco
-Alternare le sezioni tra sfondo scuro e sfondo bianco per creare contrasto visivo:
+## Soluzione
 
-| Sezione | Sfondo |
-|---------|--------|
-| Top Banner | Verde (#00843D) |
-| Hero | Scuro (#0a1628) |
-| Il Problema | **Bianco** |
-| Parliamoci chiaro + Trappole | Scuro (#0d1a2d) |
-| Come Funziona | **Bianco** |
-| Confronto | Scuro (#0d1a2d) |
-| Prezzi | **Bianco** |
-| Garanzie | Scuro (#0d1a2d) |
-| Chi c'e' dietro | **Bianco** |
-| CTA Finale | Scuro (#0d1a2d) |
-| Footer | Scuro |
+### 1. Navbar fissa con `fixed`
+- Cambiare la navbar da `sticky top-0` a `fixed top-0 left-0 right-0`
+- Il banner verde sopra sara' anch'esso fisso, oppure rimarra' scorrevole e la navbar si posizionera' a `top-0` direttamente
+- Aggiungere un padding-top al contenuto sotto la navbar per compensare lo spazio occupato (circa 90px: 40px banner + 50px navbar), oppure rendere solo la navbar fissa e lasciar scorrere il banner
+- Approccio scelto: il banner verde scorre via normalmente, la navbar diventa `fixed top-0` e tutto il contenuto della pagina riceve un `pt-[72px]` (altezza navbar) per compensare
 
-Nelle sezioni bianche, il testo diventa scuro (`text-gray-900`, `text-gray-600`), le card hanno bordo grigio chiaro, e gli accenti restano verde `#00843D`.
+### 2. Logo corretto
+- Ri-copiare il logo caricato dall'utente come `public/pratica-rapida-logo.png`
+- Verificare che il filtro CSS `logo-white` (che rende il logo bianco) funzioni correttamente: `filter: brightness(0) invert(1)` trasforma qualsiasi immagine in bianco
+- Quando la navbar e' scura (non scrolled): logo bianco tramite filtro
+- Quando la navbar diventa bianca (scrolled): logo verde naturale, senza filtro
 
-### 4. File modificati
+### File modificati
 
-| File | Azione |
-|------|--------|
-| `public/pratica-rapida-logo.png` | Sostituito con il nuovo logo caricato |
-| `src/pages/Home.tsx` | Aggiornamento navbar (transizione bianca), sezioni alternate bianche/scure, filtro CSS per logo bianco/verde |
-| `src/index.css` | Aggiungere classe `.navbar-scrolled` con sfondo bianco e testo scuro |
+| File | Modifica |
+|------|----------|
+| `public/pratica-rapida-logo.png` | Ri-copiare il logo dall'upload per assicurarsi che sia corretto |
+| `src/pages/Home.tsx` | Cambiare navbar da `sticky` a `fixed`, aggiungere padding-top compensativo al contenuto, verificare classi logo |
 
 ### Dettagli tecnici
 
-**Navbar scroll behavior:**
-- Stato iniziale: `bg-[#0a1628]/90 backdrop-blur-md`, testo bianco, logo con `filter: brightness(0) invert(1)` (diventa bianco)
-- Stato scrolled: `bg-white shadow-lg`, testo `text-gray-800`, logo senza filtro (resta verde naturale)
-- Transizione fluida con `transition-all duration-300`
+**Navbar:**
+- Da: `sticky top-0 z-50`
+- A: `fixed top-0 left-0 right-0 z-50`
+- Il banner verde rimane in flusso normale (scorre via)
+- Aggiungere `pt-[72px]` o simile al contenitore hero per compensare la navbar fissa
 
-**Sezioni bianche:**
-- Sfondo `bg-white`, testi `text-gray-900` per titoli, `text-gray-600` per paragrafi
-- Card con `bg-gray-50 border-gray-200` invece di `bg-[#0f1d32] border-white/10`
-- Icone e accenti restano verdi `#00843D`
-
+**Logo:**
+- Stato non-scrolled (sfondo scuro): `className="logo-white"` applica `filter: brightness(0) invert(1)`
+- Stato scrolled (sfondo bianco): nessun filtro, logo appare nel suo colore verde naturale

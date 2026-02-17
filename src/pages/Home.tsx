@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   Phone, Users, Clock, Shield, CreditCard, CheckCircle2, XCircle,
-  ArrowRight, FileText, BarChart3, AlertTriangle, Zap, Star,
+  ArrowRight, FileText, BarChart3, AlertTriangle, Zap, Star, Sparkles,
   Headphones, Gift, Building2, Target, TrendingDown, Monitor, Menu, X,
 } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
@@ -426,13 +426,19 @@ export default function Home() {
       {/* ── Come Funziona (BIANCO) ── */}
       <Section id="come-funziona" light>
         <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-3xl md:text-5xl font-bold text-center mb-4 text-gray-900">
-            Come funziona? È{" "}
-            <span style={{ color: PR_GREEN }}>imbarazzantemente semplice</span>.
-          </h2>
-          <p className="text-gray-400 text-center mb-14 text-lg">Tre passi. Zero sforzo.</p>
+          <div className="text-center mb-14">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold mb-4" style={{ backgroundColor: `${PR_GREEN}15`, color: PR_GREEN }}>
+              <Sparkles className="w-4 h-4" /> 3 SEMPLICI PASSI
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-900">
+              Come funziona? È{" "}
+              <span style={{ color: PR_GREEN }}>imbarazzantemente semplice</span>.
+            </h2>
+            <p className="text-gray-500 text-xl mt-4">Tre passi. Zero sforzo.</p>
+            <div className="w-16 h-1 rounded mx-auto mt-4" style={{ backgroundColor: PR_GREEN }} />
+          </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-0 items-stretch">
             {[
               {
                 step: "01", icon: Phone, title: "Inserisci il numero di telefono del cliente",
@@ -446,15 +452,24 @@ export default function Home() {
                 step: "03", icon: Zap, title: "In 24 ore la pratica è pronta",
                 desc: "Entro 24 ore, sia tu che il tuo cliente ricevete la Pratica ENEA completa e pronta. Nessun ritardo. Nessun sollecito. Nessuna telefonata di follow-up. Fatto.",
               },
-            ].map((item) => (
-              <div key={item.step} className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center relative card-hover-glow stagger-child">
-                <span className="absolute top-4 right-4 text-4xl font-bold" style={{ color: `${PR_GREEN}20` }}>{item.step}</span>
-                <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: `${PR_GREEN}15` }}>
-                  <item.icon className="w-7 h-7" style={{ color: PR_GREEN }} />
+            ].map((item, index) => (
+              <>
+                <div key={item.step} className="bg-gray-50 border border-gray-200 hover:border-green-500/40 rounded-xl p-8 text-center relative transition-all duration-300 hover:shadow-lg hover:shadow-green-500/5 hover-scale stagger-child">
+                  <span className="absolute top-3 right-4 text-6xl font-bold pointer-events-none" style={{ color: `${PR_GREEN}10` }}>{item.step}</span>
+                  <div className="relative mx-auto mb-6">
+                    <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto" style={{ backgroundColor: `${PR_GREEN}15`, boxShadow: `0 0 0 4px ${PR_GREEN}08` }}>
+                      <item.icon className="w-10 h-10" style={{ color: PR_GREEN }} />
+                    </div>
+                  </div>
+                  <h3 className="text-lg font-bold mb-3 text-gray-900">{item.title}</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
                 </div>
-                <h3 className="text-lg font-bold mb-3 text-gray-900">{item.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
-              </div>
+                {index < 2 && (
+                  <div key={`arrow-${index}`} className="hidden md:flex items-center justify-center">
+                    <ArrowRight className="w-8 h-8" style={{ color: `${PR_GREEN}40` }} />
+                  </div>
+                )}
+              </>
             ))}
           </div>
 

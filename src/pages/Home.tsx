@@ -671,28 +671,119 @@ export default function Home() {
       {/* ── Garanzie (SCURO) ── */}
       <Section className="bg-[#0d1a2d]">
         <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-3xl md:text-5xl font-bold text-center mb-14">
-            Due garanzie che{" "}
-            <span style={{ color: PR_GREEN }}>nessun altro</span> ti offre
-          </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-[#0f1d32] rounded-xl p-8 card-hover-glow" style={{ borderWidth: 1, borderColor: `${PR_GREEN}30` }}>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style={{ backgroundColor: `${PR_GREEN}15` }}>
-                <Shield className="w-6 h-6" style={{ color: PR_GREEN }} />
+          {/* Header */}
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center gap-2 text-xs font-bold tracking-widest px-4 py-1.5 rounded-full mb-6" style={{ backgroundColor: `${PR_GREEN}15`, color: PR_GREEN }}>
+              <Shield className="w-3.5 h-3.5" /> GARANZIE ESCLUSIVE
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+              Due garanzie che{" "}
+              <span style={{ color: PR_GREEN }}>nessun altro</span> ti offre
+            </h2>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">Protezione totale e zero rischi economici: le nostre promesse concrete.</p>
+            <div className="w-16 h-1 rounded-full mx-auto mt-6" style={{ backgroundColor: PR_GREEN }} />
+          </div>
+
+          <div className="space-y-8">
+            {/* Garanzia #1 - Assicurazione Blindata */}
+            <div className="bg-[#0f1d32] rounded-2xl p-8 md:p-10 relative overflow-hidden border" style={{ borderColor: `${PR_GREEN}30`, boxShadow: `0 0 40px ${PR_GREEN}08` }}>
+              <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: PR_GREEN }} />
+              <span className="absolute top-4 right-4 text-xs px-3 py-1 rounded-full font-bold text-white" style={{ backgroundColor: PR_GREEN }}>INCLUSA</span>
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                {/* Illustrazione */}
+                <div className="flex items-center justify-center order-1">
+                  <div className="relative">
+                    <div className="w-44 h-44 rounded-full border-2 flex items-center justify-center" style={{ borderColor: `${PR_GREEN}10` }}>
+                      <div className="w-32 h-32 rounded-full border-2 flex items-center justify-center" style={{ borderColor: `${PR_GREEN}20` }}>
+                        <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}15` }}>
+                          <Shield className="w-10 h-10" style={{ color: PR_GREEN }} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: PR_GREEN }}>
+                      <CheckCircle2 className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="absolute -bottom-2 -left-2 w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}30` }}>
+                      <Star className="w-3.5 h-3.5" style={{ color: PR_GREEN }} />
+                    </div>
+                  </div>
+                </div>
+                {/* Testo */}
+                <div className="order-2">
+                  <h3 className="text-2xl font-bold mb-5 text-white">Garanzia #1: Assicurazione Blindata</h3>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                      <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
+                      <span>Ogni pratica è coperta dalla nostra assicurazione professionale</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                      <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
+                      <span>Errori? Responsabilità nostra al 100%</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                      <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
+                      <span>Nessun costo aggiuntivo per te</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                      <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
+                      <span>Pratiche in mani sicure e assicurate</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
-              <h3 className="text-xl font-bold mb-3">Garanzia #1: Assicurazione Blindata</h3>
-              <p className="text-white/50 text-sm leading-relaxed">
-                Ogni pratica che gestiamo è coperta dalla nostra assicurazione. Se dovesse esserci un errore — qualsiasi errore — ci prendiamo noi la piena responsabilità. Nessun costo aggiuntivo per te. Nessun rischio. Nessuna preoccupazione. Dormi tranquillo sapendo che le pratiche dei tuoi clienti sono in mani sicure e assicurate.
-              </p>
             </div>
-            <div className="bg-[#0f1d32] rounded-xl p-8 card-hover-glow" style={{ borderWidth: 1, borderColor: `${PR_GREEN}30` }}>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style={{ backgroundColor: `${PR_GREEN}15` }}>
-                <CreditCard className="w-6 h-6" style={{ color: PR_GREEN }} />
+
+            {/* Garanzia #2 - Paghi Solo a Pratica Effettuata */}
+            <div className="bg-[#0f1d32] rounded-2xl p-8 md:p-10 relative overflow-hidden border" style={{ borderColor: `${PR_GREEN}30`, boxShadow: `0 0 40px ${PR_GREEN}08` }}>
+              <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: PR_GREEN }} />
+              <span className="absolute top-4 right-4 text-xs px-3 py-1 rounded-full font-bold text-white bg-amber-500">ZERO RISCHI</span>
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                {/* Testo */}
+                <div className="order-2 md:order-1">
+                  <h3 className="text-2xl font-bold mb-5 text-white">Garanzia #2: Paghi Solo a Pratica Effettuata</h3>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                      <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
+                      <span>Non ti chiediamo un euro prima</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                      <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
+                      <span>Paghi solo quando la pratica è completata e consegnata</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                      <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
+                      <span>Se non facciamo pratiche, non paghi nulla</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                      <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
+                      <span>Il rischio è tutto nostro</span>
+                    </li>
+                  </ul>
+                </div>
+                {/* Illustrazione */}
+                <div className="flex items-center justify-center order-1 md:order-2">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="relative">
+                      <div className="w-44 h-44 rounded-full border-2 flex items-center justify-center" style={{ borderColor: `${PR_GREEN}10` }}>
+                        <div className="w-32 h-32 rounded-full border-2 flex items-center justify-center" style={{ borderColor: `${PR_GREEN}20` }}>
+                          <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}15` }}>
+                            <CreditCard className="w-10 h-10" style={{ color: PR_GREEN }} />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: PR_GREEN }}>
+                        <CheckCircle2 className="w-4 h-4 text-white" />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5 text-center">
+                      <p className="line-through text-red-400/60 text-sm">Canone mensile</p>
+                      <p className="line-through text-red-400/60 text-sm">Abbonamento</p>
+                      <p className="line-through text-red-400/60 text-sm">Costo attivazione</p>
+                    </div>
+                    <span className="text-xl font-black" style={{ color: PR_GREEN }}>0€ anticipati</span>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-bold mb-3">Garanzia #2: Paghi Solo a Pratica Effettuata</h3>
-              <p className="text-white/50 text-sm leading-relaxed">
-                Non ti chiediamo un euro prima. Nessun canone mensile. Nessun abbonamento. Nessun costo di attivazione. Paghi solo ed esclusivamente quando la pratica è completata e consegnata. Se non facciamo pratiche, non paghi nulla. Il rischio è tutto nostro.
-              </p>
             </div>
           </div>
         </div>

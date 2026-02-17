@@ -4,6 +4,7 @@ import {
   Phone, Users, Clock, Shield, CreditCard, CheckCircle2, XCircle, Scale,
   ArrowRight, FileText, BarChart3, AlertTriangle, Zap, Star, Sparkles,
   Headphones, Gift, Building2, Target, TrendingDown, Monitor, Menu, X,
+  Lock, ShieldCheck,
 } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import teamImg from "@/assets/team-illustration.jpg";
@@ -686,101 +687,151 @@ export default function Home() {
 
           <div className="space-y-8">
             {/* Garanzia #1 - Assicurazione Blindata */}
-            <div className="bg-[#0f1d32] rounded-2xl p-8 md:p-10 relative overflow-hidden border" style={{ borderColor: `${PR_GREEN}30`, boxShadow: `0 0 40px ${PR_GREEN}08` }}>
+            <div className="bg-[#0f1d32] rounded-2xl p-8 md:p-10 relative overflow-hidden border" style={{ borderColor: `${PR_GREEN}30`, boxShadow: `0 0 40px ${PR_GREEN}08`, background: `radial-gradient(circle at 0% 0%, ${PR_GREEN}08 0%, transparent 50%), #0f1d32` }}>
+              <span className="absolute -top-4 -left-4 text-8xl font-black select-none pointer-events-none" style={{ color: `${PR_GREEN}06` }}>01</span>
               <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: PR_GREEN }} />
               <span className="absolute top-4 right-4 text-xs px-3 py-1 rounded-full font-bold text-white" style={{ backgroundColor: PR_GREEN }}>INCLUSA</span>
               <div className="grid md:grid-cols-2 gap-8 items-center">
-                {/* Illustrazione */}
+                {/* Illustrazione animata */}
                 <div className="flex items-center justify-center order-1">
                   <div className="relative">
-                    <div className="w-44 h-44 rounded-full border-2 flex items-center justify-center" style={{ borderColor: `${PR_GREEN}10` }}>
-                      <div className="w-32 h-32 rounded-full border-2 flex items-center justify-center" style={{ borderColor: `${PR_GREEN}20` }}>
-                        <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}15` }}>
-                          <Shield className="w-10 h-10" style={{ color: PR_GREEN }} />
+                    <div className="w-52 h-52 rounded-full border flex items-center justify-center animate-pulse" style={{ borderColor: `${PR_GREEN}08` }}>
+                      <div className="w-40 h-40 rounded-full border-2 flex items-center justify-center" style={{ borderColor: `${PR_GREEN}15` }}>
+                        <div className="w-28 h-28 rounded-full border-2 flex items-center justify-center" style={{ borderColor: `${PR_GREEN}25` }}>
+                          <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}15`, boxShadow: `0 0 30px ${PR_GREEN}30` }}>
+                            <Shield className="w-12 h-12" style={{ color: PR_GREEN }} />
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: PR_GREEN }}>
-                      <CheckCircle2 className="w-4 h-4 text-white" />
+                    {/* Floating badges */}
+                    <div className="absolute -top-3 right-4 px-2 py-1 rounded-lg text-[10px] font-bold text-white animate-float" style={{ backgroundColor: PR_GREEN }}>100%</div>
+                    <div className="absolute top-1/2 -right-6 w-8 h-8 rounded-full flex items-center justify-center animate-float-delayed" style={{ backgroundColor: `${PR_GREEN}20` }}>
+                      <Lock className="w-4 h-4" style={{ color: PR_GREEN }} />
                     </div>
-                    <div className="absolute -bottom-2 -left-2 w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}30` }}>
-                      <Star className="w-3.5 h-3.5" style={{ color: PR_GREEN }} />
-                    </div>
+                    <div className="absolute -bottom-3 left-4 px-2 py-1 rounded-lg text-[10px] font-bold text-white animate-float-slow" style={{ backgroundColor: `${PR_GREEN}80` }}>SICURA</div>
                   </div>
                 </div>
                 {/* Testo */}
                 <div className="order-2">
                   <h3 className="text-2xl font-bold mb-5 text-white">Garanzia #1: Assicurazione Blindata</h3>
-                  <ul className="space-y-3">
-                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                  <ul className="space-y-4">
+                    <li className="flex items-start gap-3">
                       <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
-                      <span>Ogni pratica è coperta dalla nostra assicurazione professionale</span>
+                      <div>
+                        <span className="text-white text-sm font-medium">Ogni pratica è coperta dalla nostra assicurazione</span>
+                        <p className="text-white/40 text-xs mt-0.5">Copertura professionale RC inclusa in ogni servizio</p>
+                      </div>
                     </li>
-                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                    <li className="flex items-start gap-3">
                       <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
-                      <span>Errori? Responsabilità nostra al 100%</span>
+                      <div>
+                        <span className="text-white text-sm font-medium">Errori? Responsabilità nostra al 100%</span>
+                        <p className="text-white/40 text-xs mt-0.5">Nessun rischio per il tuo studio</p>
+                      </div>
                     </li>
-                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                    <li className="flex items-start gap-3">
                       <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
-                      <span>Nessun costo aggiuntivo per te</span>
+                      <div>
+                        <span className="text-white text-sm font-medium">Nessun costo aggiuntivo per te</span>
+                        <p className="text-white/40 text-xs mt-0.5">L'assicurazione è già inclusa nel prezzo</p>
+                      </div>
                     </li>
-                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                    <li className="flex items-start gap-3">
                       <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
-                      <span>Pratiche in mani sicure e assicurate</span>
+                      <div>
+                        <span className="text-white text-sm font-medium">Pratiche in mani sicure e assicurate</span>
+                        <p className="text-white/40 text-xs mt-0.5">Tecnici qualificati e verificati</p>
+                      </div>
                     </li>
                   </ul>
+                  {/* Footer */}
+                  <div className="mt-8 pt-6 border-t border-white/10 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}15` }}>
+                      <ShieldCheck className="w-5 h-5" style={{ color: PR_GREEN }} />
+                    </div>
+                    <p className="text-sm font-semibold text-white/80">Protetto al 100% — senza costi aggiuntivi</p>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Garanzia #2 - Paghi Solo a Pratica Effettuata */}
-            <div className="bg-[#0f1d32] rounded-2xl p-8 md:p-10 relative overflow-hidden border" style={{ borderColor: `${PR_GREEN}30`, boxShadow: `0 0 40px ${PR_GREEN}08` }}>
-              <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: PR_GREEN }} />
+            <div className="bg-[#0f1d32] rounded-2xl p-8 md:p-10 relative overflow-hidden border" style={{ borderColor: `${PR_GREEN}30`, boxShadow: `0 0 40px ${PR_GREEN}08`, background: `radial-gradient(circle at 100% 0%, #f59e0b08 0%, transparent 50%), #0f1d32` }}>
+              <span className="absolute -top-4 -right-4 text-8xl font-black select-none pointer-events-none" style={{ color: `${PR_GREEN}06` }}>02</span>
+              <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500" />
               <span className="absolute top-4 right-4 text-xs px-3 py-1 rounded-full font-bold text-white bg-amber-500">ZERO RISCHI</span>
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 {/* Testo */}
                 <div className="order-2 md:order-1">
                   <h3 className="text-2xl font-bold mb-5 text-white">Garanzia #2: Paghi Solo a Pratica Effettuata</h3>
-                  <ul className="space-y-3">
-                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                  <ul className="space-y-4">
+                    <li className="flex items-start gap-3">
                       <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
-                      <span>Non ti chiediamo un euro prima</span>
+                      <div>
+                        <span className="text-white text-sm font-medium">Non ti chiediamo un euro prima</span>
+                        <p className="text-white/40 text-xs mt-0.5">Zero anticipi, zero depositi cauzionali</p>
+                      </div>
                     </li>
-                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                    <li className="flex items-start gap-3">
                       <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
-                      <span>Paghi solo quando la pratica è completata e consegnata</span>
+                      <div>
+                        <span className="text-white text-sm font-medium">Paghi solo quando la pratica è completata</span>
+                        <p className="text-white/40 text-xs mt-0.5">Consegnata e verificata prima del pagamento</p>
+                      </div>
                     </li>
-                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                    <li className="flex items-start gap-3">
                       <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
-                      <span>Se non facciamo pratiche, non paghi nulla</span>
+                      <div>
+                        <span className="text-white text-sm font-medium">Se non facciamo pratiche, non paghi nulla</span>
+                        <p className="text-white/40 text-xs mt-0.5">Nessun canone fisso o abbonamento</p>
+                      </div>
                     </li>
-                    <li className="flex items-start gap-3 text-white/60 text-sm">
+                    <li className="flex items-start gap-3">
                       <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: PR_GREEN }} />
-                      <span>Il rischio è tutto nostro</span>
+                      <div>
+                        <span className="text-white text-sm font-medium">Il rischio è tutto nostro</span>
+                        <p className="text-white/40 text-xs mt-0.5">Modello pay-per-use trasparente</p>
+                      </div>
                     </li>
                   </ul>
+                  {/* Footer */}
+                  <div className="mt-8 pt-6 border-t border-white/10 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-amber-500/15">
+                      <CreditCard className="w-5 h-5 text-amber-400" />
+                    </div>
+                    <p className="text-sm font-semibold text-white/80">Zero euro anticipati — paghi solo a risultato</p>
+                  </div>
                 </div>
-                {/* Illustrazione */}
+                {/* Illustrazione visiva costi */}
                 <div className="flex items-center justify-center order-1 md:order-2">
                   <div className="flex flex-col items-center gap-4">
                     <div className="relative">
-                      <div className="w-44 h-44 rounded-full border-2 flex items-center justify-center" style={{ borderColor: `${PR_GREEN}10` }}>
-                        <div className="w-32 h-32 rounded-full border-2 flex items-center justify-center" style={{ borderColor: `${PR_GREEN}20` }}>
-                          <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}15` }}>
-                            <CreditCard className="w-10 h-10" style={{ color: PR_GREEN }} />
-                          </div>
-                        </div>
+                      <div className="w-24 h-24 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}15`, boxShadow: `0 0 30px ${PR_GREEN}30` }}>
+                        <CreditCard className="w-12 h-12" style={{ color: PR_GREEN }} />
                       </div>
-                      <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: PR_GREEN }}>
-                        <CheckCircle2 className="w-4 h-4 text-white" />
+                      <div className="absolute -top-2 -right-2 px-2 py-0.5 rounded text-[10px] font-bold text-white animate-float" style={{ backgroundColor: PR_GREEN }}>GRATIS</div>
+                      <div className="absolute top-1/2 -left-10 px-2 py-0.5 rounded text-[10px] font-bold text-white animate-float-delayed" style={{ backgroundColor: `${PR_GREEN}80` }}>NO VINCOLI</div>
+                    </div>
+                    {/* Mini card costi eliminati */}
+                    <div className="space-y-2 w-full max-w-[200px]">
+                      <div className="flex items-center gap-2 bg-red-500/10 rounded-lg px-3 py-2">
+                        <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                        <span className="line-through text-red-400/60 text-xs">Canone mensile</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-red-500/10 rounded-lg px-3 py-2">
+                        <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                        <span className="line-through text-red-400/60 text-xs">Abbonamento</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-red-500/10 rounded-lg px-3 py-2">
+                        <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                        <span className="line-through text-red-400/60 text-xs">Costo attivazione</span>
                       </div>
                     </div>
-                    <div className="space-y-1.5 text-center">
-                      <p className="line-through text-red-400/60 text-sm">Canone mensile</p>
-                      <p className="line-through text-red-400/60 text-sm">Abbonamento</p>
-                      <p className="line-through text-red-400/60 text-sm">Costo attivazione</p>
+                    {/* Badge risultato */}
+                    <div className="px-4 py-2 rounded-xl font-black text-lg" style={{ backgroundColor: `${PR_GREEN}15`, color: PR_GREEN, boxShadow: `0 0 20px ${PR_GREEN}20` }}>
+                      0€ anticipati
                     </div>
-                    <span className="text-xl font-black" style={{ color: PR_GREEN }}>0€ anticipati</span>
                   </div>
                 </div>
               </div>

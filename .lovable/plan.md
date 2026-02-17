@@ -1,67 +1,64 @@
 
 
-# Miglioramento Grafico Sezione "Come Funziona"
+# Redesign Sezione "Come Funziona"
 
-## Modifiche previste
+## Problemi attuali
+- Il grid a 5 colonne (`md:grid-cols-5`) rende le card troppo strette e il testo illeggibile
+- I numeri step (01, 02, 03) si sovrappongono alle icone creando confusione visiva
+- Le frecce tra le card sono troppo piccole e perse nello spazio
+- L'aspetto generale e' disordinato e poco professionale
 
-### 1. Header della sezione piu' impattante
-- Aggiungere un badge "3 SEMPLICI PASSI" sopra il titolo con icona Sparkles
-- Sottotitolo "Tre passi. Zero sforzo." con testo piu' grande e colore piu' visibile (da `text-gray-400` a `text-gray-500 text-xl`)
-- Aggiungere un separatore decorativo verde sotto il sottotitolo
+## Soluzione
 
-### 2. Icone piu' grandi e con animazione
-- Aumentare il contenitore icona da `w-14 h-14` a `w-20 h-20`
-- Aumentare le icone da `w-7 h-7` a `w-10 h-10`
-- Aggiungere un anello esterno decorativo attorno al contenitore icona (ring verde semitrasparente)
-- Aggiungere la classe `hover-scale` alle card per animazione hover
+### Layout
+- Tornare a `md:grid-cols-3` con `gap-8` per dare respiro alle card
+- Rimuovere le frecce come elementi separati del grid
+- Aggiungere connettori come linea tratteggiata orizzontale dietro le card (solo desktop), oppure piu' semplicemente una linea con pallini numerati sopra le card
 
-### 3. Step number piu' visibile
-- Aumentare il numero step da `text-4xl` a `text-6xl` per renderlo piu' decorativo
-- Spostare leggermente la posizione per non sovrapporsi al contenuto
+### Design Card
+- Numero step come badge circolare verde sopra la card (posizionato al centro in alto, leggermente sovrapposto al bordo) invece che come testo gigante sovrapposto
+- Icona centrata con dimensione `w-16 h-16` nel contenitore `w-20 h-20`
+- Titolo e descrizione con spaziatura corretta
+- Bordo piu' definito e ombra leggera di default (non solo hover)
 
-### 4. Connettori tra le card (solo desktop)
-- Aggiungere frecce o linee tratteggiate tra le 3 card per comunicare sequenza visiva
-- Implementato con pseudo-elementi o div assoluti tra le colonne
+### Connettore visivo (solo desktop)
+- Una linea orizzontale tratteggiata verde che collega i 3 pallini numerati, posizionata sopra le card
+- I numeri 1, 2, 3 dentro cerchi verdi allineati sopra ogni card
+- Questo crea un effetto "timeline" pulito e professionale
 
-### 5. Card con bordo verde al hover
-- Aggiungere transizione del bordo: da `border-gray-200` a `border-green` al hover
-- Ombra verde sottile al hover invece della generica `card-hover-glow`
+### Dettaglio tecnico
+
+**Struttura**:
+
+```text
+// Timeline sopra le card (solo desktop)
+<div className="hidden md:flex justify-between items-center mb-8 px-16 relative">
+  // Linea orizzontale
+  <div className="absolute top-1/2 left-16 right-16 h-0.5 bg-green/20" />
+  // 3 cerchi numerati
+  {[1,2,3].map(n => <div className="w-10 h-10 rounded-full bg-green text-white flex items-center justify-center font-bold z-10">{n}</div>)}
+</div>
+
+// Grid card torna a 3 colonne
+<div className="grid md:grid-cols-3 gap-8">
+  // Card senza numeri sovrapposti, senza frecce nel grid
+</div>
+```
+
+**Card pulita**:
+```text
+<div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm hover:shadow-md hover:border-green/30 transition-all duration-300">
+  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 bg-green/10">
+    <Icon className="w-8 h-8 text-green" />
+  </div>
+  <h3 className="text-xl font-bold mb-3">Titolo</h3>
+  <p className="text-gray-500 text-sm leading-relaxed">Descrizione</p>
+</div>
+```
 
 ### File modificato
 
 | File | Modifica |
 |------|----------|
-| `src/pages/Home.tsx` | Righe 426-465: redesign sezione Come Funziona |
+| `src/pages/Home.tsx` | Righe 441-473: rimuovere grid a 5 colonne e frecce, aggiungere timeline orizzontale + grid a 3 colonne con card pulite |
 
-### Dettaglio tecnico
-
-**Badge sopra il titolo**:
-```text
-<span className="inline-flex items-center gap-2 bg-green/10 text-green px-4 py-1.5 rounded-full text-sm font-semibold mb-4">
-  <Sparkles className="w-4 h-4" /> 3 SEMPLICI PASSI
-</span>
-```
-
-**Icone piu' grandi con anello**:
-```text
-<div className="relative mx-auto mb-6">
-  <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto bg-green/10 ring-4 ring-green/5">
-    <item.icon className="w-10 h-10 text-green" />
-  </div>
-</div>
-```
-
-**Connettori tra card** (visibili solo su md+):
-```text
-// Dopo la prima e seconda card, un div con freccia
-<div className="hidden md:flex items-center justify-center">
-  <ArrowRight className="w-8 h-8 text-green/30" />
-</div>
-```
-
-Per i connettori, il grid passera' da `md:grid-cols-3` a `md:grid-cols-5` con le card nelle colonne 1, 3, 5 e le frecce nelle colonne 2 e 4.
-
-**Card hover migliorato**:
-```text
-className="bg-gray-50 border border-gray-200 hover:border-green/40 rounded-xl p-8 text-center relative transition-all duration-300 hover:shadow-lg hover:shadow-green/5"
-```

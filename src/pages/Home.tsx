@@ -312,48 +312,112 @@ export default function Home() {
       {/* ── Parliamoci chiaro + Trappole (SCURO) ── */}
       <Section className="bg-[#0d1a2d]">
         <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-8" style={{ color: PR_GREEN }}>Parliamoci chiaro.</h2>
-          <div className="max-w-3xl mx-auto space-y-4 text-white/50 leading-relaxed mb-12">
-            <p>Il settore degli infissi, delle tende da sole, delle pergole e dei serramenti è diventato un campo di battaglia.</p>
-            <p>I margini si sono assottigliati. I clienti confrontano 3, 4, 5 preventivi prima di decidere. E sai cosa fa la differenza quando il prezzo è simile? <strong className="text-white">Il servizio.</strong></p>
-            <p>L'azienda che offre un pacchetto completo — dalla consulenza, alla posa, fino alla gestione burocratica — vince. Sempre. Perché il cliente sceglie la strada con meno attrito.</p>
-            <p>Tu puoi avere il miglior prodotto del mondo. Ma se il tuo cliente deve prendersi mezza giornata di ferie per capire come compilare una pratica ENEA, mentre il tuo concorrente gli dice "ci pensiamo noi a tutto"… indovina chi firma il contratto?</p>
-            <p className="text-white/80 font-medium text-center italic text-lg">"Non è il migliore che vince. È quello che rende la vita più facile al cliente."</p>
-            <p>E non stiamo parlando di teoria. Stiamo parlando di vendite perse. Soldi veri. Clienti che avevano il portafoglio in mano e se ne sono andati perché tu non offrivi quel servizio in più che li avrebbe fatti sentire seguiti al 100%.</p>
+          {/* Badge + Titolo + Divider */}
+          <div className="text-center mb-10">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6" style={{ backgroundColor: `${PR_GREEN}15`, color: PR_GREEN }}>
+              <Target className="w-3.5 h-3.5" /> IL PROBLEMA DEL SETTORE
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold" style={{ color: PR_GREEN }}>
+              Parliamoci chiaro<span className="text-white">.</span>
+            </h2>
+            <div className="w-16 h-1 rounded-full mx-auto mt-5" style={{ backgroundColor: PR_GREEN }} />
           </div>
 
-          <h3 className="text-2xl md:text-3xl font-bold text-center mb-10">
-            Le 2 trappole in cui cadono il 90% delle aziende
-          </h3>
+          <div className="max-w-3xl mx-auto space-y-5 text-white/60 leading-relaxed mb-12 text-base">
+            <p>Il settore degli infissi, delle tende da sole, delle pergole e dei serramenti è diventato un <strong className="text-white/90">campo di battaglia</strong>.</p>
+            <p>I margini si sono assottigliati. I clienti confrontano 3, 4, 5 preventivi prima di decidere. E sai cosa fa la differenza quando il prezzo è simile? <strong className="text-white">Il servizio.</strong></p>
+            <p>L'azienda che offre un <strong className="text-white/90">pacchetto completo</strong> — dalla consulenza, alla posa, fino alla gestione burocratica — vince. Sempre. Perché il cliente sceglie la strada con meno attrito.</p>
+            <p>Tu puoi avere il miglior prodotto del mondo. Ma se il tuo cliente deve prendersi mezza giornata di ferie per capire come compilare una pratica ENEA, mentre il tuo concorrente gli dice "ci pensiamo noi a tutto"… indovina chi firma il contratto?</p>
+
+            {/* Blockquote evidenziata */}
+            <blockquote className="border-l-4 rounded-r-xl p-6 my-8" style={{ borderColor: PR_GREEN, backgroundColor: `${PR_GREEN}08` }}>
+              <p className="text-white/90 text-lg md:text-xl italic font-medium leading-relaxed">
+                "Non è il migliore che vince. È quello che rende la vita più facile al cliente."
+              </p>
+            </blockquote>
+
+            <p>E non stiamo parlando di teoria. Stiamo parlando di <strong className="text-white/90">vendite perse</strong>. Soldi veri. Clienti che avevano il portafoglio in mano e se ne sono andati perché tu non offrivi quel servizio in più che li avrebbe fatti sentire seguiti al 100%.</p>
+          </div>
+
+          {/* Badge Attenzione + Titolo Trappole */}
+          <div className="text-center mb-10">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase mb-4 bg-red-500/15 text-red-400">
+              <AlertTriangle className="w-3.5 h-3.5" /> ATTENZIONE
+            </span>
+            <h3 className="text-2xl md:text-4xl font-bold flex items-center justify-center gap-3">
+              Le 2 trappole in cui cadono il 90% delle aziende
+            </h3>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-[#0f1d32] border border-white/10 rounded-xl p-8 card-hover-glow">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
-                  <TrendingDown className="w-5 h-5 text-red-400" />
+            {/* Trappola #1 */}
+            <div className="bg-[#0f1d32] border border-red-500/20 rounded-xl overflow-hidden card-hover-glow relative">
+              <span className="absolute top-4 right-5 text-6xl font-black text-red-500/10 select-none">#1</span>
+              <div className="px-8 pt-7 pb-2">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
+                    <TrendingDown className="w-5 h-5 text-red-400" />
+                  </div>
+                  <h4 className="text-lg font-bold">Il Fornitore "Low Cost"</h4>
                 </div>
-                <h4 className="text-lg font-bold">Trappola #1: Il Fornitore "Low Cost"</h4>
+                <p className="text-white/55 text-sm leading-relaxed mb-4">
+                  Ti dicono che il prezzo è basso (50–200€). Peccato che poi il lavoro sporco lo devi fare <strong className="text-white/90">TU</strong>:
+                </p>
+                <ul className="space-y-2 mb-5">
+                  {[
+                    "Raccogliere i contatti del cliente",
+                    "Inseguire il cliente per i documenti catastali",
+                    "Procurarti fatture, certificazioni, dati tecnici",
+                    "Impacchettare tutto e inviarlo all'azienda",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-2 text-white/55 text-sm">
+                      <XCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <p className="text-white/50 text-sm leading-relaxed">
-                Ti dicono che il prezzo è basso (50–200€). Peccato che poi il lavoro sporco lo devi fare TU. Sei tu che devi raccogliere i contatti del cliente. Sei tu che devi inseguire il cliente per avere i documenti catastali. Sei tu che devi procurarti le fatture, le certificazioni, i dati tecnici. Sei tu che devi impacchettare tutto e inviarlo all'azienda.
-              </p>
-              <p className="text-white/50 text-sm leading-relaxed mt-3">
-                Alla fine dei conti, quanto ti costa veramente quella pratica da "50€"? Se calcoli le ore del tuo personale, le telefonate, i solleciti, le email avanti e indietro… stai probabilmente spendendo <strong className="text-white">3-5 volte di più</strong> di quanto pensi.
-              </p>
+              <div className="mx-6 mb-6 rounded-lg bg-red-500/10 border border-red-500/20 px-5 py-3.5">
+                <p className="text-red-300 text-sm font-semibold">
+                  💸 Costo reale: <span className="text-white font-bold">3-5x di più</span> di quanto pensi
+                </p>
+                <p className="text-white/40 text-xs mt-1">Ore del personale + telefonate + solleciti + email</p>
+              </div>
             </div>
-            <div className="bg-[#0f1d32] border border-white/10 rounded-xl p-8 card-hover-glow">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
-                  <Monitor className="w-5 h-5 text-red-400" />
+
+            {/* Trappola #2 */}
+            <div className="bg-[#0f1d32] border border-red-500/20 rounded-xl overflow-hidden card-hover-glow relative">
+              <span className="absolute top-4 right-5 text-6xl font-black text-red-500/10 select-none">#2</span>
+              <div className="px-8 pt-7 pb-2">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
+                    <Monitor className="w-5 h-5 text-red-400" />
+                  </div>
+                  <h4 className="text-lg font-bold">Il Software "Premium"</h4>
                 </div>
-                <h4 className="text-lg font-bold">Trappola #2: Il Software "Premium"</h4>
+                <p className="text-white/55 text-sm leading-relaxed mb-4">
+                  Ti vendono un software con un canone annuale da capogiro — <strong className="text-white/90">più di 1.000€</strong> — e poi scopri la beffa: massimo 3 pratiche ENEA incluse. <strong className="text-white/90">Tre.</strong>
+                </p>
+                <ul className="space-y-2 mb-5">
+                  {[
+                    "Paghi 1.000€+ per sole 3 pratiche incluse",
+                    "Ogni pratica extra? Paghi ancora",
+                    "Il software lo devi imparare tu",
+                    "Lo devi gestire e aggiornare tu",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-2 text-white/55 text-sm">
+                      <XCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <p className="text-white/50 text-sm leading-relaxed">
-                Poi ci sono quelli famosi. I "big" del settore. Ti vendono un software con un canone annuale da capogiro — più di 1.000€ — e poi scopri la beffa: ti fanno massimo 3 pratiche ENEA incluse. Tre.
-              </p>
-              <p className="text-white/50 text-sm leading-relaxed mt-3">
-                Quindi paghi 1.000€ e passa per un software che in pratica usi 3 volte. Se hai bisogno di più pratiche? Paghi ancora. E il software comunque lo devi imparare tu, gestire tu, aggiornare tu. È come comprare una Ferrari per andare a prendere il pane.
-              </p>
+              <div className="mx-6 mb-6 rounded-lg bg-red-500/10 border border-red-500/20 px-5 py-3.5">
+                <p className="text-red-300 text-sm font-semibold">
+                  💸 Costo reale: <span className="text-white font-bold">333€+ a pratica</span>
+                </p>
+                <p className="text-white/40 text-xs mt-1">Come comprare una Ferrari per andare a prendere il pane</p>
+              </div>
             </div>
           </div>
         </div>

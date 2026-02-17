@@ -173,19 +173,20 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showBottomBar, setShowBottomBar] = useState(true);
   const teamSectionRef = useRef<HTMLDivElement>(null);
+  const teamReached = useRef(false);
   const priceCounter = useCounter(65);
 
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 40);
-      if (window.scrollY > 200) setShowBottomBar(false);
+      if (window.scrollY > 200 && !teamReached.current) setShowBottomBar(false);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
 
     const el = teamSectionRef.current;
     if (!el) return () => window.removeEventListener("scroll", onScroll);
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setShowBottomBar(true); },
+      ([entry]) => { if (entry.isIntersecting) { teamReached.current = true; setShowBottomBar(true); } },
       { threshold: 0.1 }
     );
     observer.observe(el);

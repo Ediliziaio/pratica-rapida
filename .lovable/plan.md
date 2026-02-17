@@ -1,93 +1,82 @@
 
 
-# Redesign Sezione "Confronto"
+# Redesign Sezione "Prezzi" + Fix Testo
 
-## Problemi attuali
-- Le due card sono piatte e poco differenziate visivamente
-- Manca un elemento che attiri l'attenzione sulla colonna "Pratica Rapida" come scelta vincente
-- Il layout e' funzionale ma poco moderno, senza gerarchia visiva chiara
-- Mancano etichette o badge che guidino l'occhio del lettore
+## Correzione contenuto
+- Riga 621: sostituire "Inseguire clienti per fatture e certificazioni" con "Inseguire clienti"
 
-## Soluzione
+## Redesign grafico della sezione Prezzi
 
-### 1. Header migliorato
-- Aggiungere un badge "VS" o "CONFRONTO DIRETTO" sopra il titolo con icona Scale
-- Sottotitolo descrittivo sotto il titolo principale
-- Separatore decorativo verde
+### 1. Header piu' impattante
+- Badge "PREZZO TRASPARENTE" con icona CreditCard sopra il titolo
+- Mantenere il contatore animato del prezzo (65 euro) ma renderlo piu' grande e con un effetto glow verde
+- Aggiungere un separatore decorativo verde sotto il sottotitolo
+- Testo "Non 200 euro. Non 150 euro. Non 100 euro." con effetto barrato sui prezzi alti per enfatizzare il risparmio
 
-### 2. Card "Quello che hai adesso" (sinistra) - stile negativo
-- Header con sfondo rosso sfumato (`bg-red-500/10`) e icona XCircle piu' grande
-- Badge "METODO TRADIZIONALE" in alto
-- Bordo rosso sottile (`border-red-500/20`)
-- Icone lista piu' grandi e con spacing migliore
-- Footer con un "verdetto" negativo: box con costo stimato alto e tempo perso
+### 2. Card "Tutto quello che ottieni" (sinistra) - stile premium
+- Sfondo bianco con bordo verde sottile (`border-green/20`) invece del grigio piatto
+- Barra verde in cima alla card (come nella sezione Confronto)
+- Icona CheckCircle2 piu' grande nell'header (w-6 h-6)
+- Ogni voce della lista con testo leggermente piu' grande e spaziatura migliore
+- Ombra piu' definita di default (`shadow-md`)
 
-### 3. Card "Pratica Rapida" (destra) - stile vincente
-- Card leggermente piu' grande o con effetto "sollevato" (shadow-xl, scale-105 su desktop)
-- Badge "RACCOMANDATO" o ribbon verde in alto a destra
-- Header con sfondo verde sfumato e icona CheckCircle2 piu' grande
-- Bordo verde definito (`border-green`)
-- Footer con prezzo "65 euro" evidenziato e badge "24h"
-- Effetto glow verde sottile attorno alla card
+### 3. Card "Cosa NON devi piu' fare" (destra) - stile negativo
+- Sfondo con leggera sfumatura rossa (`bg-red-50`) e bordo rosso sottile (`border-red-200`)
+- Barra rossa in cima alla card
+- Testo delle voci con effetto barrato (`line-through`) e colore rosso attenuato per comunicare visivamente "eliminato"
+- Fix del testo: "Inseguire clienti" al posto di "Inseguire clienti per fatture e certificazioni"
 
-### 4. Elemento centrale "VS"
-- Un cerchio con "VS" posizionato tra le due card (solo desktop), sovrapposto al gap
-- Crea un effetto visivo di sfida/confronto diretto
+### 4. Box prezzo centrale sotto le card
+- Aggiungere un box evidenziato con sfondo verde sfumato tra le card e il CTA
+- Dentro: prezzo grande "65 euro", testo "a pratica completata", badge "ZERO CANONI" e badge "24H"
+- Bordo verde e shadow verde sottile
+
+### 5. CTA piu' grande
+- Bottone piu' grande con padding aumentato
+- Testo sotto il bottone invariato
 
 ### Dettaglio tecnico
 
-**Badge header**:
+**Prezzi barrati nell'header**:
 ```text
-<span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold mb-4" style={{ backgroundColor: `${PR_GREEN}15`, color: PR_GREEN }}>
-  <Scale className="w-4 h-4" /> CONFRONTO DIRETTO
-</span>
+<p className="text-gray-500 text-lg mb-2">
+  Non <span className="line-through text-red-400">200€</span>. 
+  Non <span className="line-through text-red-400">150€</span>. 
+  Non <span className="line-through text-red-400">100€</span>.
+</p>
 ```
 
-**Card sinistra (negativa)**:
+**Card sinistra (premium)**:
 ```text
-<div className="bg-[#0f1d32] border border-red-500/20 rounded-2xl p-8 relative overflow-hidden">
-  <div className="absolute top-0 left-0 right-0 h-1 bg-red-500/40" /> <!-- barra rossa in cima -->
-  <span className="text-xs bg-red-500/10 text-red-400 px-3 py-1 rounded-full mb-4">METODO TRADIZIONALE</span>
-  <h3 con icona XCircle w-6 h-6>
-  <ul con icone XCircle e testo piu' grande (text-base)>
-  <!-- Footer verdetto -->
-  <div className="mt-6 pt-6 border-t border-white/10 bg-red-500/5 rounded-lg p-4">
-    <p>"Costo reale stimato: 250-500 euro a pratica"</p>
-    <p>"Tempi: da 3 a 15 giorni"</p>
+<div className="bg-white border rounded-2xl p-8 shadow-md relative overflow-hidden" style={{ borderColor: `${PR_GREEN}30` }}>
+  <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: PR_GREEN }} />
+  ...lista con icone e testo text-sm/text-base...
+</div>
+```
+
+**Card destra (eliminato)**:
+```text
+<div className="bg-red-50 border border-red-200 rounded-2xl p-8 shadow-md relative overflow-hidden">
+  <div className="absolute top-0 left-0 right-0 h-1 bg-red-400" />
+  ...voci con line-through text-red-400/60...
+</div>
+```
+
+**Box prezzo centrale**:
+```text
+<div className="mx-auto max-w-md rounded-2xl p-6 text-center mb-8 shadow-lg" style={{ backgroundColor: `${PR_GREEN}08`, border: `2px solid ${PR_GREEN}30` }}>
+  <span className="text-4xl font-black" style={{ color: PR_GREEN }}>65€</span>
+  <span className="text-gray-500 ml-2">a pratica completata</span>
+  <div className="flex justify-center gap-3 mt-3">
+    <span className="bg-green/10 text-green px-3 py-1 rounded-full text-xs font-bold">ZERO CANONI</span>
+    <span className="bg-green/10 text-green px-3 py-1 rounded-full text-xs font-bold">24H</span>
   </div>
 </div>
 ```
-
-**Card destra (vincente) con effetto sollevato**:
-```text
-<div className="rounded-2xl p-8 relative overflow-hidden md:scale-105 shadow-2xl" style={{ borderColor: PR_GREEN, backgroundColor: `${PR_GREEN}08` }}>
-  <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: PR_GREEN }} /> <!-- barra verde in cima -->
-  <span className="absolute top-4 right-4 text-xs bg-green px-3 py-1 rounded-full text-white font-bold">CONSIGLIATO</span>
-  <h3 con icona CheckCircle2 w-6 h-6>
-  <ul con icone CheckCircle2 e testo piu' grande>
-  <!-- Footer prezzo -->
-  <div className="mt-6 pt-6 border-t border-green/20 flex items-center justify-between">
-    <div>
-      <span className="text-3xl font-bold text-green">65 euro</span>
-      <span className="text-white/50 text-sm ml-2">a pratica</span>
-    </div>
-    <span className="bg-green/20 text-green px-3 py-1 rounded-full text-sm font-bold">24h</span>
-  </div>
-</div>
-```
-
-**Cerchio VS centrale** (solo desktop):
-```text
-<div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-[#0d1a2d] border-2 border-white/20 items-center justify-center z-10">
-  <span className="text-white font-black text-lg">VS</span>
-</div>
-```
-
-Il grid wrapper diventa `relative` per posizionare il cerchio VS.
 
 ### File modificato
 
 | File | Modifica |
 |------|----------|
-| `src/pages/Home.tsx` | Righe 483-534: redesign completo sezione Confronto con badge, card asimmetriche, cerchio VS e footer evidenziati |
+| `src/pages/Home.tsx` | Righe 576-641: redesign completo sezione Prezzi con card asimmetriche, prezzi barrati, box prezzo evidenziato e fix testo "Inseguire clienti" |
 

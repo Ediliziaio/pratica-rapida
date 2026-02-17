@@ -201,9 +201,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4 transition-all duration-300">
           <Link to="/home" className="flex items-center gap-2">
             <img
-              src="/pratica-rapida-logo.png"
+              src={scrolled ? "/pratica-rapida-logo.png" : "/pratica-rapida-logo-white.png"}
               alt="Pratica Rapida"
-              className={`h-8 transition-all duration-300 ${scrolled ? "" : "logo-white"}`}
+              className="h-8 transition-all duration-300"
             />
           </Link>
           <div className={`hidden md:flex items-center gap-8 text-sm ${scrolled ? "text-gray-600" : "text-white/70"}`}>

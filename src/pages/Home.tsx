@@ -203,7 +203,7 @@ export default function Home() {
             <img
               src={scrolled ? "/pratica-rapida-logo.png" : "/pratica-rapida-logo-white.png"}
               alt="Pratica Rapida"
-              className="h-10 w-auto transition-all duration-300"
+              className="h-10 w-auto max-w-[240px] object-contain transition-all duration-300"
             />
           </Link>
           <div className={`hidden md:flex items-center gap-8 text-sm ${scrolled ? "text-gray-600" : "text-white/70"}`}>

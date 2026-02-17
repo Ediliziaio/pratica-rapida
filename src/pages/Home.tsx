@@ -438,38 +438,39 @@ export default function Home() {
             <div className="w-16 h-1 rounded mx-auto mt-4" style={{ backgroundColor: PR_GREEN }} />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-0 items-stretch">
+          {/* Timeline numerata - solo desktop */}
+          <div className="hidden md:flex justify-between items-center mb-8 px-20 relative">
+            <div className="absolute top-1/2 left-20 right-20 h-0.5 -translate-y-1/2" style={{ backgroundColor: `${PR_GREEN}30` }} />
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="w-10 h-10 rounded-full text-white flex items-center justify-center font-bold text-sm z-10 shadow-md" style={{ backgroundColor: PR_GREEN }}>
+                {n}
+              </div>
+            ))}
+          </div>
+
+          {/* Card grid a 3 colonne */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                step: "01", icon: Phone, title: "Inserisci il numero di telefono del cliente",
+                icon: Phone, title: "Inserisci il numero di telefono del cliente",
                 desc: "Accedi alla tua area riservata e inserisci il numero del tuo cliente. Fine. Questo è TUTTO quello che devi fare. Non un documento, non una email, non un fax. Solo un numero di telefono.",
               },
               {
-                step: "02", icon: Users, title: "Noi contattiamo il cliente A NOME TUO",
+                icon: Users, title: "Noi contattiamo il cliente A NOME TUO",
                 desc: "Il nostro team chiama il tuo cliente presentandosi come parte della tua azienda. Nessuna confusione, nessun imbarazzo. Il cliente penserà di parlare con il tuo ufficio tecnico. Raccogliamo noi tutti i documenti: dati catastali, fatture, certificazioni. Tutto.",
               },
               {
-                step: "03", icon: Zap, title: "In 24 ore la pratica è pronta",
+                icon: Zap, title: "In 24 ore la pratica è pronta",
                 desc: "Entro 24 ore, sia tu che il tuo cliente ricevete la Pratica ENEA completa e pronta. Nessun ritardo. Nessun sollecito. Nessuna telefonata di follow-up. Fatto.",
               },
             ].map((item, index) => (
-              <>
-                <div key={item.step} className="bg-gray-50 border border-gray-200 hover:border-green-500/40 rounded-xl p-8 text-center relative transition-all duration-300 hover:shadow-lg hover:shadow-green-500/5 hover-scale stagger-child">
-                  <span className="absolute top-3 right-4 text-6xl font-bold pointer-events-none" style={{ color: `${PR_GREEN}10` }}>{item.step}</span>
-                  <div className="relative mx-auto mb-6">
-                    <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto" style={{ backgroundColor: `${PR_GREEN}15`, boxShadow: `0 0 0 4px ${PR_GREEN}08` }}>
-                      <item.icon className="w-10 h-10" style={{ color: PR_GREEN }} />
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-bold mb-3 text-gray-900">{item.title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+              <div key={index} className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm hover:shadow-md transition-all duration-300 stagger-child" style={{ borderColor: undefined }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${PR_GREEN}60`; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}>
+                <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: `${PR_GREEN}12` }}>
+                  <item.icon className="w-10 h-10" style={{ color: PR_GREEN }} />
                 </div>
-                {index < 2 && (
-                  <div key={`arrow-${index}`} className="hidden md:flex items-center justify-center">
-                    <ArrowRight className="w-8 h-8" style={{ color: `${PR_GREEN}40` }} />
-                  </div>
-                )}
-              </>
+                <h3 className="text-xl font-bold mb-3 text-gray-900">{item.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+              </div>
             ))}
           </div>
 

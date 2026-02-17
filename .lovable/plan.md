@@ -1,60 +1,44 @@
 
-# Barra Fissa in Alto + Barra Fissa in Basso
 
-## 1. Barra fissa in alto (Top Bar)
+# Fix Barra Fissa in Alto e in Basso
 
-Sostituzione del banner attuale (riga 196-199) con il nuovo messaggio:
+## Problema 1: La barra verde in alto copre la Navbar
 
-**Testo:** "Paghi Solo a Pratica Effettuata"
-- Sfondo verde `PR_GREEN`, testo bianco, font semibold
-- Icona `Gift` mantenuta
-- Resta fisso in cima alla pagina (non nella navbar, ma sopra)
+La barra verde (`z-[60]`, `fixed top-0`) e la navbar (`z-50`, `fixed top-0`) si sovrappongono perche' entrambe partono da `top-0`. La navbar deve scendere sotto la barra verde.
 
-## 2. Barra fissa in basso (Bottom Bar / Sticky Footer CTA)
+**Soluzione:** Aggiungere `top-10` (40px, l'altezza della barra verde) alla navbar, cosi' parte subito sotto. Anche il `pt-10` del container va aumentato a `pt-20` per compensare entrambe le barre (top banner + navbar).
 
-Aggiunta di una barra fissa (`fixed bottom-0`) sempre visibile con:
+## Problema 2: Barra in basso troppo invasiva su mobile
 
-**Titolo:** "Iscriviti alla Piattaforma e Ricevi in Regalo il Documento:"
-**Sottotitolo:** "Come Trasformare un Preventivo in una Vendita (Senza Rincorrere il Cliente)"
-**Sotto-sottotitolo:** "Il Metodo per Far Dire 'Si' al Cliente Senza Pressioni, Telefonate Inutili o Sconti Forzati"
+Su mobile la barra mostra 3 righe di testo + bottone, occupando troppo spazio verticale.
 
-- Sfondo scuro (`bg-[#0a1628]`) o verde `PR_GREEN` con bordo top `border-t`
-- Bottone CTA "Iscriviti Gratis" che linka a `/auth`
-- Su mobile: testo piu' compatto, bottone full-width
-- `z-50` per restare sopra tutto il contenuto
-- Padding bottom aggiunto al body/container per evitare che la barra copra il footer
+**Soluzione:** Su mobile nascondere il sottotitolo lungo e il sotto-sottotitolo, mostrando solo la riga principale e il bottone. Usare classi `hidden md:block` sulle righe secondarie. Ridurre il padding su mobile.
 
 ## Dettaglio tecnico
 
-### Top bar (riga 196-199):
-Modifica del testo esistente da "ZERO VINCOLI. PAGHI SOLO A PRATICA COMPLETATA." a **"PAGHI SOLO A PRATICA EFFETTUATA"**
-
-### Bottom bar (prima della chiusura del div principale, riga 1112):
-```text
-<div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a1628] border-t border-white/10 shadow-2xl">
-  <div className="max-w-5xl mx-auto px-4 py-3 md:py-4 flex flex-col md:flex-row items-center justify-between gap-3">
-    <div className="text-center md:text-left">
-      <p className="text-white text-sm md:text-base font-semibold">
-        Iscriviti alla Piattaforma e Ricevi in Regalo il Documento:
-      </p>
-      <p className="text-xs md:text-sm font-bold" style={{ color: PR_GREEN }}>
-        "Come Trasformare un Preventivo in una Vendita (Senza Rincorrere il Cliente)"
-      </p>
-      <p className="text-[10px] md:text-xs text-white/40">
-        Il Metodo per Far Dire "Si" al Cliente Senza Pressioni, Telefonate Inutili o Sconti Forzati
-      </p>
-    </div>
-    <Link to="/auth" className="...CTA button styles...">
-      Iscriviti Gratis
-    </Link>
-  </div>
-</div>
+### Navbar (riga 202):
+Da:
+```
+className={`fixed top-0 left-0 right-0 z-50 ...`}
+```
+A:
+```
+className={`fixed top-10 left-0 right-0 z-50 ...`}
 ```
 
-- Aggiunta di `pb-28` al container principale per compensare l'altezza della barra fissa e non coprire il footer
+### Container principale (riga 192):
+Da: `pt-10 pb-28`
+A: `pt-24 pb-28` (per compensare top bar + navbar)
+
+### Bottom bar - testo secondario (righe 1120-1125):
+- Aggiungere `hidden md:block` alla riga del sottotitolo verde
+- Aggiungere `hidden md:block` alla riga del sotto-sottotitolo grigio
+- Ridurre padding mobile: da `py-3` a `py-2`
+- Bottone mobile: ridurre padding a `px-4 py-2`
 
 ### File modificato
 
 | File | Modifica |
 |------|----------|
-| `src/pages/Home.tsx` | 1) Riga 196-199: cambio testo top banner. 2) Prima di riga 1112: aggiunta barra fissa in basso con CTA e testo documento regalo. 3) Riga 192: aggiunta `pb-28` al container |
+| `src/pages/Home.tsx` | 1) Riga 202: aggiunta `top-10` alla navbar. 2) Riga 192: `pt-10` diventa `pt-24`. 3) Righe 1120-1125: `hidden md:block` sui testi secondari della bottom bar. 4) Riga 1115: padding mobile ridotto |
+

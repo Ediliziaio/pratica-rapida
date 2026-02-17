@@ -189,7 +189,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a1628] text-white font-sans relative overflow-x-hidden pt-10 pb-28">
+    <div className="min-h-screen bg-[#0a1628] text-white font-sans relative overflow-x-hidden pt-24 pb-28">
       <FloatingIcons />
 
       {/* ── Top Banner ── */}
@@ -199,7 +199,7 @@ export default function Home() {
       </div>
 
       {/* ── Navbar ── */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "navbar-scrolled" : "bg-[#0a1628]/90 backdrop-blur-md border-b border-white/5"}`}>
+      <nav className={`fixed top-10 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "navbar-scrolled" : "bg-[#0a1628]/90 backdrop-blur-md border-b border-white/5"}`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4 transition-all duration-300">
           <Link to="/home" className="flex items-center gap-2">
             <img
@@ -1112,21 +1112,21 @@ export default function Home() {
 
       {/* ── Sticky Bottom Bar ── */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a1628] border-t border-white/10 shadow-2xl">
-        <div className="max-w-5xl mx-auto px-4 py-3 md:py-4 flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="max-w-5xl mx-auto px-4 py-2 md:py-4 flex flex-col md:flex-row items-center justify-between gap-2 md:gap-3">
           <div className="text-center md:text-left">
             <p className="text-white text-sm md:text-base font-semibold">
               Iscriviti alla Piattaforma e Ricevi in Regalo il Documento:
             </p>
-            <p className="text-xs md:text-sm font-bold" style={{ color: PR_GREEN }}>
+            <p className="hidden md:block text-xs md:text-sm font-bold" style={{ color: PR_GREEN }}>
               "Come Trasformare un Preventivo in una Vendita (Senza Rincorrere il Cliente)"
             </p>
-            <p className="text-[10px] md:text-xs text-white/40">
+            <p className="hidden md:block text-[10px] md:text-xs text-white/40">
               Il Metodo per Far Dire "Sì" al Cliente Senza Pressioni, Telefonate Inutili o Sconti Forzati
             </p>
           </div>
           <Link
             to="/auth"
-            className="whitespace-nowrap px-6 py-3 rounded-lg font-bold text-white text-sm md:text-base transition-all hover:scale-105 animate-pulse-glow w-full md:w-auto text-center"
+            className="whitespace-nowrap px-4 py-2 md:px-6 md:py-3 rounded-lg font-bold text-white text-sm md:text-base transition-all hover:scale-105 animate-pulse-glow w-full md:w-auto text-center"
             style={{ backgroundColor: PR_GREEN }}
           >
             Iscriviti Gratis

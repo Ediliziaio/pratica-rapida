@@ -843,23 +843,56 @@ export default function Home() {
       {/* ── Chi c'è dietro (BIANCO) ── */}
       <Section light>
         <div className="max-w-5xl mx-auto px-6">
+          {/* Badge + Titolo */}
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}15` }}>
+              <Users className="w-4 h-4" style={{ color: PR_GREEN }} />
+            </div>
+            <span className="text-xs font-bold tracking-widest uppercase" style={{ color: PR_GREEN }}>Il nostro team</span>
+          </div>
+          <h2 className="text-3xl md:text-5xl font-bold mb-2 text-gray-900">
+            Chi c'è dietro <span style={{ color: PR_GREEN }}>Pratica Rapida</span>?
+          </h2>
+          <div className="w-16 h-1 rounded-full mb-8" style={{ backgroundColor: PR_GREEN }} />
+
+          {/* Stats bar */}
+          <div className="grid grid-cols-3 gap-4 mb-10 bg-green-50 rounded-xl p-6 border border-green-100">
+            <div className="text-center">
+              <span className="text-3xl font-black" style={{ color: PR_GREEN }}>10+</span>
+              <p className="text-xs text-gray-500 mt-1">Anni di esperienza</p>
+            </div>
+            <div className="text-center border-x border-green-200">
+              <span className="text-3xl font-black" style={{ color: PR_GREEN }}>Migliaia</span>
+              <p className="text-xs text-gray-500 mt-1">Pratiche gestite</p>
+            </div>
+            <div className="text-center">
+              <span className="text-3xl font-black" style={{ color: PR_GREEN }}>100%</span>
+              <p className="text-xs text-gray-500 mt-1">Pratiche assicurate</p>
+            </div>
+          </div>
+
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-5xl font-bold mb-8 text-gray-900">
-                Chi c'è dietro <span style={{ color: PR_GREEN }}>Pratica Rapida</span>?
-              </h2>
               <div className="space-y-4 text-gray-500 leading-relaxed">
-                <p>Non siamo l'ennesima startup che ha scoperto ieri cosa sia una pratica ENEA.</p>
-                <p>Pratica Rapida è nata dall'esperienza diretta nel settore degli infissi, delle tende da sole, delle pergole e dei serramenti. Conosciamo le vostre sfide perché le abbiamo vissute in prima persona. Sappiamo cosa significa perdere una vendita per un cavillo burocratico. Sappiamo cosa significa inseguire un cliente per un documento catastale.</p>
-                <p>Ed è proprio per questo che abbiamo costruito un servizio che elimina completamente questo problema dalla vostra vita lavorativa. Un servizio pensato da chi lavora nel vostro settore, per chi lavora nel vostro settore.</p>
-                <p>Il nostro team è composto da professionisti specializzati nella gestione delle pratiche ENEA. Ogni pratica è seguita con cura, verificata e assicurata. Ci presentiamo a nome della vostra azienda e trattiamo i vostri clienti come se fossero i nostri — perché per noi, lo sono.</p>
+                <p>Da <strong className="text-gray-800">oltre 10 anni</strong> ci occupiamo di pratiche nel settore degli infissi, delle tende da sole, delle pergole e dei serramenti. Non siamo l'ennesima startup che ha scoperto ieri cosa sia una pratica ENEA.</p>
+                <p>Abbiamo supportato <strong className="text-gray-800">centinaia di aziende durante il periodo del bonus dello sconto in fattura</strong>, gestendo volumi enormi di pratiche con precisione e puntualità. Quella esperienza ci ha reso ancora più veloci, affidabili e organizzati.</p>
+                <p>Il nostro team è composto da <strong className="text-gray-800">professionisti specializzati</strong>. Ogni pratica è seguita con cura, verificata e assicurata. Ci presentiamo a nome della vostra azienda e trattiamo i vostri clienti come se fossero i nostri.</p>
               </div>
-              <p className="mt-6 font-semibold text-lg italic" style={{ color: PR_GREEN }}>
-                "Permetterti di offrire un servizio completo ai tuoi clienti senza aggiungere un solo minuto di lavoro alla tua giornata."
-              </p>
+
+              {/* Citazione stilizzata */}
+              <div className="mt-8 bg-green-50 border-l-4 rounded-r-lg p-5" style={{ borderColor: PR_GREEN }}>
+                <p className="text-gray-700 font-semibold italic text-lg">
+                  "Permetterti di offrire un servizio completo ai tuoi clienti senza aggiungere un solo minuto di lavoro alla tua giornata."
+                </p>
+              </div>
             </div>
-            <div className="rounded-xl overflow-hidden border border-gray-200">
+
+            {/* Immagine con badge */}
+            <div className="relative rounded-xl overflow-hidden shadow-lg border" style={{ borderColor: `${PR_GREEN}30` }}>
               <img src={teamImg} alt="Il team di Pratica Rapida" className="w-full h-auto" />
+              <div className="absolute bottom-4 left-4 px-4 py-2 rounded-lg text-white text-sm font-bold" style={{ backgroundColor: PR_GREEN }}>
+                Oltre 10 anni nel settore
+              </div>
             </div>
           </div>
         </div>

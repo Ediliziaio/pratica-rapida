@@ -4,8 +4,9 @@ import {
   Phone, Users, Clock, Shield, CreditCard, CheckCircle2, XCircle, Scale,
   ArrowRight, FileText, BarChart3, AlertTriangle, Zap, Star, Sparkles,
   Headphones, Gift, Building2, Target, TrendingDown, Monitor, Menu, X,
-  Lock, ShieldCheck,
+  Lock, ShieldCheck, HelpCircle, MessageSquare,
 } from "lucide-react";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import heroBg from "@/assets/hero-bg.jpg";
 import teamImg from "@/assets/team-illustration.jpg";
 
@@ -920,6 +921,89 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>
+      </Section>
+
+      {/* ── Recensioni Trustpilot (SCURO) ── */}
+      <Section className="bg-[#0d1a2d]">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6" style={{ backgroundColor: `${PR_GREEN}15`, color: PR_GREEN }}>
+              <MessageSquare className="w-3.5 h-3.5" /> RECENSIONI VERIFICATE
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">Cosa dicono i nostri clienti</h2>
+            <a href="https://it.trustpilot.com/review/praticarapida.it" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-white/50 hover:text-white/70 transition-colors text-sm">
+              <div className="flex gap-0.5">{[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-green-400 text-green-400" />)}</div>
+              <span>4.9 su <strong className="text-white/70">Trustpilot</strong></span>
+            </a>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { name: "Marcello", badge: "IT · 1 recensione", date: "16 ore fa", title: "Professionalità", text: "Professionalità, gentilezza e rapidità ed assistenza telefonica competente e di vero aiuto nel completare la pratica." },
+              { name: "lalli65", badge: "IT · 7 recensioni", date: "9 feb 2026", title: "Veloci e comprensibili", text: "Pratica Enea pervenuta subito per la compilazione. Compilazione on Line semplice e ben comprensibile." },
+              { name: "Cadeddu Marina", badge: "IT · 2 recensioni", date: "18 dic 2025", title: "Esperienza positiva con pratica rapida", text: "Sono stati molto disponibili e mi hanno supportato. Il tutto con gentilezza e professionalità." },
+              { name: "Flavio", badge: "IT · 4 recensioni", date: "15 dic 2025", title: "Veloci", text: "Veloci, professionali e gentili, complimenti!" },
+              { name: "Paola Maruca", badge: "IT · 3 recensioni", date: "27 nov 2025", title: "Servizio efficente", text: "Efficenti e gentili sempre disponibili contattati più volte per togliermi dei dubbi sempre disponibili e gentili pienamente soddisfatta." },
+              { name: "Valentina Puddu", badge: "IT · 1 recensione", date: "2 ott 2025", title: "Ottimo servizio e super efficienti", text: "Ottimo servizio e super efficienti. La pratica è stata presa in carico ed inoltrata in un giorno lavorativo. Pronta risposta per qualsiasi dubbio. Consigliatissimo!" },
+              { name: "Paola Dario", badge: "IT · 4 recensioni", date: "2 ott 2025", title: "Super efficienti e veloci, top!", text: "" },
+              { name: "Alex Alex", badge: "IT · 1 recensione", date: "2 ott 2025", title: "Professionali e molto disponibili", text: "Professionali e molto disponibili." },
+              { name: "Matteo", badge: "IT · 3 recensioni", date: "2 ott 2025", title: "Sembrerebbe che dopo aver compilato i…", text: "Sembrerebbe che dopo aver compilato i documenti in 1 giorno mi hanno rigirato la pratica ultimata. Veloci e professionali. Grazie!" },
+            ].map((r, i) => (
+              <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-5">
+                <div className="flex gap-0.5 mb-3">{[...Array(5)].map((_, j) => <Star key={j} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />)}</div>
+                <p className="text-white font-bold text-sm mb-1">{r.title}</p>
+                {r.text && <p className="text-white/60 text-sm leading-relaxed mb-3">{r.text}</p>}
+                <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
+                  <div>
+                    <p className="text-white text-sm font-semibold">{r.name}</p>
+                    <p className="text-white/30 text-xs">{r.badge}</p>
+                  </div>
+                  <p className="text-white/30 text-xs">{r.date}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-10">
+            <a href="https://it.trustpilot.com/review/praticarapida.it" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold transition-colors hover:brightness-125" style={{ color: PR_GREEN }}>
+              Vedi tutte le 122+ recensioni su Trustpilot <ArrowRight className="w-4 h-4" />
+            </a>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── FAQ (BIANCO) ── */}
+      <Section light id="faq">
+        <div className="max-w-3xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6 bg-green-50 border border-green-100" style={{ color: PR_GREEN }}>
+              <HelpCircle className="w-3.5 h-3.5" /> DOMANDE FREQUENTI
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-900">Tutto quello che devi sapere</h2>
+          </div>
+
+          <Accordion type="single" collapsible className="space-y-3">
+            {[
+              { q: "Cos'è la pratica ENEA e quando serve?", a: "La pratica ENEA è una comunicazione obbligatoria da inviare all'ente ENEA per poter accedere alle detrazioni fiscali (Ecobonus) su interventi come la sostituzione di infissi, l'installazione di tende da sole, pergole bioclimatiche e serramenti. Va presentata entro 90 giorni dalla fine dei lavori." },
+              { q: "Quanto costa il servizio?", a: "Il servizio costa 65€ a pratica, tutto incluso: compilazione, invio, assicurazione professionale. Nessun canone mensile, nessun abbonamento, nessun costo di attivazione. Paghi solo le pratiche effettivamente gestite." },
+              { q: "In quanto tempo viene completata la pratica?", a: "Entro 24 ore lavorative dalla ricezione di tutti i documenti completi. In molti casi riusciamo a consegnare anche prima." },
+              { q: "Cosa succede se la pratica contiene un errore?", a: "Ogni pratica è coperta da assicurazione professionale. Se dovesse esserci un errore — anche se rarissimo — l'assicurazione copre eventuali danni economici. Lavori con la massima tranquillità." },
+              { q: "Quali documenti servono per avviare la pratica?", a: "Servono la fattura dei lavori, i dati catastali dell'immobile, le schede tecniche dei prodotti installati e i dati del committente. Ti guidiamo noi passo passo nella raccolta." },
+              { q: "Come funziona il pagamento?", a: "Si paga solo a pratica completata e consegnata. Zero anticipi, zero rischi. Ricevi la pratica, verifichi che sia tutto corretto, e poi procedi con il pagamento." },
+              { q: "Lavorate con aziende di tutta Italia?", a: "Sì, il servizio è completamente digitale e copriamo tutto il territorio nazionale. Che tu sia a Milano, Roma, Napoli o in un piccolo paese, il processo è identico e i tempi sono gli stessi." },
+              { q: "Posso provare il servizio senza impegno?", a: "Assolutamente sì. Basta contattarci e inviarci i documenti della prima pratica. Nessun contratto vincolante, nessun minimo d'ordine. Paghi solo le pratiche effettivamente gestite." },
+            ].map((item, i) => (
+              <AccordionItem key={i} value={`faq-${i}`} className="border rounded-xl px-5 overflow-hidden" style={{ borderColor: `${PR_GREEN}25` }}>
+                <AccordionTrigger className="text-left text-gray-900 font-semibold text-base hover:no-underline py-5">
+                  {item.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-500 leading-relaxed pb-5">
+                  {item.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </Section>
 

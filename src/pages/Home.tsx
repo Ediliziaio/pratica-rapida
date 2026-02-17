@@ -201,7 +201,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4 transition-all duration-300">
           <Link to="/home" className="flex items-center gap-2">
             <img
-              src="/pratica-rapida-logo.png"
+              src={scrolled ? "/pratica-rapida-logo.png" : "/pratica-rapida-logo-white.png"}
               alt="Pratica Rapida"
               className="h-10 w-auto transition-all duration-300"
             />
@@ -603,19 +603,40 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* ── Footer (SCURO) ── */}
-      <footer className="border-t border-white/5 py-10 px-6 bg-[#0a1628]">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <img src="/pratica-rapida-logo.png" alt="Pratica Rapida" className="h-6 logo-white" />
+      {/* ── Footer (BIANCO) ── */}
+      <footer className="border-t border-gray-200 py-12 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-start justify-between gap-8">
+            {/* Logo + dati aziendali */}
+            <div className="space-y-3">
+              <img src="/pratica-rapida-logo.png" alt="Pratica Rapida" className="h-8 w-auto" />
+              <div className="space-y-1.5 text-sm text-gray-500">
+                <p className="flex items-center gap-2">
+                  <Phone className="w-4 h-4" style={{ color: PR_GREEN }} />
+                  +39 351 7935227
+                </p>
+                <p className="flex items-center gap-2">
+                  <FileText className="w-4 h-4" style={{ color: PR_GREEN }} />
+                  modulistica@praticarapida.it
+                </p>
+                <p className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4" style={{ color: PR_GREEN }} />
+                  Lissone (MB)
+                </p>
+                <p className="text-xs text-gray-400">P.IVA 03937130791</p>
+              </div>
+            </div>
+            {/* Link navigazione */}
+            <div className="flex items-center gap-6 text-sm text-gray-500">
+              <a href="#come-funziona" className="hover:text-gray-800 transition-colors">Come Funziona</a>
+              <a href="#confronto" className="hover:text-gray-800 transition-colors">Confronto</a>
+              <a href="#prezzi" className="hover:text-gray-800 transition-colors">Prezzi</a>
+              <Link to="/auth" className="hover:text-gray-800 transition-colors">Accedi</Link>
+            </div>
           </div>
-          <div className="flex items-center gap-6 text-sm text-white/40">
-            <a href="#come-funziona" className="hover:text-white/70 transition-colors">Come Funziona</a>
-            <a href="#confronto" className="hover:text-white/70 transition-colors">Confronto</a>
-            <a href="#prezzi" className="hover:text-white/70 transition-colors">Prezzi</a>
-            <Link to="/auth" className="hover:text-white/70 transition-colors">Accedi</Link>
+          <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+            <p className="text-gray-400 text-xs">© {new Date().getFullYear()} Pratica Rapida. Tutti i diritti riservati.</p>
           </div>
-          <p className="text-white/20 text-xs">© 2025 Pratica Rapida. Tutti i diritti riservati.</p>
         </div>
       </footer>
     </div>

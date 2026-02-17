@@ -1,82 +1,94 @@
 
 
-# Redesign Sezione "Prezzi" + Fix Testo
+# Redesign Sezione "Due Garanzie"
 
-## Correzione contenuto
-- Riga 621: sostituire "Inseguire clienti per fatture e certificazioni" con "Inseguire clienti"
+## Stato attuale
+La sezione (righe 671-698) ha due card scure piatte con icona piccola, titolo e paragrafo. Funzionale ma poco impattante, manca differenziazione visiva e non ci sono immagini o elementi grafici che catturino l'attenzione.
 
-## Redesign grafico della sezione Prezzi
+## Soluzione
 
-### 1. Header piu' impattante
-- Badge "PREZZO TRASPARENTE" con icona CreditCard sopra il titolo
-- Mantenere il contatore animato del prezzo (65 euro) ma renderlo piu' grande e con un effetto glow verde
-- Aggiungere un separatore decorativo verde sotto il sottotitolo
-- Testo "Non 200 euro. Non 150 euro. Non 100 euro." con effetto barrato sui prezzi alti per enfatizzare il risparmio
+### 1. Header migliorato
+- Badge "GARANZIE ESCLUSIVE" con icona Shield sopra il titolo
+- Sottotitolo descrittivo sotto il titolo principale
+- Separatore decorativo verde
 
-### 2. Card "Tutto quello che ottieni" (sinistra) - stile premium
-- Sfondo bianco con bordo verde sottile (`border-green/20`) invece del grigio piatto
-- Barra verde in cima alla card (come nella sezione Confronto)
-- Icona CheckCircle2 piu' grande nell'header (w-6 h-6)
-- Ogni voce della lista con testo leggermente piu' grande e spaziatura migliore
-- Ombra piu' definita di default (`shadow-md`)
+### 2. Card Garanzia #1 "Assicurazione Blindata" - layout orizzontale
+- Layout a due colonne: a sinistra illustrazione/grafica, a destra testo
+- Illustrazione: un div decorativo con icona Shield grande (w-20 h-20) dentro un cerchio con anelli concentrici che creano un effetto "scudo protettivo" (cerchi con bordi verdi a opacita' decrescente)
+- Sfondo card piu' chiaro (`bg-[#0f1d32]`) con bordo verde e barra verde in cima
+- Badge "INCLUSA" in alto a destra
+- Testo con bullet points invece di un unico paragrafo per maggiore leggibilita'
 
-### 3. Card "Cosa NON devi piu' fare" (destra) - stile negativo
-- Sfondo con leggera sfumatura rossa (`bg-red-50`) e bordo rosso sottile (`border-red-200`)
-- Barra rossa in cima alla card
-- Testo delle voci con effetto barrato (`line-through`) e colore rosso attenuato per comunicare visivamente "eliminato"
-- Fix del testo: "Inseguire clienti" al posto di "Inseguire clienti per fatture e certificazioni"
+### 3. Card Garanzia #2 "Paghi Solo a Pratica Effettuata" - layout orizzontale
+- Stessa struttura a due colonne ma speculare (testo a sinistra, grafica a destra)
+- Illustrazione: icona CreditCard grande con un badge "0 euro" sovrapposto e effetto "crossed out" sulle voci di costo (canone, abbonamento, attivazione) per comunicare visivamente che non ci sono costi nascosti
+- Badge "ZERO RISCHI" in alto a destra
 
-### 4. Box prezzo centrale sotto le card
-- Aggiungere un box evidenziato con sfondo verde sfumato tra le card e il CTA
-- Dentro: prezzo grande "65 euro", testo "a pratica completata", badge "ZERO CANONI" e badge "24H"
-- Bordo verde e shadow verde sottile
-
-### 5. CTA piu' grande
-- Bottone piu' grande con padding aumentato
-- Testo sotto il bottone invariato
+### 4. Elementi grafici decorativi
+- Anelli concentrici attorno alle icone principali per creare profondita'
+- Piccole icone decorative (checkmark, star) sparse nella grafica
+- Effetto glow verde sottile attorno alle card
 
 ### Dettaglio tecnico
 
-**Prezzi barrati nell'header**:
+**Struttura card con illustrazione (Garanzia 1)**:
 ```text
-<p className="text-gray-500 text-lg mb-2">
-  Non <span className="line-through text-red-400">200€</span>. 
-  Non <span className="line-through text-red-400">150€</span>. 
-  Non <span className="line-through text-red-400">100€</span>.
-</p>
-```
-
-**Card sinistra (premium)**:
-```text
-<div className="bg-white border rounded-2xl p-8 shadow-md relative overflow-hidden" style={{ borderColor: `${PR_GREEN}30` }}>
+<div className="bg-[#0f1d32] rounded-2xl p-8 relative overflow-hidden border" style={{ borderColor: `${PR_GREEN}30` }}>
   <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: PR_GREEN }} />
-  ...lista con icone e testo text-sm/text-base...
-</div>
-```
-
-**Card destra (eliminato)**:
-```text
-<div className="bg-red-50 border border-red-200 rounded-2xl p-8 shadow-md relative overflow-hidden">
-  <div className="absolute top-0 left-0 right-0 h-1 bg-red-400" />
-  ...voci con line-through text-red-400/60...
-</div>
-```
-
-**Box prezzo centrale**:
-```text
-<div className="mx-auto max-w-md rounded-2xl p-6 text-center mb-8 shadow-lg" style={{ backgroundColor: `${PR_GREEN}08`, border: `2px solid ${PR_GREEN}30` }}>
-  <span className="text-4xl font-black" style={{ color: PR_GREEN }}>65€</span>
-  <span className="text-gray-500 ml-2">a pratica completata</span>
-  <div className="flex justify-center gap-3 mt-3">
-    <span className="bg-green/10 text-green px-3 py-1 rounded-full text-xs font-bold">ZERO CANONI</span>
-    <span className="bg-green/10 text-green px-3 py-1 rounded-full text-xs font-bold">24H</span>
+  <span className="absolute top-4 right-4 text-xs px-3 py-1 rounded-full font-bold text-white" style={{ backgroundColor: PR_GREEN }}>INCLUSA</span>
+  <div className="grid md:grid-cols-2 gap-8 items-center">
+    <!-- Illustrazione: cerchi concentrici con Shield -->
+    <div className="flex items-center justify-center">
+      <div className="relative">
+        <div className="w-40 h-40 rounded-full border-2 flex items-center justify-center" style={{ borderColor: `${PR_GREEN}10` }}>
+          <div className="w-28 h-28 rounded-full border-2 flex items-center justify-center" style={{ borderColor: `${PR_GREEN}20` }}>
+            <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}15` }}>
+              <Shield className="w-10 h-10" style={{ color: PR_GREEN }} />
+            </div>
+          </div>
+        </div>
+        <!-- piccoli badge decorativi -->
+        <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-green flex items-center justify-center">
+          <CheckCircle2 className="w-4 h-4 text-white" />
+        </div>
+      </div>
+    </div>
+    <!-- Testo -->
+    <div>
+      <h3 className="text-2xl font-bold mb-4">Garanzia #1: Assicurazione Blindata</h3>
+      <ul className="space-y-3 text-white/60 text-sm">
+        <li className="flex items-start gap-2">
+          <CheckCircle2 /> Ogni pratica coperta dalla nostra assicurazione
+        </li>
+        <li>Errori? Responsabilita' nostra al 100%</li>
+        <li>Nessun costo aggiuntivo per te</li>
+        <li>Pratiche in mani sicure e assicurate</li>
+      </ul>
+    </div>
   </div>
 </div>
 ```
+
+**Illustrazione Garanzia 2 (costi barrati)**:
+```text
+<div className="flex flex-col items-center gap-3">
+  <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}15` }}>
+    <CreditCard className="w-10 h-10" style={{ color: PR_GREEN }} />
+  </div>
+  <div className="space-y-2 text-center">
+    <p className="line-through text-red-400/60 text-sm">Canone mensile</p>
+    <p className="line-through text-red-400/60 text-sm">Abbonamento</p>
+    <p className="line-through text-red-400/60 text-sm">Costo attivazione</p>
+  </div>
+  <span className="text-xl font-black" style={{ color: PR_GREEN }}>0€ anticipati</span>
+</div>
+```
+
+Su mobile le card tornano a layout verticale (illustrazione sopra, testo sotto).
 
 ### File modificato
 
 | File | Modifica |
 |------|----------|
-| `src/pages/Home.tsx` | Righe 576-641: redesign completo sezione Prezzi con card asimmetriche, prezzi barrati, box prezzo evidenziato e fix testo "Inseguire clienti" |
+| `src/pages/Home.tsx` | Righe 671-698: redesign completo sezione Garanzie con layout orizzontale, illustrazioni grafiche (cerchi concentrici + costi barrati), badge e bullet points |
 

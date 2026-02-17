@@ -576,22 +576,35 @@ export default function Home() {
       {/* ── Prezzi (BIANCO) ── */}
       <Section id="prezzi" light>
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-gray-400 text-sm mb-3">Il prezzo che cambia tutto</p>
-          <p className="text-gray-500 text-lg mb-2">Non 200€. Non 150€. Non 100€.</p>
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold mb-4" style={{ backgroundColor: `${PR_GREEN}15`, color: PR_GREEN }}>
+            <CreditCard className="w-4 h-4" /> PREZZO TRASPARENTE
+          </span>
+          <p className="text-gray-500 text-lg mb-2">
+            Non <span className="line-through text-red-400">200€</span>.{" "}
+            Non <span className="line-through text-red-400">150€</span>.{" "}
+            Non <span className="line-through text-red-400">100€</span>.
+          </p>
           <h2 ref={priceCounter.ref} className="text-5xl md:text-7xl font-bold mb-4 text-gray-900">
-            <span style={{ color: PR_GREEN }}>{priceCounter.count}€</span> a pratica completata
+            <span className="relative" style={{ color: PR_GREEN }}>
+              <span className="absolute inset-0 blur-xl opacity-30 rounded-full" style={{ backgroundColor: PR_GREEN }} />
+              <span className="relative">{priceCounter.count}€</span>
+            </span>{" "}
+            a pratica completata
           </h2>
           <p className="text-gray-500 text-lg mb-2">Tutto incluso, nessun canone</p>
+          <div className="w-16 h-1 rounded-full mx-auto mb-4" style={{ backgroundColor: PR_GREEN }} />
           <p className="text-gray-400 text-sm mb-10">
             Mentre i tuoi concorrenti pagano 1.000€ per un software che fa 3 pratiche, tu con lo stesso budget ne fai 15. E non devi muovere un dito.
           </p>
 
           <div className="grid md:grid-cols-2 gap-8 text-left mb-10">
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 card-hover-glow">
-              <h3 className="font-bold mb-4 flex items-center gap-2 text-gray-900">
-                <CheckCircle2 className="w-5 h-5" style={{ color: PR_GREEN }} /> Tutto quello che ottieni
+            {/* Card premium - Tutto quello che ottieni */}
+            <div className="bg-white border rounded-2xl p-8 shadow-md relative overflow-hidden" style={{ borderColor: `${PR_GREEN}30` }}>
+              <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: PR_GREEN }} />
+              <h3 className="font-bold mb-5 flex items-center gap-2 text-gray-900 text-lg">
+                <CheckCircle2 className="w-6 h-6" style={{ color: PR_GREEN }} /> Tutto quello che ottieni
               </h3>
-              <ul className="space-y-2.5">
+              <ul className="space-y-3">
                 {[
                   "Gestione completa della Pratica ENEA — noi facciamo tutto",
                   "Area riservata personale per la tua azienda",
@@ -604,28 +617,31 @@ export default function Home() {
                   "Nessun canone, nessun abbonamento, nessun software da comprare",
                   "Paghi solo a pratica completata: 65€",
                 ].map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-gray-500 text-sm">
-                    <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" style={{ color: PR_GREEN }} />
+                  <li key={item} className="flex items-start gap-2.5 text-gray-600 text-base">
+                    <CheckCircle2 className="w-5 h-5 mt-0.5 shrink-0" style={{ color: PR_GREEN }} />
                     {item}
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 card-hover-glow">
-              <h3 className="font-bold mb-4 flex items-center gap-2 text-gray-900">
-                <XCircle className="w-5 h-5 text-red-400" /> Cosa NON devi più fare
+
+            {/* Card negativa - Cosa NON devi più fare */}
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-8 shadow-md relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-red-400" />
+              <h3 className="font-bold mb-5 flex items-center gap-2 text-gray-900 text-lg">
+                <XCircle className="w-6 h-6 text-red-400" /> Cosa NON devi più fare
               </h3>
-              <ul className="space-y-2.5">
+              <ul className="space-y-3">
                 {[
                   "Raccogliere documenti catastali",
-                  "Inseguire clienti per fatture e certificazioni",
+                  "Inseguire clienti",
                   "Compilare moduli e piattaforme",
                   "Pagare software da 1.000€+ con 3 pratiche incluse",
                   "Fare il lavoro sporco per un fornitore \"low cost\"",
                   "Dire ai clienti \"se la faccia lei\" e perderli",
                 ].map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-gray-500 text-sm">
-                    <XCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+                  <li key={item} className="flex items-start gap-2.5 text-red-400/80 text-base line-through">
+                    <XCircle className="w-5 h-5 text-red-400 mt-0.5 shrink-0" />
                     {item}
                   </li>
                 ))}
@@ -633,8 +649,20 @@ export default function Home() {
             </div>
           </div>
 
-          <Link to="/auth" className="inline-flex items-center gap-2 text-white font-semibold px-8 py-3.5 rounded-lg text-base transition-all animate-pulse-glow hover:brightness-110" style={{ backgroundColor: PR_GREEN }}>
-            Attiva Pratica Rapida Adesso <ArrowRight className="w-4 h-4" />
+          {/* Box prezzo centrale */}
+          <div className="mx-auto max-w-md rounded-2xl p-6 text-center mb-8 shadow-lg" style={{ backgroundColor: `${PR_GREEN}08`, border: `2px solid ${PR_GREEN}30` }}>
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <span className="text-4xl font-black" style={{ color: PR_GREEN }}>65€</span>
+              <span className="text-gray-500 text-lg">a pratica completata</span>
+            </div>
+            <div className="flex justify-center gap-3">
+              <span className="px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: `${PR_GREEN}15`, color: PR_GREEN }}>ZERO CANONI</span>
+              <span className="px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: `${PR_GREEN}15`, color: PR_GREEN }}>24H</span>
+            </div>
+          </div>
+
+          <Link to="/auth" className="inline-flex items-center gap-2 text-white font-semibold px-10 py-4 rounded-lg text-lg transition-all animate-pulse-glow hover:brightness-110" style={{ backgroundColor: PR_GREEN }}>
+            Attiva Pratica Rapida Adesso <ArrowRight className="w-5 h-5" />
           </Link>
           <p className="text-gray-400 text-sm mt-3">Nessun costo iniziale. Paghi solo a pratica effettuata.</p>
         </div>

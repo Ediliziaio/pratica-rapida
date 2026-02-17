@@ -197,7 +197,7 @@ export default function Home() {
       </div>
 
       {/* ── Navbar ── */}
-      <nav className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? "navbar-scrolled" : "bg-[#0a1628]/90 backdrop-blur-md border-b border-white/5"}`}>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "navbar-scrolled" : "bg-[#0a1628]/90 backdrop-blur-md border-b border-white/5"}`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4 transition-all duration-300">
           <Link to="/home" className="flex items-center gap-2">
             <img
@@ -241,7 +241,7 @@ export default function Home() {
       )}
 
       {/* ── Hero (SCURO) ── */}
-      <section className="relative pt-16 pb-8 px-6">
+      <section className="relative pt-[88px] pb-8 px-6">
         <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at center top, ${PR_GREEN}08 0%, transparent 60%)` }} />
         <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-[0.04] pointer-events-none" />
         <div className="max-w-5xl mx-auto text-center relative z-10">

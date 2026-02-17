@@ -1114,15 +1114,23 @@ export default function Home() {
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a1628] border-t border-white/10 shadow-2xl">
         <div className="max-w-5xl mx-auto px-4 py-2 md:py-4 flex flex-col md:flex-row items-center justify-between gap-2 md:gap-3">
           <div className="text-center md:text-left">
-            <p className="text-white text-sm md:text-base font-semibold">
-              Iscriviti alla Piattaforma e Ricevi in Regalo il Documento:
+            {/* Mobile: testo compatto */}
+            <p className="block md:hidden text-white text-xs font-semibold">
+              Iscriviti e Ricevi Gratis la Guida:
+              <span className="font-bold" style={{ color: PR_GREEN }}> "Come Trasformare un Preventivo in una Vendita"</span>
             </p>
-            <p className="hidden md:block text-xs md:text-sm font-bold" style={{ color: PR_GREEN }}>
-              "Come Trasformare un Preventivo in una Vendita (Senza Rincorrere il Cliente)"
-            </p>
-            <p className="hidden md:block text-[10px] md:text-xs text-white/40">
-              Il Metodo per Far Dire "Sì" al Cliente Senza Pressioni, Telefonate Inutili o Sconti Forzati
-            </p>
+            {/* Desktop: testo completo */}
+            <div className="hidden md:block">
+              <p className="text-white text-base font-semibold">
+                Iscriviti alla Piattaforma e Ricevi in Regalo il Documento:
+              </p>
+              <p className="text-sm font-bold" style={{ color: PR_GREEN }}>
+                "Come Trasformare un Preventivo in una Vendita (Senza Rincorrere il Cliente)"
+              </p>
+              <p className="text-xs text-white/40">
+                Il Metodo per Far Dire "Sì" al Cliente Senza Pressioni, Telefonate Inutili o Sconti Forzati
+              </p>
+            </div>
           </div>
           <Link
             to="/auth"

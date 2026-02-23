@@ -87,15 +87,15 @@ function FloatingIcons() {
 function DashboardMockup() {
   return (
     <div className="relative mx-auto max-w-4xl mt-14 rounded-xl border border-white/10 bg-[#101d30] shadow-2xl overflow-hidden animate-mockup-enter">
-      {/* Sidebar */}
-      <div className="absolute left-0 top-0 bottom-0 w-12 bg-[#0c1727] border-r border-white/5 flex flex-col items-center py-4 gap-4">
+      {/* Sidebar - hidden on mobile */}
+      <div className="hidden md:flex absolute left-0 top-0 bottom-0 w-12 bg-[#0c1727] border-r border-white/5 flex-col items-center py-4 gap-4">
         <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${PR_GREEN}20` }}><Shield className="w-4 h-4" style={{ color: PR_GREEN }} /></div>
         <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center"><BarChart3 className="w-4 h-4 text-white/40" /></div>
         <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center"><FileText className="w-4 h-4 text-white/40" /></div>
         <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center"><Users className="w-4 h-4 text-white/40" /></div>
       </div>
       {/* Content */}
-      <div className="ml-12 p-6">
+      <div className="md:ml-12 p-4 md:p-6">
         <p className="text-white/40 text-xs mb-0.5">Benvenuto</p>
         <p className="text-white font-semibold text-sm mb-5">Dashboard</p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
@@ -114,7 +114,8 @@ function DashboardMockup() {
             </div>
           ))}
         </div>
-        <div className="grid md:grid-cols-2 gap-4">
+        {/* Table + Chart - hidden on mobile */}
+        <div className="hidden md:grid md:grid-cols-2 gap-4">
           <div className="bg-[#0c1727] rounded-lg p-4 border border-white/5">
             <p className="text-white/50 text-xs mb-3">Pratiche Recenti</p>
             <div className="space-y-2">
@@ -200,6 +201,7 @@ export default function Home() {
     { href: "#vantaggi", label: "Vantaggi" },
     { href: "#confronto", label: "Confronto" },
     { href: "#prezzi", label: "Prezzi" },
+    { href: "#faq", label: "FAQ" },
   ];
 
   return (
@@ -229,7 +231,7 @@ export default function Home() {
             <Link to="/auth" className={`nav-link transition-colors ${scrolled ? "hover:text-[#00843D]" : "hover:text-white"}`}>Accedi</Link>
           </div>
           <Link to="/auth" className="hidden md:inline-flex text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-all animate-pulse-glow" style={{ backgroundColor: PR_GREEN }}>
-            Attiva Ora
+            Attiva Gratis
           </Link>
           {/* Hamburger */}
           <button className={`md:hidden flex flex-col gap-1.5 z-[60] ${mobileMenuOpen ? "hamburger-open" : ""}`} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -251,7 +253,7 @@ export default function Home() {
           ))}
           <Link to="/auth" onClick={closeMobile} className="text-2xl font-semibold text-white">Accedi</Link>
           <Link to="/auth" onClick={closeMobile} className="text-white font-semibold px-8 py-3 rounded-lg text-lg mt-4" style={{ backgroundColor: PR_GREEN }}>
-            Attiva Ora
+            Attiva Gratis
           </Link>
         </div>
       )}
@@ -280,7 +282,7 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
             <Link to="/auth" className="text-white font-semibold px-8 py-3.5 rounded-lg text-base transition-all flex items-center gap-2 animate-pulse-glow hover:brightness-110" style={{ backgroundColor: PR_GREEN }}>
-              Attiva Pratica Rapida <ArrowRight className="w-4 h-4" />
+              Attiva Gratis <ArrowRight className="w-4 h-4" />
             </Link>
             <a href="#come-funziona" className="border border-white/20 hover:border-white/40 text-white font-semibold px-8 py-3.5 rounded-lg text-base transition-colors">
               Scopri Come Funziona
@@ -312,19 +314,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Logo Slider Partner ── */}
-      <div className="py-8 bg-[#0a1628] border-y border-white/5 overflow-hidden">
-        <p className="text-center text-white/30 text-[10px] uppercase tracking-[0.2em] font-semibold mb-5">Ci hanno scelto</p>
-        <div className="relative">
-          <div className="flex animate-marquee whitespace-nowrap gap-8">
-            {[...Array(2)].flatMap((_, setIdx) =>
-              ["Serramenti Rossi", "Infissi Bianchi", "Pergole Italia", "TendeSu", "Finestre Top", "Alluminio Pro", "Serramenti Milano", "InfissiGroup"].map((name, i) => (
-                <div key={`${setIdx}-${i}`} className="inline-flex items-center px-6 py-2.5 border border-white/10 rounded-lg">
-                  <span className="text-white/20 font-bold text-sm tracking-wide">{name}</span>
-                </div>
-              ))
-            )}
-          </div>
+      {/* ── Social proof counter ── */}
+      <div className="py-8 bg-[#0a1628] border-y border-white/5">
+        <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
+          {[
+            { value: "122+", label: "Recensioni Trustpilot" },
+            { value: "10+", label: "Anni di esperienza" },
+            { value: "24h", label: "Consegna garantita" },
+            { value: "65€", label: "Prezzo fisso a pratica" },
+          ].map((s) => (
+            <div key={s.label} className="text-center">
+              <span className="text-2xl md:text-3xl font-black" style={{ color: PR_GREEN }}>{s.value}</span>
+              <p className="text-white/30 text-[10px] uppercase tracking-[0.15em] mt-1">{s.label}</p>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -703,7 +706,7 @@ export default function Home() {
           </div>
 
           <Link to="/auth" className="inline-flex items-center gap-2 text-white font-semibold px-10 py-4 rounded-lg text-lg transition-all animate-pulse-glow hover:brightness-110" style={{ backgroundColor: PR_GREEN }}>
-            Attiva Pratica Rapida Adesso <ArrowRight className="w-5 h-5" />
+            Attiva Gratis <ArrowRight className="w-5 h-5" />
           </Link>
           <p className="text-gray-400 text-sm mt-3">Nessun costo iniziale. Paghi solo a pratica effettuata.</p>
         </div>
@@ -1007,6 +1010,8 @@ export default function Home() {
               { q: "Come funziona il pagamento?", a: "Si paga solo a pratica completata e consegnata. Zero anticipi, zero rischi. Ricevi la pratica, verifichi che sia tutto corretto, e poi procedi con il pagamento." },
               { q: "Lavorate con aziende di tutta Italia?", a: "Sì, il servizio è completamente digitale e copriamo tutto il territorio nazionale. Che tu sia a Milano, Roma, Napoli o in un piccolo paese, il processo è identico e i tempi sono gli stessi." },
               { q: "Posso provare il servizio senza impegno?", a: "Assolutamente sì. Basta contattarci e inviarci i documenti della prima pratica. Nessun contratto vincolante, nessun minimo d'ordine. Paghi solo le pratiche effettivamente gestite." },
+              { q: "Devo avere competenze tecniche per usare la piattaforma?", a: "No, nessuna competenza tecnica richiesta. La nostra piattaforma è progettata per essere semplicissima: inserisci il numero del cliente e al resto pensiamo noi. Non devi compilare moduli, scaricare software o imparare procedure complesse." },
+              { q: "I dati dei miei clienti sono al sicuro?", a: "Assolutamente sì. Trattiamo i dati dei tuoi clienti con la massima riservatezza e nel pieno rispetto del GDPR. Utilizziamo sistemi criptati e procedure certificate per garantire la sicurezza di tutte le informazioni. I dati vengono utilizzati esclusivamente per la gestione della pratica ENEA." },
             ].map((item, i) => (
               <AccordionItem key={i} value={`faq-${i}`} className="border rounded-xl px-5 overflow-hidden" style={{ borderColor: `${PR_GREEN}25` }}>
                 <AccordionTrigger className="text-left text-gray-900 font-semibold text-base hover:no-underline py-5">
@@ -1056,7 +1061,7 @@ export default function Home() {
           </div>
 
           <Link to="/auth" className="inline-flex items-center gap-2 text-white font-bold text-lg px-12 py-4 rounded-lg transition-all animate-pulse-glow hover:brightness-110 shadow-lg" style={{ backgroundColor: PR_GREEN, boxShadow: `0 0 30px ${PR_GREEN}40` }}>
-            Contattaci e Attiva il Servizio <ArrowRight className="w-5 h-5" />
+            Attiva Gratis <ArrowRight className="w-5 h-5" />
           </Link>
           <p className="text-white/30 text-sm mt-3">Risponderemo entro poche ore. Nessun impegno.</p>
 
@@ -1088,7 +1093,7 @@ export default function Home() {
       </Section>
 
       {/* ── Footer (BIANCO) ── */}
-      <footer className="border-t border-gray-200 py-12 px-6 bg-white">
+      <footer className="border-t border-gray-200 py-12 px-6 bg-white pb-32">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-start justify-between gap-8">
             {/* Logo + dati aziendali */}
@@ -1111,15 +1116,20 @@ export default function Home() {
               </div>
             </div>
             {/* Link navigazione */}
-            <div className="flex items-center gap-6 text-sm text-gray-500">
+            <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6 text-sm text-gray-500">
               <a href="#come-funziona" className="hover:text-gray-800 transition-colors">Come Funziona</a>
               <a href="#confronto" className="hover:text-gray-800 transition-colors">Confronto</a>
               <a href="#prezzi" className="hover:text-gray-800 transition-colors">Prezzi</a>
+              <a href="#faq" className="hover:text-gray-800 transition-colors">FAQ</a>
               <Link to="/auth" className="hover:text-gray-800 transition-colors">Accedi</Link>
             </div>
           </div>
-          <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+          <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-gray-400 text-xs">© {new Date().getFullYear()} Pratica Rapida. Tutti i diritti riservati.</p>
+            <div className="flex items-center gap-4 text-xs text-gray-400">
+              <Link to="/privacy-policy" className="hover:text-gray-600 transition-colors">Privacy Policy</Link>
+              <Link to="/cookie-policy" className="hover:text-gray-600 transition-colors">Cookie Policy</Link>
+            </div>
           </div>
         </div>
       </footer>

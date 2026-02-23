@@ -18,6 +18,8 @@ import CodaPratiche from "./pages/CodaPratiche";
 import AdminPratiche from "./pages/AdminPratiche";
 import NotFound from "./pages/NotFound";
 import Home from "./pages/Home";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import CookiePolicy from "./pages/CookiePolicy";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +56,8 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/home" element={<Home />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/cookie-policy" element={<CookiePolicy />} />
             <Route path="/auth" element={<AuthRoute />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/pratiche" element={<ProtectedRoute><Pratiche /></ProtectedRoute>} />

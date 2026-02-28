@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,32 +7,43 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { CompanyProvider } from "@/hooks/useCompany";
 import { AppLayout } from "@/components/AppLayout";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import NuovaPratica from "./pages/NuovaPratica";
-import Pratiche from "./pages/Pratiche";
-import WalletPage from "./pages/Wallet";
-import PraticaDetail from "./pages/PraticaDetail";
-import Aziende from "./pages/Aziende";
-import Utenti from "./pages/Utenti";
-import CodaPratiche from "./pages/CodaPratiche";
-import AdminPratiche from "./pages/AdminPratiche";
-import NotFound from "./pages/NotFound";
-import Home from "./pages/Home";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import CookiePolicy from "./pages/CookiePolicy";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
+// Lazy-loaded pages
+const Auth = lazy(() => import("./pages/Auth"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const NuovaPratica = lazy(() => import("./pages/NuovaPratica"));
+const Pratiche = lazy(() => import("./pages/Pratiche"));
+const WalletPage = lazy(() => import("./pages/Wallet"));
+const PraticaDetail = lazy(() => import("./pages/PraticaDetail"));
+const Aziende = lazy(() => import("./pages/Aziende"));
+const Utenti = lazy(() => import("./pages/Utenti"));
+const CodaPratiche = lazy(() => import("./pages/CodaPratiche"));
+const AdminPratiche = lazy(() => import("./pages/AdminPratiche"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Home = lazy(() => import("./pages/Home"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Clienti = lazy(() => import("./pages/Clienti"));
+const Listino = lazy(() => import("./pages/Listino"));
+const Fatturazione = lazy(() => import("./pages/Fatturazione"));
+const NuovaFattura = lazy(() => import("./pages/NuovaFattura"));
+const FatturaDetail = lazy(() => import("./pages/FatturaDetail"));
 
 const queryClient = new QueryClient();
 
+function PageLoader() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+    </div>
+  );
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
+  if (loading) return <PageLoader />;
   if (!session) return <Navigate to="/auth" replace />;
   return (
     <CompanyProvider>
@@ -50,29 +62,39 @@ function AuthRoute() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/home" element={<Home />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/cookie-policy" element={<CookiePolicy />} />
-            <Route path="/auth" element={<AuthRoute />} />
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/pratiche" element={<ProtectedRoute><Pratiche /></ProtectedRoute>} />
-            <Route path="/pratiche/nuova" element={<ProtectedRoute><NuovaPratica /></ProtectedRoute>} />
-            <Route path="/pratiche/:id" element={<ProtectedRoute><PraticaDetail /></ProtectedRoute>} />
-            <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
-            <Route path="/aziende" element={<ProtectedRoute><Aziende /></ProtectedRoute>} />
-            <Route path="/utenti" element={<ProtectedRoute><Utenti /></ProtectedRoute>} />
-            <Route path="/coda-pratiche" element={<ProtectedRoute><CodaPratiche /></ProtectedRoute>} />
-            <Route path="/admin/pratiche" element={<ProtectedRoute><AdminPratiche /></ProtectedRoute>} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
+      <ErrorBoundary>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/home" element={<Home />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/cookie-policy" element={<CookiePolicy />} />
+                <Route path="/auth" element={<AuthRoute />} />
+                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/pratiche" element={<ProtectedRoute><Pratiche /></ProtectedRoute>} />
+                <Route path="/pratiche/nuova" element={<ProtectedRoute><NuovaPratica /></ProtectedRoute>} />
+                <Route path="/pratiche/:id" element={<ProtectedRoute><PraticaDetail /></ProtectedRoute>} />
+                <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
+                <Route path="/aziende" element={<ProtectedRoute><Aziende /></ProtectedRoute>} />
+                <Route path="/utenti" element={<ProtectedRoute><Utenti /></ProtectedRoute>} />
+                <Route path="/coda-pratiche" element={<ProtectedRoute><CodaPratiche /></ProtectedRoute>} />
+                <Route path="/admin/pratiche" element={<ProtectedRoute><AdminPratiche /></ProtectedRoute>} />
+                <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                <Route path="/clienti" element={<ProtectedRoute><Clienti /></ProtectedRoute>} />
+                <Route path="/listino" element={<ProtectedRoute><Listino /></ProtectedRoute>} />
+                <Route path="/fatturazione" element={<ProtectedRoute><Fatturazione /></ProtectedRoute>} />
+                <Route path="/fatturazione/nuova" element={<ProtectedRoute><NuovaFattura /></ProtectedRoute>} />
+                <Route path="/fatturazione/:id" element={<ProtectedRoute><FatturaDetail /></ProtectedRoute>} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </AuthProvider>
+        </BrowserRouter>
+      </ErrorBoundary>
     </TooltipProvider>
   </QueryClientProvider>
 );

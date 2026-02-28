@@ -1,29 +1,19 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, isInternal } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Clock, CheckCircle2, AlertCircle, FileEdit, Ban, Send } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { PracticeChat } from "@/components/PracticeChat";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { ChecklistPanel } from "@/components/ChecklistPanel";
-import type { Database } from "@/integrations/supabase/types";
-
-type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
-
-const STATO_CONFIG: Record<PraticaStato, { label: string; color: string; icon: any }> = {
-  bozza: { label: "Bozza", color: "bg-muted text-muted-foreground", icon: FileEdit },
-  inviata: { label: "Inviata", color: "bg-primary/10 text-primary", icon: Clock },
-  in_lavorazione: { label: "In Lavorazione", color: "bg-warning/10 text-warning", icon: AlertCircle },
-  in_attesa_documenti: { label: "Attesa Documenti", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
-  completata: { label: "Completata", color: "bg-success/10 text-success", icon: CheckCircle2 },
-  annullata: { label: "Annullata", color: "bg-muted text-muted-foreground", icon: Ban },
-};
+import { STATO_CONFIG } from "@/lib/pratiche-config";
+import type { PraticaStato } from "@/lib/pratiche-config";
 
 export default function PraticaDetail() {
   const { id } = useParams<{ id: string }>();
@@ -33,7 +23,7 @@ export default function PraticaDetail() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const isInternalUser = roles.some(r => ["super_admin", "admin_interno", "operatore"].includes(r));
+  const isInternalUser = isInternal(roles);
 
   const { data: pratica, isLoading } = useQuery({
     queryKey: ["pratica", id],

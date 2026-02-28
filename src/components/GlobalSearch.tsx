@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/hooks/useCompany";
+import { useAuth, isInternal } from "@/hooks/useAuth";
 import {
   CommandDialog,
   CommandInput,
@@ -27,6 +28,7 @@ export function GlobalSearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const { companyId } = useCompany();
+  const { roles } = useAuth();
   const navigate = useNavigate();
 
   // Cmd+K shortcut
@@ -51,12 +53,16 @@ export function GlobalSearch() {
       const all: SearchResult[] = [];
       const pattern = `%${q}%`;
 
-      // Search pratiche
-      const { data: pratiche } = await supabase
+      // Search pratiche (scoped by company for non-internal users)
+      let praticheQuery = supabase
         .from("pratiche")
         .select("id, titolo, stato, categoria")
         .or(`titolo.ilike.${pattern},descrizione.ilike.${pattern}`)
         .limit(5);
+      if (!isInternal(roles) && companyId) {
+        praticheQuery = praticheQuery.eq("company_id", companyId);
+      }
+      const { data: pratiche } = await praticheQuery;
       if (pratiche) {
         pratiche.forEach((p) =>
           all.push({

@@ -8,15 +8,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { STATO_ORDER, STATO_CONFIG, getStatoIcon } from "./PraticaCard";
-import type { Database } from "@/integrations/supabase/types";
-
-type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
+import { STATO_ORDER, STATO_CONFIG } from "@/lib/pratiche-config";
+import type { PraticaStato } from "@/lib/pratiche-config";
 
 function DroppableColumn({ stato, children }: { stato: string; children: React.ReactNode }) {
   const { isOver, setNodeRef } = useDroppable({ id: stato });
   const conf = STATO_CONFIG[stato as PraticaStato];
-  const Icon = getStatoIcon(conf.icon);
+  const Icon = conf.icon;
 
   return (
     <div
@@ -92,7 +90,6 @@ export function PipelineView({ pratiche, navigate }: { pratiche: any[]; navigate
 
     if (oldStato === newStato) return;
 
-    // Optimistic update
     queryClient.setQueryData(["pratiche", companyId], (old: any[]) =>
       old?.map(p => p.id === praticaId ? { ...p, stato: newStato } : p)
     );
@@ -119,7 +116,7 @@ export function PipelineView({ pratiche, navigate }: { pratiche: any[]; navigate
         <div className="flex gap-3 pb-4" style={{ minWidth: STATO_ORDER.length * 260 }}>
           {STATO_ORDER.map(stato => {
             const conf = STATO_CONFIG[stato];
-            const Icon = getStatoIcon(conf.icon);
+            const Icon = conf.icon;
             const items = allByStato[stato];
 
             return (

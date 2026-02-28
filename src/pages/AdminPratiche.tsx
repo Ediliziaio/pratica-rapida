@@ -8,24 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  FolderOpen, Search, Clock, CheckCircle2, AlertCircle, FileEdit, Ban, Send,
+  FolderOpen, Search,
   Building2, ArrowRight, User, List, Columns3,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { Database } from "@/integrations/supabase/types";
-
-type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
-
-const STATO_ORDER: PraticaStato[] = ["bozza", "inviata", "in_lavorazione", "in_attesa_documenti", "completata", "annullata"];
-
-const STATO_CONFIG: Record<PraticaStato, { label: string; color: string; icon: any; bgDrop: string }> = {
-  bozza: { label: "Bozza", color: "bg-muted text-muted-foreground", icon: FileEdit, bgDrop: "bg-muted/30" },
-  inviata: { label: "Inviata", color: "bg-primary/10 text-primary", icon: Send, bgDrop: "bg-primary/5" },
-  in_lavorazione: { label: "In Lavorazione", color: "bg-warning/10 text-warning", icon: Clock, bgDrop: "bg-warning/5" },
-  in_attesa_documenti: { label: "Attesa Documenti", color: "bg-destructive/10 text-destructive", icon: AlertCircle, bgDrop: "bg-destructive/5" },
-  completata: { label: "Completata", color: "bg-success/10 text-success", icon: CheckCircle2, bgDrop: "bg-success/5" },
-  annullata: { label: "Annullata", color: "bg-muted text-muted-foreground", icon: Ban, bgDrop: "bg-muted/20" },
-};
+import { STATO_CONFIG, STATO_ORDER } from "@/lib/pratiche-config";
+import type { PraticaStato } from "@/lib/pratiche-config";
 
 type ViewMode = "list" | "pipeline";
 
@@ -257,7 +245,7 @@ export default function AdminPratiche() {
             const Icon = conf.icon;
             const items = pipelineData[stato];
             return (
-              <div key={stato} className={`flex min-w-[260px] flex-1 flex-col rounded-xl border p-3 ${conf.bgDrop}`}>
+              <div key={stato} className={`flex min-w-[260px] flex-1 flex-col rounded-xl border p-3 ${conf.bgColumn}`}>
                 <div className="mb-3 flex items-center gap-2">
                   <div className={`flex h-7 w-7 items-center justify-center rounded-md ${conf.color}`}>
                     <Icon className="h-4 w-4" />

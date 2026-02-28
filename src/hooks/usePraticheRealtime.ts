@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/hooks/useCompany";
 import { toast } from "sonner";
-import { STATO_CONFIG } from "@/components/pratiche/PraticaCard";
+import { STATO_CONFIG } from "@/lib/pratiche-config";
 import type { Database } from "@/integrations/supabase/types";
 
 type PraticaStato = Database["public"]["Enums"]["pratica_stato"];

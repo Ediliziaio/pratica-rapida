@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, isInternal } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,22 +11,12 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   FolderOpen, Clock, FileCheck, Wallet, TrendingUp, AlertCircle,
-  ArrowRight, Plus, CreditCard, FileEdit, Ban, CheckCircle2,
+  ArrowRight, Plus, CreditCard,
   Building2, Send,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { Database } from "@/integrations/supabase/types";
-
-type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
-
-const STATO_CONFIG: Record<PraticaStato, { label: string; color: string; icon: any }> = {
-  bozza: { label: "Bozza", color: "bg-muted text-muted-foreground", icon: FileEdit },
-  inviata: { label: "Inviata", color: "bg-primary/10 text-primary", icon: Clock },
-  in_lavorazione: { label: "In Lavorazione", color: "bg-warning/10 text-warning", icon: AlertCircle },
-  in_attesa_documenti: { label: "Attesa Documenti", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
-  completata: { label: "Completata", color: "bg-success/10 text-success", icon: CheckCircle2 },
-  annullata: { label: "Annullata", color: "bg-muted text-muted-foreground", icon: Ban },
-};
+import { STATO_CONFIG } from "@/lib/pratiche-config";
+import type { PraticaStato } from "@/lib/pratiche-config";
 
 const MONTH_NAMES = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
 
@@ -35,7 +25,7 @@ export default function Dashboard() {
   const { companyId } = useCompany();
   const navigate = useNavigate();
 
-  const isInternalUser = roles.some(r => ["super_admin", "admin_interno", "operatore"].includes(r));
+  const isInternalUser = isInternal(roles);
 
   const { data: company } = useQuery({
     queryKey: ["company-balance", companyId],

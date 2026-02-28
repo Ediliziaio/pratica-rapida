@@ -11,22 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
-  ListChecks, Search, Clock, CheckCircle2, AlertCircle, FileEdit, Ban, Send,
+  ListChecks, Search,
   User, Building2, ArrowRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { Database } from "@/integrations/supabase/types";
-
-type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
-
-const STATO_CONFIG: Record<PraticaStato, { label: string; color: string; icon: any }> = {
-  bozza: { label: "Bozza", color: "bg-muted text-muted-foreground", icon: FileEdit },
-  inviata: { label: "Inviata", color: "bg-primary/10 text-primary", icon: Send },
-  in_lavorazione: { label: "In Lavorazione", color: "bg-warning/10 text-warning", icon: Clock },
-  in_attesa_documenti: { label: "Attesa Documenti", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
-  completata: { label: "Completata", color: "bg-success/10 text-success", icon: CheckCircle2 },
-  annullata: { label: "Annullata", color: "bg-muted text-muted-foreground", icon: Ban },
-};
+import { STATO_CONFIG, STATO_ORDER } from "@/lib/pratiche-config";
+import type { PraticaStato } from "@/lib/pratiche-config";
 
 export default function CodaPratiche() {
   const navigate = useNavigate();
@@ -111,6 +101,7 @@ export default function CodaPratiche() {
     return matchSearch && matchStato;
   });
 
+  // Use custom order for coda (prioritize actionable states)
   const statoOrder: PraticaStato[] = ["inviata", "in_lavorazione", "in_attesa_documenti", "bozza", "completata", "annullata"];
 
   return (

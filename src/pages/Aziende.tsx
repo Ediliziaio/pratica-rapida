@@ -11,23 +11,12 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   Building2, Plus, Search, Wallet, Users, FolderOpen, CreditCard, LogIn,
-  FileEdit, Clock, AlertCircle, CheckCircle2, Ban, Send,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCompany } from "@/hooks/useCompany";
 import { isSuperAdmin } from "@/hooks/useAuth";
-import type { Database } from "@/integrations/supabase/types";
-
-type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
-
-const STATO_BADGE: Record<PraticaStato, { label: string; icon: any; className: string }> = {
-  bozza: { label: "Bozza", icon: FileEdit, className: "bg-muted text-muted-foreground" },
-  inviata: { label: "Inviata", icon: Send, className: "bg-primary/10 text-primary" },
-  in_lavorazione: { label: "In Lav.", icon: Clock, className: "bg-warning/10 text-warning" },
-  in_attesa_documenti: { label: "Attesa Doc.", icon: AlertCircle, className: "bg-destructive/10 text-destructive" },
-  completata: { label: "Completata", icon: CheckCircle2, className: "bg-success/10 text-success" },
-  annullata: { label: "Annullata", icon: Ban, className: "bg-muted text-muted-foreground" },
-};
+import { STATO_CONFIG } from "@/lib/pratiche-config";
+import type { PraticaStato } from "@/lib/pratiche-config";
 
 export default function Aziende() {
   const { toast } = useToast();
@@ -210,12 +199,12 @@ export default function Aziende() {
                   {/* Mini-badges breakdown per stato */}
                   {totalPratiche > 0 && (
                     <div className="flex flex-wrap gap-1.5 pl-16">
-                      {(Object.entries(STATO_BADGE) as [PraticaStato, typeof STATO_BADGE[PraticaStato]][]).map(([stato, cfg]) => {
+                      {(Object.entries(STATO_CONFIG) as [PraticaStato, typeof STATO_CONFIG[PraticaStato]][]).map(([stato, cfg]) => {
                         const count = statoCounts[stato] || 0;
                         if (count === 0) return null;
                         const Icon = cfg.icon;
                         return (
-                          <Badge key={stato} variant="outline" className={`text-[10px] gap-1 ${cfg.className}`}>
+                          <Badge key={stato} variant="outline" className={`text-[10px] gap-1 ${cfg.color}`}>
                             <Icon className="h-3 w-3" />
                             {cfg.label}: {count}
                           </Badge>

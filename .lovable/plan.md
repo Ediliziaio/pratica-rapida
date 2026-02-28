@@ -1,127 +1,147 @@
 
 
-# Analisi Landing Page /home - Proposte di Miglioramento
+# AUDIT TECNICO + PIANO ENTERPRISE
 
-## Stato attuale
-La pagina e' ben strutturata con un copy persuasivo, social proof solida (Trustpilot, partner slider), e un buon flusso narrativo. Tuttavia ci sono diversi aspetti migliorabili sia a livello UX che conversione.
+## A) REPORT AS-IS
 
----
+### Moduli Principali
+- **Landing** (`Home.tsx` - 1170 righe, monolitico)
+- **Auth** (login/signup con Supabase Auth)
+- **Dashboard** (KPI azienda + KPI interni super_admin)
+- **Pratiche ENEA** (CRUD, pipeline, dettaglio, checklist, documenti, chat)
+- **Fatturazione** (fatture, note credito, proforma - con righe articoli)
+- **Clienti** (anagrafica clienti finali)
+- **Wallet** (credito prepagato, movimenti)
+- **Aziende** (gestione multi-tenant con impersonificazione)
+- **Utenti & Ruoli** (RBAC, assegnazione aziende)
+- **Listino Servizi** (catalogo servizi)
+- **Analytics** (KPI globali, grafici)
 
-## 1. Performance e Codice
+### Architettura Ruoli
+6 ruoli: `super_admin`, `admin_interno`, `operatore`, `azienda_admin`, `azienda_user`, `partner`
 
-**Problema:** Il file Home.tsx ha 1160 righe. Tutto e' in un unico componente monolitico.
+### Problemi Identificati per Priorita'
 
-**Proposta:** Spezzare le sezioni in componenti separati (HeroSection, ProblemSection, ComparisonSection, ecc.) per migliorare la manutenibilita' e il rendering.
+#### P0 - CRITICI
 
----
+1. **6 pagine orfane senza route** - `Analytics.tsx`, `Clienti.tsx`, `Listino.tsx`, `Fatturazione.tsx`, `FatturaDetail.tsx`, `NuovaFattura.tsx` non hanno route in `App.tsx`. Sono navigabili solo tramite link interni (GlobalSearch, navigate) ma restituiscono 404.
 
-## 2. Navbar su Mobile
+2. **STATO_CONFIG duplicato 5 volte** - Definito in `Dashboard.tsx`, `PraticaDetail.tsx`, `CodaPratiche.tsx`, `AdminPratiche.tsx`, `Aziende.tsx` e `PraticaCard.tsx`. Ogni file ha una versione leggermente diversa. Rischio di inconsistenza.
 
-**Problema:** La navbar ha il logo + hamburger ma quando si scrolla, il testo dei link nel menu overlay non ha il link alle FAQ. Manca anche un link al footer "Contatti".
+3. **`isInternalUser` logica duplicata** - Calcolata con `roles.some(r => [...].includes(r))` in almeno 4 file diversi. Gia' esiste `isInternal()` in `useAuth.tsx` ma non viene usata ovunque.
 
-**Proposta:** Aggiungere "FAQ" e "Contatti" ai navLinks del menu mobile.
+4. **Nessuna validazione server-side su input** - `NuovaPratica.tsx` accetta campi senza validazione (nome/cognome senza trim, CF non validato, email non validata). L'edge function `create-user` valida solo campi non vuoti.
 
----
+5. **Leaked password protection disabilitata** - Rilevato dal linter Supabase.
 
-## 3. CTA "Attiva Ora" - Coerenza del Linguaggio
+#### P1 - IMPORTANTI
 
-**Problema:** I CTA usano nomi diversi in punti diversi:
-- "Attiva Ora" (navbar)
-- "Attiva Pratica Rapida" (hero)
-- "Contattaci e Attiva il Servizio" (CTA finale)
-- "Iscriviti Gratis" (sticky bar)
+6. **`any` type spam** - `clienti_finali as any`, `companies as any`, `pratiche as any` usati in quasi tutti i file per accedere a relazioni Supabase. I tipi delle join non sono tipizzati.
 
-**Proposta:** Uniformare il messaggio principale. "Iscriviti Gratis" sulla barra in basso e' il piu' chiaro. Rendere il CTA primario coerente ovunque, ad esempio "Attiva Gratis" o "Provalo Gratis" per ridurre l'attrito.
+7. **Nessun error boundary** - Se un componente crasha, tutta l'app crasha.
 
----
+8. **Nessun indice DB esplicito** - Query frequenti su `pratiche.company_id`, `pratiche.stato`, `pratiche.created_at` non hanno indici verificati.
 
-## 4. Sticky Bottom Bar - Overlap con il Footer
+9. **GlobalSearch non scoped per ruolo** - La ricerca pratiche non filtra per `company_id` (solo clienti e fatture lo fanno). Un utente azienda potrebbe vedere titoli di pratiche di altre aziende nei risultati.
 
-**Problema:** Su mobile, la barra in basso copre parte del footer e del contenuto inferiore della pagina. Il padding-bottom `pb-28` aiuta ma il footer risulta comunque parzialmente coperto.
+10. **Delete fatture senza conferma** - `deleteFattura.mutate(f.id)` viene chiamato senza dialog di conferma.
 
-**Proposta:** Aumentare il padding-bottom del footer o aggiungere un margine inferiore al footer per garantire che tutto il contenuto sia leggibile sopra la barra sticky.
+11. **Home.tsx monolitico** - 1170 righe in un singolo file.
 
----
+#### P2 - MIGLIORAMENTI
 
-## 5. Sezione Partner "Ci hanno scelto" - Nomi Fittizi
-
-**Problema:** I nomi dei partner sono chiaramente fittizi ("Serramenti Rossi", "Infissi Bianchi", "TendeSu"). Questo riduce la credibilita' invece di aumentarla.
-
-**Proposta:** O usare nomi reali di clienti (con permesso), oppure rimuovere la sezione. Una sezione con nomi finti fa piu' danno che bene alla fiducia.
-
----
-
-## 6. Dashboard Mockup - Visibilita' su Mobile
-
-**Problema:** Il mockup della dashboard e' compresso su mobile e difficile da leggere. I testi sono troppo piccoli.
-
-**Proposta:** Su mobile, nascondere il mockup o mostrare una versione semplificata (solo le 4 KPI cards senza la tabella e il grafico).
+12. **Pagine Clienti/Fatturazione/Listino non nella sidebar** - Esistono come pagine ma non sono accessibili dalla navigazione.
+13. **`NuovaFattura.tsx` da 685 righe** - File molto grande, rifattorizzabile.
+14. **Nessun lazy loading** - Tutte le pagine importate eagerly in `App.tsx`.
+15. **Console log pulita** - Non rilevati errori runtime (positivo).
 
 ---
 
-## 7. Sezione Prezzi - Prezzi Barrati poco Visibili
+## B-J) PIANO DI INTERVENTO
 
-**Problema (riga 618-710):** I prezzi barrati (200E, 150E, 100E) sono un ottimo elemento di persuasione ma la sezione potrebbe essere piu' impattante.
+Data la dimensione degli interventi, propongo di procedere in **3 fasi incrementali**. Ogni fase e' indipendente e non rompe nulla.
 
-**Proposta:** Aggiungere un "risparmio calcolato": es. "Con 10 pratiche al mese risparmi 1.350E rispetto al metodo tradizionale" per rendere il risparmio tangibile.
+### FASE 1: Fix Critici (P0)
+
+#### 1. Registrare le 6 route mancanti in `App.tsx`
+- `/analytics` -> `Analytics`
+- `/clienti` -> `Clienti`
+- `/listino` -> `Listino`
+- `/fatturazione` -> `Fatturazione`
+- `/fatturazione/nuova` -> `NuovaFattura`
+- `/fatturazione/:id` -> `FatturaDetail`
+
+#### 2. Centralizzare STATO_CONFIG
+- Creare `src/lib/pratiche-config.ts` con `STATO_CONFIG`, `STATO_ORDER`, `PraticaStato` esportati
+- Aggiornare tutti i file che lo duplicano per importarlo da li'
+
+#### 3. Unificare `isInternalUser`
+- Usare `isInternal(roles)` da `useAuth.tsx` ovunque invece di ricalcolarlo
+
+#### 4. Fix GlobalSearch scoping
+- Aggiungere `.eq("company_id", companyId)` alla query pratiche quando l'utente non e' internal
+
+#### 5. Aggiungere voci mancanti alla Sidebar
+- Aggiungere Clienti, Fatturazione, Listino e Analytics alle sezioni appropriate
+
+### FASE 2: Sicurezza + Validazione (P0-P1)
+
+#### 6. Input validation con Zod
+- Aggiungere schema Zod per `NuovaPratica` (nome, cognome, CF, email, telefono)
+- Aggiungere schema Zod per creazione aziende e fatture
+
+#### 7. Conferma delete
+- Aggiungere AlertDialog prima di eliminare fatture, note credito, proforma
+
+#### 8. Abilitare leaked password protection
+- Documentare che va abilitato dal pannello Lovable Cloud
+
+#### 9. Indici DB
+- Creare indici su `pratiche(company_id, stato)`, `pratiche(created_at)`, `documenti(pratica_id)`, `clienti_finali(company_id)`
+
+### FASE 3: Performance + Refactor (P1-P2)
+
+#### 10. Lazy loading pagine
+- Usare `React.lazy()` + `Suspense` per tutte le pagine in `App.tsx`
+
+#### 11. Error Boundary
+- Creare componente `ErrorBoundary` globale
+
+#### 12. Ridurre `any` types
+- Creare tipi helper per le join Supabase piu' usate
 
 ---
 
-## 8. FAQ - Manca una Domanda Chiave
+## MULTI-TENANCY CHECK
 
-**Problema:** Manca la domanda "Devo avere competenze tecniche per usare la piattaforma?" che e' una delle obiezioni principali del target.
+| Verifica | Stato |
+|----------|-------|
+| RLS su tutte le tabelle | OK - Tutte hanno RLS con `company_id` scope |
+| `company_id` obbligatorio | OK - Non nullable sulle tabelle principali |
+| Funzioni security definer | OK - `has_role`, `is_internal`, `user_belongs_to_company`, `get_user_company_ids` |
+| GlobalSearch scoped | FAIL - Pratiche non filtrate per company_id |
+| Impersonificazione controllata | OK - Solo super_admin puo' impersonare |
 
-**Proposta:** Aggiungere 1-2 FAQ mirate alle obiezioni piu' comuni del target (competenze tecniche, privacy dei dati del cliente).
+## SICUREZZA CHECK
 
----
+| Verifica | Stato |
+|----------|-------|
+| Ruoli in tabella separata | OK |
+| RLS attivo ovunque | OK |
+| JWT validation edge functions | OK - `getClaims()` usato |
+| Segreti nel codice | OK - Nessuno |
+| Password leak protection | WARN - Disabilitata |
+| Input validation server | FAIL - Minima |
 
-## 9. Footer - Link Mancanti e SEO
+## BACKUP & RESTORE
 
-**Problema:** Il footer e' minimale. Manca:
-- Link alla Privacy Policy / Cookie Policy (obbligatorio per GDPR)
-- Link ai social media
-- Link alle FAQ dalla navigazione footer
-
-**Proposta:** Aggiungere almeno Privacy Policy e Cookie Policy (anche come pagine placeholder) per compliance legale.
-
----
-
-## 10. Accessibilita' e SEO
-
-**Problema:**
-- Molti elementi usano `style={{ color: PR_GREEN }}` inline invece di classi Tailwind. Questo rende difficile il dark mode e la manutenzione.
-- Mancano tag `meta` per SEO (description, og:image, etc.) nell'index.html.
-- Alcune immagini mancano di alt text descrittivi.
-
-**Proposta:** 
-- Aggiungere meta description e Open Graph tags nell'index.html
-- Migliorare gli alt text delle immagini
+Il progetto usa Lovable Cloud che gestisce automaticamente i backup del database. La retention e il restore sono gestiti dall'infrastruttura Supabase sottostante. Non sono necessarie configurazioni aggiuntive per il backup.
 
 ---
 
-## Priorita' Consigliate
+## DICHIARAZIONE
 
-| Priorita' | Miglioramento | Impatto |
-|-----------|--------------|---------|
-| Alta | Privacy Policy / Cookie Policy nel footer | Compliance legale |
-| Alta | Uniformare i CTA | Conversione |
-| Alta | Rimuovere/sostituire nomi partner fittizi | Credibilita' |
-| Media | Meta tags SEO | Visibilita' organica |
-| Media | Aggiungere FAQ sulle obiezioni chiave | Conversione |
-| Media | Fix padding footer per sticky bar | UX mobile |
-| Bassa | Refactoring in componenti separati | Manutenibilita' |
-| Bassa | Semplificare mockup su mobile | UX mobile |
+Il progetto NON e' ancora pronto per produzione. Dopo l'implementazione della Fase 1 e Fase 2, il progetto raggiungera' standard accettabili. La Fase 3 e' raccomandata ma non bloccante.
 
----
-
-## Dettaglio Tecnico
-
-### File coinvolti:
-- `src/pages/Home.tsx` - Tutte le modifiche di contenuto e layout
-- `index.html` - Meta tags SEO e Open Graph
-- Nuove pagine: `src/pages/PrivacyPolicy.tsx` e `src/pages/CookiePolicy.tsx`
-- `src/App.tsx` - Aggiungere routes per le nuove pagine
-
-### Approccio:
-Le modifiche possono essere implementate in modo incrementale, partendo dalle priorita' alte e procedendo verso il basso. Ogni modifica e' indipendente dalle altre.
+**Vuoi procedere con la Fase 1 (fix critici)?**
 

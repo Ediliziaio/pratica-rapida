@@ -7,6 +7,10 @@ import {
   Settings,
   ListChecks,
   LogOut,
+  Users,
+  FileText,
+  BookOpen,
+  BarChart3,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth, isSuperAdmin, isInternal, isAzienda } from "@/hooks/useAuth";
@@ -43,6 +47,8 @@ export function AppSidebar() {
     { title: "Dashboard", url: "/", icon: LayoutDashboard },
     { title: "Nuova Pratica ENEA", url: "/pratiche/nuova", icon: FilePlus },
     { title: "Pratiche", url: "/pratiche", icon: FolderOpen },
+    { title: "Clienti", url: "/clienti", icon: Users },
+    { title: "Fatturazione", url: "/fatturazione", icon: FileText },
     { title: "Wallet", url: "/wallet", icon: Wallet },
   ];
 
@@ -51,6 +57,8 @@ export function AppSidebar() {
     { title: "Aziende", url: "/aziende", icon: Building2 },
     { title: "Pratiche", url: "/admin/pratiche", icon: FolderOpen },
     { title: "Attività", url: "/coda-pratiche", icon: ListChecks },
+    { title: "Listino", url: "/listino", icon: BookOpen },
+    { title: "Analytics", url: "/analytics", icon: BarChart3 },
     { title: "Impostazioni", url: "/utenti", icon: Settings },
   ];
 

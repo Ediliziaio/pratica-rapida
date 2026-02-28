@@ -1,28 +1,13 @@
+// Re-export centralized config for backward compatibility
+export { STATO_ORDER, STATO_CONFIG } from "@/lib/pratiche-config";
+export type { PraticaStato } from "@/lib/pratiche-config";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { Database } from "@/integrations/supabase/types";
-
-type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
-
-export const STATO_ORDER: PraticaStato[] = ["bozza", "inviata", "in_lavorazione", "in_attesa_documenti", "completata", "annullata"];
-
-export const STATO_CONFIG: Record<PraticaStato, { label: string; color: string; bgColumn: string; icon: string }> = {
-  bozza: { label: "Bozza", color: "bg-muted text-muted-foreground", bgColumn: "bg-muted/30", icon: "FileEdit" },
-  inviata: { label: "Inviata", color: "bg-primary/10 text-primary", bgColumn: "bg-primary/5", icon: "Clock" },
-  in_lavorazione: { label: "In Lavorazione", color: "bg-warning/10 text-warning", bgColumn: "bg-warning/5", icon: "AlertCircle" },
-  in_attesa_documenti: { label: "Attesa Documenti", color: "bg-destructive/10 text-destructive", bgColumn: "bg-destructive/5", icon: "AlertCircle" },
-  completata: { label: "Completata", color: "bg-success/10 text-success", bgColumn: "bg-success/5", icon: "CheckCircle2" },
-  annullata: { label: "Annullata", color: "bg-muted text-muted-foreground", bgColumn: "bg-muted/20", icon: "Ban" },
-};
-
-import { FolderOpen, Clock, CheckCircle2, AlertCircle, FileEdit, Ban, Plus } from "lucide-react";
+import { FolderOpen, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const ICONS: Record<string, any> = { FileEdit, Clock, AlertCircle, CheckCircle2, Ban };
-
-export function getStatoIcon(iconName: string) {
-  return ICONS[iconName] || AlertCircle;
-}
+import { STATO_CONFIG } from "@/lib/pratiche-config";
+import type { PraticaStato } from "@/lib/pratiche-config";
 
 export function ListView({ pratiche, navigate }: { pratiche: any[]; navigate: (path: string) => void }) {
   if (pratiche.length === 0) {
@@ -44,7 +29,7 @@ export function ListView({ pratiche, navigate }: { pratiche: any[]; navigate: (p
     <div className="grid gap-3">
       {pratiche.map((p) => {
         const statoConf = STATO_CONFIG[p.stato as PraticaStato];
-        const Icon = getStatoIcon(statoConf.icon);
+        const Icon = statoConf.icon;
         return (
           <Card key={p.id} className="cursor-pointer transition-colors hover:bg-accent/50" onClick={() => navigate(`/pratiche/${p.id}`)}>
             <CardContent className="flex items-center gap-4 p-4">

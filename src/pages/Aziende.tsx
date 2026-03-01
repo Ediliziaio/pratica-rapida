@@ -9,14 +9,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Building2, Plus, Search, Wallet, Users, FolderOpen, CreditCard, LogIn,
+  ChevronDown, BarChart3, TrendingUp, CircleDollarSign, CalendarDays,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCompany } from "@/hooks/useCompany";
 import { isSuperAdmin } from "@/hooks/useAuth";
 import { STATO_CONFIG } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
+import { format } from "date-fns";
+import { it } from "date-fns/locale";
+
+interface CompanyStats {
+  statoCounts: Record<string, number>;
+  totalPratiche: number;
+  totalRevenue: number;
+  revenuePagata: number;
+  revenueDaIncassare: number;
+  prezzoMedio: number;
+}
 
 export default function Aziende() {
   const { toast } = useToast();
@@ -30,6 +43,7 @@ export default function Aziende() {
   const navigate = useNavigate();
   const { setImpersonatedCompany } = useCompany();
   const superAdmin = isSuperAdmin(roles);
+  const [openPanels, setOpenPanels] = useState<Record<string, boolean>>({});
 
   const [form, setForm] = useState({
     ragione_sociale: "", piva: "", codice_fiscale: "", email: "",
@@ -45,15 +59,25 @@ export default function Aziende() {
     },
   });
 
-  // Pratiche counts per company per stato
-  const { data: praticheByCompany = {} } = useQuery({
-    queryKey: ["admin-pratiche-by-stato"],
+  // Extended query: pratiche with prezzo and pagamento_stato
+  const { data: companyStats = {} } = useQuery<Record<string, CompanyStats>>({
+    queryKey: ["admin-pratiche-stats"],
     queryFn: async () => {
-      const { data } = await supabase.from("pratiche").select("company_id, stato");
-      const result: Record<string, Record<string, number>> = {};
+      const { data } = await supabase.from("pratiche").select("company_id, stato, prezzo, pagamento_stato");
+      const result: Record<string, CompanyStats> = {};
       (data || []).forEach(p => {
-        if (!result[p.company_id]) result[p.company_id] = {};
-        result[p.company_id][p.stato] = (result[p.company_id][p.stato] || 0) + 1;
+        if (!result[p.company_id]) {
+          result[p.company_id] = { statoCounts: {}, totalPratiche: 0, totalRevenue: 0, revenuePagata: 0, revenueDaIncassare: 0, prezzoMedio: 0 };
+        }
+        const s = result[p.company_id];
+        s.statoCounts[p.stato] = (s.statoCounts[p.stato] || 0) + 1;
+        s.totalPratiche += 1;
+        s.totalRevenue += Number(p.prezzo) || 0;
+        if (p.pagamento_stato === "pagata") s.revenuePagata += Number(p.prezzo) || 0;
+        if (p.stato === "completata" && p.pagamento_stato === "non_pagata") s.revenueDaIncassare += Number(p.prezzo) || 0;
+      });
+      Object.values(result).forEach(s => {
+        s.prezzoMedio = s.totalPratiche > 0 ? s.totalRevenue / s.totalPratiche : 0;
       });
       return result;
     },
@@ -107,6 +131,10 @@ export default function Aziende() {
     `${c.ragione_sociale} ${c.piva} ${c.email}`.toLowerCase().includes(search.toLowerCase())
   );
 
+  const togglePanel = (id: string) => {
+    setOpenPanels(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -158,64 +186,86 @@ export default function Aziende() {
       ) : (
         <div className="grid gap-4">
           {filtered.map(c => {
-            const statoCounts = praticheByCompany[c.id] || {};
-            const totalPratiche = Object.values(statoCounts).reduce((s: number, v) => s + (v as number), 0);
+            const stats = companyStats[c.id] || { statoCounts: {}, totalPratiche: 0, totalRevenue: 0, revenuePagata: 0, revenueDaIncassare: 0, prezzoMedio: 0 };
+            const isOpen = !!openPanels[c.id];
             return (
-              <Card key={c.id}>
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                      <Building2 className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold truncate cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/aziende/${c.id}`)}>
-                        {c.ragione_sociale}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                        {c.piva && <span>P.IVA: {c.piva}</span>}
-                        {c.email && <span>{c.email}</span>}
-                        {c.settore && <Badge variant="outline" className="text-xs">{c.settore}</Badge>}
+              <Collapsible key={c.id} open={isOpen} onOpenChange={() => togglePanel(c.id)}>
+                <Card>
+                  <CardContent className="p-4 space-y-0">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                        <Building2 className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold truncate cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/aziende/${c.id}`)}>
+                          {c.ragione_sociale}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                          {c.piva && <span>P.IVA: {c.piva}</span>}
+                          {c.email && <span>{c.email}</span>}
+                          {c.settore && <Badge variant="outline" className="text-xs">{c.settore}</Badge>}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <FolderOpen className="h-4 w-4" />{stats.totalPratiche}
+                        </div>
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Users className="h-4 w-4" />{userCounts[c.id] || 0}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold">€ {c.wallet_balance.toFixed(2)}</p>
+                          <Button variant="ghost" size="sm" className="h-auto p-0 text-xs text-primary" onClick={() => setShowTopup(c.id)}>
+                            <CreditCard className="mr-1 h-3 w-3" />Ricarica
+                          </Button>
+                        </div>
+                        {superAdmin && (
+                          <Button variant="outline" size="sm" onClick={() => { setImpersonatedCompany(c.id, c.ragione_sociale); navigate("/"); }}>
+                            <LogIn className="mr-1 h-4 w-4" />Accedi
+                          </Button>
+                        )}
+                        <CollapsibleTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+                            <span className="sr-only">Reportistica</span>
+                          </Button>
+                        </CollapsibleTrigger>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm">
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <FolderOpen className="h-4 w-4" />{totalPratiche}
-                      </div>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Users className="h-4 w-4" />{userCounts[c.id] || 0}
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold">€ {c.wallet_balance.toFixed(2)}</p>
-                        <Button variant="ghost" size="sm" className="h-auto p-0 text-xs text-primary" onClick={() => setShowTopup(c.id)}>
-                          <CreditCard className="mr-1 h-3 w-3" />Ricarica
-                        </Button>
-                      </div>
-                      {superAdmin && (
-                        <Button variant="outline" size="sm" onClick={() => { setImpersonatedCompany(c.id, c.ragione_sociale); navigate("/"); }}>
-                          <LogIn className="mr-1 h-4 w-4" />Accedi
-                        </Button>
-                      )}
-                    </div>
-                  </div>
 
-                  {/* Mini-badges breakdown per stato */}
-                  {totalPratiche > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pl-16">
-                      {(Object.entries(STATO_CONFIG) as [PraticaStato, typeof STATO_CONFIG[PraticaStato]][]).map(([stato, cfg]) => {
-                        const count = statoCounts[stato] || 0;
-                        if (count === 0) return null;
-                        const Icon = cfg.icon;
-                        return (
-                          <Badge key={stato} variant="outline" className={`text-[10px] gap-1 ${cfg.color}`}>
-                            <Icon className="h-3 w-3" />
-                            {cfg.label}: {count}
-                          </Badge>
-                        );
-                      })}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                    <CollapsibleContent className="pt-4">
+                      <div className="border-t pt-4 space-y-4">
+                        {/* KPI Grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                          <KpiCard icon={TrendingUp} label="Revenue Totale" value={`€ ${stats.totalRevenue.toFixed(2)}`} />
+                          <KpiCard icon={CircleDollarSign} label="Incassato" value={`€ ${stats.revenuePagata.toFixed(2)}`} className="text-success" />
+                          <KpiCard icon={CircleDollarSign} label="Da Incassare" value={`€ ${stats.revenueDaIncassare.toFixed(2)}`} className="text-destructive" />
+                          <KpiCard icon={BarChart3} label="Prezzo Medio" value={`€ ${stats.prezzoMedio.toFixed(2)}`} />
+                          <KpiCard icon={Users} label="Utenti" value={String(userCounts[c.id] || 0)} />
+                          <KpiCard icon={CalendarDays} label="Registrata" value={format(new Date(c.created_at), "dd MMM yyyy", { locale: it })} />
+                        </div>
+
+                        {/* Status breakdown badges */}
+                        {stats.totalPratiche > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {(Object.entries(STATO_CONFIG) as [PraticaStato, typeof STATO_CONFIG[PraticaStato]][]).map(([stato, cfg]) => {
+                              const count = stats.statoCounts[stato] || 0;
+                              if (count === 0) return null;
+                              const Icon = cfg.icon;
+                              return (
+                                <Badge key={stato} variant="outline" className={`text-[10px] gap-1 ${cfg.color}`}>
+                                  <Icon className="h-3 w-3" />
+                                  {cfg.label}: {count}
+                                </Badge>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </CardContent>
+                </Card>
+              </Collapsible>
             );
           })}
         </div>
@@ -234,6 +284,18 @@ export default function Aziende() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function KpiCard({ icon: Icon, label, value, className = "" }: { icon: React.ElementType; label: string; value: string; className?: string }) {
+  return (
+    <div className="rounded-lg border bg-muted/30 p-3 space-y-1">
+      <div className="flex items-center gap-1.5 text-muted-foreground">
+        <Icon className="h-3.5 w-3.5" />
+        <span className="text-[11px] font-medium">{label}</span>
+      </div>
+      <p className={`text-sm font-semibold ${className}`}>{value}</p>
     </div>
   );
 }

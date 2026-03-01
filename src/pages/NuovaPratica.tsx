@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
 import { useToast } from "@/hooks/use-toast";
+import { clienteSchema, type ClienteFormData } from "@/lib/validation-schemas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +22,7 @@ export default function NuovaPratica() {
   const queryClient = useQueryClient();
 
   const [step, setStep] = useState(0);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Step 1: Dati Cliente
   const [clienteNome, setClienteNome] = useState("");
@@ -64,21 +66,47 @@ export default function NuovaPratica() {
   const prezzo = eneaService?.prezzo_base || 0;
   const hasSufficientCredit = walletBalance >= prezzo;
 
+  const getFormData = (): ClienteFormData => ({
+    nome: clienteNome,
+    cognome: clienteCognome,
+    codice_fiscale: clienteCF,
+    email: clienteEmail,
+    telefono: clienteTelefono,
+    indirizzo: clienteIndirizzo,
+  });
+
+  const validateForm = (): boolean => {
+    const result = clienteSchema.safeParse(getFormData());
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        const field = err.path[0] as string;
+        if (!fieldErrors[field]) fieldErrors[field] = err.message;
+      });
+      setErrors(fieldErrors);
+      return false;
+    }
+    setErrors({});
+    return true;
+  };
+
   const submitPratica = useMutation({
     mutationFn: async (asBozza: boolean) => {
       if (!companyId || !user) throw new Error("Missing data");
+
+      const validated = clienteSchema.parse(getFormData());
 
       // Create client first
       const { data: cliente, error: clienteError } = await supabase
         .from("clienti_finali")
         .insert({
           company_id: companyId,
-          nome: clienteNome,
-          cognome: clienteCognome,
-          codice_fiscale: clienteCF || null,
-          email: clienteEmail || null,
-          telefono: clienteTelefono || null,
-          indirizzo: clienteIndirizzo || null,
+          nome: validated.nome,
+          cognome: validated.cognome,
+          codice_fiscale: validated.codice_fiscale || null,
+          email: validated.email || null,
+          telefono: validated.telefono || null,
+          indirizzo: validated.indirizzo || null,
         })
         .select()
         .single();
@@ -91,7 +119,7 @@ export default function NuovaPratica() {
         service_id: eneaService?.id || null,
         cliente_finale_id: cliente.id,
         categoria: "enea_bonus" as const,
-        titolo: `Pratica ENEA - ${clienteNome} ${clienteCognome}`,
+        titolo: `Pratica ENEA - ${validated.nome} ${validated.cognome}`,
         stato: asBozza ? "bozza" : "inviata",
         priorita: "normale",
         prezzo,
@@ -120,9 +148,9 @@ export default function NuovaPratica() {
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
 
-  const canNext = () => {
-    if (step === 0) return clienteNome.trim() !== "" && clienteCognome.trim() !== "";
-    return true;
+  const handleNext = () => {
+    if (step === 0 && !validateForm()) return;
+    setStep(step + 1);
   };
 
   if (!companyId) {
@@ -168,30 +196,36 @@ export default function NuovaPratica() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Nome *</Label>
-                <Input value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} placeholder="Mario" required />
+                <Input value={clienteNome} onChange={(e) => { setClienteNome(e.target.value); setErrors(prev => ({ ...prev, nome: "" })); }} placeholder="Mario" />
+                {errors.nome && <p className="text-sm text-destructive">{errors.nome}</p>}
               </div>
               <div className="space-y-2">
                 <Label>Cognome *</Label>
-                <Input value={clienteCognome} onChange={(e) => setClienteCognome(e.target.value)} placeholder="Rossi" required />
+                <Input value={clienteCognome} onChange={(e) => { setClienteCognome(e.target.value); setErrors(prev => ({ ...prev, cognome: "" })); }} placeholder="Rossi" />
+                {errors.cognome && <p className="text-sm text-destructive">{errors.cognome}</p>}
               </div>
             </div>
             <div className="space-y-2">
               <Label>Codice Fiscale</Label>
-              <Input value={clienteCF} onChange={(e) => setClienteCF(e.target.value.toUpperCase())} placeholder="RSSMRA80A01H501Z" maxLength={16} />
+              <Input value={clienteCF} onChange={(e) => { setClienteCF(e.target.value.toUpperCase()); setErrors(prev => ({ ...prev, codice_fiscale: "" })); }} placeholder="RSSMRA80A01H501Z" maxLength={16} />
+              {errors.codice_fiscale && <p className="text-sm text-destructive">{errors.codice_fiscale}</p>}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Email</Label>
-                <Input type="email" value={clienteEmail} onChange={(e) => setClienteEmail(e.target.value)} placeholder="mario@esempio.it" />
+                <Input type="email" value={clienteEmail} onChange={(e) => { setClienteEmail(e.target.value); setErrors(prev => ({ ...prev, email: "" })); }} placeholder="mario@esempio.it" />
+                {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
               </div>
               <div className="space-y-2">
                 <Label>Telefono</Label>
-                <Input value={clienteTelefono} onChange={(e) => setClienteTelefono(e.target.value)} placeholder="+39 333 1234567" />
+                <Input value={clienteTelefono} onChange={(e) => { setClienteTelefono(e.target.value); setErrors(prev => ({ ...prev, telefono: "" })); }} placeholder="+39 333 1234567" />
+                {errors.telefono && <p className="text-sm text-destructive">{errors.telefono}</p>}
               </div>
             </div>
             <div className="space-y-2">
               <Label>Indirizzo dell'immobile</Label>
-              <Input value={clienteIndirizzo} onChange={(e) => setClienteIndirizzo(e.target.value)} placeholder="Via Roma 1, 00100 Roma (RM)" />
+              <Input value={clienteIndirizzo} onChange={(e) => { setClienteIndirizzo(e.target.value); setErrors(prev => ({ ...prev, indirizzo: "" })); }} placeholder="Via Roma 1, 00100 Roma (RM)" />
+              {errors.indirizzo && <p className="text-sm text-destructive">{errors.indirizzo}</p>}
             </div>
           </CardContent>
         </Card>
@@ -249,7 +283,7 @@ export default function NuovaPratica() {
             </Button>
           )}
           {step < 1 ? (
-            <Button onClick={() => setStep(step + 1)} disabled={!canNext()}>
+            <Button onClick={handleNext}>
               Avanti<ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (

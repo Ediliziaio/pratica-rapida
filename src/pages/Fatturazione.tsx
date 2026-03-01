@@ -11,6 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Plus, FileText, CreditCard, Receipt, Trash2, Edit, Download, CheckCircle2, Clock, Search, AlertTriangle } from "lucide-react";
 import { format, differenceInDays, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
@@ -22,6 +26,32 @@ const STATO_CONFIG: Record<string, { label: string; className: string; icon: Rea
   emessa: { label: "Emessa", className: "bg-primary/10 text-primary", icon: <FileText className="h-3 w-3" /> },
   pagata: { label: "Pagata", className: "bg-success/10 text-success", icon: <CheckCircle2 className="h-3 w-3" /> },
 };
+
+function DeleteConfirmButton({ onConfirm, label }: { onConfirm: () => void; label: string }) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
+          <AlertDialogDescription>
+            Sei sicuro di voler eliminare {label}? Questa azione non può essere annullata.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Annulla</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Elimina
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
 
 export default function Fatturazione() {
   const { companyId } = useCompany();
@@ -112,8 +142,6 @@ export default function Fatturazione() {
     });
   }, [fatture, selectedMonth, selectedYear, filterStato, searchQuery]);
 
-  const totaleImponibile = filteredFatture.reduce((s, f) => s + Number(f.imponibile), 0);
-  const totaleIva = filteredFatture.reduce((s, f) => s + Number(f.iva), 0);
   const totaleTotale = filteredFatture.reduce((s, f) => s + Number(f.totale), 0);
 
   const deleteFattura = useMutation({
@@ -296,9 +324,7 @@ export default function Fatturazione() {
                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`/fatturazione/${f.id}`)}>
                                 <Edit className="h-3.5 w-3.5" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteFattura.mutate(f.id)}>
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
+                              <DeleteConfirmButton label="questa fattura" onConfirm={() => deleteFattura.mutate(f.id)} />
                             </div>
                           </TableCell>
                         </TableRow>
@@ -376,9 +402,7 @@ function NoteCreditoTab({ notecredito, fatture, companyId }: { notecredito: any[
                   <TableCell className="text-right font-semibold">€ {Number(nc.importo).toLocaleString("it-IT", { minimumFractionDigits: 2 })}</TableCell>
                   <TableCell className="max-w-[200px] truncate">{nc.causale || "—"}</TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteNota.mutate(nc.id)}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    <DeleteConfirmButton label="questa nota di credito" onConfirm={() => deleteNota.mutate(nc.id)} />
                   </TableCell>
                 </TableRow>
               ))}
@@ -436,9 +460,7 @@ function ProformaTab({ proformaList, companyId, navigate }: { proformaList: any[
                     <TableCell>{p.scadenza ? format(parseISO(p.scadenza), "dd/MM/yyyy") : "—"}</TableCell>
                     <TableCell className="text-right font-semibold">€ {Number(p.importo).toLocaleString("it-IT", { minimumFractionDigits: 2 })}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteProforma.mutate(p.id)}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                      <DeleteConfirmButton label="questo proforma" onConfirm={() => deleteProforma.mutate(p.id)} />
                     </TableCell>
                   </TableRow>
                 );

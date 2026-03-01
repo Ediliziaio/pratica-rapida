@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   FolderOpen, Search,
-  Building2, ArrowRight, User, List, Columns3,
+  Building2, ArrowRight, User, List, Columns3, Download,
 } from "lucide-react";
+import { exportToCSV } from "@/lib/csv-export";
 import { useNavigate } from "react-router-dom";
 import { STATO_CONFIG, STATO_ORDER } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
@@ -143,6 +144,23 @@ export default function AdminPratiche() {
               {companies.map(c => <SelectItem key={c.id} value={c.id}>{c.ragione_sociale}</SelectItem>)}
             </SelectContent>
           </Select>
+          <Button variant="outline" size="sm" onClick={() => exportToCSV(filtered.map(p => ({
+            titolo: p.titolo,
+            azienda: (p.companies as any)?.ragione_sociale || "",
+            cliente: p.clienti_finali ? `${(p.clienti_finali as any).nome} ${(p.clienti_finali as any).cognome}` : "",
+            stato: p.stato,
+            prezzo: p.prezzo,
+            data: new Date(p.created_at).toLocaleDateString("it-IT"),
+          })), "pratiche-export", [
+            { key: "titolo", label: "Titolo" },
+            { key: "azienda", label: "Azienda" },
+            { key: "cliente", label: "Cliente" },
+            { key: "stato", label: "Stato" },
+            { key: "prezzo", label: "Prezzo" },
+            { key: "data", label: "Data" },
+          ])}>
+            <Download className="mr-2 h-4 w-4" />CSV
+          </Button>
           <div className="flex rounded-lg border bg-muted p-0.5">
             <Button variant={viewMode === "list" ? "default" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("list")}>
               <List className="h-4 w-4" />

@@ -32,6 +32,7 @@ const AziendaDetail = lazy(() => import("./pages/AziendaDetail"));
 const Fatturazione = lazy(() => import("./pages/Fatturazione"));
 const NuovaFattura = lazy(() => import("./pages/NuovaFattura"));
 const FatturaDetail = lazy(() => import("./pages/FatturaDetail"));
+const ImpostazioniPiattaforma = lazy(() => import("./pages/ImpostazioniPiattaforma"));
 
 const queryClient = new QueryClient();
 
@@ -92,6 +93,7 @@ const App = () => (
                 <Route path="/fatturazione" element={<ProtectedRoute><Fatturazione /></ProtectedRoute>} />
                 <Route path="/fatturazione/nuova" element={<ProtectedRoute><NuovaFattura /></ProtectedRoute>} />
                 <Route path="/fatturazione/:id" element={<ProtectedRoute><FatturaDetail /></ProtectedRoute>} />
+                <Route path="/admin/impostazioni" element={<ProtectedRoute><ImpostazioniPiattaforma /></ProtectedRoute>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

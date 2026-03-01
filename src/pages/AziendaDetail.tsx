@@ -10,8 +10,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Building2, ArrowLeft, FolderOpen, Wallet, Users, FileText, TrendingUp,
-  Mail, Phone, MapPin, CreditCard, Clock,
+  Mail, Phone, MapPin, CreditCard, Clock, Download,
 } from "lucide-react";
+import { exportToCSV } from "@/lib/csv-export";
 import { STATO_CONFIG } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
 
@@ -258,6 +259,22 @@ export default function AziendaDetail() {
         {/* Wallet */}
         <TabsContent value="wallet">
           <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Movimenti Wallet</CardTitle>
+              <Button variant="outline" size="sm" onClick={() => exportToCSV(movements.map(m => ({
+                data: new Date(m.created_at).toLocaleDateString("it-IT"),
+                tipo: m.tipo,
+                importo: m.importo.toFixed(2),
+                causale: m.causale,
+              })), `wallet-${company.ragione_sociale}`, [
+                { key: "data", label: "Data" },
+                { key: "tipo", label: "Tipo" },
+                { key: "importo", label: "Importo" },
+                { key: "causale", label: "Causale" },
+              ])}>
+                <Download className="mr-2 h-4 w-4" />CSV
+              </Button>
+            </CardHeader>
             <CardContent className="p-0">
               <ScrollArea className="max-h-[400px]">
                 <Table>

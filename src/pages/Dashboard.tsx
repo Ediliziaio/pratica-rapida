@@ -9,16 +9,27 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   FolderOpen, Clock, FileCheck, Wallet, TrendingUp, AlertCircle,
   ArrowRight, Plus, CreditCard,
-  Building2, Send,
+  Building2, Send, User, AlertTriangle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { STATO_CONFIG } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
+import { ActivityFeed } from "@/components/ActivityFeed";
 
 const MONTH_NAMES = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
+
+const SLA_KEY = "pratica_rapida_sla_settings";
+function loadSLA() {
+  try {
+    const stored = localStorage.getItem(SLA_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return { presaInCaricoOre: 24, completamentoOre: 120 };
+}
 
 export default function Dashboard() {
   const { user, roles } = useAuth();
@@ -54,7 +65,7 @@ export default function Dashboard() {
   const { data: allPratiche = [] } = useQuery({
     queryKey: ["all-pratiche-stats"],
     queryFn: async () => {
-      const { data } = await supabase.from("pratiche").select("stato, prezzo, created_at, company_id, pagamento_stato");
+      const { data } = await supabase.from("pratiche").select("id, titolo, stato, prezzo, created_at, updated_at, company_id, pagamento_stato, assegnatario_id");
       return data || [];
     },
     enabled: isInternalUser,
@@ -67,6 +78,22 @@ export default function Dashboard() {
       return data || [];
     },
     enabled: isInternalUser,
+  });
+
+  // Operator profiles for workload
+  const operatorIds = useMemo(() => {
+    if (!isInternalUser) return [];
+    return [...new Set(allPratiche.map(p => p.assegnatario_id).filter(Boolean))] as string[];
+  }, [allPratiche, isInternalUser]);
+
+  const { data: operatorProfiles = [] } = useQuery({
+    queryKey: ["operator-profiles-dash", operatorIds],
+    queryFn: async () => {
+      if (operatorIds.length === 0) return [];
+      const { data } = await supabase.from("profiles").select("id, nome, cognome").in("id", operatorIds);
+      return data || [];
+    },
+    enabled: operatorIds.length > 0,
   });
 
   const now = new Date();
@@ -96,7 +123,6 @@ export default function Dashboard() {
   }).length;
   const completateProgress = totalThisMonth > 0 ? (completateMese / totalThisMonth) * 100 : 0;
 
-  // Chart data: last 6 months
   const chartData = useMemo(() => {
     const months: { name: string; completate: number; in_corso: number }[] = [];
     for (let i = 5; i >= 0; i--) {
@@ -129,7 +155,6 @@ export default function Dashboard() {
   const completate = allPratiche.filter(p => p.stato === "completata").length;
   const backlog = allPratiche.filter(p => !["completata", "annullata"].includes(p.stato)).length;
 
-  // Monthly variations for internal KPIs
   const revenueThisMonth = allPratiche.filter(p => {
     const d = new Date(p.created_at);
     return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
@@ -160,7 +185,6 @@ export default function Dashboard() {
   }).length;
   const completateDiffGlobal = completateThisMonthGlobal - completateLastMonthGlobal;
 
-  // Global chart data
   const globalChartData = useMemo(() => {
     const months: { name: string; completate: number; in_corso: number }[] = [];
     for (let i = 5; i >= 0; i--) {
@@ -180,7 +204,6 @@ export default function Dashboard() {
     return months;
   }, [allPratiche, thisMonth, thisYear]);
 
-  // Top 5 aziende per pratiche
   const top5Aziende = useMemo(() => {
     const counts: Record<string, number> = {};
     allPratiche.forEach(p => { counts[p.company_id] = (counts[p.company_id] || 0) + 1; });
@@ -194,13 +217,80 @@ export default function Dashboard() {
       }));
   }, [allPratiche, allCompanies]);
 
-  // Pratiche in attesa (inviate + in_attesa_documenti) globali
   const praticheInAttesa = allPratiche.filter(p => p.stato === "inviata" || p.stato === "in_attesa_documenti").length;
   const praticheInviate = allPratiche.filter(p => p.stato === "inviata").length;
   const praticheAttesaDocGlobal = allPratiche.filter(p => p.stato === "in_attesa_documenti").length;
 
   const diffAperte = aperte - aperteMesePrec;
   const diffCompletate = completateMese - completateMesePrec;
+
+  // ---- SLA Tracking ----
+  const slaSettings = loadSLA();
+
+  const slaMetrics = useMemo(() => {
+    if (!isInternalUser || allPratiche.length === 0) return null;
+
+    // Average time to take over (inviata -> in_lavorazione) using updated_at - created_at for in_lavorazione
+    const inLavorazione = allPratiche.filter(p => ["in_lavorazione", "completata", "in_attesa_documenti"].includes(p.stato));
+    const takeoverTimes = inLavorazione
+      .filter(p => p.updated_at && p.created_at)
+      .map(p => (new Date(p.updated_at).getTime() - new Date(p.created_at).getTime()) / 3600000);
+    const avgTakeover = takeoverTimes.length > 0 ? takeoverTimes.reduce((a, b) => a + b, 0) / takeoverTimes.length : 0;
+
+    // Practices beyond SLA (inviata for more than threshold hours)
+    const nowMs = Date.now();
+    const overSLA = allPratiche.filter(p => {
+      if (p.stato !== "inviata") return false;
+      const hours = (nowMs - new Date(p.created_at).getTime()) / 3600000;
+      return hours > slaSettings.presaInCaricoOre;
+    }).length;
+
+    const completed = allPratiche.filter(p => p.stato === "completata");
+    const completionTimes = completed
+      .filter(p => p.updated_at && p.created_at)
+      .map(p => (new Date(p.updated_at).getTime() - new Date(p.created_at).getTime()) / 3600000);
+    const avgCompletion = completionTimes.length > 0 ? completionTimes.reduce((a, b) => a + b, 0) / completionTimes.length : 0;
+
+    return { avgTakeover, avgCompletion, overSLA };
+  }, [allPratiche, isInternalUser, slaSettings]);
+
+  // ---- Operator Workload ----
+  const operatorWorkload = useMemo(() => {
+    if (!isInternalUser) return [];
+    const openPratiche = allPratiche.filter(p => !["completata", "annullata"].includes(p.stato));
+    const counts: Record<string, number> = {};
+    openPratiche.forEach(p => {
+      if (p.assegnatario_id) counts[p.assegnatario_id] = (counts[p.assegnatario_id] || 0) + 1;
+    });
+    const unassigned = openPratiche.filter(p => !p.assegnatario_id).length;
+
+    const operators = Object.entries(counts).map(([id, count]) => {
+      const profile = operatorProfiles.find(p => p.id === id);
+      return {
+        id,
+        name: profile ? `${profile.nome} ${profile.cognome}`.trim() : "Operatore",
+        count,
+        status: count <= 5 ? "green" : count <= 10 ? "yellow" : "red",
+      };
+    }).sort((a, b) => b.count - a.count);
+
+    return [{ id: "unassigned", name: "Non assegnate", count: unassigned, status: unassigned > 0 ? "yellow" : "green" as string }, ...operators];
+  }, [allPratiche, operatorProfiles, isInternalUser]);
+
+  // ---- Unpaid practices ----
+  const unpaidPratiche = useMemo(() => {
+    if (!isInternalUser) return [];
+    return allPratiche
+      .filter(p => p.stato === "completata" && p.pagamento_stato === "non_pagata")
+      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+      .slice(0, 10);
+  }, [allPratiche, isInternalUser]);
+
+  const totalUnpaid = useMemo(() => {
+    return allPratiche
+      .filter(p => p.stato === "completata" && p.pagamento_stato === "non_pagata")
+      .reduce((s, p) => s + (p.prezzo || 0), 0);
+  }, [allPratiche]);
 
   const DiffBadge = ({ diff, invert }: { diff: number; invert?: boolean }) => {
     if (diff === 0) return null;
@@ -211,6 +301,8 @@ export default function Dashboard() {
       </span>
     );
   };
+
+  const statusColor = (s: string) => s === "green" ? "text-success" : s === "yellow" ? "text-warning" : "text-destructive";
 
   return (
     <div className="space-y-6">
@@ -407,6 +499,46 @@ export default function Dashboard() {
             </Card>
           </div>
 
+          {/* SLA Tracking */}
+          {slaMetrics && (
+            <div className="grid gap-4 sm:grid-cols-3">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">⏱ Tempo medio presa in carico</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-2xl font-bold ${slaMetrics.avgTakeover > slaSettings.presaInCaricoOre ? "text-destructive" : "text-success"}`}>
+                    {slaMetrics.avgTakeover.toFixed(1)}h
+                  </div>
+                  <p className="text-xs text-muted-foreground">Target: {slaSettings.presaInCaricoOre}h</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">⏱ Tempo medio completamento</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-2xl font-bold ${slaMetrics.avgCompletion > slaSettings.completamentoOre ? "text-destructive" : "text-success"}`}>
+                    {slaMetrics.avgCompletion.toFixed(1)}h
+                  </div>
+                  <p className="text-xs text-muted-foreground">Target: {slaSettings.completamentoOre}h</p>
+                </CardContent>
+              </Card>
+              <Card className={slaMetrics.overSLA > 0 ? "border-destructive/50" : ""}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">🚨 Oltre SLA</CardTitle>
+                  {slaMetrics.overSLA > 0 && <AlertTriangle className="h-4 w-4 text-destructive" />}
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-2xl font-bold ${slaMetrics.overSLA > 0 ? "text-destructive" : "text-success"}`}>
+                    {slaMetrics.overSLA}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Pratiche inviate non prese in carico</p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {/* Alert pratiche in attesa */}
           {praticheInAttesa > 0 && (
             <Card className="border-warning/50 bg-warning/5">
@@ -425,6 +557,73 @@ export default function Dashboard() {
                 <Button variant="outline" size="sm" onClick={() => navigate("/admin/pratiche")}>
                   Gestisci <ArrowRight className="ml-1 h-3 w-3" />
                 </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Operator Workload + Activity Feed */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">👥 Carico Operatori</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {operatorWorkload.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">Nessun operatore</p>
+                ) : (
+                  operatorWorkload.map(op => (
+                    <div key={op.id} className="flex items-center gap-3">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted">
+                        <User className="h-3.5 w-3.5 text-muted-foreground" />
+                      </div>
+                      <span className="text-sm font-medium flex-1 truncate">{op.name}</span>
+                      <Badge variant="outline" className={statusColor(op.status)}>
+                        {op.count} pratiche
+                      </Badge>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+
+            <ActivityFeed />
+          </div>
+
+          {/* Unpaid Practices */}
+          {unpaidPratiche.length > 0 && (
+            <Card className="border-warning/50">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-sm font-medium">💰 Pratiche Completate Non Pagate</CardTitle>
+                <Badge variant="outline" className="text-warning">
+                  € {totalUnpaid.toFixed(2)} da riscuotere
+                </Badge>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="max-h-[250px]">
+                  <div className="space-y-2">
+                    {unpaidPratiche.map(p => {
+                      const companyName = allCompanies.find(c => c.id === p.company_id)?.ragione_sociale || "—";
+                      return (
+                        <div
+                          key={p.id}
+                          className="flex items-center gap-3 rounded-lg p-2 cursor-pointer transition-colors hover:bg-accent/50"
+                          onClick={() => navigate(`/pratiche/${p.id}`)}
+                        >
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-warning/10">
+                            <CreditCard className="h-4 w-4 text-warning" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium truncate">{p.titolo}</p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Building2 className="h-3 w-3" />{companyName}
+                            </p>
+                          </div>
+                          <p className="text-sm font-semibold text-warning">€ {p.prezzo.toFixed(2)}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
               </CardContent>
             </Card>
           )}

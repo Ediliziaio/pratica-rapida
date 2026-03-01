@@ -16,6 +16,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Plus, FileText, CreditCard, Receipt, Trash2, Edit, Download, CheckCircle2, Clock, Search, AlertTriangle } from "lucide-react";
+import { exportToCSV } from "@/lib/csv-export";
 import { format, differenceInDays, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
 
@@ -247,7 +248,24 @@ export default function Fatturazione() {
                     className="pl-9"
                   />
                 </div>
-                <div className="ml-auto">
+                <div className="ml-auto flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => exportToCSV(filteredFatture.map(f => ({
+                    numero: f.numero,
+                    cliente: f.clienti_finali ? ((f.clienti_finali as any).ragione_sociale || `${(f.clienti_finali as any).nome} ${(f.clienti_finali as any).cognome}`) : "",
+                    oggetto: (f as any).oggetto || "",
+                    totale: Number(f.totale).toFixed(2),
+                    stato: f.stato,
+                    data: f.data_emissione,
+                  })), "fatture-export", [
+                    { key: "numero", label: "Numero" },
+                    { key: "cliente", label: "Cliente" },
+                    { key: "oggetto", label: "Oggetto" },
+                    { key: "totale", label: "Totale" },
+                    { key: "stato", label: "Stato" },
+                    { key: "data", label: "Data" },
+                  ])}>
+                    <Download className="mr-2 h-4 w-4" />CSV
+                  </Button>
                   <Button onClick={() => navigate("/fatturazione/nuova")}>
                     <Plus className="mr-2 h-4 w-4" /> Nuova Fattura
                   </Button>

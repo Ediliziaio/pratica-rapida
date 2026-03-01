@@ -61,7 +61,8 @@ export function AppSidebar() {
     { title: "Listino", url: "/listino", icon: BookOpen },
     { title: "Analytics", url: "/analytics", icon: BarChart3 },
     { title: "Audit Log", url: "/admin/audit-log", icon: Shield },
-    { title: "Impostazioni", url: "/utenti", icon: Settings },
+    { title: "Utenti", url: "/utenti", icon: Users },
+    { title: "Impostazioni", url: "/admin/impostazioni", icon: Settings },
   ];
 
   return (

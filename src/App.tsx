@@ -27,6 +27,8 @@ const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const Clienti = lazy(() => import("./pages/Clienti"));
 const Listino = lazy(() => import("./pages/Listino"));
+const AuditLog = lazy(() => import("./pages/AuditLog"));
+const AziendaDetail = lazy(() => import("./pages/AziendaDetail"));
 const Fatturazione = lazy(() => import("./pages/Fatturazione"));
 const NuovaFattura = lazy(() => import("./pages/NuovaFattura"));
 const FatturaDetail = lazy(() => import("./pages/FatturaDetail"));
@@ -82,6 +84,8 @@ const App = () => (
                 <Route path="/utenti" element={<ProtectedRoute><Utenti /></ProtectedRoute>} />
                 <Route path="/coda-pratiche" element={<ProtectedRoute><CodaPratiche /></ProtectedRoute>} />
                 <Route path="/admin/pratiche" element={<ProtectedRoute><AdminPratiche /></ProtectedRoute>} />
+                <Route path="/admin/audit-log" element={<ProtectedRoute><AuditLog /></ProtectedRoute>} />
+                <Route path="/aziende/:id" element={<ProtectedRoute><AziendaDetail /></ProtectedRoute>} />
                 <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
                 <Route path="/clienti" element={<ProtectedRoute><Clienti /></ProtectedRoute>} />
                 <Route path="/listino" element={<ProtectedRoute><Listino /></ProtectedRoute>} />

@@ -168,7 +168,9 @@ export default function Aziende() {
                       <Building2 className="h-6 w-6 text-primary" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold truncate">{c.ragione_sociale}</p>
+                      <p className="font-semibold truncate cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/aziende/${c.id}`)}>
+                        {c.ragione_sociale}
+                      </p>
                       <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                         {c.piva && <span>P.IVA: {c.piva}</span>}
                         {c.email && <span>{c.email}</span>}

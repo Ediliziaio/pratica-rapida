@@ -11,6 +11,7 @@ import {
   FileText,
   BookOpen,
   BarChart3,
+  Shield,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth, isSuperAdmin, isInternal, isAzienda } from "@/hooks/useAuth";
@@ -59,6 +60,7 @@ export function AppSidebar() {
     { title: "Attività", url: "/coda-pratiche", icon: ListChecks },
     { title: "Listino", url: "/listino", icon: BookOpen },
     { title: "Analytics", url: "/analytics", icon: BarChart3 },
+    { title: "Audit Log", url: "/admin/audit-log", icon: Shield },
     { title: "Impostazioni", url: "/utenti", icon: Settings },
   ];
 

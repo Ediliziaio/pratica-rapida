@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Building2, Plus, Search, Wallet, Users, FolderOpen, CreditCard, LogIn,
-  ChevronDown, BarChart3, TrendingUp, CircleDollarSign, CalendarDays,
+  ChevronDown, BarChart3, TrendingUp, CircleDollarSign, CalendarDays, CheckCircle2, Clock,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCompany } from "@/hooks/useCompany";
@@ -209,6 +209,12 @@ export default function Aziende() {
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <FolderOpen className="h-4 w-4" />{stats.totalPratiche}
+                        </div>
+                        <div className="flex items-center gap-1 text-success">
+                          <CheckCircle2 className="h-4 w-4" />{stats.statoCounts["completata"] || 0}
+                        </div>
+                        <div className="flex items-center gap-1 text-warning">
+                          <Clock className="h-4 w-4" />{(stats.statoCounts["bozza"] || 0) + (stats.statoCounts["inviata"] || 0) + (stats.statoCounts["in_lavorazione"] || 0) + (stats.statoCounts["in_attesa_documenti"] || 0)}
                         </div>
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <Users className="h-4 w-4" />{userCounts[c.id] || 0}

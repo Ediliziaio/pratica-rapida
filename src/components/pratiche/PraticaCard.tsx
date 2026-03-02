@@ -1,10 +1,6 @@
-// Re-export centralized config for backward compatibility
-export { STATO_ORDER, STATO_CONFIG } from "@/lib/pratiche-config";
-export type { PraticaStato } from "@/lib/pratiche-config";
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FolderOpen, Plus, CheckCircle2, Zap, Clock, FileText } from "lucide-react";
+import { CheckCircle2, Zap, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { STATO_CONFIG } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";

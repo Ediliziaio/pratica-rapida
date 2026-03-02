@@ -212,11 +212,16 @@ export default function NuovaPratica() {
       <div className="flex items-center gap-2">
         {STEPS.map((s, i) => (
           <div key={s} className="flex items-center gap-2">
-            <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
-              i <= step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-            }`}>
+            <button
+              type="button"
+              disabled={i > step}
+              onClick={() => { if (i < step) setStep(i); }}
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors ${
+                i <= step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+              } ${i < step ? "cursor-pointer hover:bg-primary/80" : i > step ? "cursor-not-allowed" : ""}`}
+            >
               {i < step ? <Check className="h-4 w-4" /> : i + 1}
-            </div>
+            </button>
             <span className={`text-sm ${i === step ? "font-medium" : "text-muted-foreground"} hidden sm:inline`}>{s}</span>
             {i < STEPS.length - 1 && <div className="h-px w-8 bg-border" />}
           </div>
@@ -383,7 +388,11 @@ export default function NuovaPratica() {
         <div className="flex gap-2">
           {step === lastStep && (
             <Button variant="outline" onClick={() => submitPratica.mutate(true)} disabled={submitPratica.isPending}>
-              <FileText className="mr-2 h-4 w-4" />Salva Bozza
+              {submitPratica.isPending ? (
+                <><div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Salvataggio...</>
+              ) : (
+                <><FileText className="mr-2 h-4 w-4" />Salva Bozza</>
+              )}
             </Button>
           )}
           {step < lastStep ? (
@@ -392,7 +401,11 @@ export default function NuovaPratica() {
             </Button>
           ) : (
             <Button onClick={() => submitPratica.mutate(false)} disabled={submitPratica.isPending || (!hasSufficientCredit && prezzo > 0)}>
-              <Send className="mr-2 h-4 w-4" />Invia Pratica ENEA
+              {submitPratica.isPending ? (
+                <><div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Invio in corso...</>
+              ) : (
+                <><Send className="mr-2 h-4 w-4" />Invia Pratica ENEA</>
+              )}
             </Button>
           )}
         </div>

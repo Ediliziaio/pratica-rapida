@@ -1,83 +1,76 @@
 
 
-# Analisi Sezione Pratiche — Prospettiva Marketing, Sales & SaaS
+# Analisi e Piano di Stabilizzazione — Sezione Pratiche
 
-## Problemi Identificati
+## 1. Bug e Errori Identificati
 
-### 1. Mancano KPI di sintesi in alto (zero "at-a-glance" value)
-L'utente atterra sulla pagina e vede subito una lista. Non c'e' nessun riassunto numerico. In un SaaS B2B, la prima cosa che un manager vuole vedere e': quante pratiche ho? quante sono in attesa? quanto ho speso? Questo e' il "value moment" — piu' veloce lo mostri, piu' l'utente percepisce valore.
+### A. Console Error: `forwardRef` in AdminPratiche (CRITICO)
+`AdminDraggableCard` viene passato come ref a `useDraggable` ma non usa `React.forwardRef()`. Questo causa il warning in console e potenzialmente problemi con il DnD.
 
-### 2. La card nella ListView e' troppo minimale
-Mostra solo titolo, cliente e prezzo. Mancano: data creazione, stato pagamento, tempo trascorso. Un utente non riesce a capire rapidamente cosa richiede attenzione senza cliccare dentro ogni pratica.
+**Fix**: Wrappare `AdminDraggableCard` con `React.forwardRef`.
 
-### 3. Nessun indicatore di urgenza/aging
-Non c'e' modo di capire quali pratiche sono "vecchie" o bloccate. In SaaS operativi, l'aging e' critico per il time-to-value. Una pratica ferma in "attesa documenti" da 7 giorni dovrebbe gridare attenzione.
+### B. `CodaPratiche` duplica quasi interamente `AdminPratiche`
+Entrambe le pagine fanno la stessa query (`pratiche` + `companies` + `clienti_finali`), lo stesso rendering card, lo stesso `quickChangeStato`. `CodaPratiche` ha una query separata ridondante per `assignee-profiles` con una chiave react-query instabile (array di IDs come chiave → re-fetch inutili ad ogni render).
 
-### 4. Nessun empty state con onboarding guidato
-Lo stato vuoto dice solo "Crea la tua prima pratica ENEA". Nessun valore educativo, nessun incentivo. In SaaS, il primo empty state e' il momento piu' critico per l'attivazione.
+**Fix**: La query `assignee-profiles` in CodaPratiche usa `pratiche.map(p => p.assegnatario_id)` come queryKey — questo cambia ad ogni fetch, causando loop. Stabilizzare con un sorted/joined string. Ma siccome CodaPratiche e AdminPratiche sono quasi identiche, segnalo solo il bug senza rimuovere la pagina (per non cambiare funzionalità).
 
-### 5. Admin pipeline non ha drag & drop
-`AdminPratiche.tsx` ha una pipeline statica (senza DnD), mentre `Pratiche.tsx` (lato azienda) ce l'ha. L'admin dovrebbe avere il workflow piu' potente, non il contrario.
+### C. DnD `onClick` conflict con drag
+In `AdminDraggableCard` e `DraggableCard` (PipelineView), `onClick` è sulla Card stessa con `{...listeners}` → il click naviga anche quando il drag fallisce sotto la distanza minima. Il check `!isDragging` non è sufficiente perché `isDragging` è falso quando il drag non si attiva.
 
-### 6. Nessun export dalla vista azienda
-Solo AdminPratiche ha il CSV. L'azienda non puo' esportare le sue pratiche.
+**Fix**: Usare un ref per tracciare se il drag è stato attivato, e bloccare la navigazione solo dopo un drag reale.
 
-### 7. NuovaPratica ha solo 2 step, nessun campo ENEA specifico
-Il form raccoglie solo dati cliente. Mancano i campi specifici della pratica ENEA (tipo intervento, dati catastali, data fine lavori, importo lavori) che poi vengono mostrati nel dettaglio ma non possono essere inseriti alla creazione.
+### D. `PraticaDetail` — `datiPratica.importo_lavori > 0` crash se undefined
+Riga 150: `datiPratica.importo_lavori > 0` → se `importo_lavori` è `undefined`, la comparazione non crasha ma non mostra nulla. Tuttavia il `toFixed(2)` a riga 153 crasherebbe se fosse `undefined` e il check passasse. Rischio basso ma da rendere robusto.
 
----
+**Fix**: `Number(datiPratica.importo_lavori) > 0`
 
-## Piano di Miglioramento
+### E. NuovaPratica — nessun loading state sui bottoni durante submit
+I bottoni "Invia" e "Salva Bozza" hanno `disabled={submitPratica.isPending}` ma nessun testo/spinner di feedback visivo.
 
-### A. Summary Bar con KPI (Pratiche.tsx + AdminPratiche.tsx)
-Aggiungere una riga di 4-5 card compatte sopra i filtri:
-- **Totale pratiche** (con variazione rispetto al mese precedente)
-- **In lavorazione** (attive)
-- **In attesa documenti** (urgenti, in rosso se > 0)
-- **Completate questo mese**
-- **Spesa totale** (somma prezzi)
+**Fix**: Aggiungere spinner e testo "Invio in corso..." / "Salvataggio..." durante `isPending`.
 
-Calcolate dai dati gia' in memoria, nessuna query aggiuntiva.
+### F. `usePraticheRealtime` non invalida `admin-all-pratiche`
+Il realtime hook invalida solo `["pratiche", companyId]` ma non la query admin. Gli admin non vedono aggiornamenti realtime nella vista AdminPratiche.
 
-### B. Card ListView arricchita (PraticaCard.tsx)
-Aggiungere alla card:
-- **Data creazione** formattata ("3 giorni fa" con `date-fns/formatDistanceToNow`)
-- **Badge pagamento** (pagata/non pagata)
-- **Indicatore aging**: dot rosso se pratica in stato attivo da > 5 giorni, arancione se > 3
+**Fix**: Non risolvibile senza cambiare il comportamento funzionale (il hook è company-scoped). Segnalo come nota.
 
-### C. Empty State migliorato (PraticaCard.tsx)
-Sostituire l'empty state minimalista con:
-- Illustrazione/icona piu' grande
-- Copy orientata al beneficio: "Invia la tua prima pratica ENEA in meno di 2 minuti"
-- 3 bullet point con vantaggi (consegna 24h, prezzo fisso, zero burocrazia)
-- CTA primaria prominente
+## 2. Codice Morto / Inutilizzato
 
-### D. Admin Pipeline con DnD (AdminPratiche.tsx)
-Riutilizzare `PipelineView` (gia' esistente con DnD) anche nella vista admin pipeline, adattandola per mostrare azienda + operatore assegnato nelle card.
+### Da rimuovere:
+- **`PraticaCard.tsx` riga 1-3**: Re-export di `STATO_ORDER`, `STATO_CONFIG`, `PraticaStato` — usato da `Pratiche.tsx` riga 11 (`import { STATO_ORDER, STATO_CONFIG, ListView } from "@/components/pratiche/PraticaCard"`). Questo re-export è un pattern legacy — `Pratiche.tsx` dovrebbe importare direttamente da `pratiche-config.ts` come fa `AdminPratiche.tsx`. Poi rimuovere i re-export da `PraticaCard.tsx`.
+- **`PraticaCard.tsx` riga 7**: `Plus` importato da lucide ma mai usato nel file.
+- **`CodaPratiche.tsx` riga 105**: `statoOrder` locale che duplica `STATO_ORDER` con ordine diverso — ok funzionalmente ma il nome è confuso.
 
-### E. Export CSV lato azienda (Pratiche.tsx)
-Aggiungere bottone export nella toolbar, stesso pattern di AdminPratiche.
+## 3. Miglioramenti UX
 
-### F. NuovaPratica con step ENEA (NuovaPratica.tsx)
-Aggiungere step intermedio "Dati Pratica ENEA" tra "Dati Cliente" e "Riepilogo":
-- Tipo intervento (select: sostituzione infissi, schermature solari, caldaia, etc.)
-- Dati catastali (text)
-- Data fine lavori (date picker)
-- Importo lavori (number)
-- Note aggiuntive (textarea)
+### A. NuovaPratica — feedback submit
+Spinner + testo durante `isPending` sui bottoni "Invia" e "Salva Bozza".
 
-Questi dati vengono salvati nel campo JSONB `dati_pratica`.
+### B. AdminPratiche list view — nessun aging/pagamento
+La vista lista admin non mostra aging dot ne' badge pagamento (a differenza della vista azienda in `PraticaCard.tsx`). Incoerenza UX.
 
----
+**Fix**: Aggiungere aging dot e badge pagamento anche nella lista admin.
 
-## Riepilogo File
+### C. AdminPratiche pipeline — card troppo minimali
+Le card nella pipeline admin non mostrano data creazione ne' pagamento.
 
-| Azione | File |
-|--------|------|
-| Modifica | `src/pages/Pratiche.tsx` — summary bar + export button |
-| Modifica | `src/pages/AdminPratiche.tsx` — summary bar + DnD pipeline |
-| Modifica | `src/components/pratiche/PraticaCard.tsx` — card arricchita + empty state |
-| Modifica | `src/pages/NuovaPratica.tsx` — step dati ENEA |
+**Fix**: Aggiungere data relativa e badge pagamento nelle card DnD admin.
 
-Nessuna modifica DB. Tutti i dati necessari sono gia' presenti nelle tabelle esistenti (`created_at`, `pagamento_stato`, `dati_pratica` JSONB).
+### D. NuovaPratica step indicator — non cliccabile
+L'utente non può tornare a uno step precedente cliccando sul pallino. Deve usare "Indietro".
+
+**Fix**: Rendere gli step precedenti cliccabili (solo quelli già visitati).
+
+## 4. Riepilogo Modifiche
+
+| File | Azione |
+|------|--------|
+| `src/pages/AdminPratiche.tsx` | Fix forwardRef, aggiungere aging/pagamento in list view, data relativa in card pipeline |
+| `src/components/pratiche/PraticaCard.tsx` | Rimuovere re-export legacy e import `Plus` inutilizzato |
+| `src/pages/Pratiche.tsx` | Aggiornare import per puntare a `pratiche-config` direttamente |
+| `src/pages/NuovaPratica.tsx` | Spinner sui bottoni durante submit, step indicator cliccabili |
+| `src/pages/PraticaDetail.tsx` | Rendere robusto il check `importo_lavori` |
+| `src/pages/CodaPratiche.tsx` | Fix queryKey instabile per `assignee-profiles` |
+
+Nessuna modifica DB. Nessun cambio funzionale — solo bug fix, pulizia e UX.
 

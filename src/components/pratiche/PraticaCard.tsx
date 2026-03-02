@@ -2,27 +2,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Zap, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { STATO_CONFIG } from "@/lib/pratiche-config";
+import { STATO_CONFIG, PAGAMENTO_BADGE, getAgingDot } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
-
-const PAGAMENTO_BADGE: Record<string, { label: string; className: string }> = {
-  pagata: { label: "Pagata", className: "bg-success/10 text-success border-success/20" },
-  non_pagata: { label: "Non pagata", className: "bg-muted text-muted-foreground border-muted" },
-  in_verifica: { label: "In verifica", className: "bg-warning/10 text-warning border-warning/20" },
-  rimborsata: { label: "Rimborsata", className: "bg-primary/10 text-primary border-primary/20" },
-};
-
-const ACTIVE_STATES: PraticaStato[] = ["inviata", "in_lavorazione", "in_attesa_documenti"];
-
-function getAgingDot(pratica: any): { color: string; label: string } | null {
-  if (!ACTIVE_STATES.includes(pratica.stato)) return null;
-  const days = (Date.now() - new Date(pratica.created_at).getTime()) / 86400000;
-  if (days > 5) return { color: "bg-destructive", label: "Ferma da più di 5 giorni" };
-  if (days > 3) return { color: "bg-warning", label: "Ferma da più di 3 giorni" };
-  return null;
-}
 
 export function ListView({ pratiche, navigate }: { pratiche: any[]; navigate: (path: string) => void }) {
   if (pratiche.length === 0) {

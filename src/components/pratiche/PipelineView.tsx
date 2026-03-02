@@ -14,7 +14,6 @@ import type { PraticaStato } from "@/lib/pratiche-config";
 function DroppableColumn({ stato, children }: { stato: string; children: React.ReactNode }) {
   const { isOver, setNodeRef } = useDroppable({ id: stato });
   const conf = STATO_CONFIG[stato as PraticaStato];
-  const Icon = conf.icon;
 
   return (
     <div

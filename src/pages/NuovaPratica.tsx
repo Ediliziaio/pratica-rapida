@@ -9,10 +9,30 @@ import { clienteSchema, type ClienteFormData } from "@/lib/validation-schemas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ArrowLeft, ArrowRight, Check, FileText, Briefcase, Send } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, ArrowRight, Check, FileText, Briefcase, Send, CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { it } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
-const STEPS = ["Dati Cliente", "Riepilogo"];
+const STEPS = ["Dati Cliente", "Dati Pratica ENEA", "Riepilogo"];
+
+const TIPI_INTERVENTO = [
+  "Sostituzione infissi",
+  "Schermature solari",
+  "Caldaia a condensazione",
+  "Pompa di calore",
+  "Impianto solare termico",
+  "Coibentazione strutture",
+  "Building automation",
+  "Scaldacqua a pompa di calore",
+  "Microgeneratori",
+  "Altro",
+];
 
 export default function NuovaPratica() {
   const { user } = useAuth();
@@ -31,6 +51,13 @@ export default function NuovaPratica() {
   const [clienteEmail, setClienteEmail] = useState("");
   const [clienteTelefono, setClienteTelefono] = useState("");
   const [clienteIndirizzo, setClienteIndirizzo] = useState("");
+
+  // Step 2: Dati Pratica ENEA
+  const [tipoIntervento, setTipoIntervento] = useState("");
+  const [datiCatastali, setDatiCatastali] = useState("");
+  const [dataFineLavori, setDataFineLavori] = useState<Date | undefined>();
+  const [importoLavori, setImportoLavori] = useState("");
+  const [noteAggiuntive, setNoteAggiuntive] = useState("");
 
   // Fetch ENEA service from catalog
   const { data: eneaService } = useQuery({
@@ -112,6 +139,14 @@ export default function NuovaPratica() {
         .single();
       if (clienteError) throw clienteError;
 
+      // Build dati_pratica JSONB
+      const datiPratica: Record<string, any> = {};
+      if (tipoIntervento) datiPratica.tipo_intervento = tipoIntervento;
+      if (datiCatastali) datiPratica.dati_catastali = datiCatastali;
+      if (dataFineLavori) datiPratica.data_fine_lavori = format(dataFineLavori, "yyyy-MM-dd");
+      if (importoLavori) datiPratica.importo_lavori = parseFloat(importoLavori);
+      if (noteAggiuntive) datiPratica.note_aggiuntive = noteAggiuntive;
+
       // Create practice
       const { data: pratica, error } = await supabase.from("pratiche").insert({
         company_id: companyId,
@@ -124,6 +159,7 @@ export default function NuovaPratica() {
         priorita: "normale",
         prezzo,
         pagamento_stato: asBozza ? "non_pagata" : "pagata",
+        dati_pratica: Object.keys(datiPratica).length > 0 ? datiPratica : {},
       }).select().single();
       if (error) throw error;
 
@@ -152,6 +188,8 @@ export default function NuovaPratica() {
     if (step === 0 && !validateForm()) return;
     setStep(step + 1);
   };
+
+  const lastStep = STEPS.length - 1;
 
   if (!companyId) {
     return (
@@ -231,8 +269,61 @@ export default function NuovaPratica() {
         </Card>
       )}
 
-      {/* Step 1: Riepilogo */}
+      {/* Step 1: Dati Pratica ENEA */}
       {step === 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Dati della Pratica ENEA</CardTitle>
+            <CardDescription>Inserisci i dettagli specifici dell'intervento (opzionali, compilabili anche dopo)</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Tipo di intervento</Label>
+              <Select value={tipoIntervento} onValueChange={setTipoIntervento}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleziona tipo intervento" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIPI_INTERVENTO.map(t => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Dati catastali</Label>
+              <Input value={datiCatastali} onChange={e => setDatiCatastali(e.target.value)} placeholder="Foglio 10, Particella 123, Sub. 4" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Data fine lavori</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !dataFineLavori && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dataFineLavori ? format(dataFineLavori, "dd/MM/yyyy", { locale: it }) : "Seleziona data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar mode="single" selected={dataFineLavori} onSelect={setDataFineLavori} locale={it} />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-2">
+                <Label>Importo lavori (€)</Label>
+                <Input type="number" value={importoLavori} onChange={e => setImportoLavori(e.target.value)} placeholder="15000" min="0" step="0.01" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Note aggiuntive</Label>
+              <Textarea value={noteAggiuntive} onChange={e => setNoteAggiuntive(e.target.value)} placeholder="Informazioni aggiuntive sulla pratica..." rows={3} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 2: Riepilogo */}
+      {step === 2 && (
         <Card>
           <CardHeader>
             <CardTitle>Riepilogo</CardTitle>
@@ -248,6 +339,19 @@ export default function NuovaPratica() {
                 {clienteTelefono && <div><span className="text-muted-foreground">Tel:</span> {clienteTelefono}</div>}
                 {clienteIndirizzo && <div className="col-span-2"><span className="text-muted-foreground">Indirizzo:</span> {clienteIndirizzo}</div>}
               </div>
+
+              {(tipoIntervento || datiCatastali || dataFineLavori || importoLavori) && (
+                <>
+                  <h3 className="font-semibold text-sm border-t pt-3">Dati Pratica ENEA</h3>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    {tipoIntervento && <div><span className="text-muted-foreground">Intervento:</span> {tipoIntervento}</div>}
+                    {datiCatastali && <div><span className="text-muted-foreground">Catastali:</span> {datiCatastali}</div>}
+                    {dataFineLavori && <div><span className="text-muted-foreground">Fine lavori:</span> {format(dataFineLavori, "dd/MM/yyyy", { locale: it })}</div>}
+                    {importoLavori && <div><span className="text-muted-foreground">Importo:</span> € {parseFloat(importoLavori).toFixed(2)}</div>}
+                    {noteAggiuntive && <div className="col-span-2"><span className="text-muted-foreground">Note:</span> {noteAggiuntive}</div>}
+                  </div>
+                </>
+              )}
 
               <div className="border-t pt-3 space-y-2">
                 <div className="flex justify-between">
@@ -277,12 +381,12 @@ export default function NuovaPratica() {
           <ArrowLeft className="mr-2 h-4 w-4" />{step === 0 ? "Annulla" : "Indietro"}
         </Button>
         <div className="flex gap-2">
-          {step === 1 && (
+          {step === lastStep && (
             <Button variant="outline" onClick={() => submitPratica.mutate(true)} disabled={submitPratica.isPending}>
               <FileText className="mr-2 h-4 w-4" />Salva Bozza
             </Button>
           )}
-          {step < 1 ? (
+          {step < lastStep ? (
             <Button onClick={handleNext}>
               Avanti<ArrowRight className="ml-2 h-4 w-4" />
             </Button>

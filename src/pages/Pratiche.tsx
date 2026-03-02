@@ -5,13 +5,15 @@ import { useCompany } from "@/hooks/useCompany";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FolderOpen, Search, Plus, List, Columns3 } from "lucide-react";
+import { FolderOpen, Search, Plus, List, Columns3, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import { STATO_ORDER, STATO_CONFIG, ListView } from "@/components/pratiche/PraticaCard";
 import { PipelineView } from "@/components/pratiche/PipelineView";
 import { PraticheFilters } from "@/components/pratiche/PraticheFilters";
+import { PraticheSummaryBar } from "@/components/pratiche/PraticheSummaryBar";
 import { usePraticheRealtime } from "@/hooks/usePraticheRealtime";
+import { exportToCSV } from "@/lib/csv-export";
 
 type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
 type ViewMode = "list" | "pipeline";
@@ -70,6 +72,28 @@ export default function Pratiche() {
     setFilterCliente("");
   };
 
+  const handleExport = () => {
+    exportToCSV(
+      filtered.map((p) => ({
+        titolo: p.titolo,
+        cliente: p.clienti_finali ? `${(p.clienti_finali as any).nome} ${(p.clienti_finali as any).cognome}` : "",
+        stato: p.stato,
+        pagamento: p.pagamento_stato,
+        prezzo: p.prezzo,
+        data: new Date(p.created_at).toLocaleDateString("it-IT"),
+      })),
+      "pratiche-export",
+      [
+        { key: "titolo", label: "Titolo" },
+        { key: "cliente", label: "Cliente" },
+        { key: "stato", label: "Stato" },
+        { key: "pagamento", label: "Pagamento" },
+        { key: "prezzo", label: "Prezzo" },
+        { key: "data", label: "Data" },
+      ]
+    );
+  };
+
   if (!companyId) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -91,12 +115,18 @@ export default function Pratiche() {
         </Button>
       </div>
 
+      {/* KPI Summary */}
+      {!isLoading && pratiche.length > 0 && <PraticheSummaryBar pratiche={pratiche} />}
+
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Cerca pratiche..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
           </div>
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={filtered.length === 0}>
+            <Download className="mr-2 h-4 w-4" />CSV
+          </Button>
           <div className="flex rounded-lg border bg-muted p-0.5">
             <Button
               variant={viewMode === "list" ? "default" : "ghost"}

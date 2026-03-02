@@ -15,8 +15,64 @@ import { exportToCSV } from "@/lib/csv-export";
 import { useNavigate } from "react-router-dom";
 import { STATO_CONFIG, STATO_ORDER } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
+import { PraticheSummaryBar } from "@/components/pratiche/PraticheSummaryBar";
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { toast as sonnerToast } from "sonner";
 
 type ViewMode = "list" | "pipeline";
+
+function AdminDraggableCard({ pratica, navigate, assigneeMap }: { pratica: any; navigate: (path: string) => void; assigneeMap: Record<string, { nome: string; cognome: string }> }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: pratica.id,
+    data: { stato: pratica.stato },
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  const assignee = pratica.assegnatario_id ? assigneeMap[pratica.assegnatario_id] : null;
+
+  return (
+    <Card
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className="cursor-grab active:cursor-grabbing transition-all hover:shadow-md hover:-translate-y-0.5 touch-none"
+      onClick={() => !isDragging && navigate(`/pratiche/${pratica.id}`)}
+    >
+      <CardContent className="p-3 space-y-1">
+        <p className="text-sm font-medium truncate">{pratica.titolo}</p>
+        <div className="flex flex-col gap-0.5 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1"><Building2 className="h-3 w-3" />{(pratica.companies as any)?.ragione_sociale}</span>
+          {pratica.clienti_finali && <span>{(pratica.clienti_finali as any).nome} {(pratica.clienti_finali as any).cognome}</span>}
+          {assignee && (
+            <span className="flex items-center gap-1"><User className="h-3 w-3" />{assignee.nome} {assignee.cognome}</span>
+          )}
+        </div>
+        <p className="text-xs font-semibold">€ {pratica.prezzo.toFixed(2)}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AdminDroppableColumn({ stato, children }: { stato: string; children: React.ReactNode }) {
+  const { isOver, setNodeRef } = useDroppable({ id: stato });
+  const conf = STATO_CONFIG[stato as PraticaStato];
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`flex w-[250px] shrink-0 flex-col rounded-xl ${conf.bgColumn} border transition-all ${isOver ? "ring-2 ring-primary shadow-lg scale-[1.02]" : ""}`}
+    >
+      {children}
+    </div>
+  );
+}
 
 export default function AdminPratiche() {
   const navigate = useNavigate();
@@ -26,6 +82,11 @@ export default function AdminPratiche() {
   const [filterStato, setFilterStato] = useState<string>("all");
   const [filterAzienda, setFilterAzienda] = useState<string>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
 
   const { data: pratiche = [], isLoading } = useQuery({
     queryKey: ["admin-all-pratiche"],
@@ -47,7 +108,6 @@ export default function AdminPratiche() {
     },
   });
 
-  // Fetch internal operators (super_admin, admin_interno, operatore)
   const { data: internalOperators = [] } = useQuery({
     queryKey: ["admin-internal-operators"],
     queryFn: async () => {
@@ -103,18 +163,48 @@ export default function AdminPratiche() {
     });
   }, [pratiche, search, filterStato, filterAzienda]);
 
-  const pipelineData = useMemo(() => {
-    const cols: Record<PraticaStato, typeof filtered> = {} as any;
-    STATO_ORDER.forEach(s => { cols[s] = []; });
-    filtered.forEach(p => { if (cols[p.stato]) cols[p.stato].push(p); });
-    return cols;
-  }, [filtered]);
-
   const handleAssignOperator = (praticaId: string, value: string) => {
     assignOperator.mutate({
       praticaId,
       assegnatarioId: value === "unassigned" ? null : value,
     });
+  };
+
+  const activePratica = activeId ? pratiche.find(p => p.id === activeId) : null;
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    setActiveId(null);
+    const { active, over } = event;
+    if (!over) return;
+
+    const praticaId = active.id as string;
+    const newStato = over.id as PraticaStato;
+    const oldStato = (active.data.current as any)?.stato;
+
+    if (oldStato === newStato) return;
+
+    queryClient.setQueryData(["admin-all-pratiche"], (old: any[]) =>
+      old?.map(p => p.id === praticaId ? { ...p, stato: newStato } : p)
+    );
+
+    const { error } = await supabase
+      .from("pratiche")
+      .update({ stato: newStato })
+      .eq("id", praticaId);
+
+    if (error) {
+      queryClient.setQueryData(["admin-all-pratiche"], (old: any[]) =>
+        old?.map(p => p.id === praticaId ? { ...p, stato: oldStato } : p)
+      );
+      sonnerToast.error("Errore nello spostamento della pratica");
+    } else {
+      sonnerToast.success(`Pratica spostata in ${STATO_CONFIG[newStato].label}`);
+      queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
+    }
   };
 
   return (
@@ -123,6 +213,9 @@ export default function AdminPratiche() {
         <h1 className="font-display text-2xl font-bold tracking-tight">Tutte le Pratiche</h1>
         <p className="text-muted-foreground">Vista globale di tutte le pratiche di tutte le aziende</p>
       </div>
+
+      {/* KPI Summary */}
+      {!isLoading && pratiche.length > 0 && <PraticheSummaryBar pratiche={pratiche} />}
 
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-2">
@@ -256,48 +349,56 @@ export default function AdminPratiche() {
           </div>
         )
       ) : (
-        /* Pipeline view */
-        <div className="flex gap-3 overflow-x-auto pb-4">
-          {STATO_ORDER.map(stato => {
-            const conf = STATO_CONFIG[stato];
-            const Icon = conf.icon;
-            const items = pipelineData[stato];
-            return (
-              <div key={stato} className={`flex min-w-[260px] flex-1 flex-col rounded-xl border p-3 ${conf.bgColumn}`}>
-                <div className="mb-3 flex items-center gap-2">
-                  <div className={`flex h-7 w-7 items-center justify-center rounded-md ${conf.color}`}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm font-semibold">{conf.label}</span>
-                  <Badge variant="secondary" className="ml-auto text-xs">{items.length}</Badge>
-                </div>
-                <div className="space-y-2">
-                  {items.map(p => {
-                    const assignee = p.assegnatario_id ? assigneeMap[p.assegnatario_id] : null;
-                    return (
-                      <Card key={p.id} className="cursor-pointer transition-colors hover:bg-accent/50" onClick={() => navigate(`/pratiche/${p.id}`)}>
-                        <CardContent className="p-3">
-                          <p className="text-sm font-medium truncate">{p.titolo}</p>
-                          <div className="mt-1 flex flex-col gap-0.5 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1"><Building2 className="h-3 w-3" />{(p.companies as any)?.ragione_sociale}</span>
-                            {p.clienti_finali && <span>{(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}</span>}
-                            {assignee && (
-                              <span className="flex items-center gap-1">
-                                <User className="h-3 w-3" />{assignee.nome} {assignee.cognome}
-                              </span>
-                            )}
-                          </div>
-                          <p className="mt-1 text-xs font-semibold">€ {p.prezzo.toFixed(2)}</p>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                  {items.length === 0 && <p className="text-xs text-muted-foreground text-center py-4">Nessuna</p>}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        /* Pipeline view with DnD */
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <ScrollArea className="w-full">
+            <div className="flex gap-3 pb-4" style={{ minWidth: STATO_ORDER.length * 260 }}>
+              {STATO_ORDER.map(stato => {
+                const conf = STATO_CONFIG[stato];
+                const Icon = conf.icon;
+                const items = filtered.filter(p => p.stato === stato);
+
+                return (
+                  <AdminDroppableColumn key={stato} stato={stato}>
+                    <div className="flex items-center gap-2 p-3 border-b">
+                      <div className={`flex h-7 w-7 items-center justify-center rounded-md ${conf.color}`}>
+                        <Icon className="h-3.5 w-3.5" />
+                      </div>
+                      <span className="text-sm font-semibold flex-1">{conf.label}</span>
+                      <Badge variant="secondary" className="text-xs h-5 px-1.5">{items.length}</Badge>
+                    </div>
+                    <div className="flex flex-col gap-2 p-2 min-h-[120px] max-h-[60vh] overflow-y-auto">
+                      {items.length === 0 ? (
+                        <div className="flex items-center justify-center py-8 text-xs text-muted-foreground">
+                          Nessuna pratica
+                        </div>
+                      ) : (
+                        items.map(p => (
+                          <AdminDraggableCard key={p.id} pratica={p} navigate={navigate} assigneeMap={assigneeMap} />
+                        ))
+                      )}
+                    </div>
+                  </AdminDroppableColumn>
+                );
+              })}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+
+          <DragOverlay>
+            {activePratica && (
+              <Card className="w-[230px] shadow-xl rotate-2">
+                <CardContent className="p-3 space-y-1">
+                  <p className="text-sm font-medium truncate">{activePratica.titolo}</p>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Building2 className="h-3 w-3" />{(activePratica.companies as any)?.ragione_sociale}
+                  </span>
+                  <p className="text-xs font-semibold">€ {activePratica.prezzo.toFixed(2)}</p>
+                </CardContent>
+              </Card>
+            )}
+          </DragOverlay>
+        </DndContext>
       )}
     </div>
   );

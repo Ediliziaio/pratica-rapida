@@ -1,34 +1,43 @@
 
 
-# Stabilizzazione Sezione Pratiche — Piano
+# Stabilizzazione Finale — Sezione Pratiche
 
-## Bug Identificati
+## Stato Attuale
 
-### 1. Console Error: Badge senza forwardRef (ATTIVO IN CONSOLE)
-Il componente `Badge` in `src/components/ui/badge.tsx` non usa `React.forwardRef()`. Questo causa il warning ripetuto visibile in console: "Function components cannot be given refs. Check the render method of ListView."
+Dopo le iterazioni precedenti, la sezione Pratiche e' in buono stato. Questa analisi ha identificato **solo problemi di pulizia codice e DRY** — nessun bug funzionale, nessun blocco UX, nessun crash.
 
-**Fix**: Wrappare `Badge` con `React.forwardRef`.
+---
 
-### 2. PipelineView — click/drag conflict (NON RISOLTO)
-In `src/components/pratiche/PipelineView.tsx` riga 47, `DraggableCard` usa `onClick={() => !isDragging && navigate(...)}` — lo stesso bug che era stato corretto in `AdminDraggableCard` con il pattern `dragActivated ref`. La fix precedente ha toccato solo AdminPratiche, non PipelineView.
+## 1. Codice Morto / Inutilizzato
 
-**Fix**: Applicare lo stesso pattern `dragActivated.current` ref usato in AdminDraggableCard.
+### A. PipelineView.tsx — variabile `Icon` mai usata
+In `DroppableColumn` (riga 17), `const Icon = conf.icon` viene dichiarata ma mai renderizzata. L'icona viene renderizzata solo nell'header della colonna dentro `PipelineView`, non in `DroppableColumn`.
 
-## Verifiche Completate (gia' OK)
+### B. CodaPratiche.tsx — import e variabili inutilizzati
+- Riga 4: `useAuth` importato, riga 23: `const { user } = useAuth()` — `user` mai usato nel componente.
+- Riga 18: `STATO_ORDER` importato da `pratiche-config` ma mai usato — il componente usa `statoOrder` locale (riga 107) con ordine diverso per prioritizzare gli stati actionable.
 
-- `NuovaPratica.tsx`: spinner + testo su bottoni, step cliccabili — gia' implementati
-- `PraticaDetail.tsx`: `Number(datiPratica.importo_lavori)` — gia' robusto
-- `CodaPratiche.tsx`: queryKey stabilizzata con `.sort().join(",")` — gia' fixata
-- `AdminPratiche.tsx`: forwardRef non necessario (AdminDraggableCard usa `setNodeRef` direttamente, non `React.forwardRef`) — il pattern `dragActivated` ref gia' presente
-- `PraticaCard.tsx`: import puliti, nessun re-export legacy, nessun import inutilizzato
-- `PraticheSummaryBar.tsx`, `PraticheFilters.tsx`: puliti, nessun problema
+---
 
-## Riepilogo Modifiche
+## 2. Violazione DRY — Costanti Duplicate
+
+`PAGAMENTO_BADGE`, `ACTIVE_STATES` e `getAgingDot`/`getAdminAgingDot` sono definiti identicamente in due file:
+- `src/components/pratiche/PraticaCard.tsx` (righe 10-25)
+- `src/pages/AdminPratiche.tsx` (righe 29-44)
+
+Soluzione: estrarre in `src/lib/pratiche-config.ts` (gia' il punto centralizzato per le configurazioni pratiche) e importare da li'.
+
+---
+
+## 3. Riepilogo Modifiche
 
 | File | Azione |
 |------|--------|
-| `src/components/ui/badge.tsx` | Aggiungere `React.forwardRef` per eliminare warning console |
-| `src/components/pratiche/PipelineView.tsx` | Fix click/drag conflict in DraggableCard con pattern `dragActivated` ref |
+| `src/lib/pratiche-config.ts` | Aggiungere `PAGAMENTO_BADGE`, `ACTIVE_STATES`, `getAgingDot` |
+| `src/components/pratiche/PraticaCard.tsx` | Rimuovere definizioni locali, importare da `pratiche-config` |
+| `src/pages/AdminPratiche.tsx` | Rimuovere definizioni locali, importare da `pratiche-config` |
+| `src/components/pratiche/PipelineView.tsx` | Rimuovere `Icon` inutilizzato in `DroppableColumn` |
+| `src/pages/CodaPratiche.tsx` | Rimuovere `useAuth`/`user` e import `STATO_ORDER` inutilizzati |
 
-Due modifiche chirurgiche, zero cambi funzionali.
+Zero cambi funzionali. Zero modifiche DB. Solo pulizia e centralizzazione.
 

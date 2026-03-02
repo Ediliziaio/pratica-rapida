@@ -1,0 +1,17 @@
+export { TopBanner } from "./TopBanner";
+export { Navbar } from "./Navbar";
+export { FloatingIcons } from "./FloatingIcons";
+export { HeroSection } from "./HeroSection";
+export { SocialProofBar } from "./SocialProofBar";
+export { ProblemSection } from "./ProblemSection";
+export { TrapsSection } from "./TrapsSection";
+export { HowItWorksSection } from "./HowItWorksSection";
+export { ComparisonSection } from "./ComparisonSection";
+export { PricingSection } from "./PricingSection";
+export { GuaranteesSection } from "./GuaranteesSection";
+export { TeamSection } from "./TeamSection";
+export { ReviewsSection } from "./ReviewsSection";
+export { FAQSection } from "./FAQSection";
+export { CTASection } from "./CTASection";
+export { Footer } from "./Footer";
+export { StickyBottomBar } from "./StickyBottomBar";

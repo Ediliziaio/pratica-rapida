@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { exportToCSV } from "@/lib/csv-export";
 import { useNavigate } from "react-router-dom";
-import { STATO_CONFIG, STATO_ORDER } from "@/lib/pratiche-config";
+import { STATO_CONFIG, STATO_ORDER, PAGAMENTO_BADGE, getAgingDot } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
 import { PraticheSummaryBar } from "@/components/pratiche/PraticheSummaryBar";
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
@@ -26,22 +26,6 @@ type ViewMode = "list" | "pipeline";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
 
-const PAGAMENTO_BADGE: Record<string, { label: string; className: string }> = {
-  pagata: { label: "Pagata", className: "bg-success/10 text-success border-success/20" },
-  non_pagata: { label: "Non pagata", className: "bg-muted text-muted-foreground border-muted" },
-  in_verifica: { label: "In verifica", className: "bg-warning/10 text-warning border-warning/20" },
-  rimborsata: { label: "Rimborsata", className: "bg-primary/10 text-primary border-primary/20" },
-};
-
-const ACTIVE_STATES: PraticaStato[] = ["inviata", "in_lavorazione", "in_attesa_documenti"];
-
-function getAdminAgingDot(pratica: any): { color: string; label: string } | null {
-  if (!ACTIVE_STATES.includes(pratica.stato)) return null;
-  const days = (Date.now() - new Date(pratica.created_at).getTime()) / 86400000;
-  if (days > 5) return { color: "bg-destructive", label: "Ferma da più di 5 giorni" };
-  if (days > 3) return { color: "bg-warning", label: "Ferma da più di 3 giorni" };
-  return null;
-}
 
 function AdminDraggableCard({ pratica, navigate, assigneeMap }: { pratica: any; navigate: (path: string) => void; assigneeMap: Record<string, { nome: string; cognome: string }> }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -60,7 +44,7 @@ function AdminDraggableCard({ pratica, navigate, assigneeMap }: { pratica: any; 
   };
 
   const assignee = pratica.assegnatario_id ? assigneeMap[pratica.assegnatario_id] : null;
-  const aging = getAdminAgingDot(pratica);
+  const aging = getAgingDot(pratica);
   const pagamento = PAGAMENTO_BADGE[pratica.pagamento_stato] || PAGAMENTO_BADGE.non_pagata;
 
   const handleClick = () => {
@@ -340,7 +324,7 @@ export default function AdminPratiche() {
               const conf = STATO_CONFIG[p.stato];
               const Icon = conf.icon;
               const assignee = p.assegnatario_id ? assigneeMap[p.assegnatario_id] : null;
-              const aging = getAdminAgingDot(p);
+              const aging = getAgingDot(p);
               const pagamento = PAGAMENTO_BADGE[p.pagamento_stato] || PAGAMENTO_BADGE.non_pagata;
               return (
                 <Card key={p.id} className="transition-colors hover:bg-accent/50">

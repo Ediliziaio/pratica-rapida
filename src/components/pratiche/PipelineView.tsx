@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { useQueryClient } from "@tanstack/react-query";
@@ -31,6 +31,19 @@ function DraggableCard({ pratica, navigate }: { pratica: any; navigate: (path: s
     id: pratica.id,
     data: { stato: pratica.stato },
   });
+  const dragActivated = React.useRef(false);
+
+  React.useEffect(() => {
+    if (isDragging) dragActivated.current = true;
+  }, [isDragging]);
+
+  const handleClick = () => {
+    if (dragActivated.current) {
+      dragActivated.current = false;
+      return;
+    }
+    navigate(`/pratiche/${pratica.id}`);
+  };
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -44,7 +57,7 @@ function DraggableCard({ pratica, navigate }: { pratica: any; navigate: (path: s
       {...listeners}
       {...attributes}
       className="cursor-grab active:cursor-grabbing transition-all hover:shadow-md hover:-translate-y-0.5 touch-none"
-      onClick={() => !isDragging && navigate(`/pratiche/${pratica.id}`)}
+      onClick={handleClick}
     >
       <CardContent className="p-3 space-y-1.5">
         <p className="text-sm font-medium truncate">{pratica.titolo}</p>

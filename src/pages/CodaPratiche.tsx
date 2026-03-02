@@ -57,17 +57,19 @@ export default function CodaPratiche() {
     },
   });
 
+  const assigneeIds = [...new Set(pratiche.map(p => p.assegnatario_id).filter(Boolean))].sort().join(",");
+
   const { data: assigneeProfiles = {} } = useQuery({
-    queryKey: ["assignee-profiles", pratiche.map(p => p.assegnatario_id).filter(Boolean)],
+    queryKey: ["assignee-profiles", assigneeIds],
     queryFn: async () => {
-      const ids = [...new Set(pratiche.map(p => p.assegnatario_id).filter(Boolean))] as string[];
+      const ids = assigneeIds.split(",").filter(Boolean);
       if (!ids.length) return {};
       const { data } = await supabase.from("profiles").select("id, nome, cognome").in("id", ids);
       const map: Record<string, { nome: string; cognome: string }> = {};
       (data || []).forEach(p => { map[p.id] = p; });
       return map;
     },
-    enabled: pratiche.length > 0,
+    enabled: assigneeIds.length > 0,
   });
 
   const assignPratica = useMutation({

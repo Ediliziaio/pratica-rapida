@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -23,11 +23,36 @@ import { toast as sonnerToast } from "sonner";
 
 type ViewMode = "list" | "pipeline";
 
+import { formatDistanceToNow } from "date-fns";
+import { it } from "date-fns/locale";
+
+const PAGAMENTO_BADGE: Record<string, { label: string; className: string }> = {
+  pagata: { label: "Pagata", className: "bg-success/10 text-success border-success/20" },
+  non_pagata: { label: "Non pagata", className: "bg-muted text-muted-foreground border-muted" },
+  in_verifica: { label: "In verifica", className: "bg-warning/10 text-warning border-warning/20" },
+  rimborsata: { label: "Rimborsata", className: "bg-primary/10 text-primary border-primary/20" },
+};
+
+const ACTIVE_STATES: PraticaStato[] = ["inviata", "in_lavorazione", "in_attesa_documenti"];
+
+function getAdminAgingDot(pratica: any): { color: string; label: string } | null {
+  if (!ACTIVE_STATES.includes(pratica.stato)) return null;
+  const days = (Date.now() - new Date(pratica.created_at).getTime()) / 86400000;
+  if (days > 5) return { color: "bg-destructive", label: "Ferma da più di 5 giorni" };
+  if (days > 3) return { color: "bg-warning", label: "Ferma da più di 3 giorni" };
+  return null;
+}
+
 function AdminDraggableCard({ pratica, navigate, assigneeMap }: { pratica: any; navigate: (path: string) => void; assigneeMap: Record<string, { nome: string; cognome: string }> }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: pratica.id,
     data: { stato: pratica.stato },
   });
+  const dragActivated = React.useRef(false);
+
+  React.useEffect(() => {
+    if (isDragging) dragActivated.current = true;
+  }, [isDragging]);
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -35,6 +60,16 @@ function AdminDraggableCard({ pratica, navigate, assigneeMap }: { pratica: any; 
   };
 
   const assignee = pratica.assegnatario_id ? assigneeMap[pratica.assegnatario_id] : null;
+  const aging = getAdminAgingDot(pratica);
+  const pagamento = PAGAMENTO_BADGE[pratica.pagamento_stato] || PAGAMENTO_BADGE.non_pagata;
+
+  const handleClick = () => {
+    if (dragActivated.current) {
+      dragActivated.current = false;
+      return;
+    }
+    navigate(`/pratiche/${pratica.id}`);
+  };
 
   return (
     <Card
@@ -43,10 +78,13 @@ function AdminDraggableCard({ pratica, navigate, assigneeMap }: { pratica: any; 
       {...listeners}
       {...attributes}
       className="cursor-grab active:cursor-grabbing transition-all hover:shadow-md hover:-translate-y-0.5 touch-none"
-      onClick={() => !isDragging && navigate(`/pratiche/${pratica.id}`)}
+      onClick={handleClick}
     >
       <CardContent className="p-3 space-y-1">
-        <p className="text-sm font-medium truncate">{pratica.titolo}</p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium truncate flex-1">{pratica.titolo}</p>
+          {aging && <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${aging.color}`} title={aging.label} />}
+        </div>
         <div className="flex flex-col gap-0.5 text-xs text-muted-foreground">
           <span className="flex items-center gap-1"><Building2 className="h-3 w-3" />{(pratica.companies as any)?.ragione_sociale}</span>
           {pratica.clienti_finali && <span>{(pratica.clienti_finali as any).nome} {(pratica.clienti_finali as any).cognome}</span>}
@@ -54,7 +92,13 @@ function AdminDraggableCard({ pratica, navigate, assigneeMap }: { pratica: any; 
             <span className="flex items-center gap-1"><User className="h-3 w-3" />{assignee.nome} {assignee.cognome}</span>
           )}
         </div>
-        <p className="text-xs font-semibold">€ {pratica.prezzo.toFixed(2)}</p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-semibold">€ {pratica.prezzo.toFixed(2)}</p>
+          <Badge variant="outline" className={`text-[10px] h-4 px-1 ${pagamento.className}`}>{pagamento.label}</Badge>
+        </div>
+        <p className="text-[10px] text-muted-foreground">
+          {formatDistanceToNow(new Date(pratica.created_at), { addSuffix: true, locale: it })}
+        </p>
       </CardContent>
     </Card>
   );
@@ -296,11 +340,18 @@ export default function AdminPratiche() {
               const conf = STATO_CONFIG[p.stato];
               const Icon = conf.icon;
               const assignee = p.assegnatario_id ? assigneeMap[p.assegnatario_id] : null;
+              const aging = getAdminAgingDot(p);
+              const pagamento = PAGAMENTO_BADGE[p.pagamento_stato] || PAGAMENTO_BADGE.non_pagata;
               return (
                 <Card key={p.id} className="transition-colors hover:bg-accent/50">
                   <CardContent className="flex items-center gap-4 p-4">
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${conf.color}`}>
-                      <Icon className="h-5 w-5" />
+                    <div className="relative">
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${conf.color}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      {aging && (
+                        <span className={`absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-background ${aging.color}`} title={aging.label} />
+                      )}
                     </div>
                     <div className="min-w-0 flex-1 cursor-pointer" onClick={() => navigate(`/pratiche/${p.id}`)}>
                       <p className="font-medium truncate">{p.titolo}</p>
@@ -312,10 +363,14 @@ export default function AdminPratiche() {
                         {p.clienti_finali && (
                           <span>{(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}</span>
                         )}
-                        <span className="text-xs">€ {p.prezzo.toFixed(2)}</span>
+                        <span className="text-xs">
+                          {formatDistanceToNow(new Date(p.created_at), { addSuffix: true, locale: it })}
+                        </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      <Badge variant="outline" className={`text-xs ${pagamento.className}`}>{pagamento.label}</Badge>
+                      <span className="text-sm font-semibold">€ {p.prezzo.toFixed(2)}</span>
                       <Select
                         value={p.assegnatario_id || "unassigned"}
                         onValueChange={v => handleAssignOperator(p.id, v)}

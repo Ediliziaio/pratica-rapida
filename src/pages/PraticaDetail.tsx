@@ -147,10 +147,10 @@ export default function PraticaDetail() {
                     <p className="font-medium">{new Date(datiPratica.data_fine_lavori).toLocaleDateString("it-IT")}</p>
                   </div>
                 )}
-                {datiPratica.importo_lavori > 0 && (
+                {Number(datiPratica.importo_lavori) > 0 && (
                   <div>
                     <span className="text-muted-foreground">Importo Lavori</span>
-                    <p className="font-medium">€ {datiPratica.importo_lavori.toFixed(2)}</p>
+                    <p className="font-medium">€ {Number(datiPratica.importo_lavori).toLocaleString("it-IT", { minimumFractionDigits: 2 })}</p>
                   </div>
                 )}
                 <div>

@@ -4,21 +4,49 @@ export type { PraticaStato } from "@/lib/pratiche-config";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FolderOpen, Plus } from "lucide-react";
+import { FolderOpen, Plus, CheckCircle2, Zap, Clock, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { STATO_CONFIG } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
+import { formatDistanceToNow } from "date-fns";
+import { it } from "date-fns/locale";
+
+const PAGAMENTO_BADGE: Record<string, { label: string; className: string }> = {
+  pagata: { label: "Pagata", className: "bg-success/10 text-success border-success/20" },
+  non_pagata: { label: "Non pagata", className: "bg-muted text-muted-foreground border-muted" },
+  in_verifica: { label: "In verifica", className: "bg-warning/10 text-warning border-warning/20" },
+  rimborsata: { label: "Rimborsata", className: "bg-primary/10 text-primary border-primary/20" },
+};
+
+const ACTIVE_STATES: PraticaStato[] = ["inviata", "in_lavorazione", "in_attesa_documenti"];
+
+function getAgingDot(pratica: any): { color: string; label: string } | null {
+  if (!ACTIVE_STATES.includes(pratica.stato)) return null;
+  const days = (Date.now() - new Date(pratica.created_at).getTime()) / 86400000;
+  if (days > 5) return { color: "bg-destructive", label: "Ferma da più di 5 giorni" };
+  if (days > 3) return { color: "bg-warning", label: "Ferma da più di 3 giorni" };
+  return null;
+}
 
 export function ListView({ pratiche, navigate }: { pratiche: any[]; navigate: (path: string) => void }) {
   if (pratiche.length === 0) {
     return (
-      <Card className="border-dashed">
-        <CardContent className="flex flex-col items-center py-12 text-center">
-          <FolderOpen className="mb-4 h-12 w-12 text-muted-foreground/40" />
-          <h3 className="font-display text-lg font-semibold">Nessuna pratica</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Crea la tua prima pratica ENEA per iniziare.</p>
-          <Button className="mt-4" onClick={() => navigate("/pratiche/nuova")}>
-            <Plus className="mr-2 h-4 w-4" />Nuova Pratica ENEA
+      <Card className="border-dashed border-2">
+        <CardContent className="flex flex-col items-center py-16 text-center">
+          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+            <FileText className="h-10 w-10 text-primary" />
+          </div>
+          <h3 className="font-display text-xl font-bold">Invia la tua prima pratica ENEA in meno di 2 minuti</h3>
+          <p className="mt-2 max-w-md text-sm text-muted-foreground">
+            Gestisci le tue pratiche ENEA in modo semplice e veloce. Nessuna burocrazia, prezzo fisso e consegna garantita.
+          </p>
+          <ul className="mt-4 space-y-2 text-sm text-left">
+            <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success shrink-0" /> Consegna entro 24 ore lavorative</li>
+            <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success shrink-0" /> Prezzo fisso e trasparente</li>
+            <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success shrink-0" /> Zero burocrazia — pensiamo a tutto noi</li>
+          </ul>
+          <Button size="lg" className="mt-6" onClick={() => navigate("/pratiche/nuova")}>
+            <Zap className="mr-2 h-4 w-4" />Crea la tua prima pratica
           </Button>
         </CardContent>
       </Card>
@@ -30,21 +58,35 @@ export function ListView({ pratiche, navigate }: { pratiche: any[]; navigate: (p
       {pratiche.map((p) => {
         const statoConf = STATO_CONFIG[p.stato as PraticaStato];
         const Icon = statoConf.icon;
+        const aging = getAgingDot(p);
+        const pagamento = PAGAMENTO_BADGE[p.pagamento_stato] || PAGAMENTO_BADGE.non_pagata;
+
         return (
           <Card key={p.id} className="cursor-pointer transition-colors hover:bg-accent/50" onClick={() => navigate(`/pratiche/${p.id}`)}>
             <CardContent className="flex items-center gap-4 p-4">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${statoConf.color}`}>
-                <Icon className="h-5 w-5" />
+              <div className="relative">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${statoConf.color}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                {aging && (
+                  <span className={`absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-background ${aging.color}`} title={aging.label} />
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-medium truncate">{p.titolo}</p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                   {p.clienti_finali && <span>{(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}</span>}
+                  <span className="text-xs">
+                    {formatDistanceToNow(new Date(p.created_at), { addSuffix: true, locale: it })}
+                  </span>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="font-semibold">€ {p.prezzo.toFixed(2)}</p>
-                <Badge className={`text-xs ${statoConf.color}`}>{statoConf.label}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className={`text-xs ${pagamento.className}`}>{pagamento.label}</Badge>
+                <div className="text-right">
+                  <p className="font-semibold">€ {p.prezzo.toFixed(2)}</p>
+                  <Badge className={`text-xs ${statoConf.color}`}>{statoConf.label}</Badge>
+                </div>
               </div>
             </CardContent>
           </Card>

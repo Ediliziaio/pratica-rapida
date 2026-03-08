@@ -7,7 +7,7 @@ export function ProblemSection() {
       <div className="max-w-5xl mx-auto px-6">
         <h2 className="text-3xl md:text-5xl font-bold text-center mb-8 text-gray-900">
           Sai qual è il modo più veloce per{" "}
-          <span style={{ color: PR_GREEN }}>perdere un cliente</span> nel 2025?
+          <span style={{ color: PR_GREEN }}>perdere un cliente</span> nel 2026?
         </h2>
         <p className="text-gray-500 text-center max-w-3xl mx-auto text-lg mb-6">
           Dirgli: <em className="text-gray-900 font-medium">"La pratica ENEA? Ah, quella se la deve fare lei."</em>

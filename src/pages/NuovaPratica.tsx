@@ -123,21 +123,59 @@ export default function NuovaPratica() {
 
       const validated = clienteSchema.parse(getFormData());
 
-      // Create client first
-      const { data: cliente, error: clienteError } = await supabase
-        .from("clienti_finali")
-        .insert({
-          company_id: companyId,
-          nome: validated.nome,
-          cognome: validated.cognome,
-          codice_fiscale: validated.codice_fiscale || null,
-          email: validated.email || null,
-          telefono: validated.telefono || null,
-          indirizzo: validated.indirizzo || null,
-        })
-        .select()
-        .single();
-      if (clienteError) throw clienteError;
+      // #6 Fix: Check for existing client by CF or nome+cognome before creating
+      let clienteId: string;
+      if (validated.codice_fiscale) {
+        const { data: existing } = await supabase
+          .from("clienti_finali")
+          .select("id")
+          .eq("company_id", companyId)
+          .eq("codice_fiscale", validated.codice_fiscale)
+          .maybeSingle();
+        if (existing) {
+          clienteId = existing.id;
+          // Update existing client with latest data
+          await supabase.from("clienti_finali").update({
+            nome: validated.nome,
+            cognome: validated.cognome,
+            email: validated.email || null,
+            telefono: validated.telefono || null,
+            indirizzo: validated.indirizzo || null,
+          }).eq("id", clienteId);
+        } else {
+          const { data: cliente, error: clienteError } = await supabase
+            .from("clienti_finali")
+            .insert({
+              company_id: companyId,
+              nome: validated.nome,
+              cognome: validated.cognome,
+              codice_fiscale: validated.codice_fiscale,
+              email: validated.email || null,
+              telefono: validated.telefono || null,
+              indirizzo: validated.indirizzo || null,
+            })
+            .select()
+            .single();
+          if (clienteError) throw clienteError;
+          clienteId = cliente.id;
+        }
+      } else {
+        const { data: cliente, error: clienteError } = await supabase
+          .from("clienti_finali")
+          .insert({
+            company_id: companyId,
+            nome: validated.nome,
+            cognome: validated.cognome,
+            codice_fiscale: null,
+            email: validated.email || null,
+            telefono: validated.telefono || null,
+            indirizzo: validated.indirizzo || null,
+          })
+          .select()
+          .single();
+        if (clienteError) throw clienteError;
+        clienteId = cliente.id;
+      }
 
       // Build dati_pratica JSONB
       const datiPratica: Record<string, any> = {};

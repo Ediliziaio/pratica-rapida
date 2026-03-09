@@ -70,7 +70,14 @@ export default function Listino() {
         throw new Error("Dati non validi. Controlla i campi evidenziati.");
       }
 
-      const payload = parsed.data;
+      const payload = {
+        nome: parsed.data.nome,
+        descrizione: parsed.data.descrizione || "",
+        categoria: parsed.data.categoria,
+        prezzo_base: parsed.data.prezzo_base,
+        tempo_stimato_ore: parsed.data.tempo_stimato_ore || 0,
+        attivo: parsed.data.attivo,
+      };
       if (editId) {
         const { error } = await supabase.from("service_catalog").update(payload).eq("id", editId);
         if (error) throw error;

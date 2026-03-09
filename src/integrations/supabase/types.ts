@@ -925,6 +925,53 @@ export type Database = {
         }
         Relationships: []
       }
+      support_tickets: {
+        Row: {
+          company_id: string
+          created_at: string
+          descrizione: string
+          id: string
+          oggetto: string
+          priorita: Database["public"]["Enums"]["ticket_priorita"]
+          risposta: string | null
+          stato: Database["public"]["Enums"]["ticket_stato"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          descrizione?: string
+          id?: string
+          oggetto: string
+          priorita?: Database["public"]["Enums"]["ticket_priorita"]
+          risposta?: string | null
+          stato?: Database["public"]["Enums"]["ticket_stato"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          descrizione?: string
+          id?: string
+          oggetto?: string
+          priorita?: Database["public"]["Enums"]["ticket_priorita"]
+          risposta?: string | null
+          stato?: Database["public"]["Enums"]["ticket_stato"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_company_assignments: {
         Row: {
           company_id: string
@@ -1095,6 +1142,8 @@ export type Database = {
         | "pratiche_edilizie"
         | "altro"
       stato_fattura: "bozza" | "emessa" | "pagata"
+      ticket_priorita: "bassa" | "normale" | "alta"
+      ticket_stato: "aperto" | "in_lavorazione" | "risolto" | "chiuso"
       visibilita_documento: "azienda_interno" | "solo_interno"
     }
     CompositeTypes: {
@@ -1250,6 +1299,8 @@ export const Constants = {
         "altro",
       ],
       stato_fattura: ["bozza", "emessa", "pagata"],
+      ticket_priorita: ["bassa", "normale", "alta"],
+      ticket_stato: ["aperto", "in_lavorazione", "risolto", "chiuso"],
       visibilita_documento: ["azienda_interno", "solo_interno"],
     },
   },

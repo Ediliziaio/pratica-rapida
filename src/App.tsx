@@ -30,6 +30,9 @@ const Listino = lazy(() => import("./pages/Listino"));
 const AuditLog = lazy(() => import("./pages/AuditLog"));
 const AziendaDetail = lazy(() => import("./pages/AziendaDetail"));
 const ImpostazioniPiattaforma = lazy(() => import("./pages/ImpostazioniPiattaforma"));
+const ImpostazioniAzienda = lazy(() => import("./pages/ImpostazioniAzienda"));
+const Assistenza = lazy(() => import("./pages/Assistenza"));
+const AdminTicket = lazy(() => import("./pages/AdminTicket"));
 
 const queryClient = new QueryClient();
 
@@ -88,6 +91,9 @@ const App = () => (
                 <Route path="/clienti" element={<ProtectedRoute><Clienti /></ProtectedRoute>} />
                 <Route path="/listino" element={<ProtectedRoute><Listino /></ProtectedRoute>} />
                 <Route path="/admin/impostazioni" element={<ProtectedRoute><ImpostazioniPiattaforma /></ProtectedRoute>} />
+                <Route path="/impostazioni" element={<ProtectedRoute><ImpostazioniAzienda /></ProtectedRoute>} />
+                <Route path="/assistenza" element={<ProtectedRoute><Assistenza /></ProtectedRoute>} />
+                <Route path="/admin/ticket" element={<ProtectedRoute><AdminTicket /></ProtectedRoute>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -8,10 +8,10 @@ import {
   ListChecks,
   LogOut,
   Users,
-  
   BookOpen,
   BarChart3,
   Shield,
+  LifeBuoy,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth, isSuperAdmin, isInternal, isAzienda } from "@/hooks/useAuth";
@@ -49,8 +49,9 @@ export function AppSidebar() {
     { title: "Nuova Pratica ENEA", url: "/pratiche/nuova", icon: FilePlus },
     { title: "Pratiche", url: "/pratiche", icon: FolderOpen },
     { title: "Clienti", url: "/clienti", icon: Users },
-    
     { title: "Wallet", url: "/wallet", icon: Wallet },
+    { title: "Assistenza", url: "/assistenza", icon: LifeBuoy },
+    { title: "Impostazioni", url: "/impostazioni", icon: Settings },
   ];
 
   const internalItems = [
@@ -62,6 +63,7 @@ export function AppSidebar() {
     { title: "Analytics", url: "/analytics", icon: BarChart3 },
     { title: "Audit Log", url: "/admin/audit-log", icon: Shield },
     { title: "Utenti", url: "/utenti", icon: Users },
+    { title: "Ticket", url: "/admin/ticket", icon: LifeBuoy },
     { title: "Impostazioni", url: "/admin/impostazioni", icon: Settings },
   ];
 

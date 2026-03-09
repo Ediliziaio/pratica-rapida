@@ -80,19 +80,6 @@ export default function AziendaDetail() {
     enabled: users.length > 0,
   });
 
-  const { data: fatture = [] } = useQuery({
-    queryKey: ["company-fatture", id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("fatture")
-        .select("id, numero, oggetto, totale, stato, data_emissione")
-        .eq("company_id", id!)
-        .order("data_emissione", { ascending: false })
-        .limit(50);
-      return data || [];
-    },
-    enabled: !!id,
-  });
 
   // KPIs
   const kpis = useMemo(() => {

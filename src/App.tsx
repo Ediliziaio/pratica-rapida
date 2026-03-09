@@ -30,6 +30,9 @@ const Listino = lazy(() => import("./pages/Listino"));
 const AuditLog = lazy(() => import("./pages/AuditLog"));
 const AziendaDetail = lazy(() => import("./pages/AziendaDetail"));
 const ImpostazioniPiattaforma = lazy(() => import("./pages/ImpostazioniPiattaforma"));
+const ImpostazioniAzienda = lazy(() => import("./pages/ImpostazioniAzienda"));
+const Assistenza = lazy(() => import("./pages/Assistenza"));
+const AdminTicket = lazy(() => import("./pages/AdminTicket"));
 
 const queryClient = new QueryClient();
 

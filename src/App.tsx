@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { CompanyProvider } from "@/hooks/useCompany";
 import { AppLayout } from "@/components/AppLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { RoleGuard } from "@/components/RoleGuard";
 
 // Lazy-loaded pages
 const Auth = lazy(() => import("./pages/Auth"));
@@ -35,6 +36,9 @@ const Assistenza = lazy(() => import("./pages/Assistenza"));
 const AdminTicket = lazy(() => import("./pages/AdminTicket"));
 
 const queryClient = new QueryClient();
+
+const INTERNAL_ROLES = ["super_admin", "admin_interno", "operatore"] as const;
+const ADMIN_ROLES = ["super_admin"] as const;
 
 function PageLoader() {
   return (
@@ -81,19 +85,24 @@ const App = () => (
                 <Route path="/pratiche/nuova" element={<ProtectedRoute><NuovaPratica /></ProtectedRoute>} />
                 <Route path="/pratiche/:id" element={<ProtectedRoute><PraticaDetail /></ProtectedRoute>} />
                 <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
-                <Route path="/aziende" element={<ProtectedRoute><Aziende /></ProtectedRoute>} />
-                <Route path="/utenti" element={<ProtectedRoute><Utenti /></ProtectedRoute>} />
-                <Route path="/coda-pratiche" element={<ProtectedRoute><CodaPratiche /></ProtectedRoute>} />
-                <Route path="/admin/pratiche" element={<ProtectedRoute><AdminPratiche /></ProtectedRoute>} />
-                <Route path="/admin/audit-log" element={<ProtectedRoute><AuditLog /></ProtectedRoute>} />
-                <Route path="/aziende/:id" element={<ProtectedRoute><AziendaDetail /></ProtectedRoute>} />
-                <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-                <Route path="/clienti" element={<ProtectedRoute><Clienti /></ProtectedRoute>} />
-                <Route path="/listino" element={<ProtectedRoute><Listino /></ProtectedRoute>} />
-                <Route path="/admin/impostazioni" element={<ProtectedRoute><ImpostazioniPiattaforma /></ProtectedRoute>} />
                 <Route path="/impostazioni" element={<ProtectedRoute><ImpostazioniAzienda /></ProtectedRoute>} />
                 <Route path="/assistenza" element={<ProtectedRoute><Assistenza /></ProtectedRoute>} />
-                <Route path="/admin/ticket" element={<ProtectedRoute><AdminTicket /></ProtectedRoute>} />
+                <Route path="/clienti" element={<ProtectedRoute><Clienti /></ProtectedRoute>} />
+
+                {/* Internal-only routes */}
+                <Route path="/aziende" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><Aziende /></RoleGuard></ProtectedRoute>} />
+                <Route path="/aziende/:id" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><AziendaDetail /></RoleGuard></ProtectedRoute>} />
+                <Route path="/utenti" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><Utenti /></RoleGuard></ProtectedRoute>} />
+                <Route path="/coda-pratiche" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><CodaPratiche /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/pratiche" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><AdminPratiche /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/audit-log" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><AuditLog /></RoleGuard></ProtectedRoute>} />
+                <Route path="/analytics" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><Analytics /></RoleGuard></ProtectedRoute>} />
+                <Route path="/listino" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><Listino /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/ticket" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><AdminTicket /></RoleGuard></ProtectedRoute>} />
+
+                {/* Super admin only */}
+                <Route path="/admin/impostazioni" element={<ProtectedRoute><RoleGuard allowed={[...ADMIN_ROLES]}><ImpostazioniPiattaforma /></RoleGuard></ProtectedRoute>} />
+
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

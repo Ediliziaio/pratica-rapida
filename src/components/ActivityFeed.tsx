@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  RefreshCw, UserCheck, FolderOpen, ArrowRightLeft, Wallet, Shield,
+  RefreshCw, UserCheck, FolderOpen, ArrowRightLeft, Wallet, Shield, Radio,
 } from "lucide-react";
 
 const ACTION_ICONS: Record<string, typeof FolderOpen> = {
@@ -36,7 +37,7 @@ function timeAgo(dateStr: string) {
 export function ActivityFeed() {
   const queryClient = useQueryClient();
 
-  const { data: logs = [] } = useQuery({
+  const { data: logs = [], isLoading } = useQuery({
     queryKey: ["activity-feed"],
     queryFn: async () => {
       const { data } = await supabase
@@ -76,14 +77,28 @@ export function ActivityFeed() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium">🔴 Activity Feed</CardTitle>
+        <CardTitle className="text-sm font-medium flex items-center gap-1.5">
+          <Radio className="h-4 w-4 text-destructive" /> Activity Feed
+        </CardTitle>
         <Badge variant="outline" className="text-xs gap-1">
           <RefreshCw className="h-3 w-3" /> Live
         </Badge>
       </CardHeader>
       <CardContent>
         <ScrollArea className="max-h-[300px]">
-          {logs.length === 0 ? (
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="flex items-start gap-3">
+                  <Skeleton className="h-7 w-7 rounded-full" />
+                  <div className="flex-1 space-y-1">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : logs.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">Nessuna attività recente</p>
           ) : (
             <div className="space-y-3">
@@ -101,9 +116,9 @@ export function ActivityFeed() {
                         <span className="font-medium">{userName}</span>{" "}
                         <span className="text-muted-foreground">{log.azione}</span>
                       </p>
-                      {dettagli && (dettagli.old_stato || dettagli.new_stato) && (
+                      {dettagli && (dettagli.stato_precedente || dettagli.stato_nuovo) && (
                         <p className="text-xs text-muted-foreground">
-                          {dettagli.old_stato} → {dettagli.new_stato}
+                          {dettagli.stato_precedente} → {dettagli.stato_nuovo}
                         </p>
                       )}
                     </div>

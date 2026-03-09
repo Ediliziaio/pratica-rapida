@@ -33,6 +33,7 @@ export default function ImpostazioniPiattaforma() {
   });
 
   const [sla, setSla] = useState<SLASettings>({ presaInCaricoOre: 24, completamentoOre: 120 });
+  const [slaErrors, setSlaErrors] = useState<{ presaInCaricoOre?: string; completamentoOre?: string }>({});
 
   useEffect(() => {
     if (slaRow?.value) {
@@ -60,17 +61,31 @@ export default function ImpostazioniPiattaforma() {
   const [saving, setSaving] = useState(false);
 
   const saveSLA = async () => {
+    // Validate
+    const errors: typeof slaErrors = {};
+    if (!Number.isInteger(sla.presaInCaricoOre) || sla.presaInCaricoOre < 1) {
+      errors.presaInCaricoOre = "Deve essere un intero positivo (≥ 1)";
+    }
+    if (!Number.isInteger(sla.completamentoOre) || sla.completamentoOre < 1) {
+      errors.completamentoOre = "Deve essere un intero positivo (≥ 1)";
+    }
+    if (sla.completamentoOre <= sla.presaInCaricoOre) {
+      errors.completamentoOre = "Deve essere maggiore del tempo di presa in carico";
+    }
+    setSlaErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
     setSaving(true);
     try {
       if (slaRow?.id) {
         await supabase
           .from("platform_settings")
-          .update({ value: sla as any, updated_at: new Date().toISOString(), updated_by: user?.id })
+          .update({ value: sla as unknown as Record<string, never>, updated_at: new Date().toISOString(), updated_by: user?.id })
           .eq("id", slaRow.id);
       } else {
         await supabase
           .from("platform_settings")
-          .insert({ key: "sla_settings", value: sla as any, updated_by: user?.id });
+          .insert([{ key: "sla_settings", value: sla as unknown as Record<string, never>, updated_by: user?.id }]);
       }
       queryClient.invalidateQueries({ queryKey: ["platform-settings"] });
       toast({ title: "Soglie SLA salvate" });
@@ -111,20 +126,30 @@ export default function ImpostazioniPiattaforma() {
                   <Input
                     type="number"
                     min={1}
+                    step={1}
                     value={sla.presaInCaricoOre}
-                    onChange={e => setSla(s => ({ ...s, presaInCaricoOre: Number(e.target.value) }))}
+                    onChange={e => {
+                      setSla(s => ({ ...s, presaInCaricoOre: Number(e.target.value) }));
+                      setSlaErrors(prev => ({ ...prev, presaInCaricoOre: undefined }));
+                    }}
                   />
                   <p className="text-xs text-muted-foreground">Tempo max da "inviata" a "in_lavorazione"</p>
+                  {slaErrors.presaInCaricoOre && <p className="text-xs text-destructive">{slaErrors.presaInCaricoOre}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label>Completamento (ore)</Label>
                   <Input
                     type="number"
                     min={1}
+                    step={1}
                     value={sla.completamentoOre}
-                    onChange={e => setSla(s => ({ ...s, completamentoOre: Number(e.target.value) }))}
+                    onChange={e => {
+                      setSla(s => ({ ...s, completamentoOre: Number(e.target.value) }));
+                      setSlaErrors(prev => ({ ...prev, completamentoOre: undefined }));
+                    }}
                   />
                   <p className="text-xs text-muted-foreground">Tempo max da "in_lavorazione" a "completata"</p>
+                  {slaErrors.completamentoOre && <p className="text-xs text-destructive">{slaErrors.completamentoOre}</p>}
                 </div>
               </div>
               <Button onClick={saveSLA} disabled={saving} className="gap-2">

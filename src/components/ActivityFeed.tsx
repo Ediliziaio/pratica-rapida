@@ -16,11 +16,25 @@ const ACTION_ICONS: Record<string, typeof FolderOpen> = {
   default: Shield,
 };
 
+const ACTION_LABELS: Record<string, string> = {
+  cambio_stato_pratica: "ha cambiato lo stato della pratica",
+  assegnazione_operatore: "ha assegnato un operatore",
+  wallet_topup: "ha ricaricato il wallet",
+  wallet_deduct: "ha addebitato dal wallet",
+  creazione_pratica: "ha creato una pratica",
+  eliminazione_pratica: "ha eliminato una pratica",
+  aggiornamento_pratica: "ha aggiornato una pratica",
+};
+
 function getIcon(azione: string) {
   if (azione.includes("stato")) return ACTION_ICONS.cambio_stato;
   if (azione.includes("assegn")) return ACTION_ICONS.assegnazione;
   if (azione.includes("wallet")) return ACTION_ICONS.wallet_topup;
   return ACTION_ICONS.default;
+}
+
+function getLabel(azione: string): string {
+  return ACTION_LABELS[azione] || azione.replace(/_/g, " ");
 }
 
 function timeAgo(dateStr: string) {
@@ -105,7 +119,7 @@ export function ActivityFeed() {
               {logs.map(log => {
                 const Icon = getIcon(log.azione);
                 const userName = log.user_id ? (profileMap[log.user_id] || "Utente") : "Sistema";
-                const dettagli = log.dettagli as Record<string, any> | null;
+                const dettagli = log.dettagli as Record<string, string> | null;
                 return (
                   <div key={log.id} className="flex items-start gap-3">
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted">
@@ -114,8 +128,11 @@ export function ActivityFeed() {
                     <div className="min-w-0 flex-1">
                       <p className="text-sm">
                         <span className="font-medium">{userName}</span>{" "}
-                        <span className="text-muted-foreground">{log.azione}</span>
+                        <span className="text-muted-foreground">{getLabel(log.azione)}</span>
                       </p>
+                      {dettagli?.titolo && (
+                        <p className="text-xs text-muted-foreground truncate">"{dettagli.titolo}"</p>
+                      )}
                       {dettagli && (dettagli.stato_precedente || dettagli.stato_nuovo) && (
                         <p className="text-xs text-muted-foreground">
                           {dettagli.stato_precedente} → {dettagli.stato_nuovo}

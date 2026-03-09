@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Shield, Search, UserPlus, X, Building2, Plus } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
 import type { Database } from "@/integrations/supabase/types";
+import { z } from "zod";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -34,18 +35,26 @@ const ROLE_COLORS: Record<AppRole, string> = {
   partner: "bg-accent text-accent-foreground",
 };
 
+const newUserSchema = z.object({
+  nome: z.string().trim().min(1, "Nome obbligatorio").max(100),
+  cognome: z.string().trim().min(1, "Cognome obbligatorio").max(100),
+  email: z.string().trim().email("Email non valida"),
+  password: z.string().min(8, "Minimo 8 caratteri"),
+  role: z.enum(Constants.public.Enums.app_role as unknown as [string, ...string[]], { required_error: "Seleziona un ruolo" }),
+});
+
 export default function Utenti() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [newRole, setNewRole] = useState<AppRole | "">("");
-  const [assignCompanyUser, setAssignCompanyUser] = useState<string | null>(null);
   const [selectedCompany, setSelectedCompany] = useState("");
-  
+
   // New user dialog state
   const [showNewUser, setShowNewUser] = useState(false);
   const [newUserForm, setNewUserForm] = useState({ nome: "", cognome: "", email: "", password: "", role: "" as AppRole | "" });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // Fetch all profiles (internal users can see all)
   const { data: profiles = [], isLoading } = useQuery({
@@ -118,7 +127,6 @@ export default function Utenti() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-all-assignments"] });
-      setAssignCompanyUser(null);
       setSelectedCompany("");
       toast({ title: "Azienda assegnata" });
     },
@@ -162,10 +170,23 @@ export default function Utenti() {
       queryClient.invalidateQueries({ queryKey: ["admin-all-roles"] });
       setShowNewUser(false);
       setNewUserForm({ nome: "", cognome: "", email: "", password: "", role: "" });
+      setFormErrors({});
       toast({ title: "Utente creato con successo" });
     },
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
+
+  const handleCreateUser = () => {
+    setFormErrors({});
+    const result = newUserSchema.safeParse(newUserForm);
+    if (!result.success) {
+      const errs: Record<string, string> = {};
+      result.error.errors.forEach(e => { errs[e.path[0] as string] = e.message; });
+      setFormErrors(errs);
+      return;
+    }
+    createUser.mutate(newUserForm);
+  };
 
   const filtered = profiles.filter(p =>
     `${p.nome} ${p.cognome} ${p.email}`.toLowerCase().includes(search.toLowerCase())
@@ -231,9 +252,28 @@ export default function Utenti() {
                           {roles.map(r => (
                             <Badge key={r.id} className={`${ROLE_COLORS[r.role]} gap-1`}>
                               {ROLE_LABELS[r.role]}
-                              <button onClick={() => removeRole.mutate(r.id)} className="ml-1 hover:text-destructive">
-                                <X className="h-3 w-3" />
-                              </button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <button className="ml-1 hover:text-destructive">
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Rimuovere il ruolo?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Stai per rimuovere il ruolo <strong>{ROLE_LABELS[r.role]}</strong> da{" "}
+                                      <strong>{profile.nome} {profile.cognome}</strong>. Questa azione cambierà i permessi dell'utente.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Annulla</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => removeRole.mutate(r.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                      Rimuovi
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </Badge>
                           ))}
                         </div>
@@ -260,15 +300,36 @@ export default function Utenti() {
                       <div>
                         <Label className="text-sm font-medium">Aziende Assegnate</Label>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          {assignments.map(a => (
-                            <Badge key={a.id} variant="outline" className="gap-1">
-                              <Building2 className="h-3 w-3" />
-                              {(a.companies as any)?.ragione_sociale || "—"}
-                              <button onClick={() => removeAssignment.mutate(a.id)} className="ml-1 hover:text-destructive">
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))}
+                          {assignments.map(a => {
+                            const companyName = (a.companies as { ragione_sociale: string } | null)?.ragione_sociale || "—";
+                            return (
+                              <Badge key={a.id} variant="outline" className="gap-1">
+                                <Building2 className="h-3 w-3" />
+                                {companyName}
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <button className="ml-1 hover:text-destructive">
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Rimuovere l'assegnazione?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        L'utente <strong>{profile.nome} {profile.cognome}</strong> non avrà più accesso ai dati di <strong>{companyName}</strong>.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Annulla</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => removeAssignment.mutate(a.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                        Rimuovi
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </Badge>
+                            );
+                          })}
                           {assignments.length === 0 && <span className="text-sm text-muted-foreground">Nessuna azienda</span>}
                         </div>
                         <div className="mt-2 flex gap-2">
@@ -299,7 +360,13 @@ export default function Utenti() {
       )}
 
       {/* New User Dialog */}
-      <Dialog open={showNewUser} onOpenChange={setShowNewUser}>
+      <Dialog open={showNewUser} onOpenChange={(open) => {
+        setShowNewUser(open);
+        if (!open) {
+          setNewUserForm({ nome: "", cognome: "", email: "", password: "", role: "" });
+          setFormErrors({});
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Crea Nuovo Utente</DialogTitle>
@@ -308,24 +375,28 @@ export default function Utenti() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Nome</Label>
+                <Label>Nome *</Label>
                 <Input value={newUserForm.nome} onChange={e => setNewUserForm(f => ({ ...f, nome: e.target.value }))} placeholder="Mario" />
+                {formErrors.nome && <p className="text-xs text-destructive mt-1">{formErrors.nome}</p>}
               </div>
               <div>
-                <Label>Cognome</Label>
+                <Label>Cognome *</Label>
                 <Input value={newUserForm.cognome} onChange={e => setNewUserForm(f => ({ ...f, cognome: e.target.value }))} placeholder="Rossi" />
+                {formErrors.cognome && <p className="text-xs text-destructive mt-1">{formErrors.cognome}</p>}
               </div>
             </div>
             <div>
-              <Label>Email</Label>
+              <Label>Email *</Label>
               <Input type="email" value={newUserForm.email} onChange={e => setNewUserForm(f => ({ ...f, email: e.target.value }))} placeholder="mario@esempio.it" />
+              {formErrors.email && <p className="text-xs text-destructive mt-1">{formErrors.email}</p>}
             </div>
             <div>
-              <Label>Password</Label>
-              <Input type="password" value={newUserForm.password} onChange={e => setNewUserForm(f => ({ ...f, password: e.target.value }))} placeholder="Minimo 6 caratteri" />
+              <Label>Password *</Label>
+              <Input type="password" value={newUserForm.password} onChange={e => setNewUserForm(f => ({ ...f, password: e.target.value }))} placeholder="Minimo 8 caratteri" />
+              {formErrors.password && <p className="text-xs text-destructive mt-1">{formErrors.password}</p>}
             </div>
             <div>
-              <Label>Ruolo</Label>
+              <Label>Ruolo *</Label>
               <Select value={newUserForm.role} onValueChange={v => setNewUserForm(f => ({ ...f, role: v as AppRole }))}>
                 <SelectTrigger><SelectValue placeholder="Seleziona ruolo..." /></SelectTrigger>
                 <SelectContent>
@@ -334,11 +405,12 @@ export default function Utenti() {
                   ))}
                 </SelectContent>
               </Select>
+              {formErrors.role && <p className="text-xs text-destructive mt-1">{formErrors.role}</p>}
             </div>
             <Button
               className="w-full"
-              disabled={!newUserForm.nome || !newUserForm.cognome || !newUserForm.email || !newUserForm.password || !newUserForm.role || createUser.isPending}
-              onClick={() => createUser.mutate(newUserForm)}
+              disabled={createUser.isPending}
+              onClick={handleCreateUser}
             >
               {createUser.isPending ? "Creazione in corso..." : "Crea Utente"}
             </Button>

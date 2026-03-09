@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
-import { TrendingUp, FolderOpen, Clock, Euro, AlertTriangle, Building2 } from "lucide-react";
+import { TrendingUp, FolderOpen, Clock, Euro, AlertTriangle } from "lucide-react";
 
 const CATEGORY_LABELS: Record<string, string> = {
   enea_bonus: "ENEA / Bonus",
@@ -19,7 +18,14 @@ export default function Analytics() {
   const { data: pratiche = [] } = useQuery({
     queryKey: ["analytics-pratiche"],
     queryFn: async () => {
-      const { data } = await supabase.from("pratiche").select("*, companies(ragione_sociale)");
+      const twelveMonthsAgo = new Date();
+      twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+      const { data } = await supabase
+        .from("pratiche")
+        .select("id, titolo, stato, prezzo, created_at, updated_at, categoria, company_id, companies(ragione_sociale)")
+        .gte("created_at", twelveMonthsAgo.toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1000);
       return data || [];
     },
   });
@@ -57,7 +63,7 @@ export default function Analytics() {
 
   // Top companies by spend
   const byCompany = pratiche.reduce((acc, p) => {
-    const name = (p.companies as any)?.ragione_sociale || "Sconosciuto";
+    const name = p.companies?.ragione_sociale || "Sconosciuto";
     acc[name] = (acc[name] || 0) + (p.prezzo || 0);
     return acc;
   }, {} as Record<string, number>);
@@ -90,7 +96,7 @@ export default function Analytics() {
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-2xl font-bold tracking-tight">Analytics</h1>
-        <p className="text-muted-foreground">KPI e metriche di business</p>
+        <p className="text-muted-foreground">KPI e metriche di business (ultimi 12 mesi)</p>
       </div>
 
       {/* Top KPIs */}

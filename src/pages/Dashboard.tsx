@@ -334,14 +334,16 @@ export default function Dashboard() {
           </h1>
           <p className="text-muted-foreground">{dashboardSubtitle}</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => navigate("/pratiche/nuova")} size="sm">
-            <Plus className="mr-2 h-4 w-4" />Nuova Pratica
-          </Button>
-          <Button variant="outline" onClick={() => navigate("/wallet")} size="sm">
-            <CreditCard className="mr-2 h-4 w-4" />Wallet
-          </Button>
-        </div>
+        {!isInternalUser && (
+          <div className="flex gap-2">
+            <Button onClick={() => navigate("/pratiche/nuova")} size="sm">
+              <Plus className="mr-2 h-4 w-4" />Nuova Pratica
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/wallet")} size="sm">
+              <CreditCard className="mr-2 h-4 w-4" />Wallet
+            </Button>
+          </div>
+        )}
       </div>
 
       {companyId && (
@@ -456,7 +458,7 @@ export default function Dashboard() {
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium truncate">{p.titolo}</p>
                           <p className="text-xs text-muted-foreground">
-                            {(p.clienti_finali as any)?.nome} {(p.clienti_finali as any)?.cognome}
+                            {(p.clienti_finali as { nome?: string; cognome?: string } | null)?.nome} {(p.clienti_finali as { nome?: string; cognome?: string } | null)?.cognome}
                           </p>
                         </div>
                         <div className="text-right">

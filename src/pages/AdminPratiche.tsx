@@ -133,10 +133,14 @@ export default function AdminPratiche() {
   const { data: pratiche = [], isLoading } = useQuery({
     queryKey: ["admin-all-pratiche"],
     queryFn: async () => {
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
       const { data, error } = await supabase
         .from("pratiche")
         .select("*, companies(ragione_sociale), clienti_finali(nome, cognome)")
-        .order("created_at", { ascending: false });
+        .gte("created_at", sixMonthsAgo.toISOString())
+        .order("created_at", { ascending: false })
+        .limit(500);
       if (error) throw error;
       return data;
     },

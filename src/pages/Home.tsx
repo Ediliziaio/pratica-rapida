@@ -21,25 +21,17 @@ import {
 
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
-  const [showBottomBar, setShowBottomBar] = useState(true);
+  const [showBottomBar, setShowBottomBar] = useState(false);
   const teamSectionRef = useRef<HTMLDivElement>(null);
-  const teamReached = useRef(false);
 
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 40);
-      if (window.scrollY > 200 && !teamReached.current) setShowBottomBar(false);
+      setShowBottomBar(window.scrollY > 600);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    const el = teamSectionRef.current;
-    if (!el) return () => window.removeEventListener("scroll", onScroll);
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { teamReached.current = true; setShowBottomBar(true); } },
-      { threshold: 0.1 }
-    );
-    observer.observe(el);
-    return () => { window.removeEventListener("scroll", onScroll); observer.disconnect(); };
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (

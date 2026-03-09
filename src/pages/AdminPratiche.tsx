@@ -422,6 +422,19 @@ export default function AdminPratiche() {
 
       {isLoading ? (
         <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+      ) : viewMode === "table" ? (
+        <PraticheTableView
+          pratiche={filtered}
+          selectedIds={selectedIds}
+          toggleSelect={toggleSelect}
+          toggleSelectAll={toggleSelectAll}
+          onChangeStato={(id, stato) => quickChangeStato.mutate({ praticaId: id, stato })}
+          onChangePagamento={(id, pag) => quickChangePagamento.mutate({ praticaId: id, pagamentoStato: pag })}
+          onAssignOperator={handleAssignOperator}
+          onDelete={(ids) => bulkDelete.mutate(ids)}
+          assigneeMap={assigneeMap}
+          internalOperators={internalOperators}
+        />
       ) : viewMode === "list" ? (
         filtered.length === 0 ? (
           <Card className="border-dashed">

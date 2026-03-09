@@ -1,43 +1,64 @@
 
 
-# Stabilizzazione Finale — Sezione Pratiche
+# Eliminazione e Azioni di Gruppo sulle Pratiche
 
-## Stato Attuale
+## Panoramica
+Aggiungere la possibilita di:
+1. **Selezionare pratiche** con checkbox (selezione singola e "seleziona tutte")
+2. **Eliminare pratiche** singolarmente o in blocco
+3. **Azioni di gruppo**: cambio stato, cambio pagamento, eliminazione massiva
+4. Disponibile sia per utenti azienda (`Pratiche.tsx`) che per super admin (`AdminPratiche.tsx`)
 
-Dopo le iterazioni precedenti, la sezione Pratiche e' in buono stato. Questa analisi ha identificato **solo problemi di pulizia codice e DRY** — nessun bug funzionale, nessun blocco UX, nessun crash.
+## 1. Database — RLS DELETE per pratiche
 
----
+Attualmente la tabella `pratiche` non ha policy DELETE. Servira una migration:
 
-## 1. Codice Morto / Inutilizzato
+```sql
+-- Aziende possono eliminare le proprie pratiche in bozza
+CREATE POLICY "Company users delete own draft practices"
+ON public.pratiche FOR DELETE TO authenticated
+USING (
+  (stato = 'bozza' AND company_id IN (SELECT get_user_company_ids(auth.uid())))
+  OR has_role(auth.uid(), 'super_admin')
+);
+```
 
-### A. PipelineView.tsx — variabile `Icon` mai usata
-In `DroppableColumn` (riga 17), `const Icon = conf.icon` viene dichiarata ma mai renderizzata. L'icona viene renderizzata solo nell'header della colonna dentro `PipelineView`, non in `DroppableColumn`.
+Il super admin puo eliminare qualsiasi pratica; le aziende solo quelle in stato `bozza`.
 
-### B. CodaPratiche.tsx — import e variabili inutilizzati
-- Riga 4: `useAuth` importato, riga 23: `const { user } = useAuth()` — `user` mai usato nel componente.
-- Riga 18: `STATO_ORDER` importato da `pratiche-config` ma mai usato — il componente usa `statoOrder` locale (riga 107) con ordine diverso per prioritizzare gli stati actionable.
+## 2. `src/pages/Pratiche.tsx` — Selezione + Azioni di Gruppo (Azienda)
 
----
+- Aggiungere stato `selectedIds: Set<string>`
+- Checkbox su ogni card nella `ListView` + checkbox "Seleziona tutte" nell'header
+- **Barra azioni di gruppo** (visibile quando `selectedIds.size > 0`):
+  - "Elimina selezionate" (solo bozze) con `AlertDialog` di conferma
+  - "Cambia stato" dropdown
+- Pulsante elimina singola (icona Trash) su ogni card (solo bozze)
 
-## 2. Violazione DRY — Costanti Duplicate
+## 3. `src/pages/AdminPratiche.tsx` — Selezione + Azioni di Gruppo (Admin)
 
-`PAGAMENTO_BADGE`, `ACTIVE_STATES` e `getAgingDot`/`getAdminAgingDot` sono definiti identicamente in due file:
-- `src/components/pratiche/PraticaCard.tsx` (righe 10-25)
-- `src/pages/AdminPratiche.tsx` (righe 29-44)
+- Stesso pattern di selezione con checkbox
+- **Barra azioni di gruppo admin**:
+  - "Elimina selezionate" con `AlertDialog`
+  - "Cambia stato" dropdown
+  - "Cambia pagamento" dropdown
+  - "Assegna operatore" dropdown
+- Pulsante elimina singola su ogni riga
 
-Soluzione: estrarre in `src/lib/pratiche-config.ts` (gia' il punto centralizzato per le configurazioni pratiche) e importare da li'.
+## 4. `src/components/pratiche/PraticaCard.tsx` — Prop checkbox
 
----
+Aggiungere props opzionali alla `ListView`:
+- `selectable: boolean`
+- `selectedIds: Set<string>`
+- `onToggle: (id) => void`
+- `onDelete: (id) => void`
+- `canDelete: (pratica) => boolean`
 
-## 3. Riepilogo Modifiche
+## Riepilogo file
 
-| File | Azione |
-|------|--------|
-| `src/lib/pratiche-config.ts` | Aggiungere `PAGAMENTO_BADGE`, `ACTIVE_STATES`, `getAgingDot` |
-| `src/components/pratiche/PraticaCard.tsx` | Rimuovere definizioni locali, importare da `pratiche-config` |
-| `src/pages/AdminPratiche.tsx` | Rimuovere definizioni locali, importare da `pratiche-config` |
-| `src/components/pratiche/PipelineView.tsx` | Rimuovere `Icon` inutilizzato in `DroppableColumn` |
-| `src/pages/CodaPratiche.tsx` | Rimuovere `useAuth`/`user` e import `STATO_ORDER` inutilizzati |
-
-Zero cambi funzionali. Zero modifiche DB. Solo pulizia e centralizzazione.
+| File | Modifica |
+|------|----------|
+| Migration SQL | Policy DELETE su `pratiche` |
+| `src/components/pratiche/PraticaCard.tsx` | Checkbox + pulsante elimina nella ListView |
+| `src/pages/Pratiche.tsx` | Selezione, barra azioni gruppo, eliminazione |
+| `src/pages/AdminPratiche.tsx` | Selezione, barra azioni gruppo admin, eliminazione |
 

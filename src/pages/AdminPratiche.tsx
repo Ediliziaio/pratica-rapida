@@ -385,7 +385,7 @@ export default function AdminPratiche() {
 
         {/* Stats + select all */}
         <div className="flex flex-wrap items-center gap-2">
-          {viewMode === "list" && filtered.length > 0 && (
+          {(viewMode === "list" || viewMode === "table") && filtered.length > 0 && (
             <div className="flex items-center gap-2 mr-2">
               <Checkbox
                 checked={selectedIds.size === filtered.length && filtered.length > 0}

@@ -12,12 +12,30 @@ import { ArrowLeft, Send, ExternalLink, FileDown } from "lucide-react";
 import { PracticeChat } from "@/components/PracticeChat";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { ChecklistPanel } from "@/components/ChecklistPanel";
-import { STATO_CONFIG, canTransition, INTERNAL_TRANSITIONS } from "@/lib/pratiche-config";
+import { STATO_CONFIG, INTERNAL_TRANSITIONS } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
 
-// #10 Output section component
-function OutputSection({ outputUrls, noteConsegna }: { outputUrls: any; noteConsegna: string | null }) {
-  const urls = Array.isArray(outputUrls) ? outputUrls : [];
+// Typed interfaces for joined data
+interface ClienteFinale {
+  nome: string;
+  cognome: string;
+  email: string | null;
+  codice_fiscale: string | null;
+  telefono: string | null;
+  indirizzo: string | null;
+}
+
+interface DatiPratica {
+  tipo_intervento?: string;
+  dati_catastali?: string;
+  data_fine_lavori?: string;
+  importo_lavori?: number;
+  note_aggiuntive?: string;
+}
+
+// Output section component
+function OutputSection({ outputUrls, noteConsegna }: { outputUrls: unknown; noteConsegna: string | null }) {
+  const urls = Array.isArray(outputUrls) ? outputUrls as string[] : [];
   if (urls.length === 0 && !noteConsegna) return null;
 
   return (
@@ -26,7 +44,7 @@ function OutputSection({ outputUrls, noteConsegna }: { outputUrls: any; noteCons
       <CardContent className="space-y-3">
         {urls.length > 0 && (
           <div className="space-y-2">
-            {urls.map((url: string, i: number) => (
+            {urls.map((url, i) => (
               <a
                 key={i}
                 href={url}
@@ -51,7 +69,7 @@ function OutputSection({ outputUrls, noteConsegna }: { outputUrls: any; noteCons
   );
 }
 
-// #9 Send button for company users
+// Send button for company users
 function SendPraticaButton({ praticaId, stato, onSuccess }: { praticaId: string; stato: string; onSuccess: () => void }) {
   const { toast } = useToast();
 
@@ -135,10 +153,10 @@ export default function PraticaDetail() {
 
   const statoConf = STATO_CONFIG[pratica.stato];
   const Icon = statoConf.icon;
-  const datiPratica = (pratica.dati_pratica as any) || {};
-  const cliente = pratica.clienti_finali as any;
+  const datiPratica = (pratica.dati_pratica as DatiPratica | null) || {};
+  const cliente = pratica.clienti_finali as ClienteFinale | null;
 
-  // #1 Only show valid target states for internal users
+  // Only show valid target states for internal users
   const validTargetStates = isInternalUser
     ? INTERNAL_TRANSITIONS[pratica.stato as PraticaStato] || []
     : [];
@@ -222,7 +240,7 @@ export default function PraticaDetail() {
                     <p className="font-medium">{new Date(datiPratica.data_fine_lavori).toLocaleDateString("it-IT")}</p>
                   </div>
                 )}
-                {Number(datiPratica.importo_lavori) > 0 && (
+                {datiPratica.importo_lavori != null && datiPratica.importo_lavori > 0 && (
                   <div>
                     <span className="text-muted-foreground">Importo Lavori</span>
                     <p className="font-medium">€ {Number(datiPratica.importo_lavori).toLocaleString("it-IT", { minimumFractionDigits: 2 })}</p>
@@ -246,7 +264,7 @@ export default function PraticaDetail() {
             </CardContent>
           </Card>
 
-          {/* #10 Output section */}
+          {/* Output section */}
           <OutputSection outputUrls={pratica.output_urls} noteConsegna={pratica.note_consegna} />
 
           <DocumentUpload praticaId={pratica.id} companyId={pratica.company_id} />
@@ -254,7 +272,7 @@ export default function PraticaDetail() {
         </div>
 
         <div className="space-y-4">
-          {/* #9 Send button for company users */}
+          {/* Send button for company users */}
           {!isInternalUser && (
             <SendPraticaButton praticaId={pratica.id} stato={pratica.stato} onSuccess={invalidateAll} />
           )}

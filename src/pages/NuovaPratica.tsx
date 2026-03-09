@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
 import { useToast } from "@/hooks/use-toast";
-import { clienteSchema, type ClienteFormData } from "@/lib/validation-schemas";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +34,59 @@ const TIPI_INTERVENTO = [
   "Altro",
 ];
 
+// #1 Fix: dedicated schema for the wizard (no 'tipo' required, nome/cognome mandatory)
+const nuovaPraticaClienteSchema = z.object({
+  nome: z.string().trim().min(1, "Nome obbligatorio").max(100, "Massimo 100 caratteri"),
+  cognome: z.string().trim().min(1, "Cognome obbligatorio").max(100, "Massimo 100 caratteri"),
+  codice_fiscale: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .refine(
+      (val) => val === "" || /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/i.test(val),
+      { message: "Codice fiscale non valido (16 caratteri alfanumerici)" }
+    )
+    .optional()
+    .or(z.literal("")),
+  email: z
+    .string()
+    .trim()
+    .refine(
+      (val) => val === "" || z.string().email().safeParse(val).success,
+      { message: "Indirizzo email non valido" }
+    )
+    .optional()
+    .or(z.literal("")),
+  telefono: z
+    .string()
+    .trim()
+    .refine(
+      (val) => val === "" || /^[\d\s\+\-().]{6,20}$/.test(val),
+      { message: "Numero di telefono non valido" }
+    )
+    .optional()
+    .or(z.literal("")),
+  indirizzo: z.string().trim().max(255, "Massimo 255 caratteri").optional().or(z.literal("")),
+});
+
+type NuovaPraticaClienteData = z.infer<typeof nuovaPraticaClienteSchema>;
+
+// #3 Fix: validate importo
+const praticaEneaSchema = z.object({
+  tipo_intervento: z.string().optional().or(z.literal("")),
+  dati_catastali: z.string().trim().max(255).optional().or(z.literal("")),
+  data_fine_lavori: z.date().optional(),
+  importo_lavori: z
+    .string()
+    .refine(
+      (val) => val === "" || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0),
+      { message: "Importo non valido (deve essere ≥ 0)" }
+    )
+    .optional()
+    .or(z.literal("")),
+  note_aggiuntive: z.string().trim().max(2000, "Massimo 2000 caratteri").optional().or(z.literal("")),
+});
+
 export default function NuovaPratica() {
   const { user } = useAuth();
   const { companyId } = useCompany();
@@ -58,6 +111,7 @@ export default function NuovaPratica() {
   const [dataFineLavori, setDataFineLavori] = useState<Date | undefined>();
   const [importoLavori, setImportoLavori] = useState("");
   const [noteAggiuntive, setNoteAggiuntive] = useState("");
+  const [step2Errors, setStep2Errors] = useState<Record<string, string>>({});
 
   // Fetch ENEA service from catalog
   const { data: eneaService } = useQuery({
@@ -93,7 +147,7 @@ export default function NuovaPratica() {
   const prezzo = eneaService?.prezzo_base || 0;
   const hasSufficientCredit = walletBalance >= prezzo;
 
-  const getFormData = (): ClienteFormData => ({
+  const getClienteFormData = () => ({
     nome: clienteNome,
     cognome: clienteCognome,
     codice_fiscale: clienteCF,
@@ -102,8 +156,8 @@ export default function NuovaPratica() {
     indirizzo: clienteIndirizzo,
   });
 
-  const validateForm = (): boolean => {
-    const result = clienteSchema.safeParse(getFormData());
+  const validateStep1 = (): boolean => {
+    const result = nuovaPraticaClienteSchema.safeParse(getClienteFormData());
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
       result.error.errors.forEach((err) => {
@@ -117,13 +171,34 @@ export default function NuovaPratica() {
     return true;
   };
 
+  const validateStep2 = (): boolean => {
+    const result = praticaEneaSchema.safeParse({
+      tipo_intervento: tipoIntervento,
+      dati_catastali: datiCatastali,
+      data_fine_lavori: dataFineLavori,
+      importo_lavori: importoLavori,
+      note_aggiuntive: noteAggiuntive,
+    });
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        const field = err.path[0] as string;
+        if (!fieldErrors[field]) fieldErrors[field] = err.message;
+      });
+      setStep2Errors(fieldErrors);
+      return false;
+    }
+    setStep2Errors({});
+    return true;
+  };
+
   const submitPratica = useMutation({
     mutationFn: async (asBozza: boolean) => {
       if (!companyId || !user) throw new Error("Missing data");
 
-      const validated = clienteSchema.parse(getFormData());
+      const validated = nuovaPraticaClienteSchema.parse(getClienteFormData());
 
-      // #6 Fix: Check for existing client by CF or nome+cognome before creating
+      // Find or create client
       let clienteId: string;
       if (validated.codice_fiscale) {
         const { data: existing } = await supabase
@@ -134,7 +209,6 @@ export default function NuovaPratica() {
           .maybeSingle();
         if (existing) {
           clienteId = existing.id;
-          // Update existing client with latest data
           await supabase.from("clienti_finali").update({
             nome: validated.nome,
             cognome: validated.cognome,
@@ -177,32 +251,35 @@ export default function NuovaPratica() {
         clienteId = cliente.id;
       }
 
-      // Build dati_pratica JSONB
-      const datiPratica: Record<string, any> = {};
+      // Build dati_pratica JSONB with validated importo
+      const datiPratica: Record<string, string | number> = {};
       if (tipoIntervento) datiPratica.tipo_intervento = tipoIntervento;
       if (datiCatastali) datiPratica.dati_catastali = datiCatastali;
       if (dataFineLavori) datiPratica.data_fine_lavori = format(dataFineLavori, "yyyy-MM-dd");
-      if (importoLavori) datiPratica.importo_lavori = parseFloat(importoLavori);
+      if (importoLavori && !isNaN(parseFloat(importoLavori)) && parseFloat(importoLavori) >= 0) {
+        datiPratica.importo_lavori = parseFloat(importoLavori);
+      }
       if (noteAggiuntive) datiPratica.note_aggiuntive = noteAggiuntive;
 
-      // Create practice
-      const { data: pratica, error } = await supabase.from("pratiche").insert({
-        company_id: companyId,
-        creato_da: user.id,
-        service_id: eneaService?.id || null,
-        cliente_finale_id: clienteId,
-        categoria: "enea_bonus" as const,
-        titolo: `Pratica ENEA - ${validated.nome} ${validated.cognome}`,
-        stato: asBozza ? "bozza" : "inviata",
-        priorita: "normale",
-        prezzo,
-        pagamento_stato: asBozza ? "non_pagata" : "pagata",
-        dati_pratica: Object.keys(datiPratica).length > 0 ? datiPratica : {},
-      }).select().single();
-      if (error) throw error;
-
-      // If not draft, deduct from wallet
+      // #2 Fix: If sending (not draft), deduct FIRST, then create practice
       if (!asBozza && prezzo > 0) {
+        // Create practice as bozza first, then deduct, then update to inviata
+        const { data: pratica, error } = await supabase.from("pratiche").insert({
+          company_id: companyId,
+          creato_da: user.id,
+          service_id: eneaService?.id || null,
+          cliente_finale_id: clienteId,
+          categoria: "enea_bonus" as const,
+          titolo: `Pratica ENEA - ${validated.nome} ${validated.cognome}`,
+          stato: "bozza",
+          priorita: "normale",
+          prezzo,
+          pagamento_stato: "non_pagata",
+          dati_pratica: Object.keys(datiPratica).length > 0 ? datiPratica : {},
+        }).select().single();
+        if (error) throw error;
+
+        // Deduct wallet
         const { data: success, error: deductError } = await supabase.rpc("wallet_deduct", {
           _company_id: companyId,
           _importo: prezzo,
@@ -210,7 +287,34 @@ export default function NuovaPratica() {
           _user_id: user.id,
         });
         if (deductError) throw deductError;
-        if (!success) throw new Error("Credito insufficiente");
+        if (!success) {
+          // Cleanup: delete the draft pratica
+          await supabase.from("pratiche").delete().eq("id", pratica.id);
+          throw new Error("Credito insufficiente");
+        }
+
+        // Now update to inviata + pagata atomically
+        const { error: updateError } = await supabase.from("pratiche").update({
+          stato: "inviata",
+          pagamento_stato: "pagata",
+        }).eq("id", pratica.id);
+        if (updateError) throw updateError;
+      } else {
+        // Draft: just create
+        const { error } = await supabase.from("pratiche").insert({
+          company_id: companyId,
+          creato_da: user.id,
+          service_id: eneaService?.id || null,
+          cliente_finale_id: clienteId,
+          categoria: "enea_bonus" as const,
+          titolo: `Pratica ENEA - ${validated.nome} ${validated.cognome}`,
+          stato: "bozza",
+          priorita: "normale",
+          prezzo,
+          pagamento_stato: "non_pagata",
+          dati_pratica: Object.keys(datiPratica).length > 0 ? datiPratica : {},
+        }).select().single();
+        if (error) throw error;
       }
     },
     onSuccess: (_, asBozza) => {
@@ -223,7 +327,8 @@ export default function NuovaPratica() {
   });
 
   const handleNext = () => {
-    if (step === 0 && !validateForm()) return;
+    if (step === 0 && !validateStep1()) return;
+    if (step === 1 && !validateStep2()) return;
     setStep(step + 1);
   };
 
@@ -354,12 +459,14 @@ export default function NuovaPratica() {
               </div>
               <div className="space-y-2">
                 <Label>Importo lavori (€)</Label>
-                <Input type="number" value={importoLavori} onChange={e => setImportoLavori(e.target.value)} placeholder="15000" min="0" step="0.01" />
+                <Input type="number" value={importoLavori} onChange={e => { setImportoLavori(e.target.value); setStep2Errors(prev => ({ ...prev, importo_lavori: "" })); }} placeholder="15000" min="0" step="0.01" />
+                {step2Errors.importo_lavori && <p className="text-sm text-destructive">{step2Errors.importo_lavori}</p>}
               </div>
             </div>
             <div className="space-y-2">
               <Label>Note aggiuntive</Label>
-              <Textarea value={noteAggiuntive} onChange={e => setNoteAggiuntive(e.target.value)} placeholder="Informazioni aggiuntive sulla pratica..." rows={3} />
+              <Textarea value={noteAggiuntive} onChange={e => setNoteAggiuntive(e.target.value)} placeholder="Informazioni aggiuntive sulla pratica..." rows={3} maxLength={2000} />
+              {step2Errors.note_aggiuntive && <p className="text-sm text-destructive">{step2Errors.note_aggiuntive}</p>}
             </div>
           </CardContent>
         </Card>

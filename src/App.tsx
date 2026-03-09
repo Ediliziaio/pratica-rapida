@@ -29,9 +29,6 @@ const Clienti = lazy(() => import("./pages/Clienti"));
 const Listino = lazy(() => import("./pages/Listino"));
 const AuditLog = lazy(() => import("./pages/AuditLog"));
 const AziendaDetail = lazy(() => import("./pages/AziendaDetail"));
-const Fatturazione = lazy(() => import("./pages/Fatturazione"));
-const NuovaFattura = lazy(() => import("./pages/NuovaFattura"));
-const FatturaDetail = lazy(() => import("./pages/FatturaDetail"));
 const ImpostazioniPiattaforma = lazy(() => import("./pages/ImpostazioniPiattaforma"));
 
 const queryClient = new QueryClient();

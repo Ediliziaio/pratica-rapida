@@ -52,7 +52,7 @@ export function TeamSection({ teamSectionRef }: TeamSectionProps) {
             </div>
           </div>
           <div className="relative rounded-xl overflow-hidden shadow-lg border" style={{ borderColor: `${PR_GREEN}30` }}>
-            <img src={teamImg} alt="Il team di Pratica Rapida" className="w-full h-auto" />
+            <img src={teamImg} alt="Il team di Pratica Rapida" className="w-full h-auto" loading="lazy" />
             <div className="absolute bottom-4 left-4 px-4 py-2 rounded-lg text-white text-sm font-bold" style={{ backgroundColor: PR_GREEN }}>
               Oltre 10 anni nel settore
             </div>

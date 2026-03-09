@@ -1,7 +1,11 @@
 import { FileText, BarChart3, Building2, Shield, Target, Star } from "lucide-react";
 import { PR_GREEN } from "./constants";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function FloatingIcons() {
+  const isMobile = useIsMobile();
+  if (isMobile) return null;
+
   return (
     <>
       <div className="hidden lg:block fixed left-6 top-1/4 z-0 opacity-[0.07]">

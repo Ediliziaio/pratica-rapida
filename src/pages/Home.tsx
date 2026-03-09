@@ -31,14 +31,7 @@ export default function Home() {
     };
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    const el = teamSectionRef.current;
-    if (!el) return () => window.removeEventListener("scroll", onScroll);
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { teamReached.current = true; setShowBottomBar(true); } },
-      { threshold: 0.1 }
-    );
-    observer.observe(el);
-    return () => { window.removeEventListener("scroll", onScroll); observer.disconnect(); };
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (

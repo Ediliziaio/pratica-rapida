@@ -334,14 +334,16 @@ export default function Dashboard() {
           </h1>
           <p className="text-muted-foreground">{dashboardSubtitle}</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => navigate("/pratiche/nuova")} size="sm">
-            <Plus className="mr-2 h-4 w-4" />Nuova Pratica
-          </Button>
-          <Button variant="outline" onClick={() => navigate("/wallet")} size="sm">
-            <CreditCard className="mr-2 h-4 w-4" />Wallet
-          </Button>
-        </div>
+        {!isInternalUser && (
+          <div className="flex gap-2">
+            <Button onClick={() => navigate("/pratiche/nuova")} size="sm">
+              <Plus className="mr-2 h-4 w-4" />Nuova Pratica
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/wallet")} size="sm">
+              <CreditCard className="mr-2 h-4 w-4" />Wallet
+            </Button>
+          </div>
+        )}
       </div>
 
       {companyId && (

@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2, X } from "lucide-react";
-import { STATO_ORDER, STATO_CONFIG } from "@/lib/pratiche-config";
+import { STATO_ORDER, STATO_CONFIG, COMPANY_TRANSITIONS, INTERNAL_TRANSITIONS } from "@/lib/pratiche-config";
+import type { PraticaStato } from "@/lib/pratiche-config";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,17 +34,23 @@ export function BulkActionsBar({
   deleteLabel = "Elimina selezionate",
   isAdmin,
 }: BulkActionsBarProps) {
+  // #14 For non-admin, only show valid target states from bozza (most restrictive)
+  const transitions = isAdmin ? INTERNAL_TRANSITIONS : COMPANY_TRANSITIONS;
+  const availableStates = isAdmin
+    ? STATO_ORDER
+    : [...new Set(Object.values(transitions).flat())] as PraticaStato[];
+
   return (
     <div className="flex items-center gap-3 rounded-lg border bg-muted/50 p-3">
       <span className="text-sm font-medium">{count} selezionat{count === 1 ? "a" : "e"}</span>
 
-      {onChangeStato && (
+      {onChangeStato && availableStates.length > 0 && (
         <Select onValueChange={onChangeStato}>
           <SelectTrigger className="h-8 w-40 text-xs">
             <SelectValue placeholder="Cambia stato" />
           </SelectTrigger>
           <SelectContent>
-            {STATO_ORDER.map(s => (
+            {availableStates.map(s => (
               <SelectItem key={s} value={s}>{STATO_CONFIG[s].label}</SelectItem>
             ))}
           </SelectContent>

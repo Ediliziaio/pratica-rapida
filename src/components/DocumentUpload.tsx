@@ -6,8 +6,18 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, FileText, Download, Trash2, Eye } from "lucide-react";
+import { Upload, FileText, Download, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type VisibilitaDocumento = Database["public"]["Enums"]["visibilita_documento"];
@@ -71,7 +81,6 @@ export function DocumentUpload({ praticaId, companyId }: DocumentUploadProps) {
         .upload(path, file);
       if (uploadError) throw uploadError;
 
-      // Get next version
       const existingVersions = documenti.filter(d => d.nome_file === file.name);
       const nextVersion = existingVersions.length > 0
         ? Math.max(...existingVersions.map(d => d.versione)) + 1
@@ -204,14 +213,35 @@ export function DocumentUpload({ praticaId, companyId }: DocumentUploadProps) {
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => downloadFile(doc.storage_path, doc.nome_file)}>
                     <Download className="h-3.5 w-3.5" />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive"
-                    onClick={() => deleteDoc.mutate({ id: doc.id, storage_path: doc.storage_path })}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  {/* #4 Fix: AlertDialog confirmation before delete */}
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Elimina documento</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Stai per eliminare "{doc.nome_file}". Questa azione è irreversibile.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annulla</AlertDialogCancel>
+                        <AlertDialogAction
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          onClick={() => deleteDoc.mutate({ id: doc.id, storage_path: doc.storage_path })}
+                        >
+                          Elimina
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             ))}

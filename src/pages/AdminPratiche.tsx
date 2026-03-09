@@ -301,6 +301,7 @@ export default function AdminPratiche() {
 
     if (oldStato === newStato) return;
 
+    // Admin pipeline — all transitions allowed for internal users
     queryClient.setQueryData(["admin-all-pratiche"], (old: any[]) =>
       old?.map(p => p.id === praticaId ? { ...p, stato: newStato } : p)
     );

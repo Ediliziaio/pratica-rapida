@@ -38,10 +38,44 @@ export const PAGAMENTO_BADGE: Record<string, { label: string; className: string 
 
 export const ACTIVE_STATES: PraticaStato[] = ["inviata", "in_lavorazione", "in_attesa_documenti"];
 
-export function getAgingDot(pratica: { stato: string; created_at: string }): { color: string; label: string } | null {
+// #13 Fix: use updated_at instead of created_at for aging calculation
+export function getAgingDot(pratica: { stato: string; updated_at: string }): { color: string; label: string } | null {
   if (!ACTIVE_STATES.includes(pratica.stato as PraticaStato)) return null;
-  const days = (Date.now() - new Date(pratica.created_at).getTime()) / 86400000;
+  const days = (Date.now() - new Date(pratica.updated_at).getTime()) / 86400000;
   if (days > 5) return { color: "bg-destructive", label: "Ferma da più di 5 giorni" };
   if (days > 3) return { color: "bg-warning", label: "Ferma da più di 3 giorni" };
   return null;
+}
+
+// #1 State transition rules
+// Company users: bozza→inviata, bozza→annullata
+// Internal users: any transition
+export type TransitionMap = Record<PraticaStato, PraticaStato[]>;
+
+export const COMPANY_TRANSITIONS: TransitionMap = {
+  bozza: ["inviata", "annullata"],
+  inviata: [], // once sent, company cannot change
+  in_lavorazione: [],
+  in_attesa_documenti: [],
+  completata: [],
+  annullata: [],
+};
+
+export const INTERNAL_TRANSITIONS: TransitionMap = {
+  bozza: ["inviata", "annullata"],
+  inviata: ["in_lavorazione", "annullata"],
+  in_lavorazione: ["in_attesa_documenti", "completata", "annullata"],
+  in_attesa_documenti: ["in_lavorazione", "completata", "annullata"],
+  completata: ["in_lavorazione"], // reopen if needed
+  annullata: ["bozza"], // restore
+};
+
+export function canTransition(
+  from: PraticaStato,
+  to: PraticaStato,
+  isInternal: boolean
+): boolean {
+  if (from === to) return false;
+  const map = isInternal ? INTERNAL_TRANSITIONS : COMPANY_TRANSITIONS;
+  return map[from]?.includes(to) ?? false;
 }

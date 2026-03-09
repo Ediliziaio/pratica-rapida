@@ -4,21 +4,27 @@ import { CSS } from "@dnd-kit/utilities";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/hooks/useCompany";
+import { useAuth, isInternal as checkInternal } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { STATO_ORDER, STATO_CONFIG } from "@/lib/pratiche-config";
+import { STATO_ORDER, STATO_CONFIG, canTransition } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
 
-function DroppableColumn({ stato, children }: { stato: string; children: React.ReactNode }) {
+function DroppableColumn({ stato, children, isValidTarget }: { stato: string; children: React.ReactNode; isValidTarget?: boolean }) {
   const { isOver, setNodeRef } = useDroppable({ id: stato });
   const conf = STATO_CONFIG[stato as PraticaStato];
+
+  const highlight = isOver && isValidTarget;
+  const dimmed = isValidTarget === false;
 
   return (
     <div
       ref={setNodeRef}
-      className={`flex w-[250px] shrink-0 flex-col rounded-xl ${conf.bgColumn} border transition-all ${isOver ? "ring-2 ring-primary shadow-lg scale-[1.02]" : ""}`}
+      className={`flex w-[250px] shrink-0 flex-col rounded-xl ${conf.bgColumn} border transition-all ${
+        highlight ? "ring-2 ring-primary shadow-lg scale-[1.02]" : ""
+      } ${dimmed ? "opacity-40" : ""}`}
     >
       {children}
     </div>
@@ -73,8 +79,11 @@ function DraggableCard({ pratica, navigate }: { pratica: any; navigate: (path: s
 
 export function PipelineView({ pratiche, navigate }: { pratiche: any[]; navigate: (path: string) => void }) {
   const { companyId } = useCompany();
+  const { roles } = useAuth();
   const queryClient = useQueryClient();
   const [activeId, setActiveId] = useState<string | null>(null);
+
+  const isInternalUser = checkInternal(roles);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -86,6 +95,7 @@ export function PipelineView({ pratiche, navigate }: { pratiche: any[]; navigate
   }, {} as Record<PraticaStato, any[]>);
 
   const activePratica = activeId ? pratiche.find(p => p.id === activeId) : null;
+  const activeStato = activePratica?.stato as PraticaStato | undefined;
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -98,9 +108,15 @@ export function PipelineView({ pratiche, navigate }: { pratiche: any[]; navigate
 
     const praticaId = active.id as string;
     const newStato = over.id as PraticaStato;
-    const oldStato = (active.data.current as any)?.stato;
+    const oldStato = (active.data.current as any)?.stato as PraticaStato;
 
     if (oldStato === newStato) return;
+
+    // #1 Validate transition
+    if (!canTransition(oldStato, newStato, isInternalUser)) {
+      toast.error("Transizione non permessa");
+      return;
+    }
 
     queryClient.setQueryData(["pratiche", companyId], (old: any[]) =>
       old?.map(p => p.id === praticaId ? { ...p, stato: newStato } : p)
@@ -131,8 +147,13 @@ export function PipelineView({ pratiche, navigate }: { pratiche: any[]; navigate
             const Icon = conf.icon;
             const items = allByStato[stato];
 
+            // Determine if this column is a valid drop target
+            const isValidTarget = activeStato
+              ? canTransition(activeStato, stato as PraticaStato, isInternalUser)
+              : undefined;
+
             return (
-              <DroppableColumn key={stato} stato={stato}>
+              <DroppableColumn key={stato} stato={stato} isValidTarget={isValidTarget}>
                 <div className="flex items-center gap-2 p-3 border-b">
                   <div className={`flex h-7 w-7 items-center justify-center rounded-md ${conf.color}`}>
                     <Icon className="h-3.5 w-3.5" />

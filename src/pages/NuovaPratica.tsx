@@ -190,7 +190,7 @@ export default function NuovaPratica() {
         company_id: companyId,
         creato_da: user.id,
         service_id: eneaService?.id || null,
-        cliente_finale_id: cliente.id,
+        cliente_finale_id: clienteId,
         categoria: "enea_bonus" as const,
         titolo: `Pratica ENEA - ${validated.nome} ${validated.cognome}`,
         stato: asBozza ? "bozza" : "inviata",

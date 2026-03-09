@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   FolderOpen, Search,
-  Building2, ArrowRight, User, List, Columns3, Download, Trash2,
+  Building2, ArrowRight, User, List, Columns3, Download, Trash2, Table2,
 } from "lucide-react";
 import { exportToCSV } from "@/lib/csv-export";
 import { useNavigate } from "react-router-dom";

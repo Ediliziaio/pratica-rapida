@@ -63,6 +63,7 @@ export function AppSidebar() {
     { title: "Analytics", url: "/analytics", icon: BarChart3 },
     { title: "Audit Log", url: "/admin/audit-log", icon: Shield },
     { title: "Utenti", url: "/utenti", icon: Users },
+    { title: "Ticket", url: "/admin/ticket", icon: LifeBuoy },
     { title: "Impostazioni", url: "/admin/impostazioni", icon: Settings },
   ];
 

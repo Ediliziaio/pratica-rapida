@@ -1,33 +1,45 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Settings, Clock, Building2, Users, FolderOpen, Save } from "lucide-react";
-
-const SLA_KEY = "pratica_rapida_sla_settings";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SLASettings {
   presaInCaricoOre: number;
   completamentoOre: number;
 }
 
-function loadSLA(): SLASettings {
-  try {
-    const stored = localStorage.getItem(SLA_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch {}
-  return { presaInCaricoOre: 24, completamentoOre: 120 };
-}
-
 export default function ImpostazioniPiattaforma() {
   const { toast } = useToast();
-  const [sla, setSla] = useState<SLASettings>(loadSLA);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const { data: slaRow } = useQuery({
+    queryKey: ["platform-settings", "sla_settings"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("platform_settings")
+        .select("id, value")
+        .eq("key", "sla_settings")
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const [sla, setSla] = useState<SLASettings>({ presaInCaricoOre: 24, completamentoOre: 120 });
+
+  useEffect(() => {
+    if (slaRow?.value) {
+      const val = slaRow.value as unknown as SLASettings;
+      setSla({ presaInCaricoOre: val.presaInCaricoOre ?? 24, completamentoOre: val.completamentoOre ?? 120 });
+    }
+  }, [slaRow]);
 
   const { data: stats } = useQuery({
     queryKey: ["platform-stats"],
@@ -45,9 +57,28 @@ export default function ImpostazioniPiattaforma() {
     },
   });
 
-  const saveSLA = () => {
-    localStorage.setItem(SLA_KEY, JSON.stringify(sla));
-    toast({ title: "Soglie SLA salvate" });
+  const [saving, setSaving] = useState(false);
+
+  const saveSLA = async () => {
+    setSaving(true);
+    try {
+      if (slaRow?.id) {
+        await supabase
+          .from("platform_settings")
+          .update({ value: sla as any, updated_at: new Date().toISOString(), updated_by: user?.id })
+          .eq("id", slaRow.id);
+      } else {
+        await supabase
+          .from("platform_settings")
+          .insert({ key: "sla_settings", value: sla as any, updated_by: user?.id });
+      }
+      queryClient.invalidateQueries({ queryKey: ["platform-settings"] });
+      toast({ title: "Soglie SLA salvate" });
+    } catch {
+      toast({ title: "Errore nel salvataggio", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -96,8 +127,8 @@ export default function ImpostazioniPiattaforma() {
                   <p className="text-xs text-muted-foreground">Tempo max da "in_lavorazione" a "completata"</p>
                 </div>
               </div>
-              <Button onClick={saveSLA} className="gap-2">
-                <Save className="h-4 w-4" /> Salva Soglie
+              <Button onClick={saveSLA} disabled={saving} className="gap-2">
+                <Save className="h-4 w-4" /> {saving ? "Salvataggio..." : "Salva Soglie"}
               </Button>
             </CardContent>
           </Card>

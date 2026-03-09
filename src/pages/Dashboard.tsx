@@ -7,36 +7,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   FolderOpen, Clock, FileCheck, Wallet, TrendingUp, AlertCircle,
-  ArrowRight, Plus, CreditCard,
-  Building2, Send, User, AlertTriangle,
+  ArrowRight, Plus, CreditCard, BarChart3, Trophy, Users as UsersIcon,
+  Building2, Send, User, AlertTriangle, DollarSign, Timer,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { STATO_CONFIG } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
 import { ActivityFeed } from "@/components/ActivityFeed";
+import { useSLASettings } from "@/hooks/usePlatformSettings";
 
 const MONTH_NAMES = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
-
-const SLA_KEY = "pratica_rapida_sla_settings";
-function loadSLA() {
-  try {
-    const stored = localStorage.getItem(SLA_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch {}
-  return { presaInCaricoOre: 24, completamentoOre: 120 };
-}
 
 export default function Dashboard() {
   const { user, roles } = useAuth();
   const { companyId } = useCompany();
   const navigate = useNavigate();
-
   const isInternalUser = isInternal(roles);
+  const { sla: slaSettings } = useSLASettings();
 
   const { data: company } = useQuery({
     queryKey: ["company-balance", companyId],
@@ -48,24 +41,32 @@ export default function Dashboard() {
     enabled: !!companyId,
   });
 
-  const { data: pratiche = [] } = useQuery({
+  const { data: pratiche = [], isLoading: loadingPratiche } = useQuery({
     queryKey: ["pratiche-dashboard", companyId],
     queryFn: async () => {
       if (!companyId) return [];
       const { data } = await supabase
         .from("pratiche")
-        .select("id, titolo, stato, prezzo, created_at, clienti_finali(nome, cognome)")
+        .select("id, titolo, stato, prezzo, created_at, updated_at, clienti_finali(nome, cognome)")
         .eq("company_id", companyId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(500);
       return data || [];
     },
     enabled: !!companyId,
   });
 
-  const { data: allPratiche = [] } = useQuery({
+  const { data: allPratiche = [], isLoading: loadingAll } = useQuery({
     queryKey: ["all-pratiche-stats"],
     queryFn: async () => {
-      const { data } = await supabase.from("pratiche").select("id, titolo, stato, prezzo, created_at, updated_at, company_id, pagamento_stato, assegnatario_id");
+      // Limit to last 12 months for performance
+      const twelveMonthsAgo = new Date();
+      twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+      const { data } = await supabase
+        .from("pratiche")
+        .select("id, titolo, stato, prezzo, created_at, updated_at, company_id, pagamento_stato, assegnatario_id")
+        .gte("created_at", twelveMonthsAgo.toISOString())
+        .order("created_at", { ascending: false });
       return data || [];
     },
     enabled: isInternalUser,
@@ -102,26 +103,36 @@ export default function Dashboard() {
   const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
   const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
 
-  const aperte = pratiche.filter(p => !["completata", "annullata"].includes(p.stato)).length;
-  const attesaDoc = pratiche.filter(p => p.stato === "in_attesa_documenti").length;
-  const completateMese = pratiche.filter(p => {
-    const d = new Date(p.created_at);
-    return p.stato === "completata" && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-  }).length;
-  const completateMesePrec = pratiche.filter(p => {
-    const d = new Date(p.created_at);
-    return p.stato === "completata" && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
-  }).length;
-  const aperteMesePrec = pratiche.filter(p => {
-    const d = new Date(p.created_at);
-    return !["completata", "annullata"].includes(p.stato) && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
-  }).length;
+  // Company KPIs — use updated_at for "completate" stats, created_at for "create nel mese"
+  const companyKPIs = useMemo(() => {
+    const aperte = pratiche.filter(p => !["completata", "annullata"].includes(p.stato)).length;
+    const attesaDoc = pratiche.filter(p => p.stato === "in_attesa_documenti").length;
 
-  const totalThisMonth = pratiche.filter(p => {
-    const d = new Date(p.created_at);
-    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-  }).length;
-  const completateProgress = totalThisMonth > 0 ? (completateMese / totalThisMonth) * 100 : 0;
+    const completateMese = pratiche.filter(p => {
+      const d = new Date(p.updated_at);
+      return p.stato === "completata" && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    }).length;
+    const completateMesePrec = pratiche.filter(p => {
+      const d = new Date(p.updated_at);
+      return p.stato === "completata" && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+    }).length;
+
+    const createMese = pratiche.filter(p => {
+      const d = new Date(p.created_at);
+      return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    }).length;
+
+    const aperteMesePrec = pratiche.filter(p => {
+      const d = new Date(p.created_at);
+      return !["completata", "annullata"].includes(p.stato) && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+    }).length;
+
+    const completateProgress = createMese > 0 ? (completateMese / createMese) * 100 : 0;
+    const diffAperte = aperte - aperteMesePrec;
+    const diffCompletate = completateMese - completateMesePrec;
+
+    return { aperte, attesaDoc, completateMese, createMese, completateProgress, diffAperte, diffCompletate };
+  }, [pratiche, thisMonth, thisYear, lastMonth, lastMonthYear]);
 
   const chartData = useMemo(() => {
     const months: { name: string; completate: number; in_corso: number }[] = [];
@@ -129,14 +140,16 @@ export default function Dashboard() {
       const d = new Date(thisYear, thisMonth - i, 1);
       const m = d.getMonth();
       const y = d.getFullYear();
-      const monthPratiche = pratiche.filter(p => {
-        const pd = new Date(p.created_at);
-        return pd.getMonth() === m && pd.getFullYear() === y;
-      });
       months.push({
         name: MONTH_NAMES[m],
-        completate: monthPratiche.filter(p => p.stato === "completata").length,
-        in_corso: monthPratiche.filter(p => !["completata", "annullata"].includes(p.stato)).length,
+        completate: pratiche.filter(p => {
+          const pd = new Date(p.updated_at);
+          return p.stato === "completata" && pd.getMonth() === m && pd.getFullYear() === y;
+        }).length,
+        in_corso: pratiche.filter(p => {
+          const pd = new Date(p.created_at);
+          return !["completata", "annullata"].includes(p.stato) && pd.getMonth() === m && pd.getFullYear() === y;
+        }).length,
       });
     }
     return months;
@@ -149,95 +162,65 @@ export default function Dashboard() {
 
   const recentPratiche = pratiche.slice(0, 5);
 
-  // ---- Internal KPIs ----
-  const totalRevenue = allPratiche.reduce((s, p) => s + (p.prezzo || 0), 0);
-  const totalPratiche = allPratiche.length;
-  const completate = allPratiche.filter(p => p.stato === "completata").length;
-  const backlog = allPratiche.filter(p => !["completata", "annullata"].includes(p.stato)).length;
+  // ---- Internal KPIs (consolidated) ----
+  const internalKPIs = useMemo(() => {
+    if (!isInternalUser || allPratiche.length === 0) return null;
 
-  const revenueThisMonth = allPratiche.filter(p => {
-    const d = new Date(p.created_at);
-    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-  }).reduce((s, p) => s + (p.prezzo || 0), 0);
-  const revenueLastMonth = allPratiche.filter(p => {
-    const d = new Date(p.created_at);
-    return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
-  }).reduce((s, p) => s + (p.prezzo || 0), 0);
-  const revenueDiff = revenueThisMonth - revenueLastMonth;
+    const totalRevenue = allPratiche.reduce((s, p) => s + (p.prezzo || 0), 0);
+    const totalPratiche = allPratiche.length;
+    const completate = allPratiche.filter(p => p.stato === "completata").length;
+    const backlog = allPratiche.filter(p => !["completata", "annullata"].includes(p.stato)).length;
 
-  const praticheThisMonth = allPratiche.filter(p => {
-    const d = new Date(p.created_at);
-    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-  }).length;
-  const praticheLastMonth = allPratiche.filter(p => {
-    const d = new Date(p.created_at);
-    return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
-  }).length;
-  const praticheDiff = praticheThisMonth - praticheLastMonth;
+    const revenueThisMonth = allPratiche.filter(p => {
+      const d = new Date(p.created_at);
+      return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    }).reduce((s, p) => s + (p.prezzo || 0), 0);
+    const revenueLastMonth = allPratiche.filter(p => {
+      const d = new Date(p.created_at);
+      return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+    }).reduce((s, p) => s + (p.prezzo || 0), 0);
 
-  const completateThisMonthGlobal = allPratiche.filter(p => {
-    const d = new Date(p.created_at);
-    return p.stato === "completata" && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-  }).length;
-  const completateLastMonthGlobal = allPratiche.filter(p => {
-    const d = new Date(p.created_at);
-    return p.stato === "completata" && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
-  }).length;
-  const completateDiffGlobal = completateThisMonthGlobal - completateLastMonthGlobal;
+    const praticheThisMonth = allPratiche.filter(p => {
+      const d = new Date(p.created_at);
+      return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    }).length;
+    const praticheLastMonth = allPratiche.filter(p => {
+      const d = new Date(p.created_at);
+      return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+    }).length;
 
-  const globalChartData = useMemo(() => {
-    const months: { name: string; completate: number; in_corso: number }[] = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(thisYear, thisMonth - i, 1);
-      const m = d.getMonth();
-      const y = d.getFullYear();
-      const monthPratiche = allPratiche.filter(p => {
-        const pd = new Date(p.created_at);
-        return pd.getMonth() === m && pd.getFullYear() === y;
-      });
-      months.push({
-        name: MONTH_NAMES[m],
-        completate: monthPratiche.filter(p => p.stato === "completata").length,
-        in_corso: monthPratiche.filter(p => !["completata", "annullata"].includes(p.stato)).length,
-      });
-    }
-    return months;
-  }, [allPratiche, thisMonth, thisYear]);
+    const completateThisMonth = allPratiche.filter(p => {
+      const d = new Date(p.updated_at);
+      return p.stato === "completata" && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    }).length;
+    const completateLastMonth = allPratiche.filter(p => {
+      const d = new Date(p.updated_at);
+      return p.stato === "completata" && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+    }).length;
 
-  const top5Aziende = useMemo(() => {
-    const counts: Record<string, number> = {};
-    allPratiche.forEach(p => { counts[p.company_id] = (counts[p.company_id] || 0) + 1; });
-    return Object.entries(counts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([id, count]) => ({
-        id,
-        name: allCompanies.find(c => c.id === id)?.ragione_sociale || "—",
-        count,
-      }));
-  }, [allPratiche, allCompanies]);
+    const praticheInviate = allPratiche.filter(p => p.stato === "inviata").length;
+    const praticheAttesaDoc = allPratiche.filter(p => p.stato === "in_attesa_documenti").length;
+    const praticheInAttesa = praticheInviate + praticheAttesaDoc;
 
-  const praticheInAttesa = allPratiche.filter(p => p.stato === "inviata" || p.stato === "in_attesa_documenti").length;
-  const praticheInviate = allPratiche.filter(p => p.stato === "inviata").length;
-  const praticheAttesaDocGlobal = allPratiche.filter(p => p.stato === "in_attesa_documenti").length;
-
-  const diffAperte = aperte - aperteMesePrec;
-  const diffCompletate = completateMese - completateMesePrec;
+    return {
+      totalRevenue, totalPratiche, completate, backlog,
+      revenueDiff: revenueThisMonth - revenueLastMonth,
+      praticheDiff: praticheThisMonth - praticheLastMonth,
+      completateDiff: completateThisMonth - completateLastMonth,
+      praticheInAttesa, praticheInviate, praticheAttesaDoc,
+    };
+  }, [allPratiche, isInternalUser, thisMonth, thisYear, lastMonth, lastMonthYear]);
 
   // ---- SLA Tracking ----
-  const slaSettings = loadSLA();
-
   const slaMetrics = useMemo(() => {
     if (!isInternalUser || allPratiche.length === 0) return null;
 
-    // Average time to take over (inviata -> in_lavorazione) using updated_at - created_at for in_lavorazione
     const inLavorazione = allPratiche.filter(p => ["in_lavorazione", "completata", "in_attesa_documenti"].includes(p.stato));
     const takeoverTimes = inLavorazione
       .filter(p => p.updated_at && p.created_at)
       .map(p => (new Date(p.updated_at).getTime() - new Date(p.created_at).getTime()) / 3600000);
     const avgTakeover = takeoverTimes.length > 0 ? takeoverTimes.reduce((a, b) => a + b, 0) / takeoverTimes.length : 0;
 
-    // Practices beyond SLA (inviata for more than threshold hours)
     const nowMs = Date.now();
     const overSLA = allPratiche.filter(p => {
       if (p.stato !== "inviata") return false;
@@ -292,6 +275,40 @@ export default function Dashboard() {
       .reduce((s, p) => s + (p.prezzo || 0), 0);
   }, [allPratiche]);
 
+  const globalChartData = useMemo(() => {
+    const months: { name: string; completate: number; in_corso: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(thisYear, thisMonth - i, 1);
+      const m = d.getMonth();
+      const y = d.getFullYear();
+      months.push({
+        name: MONTH_NAMES[m],
+        completate: allPratiche.filter(p => {
+          const pd = new Date(p.updated_at);
+          return p.stato === "completata" && pd.getMonth() === m && pd.getFullYear() === y;
+        }).length,
+        in_corso: allPratiche.filter(p => {
+          const pd = new Date(p.created_at);
+          return !["completata", "annullata"].includes(p.stato) && pd.getMonth() === m && pd.getFullYear() === y;
+        }).length,
+      });
+    }
+    return months;
+  }, [allPratiche, thisMonth, thisYear]);
+
+  const top5Aziende = useMemo(() => {
+    const counts: Record<string, number> = {};
+    allPratiche.forEach(p => { counts[p.company_id] = (counts[p.company_id] || 0) + 1; });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([id, count]) => ({
+        id,
+        name: allCompanies.find(c => c.id === id)?.ragione_sociale || "—",
+        count,
+      }));
+  }, [allPratiche, allCompanies]);
+
   const DiffBadge = ({ diff, invert }: { diff: number; invert?: boolean }) => {
     if (diff === 0) return null;
     const positive = invert ? diff < 0 : diff > 0;
@@ -304,6 +321,10 @@ export default function Dashboard() {
 
   const statusColor = (s: string) => s === "green" ? "text-success" : s === "yellow" ? "text-warning" : "text-destructive";
 
+  const dashboardSubtitle = isInternalUser && !companyId
+    ? "Panoramica operativa della piattaforma."
+    : "Ecco la situazione delle tue pratiche ENEA.";
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -311,7 +332,7 @@ export default function Dashboard() {
           <h1 className="font-display text-2xl font-bold tracking-tight">
             Bentornato{user?.user_metadata?.nome ? `, ${user.user_metadata.nome}` : ""}
           </h1>
-          <p className="text-muted-foreground">Ecco la situazione delle tue pratiche ENEA.</p>
+          <p className="text-muted-foreground">{dashboardSubtitle}</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => navigate("/pratiche/nuova")} size="sm">
@@ -326,57 +347,68 @@ export default function Dashboard() {
       {companyId && (
         <>
           {/* KPI Cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Pratiche Aperte</CardTitle>
-                <FolderOpen className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{aperte}</div>
-                {diffAperte !== 0 && (
-                  <p className={`text-xs mt-1 ${diffAperte > 0 ? "text-warning" : "text-success"}`}>
-                    {diffAperte > 0 ? "+" : ""}{diffAperte} vs mese scorso
+          {loadingPratiche ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[1, 2, 3, 4].map(i => (
+                <Card key={i}>
+                  <CardHeader className="pb-2"><Skeleton className="h-4 w-24" /></CardHeader>
+                  <CardContent><Skeleton className="h-8 w-16" /></CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Pratiche Aperte</CardTitle>
+                  <FolderOpen className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{companyKPIs.aperte}</div>
+                  {companyKPIs.diffAperte !== 0 && (
+                    <p className={`text-xs mt-1 ${companyKPIs.diffAperte > 0 ? "text-warning" : "text-success"}`}>
+                      {companyKPIs.diffAperte > 0 ? "+" : ""}{companyKPIs.diffAperte} vs mese scorso
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+              <Card className={companyKPIs.attesaDoc > 0 ? "border-warning/50" : ""}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Attesa Documenti</CardTitle>
+                  <AlertCircle className={`h-4 w-4 ${companyKPIs.attesaDoc > 0 ? "text-warning" : "text-muted-foreground"}`} />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{companyKPIs.attesaDoc}</div>
+                  {companyKPIs.attesaDoc > 0 && (
+                    <Button variant="link" size="sm" className="mt-1 h-auto p-0 text-xs text-warning" onClick={() => navigate("/pratiche")}>
+                      Carica ora <ArrowRight className="ml-1 h-3 w-3" />
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Completate (mese)</CardTitle>
+                  <FileCheck className="h-4 w-4 text-success" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{companyKPIs.completateMese}</div>
+                  <Progress value={companyKPIs.completateProgress} className="mt-2 h-1.5" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {companyKPIs.completateMese}/{companyKPIs.createMese} questo mese
+                    {companyKPIs.diffCompletate !== 0 && <span className={companyKPIs.diffCompletate > 0 ? " text-success" : " text-destructive"}> ({companyKPIs.diffCompletate > 0 ? "+" : ""}{companyKPIs.diffCompletate})</span>}
                   </p>
-                )}
-              </CardContent>
-            </Card>
-            <Card className={attesaDoc > 0 ? "border-warning/50" : ""}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Attesa Documenti</CardTitle>
-                <AlertCircle className={`h-4 w-4 ${attesaDoc > 0 ? "text-warning" : "text-muted-foreground"}`} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{attesaDoc}</div>
-                {attesaDoc > 0 && (
-                  <Button variant="link" size="sm" className="mt-1 h-auto p-0 text-xs text-warning" onClick={() => navigate("/pratiche")}>
-                    Carica ora <ArrowRight className="ml-1 h-3 w-3" />
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Completate (mese)</CardTitle>
-                <FileCheck className="h-4 w-4 text-success" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{completateMese}</div>
-                <Progress value={completateProgress} className="mt-2 h-1.5" />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {completateMese}/{totalThisMonth} questo mese
-                  {diffCompletate !== 0 && <span className={diffCompletate > 0 ? " text-success" : " text-destructive"}> ({diffCompletate > 0 ? "+" : ""}{diffCompletate})</span>}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Credito Wallet</CardTitle>
-                <Wallet className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent><div className="text-3xl font-bold">€ {(company?.wallet_balance ?? 0).toFixed(2)}</div></CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Credito Wallet</CardTitle>
+                  <Wallet className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent><div className="text-3xl font-bold">€ {(company?.wallet_balance ?? 0).toFixed(2)}</div></CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Chart + Recent practices */}
           <div className="grid gap-4 lg:grid-cols-2">
@@ -439,7 +471,7 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {aperte === 0 && pratiche.length === 0 && (
+          {companyKPIs.aperte === 0 && pratiche.length === 0 && (
             <Card className="border-dashed">
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <FolderOpen className="mb-4 h-12 w-12 text-muted-foreground/40" />
@@ -455,56 +487,71 @@ export default function Dashboard() {
       {isInternalUser && (
         <>
           <div className="border-t pt-6">
-            <h2 className="font-display text-lg font-semibold mb-4">📊 KPI Interni</h2>
+            <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" /> KPI Interni
+            </h2>
           </div>
 
           {/* KPI con variazioni */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Revenue Totale</CardTitle>
-                <TrendingUp className="h-4 w-4 text-success" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">€ {totalRevenue.toFixed(2)}</div>
-                <DiffBadge diff={revenueDiff} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Pratiche Totali</CardTitle>
-                <FolderOpen className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{totalPratiche}</div>
-                <DiffBadge diff={praticheDiff} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Completate</CardTitle>
-                <FileCheck className="h-4 w-4 text-success" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{completate}</div>
-                <DiffBadge diff={completateDiffGlobal} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Backlog</CardTitle>
-                <Clock className="h-4 w-4 text-warning" />
-              </CardHeader>
-              <CardContent><div className="text-3xl font-bold">{backlog}</div></CardContent>
-            </Card>
-          </div>
+          {loadingAll ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[1, 2, 3, 4].map(i => (
+                <Card key={i}>
+                  <CardHeader className="pb-2"><Skeleton className="h-4 w-24" /></CardHeader>
+                  <CardContent><Skeleton className="h-8 w-16" /></CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : internalKPIs && (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Revenue Totale</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-success" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">€ {internalKPIs.totalRevenue.toFixed(2)}</div>
+                  <DiffBadge diff={internalKPIs.revenueDiff} />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Pratiche Totali</CardTitle>
+                  <FolderOpen className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{internalKPIs.totalPratiche}</div>
+                  <DiffBadge diff={internalKPIs.praticheDiff} />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Completate</CardTitle>
+                  <FileCheck className="h-4 w-4 text-success" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{internalKPIs.completate}</div>
+                  <DiffBadge diff={internalKPIs.completateDiff} />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Backlog</CardTitle>
+                  <Clock className="h-4 w-4 text-warning" />
+                </CardHeader>
+                <CardContent><div className="text-3xl font-bold">{internalKPIs.backlog}</div></CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* SLA Tracking */}
           {slaMetrics && (
             <div className="grid gap-4 sm:grid-cols-3">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">⏱ Tempo medio presa in carico</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Timer className="h-4 w-4" /> Tempo medio presa in carico
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className={`text-2xl font-bold ${slaMetrics.avgTakeover > slaSettings.presaInCaricoOre ? "text-destructive" : "text-success"}`}>
@@ -515,7 +562,9 @@ export default function Dashboard() {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">⏱ Tempo medio completamento</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Timer className="h-4 w-4" /> Tempo medio completamento
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className={`text-2xl font-bold ${slaMetrics.avgCompletion > slaSettings.completamentoOre ? "text-destructive" : "text-success"}`}>
@@ -526,7 +575,9 @@ export default function Dashboard() {
               </Card>
               <Card className={slaMetrics.overSLA > 0 ? "border-destructive/50" : ""}>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">🚨 Oltre SLA</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                    <AlertTriangle className="h-4 w-4" /> Oltre SLA
+                  </CardTitle>
                   {slaMetrics.overSLA > 0 && <AlertTriangle className="h-4 w-4 text-destructive" />}
                 </CardHeader>
                 <CardContent>
@@ -540,18 +591,20 @@ export default function Dashboard() {
           )}
 
           {/* Alert pratiche in attesa */}
-          {praticheInAttesa > 0 && (
+          {internalKPIs && internalKPIs.praticheInAttesa > 0 && (
             <Card className="border-warning/50 bg-warning/5">
               <CardContent className="flex items-center gap-4 p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-warning/10">
                   <AlertCircle className="h-5 w-5 text-warning" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold">⚠️ {praticheInAttesa} pratiche richiedono attenzione</p>
+                  <p className="font-semibold flex items-center gap-1.5">
+                    <AlertTriangle className="h-4 w-4 text-warning" /> {internalKPIs.praticheInAttesa} pratiche richiedono attenzione
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    {praticheInviate > 0 && <span>{praticheInviate} inviate (non ancora prese in carico)</span>}
-                    {praticheInviate > 0 && praticheAttesaDocGlobal > 0 && " · "}
-                    {praticheAttesaDocGlobal > 0 && <span>{praticheAttesaDocGlobal} in attesa documenti</span>}
+                    {internalKPIs.praticheInviate > 0 && <span>{internalKPIs.praticheInviate} inviate (non ancora prese in carico)</span>}
+                    {internalKPIs.praticheInviate > 0 && internalKPIs.praticheAttesaDoc > 0 && " · "}
+                    {internalKPIs.praticheAttesaDoc > 0 && <span>{internalKPIs.praticheAttesaDoc} in attesa documenti</span>}
                   </p>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => navigate("/admin/pratiche")}>
@@ -565,7 +618,9 @@ export default function Dashboard() {
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm font-medium">👥 Carico Operatori</CardTitle>
+                <CardTitle className="text-sm font-medium flex items-center gap-1.5">
+                  <UsersIcon className="h-4 w-4 text-primary" /> Carico Operatori
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {operatorWorkload.length === 0 ? (
@@ -593,7 +648,9 @@ export default function Dashboard() {
           {unpaidPratiche.length > 0 && (
             <Card className="border-warning/50">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-medium">💰 Pratiche Completate Non Pagate</CardTitle>
+                <CardTitle className="text-sm font-medium flex items-center gap-1.5">
+                  <DollarSign className="h-4 w-4 text-warning" /> Pratiche Completate Non Pagate
+                </CardTitle>
                 <Badge variant="outline" className="text-warning">
                   € {totalUnpaid.toFixed(2)} da riscuotere
                 </Badge>
@@ -650,7 +707,9 @@ export default function Dashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm font-medium">🏆 Top 5 Aziende per pratiche</CardTitle>
+                <CardTitle className="text-sm font-medium flex items-center gap-1.5">
+                  <Trophy className="h-4 w-4 text-primary" /> Top 5 Aziende per pratiche
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {top5Aziende.length === 0 ? (

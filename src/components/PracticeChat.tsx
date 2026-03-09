@@ -29,7 +29,17 @@ export function PracticeChat({ praticaId, companyId }: PracticeChatProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastSentRef = useRef<number>(0);
 
-  const { data: messages = [] } = useQuery({
+  type MessageWithProfile = {
+    id: string;
+    pratica_id: string;
+    company_id: string;
+    user_id: string;
+    messaggio: string;
+    created_at: string;
+    profile?: ChatProfile;
+  };
+
+  const { data: messages = [] } = useQuery<MessageWithProfile[]>({
     queryKey: ["practice-messages", praticaId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -41,14 +51,14 @@ export function PracticeChat({ praticaId, companyId }: PracticeChatProps) {
 
       // Fetch profiles for message authors
       const authorIds = [...new Set(data.map(m => m.user_id))];
-      const { data: profilesData } = authorIds.length > 0
-        ? await supabase.from("profiles").select("id, nome, cognome").in("id", authorIds)
-        : { data: [] };
+      if (authorIds.length === 0) return data;
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, nome, cognome")
+        .in("id", authorIds);
       const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
 
       return data.map(m => ({ ...m, profile: profileMap[m.user_id] as ChatProfile | undefined }));
-      if (error) throw error;
-      return data;
     },
   });
 

@@ -8,7 +8,7 @@ import {
   ListChecks,
   LogOut,
   Users,
-  FileText,
+  
   BookOpen,
   BarChart3,
   Shield,

@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { TrendingUp, FolderOpen, Clock, Euro, AlertTriangle, Building2 } from "lucide-react";
 
 const CATEGORY_LABELS: Record<string, string> = {
-  fatturazione: "Fatturazione", enea_bonus: "ENEA / Bonus",
+  enea_bonus: "ENEA / Bonus",
   finanziamenti: "Finanziamenti", pratiche_edilizie: "Pratiche Edilizie", altro: "Altro",
 };
 

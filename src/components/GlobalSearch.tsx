@@ -12,13 +12,13 @@ import {
   CommandItem,
   CommandSeparator,
 } from "@/components/ui/command";
-import { FolderOpen, Users, FileText, Search } from "lucide-react";
+import { FolderOpen, Users, Search } from "lucide-react";
 
 interface SearchResult {
   id: string;
   label: string;
   sublabel?: string;
-  type: "pratica" | "cliente" | "fattura";
+  type: "pratica" | "cliente";
   url: string;
 }
 
@@ -31,7 +31,6 @@ export function GlobalSearch() {
   const { roles } = useAuth();
   const navigate = useNavigate();
 
-  // Cmd+K shortcut
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -53,7 +52,6 @@ export function GlobalSearch() {
       const all: SearchResult[] = [];
       const pattern = `%${q}%`;
 
-      // Search pratiche (scoped by company for non-internal users)
       let praticheQuery = supabase
         .from("pratiche")
         .select("id, titolo, stato, categoria")
@@ -75,7 +73,6 @@ export function GlobalSearch() {
         );
       }
 
-      // Search clienti
       if (companyId) {
         const { data: clienti } = await supabase
           .from("clienti_finali")
@@ -96,27 +93,6 @@ export function GlobalSearch() {
         }
       }
 
-      // Search fatture
-      if (companyId) {
-        const { data: fatture } = await supabase
-          .from("fatture")
-          .select("id, numero, totale, stato")
-          .eq("company_id", companyId)
-          .or(`numero.ilike.${pattern}`)
-          .limit(5);
-        if (fatture) {
-          fatture.forEach((f) =>
-            all.push({
-              id: f.id,
-              label: `Fattura ${f.numero}`,
-              sublabel: `€ ${f.totale} · ${f.stato}`,
-              type: "fattura",
-              url: `/fatturazione`,
-            })
-          );
-        }
-      }
-
       setResults(all);
       setLoading(false);
     },
@@ -131,7 +107,6 @@ export function GlobalSearch() {
   const iconMap = {
     pratica: FolderOpen,
     cliente: Users,
-    fattura: FileText,
   };
 
   const handleSelect = (r: SearchResult) => {
@@ -142,7 +117,6 @@ export function GlobalSearch() {
 
   const pratiche = results.filter((r) => r.type === "pratica");
   const clienti = results.filter((r) => r.type === "cliente");
-  const fatture = results.filter((r) => r.type === "fattura");
 
   return (
     <>
@@ -158,7 +132,7 @@ export function GlobalSearch() {
       </button>
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput
-          placeholder="Cerca pratiche, clienti, fatture..."
+          placeholder="Cerca pratiche, clienti..."
           value={query}
           onValueChange={setQuery}
         />
@@ -189,27 +163,6 @@ export function GlobalSearch() {
               <CommandSeparator />
               <CommandGroup heading="Clienti">
                 {clienti.map((r) => {
-                  const Icon = iconMap[r.type];
-                  return (
-                    <CommandItem key={r.id} onSelect={() => handleSelect(r)}>
-                      <Icon className="mr-2 h-4 w-4 text-muted-foreground" />
-                      <div className="flex flex-col">
-                        <span>{r.label}</span>
-                        {r.sublabel && (
-                          <span className="text-xs text-muted-foreground">{r.sublabel}</span>
-                        )}
-                      </div>
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-            </>
-          )}
-          {fatture.length > 0 && (
-            <>
-              <CommandSeparator />
-              <CommandGroup heading="Fatture">
-                {fatture.map((r) => {
                   const Icon = iconMap[r.type];
                   return (
                     <CommandItem key={r.id} onSelect={() => handleSelect(r)}>

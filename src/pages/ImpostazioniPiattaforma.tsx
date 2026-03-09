@@ -80,12 +80,12 @@ export default function ImpostazioniPiattaforma() {
       if (slaRow?.id) {
         await supabase
           .from("platform_settings")
-          .update({ value: sla as unknown as Record<string, unknown>, updated_at: new Date().toISOString(), updated_by: user?.id })
+          .update({ value: sla as unknown as Record<string, never>, updated_at: new Date().toISOString(), updated_by: user?.id })
           .eq("id", slaRow.id);
       } else {
         await supabase
           .from("platform_settings")
-          .insert({ key: "sla_settings", value: sla as unknown as Record<string, unknown>, updated_by: user?.id });
+          .insert([{ key: "sla_settings", value: sla as unknown as Record<string, never>, updated_by: user?.id }]);
       }
       queryClient.invalidateQueries({ queryKey: ["platform-settings"] });
       toast({ title: "Soglie SLA salvate" });

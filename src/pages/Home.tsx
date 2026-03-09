@@ -21,14 +21,13 @@ import {
 
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
-  const [showBottomBar, setShowBottomBar] = useState(true);
+  const [showBottomBar, setShowBottomBar] = useState(false);
   const teamSectionRef = useRef<HTMLDivElement>(null);
-  const teamReached = useRef(false);
 
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 40);
-      if (window.scrollY > 200 && !teamReached.current) setShowBottomBar(false);
+      setShowBottomBar(window.scrollY > 600);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
 

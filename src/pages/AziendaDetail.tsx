@@ -332,45 +332,6 @@ export default function AziendaDetail() {
           </Card>
         </TabsContent>
 
-        {/* Fatture */}
-        <TabsContent value="fatture">
-          <Card>
-            <CardContent className="p-0">
-              <ScrollArea className="max-h-[400px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Numero</TableHead>
-                      <TableHead>Oggetto</TableHead>
-                      <TableHead>Totale</TableHead>
-                      <TableHead>Stato</TableHead>
-                      <TableHead>Data</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {fatture.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nessuna fattura</TableCell></TableRow>
-                    ) : fatture.map(f => (
-                      <TableRow key={f.id} className="cursor-pointer" onClick={() => navigate(`/fatturazione/${f.id}`)}>
-                        <TableCell className="font-medium">{f.numero}</TableCell>
-                        <TableCell className="truncate max-w-[200px]">{f.oggetto}</TableCell>
-                        <TableCell className="font-semibold">€ {f.totale.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={f.stato === "pagata" ? "text-success" : f.stato === "emessa" ? "text-primary" : ""}>
-                            {f.stato}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
-                          {new Date(f.data_emissione).toLocaleDateString("it-IT")}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
     </div>
   );

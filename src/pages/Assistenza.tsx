@@ -46,7 +46,7 @@ export default function Assistenza() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Tables<"support_tickets"> | null>(null);
-  const [form, setForm] = useState({ oggetto: "", descrizione: "", priorita: "normale" as const });
+  const [form, setForm] = useState({ oggetto: "", descrizione: "", priorita: "normale" as "bassa" | "normale" | "alta" });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: tickets = [], isLoading } = useQuery({

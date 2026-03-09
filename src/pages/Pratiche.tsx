@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/hooks/useCompany";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { FolderOpen, Search, Plus, List, Columns3, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
@@ -13,8 +14,10 @@ import { ListView } from "@/components/pratiche/PraticaCard";
 import { PipelineView } from "@/components/pratiche/PipelineView";
 import { PraticheFilters } from "@/components/pratiche/PraticheFilters";
 import { PraticheSummaryBar } from "@/components/pratiche/PraticheSummaryBar";
+import { BulkActionsBar } from "@/components/pratiche/BulkActionsBar";
 import { usePraticheRealtime } from "@/hooks/usePraticheRealtime";
 import { exportToCSV } from "@/lib/csv-export";
+import { useToast } from "@/hooks/use-toast";
 
 type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
 type ViewMode = "list" | "pipeline";
@@ -23,12 +26,15 @@ export default function Pratiche() {
   const { companyId } = useCompany();
   usePraticheRealtime();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterStato, setFilterStato] = useState<PraticaStato | "">("");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>();
   const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
   const [filterCliente, setFilterCliente] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const { data: pratiche = [], isLoading } = useQuery({
     queryKey: ["pratiche", companyId],
@@ -45,7 +51,6 @@ export default function Pratiche() {
     enabled: !!companyId,
   });
 
-  // Extract unique clients from loaded pratiche
   const uniqueClienti = useMemo(() => {
     const map = new Map<string, { id: string; nome: string; cognome: string }>();
     pratiche.forEach((p) => {
@@ -95,6 +100,67 @@ export default function Pratiche() {
     );
   };
 
+  // Selection helpers
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(p => p.id)));
+    }
+  }, [filtered, selectedIds.size]);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  // Bulk delete (company users can only delete bozza)
+  const bulkDelete = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("pratiche").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pratiche"] });
+      clearSelection();
+      toast({ title: "Pratiche eliminate" });
+    },
+    onError: () => toast({ title: "Errore nell'eliminazione", variant: "destructive" }),
+  });
+
+  const handleBulkDelete = () => {
+    // Company users can only delete drafts
+    const deletableIds = Array.from(selectedIds).filter(id => {
+      const p = pratiche.find(pr => pr.id === id);
+      return p?.stato === "bozza";
+    });
+    if (deletableIds.length > 0) bulkDelete.mutate(deletableIds);
+  };
+
+  const handleSingleDelete = (id: string) => {
+    bulkDelete.mutate([id]);
+  };
+
+  const canDelete = (p: any) => p.stato === "bozza";
+
+  // Bulk change stato
+  const bulkChangeStato = useMutation({
+    mutationFn: async ({ ids, stato }: { ids: string[]; stato: string }) => {
+      const { error } = await supabase.from("pratiche").update({ stato: stato as any }).in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pratiche"] });
+      clearSelection();
+      toast({ title: "Stato aggiornato" });
+    },
+  });
+
   if (!companyId) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -116,7 +182,6 @@ export default function Pratiche() {
         </Button>
       </div>
 
-      {/* KPI Summary */}
       {!isLoading && pratiche.length > 0 && <PraticheSummaryBar pratiche={pratiche} />}
 
       <div className="flex flex-col gap-3">
@@ -129,20 +194,10 @@ export default function Pratiche() {
             <Download className="mr-2 h-4 w-4" />CSV
           </Button>
           <div className="flex rounded-lg border bg-muted p-0.5">
-            <Button
-              variant={viewMode === "list" ? "default" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setViewMode("list")}
-            >
+            <Button variant={viewMode === "list" ? "default" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("list")}>
               <List className="h-4 w-4" />
             </Button>
-            <Button
-              variant={viewMode === "pipeline" ? "default" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setViewMode("pipeline")}
-            >
+            <Button variant={viewMode === "pipeline" ? "default" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("pipeline")}>
               <Columns3 className="h-4 w-4" />
             </Button>
           </div>
@@ -160,7 +215,16 @@ export default function Pratiche() {
         />
 
         {viewMode === "list" && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {filtered.length > 0 && (
+              <div className="flex items-center gap-2 mr-2" onClick={e => e.stopPropagation()}>
+                <Checkbox
+                  checked={selectedIds.size === filtered.length && filtered.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                />
+                <span className="text-xs text-muted-foreground">Tutte</span>
+              </div>
+            )}
             <Badge variant={!filterStato ? "default" : "outline"} className="cursor-pointer" onClick={() => setFilterStato("")}>Tutte</Badge>
             {STATO_ORDER.map((stato) => (
               <Badge key={stato} variant={filterStato === stato ? "default" : "outline"} className="cursor-pointer" onClick={() => setFilterStato(stato)}>
@@ -171,10 +235,29 @@ export default function Pratiche() {
         )}
       </div>
 
+      {/* Bulk actions bar */}
+      {selectedIds.size > 0 && (
+        <BulkActionsBar
+          count={selectedIds.size}
+          onClear={clearSelection}
+          onDelete={handleBulkDelete}
+          onChangeStato={(stato) => bulkChangeStato.mutate({ ids: Array.from(selectedIds), stato })}
+          deleteLabel="Elimina bozze selezionate"
+        />
+      )}
+
       {isLoading ? (
         <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
       ) : viewMode === "list" ? (
-        <ListView pratiche={filtered} navigate={navigate} />
+        <ListView
+          pratiche={filtered}
+          navigate={navigate}
+          selectable
+          selectedIds={selectedIds}
+          onToggle={toggleSelect}
+          onDelete={handleSingleDelete}
+          canDelete={canDelete}
+        />
       ) : (
         <PipelineView pratiche={filtered} navigate={navigate} />
       )}

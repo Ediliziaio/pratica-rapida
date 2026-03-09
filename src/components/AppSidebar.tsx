@@ -8,10 +8,10 @@ import {
   ListChecks,
   LogOut,
   Users,
-  
   BookOpen,
   BarChart3,
   Shield,
+  LifeBuoy,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth, isSuperAdmin, isInternal, isAzienda } from "@/hooks/useAuth";

@@ -34,7 +34,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-type ViewMode = "list" | "pipeline";
+import { PraticheTableView } from "@/components/pratiche/PraticheTableView";
+
+type ViewMode = "list" | "pipeline" | "table";
 
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";

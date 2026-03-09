@@ -34,9 +34,19 @@ export function PracticeChat({ praticaId, companyId }: PracticeChatProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("practice_messages")
-        .select("*, profiles(nome, cognome)")
+        .select("*")
         .eq("pratica_id", praticaId)
         .order("created_at", { ascending: true });
+      if (error) throw error;
+
+      // Fetch profiles for message authors
+      const authorIds = [...new Set(data.map(m => m.user_id))];
+      const { data: profilesData } = authorIds.length > 0
+        ? await supabase.from("profiles").select("id, nome, cognome").in("id", authorIds)
+        : { data: [] };
+      const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
+
+      return data.map(m => ({ ...m, profile: profileMap[m.user_id] as ChatProfile | undefined }));
       if (error) throw error;
       return data;
     },

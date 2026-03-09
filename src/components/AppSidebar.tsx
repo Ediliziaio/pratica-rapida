@@ -107,7 +107,7 @@ export function AppSidebar() {
 
         {showInternal && !isImpersonating && (
           <SidebarGroup>
-            <SidebarGroupLabel>Super Admin</SidebarGroupLabel>
+            <SidebarGroupLabel>{superAdmin ? "Super Admin" : "Gestione Interna"}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {internalItems.map((item) => (

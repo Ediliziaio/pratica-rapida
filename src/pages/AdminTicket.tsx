@@ -10,15 +10,22 @@ import { toast } from "@/hooks/use-toast";
 import { LifeBuoy, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
+import type { Tables } from "@/integrations/supabase/types";
 
-const STATO_COLORS: Record<string, string> = {
+type TicketStato = "aperto" | "in_lavorazione" | "risolto" | "chiuso";
+
+type TicketWithCompany = Tables<"support_tickets"> & {
+  companies: { ragione_sociale: string } | null;
+};
+
+const STATO_COLORS: Record<TicketStato, string> = {
   aperto: "bg-blue-100 text-blue-800",
   in_lavorazione: "bg-yellow-100 text-yellow-800",
   risolto: "bg-green-100 text-green-800",
   chiuso: "bg-muted text-muted-foreground",
 };
 
-const STATO_LABELS: Record<string, string> = {
+const STATO_LABELS: Record<TicketStato, string> = {
   aperto: "Aperto",
   in_lavorazione: "In Lavorazione",
   risolto: "Risolto",
@@ -29,7 +36,7 @@ export default function AdminTicket() {
   const queryClient = useQueryClient();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [risposta, setRisposta] = useState("");
-  const [stato, setStato] = useState("");
+  const [stato, setStato] = useState<TicketStato>("aperto");
 
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["admin-tickets"],
@@ -37,14 +44,15 @@ export default function AdminTicket() {
       const { data, error } = await supabase
         .from("support_tickets")
         .select("*, companies(ragione_sociale)")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(200);
       if (error) throw error;
-      return data;
+      return data as TicketWithCompany[];
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Record<string, any> }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: { stato: TicketStato; risposta: string } }) => {
       const { error } = await supabase.from("support_tickets").update(updates).eq("id", id);
       if (error) throw error;
     },
@@ -53,21 +61,20 @@ export default function AdminTicket() {
       toast({ title: "Ticket aggiornato" });
       setExpandedId(null);
       setRisposta("");
-      setStato("");
     },
     onError: () => {
       toast({ title: "Errore", description: "Impossibile aggiornare il ticket.", variant: "destructive" });
     },
   });
 
-  const handleExpand = (ticket: any) => {
+  const handleExpand = (ticket: TicketWithCompany) => {
     if (expandedId === ticket.id) {
       setExpandedId(null);
       return;
     }
     setExpandedId(ticket.id);
     setRisposta(ticket.risposta || "");
-    setStato(ticket.stato);
+    setStato(ticket.stato as TicketStato);
   };
 
   if (isLoading) {
@@ -95,7 +102,7 @@ export default function AdminTicket() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {tickets.map((t: any) => (
+          {tickets.map((t) => (
             <Card
               key={t.id}
               className="cursor-pointer transition-shadow hover:shadow-md"
@@ -116,8 +123,8 @@ export default function AdminTicket() {
                       <span>Priorità: {t.priorita}</span>
                     </div>
                   </div>
-                  <Badge className={STATO_COLORS[t.stato] || ""}>
-                    {STATO_LABELS[t.stato] || t.stato}
+                  <Badge className={STATO_COLORS[t.stato as TicketStato] || ""}>
+                    {STATO_LABELS[t.stato as TicketStato] || t.stato}
                   </Badge>
                 </div>
 
@@ -130,7 +137,7 @@ export default function AdminTicket() {
 
                     <div className="space-y-2">
                       <p className="text-xs font-medium text-muted-foreground">Stato</p>
-                      <Select value={stato} onValueChange={setStato}>
+                      <Select value={stato} onValueChange={(v) => setStato(v as TicketStato)}>
                         <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="aperto">Aperto</SelectItem>
@@ -159,7 +166,7 @@ export default function AdminTicket() {
                         onClick={() =>
                           updateMutation.mutate({
                             id: t.id,
-                            updates: { stato: stato as any, risposta },
+                            updates: { stato, risposta },
                           })
                         }
                       >

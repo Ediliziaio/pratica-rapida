@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/hooks/useCompany";
 import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -15,15 +15,19 @@ import { toast } from "@/hooks/use-toast";
 import { LifeBuoy, Plus, Clock, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
+import { ticketSchema } from "@/lib/validation-schemas";
+import type { Tables } from "@/integrations/supabase/types";
 
-const STATO_COLORS: Record<string, string> = {
+type TicketStato = "aperto" | "in_lavorazione" | "risolto" | "chiuso";
+
+const STATO_COLORS: Record<TicketStato, string> = {
   aperto: "bg-blue-100 text-blue-800",
   in_lavorazione: "bg-yellow-100 text-yellow-800",
   risolto: "bg-green-100 text-green-800",
   chiuso: "bg-muted text-muted-foreground",
 };
 
-const STATO_LABELS: Record<string, string> = {
+const STATO_LABELS: Record<TicketStato, string> = {
   aperto: "Aperto",
   in_lavorazione: "In Lavorazione",
   risolto: "Risolto",
@@ -41,8 +45,9 @@ export default function Assistenza() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState<any>(null);
-  const [form, setForm] = useState({ oggetto: "", descrizione: "", priorita: "normale" });
+  const [selectedTicket, setSelectedTicket] = useState<Tables<"support_tickets"> | null>(null);
+  const [form, setForm] = useState({ oggetto: "", descrizione: "", priorita: "normale" as "bassa" | "normale" | "alta" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["support-tickets", companyId],
@@ -52,7 +57,8 @@ export default function Assistenza() {
         .from("support_tickets")
         .select("*")
         .eq("company_id", companyId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(100);
       if (error) throw error;
       return data;
     },
@@ -61,12 +67,23 @@ export default function Assistenza() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      const result = ticketSchema.safeParse(form);
+      if (!result.success) {
+        const fieldErrors: Record<string, string> = {};
+        result.error.errors.forEach((e) => {
+          fieldErrors[e.path[0]?.toString() || "form"] = e.message;
+        });
+        setErrors(fieldErrors);
+        throw new Error("Dati non validi. Controlla i campi evidenziati.");
+      }
+
+      const validated = result.data;
       const { error } = await supabase.from("support_tickets").insert({
         company_id: companyId!,
         user_id: user!.id,
-        oggetto: form.oggetto.trim(),
-        descrizione: form.descrizione.trim(),
-        priorita: form.priorita as any,
+        oggetto: validated.oggetto,
+        descrizione: validated.descrizione,
+        priorita: validated.priorita,
       });
       if (error) throw error;
     },
@@ -74,12 +91,15 @@ export default function Assistenza() {
       queryClient.invalidateQueries({ queryKey: ["support-tickets", companyId] });
       toast({ title: "Ticket creato", description: "Il tuo ticket di assistenza è stato inviato." });
       setForm({ oggetto: "", descrizione: "", priorita: "normale" });
+      setErrors({});
       setOpen(false);
     },
-    onError: () => {
-      toast({ title: "Errore", description: "Impossibile creare il ticket.", variant: "destructive" });
+    onError: (e) => {
+      toast({ title: "Errore", description: e.message, variant: "destructive" });
     },
   });
+
+  const isTicketClosed = (stato: string) => stato === "risolto" || stato === "chiuso";
 
   if (isLoading) {
     return (
@@ -96,7 +116,7 @@ export default function Assistenza() {
           <LifeBuoy className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-bold">Assistenza</h1>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setErrors({}); }}>
           <DialogTrigger asChild>
             <Button><Plus className="mr-2 h-4 w-4" />Nuovo Ticket</Button>
           </DialogTrigger>
@@ -109,24 +129,28 @@ export default function Assistenza() {
                 <Label>Oggetto *</Label>
                 <Input
                   value={form.oggetto}
-                  onChange={(e) => setForm((f) => ({ ...f, oggetto: e.target.value }))}
+                  onChange={(e) => { setForm((f) => ({ ...f, oggetto: e.target.value })); if (errors.oggetto) setErrors((p) => { const n = { ...p }; delete n.oggetto; return n; }); }}
                   placeholder="Descrivi brevemente il problema"
                   maxLength={200}
+                  className={errors.oggetto ? "border-destructive" : ""}
                 />
+                {errors.oggetto && <p className="text-xs text-destructive">{errors.oggetto}</p>}
               </div>
               <div className="space-y-2">
                 <Label>Descrizione *</Label>
                 <Textarea
                   value={form.descrizione}
-                  onChange={(e) => setForm((f) => ({ ...f, descrizione: e.target.value }))}
+                  onChange={(e) => { setForm((f) => ({ ...f, descrizione: e.target.value })); if (errors.descrizione) setErrors((p) => { const n = { ...p }; delete n.descrizione; return n; }); }}
                   placeholder="Fornisci tutti i dettagli utili..."
                   rows={5}
                   maxLength={2000}
+                  className={errors.descrizione ? "border-destructive" : ""}
                 />
+                {errors.descrizione && <p className="text-xs text-destructive">{errors.descrizione}</p>}
               </div>
               <div className="space-y-2">
                 <Label>Priorità</Label>
-                <Select value={form.priorita} onValueChange={(v) => setForm((f) => ({ ...f, priorita: v }))}>
+                <Select value={form.priorita} onValueChange={(v) => setForm((f) => ({ ...f, priorita: v as "bassa" | "normale" | "alta" }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="bassa">Bassa</SelectItem>
@@ -139,7 +163,7 @@ export default function Assistenza() {
             <DialogFooter>
               <Button
                 onClick={() => createMutation.mutate()}
-                disabled={!form.oggetto.trim() || !form.descrizione.trim() || createMutation.isPending}
+                disabled={createMutation.isPending}
               >
                 {createMutation.isPending ? "Invio..." : "Invia Ticket"}
               </Button>
@@ -172,10 +196,13 @@ export default function Assistenza() {
                       {format(new Date(t.created_at), "dd MMM yyyy HH:mm", { locale: it })}
                       <span>·</span>
                       <span>Priorità: {PRIORITA_LABELS[t.priorita] || t.priorita}</span>
+                      {isTicketClosed(t.stato) && (
+                        <span className="text-muted-foreground/60">· Chiuso</span>
+                      )}
                     </div>
                   </div>
-                  <Badge className={STATO_COLORS[t.stato] || ""}>
-                    {STATO_LABELS[t.stato] || t.stato}
+                  <Badge className={STATO_COLORS[t.stato as TicketStato] || ""}>
+                    {STATO_LABELS[t.stato as TicketStato] || t.stato}
                   </Badge>
                 </div>
                 {selectedTicket?.id === t.id && (

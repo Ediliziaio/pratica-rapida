@@ -11,11 +11,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { clienteSchema } from "@/lib/validation-schemas";
 import type { Tables } from "@/integrations/supabase/types";
 
 const INITIAL_FORM = {
   ragione_sociale: "",
-  tipo: "azienda",
+  tipo: "azienda" as "azienda" | "persona",
   codice_destinatario_sdi: "",
   referente: "",
   piva: "",
@@ -50,15 +51,21 @@ export default function NuovoClienteDialog({ open, onOpenChange, onClientCreated
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [form, setForm] = useState(INITIAL_FORM);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const isEditing = !!clienteData;
 
-  // Pre-fill form when editing
+  // Pre-fill form when editing, reset on close
   useEffect(() => {
+    if (!open) {
+      setErrors({});
+      if (!clienteData) setForm(INITIAL_FORM);
+      return;
+    }
     if (clienteData) {
       setForm({
         ragione_sociale: clienteData.ragione_sociale || "",
-        tipo: clienteData.tipo || "azienda",
+        tipo: (clienteData.tipo as "azienda" | "persona") || "azienda",
         codice_destinatario_sdi: clienteData.codice_destinatario_sdi || "",
         referente: clienteData.referente || "",
         piva: clienteData.piva || "",
@@ -85,36 +92,52 @@ export default function NuovoClienteDialog({ open, onOpenChange, onClientCreated
     }
   }, [clienteData, open]);
 
-  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((f) => ({ ...f, [field]: e.target.value }));
+    if (errors[field]) setErrors((prev) => { const n = { ...prev }; delete n[field]; return n; });
+  };
 
   const mutation = useMutation({
     mutationFn: async () => {
       if (!companyId) throw new Error("No company");
+
+      // Validate with Zod
+      const result = clienteSchema.safeParse(form);
+      if (!result.success) {
+        const fieldErrors: Record<string, string> = {};
+        result.error.errors.forEach((e) => {
+          const field = e.path[0]?.toString() || "form";
+          fieldErrors[field] = e.message;
+        });
+        setErrors(fieldErrors);
+        throw new Error("Dati non validi. Controlla i campi evidenziati.");
+      }
+
+      const validated = result.data;
       const payload = {
         company_id: companyId,
-        ragione_sociale: form.ragione_sociale,
-        nome: form.nome || form.ragione_sociale,
-        cognome: form.cognome,
-        tipo: form.tipo,
-        codice_destinatario_sdi: form.codice_destinatario_sdi,
-        referente: form.referente,
-        piva: form.piva,
-        codice_fiscale: form.codice_fiscale,
-        paese: form.paese,
-        indirizzo: form.indirizzo,
-        citta: form.citta,
-        cap: form.cap,
-        provincia: form.provincia,
-        note_indirizzo: form.note_indirizzo,
-        codice_cliente_interno: form.codice_cliente_interno,
-        email: form.email,
-        invio_documento_cortesia: form.invio_documento_cortesia,
-        escludi_documento_cortesia: form.escludi_documento_cortesia,
-        escludi_solleciti: form.escludi_solleciti,
-        pec: form.pec,
-        telefono: form.telefono,
-        note: form.note,
+        ragione_sociale: validated.ragione_sociale || "",
+        nome: validated.tipo === "persona" ? (validated.nome || "") : (validated.nome || validated.ragione_sociale || ""),
+        cognome: validated.cognome || "",
+        tipo: validated.tipo,
+        codice_destinatario_sdi: validated.codice_destinatario_sdi || "",
+        referente: validated.referente || "",
+        piva: validated.piva || "",
+        codice_fiscale: validated.codice_fiscale || "",
+        paese: validated.paese || "Italia",
+        indirizzo: validated.indirizzo || "",
+        citta: validated.citta || "",
+        cap: validated.cap || "",
+        provincia: validated.provincia || "",
+        note_indirizzo: validated.note_indirizzo || "",
+        codice_cliente_interno: validated.codice_cliente_interno || "",
+        email: validated.email || "",
+        invio_documento_cortesia: validated.invio_documento_cortesia || false,
+        escludi_documento_cortesia: validated.escludi_documento_cortesia || false,
+        escludi_solleciti: validated.escludi_solleciti || false,
+        pec: validated.pec || "",
+        telefono: validated.telefono || "",
+        note: validated.note || "",
       };
 
       if (isEditing && clienteData) {
@@ -137,11 +160,15 @@ export default function NuovoClienteDialog({ open, onOpenChange, onClientCreated
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["clienti"] });
       setForm(INITIAL_FORM);
+      setErrors({});
       toast({ title: isEditing ? "Cliente aggiornato" : "Cliente creato con successo" });
       onClientCreated?.(data.id);
     },
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
+
+  const fieldError = (field: string) =>
+    errors[field] ? <p className="text-xs text-destructive mt-1">{errors[field]}</p> : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -149,12 +176,13 @@ export default function NuovoClienteDialog({ open, onOpenChange, onClientCreated
         <DialogHeader>
           <DialogTitle>{isEditing ? "Modifica cliente" : "Crea nuovo cliente"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(); }} className="space-y-6">
+        <form onSubmit={(e) => { e.preventDefault(); setErrors({}); mutation.mutate(); }} className="space-y-6">
           {/* Row 1 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label>Denominazione *</Label>
-              <Input value={form.ragione_sociale} onChange={set("ragione_sociale")} required placeholder="Ragione sociale o nome completo" />
+              <Label>Denominazione {form.tipo === "azienda" ? "*" : ""}</Label>
+              <Input value={form.ragione_sociale} onChange={set("ragione_sociale")} placeholder="Ragione sociale o nome completo" className={errors.ragione_sociale ? "border-destructive" : ""} />
+              {fieldError("ragione_sociale")}
             </div>
             <div className="space-y-2">
               <Label>Paese</Label>
@@ -172,7 +200,8 @@ export default function NuovoClienteDialog({ open, onOpenChange, onClientCreated
             </div>
             <div className="space-y-2">
               <Label>Codice cliente interno</Label>
-              <Input value={form.codice_cliente_interno} onChange={set("codice_cliente_interno")} placeholder="Codice interno" />
+              <Input value={form.codice_cliente_interno} onChange={set("codice_cliente_interno")} placeholder="Codice interno" className={errors.codice_cliente_interno ? "border-destructive" : ""} />
+              {fieldError("codice_cliente_interno")}
             </div>
           </div>
 
@@ -180,7 +209,8 @@ export default function NuovoClienteDialog({ open, onOpenChange, onClientCreated
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Codice destinatario SDI</Label>
-              <Input value={form.codice_destinatario_sdi} onChange={set("codice_destinatario_sdi")} placeholder="0000000" maxLength={7} />
+              <Input value={form.codice_destinatario_sdi} onChange={set("codice_destinatario_sdi")} placeholder="0000000" maxLength={7} className={errors.codice_destinatario_sdi ? "border-destructive" : ""} />
+              {fieldError("codice_destinatario_sdi")}
             </div>
             <div className="space-y-2">
               <Label>Indirizzo</Label>
@@ -188,7 +218,8 @@ export default function NuovoClienteDialog({ open, onOpenChange, onClientCreated
             </div>
             <div className="space-y-2">
               <Label>Indirizzo e-mail</Label>
-              <Input type="email" value={form.email} onChange={set("email")} placeholder="email@esempio.it" />
+              <Input type="email" value={form.email} onChange={set("email")} placeholder="email@esempio.it" className={errors.email ? "border-destructive" : ""} />
+              {fieldError("email")}
             </div>
           </div>
 
@@ -196,7 +227,7 @@ export default function NuovoClienteDialog({ open, onOpenChange, onClientCreated
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Tipologia</Label>
-              <Select value={form.tipo} onValueChange={(v) => setForm((f) => ({ ...f, tipo: v }))}>
+              <Select value={form.tipo} onValueChange={(v) => setForm((f) => ({ ...f, tipo: v as "azienda" | "persona" }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="azienda">Azienda</SelectItem>
@@ -224,7 +255,22 @@ export default function NuovoClienteDialog({ open, onOpenChange, onClientCreated
             </div>
           </div>
 
-          {/* Row 4 */}
+          {/* Row 4 - Nome/Cognome for persona */}
+          {form.tipo === "persona" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Nome *</Label>
+                <Input value={form.nome} onChange={set("nome")} placeholder="Nome" className={errors.nome ? "border-destructive" : ""} />
+                {fieldError("nome")}
+              </div>
+              <div className="space-y-2">
+                <Label>Cognome</Label>
+                <Input value={form.cognome} onChange={set("cognome")} placeholder="Cognome" />
+              </div>
+            </div>
+          )}
+
+          {/* Row 5 */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label>Referente</Label>
@@ -232,23 +278,27 @@ export default function NuovoClienteDialog({ open, onOpenChange, onClientCreated
             </div>
             <div className="space-y-2">
               <Label>CAP</Label>
-              <Input value={form.cap} onChange={set("cap")} placeholder="CAP" maxLength={5} />
+              <Input value={form.cap} onChange={set("cap")} placeholder="CAP" maxLength={5} className={errors.cap ? "border-destructive" : ""} />
+              {fieldError("cap")}
             </div>
             <div className="space-y-2">
               <Label>Provincia</Label>
-              <Input value={form.provincia} onChange={set("provincia")} placeholder="Sigla (es. MI)" maxLength={2} />
+              <Input value={form.provincia} onChange={set("provincia")} placeholder="Sigla (es. MI)" maxLength={2} className={errors.provincia ? "border-destructive" : ""} />
+              {fieldError("provincia")}
             </div>
             <div className="space-y-2">
               <Label>Indirizzo PEC</Label>
-              <Input type="email" value={form.pec} onChange={set("pec")} placeholder="pec@esempio.it" />
+              <Input type="email" value={form.pec} onChange={set("pec")} placeholder="pec@esempio.it" className={errors.pec ? "border-destructive" : ""} />
+              {fieldError("pec")}
             </div>
           </div>
 
-          {/* Row 5 */}
+          {/* Row 6 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Partita IVA</Label>
-              <Input value={form.piva} onChange={set("piva")} placeholder="IT00000000000" />
+              <Input value={form.piva} onChange={set("piva")} placeholder="IT00000000000" className={errors.piva ? "border-destructive" : ""} />
+              {fieldError("piva")}
             </div>
             <div className="space-y-2">
               <Label>Note indirizzo</Label>
@@ -259,15 +309,17 @@ export default function NuovoClienteDialog({ open, onOpenChange, onClientCreated
             </div>
             <div className="space-y-2">
               <Label>Telefono</Label>
-              <Input value={form.telefono} onChange={set("telefono")} placeholder="+39 000 0000000" />
+              <Input value={form.telefono} onChange={set("telefono")} placeholder="+39 000 0000000" className={errors.telefono ? "border-destructive" : ""} />
+              {fieldError("telefono")}
             </div>
           </div>
 
-          {/* Row 6 */}
+          {/* Row 7 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Codice fiscale</Label>
-              <Input value={form.codice_fiscale} onChange={set("codice_fiscale")} placeholder="Codice fiscale" />
+              <Input value={form.codice_fiscale} onChange={set("codice_fiscale")} placeholder="Codice fiscale" className={errors.codice_fiscale ? "border-destructive" : ""} />
+              {fieldError("codice_fiscale")}
             </div>
           </div>
 

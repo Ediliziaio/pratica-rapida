@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Settings, Plus, Search, Euro, Clock, Package } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
+import { serviceSchema } from "@/lib/validation-schemas";
 import type { Database } from "@/integrations/supabase/types";
 
 type ServiceCategory = Database["public"]["Enums"]["service_category"];
@@ -38,6 +39,7 @@ export default function Listino() {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: services = [], isLoading } = useQuery({
     queryKey: ["admin-services"],
@@ -50,13 +52,31 @@ export default function Listino() {
 
   const upsertService = useMutation({
     mutationFn: async () => {
-      const payload = {
+      const parsed = serviceSchema.safeParse({
         nome: form.nome,
         descrizione: form.descrizione,
-        categoria: form.categoria as ServiceCategory,
+        categoria: form.categoria,
         prezzo_base: parseFloat(form.prezzo_base) || 0,
         tempo_stimato_ore: parseInt(form.tempo_stimato_ore) || 0,
         attivo: form.attivo,
+      });
+
+      if (!parsed.success) {
+        const fieldErrors: Record<string, string> = {};
+        parsed.error.errors.forEach((e) => {
+          fieldErrors[e.path[0]?.toString() || "form"] = e.message;
+        });
+        setErrors(fieldErrors);
+        throw new Error("Dati non validi. Controlla i campi evidenziati.");
+      }
+
+      const payload = {
+        nome: parsed.data.nome,
+        descrizione: parsed.data.descrizione || "",
+        categoria: parsed.data.categoria,
+        prezzo_base: parsed.data.prezzo_base,
+        tempo_stimato_ore: parsed.data.tempo_stimato_ore || 0,
+        attivo: parsed.data.attivo,
       };
       if (editId) {
         const { error } = await supabase.from("service_catalog").update(payload).eq("id", editId);
@@ -71,6 +91,7 @@ export default function Listino() {
       setShowForm(false);
       setEditId(null);
       setForm(emptyForm);
+      setErrors({});
       toast({ title: editId ? "Servizio aggiornato" : "Servizio creato" });
     },
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
@@ -91,6 +112,7 @@ export default function Listino() {
       categoria: s.categoria, prezzo_base: String(s.prezzo_base),
       tempo_stimato_ore: String(s.tempo_stimato_ore || ""), attivo: s.attivo,
     });
+    setErrors({});
     setShowForm(true);
   };
 
@@ -107,28 +129,37 @@ export default function Listino() {
           <h1 className="font-display text-2xl font-bold tracking-tight">Listino Servizi</h1>
           <p className="text-muted-foreground">Configura servizi, prezzi e varianti</p>
         </div>
-        <Dialog open={showForm} onOpenChange={(o) => { if (!o) { setEditId(null); setForm(emptyForm); } setShowForm(o); }}>
+        <Dialog open={showForm} onOpenChange={(o) => { if (!o) { setEditId(null); setForm(emptyForm); setErrors({}); } setShowForm(o); }}>
           <DialogTrigger asChild>
             <Button><Plus className="mr-2 h-4 w-4" />Nuovo Servizio</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>{editId ? "Modifica Servizio" : "Nuovo Servizio"}</DialogTitle></DialogHeader>
             <div className="grid gap-4">
-              <div><Label>Nome *</Label><Input value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} /></div>
+              <div>
+                <Label>Nome *</Label>
+                <Input value={form.nome} onChange={e => { setForm(f => ({ ...f, nome: e.target.value })); if (errors.nome) setErrors(p => { const n = { ...p }; delete n.nome; return n; }); }} className={errors.nome ? "border-destructive" : ""} />
+                {errors.nome && <p className="text-xs text-destructive mt-1">{errors.nome}</p>}
+              </div>
               <div><Label>Descrizione</Label><Textarea value={form.descrizione} onChange={e => setForm(f => ({ ...f, descrizione: e.target.value }))} rows={3} /></div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Categoria *</Label>
-                  <Select value={form.categoria} onValueChange={v => setForm(f => ({ ...f, categoria: v as ServiceCategory }))}>
-                    <SelectTrigger><SelectValue placeholder="Seleziona..." /></SelectTrigger>
+                  <Select value={form.categoria} onValueChange={v => { setForm(f => ({ ...f, categoria: v as ServiceCategory })); if (errors.categoria) setErrors(p => { const n = { ...p }; delete n.categoria; return n; }); }}>
+                    <SelectTrigger className={errors.categoria ? "border-destructive" : ""}><SelectValue placeholder="Seleziona..." /></SelectTrigger>
                     <SelectContent>
                       {Constants.public.Enums.service_category.map(c => (
                         <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.categoria && <p className="text-xs text-destructive mt-1">{errors.categoria}</p>}
                 </div>
-                <div><Label>Prezzo Base (€)</Label><Input type="number" min="0" value={form.prezzo_base} onChange={e => setForm(f => ({ ...f, prezzo_base: e.target.value }))} /></div>
+                <div>
+                  <Label>Prezzo Base (€)</Label>
+                  <Input type="number" min="0" step="0.01" value={form.prezzo_base} onChange={e => { setForm(f => ({ ...f, prezzo_base: e.target.value })); if (errors.prezzo_base) setErrors(p => { const n = { ...p }; delete n.prezzo_base; return n; }); }} className={errors.prezzo_base ? "border-destructive" : ""} />
+                  {errors.prezzo_base && <p className="text-xs text-destructive mt-1">{errors.prezzo_base}</p>}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><Label>Tempo Stimato (ore)</Label><Input type="number" min="0" value={form.tempo_stimato_ore} onChange={e => setForm(f => ({ ...f, tempo_stimato_ore: e.target.value }))} /></div>
@@ -137,7 +168,7 @@ export default function Listino() {
                   <Label>Attivo</Label>
                 </div>
               </div>
-              <Button onClick={() => upsertService.mutate()} disabled={!form.nome || !form.categoria || upsertService.isPending}>
+              <Button onClick={() => { setErrors({}); upsertService.mutate(); }} disabled={upsertService.isPending}>
                 {upsertService.isPending ? "Salvataggio..." : editId ? "Salva Modifiche" : "Crea Servizio"}
               </Button>
             </div>

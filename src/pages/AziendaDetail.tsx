@@ -169,7 +169,7 @@ export default function AziendaDetail() {
           <TabsTrigger value="pratiche"><FolderOpen className="mr-1.5 h-4 w-4" />Pratiche</TabsTrigger>
           <TabsTrigger value="wallet"><Wallet className="mr-1.5 h-4 w-4" />Wallet</TabsTrigger>
           <TabsTrigger value="utenti"><Users className="mr-1.5 h-4 w-4" />Utenti</TabsTrigger>
-          <TabsTrigger value="fatture"><FileText className="mr-1.5 h-4 w-4" />Fatture</TabsTrigger>
+          
         </TabsList>
 
         {/* Anagrafica */}

@@ -377,6 +377,9 @@ export default function AdminPratiche() {
             <Button variant={viewMode === "pipeline" ? "default" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("pipeline")}>
               <Columns3 className="h-4 w-4" />
             </Button>
+            <Button variant={viewMode === "table" ? "default" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("table")}>
+              <Table2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 

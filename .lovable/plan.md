@@ -1,43 +1,26 @@
 
 
-# Stabilizzazione Finale — Sezione Pratiche
+# Rimozione Completa Sezione Fatturazione
 
-## Stato Attuale
-
-Dopo le iterazioni precedenti, la sezione Pratiche e' in buono stato. Questa analisi ha identificato **solo problemi di pulizia codice e DRY** — nessun bug funzionale, nessun blocco UX, nessun crash.
+La sezione fatturazione va eliminata interamente dall'app. Ecco tutto ciò che verrà rimosso/modificato:
 
 ---
 
-## 1. Codice Morto / Inutilizzato
+## File da Eliminare
 
-### A. PipelineView.tsx — variabile `Icon` mai usata
-In `DroppableColumn` (riga 17), `const Icon = conf.icon` viene dichiarata ma mai renderizzata. L'icona viene renderizzata solo nell'header della colonna dentro `PipelineView`, non in `DroppableColumn`.
-
-### B. CodaPratiche.tsx — import e variabili inutilizzati
-- Riga 4: `useAuth` importato, riga 23: `const { user } = useAuth()` — `user` mai usato nel componente.
-- Riga 18: `STATO_ORDER` importato da `pratiche-config` ma mai usato — il componente usa `statoOrder` locale (riga 107) con ordine diverso per prioritizzare gli stati actionable.
-
----
-
-## 2. Violazione DRY — Costanti Duplicate
-
-`PAGAMENTO_BADGE`, `ACTIVE_STATES` e `getAgingDot`/`getAdminAgingDot` sono definiti identicamente in due file:
-- `src/components/pratiche/PraticaCard.tsx` (righe 10-25)
-- `src/pages/AdminPratiche.tsx` (righe 29-44)
-
-Soluzione: estrarre in `src/lib/pratiche-config.ts` (gia' il punto centralizzato per le configurazioni pratiche) e importare da li'.
-
----
-
-## 3. Riepilogo Modifiche
-
-| File | Azione |
+| File | Motivo |
 |------|--------|
-| `src/lib/pratiche-config.ts` | Aggiungere `PAGAMENTO_BADGE`, `ACTIVE_STATES`, `getAgingDot` |
-| `src/components/pratiche/PraticaCard.tsx` | Rimuovere definizioni locali, importare da `pratiche-config` |
-| `src/pages/AdminPratiche.tsx` | Rimuovere definizioni locali, importare da `pratiche-config` |
-| `src/components/pratiche/PipelineView.tsx` | Rimuovere `Icon` inutilizzato in `DroppableColumn` |
-| `src/pages/CodaPratiche.tsx` | Rimuovere `useAuth`/`user` e import `STATO_ORDER` inutilizzati |
+| `src/pages/Fatturazione.tsx` | Pagina lista fatture |
+| `src/pages/NuovaFattura.tsx` | Pagina creazione fattura |
+| `src/pages/FatturaDetail.tsx` | Pagina dettaglio fattura |
 
-Zero cambi funzionali. Zero modifiche DB. Solo pulizia e centralizzazione.
+## File da Modificare
+
+| File | Modifica |
+|------|----------|
+| `src/App.tsx` | Rimuovere le 3 route `/fatturazione`, `/fatturazione/nuova`, `/fatturazione/:id` e i relativi lazy import |
+| `src/components/AppSidebar.tsx` | Rimuovere la voce "Fatturazione" da `aziendaItems` e l'import `FileText` |
+| `src/pages/AziendaDetail.tsx` | Rimuovere il tab "Fatture", la query `company-fatture`, e l'import `FileText` |
+
+Nessuna modifica al database — le tabelle `fatture` e `fattura_righe` restano nel DB ma non saranno più accessibili dall'interfaccia.
 

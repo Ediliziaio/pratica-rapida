@@ -120,7 +120,7 @@ export function PracticeChat({ praticaId, companyId }: PracticeChatProps) {
           ) : (
             messages.map((m) => {
               const isMe = m.user_id === user?.id;
-              const profile = m.profiles as ChatProfile | null;
+              const profile = m.profile;
               return (
                 <div key={m.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-[75%] rounded-2xl px-4 py-2 ${

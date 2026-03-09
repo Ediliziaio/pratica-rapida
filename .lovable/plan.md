@@ -1,42 +1,43 @@
 
 
-# Gestione Pagamenti Super Admin
+# Stabilizzazione Finale — Sezione Pratiche
 
-## Panoramica
-Il super admin deve poter:
-1. **Ricaricare il wallet** di un'azienda (ricarica prepagata)
-2. **Segnare pratiche come pagate** (per pagamenti tramite bonifico o altri metodi esterni)
-3. Vedere lo storico dei movimenti con causali chiare
+## Stato Attuale
 
-## Modifiche
-
-### 1. `src/pages/AziendaDetail.tsx` — Tab Wallet potenziato
-
-Aggiungere nel tab Wallet (visibile solo per super admin):
-
-- **Pulsante "Ricarica Wallet"**: apre un Dialog con importo + causale (es. "Bonifico ricevuto", "Ricarica manuale"). Chiama la funzione DB `wallet_topup` gia esistente.
-- **Pulsante "Rimborso"**: Dialog con importo + causale + pratica opzionale. Chiama `wallet_refund`.
-
-### 2. `src/pages/AziendaDetail.tsx` — Tab Pratiche: azione "Segna come pagata"
-
-Nella tabella pratiche del dettaglio azienda, aggiungere per ogni riga con `pagamento_stato != 'pagata'`:
-- Un dropdown/pulsante per cambiare lo stato pagamento: "Pagata", "In verifica", "Non pagata"
-- Metodo di pagamento visibile come nota (wallet, bonifico, altro)
-
-### 3. `src/pages/AdminPratiche.tsx` — Azione rapida pagamento
-
-Nella vista lista admin, aggiungere un dropdown per il `pagamento_stato` accanto al dropdown stato, cosi il super admin puo segnare le pratiche pagate direttamente dalla lista globale.
-
-### 4. Nessuna modifica DB
-
-Tutte le funzioni necessarie (`wallet_topup`, `wallet_refund`) e le colonne (`pagamento_stato`) esistono gia. Il campo `pagamento_stato` e un enum con valori: `pagata`, `non_pagata`, `in_verifica`, `rimborsata`.
+Dopo le iterazioni precedenti, la sezione Pratiche e' in buono stato. Questa analisi ha identificato **solo problemi di pulizia codice e DRY** — nessun bug funzionale, nessun blocco UX, nessun crash.
 
 ---
 
-## Riepilogo file
+## 1. Codice Morto / Inutilizzato
 
-| File | Modifica |
-|------|----------|
-| `src/pages/AziendaDetail.tsx` | Aggiungere Dialog ricarica wallet + Dialog rimborso + dropdown pagamento nelle pratiche |
-| `src/pages/AdminPratiche.tsx` | Aggiungere dropdown rapido `pagamento_stato` nella lista |
+### A. PipelineView.tsx — variabile `Icon` mai usata
+In `DroppableColumn` (riga 17), `const Icon = conf.icon` viene dichiarata ma mai renderizzata. L'icona viene renderizzata solo nell'header della colonna dentro `PipelineView`, non in `DroppableColumn`.
+
+### B. CodaPratiche.tsx — import e variabili inutilizzati
+- Riga 4: `useAuth` importato, riga 23: `const { user } = useAuth()` — `user` mai usato nel componente.
+- Riga 18: `STATO_ORDER` importato da `pratiche-config` ma mai usato — il componente usa `statoOrder` locale (riga 107) con ordine diverso per prioritizzare gli stati actionable.
+
+---
+
+## 2. Violazione DRY — Costanti Duplicate
+
+`PAGAMENTO_BADGE`, `ACTIVE_STATES` e `getAgingDot`/`getAdminAgingDot` sono definiti identicamente in due file:
+- `src/components/pratiche/PraticaCard.tsx` (righe 10-25)
+- `src/pages/AdminPratiche.tsx` (righe 29-44)
+
+Soluzione: estrarre in `src/lib/pratiche-config.ts` (gia' il punto centralizzato per le configurazioni pratiche) e importare da li'.
+
+---
+
+## 3. Riepilogo Modifiche
+
+| File | Azione |
+|------|--------|
+| `src/lib/pratiche-config.ts` | Aggiungere `PAGAMENTO_BADGE`, `ACTIVE_STATES`, `getAgingDot` |
+| `src/components/pratiche/PraticaCard.tsx` | Rimuovere definizioni locali, importare da `pratiche-config` |
+| `src/pages/AdminPratiche.tsx` | Rimuovere definizioni locali, importare da `pratiche-config` |
+| `src/components/pratiche/PipelineView.tsx` | Rimuovere `Icon` inutilizzato in `DroppableColumn` |
+| `src/pages/CodaPratiche.tsx` | Rimuovere `useAuth`/`user` e import `STATO_ORDER` inutilizzati |
+
+Zero cambi funzionali. Zero modifiche DB. Solo pulizia e centralizzazione.
 

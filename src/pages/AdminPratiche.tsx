@@ -171,6 +171,17 @@ export default function AdminPratiche() {
     },
   });
 
+  const quickChangePagamento = useMutation({
+    mutationFn: async ({ praticaId, pagamentoStato }: { praticaId: string; pagamentoStato: string }) => {
+      const { error } = await supabase.from("pratiche").update({ pagamento_stato: pagamentoStato as any }).eq("id", praticaId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
+      toast({ title: "Stato pagamento aggiornato" });
+    },
+  });
+
   const assignOperator = useMutation({
     mutationFn: async ({ praticaId, assegnatarioId }: { praticaId: string; assegnatarioId: string | null }) => {
       const { error } = await supabase.from("pratiche").update({ assegnatario_id: assegnatarioId }).eq("id", praticaId);
@@ -353,7 +364,20 @@ export default function AdminPratiche() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className={`text-xs ${pagamento.className}`}>{pagamento.label}</Badge>
+                      <Select
+                        value={p.pagamento_stato}
+                        onValueChange={v => quickChangePagamento.mutate({ praticaId: p.id, pagamentoStato: v })}
+                      >
+                        <SelectTrigger className={`h-7 w-32 text-xs ${pagamento.className}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="non_pagata">Non pagata</SelectItem>
+                          <SelectItem value="in_verifica">In verifica</SelectItem>
+                          <SelectItem value="pagata">Pagata</SelectItem>
+                          <SelectItem value="rimborsata">Rimborsata</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <span className="text-sm font-semibold">€ {p.prezzo.toFixed(2)}</span>
                       <Select
                         value={p.assegnatario_id || "unassigned"}

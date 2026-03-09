@@ -1,13 +1,19 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Shield, Clock, User, Building2, FileText } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Search, Shield, Clock, User, Building2, CalendarIcon } from "lucide-react";
+import { format, subMonths, startOfDay, endOfDay } from "date-fns";
+import { it } from "date-fns/locale";
+import type { DateRange } from "react-day-picker";
 
 const AZIONE_LABELS: Record<string, { label: string; color: string }> = {
   cambio_stato_pratica: { label: "Cambio Stato", color: "bg-primary/10 text-primary" },
@@ -20,42 +26,70 @@ const AZIONE_LABELS: Record<string, { label: string; color: string }> = {
 export default function AuditLog() {
   const [search, setSearch] = useState("");
   const [filterAzione, setFilterAzione] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subMonths(new Date(), 3),
+    to: new Date(),
+  });
 
   const { data: logs = [], isLoading } = useQuery({
-    queryKey: ["audit-log"],
+    queryKey: ["audit-log", dateRange?.from?.toISOString(), dateRange?.to?.toISOString()],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("audit_log")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(500);
+
+      if (dateRange?.from) {
+        query = query.gte("created_at", startOfDay(dateRange.from).toISOString());
+      }
+      if (dateRange?.to) {
+        query = query.lte("created_at", endOfDay(dateRange.to).toISOString());
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
   });
 
+  // Only fetch profiles/companies that appear in logs (avoid global scan)
+  const { companyIds, userIds } = useMemo(() => {
+    const cIds = new Set<string>();
+    const uIds = new Set<string>();
+    logs.forEach(l => {
+      if (l.company_id) cIds.add(l.company_id);
+      if (l.user_id) uIds.add(l.user_id);
+    });
+    return { companyIds: [...cIds], userIds: [...uIds] };
+  }, [logs]);
+
   const { data: companies = [] } = useQuery({
-    queryKey: ["audit-companies"],
+    queryKey: ["audit-companies", companyIds],
     queryFn: async () => {
-      const { data } = await supabase.from("companies").select("id, ragione_sociale");
+      if (companyIds.length === 0) return [];
+      const { data } = await supabase.from("companies").select("id, ragione_sociale").in("id", companyIds);
       return data || [];
     },
+    enabled: companyIds.length > 0,
   });
 
   const { data: profiles = [] } = useQuery({
-    queryKey: ["audit-profiles"],
+    queryKey: ["audit-profiles", userIds],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id, nome, cognome, email");
+      if (userIds.length === 0) return [];
+      const { data } = await supabase.from("profiles").select("id, nome, cognome, email").in("id", userIds);
       return data || [];
     },
+    enabled: userIds.length > 0,
   });
 
-  const companyMap = Object.fromEntries(companies.map(c => [c.id, c.ragione_sociale]));
-  const profileMap = Object.fromEntries(profiles.map(p => [p.id, `${p.nome} ${p.cognome}`.trim() || p.email]));
+  const companyMap = useMemo(() => Object.fromEntries(companies.map(c => [c.id, c.ragione_sociale])), [companies]);
+  const profileMap = useMemo(() => Object.fromEntries(profiles.map(p => [p.id, `${p.nome} ${p.cognome}`.trim() || p.email])), [profiles]);
 
-  const uniqueAzioni = [...new Set(logs.map(l => l.azione))];
+  const uniqueAzioni = useMemo(() => [...new Set(logs.map(l => l.azione))], [logs]);
 
-  const filtered = logs.filter(l => {
+  const filtered = useMemo(() => logs.filter(l => {
     if (filterAzione !== "all" && l.azione !== filterAzione) return false;
     if (search) {
       const searchLower = search.toLowerCase();
@@ -70,7 +104,7 @@ export default function AuditLog() {
       );
     }
     return true;
-  });
+  }), [logs, filterAzione, search, companyMap, profileMap]);
 
   return (
     <div className="space-y-6">
@@ -105,6 +139,32 @@ export default function AuditLog() {
             ))}
           </SelectContent>
         </Select>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-full sm:w-auto justify-start text-left font-normal">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dateRange?.from ? (
+                dateRange.to ? (
+                  <>{format(dateRange.from, "dd/MM/yy", { locale: it })} – {format(dateRange.to, "dd/MM/yy", { locale: it })}</>
+                ) : (
+                  format(dateRange.from, "dd/MM/yy", { locale: it })
+                )
+              ) : (
+                "Periodo"
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="range"
+              selected={dateRange}
+              onSelect={setDateRange}
+              locale={it}
+              numberOfMonths={2}
+              defaultMonth={subMonths(new Date(), 1)}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       <Card>
@@ -138,7 +198,7 @@ export default function AuditLog() {
                 <TableBody>
                   {filtered.map(log => {
                     const cfg = AZIONE_LABELS[log.azione];
-                    const dettagli = log.dettagli as Record<string, any> | null;
+                    const dettagli = log.dettagli as Record<string, string> | null;
                     return (
                       <TableRow key={log.id}>
                         <TableCell className="whitespace-nowrap">

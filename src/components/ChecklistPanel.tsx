@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,10 +14,16 @@ interface ChecklistPanelProps {
   serviceId?: string | null;
 }
 
+interface TemplateItem {
+  titolo?: string;
+  title?: string;
+}
+
 export function ChecklistPanel({ praticaId, companyId, serviceId }: ChecklistPanelProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const generatedRef = useRef(false);
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["checklist", praticaId],
@@ -49,8 +55,8 @@ export function ChecklistPanel({ praticaId, companyId, serviceId }: ChecklistPan
   });
 
   const generateChecklist = useMutation({
-    mutationFn: async (template: any[]) => {
-      const rows = template.map((item: any, i: number) => ({
+    mutationFn: async (template: (string | TemplateItem)[]) => {
+      const rows = template.map((item, i) => ({
         pratica_id: praticaId,
         company_id: companyId,
         titolo: typeof item === "string" ? item : item.titolo || item.title || `Task ${i + 1}`,
@@ -64,17 +70,20 @@ export function ChecklistPanel({ praticaId, companyId, serviceId }: ChecklistPan
     },
   });
 
+  // #9 Fix: use ref to prevent duplicate generation
   useEffect(() => {
     if (
+      !generatedRef.current &&
       service?.checklist_template &&
       Array.isArray(service.checklist_template) &&
       service.checklist_template.length > 0 &&
       items.length === 0 &&
       !generateChecklist.isPending
     ) {
-      generateChecklist.mutate(service.checklist_template as any[]);
+      generatedRef.current = true;
+      generateChecklist.mutate(service.checklist_template as (string | TemplateItem)[]);
     }
-  }, [service, items.length]);
+  }, [service, items.length, generateChecklist.isPending]);
 
   const toggleItem = useMutation({
     mutationFn: async ({ id, completato }: { id: string; completato: boolean }) => {

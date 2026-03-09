@@ -25,7 +25,8 @@ export default function Clienti() {
         .from("clienti_finali")
         .select("*")
         .eq("company_id", companyId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(500);
       if (error) throw error;
       return data;
     },
@@ -33,7 +34,7 @@ export default function Clienti() {
   });
 
   const filtered = clienti.filter((c) =>
-    `${c.ragione_sociale} ${c.nome} ${c.cognome} ${c.email} ${c.piva} ${c.codice_fiscale}`.toLowerCase().includes(search.toLowerCase())
+    `${c.ragione_sociale ?? ""} ${c.nome ?? ""} ${c.cognome ?? ""} ${c.email ?? ""} ${c.piva ?? ""} ${c.codice_fiscale ?? ""}`.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleOpenNew = () => {
@@ -87,46 +88,51 @@ export default function Clienti() {
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Denominazione</TableHead>
-                <TableHead>P.IVA / CF</TableHead>
-                <TableHead>Contatti</TableHead>
-                <TableHead>Città</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Creato</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((c) => (
-                <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleRowClick(c)}>
-                  <TableCell className="font-medium">{c.ragione_sociale || `${c.nome} ${c.cognome}`}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {c.piva && <div>{c.piva}</div>}
-                    {c.codice_fiscale && <div>{c.codice_fiscale}</div>}
-                    {!c.piva && !c.codice_fiscale && "—"}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1 text-sm">
-                      {c.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{c.email}</span>}
-                      {c.telefono && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{c.telefono}</span>}
-                      {c.pec && <span className="flex items-center gap-1 text-muted-foreground">PEC: {c.pec}</span>}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm">{c.citta || "—"}</TableCell>
-                  <TableCell>
-                    <Badge variant={c.tipo === "azienda" ? "default" : "secondary"} className="text-xs">
-                      {c.tipo === "azienda" ? <><Building2 className="mr-1 h-3 w-3" />Azienda</> : <><User className="mr-1 h-3 w-3" />Persona</>}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{new Date(c.created_at).toLocaleDateString("it-IT")}</TableCell>
+        <>
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Denominazione</TableHead>
+                  <TableHead>P.IVA / CF</TableHead>
+                  <TableHead>Contatti</TableHead>
+                  <TableHead>Città</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Creato</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((c) => (
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleRowClick(c)}>
+                    <TableCell className="font-medium">{c.ragione_sociale || `${c.nome} ${c.cognome}`}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {c.piva && <div>{c.piva}</div>}
+                      {c.codice_fiscale && <div>{c.codice_fiscale}</div>}
+                      {!c.piva && !c.codice_fiscale && "—"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1 text-sm">
+                        {c.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{c.email}</span>}
+                        {c.telefono && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{c.telefono}</span>}
+                        {c.pec && <span className="flex items-center gap-1 text-muted-foreground">PEC: {c.pec}</span>}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm">{c.citta || "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant={c.tipo === "azienda" ? "default" : "secondary"} className="text-xs">
+                        {c.tipo === "azienda" ? <><Building2 className="mr-1 h-3 w-3" />Azienda</> : <><User className="mr-1 h-3 w-3" />Persona</>}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{new Date(c.created_at).toLocaleDateString("it-IT")}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+          {clienti.length >= 500 && (
+            <p className="text-center text-xs text-muted-foreground">Mostrati i primi 500 clienti. Usa la ricerca per trovare quelli non visibili.</p>
+          )}
+        </>
       )}
 
       <NuovoClienteDialog

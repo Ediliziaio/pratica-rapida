@@ -1,43 +1,42 @@
 
 
-# Stabilizzazione Finale — Sezione Pratiche
+# Analisi Landing Page /home
 
 ## Stato Attuale
-
-Dopo le iterazioni precedenti, la sezione Pratiche e' in buono stato. Questa analisi ha identificato **solo problemi di pulizia codice e DRY** — nessun bug funzionale, nessun blocco UX, nessun crash.
-
----
-
-## 1. Codice Morto / Inutilizzato
-
-### A. PipelineView.tsx — variabile `Icon` mai usata
-In `DroppableColumn` (riga 17), `const Icon = conf.icon` viene dichiarata ma mai renderizzata. L'icona viene renderizzata solo nell'header della colonna dentro `PipelineView`, non in `DroppableColumn`.
-
-### B. CodaPratiche.tsx — import e variabili inutilizzati
-- Riga 4: `useAuth` importato, riga 23: `const { user } = useAuth()` — `user` mai usato nel componente.
-- Riga 18: `STATO_ORDER` importato da `pratiche-config` ma mai usato — il componente usa `statoOrder` locale (riga 107) con ordine diverso per prioritizzare gli stati actionable.
+La pagina e' ben strutturata, il copy e' persuasivo e il flusso di conversione e' logico. Ci sono pero' alcune migliorie concrete che porterebbero benefici reali.
 
 ---
 
-## 2. Violazione DRY — Costanti Duplicate
+## Problemi Identificati
 
-`PAGAMENTO_BADGE`, `ACTIVE_STATES` e `getAgingDot`/`getAdminAgingDot` sono definiti identicamente in due file:
-- `src/components/pratiche/PraticaCard.tsx` (righe 10-25)
-- `src/pages/AdminPratiche.tsx` (righe 29-44)
+### 1. CSS Morto
+- `animate-marquee` (riga 252-258 di index.css) — residuo del logo slider rimosso. Mai usato.
+- `animate-count-up` (riga 243-249) — mai referenziato da nessun componente.
 
-Soluzione: estrarre in `src/lib/pratiche-config.ts` (gia' il punto centralizzato per le configurazioni pratiche) e importare da li'.
+### 2. StickyBottomBar — gap di visibilita' troppo lungo
+La barra CTA:
+- Parte visibile (showBottomBar: true)
+- Si nasconde a 200px di scroll
+- Ricompare solo alla sezione Team (circa 70-80% della pagina)
+
+Risultato: per la maggior parte dello scroll la CTA e' invisibile. Sarebbe meglio invertire la logica: nasconderla all'inizio (quando la CTA hero e' visibile) e mostrarla dopo che l'utente ha scrollato oltre la hero section (~600px).
+
+### 3. Performance — immagini non lazy-loaded
+- `hero-bg.jpg` e `team-illustration.jpg` sono importati staticamente. L'immagine del team potrebbe beneficiare di `loading="lazy"` dato che e' molto in basso nella pagina.
+
+### 4. FloatingIcons — render inutile su mobile
+Le icone sono nascoste via CSS (`hidden lg:block`) ma il componente viene comunque montato e le animazioni girano in background. Meglio un check con media query per non renderizzarle affatto sotto lg.
 
 ---
 
-## 3. Riepilogo Modifiche
+## Riepilogo Modifiche
 
 | File | Azione |
 |------|--------|
-| `src/lib/pratiche-config.ts` | Aggiungere `PAGAMENTO_BADGE`, `ACTIVE_STATES`, `getAgingDot` |
-| `src/components/pratiche/PraticaCard.tsx` | Rimuovere definizioni locali, importare da `pratiche-config` |
-| `src/pages/AdminPratiche.tsx` | Rimuovere definizioni locali, importare da `pratiche-config` |
-| `src/components/pratiche/PipelineView.tsx` | Rimuovere `Icon` inutilizzato in `DroppableColumn` |
-| `src/pages/CodaPratiche.tsx` | Rimuovere `useAuth`/`user` e import `STATO_ORDER` inutilizzati |
+| `src/index.css` | Rimuovere `animate-marquee` e `animate-count-up` (CSS morto) |
+| `src/pages/Home.tsx` | Invertire logica sticky bar: nascosta inizialmente, visibile dopo scroll oltre hero |
+| `src/components/landing/TeamSection.tsx` | Aggiungere `loading="lazy"` all'immagine team |
+| `src/components/landing/FloatingIcons.tsx` | Usare hook `useMediaQuery` per evitare render su mobile |
 
-Zero cambi funzionali. Zero modifiche DB. Solo pulizia e centralizzazione.
+4 modifiche chirurgiche. Zero cambi funzionali o di design.
 

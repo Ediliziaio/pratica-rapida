@@ -458,7 +458,7 @@ export default function Dashboard() {
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium truncate">{p.titolo}</p>
                           <p className="text-xs text-muted-foreground">
-                            {(p.clienti_finali as any)?.nome} {(p.clienti_finali as any)?.cognome}
+                            {(p.clienti_finali as { nome?: string; cognome?: string } | null)?.nome} {(p.clienti_finali as { nome?: string; cognome?: string } | null)?.cognome}
                           </p>
                         </div>
                         <div className="text-right">

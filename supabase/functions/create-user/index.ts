@@ -6,6 +6,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const VALID_ROLES = ["super_admin", "admin_interno", "operatore", "azienda_admin", "azienda_user", "partner"];
+
+function validateEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -59,6 +65,7 @@ Deno.serve(async (req) => {
     // Parse body
     const { email, password, nome, cognome, role } = await req.json();
 
+    // --- Input validation ---
     if (!email || !password || !nome || !cognome || !role) {
       return new Response(JSON.stringify({ error: "Tutti i campi sono obbligatori" }), {
         status: 400,
@@ -66,12 +73,47 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (typeof email !== "string" || !validateEmail(email.trim())) {
+      return new Response(JSON.stringify({ error: "Email non valida" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (typeof password !== "string" || password.length < 8) {
+      return new Response(JSON.stringify({ error: "La password deve avere almeno 8 caratteri" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (typeof nome !== "string" || nome.trim().length === 0 || nome.trim().length > 100) {
+      return new Response(JSON.stringify({ error: "Nome non valido (1-100 caratteri)" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (typeof cognome !== "string" || cognome.trim().length === 0 || cognome.trim().length > 100) {
+      return new Response(JSON.stringify({ error: "Cognome non valido (1-100 caratteri)" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!VALID_ROLES.includes(role)) {
+      return new Response(JSON.stringify({ error: `Ruolo non valido. Ruoli ammessi: ${VALID_ROLES.join(", ")}` }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Create user with admin API
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
-      email,
+      email: email.trim(),
       password,
       email_confirm: true,
-      user_metadata: { nome, cognome },
+      user_metadata: { nome: nome.trim(), cognome: cognome.trim() },
     });
 
     if (createError) {
@@ -94,7 +136,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, user: { id: newUser.user.id, email } }),
+      JSON.stringify({ success: true, user: { id: newUser.user.id, email: email.trim() } }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {

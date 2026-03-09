@@ -49,8 +49,9 @@ export function AppSidebar() {
     { title: "Nuova Pratica ENEA", url: "/pratiche/nuova", icon: FilePlus },
     { title: "Pratiche", url: "/pratiche", icon: FolderOpen },
     { title: "Clienti", url: "/clienti", icon: Users },
-    
     { title: "Wallet", url: "/wallet", icon: Wallet },
+    { title: "Assistenza", url: "/assistenza", icon: LifeBuoy },
+    { title: "Impostazioni", url: "/impostazioni", icon: Settings },
   ];
 
   const internalItems = [

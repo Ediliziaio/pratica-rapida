@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   FolderOpen, Search,
-  Building2, ArrowRight, User, List, Columns3, Download, Trash2,
+  Building2, ArrowRight, User, List, Columns3, Download, Trash2, Table2,
 } from "lucide-react";
 import { exportToCSV } from "@/lib/csv-export";
 import { useNavigate } from "react-router-dom";
@@ -34,7 +34,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-type ViewMode = "list" | "pipeline";
+import { PraticheTableView } from "@/components/pratiche/PraticheTableView";
+
+type ViewMode = "list" | "pipeline" | "table";
 
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
@@ -375,12 +377,15 @@ export default function AdminPratiche() {
             <Button variant={viewMode === "pipeline" ? "default" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("pipeline")}>
               <Columns3 className="h-4 w-4" />
             </Button>
+            <Button variant={viewMode === "table" ? "default" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("table")}>
+              <Table2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
         {/* Stats + select all */}
         <div className="flex flex-wrap items-center gap-2">
-          {viewMode === "list" && filtered.length > 0 && (
+          {(viewMode === "list" || viewMode === "table") && filtered.length > 0 && (
             <div className="flex items-center gap-2 mr-2">
               <Checkbox
                 checked={selectedIds.size === filtered.length && filtered.length > 0}
@@ -417,6 +422,19 @@ export default function AdminPratiche() {
 
       {isLoading ? (
         <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+      ) : viewMode === "table" ? (
+        <PraticheTableView
+          pratiche={filtered}
+          selectedIds={selectedIds}
+          toggleSelect={toggleSelect}
+          toggleSelectAll={toggleSelectAll}
+          onChangeStato={(id, stato) => quickChangeStato.mutate({ praticaId: id, stato })}
+          onChangePagamento={(id, pag) => quickChangePagamento.mutate({ praticaId: id, pagamentoStato: pag })}
+          onAssignOperator={handleAssignOperator}
+          onDelete={(ids) => bulkDelete.mutate(ids)}
+          assigneeMap={assigneeMap}
+          internalOperators={internalOperators}
+        />
       ) : viewMode === "list" ? (
         filtered.length === 0 ? (
           <Card className="border-dashed">

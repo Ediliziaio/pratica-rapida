@@ -8,7 +8,7 @@ import {
   ListChecks,
   LogOut,
   Users,
-  FileText,
+  
   BookOpen,
   BarChart3,
   Shield,
@@ -49,7 +49,7 @@ export function AppSidebar() {
     { title: "Nuova Pratica ENEA", url: "/pratiche/nuova", icon: FilePlus },
     { title: "Pratiche", url: "/pratiche", icon: FolderOpen },
     { title: "Clienti", url: "/clienti", icon: Users },
-    { title: "Fatturazione", url: "/fatturazione", icon: FileText },
+    
     { title: "Wallet", url: "/wallet", icon: Wallet },
   ];
 

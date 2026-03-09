@@ -80,19 +80,6 @@ export default function AziendaDetail() {
     enabled: users.length > 0,
   });
 
-  const { data: fatture = [] } = useQuery({
-    queryKey: ["company-fatture", id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("fatture")
-        .select("id, numero, oggetto, totale, stato, data_emissione")
-        .eq("company_id", id!)
-        .order("data_emissione", { ascending: false })
-        .limit(50);
-      return data || [];
-    },
-    enabled: !!id,
-  });
 
   // KPIs
   const kpis = useMemo(() => {
@@ -182,7 +169,7 @@ export default function AziendaDetail() {
           <TabsTrigger value="pratiche"><FolderOpen className="mr-1.5 h-4 w-4" />Pratiche</TabsTrigger>
           <TabsTrigger value="wallet"><Wallet className="mr-1.5 h-4 w-4" />Wallet</TabsTrigger>
           <TabsTrigger value="utenti"><Users className="mr-1.5 h-4 w-4" />Utenti</TabsTrigger>
-          <TabsTrigger value="fatture"><FileText className="mr-1.5 h-4 w-4" />Fatture</TabsTrigger>
+          
         </TabsList>
 
         {/* Anagrafica */}
@@ -345,45 +332,6 @@ export default function AziendaDetail() {
           </Card>
         </TabsContent>
 
-        {/* Fatture */}
-        <TabsContent value="fatture">
-          <Card>
-            <CardContent className="p-0">
-              <ScrollArea className="max-h-[400px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Numero</TableHead>
-                      <TableHead>Oggetto</TableHead>
-                      <TableHead>Totale</TableHead>
-                      <TableHead>Stato</TableHead>
-                      <TableHead>Data</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {fatture.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nessuna fattura</TableCell></TableRow>
-                    ) : fatture.map(f => (
-                      <TableRow key={f.id} className="cursor-pointer" onClick={() => navigate(`/fatturazione/${f.id}`)}>
-                        <TableCell className="font-medium">{f.numero}</TableCell>
-                        <TableCell className="truncate max-w-[200px]">{f.oggetto}</TableCell>
-                        <TableCell className="font-semibold">€ {f.totale.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={f.stato === "pagata" ? "text-success" : f.stato === "emessa" ? "text-primary" : ""}>
-                            {f.stato}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
-                          {new Date(f.data_emissione).toLocaleDateString("it-IT")}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
     </div>
   );

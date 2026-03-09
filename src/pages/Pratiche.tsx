@@ -44,7 +44,8 @@ export default function Pratiche() {
         .from("pratiche")
         .select("*, clienti_finali(id, nome, cognome)")
         .eq("company_id", companyId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(500);
       if (error) throw error;
       return data;
     },

@@ -8,12 +8,77 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Send, ExternalLink, FileDown } from "lucide-react";
 import { PracticeChat } from "@/components/PracticeChat";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { ChecklistPanel } from "@/components/ChecklistPanel";
-import { STATO_CONFIG } from "@/lib/pratiche-config";
+import { STATO_CONFIG, canTransition, INTERNAL_TRANSITIONS } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
+
+// #10 Output section component
+function OutputSection({ outputUrls, noteConsegna }: { outputUrls: any; noteConsegna: string | null }) {
+  const urls = Array.isArray(outputUrls) ? outputUrls : [];
+  if (urls.length === 0 && !noteConsegna) return null;
+
+  return (
+    <Card>
+      <CardHeader><CardTitle className="flex items-center gap-2 text-sm"><FileDown className="h-4 w-4" />Documenti di Output</CardTitle></CardHeader>
+      <CardContent className="space-y-3">
+        {urls.length > 0 && (
+          <div className="space-y-2">
+            {urls.map((url: string, i: number) => (
+              <a
+                key={i}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-lg border p-3 text-sm text-primary hover:bg-accent transition-colors"
+              >
+                <ExternalLink className="h-4 w-4" />
+                <span className="truncate">{url.split("/").pop() || `Documento ${i + 1}`}</span>
+              </a>
+            ))}
+          </div>
+        )}
+        {noteConsegna && (
+          <div>
+            <span className="text-sm text-muted-foreground">Note di consegna</span>
+            <p className="mt-1 text-sm">{noteConsegna}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// #9 Send button for company users
+function SendPraticaButton({ praticaId, stato, onSuccess }: { praticaId: string; stato: string; onSuccess: () => void }) {
+  const { toast } = useToast();
+
+  const sendMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("pratiche")
+        .update({ stato: "inviata" })
+        .eq("id", praticaId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      onSuccess();
+      toast({ title: "Pratica inviata con successo!" });
+    },
+    onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  if (stato !== "bozza") return null;
+
+  return (
+    <Button onClick={() => sendMutation.mutate()} disabled={sendMutation.isPending} className="w-full">
+      <Send className="mr-2 h-4 w-4" />
+      {sendMutation.isPending ? "Invio in corso..." : "Invia Pratica"}
+    </Button>
+  );
+}
 
 export default function PraticaDetail() {
   const { id } = useParams<{ id: string }>();
@@ -55,6 +120,11 @@ export default function PraticaDetail() {
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
 
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ["pratica", id] });
+    queryClient.invalidateQueries({ queryKey: ["pratiche"] });
+  };
+
   if (isLoading) {
     return <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
   }
@@ -67,6 +137,11 @@ export default function PraticaDetail() {
   const Icon = statoConf.icon;
   const datiPratica = (pratica.dati_pratica as any) || {};
   const cliente = pratica.clienti_finali as any;
+
+  // #1 Only show valid target states for internal users
+  const validTargetStates = isInternalUser
+    ? INTERNAL_TRANSITIONS[pratica.stato as PraticaStato] || []
+    : [];
 
   return (
     <div className="space-y-6">
@@ -171,11 +246,19 @@ export default function PraticaDetail() {
             </CardContent>
           </Card>
 
+          {/* #10 Output section */}
+          <OutputSection outputUrls={pratica.output_urls} noteConsegna={pratica.note_consegna} />
+
           <DocumentUpload praticaId={pratica.id} companyId={pratica.company_id} />
           <PracticeChat praticaId={pratica.id} companyId={pratica.company_id} />
         </div>
 
         <div className="space-y-4">
+          {/* #9 Send button for company users */}
+          {!isInternalUser && (
+            <SendPraticaButton praticaId={pratica.id} stato={pratica.stato} onSuccess={invalidateAll} />
+          )}
+
           {isInternalUser && (
             <Card>
               <CardHeader><CardTitle className="text-sm">Gestione Stato</CardTitle></CardHeader>
@@ -183,7 +266,9 @@ export default function PraticaDetail() {
                 <Select value={pratica.stato} onValueChange={(v) => updateStato.mutate(v as PraticaStato)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {(Object.keys(STATO_CONFIG) as PraticaStato[]).map((s) => (
+                    {/* Current state + valid targets */}
+                    <SelectItem value={pratica.stato}>{STATO_CONFIG[pratica.stato as PraticaStato].label} (corrente)</SelectItem>
+                    {validTargetStates.map((s) => (
                       <SelectItem key={s} value={s}>{STATO_CONFIG[s].label}</SelectItem>
                     ))}
                   </SelectContent>

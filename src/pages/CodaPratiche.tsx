@@ -33,7 +33,9 @@ export default function CodaPratiche() {
       const { data, error } = await supabase
         .from("pratiche")
         .select("*, companies(ragione_sociale), clienti_finali(nome, cognome)")
-        .order("created_at", { ascending: false });
+        .in("stato", ["inviata", "in_lavorazione", "in_attesa_documenti"])
+        .order("created_at", { ascending: false })
+        .limit(500);
       if (error) throw error;
       return data;
     },

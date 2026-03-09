@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -6,20 +6,33 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   FolderOpen, Search,
-  Building2, ArrowRight, User, List, Columns3, Download,
+  Building2, ArrowRight, User, List, Columns3, Download, Trash2,
 } from "lucide-react";
 import { exportToCSV } from "@/lib/csv-export";
 import { useNavigate } from "react-router-dom";
 import { STATO_CONFIG, STATO_ORDER, PAGAMENTO_BADGE, getAgingDot } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
 import { PraticheSummaryBar } from "@/components/pratiche/PraticheSummaryBar";
+import { BulkActionsBar } from "@/components/pratiche/BulkActionsBar";
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { toast as sonnerToast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type ViewMode = "list" | "pipeline";
 
@@ -111,6 +124,7 @@ export default function AdminPratiche() {
   const [filterAzienda, setFilterAzienda] = useState<string>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -209,6 +223,63 @@ export default function AdminPratiche() {
     });
   };
 
+  // Selection
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(p => p.id)));
+    }
+  }, [filtered, selectedIds.size]);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  // Bulk mutations
+  const bulkDelete = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("pratiche").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
+      clearSelection();
+      toast({ title: "Pratiche eliminate" });
+    },
+    onError: () => toast({ title: "Errore nell'eliminazione", variant: "destructive" }),
+  });
+
+  const bulkChangeStato = useMutation({
+    mutationFn: async ({ ids, stato }: { ids: string[]; stato: string }) => {
+      const { error } = await supabase.from("pratiche").update({ stato: stato as any }).in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
+      clearSelection();
+      toast({ title: "Stato aggiornato" });
+    },
+  });
+
+  const bulkChangePagamento = useMutation({
+    mutationFn: async ({ ids, pagamento }: { ids: string[]; pagamento: string }) => {
+      const { error } = await supabase.from("pratiche").update({ pagamento_stato: pagamento as any }).in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
+      clearSelection();
+      toast({ title: "Stato pagamento aggiornato" });
+    },
+  });
+
   const activePratica = activeId ? pratiche.find(p => p.id === activeId) : null;
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -253,7 +324,6 @@ export default function AdminPratiche() {
         <p className="text-muted-foreground">Vista globale di tutte le pratiche di tutte le aziende</p>
       </div>
 
-      {/* KPI Summary */}
       {!isLoading && pratiche.length > 0 && <PraticheSummaryBar pratiche={pratiche} />}
 
       <div className="flex flex-col gap-3">
@@ -303,8 +373,17 @@ export default function AdminPratiche() {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="flex flex-wrap gap-2">
+        {/* Stats + select all */}
+        <div className="flex flex-wrap items-center gap-2">
+          {viewMode === "list" && filtered.length > 0 && (
+            <div className="flex items-center gap-2 mr-2">
+              <Checkbox
+                checked={selectedIds.size === filtered.length && filtered.length > 0}
+                onCheckedChange={toggleSelectAll}
+              />
+              <span className="text-xs text-muted-foreground">Tutte</span>
+            </div>
+          )}
           {STATO_ORDER.map(stato => {
             const count = pratiche.filter(p => p.stato === stato).length;
             if (count === 0) return null;
@@ -318,6 +397,18 @@ export default function AdminPratiche() {
           })}
         </div>
       </div>
+
+      {/* Bulk actions bar */}
+      {selectedIds.size > 0 && (
+        <BulkActionsBar
+          count={selectedIds.size}
+          onClear={clearSelection}
+          onDelete={() => bulkDelete.mutate(Array.from(selectedIds))}
+          onChangeStato={(stato) => bulkChangeStato.mutate({ ids: Array.from(selectedIds), stato })}
+          onChangePagamento={(pagamento) => bulkChangePagamento.mutate({ ids: Array.from(selectedIds), pagamento })}
+          isAdmin
+        />
+      )}
 
       {isLoading ? (
         <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
@@ -337,9 +428,16 @@ export default function AdminPratiche() {
               const assignee = p.assegnatario_id ? assigneeMap[p.assegnatario_id] : null;
               const aging = getAgingDot(p);
               const pagamento = PAGAMENTO_BADGE[p.pagamento_stato] || PAGAMENTO_BADGE.non_pagata;
+              const isSelected = selectedIds.has(p.id);
               return (
-                <Card key={p.id} className="transition-colors hover:bg-accent/50">
+                <Card key={p.id} className={`transition-colors hover:bg-accent/50 ${isSelected ? "ring-2 ring-primary" : ""}`}>
                   <CardContent className="flex items-center gap-4 p-4">
+                    <div onClick={e => e.stopPropagation()}>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSelect(p.id)}
+                      />
+                    </div>
                     <div className="relative">
                       <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${conf.color}`}>
                         <Icon className="h-5 w-5" />
@@ -401,6 +499,30 @@ export default function AdminPratiche() {
                           {STATO_ORDER.map(s => <SelectItem key={s} value={s}>{STATO_CONFIG[s].label}</SelectItem>)}
                         </SelectContent>
                       </Select>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Elimina pratica</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Stai per eliminare la pratica "{p.titolo}". Questa azione è irreversibile.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annulla</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              onClick={() => bulkDelete.mutate([p.id])}
+                            >
+                              Elimina
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                       <Button variant="ghost" size="icon" onClick={() => navigate(`/pratiche/${p.id}`)}>
                         <ArrowRight className="h-4 w-4" />
                       </Button>

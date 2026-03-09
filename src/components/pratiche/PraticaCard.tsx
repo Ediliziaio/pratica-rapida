@@ -1,13 +1,24 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Zap, FileText } from "lucide-react";
+import { CheckCircle2, Zap, FileText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { STATO_CONFIG, PAGAMENTO_BADGE, getAgingDot } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
 
-export function ListView({ pratiche, navigate }: { pratiche: any[]; navigate: (path: string) => void }) {
+interface ListViewProps {
+  pratiche: any[];
+  navigate: (path: string) => void;
+  selectable?: boolean;
+  selectedIds?: Set<string>;
+  onToggle?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  canDelete?: (pratica: any) => boolean;
+}
+
+export function ListView({ pratiche, navigate, selectable, selectedIds, onToggle, onDelete, canDelete }: ListViewProps) {
   if (pratiche.length === 0) {
     return (
       <Card className="border-dashed border-2">
@@ -39,10 +50,20 @@ export function ListView({ pratiche, navigate }: { pratiche: any[]; navigate: (p
         const Icon = statoConf.icon;
         const aging = getAgingDot(p);
         const pagamento = PAGAMENTO_BADGE[p.pagamento_stato] || PAGAMENTO_BADGE.non_pagata;
+        const isSelected = selectedIds?.has(p.id) ?? false;
+        const deletable = canDelete ? canDelete(p) : false;
 
         return (
-          <Card key={p.id} className="cursor-pointer transition-colors hover:bg-accent/50" onClick={() => navigate(`/pratiche/${p.id}`)}>
+          <Card key={p.id} className={`cursor-pointer transition-colors hover:bg-accent/50 ${isSelected ? "ring-2 ring-primary" : ""}`} onClick={() => navigate(`/pratiche/${p.id}`)}>
             <CardContent className="flex items-center gap-4 p-4">
+              {selectable && (
+                <div onClick={e => e.stopPropagation()}>
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => onToggle?.(p.id)}
+                  />
+                </div>
+              )}
               <div className="relative">
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${statoConf.color}`}>
                   <Icon className="h-5 w-5" />
@@ -66,6 +87,16 @@ export function ListView({ pratiche, navigate }: { pratiche: any[]; navigate: (p
                   <p className="font-semibold">€ {p.prezzo.toFixed(2)}</p>
                   <Badge className={`text-xs ${statoConf.color}`}>{statoConf.label}</Badge>
                 </div>
+                {deletable && onDelete && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                    onClick={e => { e.stopPropagation(); onDelete(p.id); }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -21,7 +21,7 @@ export default function SolutionSection() {
               className="inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-6"
               style={{ backgroundColor: "hsla(var(--pr-green), 0.1)", color: "hsl(var(--pr-green))" }}
             >
-              Il Tuo Partner N°1 per le Detrazioni Fiscali
+              Chi Siamo
             </motion.span>
 
             <motion.h2
@@ -29,39 +29,26 @@ export default function SolutionSection() {
               animate={isVisible ? { opacity: 1, y: 0 } : {}}
               className="font-bold text-2xl sm:text-4xl lg:text-5xl leading-[1.1] mb-6 text-foreground"
             >
-              Le Pratiche ENEA dei Tuoi Clienti?
-              <br />
-              <span style={{ color: "hsl(var(--pr-green))" }}>Ci Pensiamo Noi. A Nome Tuo.</span>
+              Il tuo team pratiche in outsourcing —{" "}
+              <span style={{ color: "hsl(var(--pr-green))" }}>senza costi fissi, senza assunzioni.</span>
             </motion.h2>
 
-            <motion.p
+            <motion.div
               initial={{ opacity: 0 }}
               animate={isVisible ? { opacity: 1 } : {}}
               transition={{ delay: 0.3 }}
-              className="text-muted-foreground text-base sm:text-lg max-w-xl mb-8 leading-relaxed"
+              className="space-y-4 text-muted-foreground text-base sm:text-lg leading-relaxed"
             >
-              Pratica Rapida è il primo servizio in Italia pensato esclusivamente per aziende di serramenti, 
-              tende da sole, pergole e fotovoltaico. Con <strong className="text-foreground">14+ anni di esperienza</strong> nel settore 
-              e oltre <strong className="text-foreground">122 recensioni positive</strong> su Trustpilot, gestiamo le pratiche ENEA 
-              dei tuoi clienti in modo completamente trasparente.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={isVisible ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.5 }}
-              className="grid grid-cols-3 gap-4"
-            >
-              {[
-                { num: "14+", label: "Anni di esperienza" },
-                { num: "122+", label: "Recensioni Trustpilot" },
-                { num: "65€", label: "Prezzo fisso a pratica" },
-              ].map((stat) => (
-                <div key={stat.label} className="bg-card rounded-2xl border border-border p-4 shadow-sm text-center">
-                  <div className="font-bold text-2xl sm:text-3xl mb-1" style={{ color: "hsl(var(--pr-green))" }}>{stat.num}</div>
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
-                </div>
-              ))}
+              <p>
+                Pratica Rapida gestisce dal 2011 le pratiche per detrazioni fiscali per conto di aziende di serramenti, schermature solari, tende, vetrate, fotovoltaico e caldaie.
+              </p>
+              <p className="text-foreground font-semibold">Come funziona?</p>
+              <p>
+                Semplice: chiamiamo i tuoi clienti a nome della tua azienda, raccogliamo tutta la documentazione necessaria e trasmettiamo la pratica entro 48 ore dal completamento del fascicolo. Tu e il tuo cliente ricevete l'esito direttamente.
+              </p>
+              <p className="font-medium text-foreground">
+                Niente intermediari. Niente stress. Niente pratiche ferme in attesa.
+              </p>
             </motion.div>
           </div>
 

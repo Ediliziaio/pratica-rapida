@@ -1,20 +1,12 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Check, ArrowRight, Star } from "lucide-react";
+import { ArrowRight, Star } from "lucide-react";
 import heroBureaucracy from "@/assets/hero-bureaucracy.png";
-
-const words = ["Quante", "Vendite", "Stai", "Perdendo", "Perché", "Non", "Gestisci", "le"];
-const checks = [
-  "Zero canoni mensili",
-  "Consegna in 24h",
-  "Supporto 100% italiano",
-  "Paghi solo a pratica completata",
-];
 
 export default function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden pt-16 bg-background">
-      {/* Bureaucracy image faded on the right — more visible */}
+      {/* Bureaucracy image faded on the right */}
       <div className="absolute right-0 top-0 h-full w-2/3 hidden lg:block">
         <img
           src={heroBureaucracy}
@@ -37,75 +29,48 @@ export default function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             className="inline-block px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-[hsla(var(--pr-green),0.12)] text-[hsl(var(--pr-green))]"
           >
-            PER AZIENDE DI INFISSI, TENDE, PERGOLE E SERRAMENTI
+            PER AZIENDE DI SERRAMENTI, TENDE, FOTOVOLTAICO E CALDAIE
           </motion.span>
 
-          <h1 className="font-bold text-3xl sm:text-5xl lg:text-6xl xl:text-7xl leading-[1.05] text-foreground">
-            {words.map((word, i) => (
-              <motion.span
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + i * 0.08, duration: 0.5 }}
-                className="inline-block mr-2 sm:mr-3"
-              >
-                {word}
-              </motion.span>
-            ))}
-            <motion.span
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + words.length * 0.08 }}
-              className="inline-block mr-2 sm:mr-3 text-[hsl(var(--pr-green))]"
-            >
-              Pratiche ENEA
-            </motion.span>
-            <motion.span
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + (words.length + 1) * 0.08 }}
-              className="inline-block"
-            >
-              ?
-            </motion.span>
-          </h1>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed"
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="font-bold text-3xl sm:text-5xl lg:text-6xl xl:text-7xl leading-[1.05] text-foreground"
           >
-            Il servizio chiavi in mano che ti permette di offrire le pratiche ENEA ai tuoi clienti a nome tuo, senza fare nulla. A soli <strong className="text-foreground">65€ a pratica</strong>.
-          </motion.p>
+            Pratiche ENEA e detrazioni fiscali per i tuoi clienti —{" "}
+            <span className="text-[hsl(var(--pr-green))]">
+              le gestiamo noi, a nome tuo, in 48 ore.
+            </span>
+          </motion.h1>
 
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-            className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4"
+            transition={{ delay: 0.5 }}
+            className="space-y-4"
           >
-            {checks.map((c) => (
-              <span key={c} className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Check size={16} className="shrink-0 text-[hsl(var(--pr-green))]" /> {c}
-              </span>
-            ))}
+            <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
+              <strong className="text-foreground">Sei un'azienda di serramenti, tende, fotovoltaico o caldaie?</strong>
+              <br />
+              Da oggi non perdi più tempo con la burocrazia. Noi ci occupiamo di tutto — dalla raccolta dei documenti alla trasmissione finale — mentre tu ti concentri solo sulle vendite.
+            </p>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2 }}
+            transition={{ delay: 0.8 }}
             className="space-y-3"
           >
             <Link
               to="/auth"
               className="inline-flex items-center gap-2 text-white font-semibold px-8 py-3.5 rounded-full text-base transition-all animate-pulse-glow hover:brightness-110 bg-[hsl(var(--pr-green))]"
             >
-              Attiva Gratis <ArrowRight className="w-4 h-4" />
+              → Richiedi informazioni gratuite <ArrowRight className="w-4 h-4" />
             </Link>
             <p className="text-xs text-muted-foreground">
-              Oltre 122 recensioni su Trustpilot • 14+ anni di esperienza • Nessun vincolo
+              Nessun impegno • Zero costi nascosti • Risposta entro 24h
             </p>
           </motion.div>
         </div>
@@ -125,8 +90,8 @@ export default function HeroSection() {
             </div>
             {[
               { label: "Pratiche completate questo mese", value: "47 ✅" },
-              { label: "Costo per pratica", value: "€65" },
-              { label: "Tempo medio consegna", value: "24h" },
+              { label: "Tempo medio evasione", value: "48h" },
+              { label: "Clienti contattati a tuo nome", value: "32" },
             ].map((item) => (
               <div key={item.label} className="flex items-center justify-between p-3 rounded-xl bg-[hsla(var(--pr-green),0.08)]">
                 <span className="text-sm text-muted-foreground">{item.label}</span>

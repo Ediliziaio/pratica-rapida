@@ -3,14 +3,13 @@ import {
   HeroSection,
   TickerStrip,
   ProblemSection,
-  InactionCostSection,
   SolutionSection,
-  TrustSection,
-  ServicesGrid,
+  BenefitsSection,
   ProcessSteps,
   PartnerSection,
   DataWallSection,
   ReviewsSection,
+  WhyUsSection,
   PricingSection,
   GuaranteeSection,
   FAQSection,
@@ -25,14 +24,13 @@ export default function Home() {
       <HeroSection />
       <TickerStrip />
       <ProblemSection />
-      <InactionCostSection />
       <SolutionSection />
-      <TrustSection />
-      <ServicesGrid />
+      <BenefitsSection />
       <ProcessSteps />
       <PartnerSection />
       <DataWallSection />
       <ReviewsSection />
+      <WhyUsSection />
       <PricingSection />
       <GuaranteeSection />
       <FAQSection />

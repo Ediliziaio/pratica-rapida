@@ -1,63 +1,108 @@
 import { motion } from "framer-motion";
 import { useScrollAnimation } from "./hooks";
-import { Building2, Globe, Headphones } from "lucide-react";
+import { Check, X, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
-const reasons = [
-  {
-    icon: Building2,
-    title: "Diventiamo il tuo ufficio pratiche",
-    desc: "Il nostro team contatta i clienti a tuo nome, raccoglie i documenti, gestisce le eccezioni. Per il cliente finale siamo trasparenti: è come avere un ufficio interno dedicato, senza i costi di uno.",
-  },
-  {
-    icon: Globe,
-    title: "Tutto online, nessuna presenza fisica",
-    desc: "Non servono spostamenti, appuntamenti o spedizioni cartacee. L'intero processo è digitale, tracciabile, accessibile.",
-  },
-  {
-    icon: Headphones,
-    title: "Un numero dedicato per ogni esigenza",
-    desc: "Il tuo cliente ha un numero diretto a cui risponde un essere umano. Nessun bot, nessuna attesa infinita, nessuna situazione lasciata senza risposta.",
-  },
+const comparisons = [
+  { feature: "Raccolta documenti dal cliente", us: true, diy: false, accountant: false },
+  { feature: "Contatto cliente a nome tuo", us: true, diy: false, accountant: false },
+  { feature: "Invio telematico ENEA", us: true, diy: true, accountant: true },
+  { feature: "Consegna in 24h", us: true, diy: false, accountant: false },
+  { feature: "Assicurazione RC inclusa", us: true, diy: false, accountant: false },
+  { feature: "Nessun costo fisso", us: true, diy: true, accountant: false },
+  { feature: "Supporto dedicato WhatsApp", us: true, diy: false, accountant: false },
+  { feature: "Correzioni gratuite illimitate", us: true, diy: false, accountant: false },
 ];
+
+function CheckIcon() {
+  return (
+    <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: "hsla(var(--pr-green), 0.15)" }}>
+      <Check size={14} style={{ color: "hsl(var(--pr-green))" }} />
+    </div>
+  );
+}
+
+function XIcon() {
+  return (
+    <div className="w-6 h-6 rounded-full bg-destructive/10 flex items-center justify-center">
+      <X size={14} className="text-destructive" />
+    </div>
+  );
+}
 
 export default function WhyUsSection() {
   const { ref, isVisible } = useScrollAnimation();
 
   return (
-    <section ref={ref} className="py-16 sm:py-20 lg:py-28 bg-background">
-      <div className="max-w-6xl mx-auto px-4 lg:px-8">
+    <section ref={ref} className="py-16 sm:py-20 lg:py-28" style={{ background: "linear-gradient(135deg, hsla(var(--pr-green), 0.04) 0%, hsla(var(--pr-green), 0.01) 100%)" }}>
+      <div className="max-w-4xl mx-auto px-4 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           className="text-center mb-12"
         >
           <h2 className="font-bold text-2xl sm:text-3xl lg:text-5xl leading-[1.1] mb-4 text-foreground">
-            Perché scegliere Pratica Rapida e non farlo da soli
-            <br />
-            <span style={{ color: "hsl(var(--pr-green))" }}>(o affidarsi a un commercialista)?</span>
+            Noi vs Fai da te vs{" "}
+            <span style={{ color: "hsl(var(--pr-green))" }}>Commercialista</span>
           </h2>
+          <p className="text-muted-foreground text-base sm:text-lg">
+            Un confronto onesto. Poi decidi tu.
+          </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {reasons.map((r, i) => (
-            <motion.div
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.2 }}
+          className="bg-card border border-border rounded-2xl overflow-hidden shadow-lg"
+        >
+          {/* Header */}
+          <div className="grid grid-cols-4 gap-0 border-b border-border text-center text-xs sm:text-sm font-bold">
+            <div className="p-3 sm:p-4 text-left text-muted-foreground" />
+            <div className="p-3 sm:p-4 text-white rounded-t-none" style={{ backgroundColor: "hsl(var(--pr-green))" }}>
+              Pratica Rapida
+            </div>
+            <div className="p-3 sm:p-4 text-foreground bg-muted/50">Fai da te</div>
+            <div className="p-3 sm:p-4 text-foreground bg-muted/50">Commercialista</div>
+          </div>
+
+          {/* Rows */}
+          {comparisons.map((row, i) => (
+            <div
               key={i}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isVisible ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.15 * i, duration: 0.5 }}
-              className="bg-card border border-border rounded-2xl p-6 sm:p-8 hover:shadow-lg transition-shadow"
+              className={`grid grid-cols-4 gap-0 items-center text-center text-sm ${
+                i < comparisons.length - 1 ? "border-b border-border/50" : ""
+              }`}
             >
-              <div
-                className="w-14 h-14 rounded-xl flex items-center justify-center mb-5"
-                style={{ backgroundColor: "hsla(var(--pr-green), 0.1)" }}
-              >
-                <r.icon size={28} style={{ color: "hsl(var(--pr-green))" }} />
+              <div className="p-3 sm:p-4 text-left text-foreground text-xs sm:text-sm">{row.feature}</div>
+              <div className="p-3 sm:p-4 flex justify-center bg-[hsla(var(--pr-green),0.03)]">
+                {row.us ? <CheckIcon /> : <XIcon />}
               </div>
-              <h3 className="font-bold text-xl mb-3 text-foreground">{r.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">{r.desc}</p>
-            </motion.div>
+              <div className="p-3 sm:p-4 flex justify-center">
+                {row.diy ? <CheckIcon /> : <XIcon />}
+              </div>
+              <div className="p-3 sm:p-4 flex justify-center">
+                {row.accountant ? <CheckIcon /> : <XIcon />}
+              </div>
+            </div>
           ))}
-        </div>
+        </motion.div>
+
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.5 }}
+          className="mt-8 text-center"
+        >
+          <Link
+            to="/auth"
+            className="inline-flex items-center gap-2 text-white font-semibold px-8 py-3.5 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
+            style={{ backgroundColor: "hsl(var(--pr-green))" }}
+          >
+            Scegli la via semplice <ArrowRight size={16} />
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

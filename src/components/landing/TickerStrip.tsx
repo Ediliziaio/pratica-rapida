@@ -10,12 +10,12 @@ const items = [
 ];
 
 export default function TickerStrip() {
-  const content = items.map((t) => `  ✦  ${t}`).join("");
+  const content = items.map((t) => `  •  ${t}`).join("");
   return (
-    <div className="py-3 overflow-hidden whitespace-nowrap text-white" style={{ backgroundColor: "hsl(var(--pr-green))" }}>
+    <div className="py-3.5 overflow-hidden whitespace-nowrap text-white" style={{ backgroundColor: "hsl(var(--pr-green))" }}>
       <div className="animate-marquee inline-block">
-        <span className="text-sm font-medium">{content}</span>
-        <span className="text-sm font-medium">{content}</span>
+        <span className="text-sm font-medium tracking-wide">{content}</span>
+        <span className="text-sm font-medium tracking-wide">{content}</span>
       </div>
     </div>
   );

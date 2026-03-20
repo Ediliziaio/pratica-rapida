@@ -62,12 +62,15 @@ export default function PricingSection() {
               <span className="text-2xl text-foreground font-bold">€</span>
             </div>
             <p className="text-muted-foreground mt-1">a pratica completata • IVA esclusa</p>
+            <p className="text-sm font-medium mt-2" style={{ color: "hsl(var(--pr-green))" }}>
+              Prima pratica? Prova senza impegno.
+            </p>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-8">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "hsl(var(--pr-green))" }}>
-                ✅ Incluso
+                Incluso
               </p>
               <ul className="space-y-3">
                 {included.map((f) => (
@@ -80,7 +83,7 @@ export default function PricingSection() {
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-destructive mb-3">
-                ❌ Mai
+                Mai
               </p>
               <ul className="space-y-3">
                 {notIncluded.map((f) => (
@@ -96,7 +99,7 @@ export default function PricingSection() {
           <div className="mt-8 text-center">
             <Link
               to="/auth"
-              className="inline-flex items-center text-white font-bold px-8 py-3.5 rounded-full text-base transition-all animate-pulse-glow hover:brightness-110"
+              className="inline-flex items-center text-white font-bold px-8 py-3.5 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
               style={{ backgroundColor: "hsl(var(--pr-green))" }}
             >
               Attiva Gratis — Zero Rischi

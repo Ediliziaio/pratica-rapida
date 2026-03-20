@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Phone, Mail, MapPin, Clock } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -34,10 +35,18 @@ export default function Footer() {
 
           <div>
             <h5 className="font-bold text-sm text-white mb-4">Contatti</h5>
-            <p className="text-sm mb-2">📞 +39 039 868 2691</p>
-            <p className="text-sm mb-2">📧 modulistica@praticarapida.it</p>
-            <p className="text-sm mb-2">📍 Lissone (MB)</p>
-            <p className="text-sm mb-2">🕐 Lun-Ven 9:00-18:00</p>
+            <a href="tel:+390398682691" className="flex items-center gap-2 text-sm mb-2 hover:text-white transition-colors">
+              <Phone size={14} className="shrink-0" /> +39 039 868 2691
+            </a>
+            <a href="mailto:modulistica@praticarapida.it" className="flex items-center gap-2 text-sm mb-2 hover:text-white transition-colors">
+              <Mail size={14} className="shrink-0" /> modulistica@praticarapida.it
+            </a>
+            <p className="flex items-center gap-2 text-sm mb-2">
+              <MapPin size={14} className="shrink-0" /> Lissone (MB)
+            </p>
+            <p className="flex items-center gap-2 text-sm mb-2">
+              <Clock size={14} className="shrink-0" /> Lun-Ven 9:00-18:00
+            </p>
             <p className="text-xs text-white/40 mt-3">P.IVA 03937130791</p>
           </div>
         </div>

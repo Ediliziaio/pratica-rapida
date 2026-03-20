@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useScrollAnimation } from "./hooks";
-import { UserPlus, Phone, Rocket } from "lucide-react";
+import { UserPlus, Phone, Rocket, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const steps = [
   {
@@ -8,21 +9,24 @@ const steps = [
     icon: UserPlus,
     title: "REGISTRATI GRATIS",
     desc: "Accedi alla tua area riservata e inserisci il numero del tuo cliente. Questo è TUTTO quello che devi fare. Non un documento, non una email. Solo un numero di telefono.",
-    badge: "⚡ 2 minuti",
+    badge: "2 minuti",
+    badgeIcon: "⚡",
   },
   {
     num: "02",
     icon: Phone,
     title: "NOI CONTATTIAMO IL CLIENTE A NOME TUO",
     desc: "Il nostro team chiama il tuo cliente presentandosi come parte della tua azienda. Raccogliamo tutti i documenti: dati catastali, fatture, certificazioni.",
-    badge: "🤝 White label",
+    badge: "White label",
+    badgeIcon: "🤝",
   },
   {
     num: "03",
     icon: Rocket,
     title: "IN 24H LA PRATICA È PRONTA",
     desc: "Entro 24 ore, sia tu che il tuo cliente ricevete la Pratica ENEA completa e pronta. Nessun ritardo. Nessun sollecito. Fatto.",
-    badge: "🚀 Consegna garantita",
+    badge: "Consegna garantita",
+    badgeIcon: "🚀",
   },
 ];
 
@@ -83,13 +87,29 @@ export default function ProcessSteps() {
                     className="inline-block text-xs font-semibold px-3 py-1 rounded-full"
                     style={{ backgroundColor: "hsla(var(--pr-green), 0.1)", color: "hsl(var(--pr-green))" }}
                   >
-                    {step.badge}
+                    {step.badgeIcon} {step.badge}
                   </span>
                 </div>
               </motion.div>
             );
           })}
         </div>
+
+        {/* CTA after steps */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 1.2 }}
+          className="mt-12"
+        >
+          <Link
+            to="/auth"
+            className="inline-flex items-center gap-2 text-white font-semibold px-8 py-4 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
+            style={{ backgroundColor: "hsl(var(--pr-green))" }}
+          >
+            Inizia ora — registrati in 2 minuti <ArrowRight size={16} />
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

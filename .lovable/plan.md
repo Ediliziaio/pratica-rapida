@@ -1,94 +1,49 @@
 
 
-## Piano: Aggiornamento completo copy landing page
+## Piano: Redesign premium Hero + Problem Section
 
-L'utente ha fornito un nuovo copy completo per la landing page. Ecco le modifiche sezione per sezione, mantenendo la timeline e le animazioni esistenti.
+### Obiettivo
+Trasformare le prime due sezioni in un'esperienza visiva da agenzia creativa top-tier: layout asimmetrico, tipografia bold con contrasto, micro-animazioni sofisticate, elementi glassmorphism e composizione spaziale moderna.
 
-### Struttura pagina aggiornata
+### 1. `HeroSection.tsx` — Redesign completo
 
-```text
-Navbar
-HeroSection          ← nuovo copy
-TickerStrip          ← invariato
-ProblemSection       ← nuovo copy "Quante ore hai perso..."
-SolutionSection      ← nuovo copy "Il tuo team pratiche in outsourcing"
-BenefitsSection      ← NUOVA sezione (3 colonne: 48h, White label, Conforme)
-ProcessSteps         ← invariato (timeline)
-PartnerSection       ← nuovo titolo + settori aggiornati (aggiunta caldaie/climatizzatori)
-DataWallSection      ← nuovo titolo
-ReviewsSection       ← nuove testimonianze (4 specifiche)
-WhyUsSection         ← NUOVA sezione "Perché scegliere Pratica Rapida" (3 colonne)
-PricingSection       ← invariato
-GuaranteeSection     ← invariato
-FAQSection           ← invariato
-FinalCTA             ← nuovo copy con telefono + email
-Footer               ← aggiornare telefono a +39 039 868 2691
-```
+**Layout**: Full-screen con composizione asimmetrica. Il titolo occupa tutta la larghezza con font size massiccio. Sotto, layout a 2 colonne: sottotitolo + CTA a sinistra, dashboard mockup a destra con effetto glassmorphism e rotazione 3D leggera.
 
-Sezioni RIMOSSE: `InactionCostSection`, `TrustSection`, `ServicesGrid` (i servizi sono assorbiti in BenefitsSection e WhyUsSection).
+**Elementi innovativi**:
+- Badge "PER AZIENDE DI..." con bordo animato (gradient border rotating)
+- Titolo H1 enorme (clamp responsive) con la parte verde che ha un highlight animato (underline che si disegna)
+- Floating stats pills: 3 mini-badge flottanti attorno alla dashboard ("47 pratiche", "48h", "32 clienti") con animazione float staggerata
+- Dashboard card con `backdrop-blur`, bordo semi-trasparente (glassmorphism), leggera rotazione prospettica `perspective(1000px) rotateY(-5deg)`
+- Immagine burocrazia: opacity aumentata a 0.6, con un `mix-blend-mode: multiply` per integrarla meglio
+- Scroll indicator animato in basso (chevron + linea che pulsa)
+- Rimuovere Trustpilot badge dal hero (è ridondante con ticker)
 
-### Modifiche per file
+**Animazioni**: Entrate staggerate con spring physics (framer-motion), non semplici fade. Dashboard entra con scale + rotate. Stats pills entrano una alla volta con bounce.
 
-**1. `HeroSection.tsx`** — Nuovo copy
-- Titolo: "Pratiche ENEA e detrazioni fiscali per i tuoi clienti — le gestiamo noi, a nome tuo, in 48 ore."
-- Sottotitolo: "Sei un'azienda di serramenti, tende, fotovoltaico o caldaie?..." (testo completo fornito)
-- CTA: "→ Richiedi informazioni gratuite" (link a contatto/auth)
-- Rimuovere word-by-word animation, usare fade-in semplice per il titolo
-- Mantenere immagine burocrazia sfumata a destra, dashboard mockup
+### 2. `ProblemSection.tsx` — Redesign immersivo
 
-**2. `ProblemSection.tsx`** — Nuovo copy
-- Titolo: "Quante ore hai perso l'anno scorso dietro alle pratiche?"
-- Testo: paragrafo fornito sulla burocrazia post-installazione
-- Transizione: "Ecco perché esistiamo."
-- Mantenere layout 2 colonne con immagine a sinistra, rimuovere lista pain points con AlertTriangle
+**Layout**: Full-width con sfondo scuro (`bg-[hsl(var(--pr-dark))]` = quasi nero). Testo bianco. L'immagine diventa sfondo full-width con overlay scuro, non più in colonna separata.
 
-**3. `SolutionSection.tsx`** — Nuovo copy
-- Titolo: "Il tuo team pratiche in outsourcing — senza costi fissi, senza assunzioni."
-- Testo: descrizione completa del servizio dal 2011
-- Sotto-sezione "Come funziona?" con testo fornito
-- Chiusura: "Niente intermediari. Niente stress. Niente pratiche ferme in attesa."
-- Mantenere layout 2 colonne, rimuovere stats box (14+, 122+, 65€)
+**Elementi innovativi**:
+- Sfondo: immagine documenti full-width con `opacity-20` e overlay gradient scuro
+- Titolo centrato, grande, con la parte verde che ha un effetto "glow" sottile (`text-shadow`)
+- I 3 paragrafi appaiono in sequenza staggerata (scroll-triggered) con linea verticale verde animata che li connette (timeline verticale)
+- "Ore che non vengono pagate" — riga evidenziata con background gradient che si anima da sinistra a destra
+- "Ecco perché esistiamo" — testo grande centrato con animazione di reveal (clip-path che si apre) + freccia giù con trail luminoso
+- Transizione morbida verso la sezione successiva con un gradient bottom che sfuma dal dark al bianco
 
-**4. NUOVO `BenefitsSection.tsx`** — Sezione benefici 3 colonne
-- "Pratiche evase in 48 ore" — testo fornito
-- "Chiamiamo noi il cliente, a tuo nome" — testo fornito
-- "Documentazione sempre conforme" — testo fornito
-- Design: 3 card con icone grandi, sfondo leggero verde
+### 3. `src/index.css` — Aggiunte CSS
 
-**5. `PartnerSection.tsx`** — Aggiornamento
-- Titolo: "Lavori con uno di questi settori? Sei nel posto giusto."
-- Settori: Serramenti, Fotovoltaico, Tende da sole e schermature solari, Caldaie e climatizzatori, Vetrate e infissi
-- Mantenere card con immagini
+- Classe `.gradient-border-spin` per bordo animato del badge
+- Classe `.highlight-draw` per underline che si disegna
+- Classe `.text-glow-green` per glow sul testo verde in sezione scura
+- Classe `.reveal-highlight` per background animato su riga di testo
 
-**6. `DataWallSection.tsx`** — Nuovo titolo
-- Titolo: "Oltre 14 anni. Migliaia di pratiche. Zero pensieri per chi ci affida il lavoro."
-- Mantenere contatori animati
+### File modificati
+1. `src/components/landing/HeroSection.tsx` — Redesign completo layout + animazioni
+2. `src/components/landing/ProblemSection.tsx` — Layout dark immersivo con timeline
+3. `src/index.css` — Nuove utility CSS per effetti premium
 
-**7. `ReviewsSection.tsx`** — 4 testimonianze nuove
-- Titolo: "Non è quello che diciamo noi che conta. È quello che dicono loro."
-- Zanellato Enrico, Marco Barbieri, Valentina Quagliarella, Silvana — testi forniti
-- Rimuovere featured review (Alessandro T.)
-
-**8. NUOVO `WhyUsSection.tsx`** — "Perché scegliere Pratica Rapida"
-- 3 colonne: "Diventiamo il tuo ufficio pratiche", "Tutto online, nessuna presenza fisica", "Un numero dedicato per ogni esigenza"
-- Testi forniti, design card con icone
-
-**9. `CTASection.tsx`** — Nuovo copy finale
-- Headline: "Quante pratiche hai in sospeso in questo momento?"
-- Testo: paragrafo fornito
-- CTA primaria: "→ Parla con noi adesso — chiama il +39 039 868 2691"
-- CTA secondaria: "→ Scrivici a modulistica@praticarapida.it"
-
-**10. `Footer.tsx`** — Aggiornare telefono a +39 039 868 2691
-
-**11. `Home.tsx`** — Nuova struttura sezioni
-- Rimuovere: InactionCostSection, TrustSection, ServicesGrid
-- Aggiungere: BenefitsSection (dopo SolutionSection), WhyUsSection (dopo ReviewsSection)
-
-**12. `index.ts`** — Aggiornare export
-
-### Note
-- Timeline (ProcessSteps), FAQ, Pricing, Guarantees restano invariati
-- Tutte le animazioni framer-motion restano
-- Immagini Unsplash esistenti mantenute dove possibile
+### Risultato
+Le prime due sezioni avranno un impatto visivo da sito premiato su Awwwards: composizione asimmetrica, micro-interazioni, glassmorphism, dark/light contrast drammatico, tipografia bold con dettagli animati.
 

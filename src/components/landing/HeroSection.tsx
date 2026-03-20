@@ -1,7 +1,26 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Star, Check, Phone, ChevronDown } from "lucide-react";
 import heroBureaucracy from "@/assets/hero-bureaucracy.png";
+
+function useCounter(target: number, delay: number, duration = 1500) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const start = performance.now();
+      const animate = (now: number) => {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setCount(Math.floor(eased * target));
+        if (progress < 1) requestAnimationFrame(animate);
+      };
+      requestAnimationFrame(animate);
+    }, delay);
+    return () => clearTimeout(timeout);
+  }, [target, delay, duration]);
+  return count;
+}
 
 const socialProofAvatars = [
   { initials: "MR", bg: "bg-[hsl(var(--pr-green))]" },

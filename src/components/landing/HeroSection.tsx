@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Check, ArrowRight, Star } from "lucide-react";
-import heroBg from "@/assets/hero-bg.jpg";
+import heroBureaucracy from "@/assets/hero-bureaucracy.png";
 
 const words = ["Quante", "Vendite", "Stai", "Perdendo", "Perché", "Non", "Gestisci", "le"];
 const checks = [
@@ -14,15 +14,15 @@ const checks = [
 export default function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden pt-16 bg-background">
-      {/* Background image with gradient fade */}
-      <div className="absolute inset-0">
+      {/* Bureaucracy image faded on the right */}
+      <div className="absolute right-0 top-0 h-full w-1/2 lg:w-3/5 hidden lg:block">
         <img
-          src={heroBg}
+          src={heroBureaucracy}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-20"
+          className="absolute inset-0 w-full h-full object-cover opacity-30"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-background/60" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/80" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/60" />
       </div>
 
       {/* Floating shapes */}

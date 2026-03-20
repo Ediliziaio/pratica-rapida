@@ -1,78 +1,109 @@
+import { motion } from "framer-motion";
+import { useScrollAnimation } from "./hooks";
+import { Check, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import { CheckCircle2, XCircle, ArrowRight } from "lucide-react";
-import { PR_GREEN } from "./constants";
-import { useCounter } from "./hooks";
-import { Section } from "./Section";
 
-export function PricingSection() {
-  const priceCounter = useCounter(65);
+const included = [
+  "Compilazione pratica ENEA completa",
+  "Invio telematico al portale ENEA",
+  "Raccolta documenti dal cliente",
+  "Contatto cliente a nome tuo",
+  "Assicurazione RC professionale",
+  "Consegna in 24 ore",
+  "Correzioni gratuite illimitate",
+  "Supporto dedicato via WhatsApp",
+];
+
+const notIncluded = [
+  "Canoni mensili",
+  "Costi di attivazione",
+  "Vincoli contrattuali",
+  "Numero minimo di pratiche",
+];
+
+export default function PricingSection() {
+  const { ref, isVisible } = useScrollAnimation();
 
   return (
-    <Section id="prezzi" light>
-      <div className="max-w-4xl mx-auto px-6 text-center">
-        <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
-          Un prezzo che <span style={{ color: PR_GREEN }}>ha senso</span>
-        </h2>
-        <p className="text-gray-500 text-lg max-w-2xl mx-auto mb-12">
-          Nessun canone. Nessun abbonamento. Nessun costo di attivazione. Paghi solo le pratiche effettivamente gestite.
-        </p>
+    <section ref={ref} id="prezzi" className="py-16 sm:py-20 lg:py-28 bg-background">
+      <div className="max-w-4xl mx-auto px-4 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          className="text-center mb-10 sm:mb-14"
+        >
+          <h2 className="font-bold text-2xl sm:text-3xl lg:text-5xl leading-[1.1] mb-4 text-foreground">
+            Un Prezzo. Tutto Incluso.
+            <br />
+            <span style={{ color: "hsl(var(--pr-green))" }}>Zero Sorprese.</span>
+          </h2>
+          <p className="text-muted-foreground text-base sm:text-lg">
+            Nessun abbonamento. Paghi solo quando ti serve.
+          </p>
+        </motion.div>
 
-        <div className="bg-white border-2 rounded-3xl p-10 md:p-14 shadow-xl relative overflow-hidden max-w-2xl mx-auto mb-10" style={{ borderColor: PR_GREEN }}>
-          <div className="absolute top-0 left-0 right-0 h-1.5" style={{ backgroundColor: PR_GREEN }} />
-          <span className="absolute top-4 right-4 text-xs px-3 py-1 rounded-full text-white font-bold" style={{ backgroundColor: PR_GREEN }}>TUTTO INCLUSO</span>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.2 }}
+          className="rounded-2xl border-2 p-6 sm:p-10 bg-card shadow-xl max-w-2xl mx-auto relative"
+          style={{ borderColor: "hsl(var(--pr-green))" }}
+        >
+          <span
+            className="absolute -top-3 left-1/2 -translate-x-1/2 text-white text-xs font-bold px-4 py-1 rounded-full"
+            style={{ backgroundColor: "hsl(var(--pr-green))" }}
+          >
+            PREZZO UNICO
+          </span>
 
-          <h3 className="text-xl font-bold text-gray-900 mb-6">Per ogni Pratica ENEA</h3>
-
-          <ul className="text-left space-y-3 mb-8 max-w-sm mx-auto">
-            {[
-              "Compilazione pratica ENEA",
-              "Invio telematico ad ENEA",
-              "Raccolta documenti dal cliente",
-              "Contatto cliente a nome tuo",
-              "Assicurazione professionale RC",
-              "Consegna in 24h",
-              "Assistenza dedicata",
-            ].map((item) => (
-              <li key={item} className="flex items-center gap-2 text-gray-700 text-sm">
-                <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: PR_GREEN }} />
-                {item}
-              </li>
-            ))}
-          </ul>
-
-          <div className="border-t border-gray-100 pt-6 mb-6">
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">Non dovrai più</p>
-            <ul className="space-y-2 max-w-sm mx-auto">
-              {["Raccogliere documenti", "Inseguire clienti", "Compilare moduli", "Pagare canoni software"].map((item) => (
-                <li key={item} className="flex items-center gap-2 text-gray-400 text-sm">
-                  <XCircle className="w-4 h-4 text-red-300 shrink-0" />
-                  <span className="line-through">{item}</span>
-                </li>
-              ))}
-            </ul>
+          <div className="text-center mb-8">
+            <div className="flex items-baseline justify-center gap-1">
+              <span className="font-bold text-5xl sm:text-6xl text-foreground">65</span>
+              <span className="text-2xl text-foreground font-bold">€</span>
+            </div>
+            <p className="text-muted-foreground mt-1">a pratica completata • IVA esclusa</p>
           </div>
 
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <span className="text-gray-300 line-through text-lg">200€</span>
-            <span className="text-gray-300 line-through text-lg">150€</span>
-            <span className="text-gray-300 line-through text-lg">100€</span>
+          <div className="grid sm:grid-cols-2 gap-8">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "hsl(var(--pr-green))" }}>
+                ✅ Incluso
+              </p>
+              <ul className="space-y-3">
+                {included.map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm">
+                    <Check size={16} className="shrink-0 mt-0.5" style={{ color: "hsl(var(--pr-green))" }} />
+                    <span className="text-foreground">{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-destructive mb-3">
+                ❌ Mai
+              </p>
+              <ul className="space-y-3">
+                {notIncluded.map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm">
+                    <X size={16} className="text-destructive shrink-0 mt-0.5" />
+                    <span className="text-muted-foreground line-through">{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          <div ref={priceCounter.ref} className="flex items-baseline justify-center gap-1 mb-4">
-            <span className="text-6xl md:text-7xl font-black" style={{ color: PR_GREEN }}>{priceCounter.count}€</span>
-            <span className="text-gray-500 text-lg">a pratica completata</span>
+          <div className="mt-8 text-center">
+            <Link
+              to="/auth"
+              className="inline-flex items-center text-white font-bold px-8 py-3.5 rounded-full text-base transition-all animate-pulse-glow hover:brightness-110"
+              style={{ backgroundColor: "hsl(var(--pr-green))" }}
+            >
+              Attiva Gratis — Zero Rischi
+            </Link>
           </div>
-          <div className="flex justify-center gap-3">
-            <span className="px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: `${PR_GREEN}15`, color: PR_GREEN }}>ZERO CANONI</span>
-            <span className="px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: `${PR_GREEN}15`, color: PR_GREEN }}>24H</span>
-          </div>
-        </div>
-
-        <Link to="/auth" className="inline-flex items-center gap-2 text-white font-semibold px-10 py-4 rounded-lg text-lg transition-all animate-pulse-glow hover:brightness-110" style={{ backgroundColor: PR_GREEN }}>
-          Attiva Gratis <ArrowRight className="w-5 h-5" />
-        </Link>
-        <p className="text-gray-400 text-sm mt-3">Nessun costo iniziale. Paghi solo a pratica effettuata.</p>
+        </motion.div>
       </div>
-    </Section>
+    </section>
   );
 }

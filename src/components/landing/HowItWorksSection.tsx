@@ -1,63 +1,96 @@
-import { Phone, Users, Zap, Sparkles } from "lucide-react";
-import { PR_GREEN } from "./constants";
-import { Section } from "./Section";
+import { motion } from "framer-motion";
+import { useScrollAnimation } from "./hooks";
+import { UserPlus, Phone, Rocket } from "lucide-react";
 
-export function HowItWorksSection() {
-  const steps = [
-    {
-      icon: Phone, title: "Inserisci il numero di telefono del cliente",
-      desc: "Accedi alla tua area riservata e inserisci il numero del tuo cliente. Fine. Questo è TUTTO quello che devi fare. Non un documento, non una email, non un fax. Solo un numero di telefono.",
-    },
-    {
-      icon: Users, title: "Noi contattiamo il cliente A NOME TUO",
-      desc: "Il nostro team chiama il tuo cliente presentandosi come parte della tua azienda. Nessuna confusione, nessun imbarazzo. Il cliente penserà di parlare con il tuo ufficio tecnico. Raccogliamo noi tutti i documenti: dati catastali, fatture, certificazioni. Tutto.",
-    },
-    {
-      icon: Zap, title: "In 24 ore la pratica è pronta",
-      desc: "Entro 24 ore, sia tu che il tuo cliente ricevete la Pratica ENEA completa e pronta. Nessun ritardo. Nessun sollecito. Nessuna telefonata di follow-up. Fatto.",
-    },
-  ];
+const steps = [
+  {
+    num: "01",
+    icon: UserPlus,
+    title: "REGISTRATI GRATIS",
+    desc: "Accedi alla tua area riservata e inserisci il numero del tuo cliente. Questo è TUTTO quello che devi fare. Non un documento, non una email. Solo un numero di telefono.",
+    badge: "⚡ 2 minuti",
+  },
+  {
+    num: "02",
+    icon: Phone,
+    title: "NOI CONTATTIAMO IL CLIENTE A NOME TUO",
+    desc: "Il nostro team chiama il tuo cliente presentandosi come parte della tua azienda. Raccogliamo tutti i documenti: dati catastali, fatture, certificazioni.",
+    badge: "🤝 White label",
+  },
+  {
+    num: "03",
+    icon: Rocket,
+    title: "IN 24H LA PRATICA È PRONTA",
+    desc: "Entro 24 ore, sia tu che il tuo cliente ricevete la Pratica ENEA completa e pronta. Nessun ritardo. Nessun sollecito. Fatto.",
+    badge: "🚀 Consegna garantita",
+  },
+];
+
+export default function ProcessSteps() {
+  const { ref, isVisible } = useScrollAnimation();
 
   return (
-    <Section id="come-funziona" light>
-      <div className="max-w-5xl mx-auto px-6">
-        <div className="text-center mb-14">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold mb-4" style={{ backgroundColor: `${PR_GREEN}15`, color: PR_GREEN }}>
-            <Sparkles className="w-4 h-4" /> 3 SEMPLICI PASSI
-          </span>
-          <h2 className="text-3xl md:text-5xl font-bold text-gray-900">
-            Come funziona? È{" "}
-            <span style={{ color: PR_GREEN }}>imbarazzantemente semplice</span>.
+    <section ref={ref} id="come-funziona" className="py-16 sm:py-20 lg:py-28" style={{ background: "linear-gradient(135deg, hsla(var(--pr-green), 0.06) 0%, hsla(var(--pr-green), 0.02) 100%)" }}>
+      <div className="max-w-5xl mx-auto px-4 lg:px-8 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+        >
+          <h2 className="font-bold text-2xl sm:text-3xl lg:text-5xl leading-[1.1] mb-4 text-foreground">
+            Attivo in 3 Passi.
+            <br />
+            <span style={{ color: "hsl(var(--pr-green))" }}>Imbarazzantemente Semplice.</span>
           </h2>
-          <p className="text-gray-500 text-xl mt-4">Tre passi. Zero sforzo.</p>
-          <div className="w-16 h-1 rounded mx-auto mt-4" style={{ backgroundColor: PR_GREEN }} />
-        </div>
+          <p className="text-muted-foreground text-base sm:text-lg mb-12 sm:mb-16">
+            Tre passi e la burocrazia non è più un tuo problema.
+          </p>
+        </motion.div>
 
-        <div className="hidden md:flex justify-between items-center mb-8 px-20 relative">
-          <div className="absolute top-1/2 left-20 right-20 h-0.5 -translate-y-1/2" style={{ backgroundColor: `${PR_GREEN}30` }} />
-          {[1, 2, 3].map((n) => (
-            <div key={n} className="w-10 h-10 rounded-full text-white flex items-center justify-center font-bold text-sm z-10 shadow-md" style={{ backgroundColor: PR_GREEN }}>
-              {n}
-            </div>
-          ))}
-        </div>
+        <div className="relative max-w-3xl mx-auto">
+          {/* Vertical line */}
+          <div className="absolute left-6 lg:left-1/2 lg:-translate-x-0.5 top-0 bottom-0 w-1 rounded-full overflow-hidden bg-border">
+            {isVisible && (
+              <div className="w-full rounded-full animate-grow-line" style={{ backgroundColor: "hsl(var(--pr-green))" }} />
+            )}
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {steps.map((item, index) => (
-            <div key={index} className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm hover:shadow-md transition-all duration-300 stagger-child" onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${PR_GREEN}60`; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}>
-              <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: `${PR_GREEN}12` }}>
-                <item.icon className="w-10 h-10" style={{ color: PR_GREEN }} />
-              </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">{item.title}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
-        </div>
+          {steps.map((step, i) => {
+            const isLeft = i % 2 === 0;
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                animate={isVisible ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.3 + i * 0.25 }}
+                className={`relative flex items-start gap-4 sm:gap-6 mb-12 sm:mb-16 last:mb-0 pl-14 sm:pl-16 lg:pl-0 ${
+                  isLeft ? "lg:pr-[calc(50%+2rem)] lg:text-right" : "lg:pl-[calc(50%+2rem)] lg:text-left"
+                }`}
+              >
+                <div
+                  className="absolute z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full text-white flex items-center justify-center shadow-lg font-bold text-xs sm:text-sm left-0 lg:left-1/2 lg:-translate-x-1/2"
+                  style={{ backgroundColor: "hsl(var(--pr-green))" }}
+                >
+                  {step.num}
+                </div>
 
-        <p className="text-gray-500 text-center max-w-3xl mx-auto mt-10 text-base leading-relaxed">
-          Il risultato? Tu offri un servizio completo ai tuoi clienti, non perdi più vendite, non sprechi più ore in burocrazia — e paghi solo <strong className="text-gray-900">65€ a pratica completata</strong>. Non un centesimo prima.
-        </p>
+                <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-sm flex-1">
+                  <div className="flex items-center gap-2 mb-2" style={{ justifyContent: isLeft ? "flex-end" : "flex-start" }}>
+                    <step.icon size={18} style={{ color: "hsl(var(--pr-green))" }} />
+                    <span className="text-xs font-bold tracking-wider" style={{ color: "hsl(var(--pr-green))" }}>{step.title}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-3">{step.desc}</p>
+                  <span
+                    className="inline-block text-xs font-semibold px-3 py-1 rounded-full"
+                    style={{ backgroundColor: "hsla(var(--pr-green), 0.1)", color: "hsl(var(--pr-green))" }}
+                  >
+                    {step.badge}
+                  </span>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
-    </Section>
+    </section>
   );
 }

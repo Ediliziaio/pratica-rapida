@@ -1,43 +1,52 @@
 import { Link } from "react-router-dom";
-import { Phone, FileText, Building2 } from "lucide-react";
-import { PR_GREEN } from "./constants";
 
-export function Footer() {
+export default function Footer() {
   return (
-    <footer className="border-t border-gray-200 py-12 px-6 bg-white pb-32">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row items-start justify-between gap-8">
-          <div className="space-y-3">
-            <img src="/pratica-rapida-logo.png" alt="Pratica Rapida" className="h-8 w-auto" />
-            <div className="space-y-1.5 text-sm text-gray-500">
-              <p className="flex items-center gap-2">
-                <Phone className="w-4 h-4" style={{ color: PR_GREEN }} />
-                +39 351 7935227
-              </p>
-              <p className="flex items-center gap-2">
-                <FileText className="w-4 h-4" style={{ color: PR_GREEN }} />
-                modulistica@praticarapida.it
-              </p>
-              <p className="flex items-center gap-2">
-                <Building2 className="w-4 h-4" style={{ color: PR_GREEN }} />
-                Lissone (MB)
-              </p>
-              <p className="text-xs text-gray-400">P.IVA 03937130791</p>
-            </div>
+    <footer className="py-16 text-white/70" style={{ backgroundColor: "hsl(var(--pr-dark))" }}>
+      <div className="max-w-7xl mx-auto px-4 lg:px-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+          <div>
+            <img src="/pratica-rapida-logo-white.png" alt="Pratica Rapida" className="h-8 w-auto mb-3" />
+            <p className="text-sm italic mb-4">"Le pratiche ENEA dei tuoi clienti? Ci pensiamo noi."</p>
           </div>
-          <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6 text-sm text-gray-500">
-            <a href="#come-funziona" className="hover:text-gray-800 transition-colors">Come Funziona</a>
-            <a href="#confronto" className="hover:text-gray-800 transition-colors">Confronto</a>
-            <a href="#prezzi" className="hover:text-gray-800 transition-colors">Prezzi</a>
-            <a href="#faq" className="hover:text-gray-800 transition-colors">FAQ</a>
-            <Link to="/auth" className="hover:text-gray-800 transition-colors">Accedi</Link>
+
+          <div>
+            <h5 className="font-bold text-sm text-white mb-4">Servizi</h5>
+            {[
+              "Compilazione ENEA",
+              "Invio Telematico",
+              "Raccolta Documenti",
+              "Contatto Cliente",
+              "Assicurazione RC",
+            ].map((s) => (
+              <a key={s} href="#servizi" className="block text-sm mb-2 hover:text-white transition-colors">{s}</a>
+            ))}
+          </div>
+
+          <div>
+            <h5 className="font-bold text-sm text-white mb-4">Azienda</h5>
+            <a href="#come-funziona" className="block text-sm mb-2 hover:text-white transition-colors">Come Funziona</a>
+            <a href="#prezzi" className="block text-sm mb-2 hover:text-white transition-colors">Prezzi</a>
+            <a href="#testimonianze" className="block text-sm mb-2 hover:text-white transition-colors">Recensioni</a>
+            <a href="#faq" className="block text-sm mb-2 hover:text-white transition-colors">FAQ</a>
+            <Link to="/auth" className="block text-sm mb-2 hover:text-white transition-colors">Accedi</Link>
+          </div>
+
+          <div>
+            <h5 className="font-bold text-sm text-white mb-4">Contatti</h5>
+            <p className="text-sm mb-2">📞 +39 351 7935227</p>
+            <p className="text-sm mb-2">📧 modulistica@praticarapida.it</p>
+            <p className="text-sm mb-2">📍 Lissone (MB)</p>
+            <p className="text-sm mb-2">🕐 Lun-Ven 9:00-18:00</p>
+            <p className="text-xs text-white/40 mt-3">P.IVA 03937130791</p>
           </div>
         </div>
-        <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-gray-400 text-xs">© {new Date().getFullYear()} Pratica Rapida. Tutti i diritti riservati.</p>
-          <div className="flex items-center gap-4 text-xs text-gray-400">
-            <Link to="/privacy-policy" className="hover:text-gray-600 transition-colors">Privacy Policy</Link>
-            <Link to="/cookie-policy" className="hover:text-gray-600 transition-colors">Cookie Policy</Link>
+
+        <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
+          <p>© {new Date().getFullYear()} Pratica Rapida. Tutti i diritti riservati.</p>
+          <div className="flex gap-4">
+            <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link to="/cookie-policy" className="hover:text-white transition-colors">Cookie Policy</Link>
           </div>
         </div>
       </div>

@@ -1,67 +1,150 @@
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { AlertTriangle, CreditCard, Clock, Headphones, Star, ArrowRight } from "lucide-react";
-import { PR_GREEN } from "./constants";
-import { DashboardMockup } from "./DashboardMockup";
-import heroBg from "@/assets/hero-bg.jpg";
+import { Check, ArrowRight, Star } from "lucide-react";
 
-function HeroTitle() {
-  const words = "Quante Vendite Stai Perdendo Perché Non Gestisci le".split(" ");
-  return (
-    <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6">
-      {words.map((w, i) => (
-        <span key={i} className="word-animate inline-block mr-[0.3em]" style={{ animationDelay: `${i * 0.08}s` }}>{w}</span>
-      ))}
-      <span className="word-animate inline-block" style={{ animationDelay: `${words.length * 0.08}s`, color: PR_GREEN }}>Pratiche ENEA</span>
-      <span className="word-animate inline-block ml-[0.3em]" style={{ animationDelay: `${(words.length + 1) * 0.08}s` }}>?</span>
-    </h1>
-  );
-}
+const words = ["Quante", "Vendite", "Stai", "Perdendo", "Perché", "Non", "Gestisci", "le"];
+const checks = [
+  "Zero canoni mensili",
+  "Consegna in 24h",
+  "Supporto 100% italiano",
+  "Paghi solo a pratica completata",
+];
 
-export function HeroSection() {
+export default function HeroSection() {
   return (
-    <section className="relative pt-[88px] pb-8 px-6">
-      <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at center top, ${PR_GREEN}08 0%, transparent 60%)` }} />
-      <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-[0.04] pointer-events-none" />
-      <div className="max-w-5xl mx-auto text-center relative z-10">
-        <span className="inline-block border text-xs font-semibold px-4 py-1.5 rounded-full mb-4 tracking-wide" style={{ backgroundColor: `${PR_GREEN}15`, borderColor: `${PR_GREEN}30`, color: PR_GREEN }}>
-          PER AZIENDE DI INFISSI, TENDE, PERGOLE E SERRAMENTI
-        </span>
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <AlertTriangle className="w-4 h-4 text-amber-400" />
-          <span className="text-amber-400/80 text-sm font-medium">I tuoi concorrenti stanno già offrendo questo servizio. Tu?</span>
+    <section className="relative min-h-screen flex items-center overflow-hidden pt-16" style={{ background: "linear-gradient(135deg, hsl(var(--pr-dark)) 0%, hsl(218 48% 16%) 100%)" }}>
+      {/* Floating shapes */}
+      <div className="absolute top-20 left-[10%] w-64 h-64 rounded-full animate-float-slow" style={{ background: "hsla(var(--pr-green), 0.06)" }} />
+      <div className="absolute top-40 right-[15%] w-48 h-48 rounded-full animate-float-delayed" style={{ background: "hsla(var(--pr-green), 0.04)" }} />
+
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 grid lg:grid-cols-5 gap-8 lg:gap-12 items-center relative z-10">
+        {/* Copy */}
+        <div className="lg:col-span-3 space-y-6">
+          <motion.span
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-block px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold"
+            style={{ backgroundColor: "hsla(var(--pr-green), 0.15)", color: "hsl(var(--pr-green))" }}
+          >
+            PER AZIENDE DI INFISSI, TENDE, PERGOLE E SERRAMENTI
+          </motion.span>
+
+          <h1 className="font-bold text-3xl sm:text-5xl lg:text-6xl xl:text-7xl leading-[1.05] text-white">
+            {words.map((word, i) => (
+              <motion.span
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + i * 0.08, duration: 0.5 }}
+                className="inline-block mr-2 sm:mr-3"
+              >
+                {word}
+              </motion.span>
+            ))}
+            <motion.span
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + words.length * 0.08 }}
+              className="inline-block mr-2 sm:mr-3"
+              style={{ color: "hsl(var(--pr-green))" }}
+            >
+              Pratiche ENEA
+            </motion.span>
+            <motion.span
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + (words.length + 1) * 0.08 }}
+              className="inline-block"
+            >
+              ?
+            </motion.span>
+          </h1>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="text-base sm:text-lg text-white/60 max-w-xl leading-relaxed"
+          >
+            Il servizio chiavi in mano che ti permette di offrire le pratiche ENEA ai tuoi clienti a nome tuo, senza fare nulla. A soli <strong className="text-white">65€ a pratica</strong>.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4"
+          >
+            {checks.map((c) => (
+              <span key={c} className="flex items-center gap-1.5 text-sm text-white/50">
+                <Check size={16} className="shrink-0" style={{ color: "hsl(var(--pr-green))" }} /> {c}
+              </span>
+            ))}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2 }}
+            className="space-y-3"
+          >
+            <Link
+              to="/auth"
+              className="inline-flex items-center gap-2 text-white font-semibold px-8 py-3.5 rounded-full text-base transition-all animate-pulse-glow hover:brightness-110"
+              style={{ backgroundColor: "hsl(var(--pr-green))" }}
+            >
+              Attiva Gratis <ArrowRight className="w-4 h-4" />
+            </Link>
+            <p className="text-xs text-white/40">
+              Oltre 122 recensioni su Trustpilot • 14+ anni di esperienza • Nessun vincolo
+            </p>
+          </motion.div>
         </div>
-        <HeroTitle />
-        <DashboardMockup />
-        <p className="text-white/60 max-w-3xl mx-auto mt-10 text-base md:text-lg leading-relaxed">
-          Scopri come le aziende più furbe del tuo settore stanno chiudendo più contratti, eliminando le obiezioni dei clienti e distruggendo la concorrenza — con un servizio che costa appena <strong className="text-white">65€ a pratica</strong> e non richiede NESSUN lavoro da parte tua.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
-          <Link to="/auth" className="text-white font-semibold px-8 py-3.5 rounded-lg text-base transition-all flex items-center gap-2 animate-pulse-glow hover:brightness-110" style={{ backgroundColor: PR_GREEN }}>
-            Attiva Gratis <ArrowRight className="w-4 h-4" />
-          </Link>
-          <a href="#come-funziona" className="border border-white/20 hover:border-white/40 text-white font-semibold px-8 py-3.5 rounded-lg text-base transition-colors">
-            Scopri Come Funziona
-          </a>
-        </div>
-        <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16 mt-12">
-          {[
-            { icon: CreditCard, label: "65€/pratica" },
-            { icon: Clock, label: "24h Consegna" },
-            { icon: Headphones, label: "Supporto Italiano" },
-          ].map((s) => (
-            <div key={s.label} className="flex items-center gap-2 text-white/50 text-sm">
-              <s.icon className="w-4 h-4" style={{ color: PR_GREEN }} />
-              <span>{s.label}</span>
+
+        {/* Dashboard mockup */}
+        <motion.div
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.6, duration: 0.8 }}
+          className="lg:col-span-2 hidden lg:block"
+        >
+          <div className="rounded-2xl shadow-xl border border-white/10 p-6 space-y-4" style={{ backgroundColor: "hsl(var(--pr-dark-card))" }}>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-destructive" />
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "hsl(var(--pr-green))" }} />
+              <div className="w-3 h-3 rounded-full bg-muted" />
             </div>
-          ))}
-        </div>
-        <a href="https://it.trustpilot.com/review/praticarapida.it" target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 mt-6 text-white/40 hover:text-white/60 transition-colors text-sm">
-          <div className="flex gap-0.5">
-            {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-green-400 text-green-400" />)}
+            {[
+              { label: "Pratiche completate questo mese", value: "47 ✅" },
+              { label: "Costo per pratica", value: "€65" },
+              { label: "Tempo medio consegna", value: "24h" },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: "hsla(var(--pr-green), 0.08)" }}>
+                <span className="text-sm text-white/50">{item.label}</span>
+                <span className="font-bold text-white">{item.value}</span>
+              </div>
+            ))}
+            <div className="flex items-center gap-2 text-xs text-white/40">
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: "hsl(var(--pr-green))" }} />
+              Dashboard operativa — aggiornata in tempo reale
+            </div>
           </div>
-          <span>Oltre 122 recensioni su <strong className="text-white/60">Trustpilot</strong></span>
-        </a>
+
+          {/* Trustpilot badge floating */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.4 }}
+            className="mt-4 flex items-center justify-center gap-2 text-white/40 text-sm"
+          >
+            <div className="flex gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-4 h-4" style={{ fill: "hsl(var(--pr-green))", color: "hsl(var(--pr-green))" }} />
+              ))}
+            </div>
+            <span>4.9/5 su Trustpilot</span>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );

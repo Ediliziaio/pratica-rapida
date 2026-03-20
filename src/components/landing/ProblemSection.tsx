@@ -1,27 +1,65 @@
-import { PR_GREEN } from "./constants";
-import { Section } from "./Section";
+import { motion } from "framer-motion";
+import { useScrollAnimation } from "./hooks";
+import { AlertTriangle, ArrowDown } from "lucide-react";
 
-export function ProblemSection() {
+const pains = [
+  "Il cliente ti chiede della pratica ENEA e tu lo mandi dal commercialista",
+  "Perdi vendite perché il concorrente offre il servizio completo",
+  "Sprechi ore a raccogliere documenti catastali e certificazioni",
+  "I clienti ti richiamano per sapere a che punto è la pratica",
+  "Hai paura di sbagliare compilazione e ricevere sanzioni",
+  "Non hai tempo né risorse per formare il personale su ENEA",
+];
+
+export default function ProblemSection() {
+  const { ref, isVisible } = useScrollAnimation();
+
   return (
-    <Section id="vantaggi" light>
-      <div className="max-w-5xl mx-auto px-6">
-        <h2 className="text-3xl md:text-5xl font-bold text-center mb-8 text-gray-900">
-          Sai qual è il modo più veloce per{" "}
-          <span style={{ color: PR_GREEN }}>perdere un cliente</span> nel 2026?
-        </h2>
-        <p className="text-gray-500 text-center max-w-3xl mx-auto text-lg mb-6">
-          Dirgli: <em className="text-gray-900 font-medium">"La pratica ENEA? Ah, quella se la deve fare lei."</em>
-        </p>
-        <div className="max-w-3xl mx-auto space-y-4 text-gray-500 leading-relaxed mb-6">
-          <p>Forse fino a qualche anno fa funzionava. Il cliente annuiva, tornava a casa e — forse — si arrangiava. Ma oggi? Oggi il mercato è cambiato. E se non te ne sei accorto, il tuo fatturato probabilmente te lo sta già urlando.</p>
-          <p>Perché nel frattempo, il tuo concorrente dall'altra parte della strada ha capito una cosa semplicissima:</p>
-          <p className="text-gray-700 font-medium text-center italic">"Il cliente non vuole pensare alla burocrazia. Vuole che qualcuno gli risolva il problema. E chi glielo risolve… si prende la vendita."</p>
-          <p>Pensa a quante volte è successo. Il cliente ti chiede un preventivo. Gli piace il prodotto. Gli piace il prezzo. Poi arriva la domanda fatidica: <em className="text-gray-900 font-medium">"Ma per la pratica ENEA come funziona?"</em></p>
-          <p>E tu rispondi: "Guardi, quella la deve fare lei, oppure il suo commercialista…"</p>
-          <p>In quel momento — in quel preciso istante — hai perso il vantaggio competitivo. Hai dato al cliente un motivo per andare a chiedere un preventivo anche al tuo concorrente. Quello che risponde: <em className="text-gray-900 font-medium">"Non si preoccupi, a tutto ci pensiamo noi."</em></p>
-          <p>Domanda scomoda: quante vendite hai perso negli ultimi 12 mesi per questa ragione? 5? 10? 20? Fai il conto in euro. Quanti soldi sono rimasti sul tavolo perché non offrivi un servizio che avresti potuto attivare per soli <strong className="text-gray-900">65€ a pratica</strong>?</p>
+    <section ref={ref} id="vantaggi" className="py-20 lg:py-28 bg-card">
+      <div className="max-w-6xl mx-auto px-4 lg:px-8 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="font-bold text-3xl sm:text-4xl lg:text-5xl leading-[1.1] mb-4 text-foreground">
+            Quante volte il cliente ti ha chiesto:
+            <br />
+            <span style={{ color: "hsl(var(--pr-green))" }}>"E per la pratica ENEA?"</span>
+          </h2>
+          <p className="text-muted-foreground text-lg mb-12">
+            E tu hai risposto: "Quella se la deve fare lei." In quel momento hai perso la vendita.
+          </p>
+        </motion.div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {pains.map((pain, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              animate={isVisible ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.2 + i * 0.1, duration: 0.5 }}
+              className="bg-destructive/5 border border-destructive/10 rounded-2xl p-6 text-left hover:-translate-y-1 transition-transform duration-300"
+            >
+              <AlertTriangle size={20} className="text-destructive mb-3" />
+              <p className="text-sm font-medium text-foreground">"{pain}"</p>
+            </motion.div>
+          ))}
         </div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isVisible ? { opacity: 1 } : {}}
+          transition={{ delay: 1 }}
+          className="mt-16 space-y-4"
+        >
+          <h3 className="font-bold text-2xl text-foreground">
+            C'è un modo migliore. Si chiama{" "}
+            <span style={{ color: "hsl(var(--pr-green))" }}>Pratica Rapida</span>.
+          </h3>
+          <ArrowDown className="mx-auto animate-bounce" size={28} style={{ color: "hsl(var(--pr-green))" }} />
+        </motion.div>
       </div>
-    </Section>
+    </section>
   );
 }

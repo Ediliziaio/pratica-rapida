@@ -1,43 +1,50 @@
 import { useEffect, useRef, useState } from "react";
 
-/* ── Scroll fade-in hook ── */
-export function useScrollFadeIn() {
+export function useScrollAnimation(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) {
+      setIsVisible(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { el.classList.add("landing-visible"); observer.unobserve(el); } },
-      { threshold: 0.1 }
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold }
     );
-    observer.observe(el);
+
+    if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
-  }, []);
-  return ref;
+  }, [threshold]);
+
+  return { ref, isVisible };
 }
 
-/* ── Animated counter hook ── */
-export function useCounter(end: number, duration = 1500) {
+export function useCounterAnimation(target: number, isVisible: boolean, duration = 2000) {
   const [count, setCount] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
+
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !started.current) {
-        started.current = true;
-        const start = performance.now();
-        const step = (now: number) => {
-          const progress = Math.min((now - start) / duration, 1);
-          setCount(Math.floor(progress * end));
-          if (progress < 1) requestAnimationFrame(step);
-        };
-        requestAnimationFrame(step);
-      }
-    }, { threshold: 0.3 });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [end, duration]);
-  return { count, ref };
+    if (!isVisible) return;
+    const startTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * target));
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+
+    requestAnimationFrame(animate);
+  }, [isVisible, target, duration]);
+
+  return count;
 }

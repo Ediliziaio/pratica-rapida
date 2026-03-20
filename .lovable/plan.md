@@ -1,77 +1,94 @@
 
 
-## Piano: Miglioramento completo Landing Page
+## Piano: Aggiornamento completo copy landing page
 
-### Problemi identificati
-1. **Navbar**: Menu links invisibili (bianco su bianco) quando non scrollato — lo sfondo hero è bianco ma i link sono `text-white/80`
-2. **Logo**: Mostra logo bianco su sfondo bianco (illeggibile) — deve sempre usare il logo verde
-3. **Immagine hero**: Troppo sfumata/invisibile (`opacity-30` + gradient pesante) — va aumentata visibilità
-4. **Mancano immagini**: Tutte le sezioni sono solo testo/icone, nessuna foto reale
-5. **UX generica**: Sezioni tutte simili visivamente, manca varietà e impatto
+L'utente ha fornito un nuovo copy completo per la landing page. Ecco le modifiche sezione per sezione, mantenendo la timeline e le animazioni esistenti.
+
+### Struttura pagina aggiornata
+
+```text
+Navbar
+HeroSection          ← nuovo copy
+TickerStrip          ← invariato
+ProblemSection       ← nuovo copy "Quante ore hai perso..."
+SolutionSection      ← nuovo copy "Il tuo team pratiche in outsourcing"
+BenefitsSection      ← NUOVA sezione (3 colonne: 48h, White label, Conforme)
+ProcessSteps         ← invariato (timeline)
+PartnerSection       ← nuovo titolo + settori aggiornati (aggiunta caldaie/climatizzatori)
+DataWallSection      ← nuovo titolo
+ReviewsSection       ← nuove testimonianze (4 specifiche)
+WhyUsSection         ← NUOVA sezione "Perché scegliere Pratica Rapida" (3 colonne)
+PricingSection       ← invariato
+GuaranteeSection     ← invariato
+FAQSection           ← invariato
+FinalCTA             ← nuovo copy con telefono + email
+Footer               ← aggiornare telefono a +39 039 868 2691
+```
+
+Sezioni RIMOSSE: `InactionCostSection`, `TrustSection`, `ServicesGrid` (i servizi sono assorbiti in BenefitsSection e WhyUsSection).
 
 ### Modifiche per file
 
-**1. `src/components/landing/Navbar.tsx`**
-- Logo sempre verde: rimuovere condizionale, usare sempre `/pratica-rapida-logo.png`
-- Menu links: sempre scuri (`text-foreground/70` → `text-foreground` on hover), non più bianco
-- Hamburger: sempre scuro
-- Background: `bg-white/80 backdrop-blur` sempre, non trasparente inizialmente
+**1. `HeroSection.tsx`** — Nuovo copy
+- Titolo: "Pratiche ENEA e detrazioni fiscali per i tuoi clienti — le gestiamo noi, a nome tuo, in 48 ore."
+- Sottotitolo: "Sei un'azienda di serramenti, tende, fotovoltaico o caldaie?..." (testo completo fornito)
+- CTA: "→ Richiedi informazioni gratuite" (link a contatto/auth)
+- Rimuovere word-by-word animation, usare fade-in semplice per il titolo
+- Mantenere immagine burocrazia sfumata a destra, dashboard mockup
 
-**2. `src/components/landing/HeroSection.tsx`**
-- Immagine burocrazia: aumentare opacità da `0.30` a `0.50`, ridurre gradiente di copertura
-- Estendere immagine a `w-2/3` e rimuovere gradient via troppo forte
-- Aggiungere leggero gradient top/bottom per eleganza
+**2. `ProblemSection.tsx`** — Nuovo copy
+- Titolo: "Quante ore hai perso l'anno scorso dietro alle pratiche?"
+- Testo: paragrafo fornito sulla burocrazia post-installazione
+- Transizione: "Ecco perché esistiamo."
+- Mantenere layout 2 colonne con immagine a sinistra, rimuovere lista pain points con AlertTriangle
 
-**3. `src/components/landing/ProblemSection.tsx`**
-- Aggiungere immagine stock (frustrazione/documenti) a sinistra, testo a destra — layout 2 colonne
-- Usare Unsplash URL per immagine di persona stressata con documenti
+**3. `SolutionSection.tsx`** — Nuovo copy
+- Titolo: "Il tuo team pratiche in outsourcing — senza costi fissi, senza assunzioni."
+- Testo: descrizione completa del servizio dal 2011
+- Sotto-sezione "Come funziona?" con testo fornito
+- Chiusura: "Niente intermediari. Niente stress. Niente pratiche ferme in attesa."
+- Mantenere layout 2 colonne, rimuovere stats box (14+, 122+, 65€)
 
-**4. `src/components/landing/SolutionSection.tsx`**
-- Layout 2 colonne: testo sx, immagine team/ufficio dx
-- Aggiungere foto di team professionale al lavoro
+**4. NUOVO `BenefitsSection.tsx`** — Sezione benefici 3 colonne
+- "Pratiche evase in 48 ore" — testo fornito
+- "Chiamiamo noi il cliente, a tuo nome" — testo fornito
+- "Documentazione sempre conforme" — testo fornito
+- Design: 3 card con icone grandi, sfondo leggero verde
 
-**5. `src/components/landing/ServicesGrid.tsx`**
-- Aggiungere piccole icone/illustrazioni più grandi nelle card
-- Migliorare hover con shadow più pronunciato
+**5. `PartnerSection.tsx`** — Aggiornamento
+- Titolo: "Lavori con uno di questi settori? Sei nel posto giusto."
+- Settori: Serramenti, Fotovoltaico, Tende da sole e schermature solari, Caldaie e climatizzatori, Vetrate e infissi
+- Mantenere card con immagini
 
-**6. `src/components/landing/HowItWorksSection.tsx`**
-- Aggiungere immagini/illustrazioni per ogni step (screenshot mockup)
+**6. `DataWallSection.tsx`** — Nuovo titolo
+- Titolo: "Oltre 14 anni. Migliaia di pratiche. Zero pensieri per chi ci affida il lavoro."
+- Mantenere contatori animati
 
-**7. `src/components/landing/PartnerSection.tsx`**
-- Aggiungere immagini rappresentative per ogni settore (serramenti, fotovoltaico, etc.)
-- Layout card con immagine + icona + label
+**7. `ReviewsSection.tsx`** — 4 testimonianze nuove
+- Titolo: "Non è quello che diciamo noi che conta. È quello che dicono loro."
+- Zanellato Enrico, Marco Barbieri, Valentina Quagliarella, Silvana — testi forniti
+- Rimuovere featured review (Alessandro T.)
 
-**8. `src/components/landing/ReviewsSection.tsx`**
-- Aggiungere avatar placeholder per ogni recensore
-- Migliorare card design con foto profilo
+**8. NUOVO `WhyUsSection.tsx`** — "Perché scegliere Pratica Rapida"
+- 3 colonne: "Diventiamo il tuo ufficio pratiche", "Tutto online, nessuna presenza fisica", "Un numero dedicato per ogni esigenza"
+- Testi forniti, design card con icone
 
-**9. `src/components/landing/PricingSection.tsx`**
-- Aggiungere illustrazione/icona grande sopra il prezzo
-- Background con pattern sottile
+**9. `CTASection.tsx`** — Nuovo copy finale
+- Headline: "Quante pratiche hai in sospeso in questo momento?"
+- Testo: paragrafo fornito
+- CTA primaria: "→ Parla con noi adesso — chiama il +39 039 868 2691"
+- CTA secondaria: "→ Scrivici a modulistica@praticarapida.it"
 
-**10. `src/components/landing/CTASection.tsx`**
-- Aggiungere immagine di sfondo (ufficio moderno) con overlay scuro
+**10. `Footer.tsx`** — Aggiornare telefono a +39 039 868 2691
 
-**11. Nuova sezione: `src/components/landing/TrustSection.tsx`**
-- Sezione "Perché Fidarsi di Noi" con badge: 14 anni, Assicurazione RC, GDPR, Made in Italy
-- Con icone grandi e descrizioni
+**11. `Home.tsx`** — Nuova struttura sezioni
+- Rimuovere: InactionCostSection, TrustSection, ServicesGrid
+- Aggiungere: BenefitsSection (dopo SolutionSection), WhyUsSection (dopo ReviewsSection)
 
-**12. `src/pages/Home.tsx`**
-- Aggiungere TrustSection tra SolutionSection e ServicesGrid
+**12. `index.ts`** — Aggiornare export
 
-**13. `src/components/landing/index.ts`**
-- Esportare TrustSection
-
-**14. `src/components/landing/constants.ts`**
-- Aggiungere URL immagini Unsplash per le varie sezioni
-
-### Immagini
-Utilizzerò URL Unsplash gratuiti per tutte le immagini decorative (serramenti, uffici, team, documenti) — caricamento rapido e nessun asset da generare.
-
-### Risultato
-- Navbar sempre leggibile con logo verde e menu scuro
-- Hero con immagine burocrazia ben visibile
-- Ogni sezione ha almeno un elemento visivo (foto/illustrazione)
-- Nuova sezione Trust per credibilità
-- UX più varia e professionale
+### Note
+- Timeline (ProcessSteps), FAQ, Pricing, Guarantees restano invariati
+- Tutte le animazioni framer-motion restano
+- Immagini Unsplash esistenti mantenute dove possibile
 

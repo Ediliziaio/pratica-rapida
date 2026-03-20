@@ -4,11 +4,11 @@ import { Star } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 
 const testimonials = [
-  { text: "Servizio impeccabile! Pratica ENEA completata in meno di 24 ore, senza che il mio cliente debba muovere un dito. Consigliatissimo.", author: "Zanellato Enrico", tag: "Serramenti • Veneto" },
-  { text: "Professionalità e rapidità. Ho delegato tutte le pratiche ENEA e non potrei essere più soddisfatto. I miei clienti pensano sia il mio ufficio tecnico.", author: "Marco Barbieri", tag: "Infissi • Lombardia" },
-  { text: "Da quando uso Pratica Rapida ho chiuso più vendite. Il cliente vuole un servizio completo e ora posso offrirglielo senza sforzo.", author: "Silvana", tag: "Tende da Sole • Emilia-Romagna" },
-  { text: "65€ a pratica è un prezzo imbattibile considerando che prima spendevo ore del mio tempo. Ora mi concentro sulle vendite.", author: "Valentina Quagliarella", tag: "Pergole • Puglia" },
-  { text: "L'assicurazione RC inclusa mi dà una tranquillità enorme. Sapere che se c'è un errore loro rispondono è impagabile.", author: "Roberto M.", tag: "Fotovoltaico • Lazio" },
+  { text: "Servizio impeccabile! Pratica ENEA completata in meno di 24 ore, senza che il mio cliente debba muovere un dito. Consigliatissimo.", author: "Zanellato Enrico", tag: "Serramenti • Veneto", avatar: "ZE" },
+  { text: "Professionalità e rapidità. Ho delegato tutte le pratiche ENEA e non potrei essere più soddisfatto. I miei clienti pensano sia il mio ufficio tecnico.", author: "Marco Barbieri", tag: "Infissi • Lombardia", avatar: "MB" },
+  { text: "Da quando uso Pratica Rapida ho chiuso più vendite. Il cliente vuole un servizio completo e ora posso offrirglielo senza sforzo.", author: "Silvana", tag: "Tende da Sole • Emilia-Romagna", avatar: "S" },
+  { text: "65€ a pratica è un prezzo imbattibile considerando che prima spendevo ore del mio tempo. Ora mi concentro sulle vendite.", author: "Valentina Quagliarella", tag: "Pergole • Puglia", avatar: "VQ" },
+  { text: "L'assicurazione RC inclusa mi dà una tranquillità enorme. Sapere che se c'è un errore loro rispondono è impagabile.", author: "Roberto M.", tag: "Fotovoltaico • Lazio", avatar: "RM" },
 ];
 
 const featured = {
@@ -59,7 +59,7 @@ export default function ReviewsSection() {
         </motion.div>
 
         <div className="max-w-2xl mx-auto mb-10 sm:mb-12">
-          <div className="relative overflow-hidden rounded-2xl border border-border shadow-lg min-h-[220px] sm:min-h-[200px]">
+          <div className="relative overflow-hidden rounded-2xl border border-border shadow-lg min-h-[240px] sm:min-h-[220px]">
             <AnimatePresence initial={false} custom={direction} mode="wait">
               <motion.div
                 key={active}
@@ -73,7 +73,7 @@ export default function ReviewsSection() {
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.7}
                 onDragEnd={handleDragEnd}
-                className="bg-card p-5 sm:p-8 flex flex-col justify-between min-h-[220px] sm:min-h-[200px] cursor-grab active:cursor-grabbing touch-pan-y"
+                className="bg-card p-5 sm:p-8 flex flex-col justify-between min-h-[240px] sm:min-h-[220px] cursor-grab active:cursor-grabbing touch-pan-y"
               >
                 <div>
                   <div className="flex gap-1 mb-4">
@@ -85,14 +85,22 @@ export default function ReviewsSection() {
                     "{testimonials[active].text}"
                   </p>
                 </div>
-                <div className="mt-4">
-                  <p className="font-semibold text-sm text-foreground">{testimonials[active].author}</p>
-                  <span
-                    className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: "hsla(var(--pr-green), 0.1)", color: "hsl(var(--pr-green))" }}
+                <div className="mt-4 flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
+                    style={{ backgroundColor: "hsl(var(--pr-green))" }}
                   >
-                    {testimonials[active].tag}
-                  </span>
+                    {testimonials[active].avatar}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm text-foreground">{testimonials[active].author}</p>
+                    <span
+                      className="inline-block mt-0.5 text-xs px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: "hsla(var(--pr-green), 0.1)", color: "hsl(var(--pr-green))" }}
+                    >
+                      {testimonials[active].tag}
+                    </span>
+                  </div>
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -128,7 +136,10 @@ export default function ReviewsSection() {
             ))}
           </div>
           <p className="text-base sm:text-lg leading-relaxed italic mb-4">"{featured.text}"</p>
-          <p className="font-bold text-sm sm:text-base">{featured.author}</p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white text-sm font-bold">AT</div>
+            <p className="font-bold text-sm sm:text-base">{featured.author}</p>
+          </div>
         </motion.div>
       </div>
     </section>

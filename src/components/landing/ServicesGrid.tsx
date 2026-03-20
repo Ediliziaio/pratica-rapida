@@ -38,10 +38,10 @@ export default function ServicesGrid() {
               initial={{ opacity: 0, y: 30 }}
               animate={isVisible ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.1 + i * 0.1 }}
-              className="bg-card border border-border rounded-2xl p-6 hover:-translate-y-2 hover:shadow-xl transition-all duration-300 group"
+              className="bg-background border border-border rounded-2xl p-6 hover:-translate-y-2 hover:shadow-xl transition-all duration-300 group"
             >
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: "hsla(var(--pr-green), 0.1)" }}>
-                <s.icon size={24} style={{ color: "hsl(var(--pr-green))" }} />
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: "hsla(var(--pr-green), 0.1)" }}>
+                <s.icon size={26} style={{ color: "hsl(var(--pr-green))" }} />
               </div>
               <h3 className="font-bold text-lg mb-2 text-foreground group-hover:text-[hsl(var(--pr-green))] transition-colors">{s.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>

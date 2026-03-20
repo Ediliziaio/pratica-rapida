@@ -5,6 +5,7 @@ import {
   ProblemSection,
   InactionCostSection,
   SolutionSection,
+  TrustSection,
   ServicesGrid,
   ProcessSteps,
   PartnerSection,
@@ -26,6 +27,7 @@ export default function Home() {
       <ProblemSection />
       <InactionCostSection />
       <SolutionSection />
+      <TrustSection />
       <ServicesGrid />
       <ProcessSteps />
       <PartnerSection />

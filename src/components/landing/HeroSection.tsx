@@ -48,7 +48,7 @@ function DashboardRows() {
   );
 }
 
-
+const socialProofAvatars = [
   { initials: "MR", bg: "bg-[hsl(var(--pr-green))]" },
   { initials: "LB", bg: "bg-primary" },
   { initials: "AG", bg: "bg-[hsl(var(--warning))]" },

@@ -173,26 +173,32 @@ export default function HeroSection() {
           transition={{ delay: 0.6, duration: 0.8 }}
           className="lg:col-span-2 hidden lg:block"
         >
-          <div className="rounded-2xl shadow-2xl border border-border/60 bg-card p-6 space-y-4">
+          <div className="rounded-2xl shadow-2xl border border-border/60 bg-card p-6 space-y-4 animate-float">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-destructive/80" />
-              <div className="w-3 h-3 rounded-full bg-[hsl(var(--pr-green))]/80" />
-              <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />
+              {[
+                { color: "bg-destructive/80", d: 0.6 },
+                { color: "bg-[hsl(var(--pr-green))]/80", d: 0.7 },
+                { color: "bg-muted-foreground/30", d: 0.8 },
+              ].map((dot, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: dot.d, duration: 0.3 }}
+                  className={`w-3 h-3 rounded-full ${dot.color}`}
+                />
+              ))}
             </div>
-            {[
-              { label: "Pratiche completate questo mese", value: "47 ✅" },
-              { label: "Tempo medio evasione", value: "48h" },
-              { label: "Clienti contattati a tuo nome", value: "32" },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center justify-between p-3.5 rounded-xl bg-[hsla(var(--pr-green),0.06)] border border-[hsla(var(--pr-green),0.1)]">
-                <span className="text-sm text-muted-foreground">{item.label}</span>
-                <span className="font-bold text-foreground">{item.value}</span>
-              </div>
-            ))}
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <DashboardRows />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.6 }}
+              className="flex items-center gap-2 text-xs text-muted-foreground"
+            >
               <span className="w-2 h-2 rounded-full animate-pulse bg-[hsl(var(--pr-green))]" />
               Dashboard operativa — aggiornata in tempo reale
-            </div>
+            </motion.div>
           </div>
 
           {/* Trustpilot badge - desktop */}

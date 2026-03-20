@@ -22,7 +22,33 @@ function useCounter(target: number, delay: number, duration = 1500) {
   return count;
 }
 
-const socialProofAvatars = [
+const dashboardItems = [
+  { label: "Pratiche completate questo mese", target: 47, suffix: " ✅", delay: 800 },
+  { label: "Tempo medio evasione", target: 48, suffix: "h", delay: 1000 },
+  { label: "Clienti contattati a tuo nome", target: 32, suffix: "", delay: 1200 },
+];
+
+function DashboardRows() {
+  const counts = dashboardItems.map((item) => useCounter(item.target, item.delay));
+  return (
+    <>
+      {dashboardItems.map((item, i) => (
+        <motion.div
+          key={item.label}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: item.delay / 1000, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="flex items-center justify-between p-3.5 rounded-xl bg-[hsla(var(--pr-green),0.06)] border border-[hsla(var(--pr-green),0.1)]"
+        >
+          <span className="text-sm text-muted-foreground">{item.label}</span>
+          <span className="font-bold text-foreground tabular-nums">{counts[i]}{item.suffix}</span>
+        </motion.div>
+      ))}
+    </>
+  );
+}
+
+
   { initials: "MR", bg: "bg-[hsl(var(--pr-green))]" },
   { initials: "LB", bg: "bg-primary" },
   { initials: "AG", bg: "bg-[hsl(var(--warning))]" },

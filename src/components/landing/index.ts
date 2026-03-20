@@ -4,6 +4,7 @@ export { default as TickerStrip } from "./TickerStrip";
 export { default as ProblemSection } from "./ProblemSection";
 export { default as InactionCostSection } from "./InactionCostSection";
 export { default as SolutionSection } from "./SolutionSection";
+export { default as TrustSection } from "./TrustSection";
 export { default as ServicesGrid } from "./ServicesGrid";
 export { default as ProcessSteps } from "./HowItWorksSection";
 export { default as PartnerSection } from "./PartnerSection";

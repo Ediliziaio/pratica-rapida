@@ -14,15 +14,15 @@ const checks = [
 export default function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden pt-16 bg-background">
-      {/* Bureaucracy image faded on the right */}
-      <div className="absolute right-0 top-0 h-full w-1/2 lg:w-3/5 hidden lg:block">
+      {/* Bureaucracy image faded on the right — more visible */}
+      <div className="absolute right-0 top-0 h-full w-2/3 hidden lg:block">
         <img
           src={heroBureaucracy}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-30"
+          className="absolute inset-0 w-full h-full object-cover opacity-50"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/60" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/40" />
       </div>
 
       {/* Floating shapes */}

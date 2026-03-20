@@ -1,20 +1,25 @@
 
 
-## Piano: Animazione Dashboard Mockup
+## Piano: Navbar trasparente + Miglioramento ProblemSection
 
-### Cosa fare
-Aggiungere animazioni staggered alle righe del mockup dashboard nella HeroSection: ogni riga entra con un leggero ritardo, e i valori numerici hanno un effetto di conteggio animato.
+### 1. Navbar trasparente nella Hero, bianca on scroll
 
-### Modifiche a `HeroSection.tsx`
+**`Navbar.tsx`** — Cambiare il comportamento:
+- **In cima (scrollY <= 20)**: sfondo trasparente (`bg-transparent`), nessun bordo, nessuna ombra — si fonde con la Hero
+- **Dopo scroll**: sfondo bianco solido (`bg-background/95 backdrop-blur-xl`), ombra e bordo come adesso
+- I link e il logo mantengono lo stesso colore (già scuro, funziona su entrambi gli sfondi dato che la Hero ha sfondo chiaro)
 
-1. **Staggered row entry** — Ogni riga della dashboard (Pratiche completate, Tempo medio, Clienti contattati) entra con `motion.div` con delay incrementale (0.8s, 1.0s, 1.2s) e slide-up + fade-in
-2. **Counter animation sui numeri** — I valori "47", "48", "32" partono da 0 e contano fino al valore finale con easing (durata ~1.5s, parte quando la riga è visibile)
-3. **Floating animation continua** — Il container del mockup ha un leggero `animate-float` CSS (già definito in index.css) per un effetto di galleggiamento perpetuo
-4. **Pulse sui traffic light dots** — I 3 pallini in alto appaiono uno alla volta con delay (0.6s, 0.7s, 0.8s)
-5. **Status bar fade-in** — La riga "Dashboard operativa — aggiornata in tempo reale" appare per ultima con fade-in a delay 1.6s
+### 2. Miglioramento ProblemSection
 
-### Implementazione
-- Usare `motion.div` di framer-motion (già importato) per le animazioni staggered
-- Creare un piccolo hook/effetto inline per il counter (useState + useEffect con requestAnimationFrame)
-- Nessun nuovo file, tutto in HeroSection.tsx
+**`ProblemSection.tsx`** — Redesign per maggiore impatto:
+- **Aggiungere badge/label** sopra il titolo: "IL PROBLEMA" in pill verde per dare contesto
+- **Evidenziare la frase chiave** "Ore che non vengono pagate. Ore tolte alla vendita." con bordo sinistro verde e sfondo leggero (blockquote style)
+- **Sostituire immagine stock** con un layout più d'impatto: icone animate che rappresentano i dolori (telefono, documenti, orologio) con numeri/statistiche
+- **Migliorare la transizione** "Ecco perché esistiamo" — renderla più grande e centrata con una linea verde animata che la collega alla sezione successiva
+- **Aggiungere pain-point pills** animati: "Raccolta documenti", "Moduli ENEA", "Follow-up telefonici", "Portali" come tag che appaiono staggered
+- **Mobile**: su schermi piccoli, invertire ordine (testo prima, visual dopo)
+
+### File modificati
+- `src/components/landing/Navbar.tsx`
+- `src/components/landing/ProblemSection.tsx`
 

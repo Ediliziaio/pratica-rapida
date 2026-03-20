@@ -3,10 +3,10 @@ import { useScrollAnimation } from "./hooks";
 import { ArrowDown, Clock, FileText, Phone, Upload } from "lucide-react";
 
 const painPoints = [
-  { icon: FileText, label: "Raccolta documenti" },
-  { icon: Upload, label: "Moduli ENEA" },
-  { icon: Phone, label: "Follow-up telefonici" },
-  { icon: Clock, label: "Caricamento portali" },
+  { icon: FileText, label: "Raccolta documenti", stat: "~3h", statLabel: "per cliente" },
+  { icon: Upload, label: "Moduli ENEA", stat: "~45min", statLabel: "per pratica" },
+  { icon: Phone, label: "Follow-up telefonici", stat: "3-5", statLabel: "chiamate medie" },
+  { icon: Clock, label: "Caricamento portali", stat: "~1h", statLabel: "per invio" },
 ];
 
 export default function ProblemSection() {
@@ -30,11 +30,13 @@ export default function ProblemSection() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={isVisible ? { opacity: 1, y: 0 } : {}}
                   transition={{ delay: 0.2 + i * 0.12, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  className="flex flex-col items-center gap-3 p-6 rounded-2xl bg-background border border-border shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
+                  className="flex flex-col items-center gap-2 p-5 sm:p-6 rounded-2xl bg-background border border-border shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
                 >
                   <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
                     <item.icon className="w-6 h-6 text-destructive" />
                   </div>
+                  <span className="font-bold text-2xl text-destructive">{item.stat}</span>
+                  <span className="text-xs text-muted-foreground text-center">{item.statLabel}</span>
                   <span className="text-sm font-medium text-foreground text-center">{item.label}</span>
                 </motion.div>
               ))}
@@ -58,10 +60,14 @@ export default function ProblemSection() {
                 IL PROBLEMA
               </span>
 
-              <h2 className="font-bold text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1.1] mb-6 text-foreground">
+              <h2 className="font-bold text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1.1] mb-3 text-foreground">
                 Quante ore hai perso l'anno scorso{" "}
                 <span style={{ color: "hsl(var(--pr-green))" }}>dietro alle pratiche?</span>
               </h2>
+
+              <p className="text-muted-foreground text-sm sm:text-base mb-6">
+                Ogni vendita chiusa porta con sé ore di lavoro amministrativo non fatturabile.
+              </p>
 
               <div className="space-y-4 text-muted-foreground text-base sm:text-lg leading-relaxed">
                 <p>

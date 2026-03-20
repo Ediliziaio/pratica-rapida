@@ -1,6 +1,6 @@
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { useScrollAnimation } from "./hooks";
-import { Star } from "lucide-react";
+import { Star, BadgeCheck } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 
 const testimonials = [
@@ -30,6 +30,43 @@ const testimonials = [
   },
 ];
 
+function ReviewCard({ t }: { t: typeof testimonials[0] }) {
+  return (
+    <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 flex flex-col justify-between h-full">
+      <div>
+        <div className="flex gap-1 mb-3">
+          {[...Array(5)].map((_, i) => (
+            <Star key={i} size={14} style={{ fill: "hsl(var(--pr-green))", color: "hsl(var(--pr-green))" }} />
+          ))}
+        </div>
+        <p className="text-foreground leading-relaxed italic text-sm">
+          "{t.text}"
+        </p>
+      </div>
+      <div className="mt-4 flex items-center gap-3">
+        <div
+          className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
+          style={{ backgroundColor: "hsl(var(--pr-green))" }}
+        >
+          {t.avatar}
+        </div>
+        <div>
+          <div className="flex items-center gap-1.5">
+            <p className="font-semibold text-sm text-foreground">{t.author}</p>
+            <BadgeCheck size={14} style={{ color: "hsl(var(--pr-green))" }} />
+          </div>
+          <span
+            className="inline-block mt-0.5 text-xs px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: "hsla(var(--pr-green), 0.1)", color: "hsl(var(--pr-green))" }}
+          >
+            {t.tag}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const swipeVariants = {
   enter: (direction: number) => ({ x: direction > 0 ? 200 : -200, opacity: 0 }),
   center: { x: 0, opacity: 1 },
@@ -56,7 +93,7 @@ export default function ReviewsSection() {
 
   return (
     <section ref={ref} id="testimonianze" className="py-16 sm:py-20 lg:py-28 bg-card">
-      <div className="max-w-5xl mx-auto px-4 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
@@ -69,7 +106,22 @@ export default function ReviewsSection() {
           </h2>
         </motion.div>
 
-        <div className="max-w-2xl mx-auto">
+        {/* Desktop: multi-card grid */}
+        <div className="hidden lg:grid lg:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          {testimonials.map((t, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={isVisible ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.2 + i * 0.1 }}
+            >
+              <ReviewCard t={t} />
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Mobile: carousel */}
+        <div className="lg:hidden max-w-2xl mx-auto">
           <div className="relative overflow-hidden rounded-2xl border border-border shadow-lg min-h-[240px] sm:min-h-[220px]">
             <AnimatePresence initial={false} custom={direction} mode="wait">
               <motion.div
@@ -104,7 +156,10 @@ export default function ReviewsSection() {
                     {testimonials[active].avatar}
                   </div>
                   <div>
-                    <p className="font-semibold text-sm text-foreground">{testimonials[active].author}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-semibold text-sm text-foreground">{testimonials[active].author}</p>
+                      <BadgeCheck size={14} style={{ color: "hsl(var(--pr-green))" }} />
+                    </div>
                     <span
                       className="inline-block mt-0.5 text-xs px-2 py-0.5 rounded-full"
                       style={{ backgroundColor: "hsla(var(--pr-green), 0.1)", color: "hsl(var(--pr-green))" }}
@@ -133,6 +188,24 @@ export default function ReviewsSection() {
             <p className="text-xs text-muted-foreground/60 sm:hidden">← Scorri per navigare →</p>
           </div>
         </div>
+
+        {/* Trustpilot link */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isVisible ? { opacity: 1 } : {}}
+          transition={{ delay: 0.6 }}
+          className="text-center mt-8"
+        >
+          <a
+            href="https://it.trustpilot.com/review/praticarapida.it"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Star size={16} style={{ fill: "hsl(var(--pr-green))", color: "hsl(var(--pr-green))" }} />
+            Leggi tutte le 122+ recensioni su Trustpilot →
+          </a>
+        </motion.div>
       </div>
     </section>
   );

@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { useScrollAnimation } from "./hooks";
+import { ArrowRight, Settings } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function SolutionSection() {
   const { ref, isVisible } = useScrollAnimation();
@@ -42,13 +44,34 @@ export default function SolutionSection() {
               <p>
                 Pratica Rapida gestisce dal 2011 le pratiche per detrazioni fiscali per conto di aziende di serramenti, schermature solari, tende, vetrate, fotovoltaico e caldaie.
               </p>
-              <p className="text-foreground font-semibold">Come funziona?</p>
+
+              <div className="flex items-center gap-2 text-foreground font-semibold">
+                <Settings size={18} style={{ color: "hsl(var(--pr-green))" }} />
+                <span>Come funziona?</span>
+              </div>
+
               <p>
                 Semplice: chiamiamo i tuoi clienti a nome della tua azienda, raccogliamo tutta la documentazione necessaria e trasmettiamo la pratica entro 48 ore dal completamento del fascicolo. Tu e il tuo cliente ricevete l'esito direttamente.
               </p>
               <p className="font-medium text-foreground">
                 Niente intermediari. Niente stress. Niente pratiche ferme in attesa.
               </p>
+            </motion.div>
+
+            {/* Mini CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={isVisible ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.5 }}
+              className="mt-6"
+            >
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-full transition-all hover:brightness-110 active:scale-[0.97] text-white"
+                style={{ backgroundColor: "hsl(var(--pr-green))" }}
+              >
+                Provalo gratis — zero impegno <ArrowRight size={16} />
+              </Link>
             </motion.div>
           </div>
 

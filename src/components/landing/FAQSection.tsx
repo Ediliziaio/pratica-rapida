@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useScrollAnimation } from "./hooks";
+import { MessageCircle } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -46,10 +47,10 @@ export default function FAQSection() {
           className="grid lg:grid-cols-2 gap-x-8 max-w-5xl mx-auto"
         >
           {[faqs.slice(0, half), faqs.slice(half)].map((col, ci) => (
-            <Accordion key={ci} type="single" collapsible>
+            <Accordion key={ci} type="multiple" defaultValue={ci === 0 ? ["0-0", "0-1", "0-2"] : []}>
               {col.map((faq, i) => (
                 <AccordionItem key={i} value={`${ci}-${i}`}>
-                  <AccordionTrigger className="text-left font-semibold text-sm">
+                  <AccordionTrigger className="text-left font-semibold text-base">
                     {faq.q}
                   </AccordionTrigger>
                   <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
@@ -59,6 +60,22 @@ export default function FAQSection() {
               ))}
             </Accordion>
           ))}
+        </motion.div>
+
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isVisible ? { opacity: 1 } : {}}
+          transition={{ delay: 0.5 }}
+          className="mt-10 text-center"
+        >
+          <a
+            href="mailto:modulistica@praticarapida.it"
+            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <MessageCircle size={16} style={{ color: "hsl(var(--pr-green))" }} />
+            Non trovi la risposta? Contattaci →
+          </a>
         </motion.div>
       </div>
     </section>

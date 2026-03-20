@@ -1,68 +1,92 @@
+import { motion } from "framer-motion";
+import { useScrollAnimation } from "./hooks";
 import { Link } from "react-router-dom";
-import { Shield, CreditCard, Clock, Zap, Star, ArrowRight, FileText, Sparkles } from "lucide-react";
-import { PR_GREEN } from "./constants";
-import { Section } from "./Section";
+import { Clock, Phone, CheckCircle, Lock, Star } from "lucide-react";
 
-export function CTASection() {
+export default function FinalCTA() {
+  const { ref, isVisible } = useScrollAnimation();
+
   return (
-    <Section className="bg-[#0d1a2d] relative">
-      <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(circle at 50% 0%, ${PR_GREEN}12 0%, transparent 50%)` }} />
-      <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-        <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6" style={{ backgroundColor: `${PR_GREEN}15`, color: PR_GREEN }}>
-          <Zap className="w-3.5 h-3.5" /> NON ASPETTARE
-        </span>
+    <section
+      ref={ref}
+      className="py-16 sm:py-20 lg:py-28 relative overflow-hidden"
+      style={{ background: "linear-gradient(135deg, hsl(var(--pr-dark)) 0%, hsl(218 48% 16%) 100%)" }}
+    >
+      {[...Array(6)].map((_, i) => (
+        <div
+          key={i}
+          className="absolute w-2 h-2 rounded-full bg-white/10 animate-float-slow"
+          style={{ left: `${15 + i * 15}%`, top: `${20 + (i % 3) * 25}%`, animationDelay: `${i * 0.8}s` }}
+        />
+      ))}
 
-        <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6">
-          Sei pronto a smettere di{" "}
-          <span style={{ color: PR_GREEN }}>perdere vendite</span>?
-        </h2>
-        <p className="text-white/60 text-lg mb-2">Attiva Pratica Rapida Oggi.</p>
-        <p className="text-white/50 mb-8">
-          Zero rischi. Zero costi anticipati. Zero lavoro da parte tua. Solo pratiche ENEA gestite in 24 ore a 65€ l'una, con assicurazione inclusa.
-        </p>
+      <div className="max-w-5xl mx-auto px-4 lg:px-8 text-center relative z-10">
+        <motion.span
+          initial={{ opacity: 0 }}
+          animate={isVisible ? { opacity: 1 } : {}}
+          className="inline-block bg-white/20 text-white px-4 py-1.5 rounded-full text-sm font-semibold mb-6"
+        >
+          🚀 Inizia Oggi — Zero Rischi
+        </motion.span>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto mb-10">
-          {[
-            { icon: Shield, label: "Zero Rischi", desc: "Assicurazione inclusa" },
-            { icon: CreditCard, label: "65€/pratica", desc: "Paghi solo a consegna" },
-            { icon: Clock, label: "Consegna 24h", desc: "Velocità garantita" },
-          ].map((b) => (
-            <div key={b.label} className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <b.icon className="w-6 h-6 mx-auto mb-2" style={{ color: PR_GREEN }} />
-              <p className="text-white font-bold text-sm">{b.label}</p>
-              <p className="text-white/40 text-xs mt-1">{b.desc}</p>
-            </div>
-          ))}
-        </div>
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          className="font-bold text-2xl sm:text-3xl lg:text-5xl leading-[1.1] text-white mb-6"
+        >
+          Ogni Mese Senza
+          <br />
+          Pratica Rapida
+          <br />
+          È Fatturato Perso.
+        </motion.h2>
 
-        <Link to="/auth" className="inline-flex items-center gap-2 text-white font-bold text-lg px-12 py-4 rounded-lg transition-all animate-pulse-glow hover:brightness-110 shadow-lg" style={{ backgroundColor: PR_GREEN, boxShadow: `0 0 30px ${PR_GREEN}40` }}>
-          Attiva Gratis <ArrowRight className="w-5 h-5" />
-        </Link>
-        <p className="text-white/30 text-sm mt-3">Risponderemo entro poche ore. Nessun impegno.</p>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={isVisible ? { opacity: 1 } : {}}
+          transition={{ delay: 0.3 }}
+          className="text-white/70 text-base sm:text-lg max-w-xl mx-auto mb-8 leading-relaxed"
+        >
+          Il tuo concorrente offre già il servizio ENEA completo. Ogni giorno che aspetti, 
+          è un cliente che sceglie lui invece di te. Attivati in 2 minuti — è gratis.
+        </motion.p>
 
-        <a href="https://it.trustpilot.com/review/praticarapida.it" target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 mt-6 text-white/40 hover:text-white/60 transition-colors text-sm">
-          <div className="flex gap-0.5">
-            {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-green-400 text-green-400" />)}
-          </div>
-          <span>122+ recensioni su <strong className="text-white/60">Trustpilot</strong></span>
-        </a>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.5 }}
+        >
+          <Link
+            to="/auth"
+            className="inline-flex items-center bg-white font-bold px-10 py-4 rounded-full text-base transition-all hover:bg-white/90"
+            style={{ color: "hsl(var(--pr-green))" }}
+          >
+            → Attiva Gratis in 2 Minuti
+          </Link>
+        </motion.div>
 
-        <div className="mt-12 space-y-4 max-w-3xl mx-auto text-left">
-          <div className="bg-white/5 border border-white/10 rounded-xl p-6 flex gap-4">
-            <FileText className="w-5 h-5 mt-0.5 shrink-0" style={{ color: PR_GREEN }} />
-            <p className="text-white/40 text-sm leading-relaxed">
-              <strong className="text-white/60">P.S.</strong> — Se stai ancora pensando "ma i miei clienti se la cavano da soli con la pratica ENEA"… chiediti questo: quanti di loro tornano da te per il secondo acquisto? Quanti ti mandano referenze? Il servizio post-vendita è quello che costruisce la fedeltà. E la gestione della pratica ENEA è il servizio post-vendita più facile e redditizio che puoi offrire. A 65€.
-            </p>
-          </div>
-          <div className="bg-[#0f1d32] border border-white/10 rounded-xl p-6 flex gap-4">
-            <Sparkles className="w-5 h-5 mt-0.5 shrink-0" style={{ color: PR_GREEN }} />
-            <p className="text-white/40 text-sm leading-relaxed">
-              <strong className="text-white/60">P.P.S.</strong> — E se stai già gestendo le pratiche con un altro fornitore, fai un semplice calcolo: quanto ti costa veramente ogni pratica tra canoni software, ore del personale, telefonate e stress? Poi confronta quel numero con 65€ e zero lavoro. La scelta è ovvia.
-            </p>
-          </div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isVisible ? { opacity: 1 } : {}}
+          transition={{ delay: 0.7 }}
+          className="mt-8 flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-6 text-sm text-white/60"
+        >
+          <span className="flex items-center justify-center gap-1.5"><Clock size={14} /> Operativo in 24h</span>
+          <span className="flex items-center justify-center gap-1.5"><Phone size={14} /> Supporto italiano dedicato</span>
+          <span className="flex items-center justify-center gap-1.5"><CheckCircle size={14} /> Nessun vincolo</span>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isVisible ? { opacity: 1 } : {}}
+          transition={{ delay: 0.9 }}
+          className="mt-6 sm:mt-8 flex flex-wrap justify-center gap-4 sm:gap-6 text-xs text-white/40"
+        >
+          <span className="flex items-center gap-1"><Lock size={12} /> GDPR Compliant</span>
+          <span className="flex items-center gap-1">🇮🇹 100% Made in Italy</span>
+          <span className="flex items-center gap-1"><Star size={12} /> 4.9/5 Trustpilot</span>
+        </motion.div>
       </div>
-    </Section>
+    </section>
   );
 }

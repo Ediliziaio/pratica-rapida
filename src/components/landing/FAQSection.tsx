@@ -1,45 +1,66 @@
-import { HelpCircle } from "lucide-react";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { PR_GREEN } from "./constants";
-import { Section } from "./Section";
+import { motion } from "framer-motion";
+import { useScrollAnimation } from "./hooks";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
-const FAQ_ITEMS = [
-  { q: "Cos'è la pratica ENEA e quando serve?", a: "La pratica ENEA è una comunicazione obbligatoria da inviare all'ente ENEA per poter accedere alle detrazioni fiscali (Ecobonus) su interventi come la sostituzione di infissi, l'installazione di tende da sole, pergole bioclimatiche e serramenti. Va presentata entro 90 giorni dalla fine dei lavori." },
-  { q: "Quanto costa il servizio?", a: "Il servizio costa 65€ a pratica, tutto incluso: compilazione, invio, assicurazione professionale. Nessun canone mensile, nessun abbonamento, nessun costo di attivazione. Paghi solo le pratiche effettivamente gestite." },
-  { q: "In quanto tempo viene completata la pratica?", a: "Entro 24 ore lavorative dalla ricezione di tutti i documenti completi. In molti casi riusciamo a consegnare anche prima." },
-  { q: "Cosa succede se la pratica contiene un errore?", a: "Ogni pratica è coperta da assicurazione professionale. Se dovesse esserci un errore — anche se rarissimo — l'assicurazione copre eventuali danni economici. Lavori con la massima tranquillità." },
-  { q: "Quali documenti servono per avviare la pratica?", a: "Servono la fattura dei lavori, i dati catastali dell'immobile, le schede tecniche dei prodotti installati e i dati del committente. Ti guidiamo noi passo passo nella raccolta." },
-  { q: "Come funziona il pagamento?", a: "Si paga solo a pratica completata e consegnata. Zero anticipi, zero rischi. Ricevi la pratica, verifichi che sia tutto corretto, e poi procedi con il pagamento." },
-  { q: "Lavorate con aziende di tutta Italia?", a: "Sì, il servizio è completamente digitale e copriamo tutto il territorio nazionale. Che tu sia a Milano, Roma, Napoli o in un piccolo paese, il processo è identico e i tempi sono gli stessi." },
-  { q: "Posso provare il servizio senza impegno?", a: "Assolutamente sì. Basta contattarci e inviarci i documenti della prima pratica. Nessun contratto vincolante, nessun minimo d'ordine. Paghi solo le pratiche effettivamente gestite." },
-  { q: "Devo avere competenze tecniche per usare la piattaforma?", a: "No, nessuna competenza tecnica richiesta. La nostra piattaforma è progettata per essere semplicissima: inserisci il numero del cliente e al resto pensiamo noi. Non devi compilare moduli, scaricare software o imparare procedure complesse." },
-  { q: "I dati dei miei clienti sono al sicuro?", a: "Assolutamente sì. Trattiamo i dati dei tuoi clienti con la massima riservatezza e nel pieno rispetto del GDPR. Utilizziamo sistemi criptati e procedure certificate per garantire la sicurezza di tutte le informazioni. I dati vengono utilizzati esclusivamente per la gestione della pratica ENEA." },
+const faqs = [
+  { q: "Quanto costa il servizio?", a: "65€ a pratica completata, IVA esclusa. Nessun canone mensile, nessun costo di attivazione, nessun vincolo contrattuale. Paghi solo quando la pratica è stata effettivamente completata e consegnata." },
+  { q: "Come funziona il contatto con il mio cliente?", a: "Chiamiamo il tuo cliente presentandoci come parte del tuo team / ufficio tecnico. Il cliente non saprà mai che siamo un servizio esterno. Raccogliamo tutti i documenti necessari direttamente da lui." },
+  { q: "Quanto tempo ci vuole per completare una pratica?", a: "Entro 24 ore lavorative dalla raccolta completa dei documenti, la pratica ENEA viene compilata, inviata e consegnata a te e al tuo cliente." },
+  { q: "Cosa succede se c'è un errore nella pratica?", a: "Ogni pratica è coperta da assicurazione RC professionale. In caso di errore, lo correggiamo immediatamente e gratuitamente. La responsabilità è nostra." },
+  { q: "Devo firmare un contratto vincolante?", a: "No. Puoi attivare e disattivare il servizio quando vuoi. Non c'è nessun minimo di pratiche mensili e nessuna penale di uscita." },
+  { q: "Per quali tipi di intervento posso fare la pratica ENEA?", a: "Serramenti, infissi, tende da sole, pergole, schermature solari, caldaie, pompe di calore, fotovoltaico, vetrate panoramiche. Tutti gli interventi che prevedono la comunicazione ENEA per detrazioni fiscali." },
+  { q: "Come ricevo la pratica completata?", a: "Tramite la tua area riservata nel portale Pratica Rapida e via email. Sia tu che il tuo cliente ricevete la pratica in formato digitale." },
+  { q: "Posso provare il servizio con una sola pratica?", a: "Assolutamente sì. Non c'è nessun obbligo di volume. Puoi provare con una pratica e decidere se continuare." },
+  { q: "Il servizio è disponibile in tutta Italia?", a: "Sì, operiamo su tutto il territorio nazionale. Essendo un servizio digitale, non ci sono limitazioni geografiche." },
+  { q: "Come posso iniziare?", a: "Registrati gratuitamente, inserisci il numero di telefono del tuo primo cliente e lascia fare a noi. In 2 minuti sei operativo." },
 ];
 
-export function FAQSection() {
-  return (
-    <Section light id="faq">
-      <div className="max-w-3xl mx-auto px-6">
-        <div className="text-center mb-12">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6 bg-green-50 border border-green-100" style={{ color: PR_GREEN }}>
-            <HelpCircle className="w-3.5 h-3.5" /> DOMANDE FREQUENTI
-          </span>
-          <h2 className="text-3xl md:text-5xl font-bold text-gray-900">Tutto quello che devi sapere</h2>
-        </div>
+export default function FAQSection() {
+  const { ref, isVisible } = useScrollAnimation();
+  const half = Math.ceil(faqs.length / 2);
 
-        <Accordion type="single" collapsible className="space-y-3">
-          {FAQ_ITEMS.map((item, i) => (
-            <AccordionItem key={i} value={`faq-${i}`} className="border rounded-xl px-5 overflow-hidden" style={{ borderColor: `${PR_GREEN}25` }}>
-              <AccordionTrigger className="text-left text-gray-900 font-semibold text-base hover:no-underline py-5">
-                {item.q}
-              </AccordionTrigger>
-              <AccordionContent className="text-gray-500 leading-relaxed pb-5">
-                {item.a}
-              </AccordionContent>
-            </AccordionItem>
+  return (
+    <section ref={ref} id="faq" className="py-20 lg:py-28 bg-card">
+      <div className="max-w-5xl mx-auto px-4 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          className="text-center mb-14"
+        >
+          <h2 className="font-bold text-3xl sm:text-4xl lg:text-5xl leading-[1.1] mb-4 text-foreground">
+            Domande Frequenti.
+            <br />
+            <span style={{ color: "hsl(var(--pr-green))" }}>Risposte Chiare.</span>
+          </h2>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isVisible ? { opacity: 1 } : {}}
+          transition={{ delay: 0.3 }}
+          className="grid lg:grid-cols-2 gap-x-8 max-w-5xl mx-auto"
+        >
+          {[faqs.slice(0, half), faqs.slice(half)].map((col, ci) => (
+            <Accordion key={ci} type="single" collapsible>
+              {col.map((faq, i) => (
+                <AccordionItem key={i} value={`${ci}-${i}`}>
+                  <AccordionTrigger className="text-left font-semibold text-sm">
+                    {faq.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                    {faq.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           ))}
-        </Accordion>
+        </motion.div>
       </div>
-    </Section>
+    </section>
   );
 }

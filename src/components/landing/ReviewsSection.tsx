@@ -1,57 +1,136 @@
-import { Star, MessageSquare, ArrowRight } from "lucide-react";
-import { PR_GREEN } from "./constants";
-import { Section } from "./Section";
+import { motion, AnimatePresence, PanInfo } from "framer-motion";
+import { useScrollAnimation } from "./hooks";
+import { Star } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 
-const REVIEWS = [
-  { name: "Marcello", badge: "IT · 1 recensione", date: "16 ore fa", title: "Professionalità", text: "Professionalità, gentilezza e rapidità ed assistenza telefonica competente e di vero aiuto nel completare la pratica." },
-  { name: "lalli65", badge: "IT · 7 recensioni", date: "9 feb 2026", title: "Veloci e comprensibili", text: "Pratica Enea pervenuta subito per la compilazione. Compilazione on Line semplice e ben comprensibile." },
-  { name: "Cadeddu Marina", badge: "IT · 2 recensioni", date: "18 dic 2025", title: "Esperienza positiva con pratica rapida", text: "Sono stati molto disponibili e mi hanno supportato. Il tutto con gentilezza e professionalità." },
-  { name: "Flavio", badge: "IT · 4 recensioni", date: "15 dic 2025", title: "Veloci", text: "Veloci, professionali e gentili, complimenti!" },
-  { name: "Paola Maruca", badge: "IT · 3 recensioni", date: "27 nov 2025", title: "Servizio efficente", text: "Efficenti e gentili sempre disponibili contattati più volte per togliermi dei dubbi sempre disponibili e gentili pienamente soddisfatta." },
-  { name: "Valentina Puddu", badge: "IT · 1 recensione", date: "2 ott 2025", title: "Ottimo servizio e super efficienti", text: "Ottimo servizio e super efficienti. La pratica è stata presa in carico ed inoltrata in un giorno lavorativo. Pronta risposta per qualsiasi dubbio. Consigliatissimo!" },
-  { name: "Paola Dario", badge: "IT · 4 recensioni", date: "2 ott 2025", title: "Super efficienti e veloci, top!", text: "" },
-  { name: "Alex Alex", badge: "IT · 1 recensione", date: "2 ott 2025", title: "Professionali e molto disponibili", text: "Professionali e molto disponibili." },
-  { name: "Matteo", badge: "IT · 3 recensioni", date: "2 ott 2025", title: "Sembrerebbe che dopo aver compilato i…", text: "Sembrerebbe che dopo aver compilato i documenti in 1 giorno mi hanno rigirato la pratica ultimata. Veloci e professionali. Grazie!" },
+const testimonials = [
+  { text: "Servizio impeccabile! Pratica ENEA completata in meno di 24 ore, senza che il mio cliente debba muovere un dito. Consigliatissimo.", author: "Zanellato Enrico", tag: "Serramenti • Veneto" },
+  { text: "Professionalità e rapidità. Ho delegato tutte le pratiche ENEA e non potrei essere più soddisfatto. I miei clienti pensano sia il mio ufficio tecnico.", author: "Marco Barbieri", tag: "Infissi • Lombardia" },
+  { text: "Da quando uso Pratica Rapida ho chiuso più vendite. Il cliente vuole un servizio completo e ora posso offrirglielo senza sforzo.", author: "Silvana", tag: "Tende da Sole • Emilia-Romagna" },
+  { text: "65€ a pratica è un prezzo imbattibile considerando che prima spendevo ore del mio tempo. Ora mi concentro sulle vendite.", author: "Valentina Quagliarella", tag: "Pergole • Puglia" },
+  { text: "L'assicurazione RC inclusa mi dà una tranquillità enorme. Sapere che se c'è un errore loro rispondono è impagabile.", author: "Roberto M.", tag: "Fotovoltaico • Lazio" },
 ];
 
-export function ReviewsSection() {
+const featured = {
+  text: "In 6 mesi ho aumentato il fatturato del 15% semplicemente perché ora offro un servizio completo. Il cliente non deve più andare dal commercialista per la pratica ENEA. A nome mio, Pratica Rapida gestisce tutto. È stato il miglior investimento della mia attività.",
+  author: "Alessandro T., Titolare Serramenti, Torino — in partnership da 2 anni",
+};
+
+const swipeVariants = {
+  enter: (direction: number) => ({ x: direction > 0 ? 200 : -200, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (direction: number) => ({ x: direction < 0 ? 200 : -200, opacity: 0 }),
+};
+
+export default function ReviewsSection() {
+  const { ref, isVisible } = useScrollAnimation();
+  const [[active, direction], setActiveState] = useState([0, 0]);
+
+  const paginate = useCallback((newDirection: number) => {
+    setActiveState(([prev]) => [(prev + newDirection + testimonials.length) % testimonials.length, newDirection]);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => paginate(1), 5000);
+    return () => clearInterval(interval);
+  }, [paginate]);
+
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (info.offset.x < -50) paginate(1);
+    else if (info.offset.x > 50) paginate(-1);
+  };
+
   return (
-    <Section className="bg-[#0d1a2d]">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="text-center mb-12">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6" style={{ backgroundColor: `${PR_GREEN}15`, color: PR_GREEN }}>
-            <MessageSquare className="w-3.5 h-3.5" /> RECENSIONI VERIFICATE
-          </span>
-          <h2 className="text-3xl md:text-5xl font-bold mb-4">Cosa dicono i nostri clienti</h2>
-          <a href="https://it.trustpilot.com/review/praticarapida.it" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-white/50 hover:text-white/70 transition-colors text-sm">
-            <div className="flex gap-0.5">{[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-green-400 text-green-400" />)}</div>
-            <span>4.9 su <strong className="text-white/70">Trustpilot</strong></span>
-          </a>
-        </div>
+    <section ref={ref} id="testimonianze" className="py-16 sm:py-20 lg:py-28 bg-card">
+      <div className="max-w-5xl mx-auto px-4 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          className="text-center mb-10 sm:mb-14"
+        >
+          <h2 className="font-bold text-2xl sm:text-3xl lg:text-5xl leading-[1.1] mb-4 text-foreground">
+            122+ Aziende Ci Hanno Già
+            <br />
+            <span style={{ color: "hsl(var(--pr-green))" }}>Scelto su Trustpilot.</span>
+          </h2>
+          <p className="text-muted-foreground text-base sm:text-lg">
+            Imprenditori reali, risultati reali.
+          </p>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {REVIEWS.map((r, i) => (
-            <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-5">
-              <div className="flex gap-0.5 mb-3">{[...Array(5)].map((_, j) => <Star key={j} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />)}</div>
-              <p className="text-white font-bold text-sm mb-1">{r.title}</p>
-              {r.text && <p className="text-white/60 text-sm leading-relaxed mb-3">{r.text}</p>}
-              <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
+        <div className="max-w-2xl mx-auto mb-10 sm:mb-12">
+          <div className="relative overflow-hidden rounded-2xl border border-border shadow-lg min-h-[220px] sm:min-h-[200px]">
+            <AnimatePresence initial={false} custom={direction} mode="wait">
+              <motion.div
+                key={active}
+                custom={direction}
+                variants={swipeVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: "spring", stiffness: 300, damping: 30, duration: 0.3 }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.7}
+                onDragEnd={handleDragEnd}
+                className="bg-card p-5 sm:p-8 flex flex-col justify-between min-h-[220px] sm:min-h-[200px] cursor-grab active:cursor-grabbing touch-pan-y"
+              >
                 <div>
-                  <p className="text-white text-sm font-semibold">{r.name}</p>
-                  <p className="text-white/30 text-xs">{r.badge}</p>
+                  <div className="flex gap-1 mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={16} style={{ fill: "hsl(var(--pr-green))", color: "hsl(var(--pr-green))" }} />
+                    ))}
+                  </div>
+                  <p className="text-foreground leading-relaxed italic text-sm sm:text-base select-none">
+                    "{testimonials[active].text}"
+                  </p>
                 </div>
-                <p className="text-white/30 text-xs">{r.date}</p>
-              </div>
+                <div className="mt-4">
+                  <p className="font-semibold text-sm text-foreground">{testimonials[active].author}</p>
+                  <span
+                    className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full"
+                    style={{ backgroundColor: "hsla(var(--pr-green), 0.1)", color: "hsl(var(--pr-green))" }}
+                  >
+                    {testimonials[active].tag}
+                  </span>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          <div className="flex flex-col items-center gap-2 mt-4">
+            <div className="flex justify-center gap-2">
+              {testimonials.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveState([i, i > active ? 1 : -1])}
+                  className={`h-2.5 rounded-full transition-all duration-300 ${
+                    i === active ? "w-6" : "w-2.5 bg-border"
+                  }`}
+                  style={i === active ? { backgroundColor: "hsl(var(--pr-green))" } : {}}
+                />
+              ))}
             </div>
-          ))}
+            <p className="text-xs text-muted-foreground/60 sm:hidden">← Scorri per navigare →</p>
+          </div>
         </div>
 
-        <div className="text-center mt-10">
-          <a href="https://it.trustpilot.com/review/praticarapida.it" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold transition-colors hover:brightness-125" style={{ color: PR_GREEN }}>
-            Vedi tutte le 122+ recensioni su Trustpilot <ArrowRight className="w-4 h-4" />
-          </a>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.3 }}
+          className="max-w-3xl mx-auto rounded-2xl p-5 sm:p-8 text-white"
+          style={{ backgroundColor: "hsl(var(--pr-green))" }}
+        >
+          <div className="flex gap-1 mb-4">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} size={16} className="fill-white text-white" />
+            ))}
+          </div>
+          <p className="text-base sm:text-lg leading-relaxed italic mb-4">"{featured.text}"</p>
+          <p className="font-bold text-sm sm:text-base">{featured.author}</p>
+        </motion.div>
       </div>
-    </Section>
+    </section>
   );
 }

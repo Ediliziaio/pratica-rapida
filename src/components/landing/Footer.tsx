@@ -34,7 +34,7 @@ export default function Footer() {
 
           <div>
             <h5 className="font-bold text-sm text-white mb-4">Contatti</h5>
-            <p className="text-sm mb-2">📞 +39 351 7935227</p>
+            <p className="text-sm mb-2">📞 +39 039 868 2691</p>
             <p className="text-sm mb-2">📧 modulistica@praticarapida.it</p>
             <p className="text-sm mb-2">📍 Lissone (MB)</p>
             <p className="text-sm mb-2">🕐 Lun-Ven 9:00-18:00</p>

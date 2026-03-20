@@ -2,14 +2,14 @@ import { motion } from "framer-motion";
 import { useScrollAnimation, useCounterAnimation } from "./hooks";
 
 const stats = [
-  { target: 5000, prefix: "", suffix: "+", label: "Pratiche ENEA gestite" },
+  { target: 5000, prefix: "", suffix: "+", label: "Pratiche gestite" },
   { target: 500, prefix: "", suffix: "+", label: "Aziende soddisfatte" },
   { target: 14, prefix: "", suffix: "+", label: "Anni di esperienza" },
-  { target: 65, prefix: "€", suffix: "", label: "Prezzo fisso a pratica" },
+  { target: 48, prefix: "", suffix: "h", label: "Tempo medio evasione" },
   { target: 122, prefix: "", suffix: "+", label: "Recensioni Trustpilot" },
-  { target: 24, prefix: "", suffix: "h", label: "Consegna garantita" },
   { target: 98, prefix: "", suffix: "%", label: "Tasso di soddisfazione" },
   { target: 0, prefix: "", suffix: "€", label: "Canone mensile" },
+  { target: 65, prefix: "€", suffix: "", label: "Prezzo fisso a pratica" },
 ];
 
 function StatItem({ target, prefix, suffix, label, isVisible }: {
@@ -38,7 +38,9 @@ export default function DataWallSection() {
           className="text-center mb-10 sm:mb-14"
         >
           <h2 className="font-bold text-2xl sm:text-3xl lg:text-5xl leading-[1.1] text-white">
-            I Numeri Parlano Chiaro.
+            Oltre 14 anni. Migliaia di pratiche.
+            <br />
+            Zero pensieri per chi ci affida il lavoro.
           </h2>
         </motion.div>
 
@@ -52,10 +54,6 @@ export default function DataWallSection() {
             <StatItem key={i} {...s} isVisible={isVisible} />
           ))}
         </motion.div>
-
-        <p className="text-center text-xs text-white/40 mt-8">
-          Dati aggiornati al 2025 — elaborati su base clienti attivi
-        </p>
       </div>
     </section>
   );

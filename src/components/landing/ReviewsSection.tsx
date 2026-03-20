@@ -4,17 +4,31 @@ import { Star } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 
 const testimonials = [
-  { text: "Servizio impeccabile! Pratica ENEA completata in meno di 24 ore, senza che il mio cliente debba muovere un dito. Consigliatissimo.", author: "Zanellato Enrico", tag: "Serramenti • Veneto", avatar: "ZE" },
-  { text: "Professionalità e rapidità. Ho delegato tutte le pratiche ENEA e non potrei essere più soddisfatto. I miei clienti pensano sia il mio ufficio tecnico.", author: "Marco Barbieri", tag: "Infissi • Lombardia", avatar: "MB" },
-  { text: "Da quando uso Pratica Rapida ho chiuso più vendite. Il cliente vuole un servizio completo e ora posso offrirglielo senza sforzo.", author: "Silvana", tag: "Tende da Sole • Emilia-Romagna", avatar: "S" },
-  { text: "65€ a pratica è un prezzo imbattibile considerando che prima spendevo ore del mio tempo. Ora mi concentro sulle vendite.", author: "Valentina Quagliarella", tag: "Pergole • Puglia", avatar: "VQ" },
-  { text: "L'assicurazione RC inclusa mi dà una tranquillità enorme. Sapere che se c'è un errore loro rispondono è impagabile.", author: "Roberto M.", tag: "Fotovoltaico • Lazio", avatar: "RM" },
+  {
+    text: "Da anni gestiscono le pratiche ENEA per i miei clienti. Non ho mai avuto un problema. Professionalità costante, sempre. Consigliato senza riserve.",
+    author: "Zanellato Enrico",
+    tag: "Rivenditore",
+    avatar: "ZE",
+  },
+  {
+    text: "Installiamo tende e pergolati. Da quando lavoriamo con Pratica Rapida offriamo un servizio che molti concorrenti non hanno — e questo ci ha fatto vincere vendite. Il loro servizio? Eccezionale.",
+    author: "Marco Barbieri",
+    tag: "Rivenditore",
+    avatar: "MB",
+  },
+  {
+    text: "Professionali nella raccolta dei dati, chiari nelle comunicazioni, veloci nell'evasione. Sono molto soddisfatta.",
+    author: "Valentina Quagliarella",
+    tag: "Rivenditore",
+    avatar: "VQ",
+  },
+  {
+    text: "Ho ricevuto assistenza precisa anche nei passaggi più tecnici che non avrei saputo gestire da sola. Voto 10+.",
+    author: "Silvana",
+    tag: "Privato",
+    avatar: "S",
+  },
 ];
-
-const featured = {
-  text: "In 6 mesi ho aumentato il fatturato del 15% semplicemente perché ora offro un servizio completo. Il cliente non deve più andare dal commercialista per la pratica ENEA. A nome mio, Pratica Rapida gestisce tutto. È stato il miglior investimento della mia attività.",
-  author: "Alessandro T., Titolare Serramenti, Torino — in partnership da 2 anni",
-};
 
 const swipeVariants = {
   enter: (direction: number) => ({ x: direction > 0 ? 200 : -200, opacity: 0 }),
@@ -49,16 +63,13 @@ export default function ReviewsSection() {
           className="text-center mb-10 sm:mb-14"
         >
           <h2 className="font-bold text-2xl sm:text-3xl lg:text-5xl leading-[1.1] mb-4 text-foreground">
-            122+ Aziende Ci Hanno Già
+            Non è quello che diciamo noi che conta.
             <br />
-            <span style={{ color: "hsl(var(--pr-green))" }}>Scelto su Trustpilot.</span>
+            <span style={{ color: "hsl(var(--pr-green))" }}>È quello che dicono loro.</span>
           </h2>
-          <p className="text-muted-foreground text-base sm:text-lg">
-            Imprenditori reali, risultati reali.
-          </p>
         </motion.div>
 
-        <div className="max-w-2xl mx-auto mb-10 sm:mb-12">
+        <div className="max-w-2xl mx-auto">
           <div className="relative overflow-hidden rounded-2xl border border-border shadow-lg min-h-[240px] sm:min-h-[220px]">
             <AnimatePresence initial={false} custom={direction} mode="wait">
               <motion.div
@@ -122,25 +133,6 @@ export default function ReviewsSection() {
             <p className="text-xs text-muted-foreground/60 sm:hidden">← Scorri per navigare →</p>
           </div>
         </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isVisible ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.3 }}
-          className="max-w-3xl mx-auto rounded-2xl p-5 sm:p-8 text-white"
-          style={{ backgroundColor: "hsl(var(--pr-green))" }}
-        >
-          <div className="flex gap-1 mb-4">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} size={16} className="fill-white text-white" />
-            ))}
-          </div>
-          <p className="text-base sm:text-lg leading-relaxed italic mb-4">"{featured.text}"</p>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white text-sm font-bold">AT</div>
-            <p className="font-bold text-sm sm:text-base">{featured.author}</p>
-          </div>
-        </motion.div>
       </div>
     </section>
   );

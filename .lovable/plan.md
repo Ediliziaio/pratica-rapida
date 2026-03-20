@@ -1,20 +1,23 @@
 
 
-## Piano: Hero Section con sfondo bianco e immagine sfumata
+## Piano: Aggiungere immagine di burocrazia sfumata a destra nella Hero
 
-### Cosa cambia
-La HeroSection passa da sfondo scuro (`--pr-dark`) a **sfondo bianco** con un'immagine decorativa sfumata in background (gradient overlay che la dissolve ai bordi). Tutti i colori del testo si adattano di conseguenza.
+### Cosa si fa
+Generare con AI un'immagine a tema burocrazia (documenti, moduli, timbri, pratiche cartacee impilate) e posizionarla sul lato destro della hero section, sfumata con un gradient da sinistra (bianco → trasparente) così che si dissolva nel contenuto senza coprire il testo.
 
-### Modifiche su `src/components/landing/HeroSection.tsx`
+### Modifiche
 
-1. **Sfondo sezione**: `bg-white` con un `<img>` posizionato absolute (es. foto di serramenti/finestre da Unsplash) coperto da un gradient bianco `from-white via-white/80 to-transparent` per sfumare l'immagine sul lato destro/basso
-2. **Testo titolo**: da `text-white` a `text-foreground` (scuro)
-3. **Testo "Pratiche ENEA"**: resta verde `hsl(var(--pr-green))`
-4. **Paragrafo**: da `text-white/60` a `text-muted-foreground`
-5. **Checklist**: da `text-white/50` a `text-muted-foreground`
-6. **Sub-text social proof**: da `text-white/40` a `text-muted-foreground`
-7. **Dashboard mockup card**: da sfondo scuro a `bg-card border shadow-lg`, testi da `text-white` a `text-foreground`
-8. **Trustpilot badge**: da `text-white/40` a `text-muted-foreground`
-9. **Floating shapes**: opacità leggermente aumentata per essere visibili su bianco
-10. **Immagine background**: foto di alta qualità (serramenti/finestre) posizionata absolute a destra, con opacity e gradient mask per un effetto sfumato elegante
+**1. Generare l'immagine** (`src/assets/hero-bureaucracy.png`)
+- Prompt AI: immagine fotorealistica di una scrivania con pile di documenti, moduli burocratici, timbri, pratiche ENEA — toni neutri/caldi, alta risoluzione
+- Usare il modello `google/gemini-3-pro-image-preview` per qualità migliore
+
+**2. Aggiornare `src/components/landing/HeroSection.tsx`**
+- Rimuovere l'attuale `heroBg` (immagine generica) dal background full-screen
+- Aggiungere la nuova immagine posizionata `absolute right-0 top-0 h-full w-1/2 lg:w-3/5 object-cover`
+- Applicare un gradient overlay `bg-gradient-to-r from-background via-background/95 to-transparent` sopra l'immagine per sfumarla verso sinistra
+- L'immagine sarà visibile solo sulla metà destra, dietro il dashboard mockup
+- Su mobile nascondere l'immagine (`hidden lg:block`) per non appesantire il layout
+
+### Risultato
+Il lato sinistro resta pulito con testo leggibile, il lato destro mostra l'immagine di burocrazia che sfuma verso il centro, creando un effetto visivo professionale che comunica subito il tema "pratiche e documenti".
 

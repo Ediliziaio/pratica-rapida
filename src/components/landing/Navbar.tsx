@@ -15,7 +15,7 @@ export function Navbar({ scrolled }: NavbarProps) {
     <>
       <nav className={`fixed top-10 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "navbar-scrolled" : "bg-[#0a1628]/90 backdrop-blur-md border-b border-white/5"}`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4 transition-all duration-300">
-          <Link to="/home" className="flex items-center gap-2">
+          <Link to="/offerta" className="flex items-center gap-2">
             <img
               src={scrolled ? "/pratica-rapida-logo.png" : "/pratica-rapida-logo-white.png"}
               alt="Pratica Rapida"

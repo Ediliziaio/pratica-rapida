@@ -76,7 +76,7 @@ const App = () => (
           <AuthProvider>
             <Suspense fallback={<PageLoader />}>
               <Routes>
-                <Route path="/home" element={<Home />} />
+                <Route path="/offerta" element={<Home />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
                 <Route path="/auth" element={<AuthRoute />} />

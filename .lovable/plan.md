@@ -1,31 +1,20 @@
 
 
-## Piano: Miglioramento UX Hero Section
+## Piano: Animazione Dashboard Mockup
 
-### Problemi attuali
-1. **Titolo troppo grande** — il h1 occupa quasi metà schermo, il testo verde "le gestiamo noi..." è enorme e domina tutto
-2. **Badge target in alto poco visibile** — il pill "PER AZIENDE DI SERRAMENTI..." è piccolo e si perde
-3. **Sottotitolo troppo lungo senza gerarchia visiva** — il paragrafo descrittivo è un blocco unico grigio
-4. **Dashboard mockup piatta** — la card sembra un wireframe, poco convincente come "social proof"
-5. **CTA poco prominente** — il pulsante verde si confonde con il titolo verde, manca contrasto
-6. **Immagine burocrazia troppo sfumata** — quasi invisibile, non aggiunge valore visivo
-7. **Troppo spazio vuoto sotto la CTA** — la sezione è min-h-screen ma il contenuto finisce prima
-8. **Nessun elemento di urgenza/scarcity** — manca un micro-badge tipo "Oltre 120 aziende ci affidano le pratiche"
-9. **Mobile: dashboard e Trustpilot nascosti** — su mobile si perde tutta la social proof
+### Cosa fare
+Aggiungere animazioni staggered alle righe del mockup dashboard nella HeroSection: ogni riga entra con un leggero ritardo, e i valori numerici hanno un effetto di conteggio animato.
 
-### Modifiche proposte
+### Modifiche a `HeroSection.tsx`
 
-**`HeroSection.tsx` — redesign completo**
+1. **Staggered row entry** — Ogni riga della dashboard (Pratiche completate, Tempo medio, Clienti contattati) entra con `motion.div` con delay incrementale (0.8s, 1.0s, 1.2s) e slide-up + fade-in
+2. **Counter animation sui numeri** — I valori "47", "48", "32" partono da 0 e contano fino al valore finale con easing (durata ~1.5s, parte quando la riga è visibile)
+3. **Floating animation continua** — Il container del mockup ha un leggero `animate-float` CSS (già definito in index.css) per un effetto di galleggiamento perpetuo
+4. **Pulse sui traffic light dots** — I 3 pallini in alto appaiono uno alla volta con delay (0.6s, 0.7s, 0.8s)
+5. **Status bar fade-in** — La riga "Dashboard operativa — aggiornata in tempo reale" appare per ultima con fade-in a delay 1.6s
 
-1. **Ridurre font titolo** — da `text-7xl` a `text-5xl xl:text-6xl`, più leggibile e professionale
-2. **Aggiungere social proof sotto il badge** — piccola riga con avatar stack + "120+ aziende ci affidano le pratiche" visibile anche su mobile
-3. **Migliorare sottotitolo** — spezzare in 2 frasi distinte con icone check verdi per i vantaggi chiave (raccolta documenti, trasmissione, concentrati sulle vendite)
-4. **CTA più grande e con contrasto** — padding maggiore, aggiungere sotto-CTA secondaria (numero di telefono clickabile)
-5. **Immagine sfondo: aumentare opacità** — da 0.50 a 0.60, ridurre gradient di copertura
-6. **Dashboard mockup migliorata** — aggiungere leggera animazione ai numeri, bordo più definito, ombra più marcata
-7. **Trustpilot visibile su mobile** — spostare il badge Trustpilot sopra o sotto la CTA, visibile su tutti i device
-8. **Scroll indicator** — aggiungere freccia animata in basso per invitare allo scroll
-
-### Risultato
-Hero più compatta, leggibile, con social proof visibile su tutti i device, CTA più prominente e gerarchia visiva chiara.
+### Implementazione
+- Usare `motion.div` di framer-motion (già importato) per le animazioni staggered
+- Creare un piccolo hook/effetto inline per il counter (useState + useEffect con requestAnimationFrame)
+- Nessun nuovo file, tutto in HeroSection.tsx
 

@@ -257,7 +257,45 @@
   animation: grow-line 1.5s ease-out forwards;
 }
 
+/* Gradient border spinning animation */
+@keyframes gradient-spin {
+  0% { --angle: 0deg; }
+  100% { --angle: 360deg; }
+}
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.gradient-border-spin {
+  position: relative;
+  display: inline-block;
+  padding: 2px;
+  border-radius: 9999px;
+  background: conic-gradient(from var(--angle), hsl(var(--pr-green)), hsl(var(--pr-green-light)), transparent, hsl(var(--pr-green)));
+  animation: gradient-spin 3s linear infinite;
+}
+
+/* Text glow for dark sections */
+.text-glow-green {
+  text-shadow: 0 0 30px hsla(var(--pr-green), 0.3), 0 0 60px hsla(var(--pr-green), 0.1);
+}
+
+/* Reveal highlight — animated background on text */
+.reveal-highlight {
+  background: linear-gradient(90deg, hsla(var(--pr-green), 0.15) 0%, hsla(var(--pr-green), 0.05) 100%);
+  padding: 0.15em 0.4em;
+  margin: -0.15em -0.4em;
+  border-radius: 4px;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .animate-grow-line,
+  .gradient-border-spin {
+    animation: none;
+  }
+}
   .animate-marquee,
   .animate-grow-line {
     animation: none;

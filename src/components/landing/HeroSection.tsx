@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import heroBureaucracy from "@/assets/hero-bureaucracy.png";
 
-const spring = { type: "spring", stiffness: 100, damping: 18 };
+const spring = { type: "spring" as const, stiffness: 100, damping: 18 };
 
 const floatingPills = [
   { label: "47 pratiche ✅", x: "-8%", y: "18%", delay: 1.2 },

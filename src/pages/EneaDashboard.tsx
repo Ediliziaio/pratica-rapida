@@ -1,15 +1,30 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line,
 } from "recharts";
-import { AlertTriangle, FolderOpen, Clock, CheckCircle, Archive, Euro } from "lucide-react";
+import {
+  AlertTriangle, FolderOpen, Clock, CheckCircle, Archive, Euro,
+  Plus, TrendingUp, TrendingDown, LayoutDashboard, ChevronRight,
+} from "lucide-react";
 import type { EneaPractice, PipelineStage } from "@/integrations/supabase/types";
 
 type PracticeWithStage = EneaPractice & {
@@ -19,31 +34,61 @@ type PracticeWithStage = EneaPractice & {
 
 const MONTH_NAMES = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
 
+// Custom tooltip for recharts
+function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: { name: string; value: number }[]; label?: string }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border bg-background shadow-md px-3 py-2 text-sm">
+      <p className="font-medium mb-1 text-foreground">{label}</p>
+      {payload.map((entry) => (
+        <p key={entry.name} className="text-muted-foreground">
+          {entry.name}: <span className="font-semibold text-foreground">{entry.value}</span>
+        </p>
+      ))}
+    </div>
+  );
+}
+
 function AlertBox({ practices }: { practices: PracticeWithStage[] }) {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const stale = practices.filter((p) => p.updated_at < sevenDaysAgo);
+  const stale = practices.filter((p) => p.updated_at < sevenDaysAgo && !p.archived_at);
   if (!stale.length) return null;
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-yellow-800 dark:border-yellow-700 dark:bg-yellow-950 dark:text-yellow-200">
-      <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0" />
-      <div>
-        <p className="font-semibold">{stale.length} pratiche senza aggiornamento da oltre 7 giorni</p>
+    <Alert className="border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+      <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+      <AlertDescription>
+        <p className="font-semibold">
+          {stale.length} {stale.length === 1 ? "pratica senza" : "pratiche senza"} aggiornamento da oltre 7 giorni
+        </p>
         <ul className="mt-1 space-y-0.5 text-sm">
           {stale.slice(0, 5).map((p) => (
             <li key={p.id}>
-              {p.cliente_nome} {p.cliente_cognome} — ultimo aggiornamento:{" "}
+              {p.cliente_nome} {p.cliente_cognome} —{" "}
               {new Date(p.updated_at).toLocaleDateString("it-IT")}
             </li>
           ))}
-          {stale.length > 5 && <li>…e altre {stale.length - 5}</li>}
+          {stale.length > 5 && <li className="text-amber-600 dark:text-amber-400">…e altre {stale.length - 5}</li>}
         </ul>
-      </div>
-    </div>
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+function TrendIndicator({ current, previous }: { current: number; previous: number }) {
+  const diff = current - previous;
+  if (diff === 0) return <p className="text-xs text-muted-foreground mt-0.5">= vs mese prec.</p>;
+  const isUp = diff > 0;
+  return (
+    <p className={`text-xs mt-0.5 flex items-center gap-0.5 ${isUp ? "text-emerald-600" : "text-destructive"}`}>
+      {isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+      {isUp ? "+" : ""}{diff} vs mese prec.
+    </p>
   );
 }
 
 function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
   const { isInternal } = useAuth();
+  const navigate = useNavigate();
 
   const { data: practices = [], isLoading } = useQuery<PracticeWithStage[]>({
     queryKey: ["enea_practices_dashboard", brand],
@@ -62,26 +107,51 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
 
-  const totaleAttive = practices.filter(
-    (p) => !p.archived_at
+  // Current month counts
+  const totaleAttive = practices.filter((p) => !p.archived_at).length;
+  const totaleAttiviMese = practices.filter((p) => !p.archived_at && p.created_at >= startOfMonth).length;
+  const totaleAttiviPrevMese = practices.filter(
+    (p) => !p.archived_at && p.created_at >= startOfPrevMonth && p.created_at < startOfMonth
   ).length;
 
   const inAttesaCompilazione = practices.filter(
     (p) => p.pipeline_stage?.stage_type === "attesa_compilazione" && !p.archived_at
   ).length;
+  const inAttesaCompilazionePrev = practices.filter(
+    (p) =>
+      p.pipeline_stage?.stage_type === "attesa_compilazione" &&
+      !p.archived_at &&
+      p.created_at >= startOfPrevMonth &&
+      p.created_at < startOfMonth
+  ).length;
 
   const pronteDaFare = practices.filter(
     (p) => p.pipeline_stage?.stage_type === "pronte_da_fare" && !p.archived_at
+  ).length;
+  const pronteDaFarePrev = practices.filter(
+    (p) =>
+      p.pipeline_stage?.stage_type === "pronte_da_fare" &&
+      !p.archived_at &&
+      p.created_at >= startOfPrevMonth &&
+      p.created_at < startOfMonth
   ).length;
 
   const archiviateMesseCorrente = practices.filter(
     (p) => p.archived_at && p.archived_at >= startOfMonth
   ).length;
+  const archiviateMessePrev = practices.filter(
+    (p) => p.archived_at && p.archived_at >= startOfPrevMonth && p.archived_at < startOfMonth
+  ).length;
 
   const guadagnoMese = practices
     .filter((p) => p.created_at >= startOfMonth)
     .reduce((s, p) => s + (p.guadagno_netto ?? 0), 0);
+  const guadagnoPrevMese = practices
+    .filter((p) => p.created_at >= startOfPrevMonth && p.created_at < startOfMonth)
+    .reduce((s, p) => s + (p.guadagno_netto ?? 0), 0);
+  const guadagnoTrend = guadagnoMese - guadagnoPrevMese;
 
   // Bar chart: pratiche per stage
   const stageCountMap: Record<string, number> = {};
@@ -116,7 +186,28 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
   const last10 = practices.slice(0, 10);
 
   if (isLoading) {
-    return <div className="py-8 text-center text-muted-foreground">Caricamento...</div>;
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16 mb-1" />
+                <Skeleton className="h-3 w-20" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Skeleton className="h-24 w-full rounded-lg" />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Skeleton className="h-72 rounded-lg" />
+          <Skeleton className="h-72 rounded-lg" />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -130,6 +221,7 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totaleAttive}</div>
+            <TrendIndicator current={totaleAttiviMese} previous={totaleAttiviPrevMese} />
           </CardContent>
         </Card>
 
@@ -145,6 +237,7 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
                 <AlertTriangle className="h-4 w-4 text-destructive" />
               )}
             </div>
+            <TrendIndicator current={inAttesaCompilazione} previous={inAttesaCompilazionePrev} />
           </CardContent>
         </Card>
 
@@ -162,6 +255,7 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
                 </Badge>
               )}
             </div>
+            <TrendIndicator current={pronteDaFare} previous={pronteDaFarePrev} />
           </CardContent>
         </Card>
 
@@ -172,6 +266,7 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{archiviateMesseCorrente}</div>
+            <TrendIndicator current={archiviateMesseCorrente} previous={archiviateMessePrev} />
           </CardContent>
         </Card>
 
@@ -183,6 +278,10 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">€ {guadagnoMese.toFixed(2)}</div>
+              <p className={`text-xs mt-0.5 flex items-center gap-0.5 ${guadagnoTrend >= 0 ? "text-emerald-600" : "text-destructive"}`}>
+                {guadagnoTrend >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                {guadagnoTrend >= 0 ? "+" : ""}€{guadagnoTrend.toFixed(2)} vs mese prec.
+              </p>
             </CardContent>
           </Card>
         )}
@@ -204,12 +303,15 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-                  <Tooltip />
+                  <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="count" name="Pratiche" fill="hsl(220, 72%, 50%)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <p className="py-8 text-center text-muted-foreground">Nessun dato</p>
+              <div className="h-[260px] flex flex-col items-center justify-center text-muted-foreground/50 gap-2">
+                <LayoutDashboard className="h-8 w-8" />
+                <p className="text-sm">Nessun dato da visualizzare</p>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -224,7 +326,7 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-                <Tooltip />
+                <Tooltip content={<CustomTooltip />} />
                 <Line
                   type="monotone"
                   dataKey="count"
@@ -241,35 +343,46 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
 
       {/* Table last 10 */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-sm">Ultime 10 pratiche</CardTitle>
+          <button
+            onClick={() => navigate(brand === "enea" ? "/enea" : "/conto-termico")}
+            className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-0.5 transition-colors"
+          >
+            Vedi tutte <ChevronRight className="h-3 w-3" />
+          </button>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="px-4 py-2 text-left font-medium text-muted-foreground">Cliente</th>
-                  {isInternal && (
-                    <th className="px-4 py-2 text-left font-medium text-muted-foreground">Rivenditore</th>
-                  )}
-                  <th className="px-4 py-2 text-left font-medium text-muted-foreground">Stage</th>
-                  <th className="px-4 py-2 text-left font-medium text-muted-foreground">Brand</th>
-                  <th className="px-4 py-2 text-left font-medium text-muted-foreground">Data creazione</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
+          {last10.length === 0 ? (
+            <div className="py-8 text-center text-muted-foreground text-sm">Nessuna pratica</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Cliente</TableHead>
+                  {isInternal && <TableHead>Rivenditore</TableHead>}
+                  <TableHead>Stage</TableHead>
+                  <TableHead>Brand</TableHead>
+                  <TableHead>Creazione</TableHead>
+                  <TableHead>Aggiornato</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {last10.map((p) => (
-                  <tr key={p.id} className="hover:bg-muted/20">
-                    <td className="px-4 py-2 font-medium">
+                  <TableRow
+                    key={p.id}
+                    className="cursor-pointer hover:bg-muted/30 transition-colors"
+                    onClick={() => navigate(`/enea/${p.id}`)}
+                  >
+                    <TableCell className="font-medium">
                       {p.cliente_nome} {p.cliente_cognome}
-                    </td>
+                    </TableCell>
                     {isInternal && (
-                      <td className="px-4 py-2 text-muted-foreground text-xs">
+                      <TableCell className="text-muted-foreground text-xs">
                         {p.reseller_company?.ragione_sociale ?? "—"}
-                      </td>
+                      </TableCell>
                     )}
-                    <td className="px-4 py-2">
+                    <TableCell>
                       {p.pipeline_stage ? (
                         <Badge variant="outline" className="text-xs">
                           {p.pipeline_stage.name}
@@ -277,44 +390,134 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
                       ) : (
                         <span className="text-muted-foreground text-xs">—</span>
                       )}
-                    </td>
-                    <td className="px-4 py-2">
+                    </TableCell>
+                    <TableCell>
                       <Badge
                         variant="secondary"
-                        className={`text-xs ${p.brand === "enea" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}`}
+                        className={`text-xs ${p.brand === "enea" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300" : "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"}`}
                       >
                         {p.brand === "enea" ? "ENEA" : "Conto Termico"}
                       </Badge>
-                    </td>
-                    <td className="px-4 py-2 text-xs text-muted-foreground whitespace-nowrap">
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                       {new Date(p.created_at).toLocaleDateString("it-IT")}
-                    </td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                      {new Date(p.updated_at).toLocaleDateString("it-IT", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-            {last10.length === 0 && (
-              <div className="py-8 text-center text-muted-foreground">Nessuna pratica</div>
-            )}
-          </div>
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
   );
 }
 
+// Combined summary bar query (both brands)
+function useCombinedSummary() {
+  return useQuery<PracticeWithStage[]>({
+    queryKey: ["enea_practices_all_summary"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("enea_practices")
+        .select("*, pipeline_stage:pipeline_stages(*)")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as PracticeWithStage[];
+    },
+    staleTime: 60_000,
+  });
+}
+
 export default function EneaDashboard() {
+  const { isReseller } = useAuth();
+  const navigate = useNavigate();
+  const { data: allPractices = [] } = useCombinedSummary();
+
+  // Counts for each brand tab
+  const eneaTotal = allPractices.filter((p) => p.brand === "enea" && !p.archived_at).length;
+  const ctTotal = allPractices.filter((p) => p.brand === "conto_termico" && !p.archived_at).length;
+
+  // Combined summary bar
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const totalAttive = allPractices.filter((p) => !p.archived_at).length;
+  const totalPronteDaFare = allPractices.filter(
+    (p) => p.pipeline_stage?.stage_type === "pronte_da_fare" && !p.archived_at
+  ).length;
+  const totalAlert = allPractices.filter(
+    (p) => !p.archived_at && p.updated_at < sevenDaysAgo
+  ).length;
+  const totalArchiviateMese = allPractices.filter(
+    (p) => p.archived_at && p.archived_at >= startOfMonth
+  ).length;
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight">Dashboard ENEA</h1>
-        <p className="text-muted-foreground">Panoramica pratiche per brand</p>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Dashboard Pipeline</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">Panoramica pratiche ENEA e Conto Termico</p>
+        </div>
+        {isReseller && (
+          <Button onClick={() => navigate("/enea/nuova")} size="sm" className="gap-1.5 flex-shrink-0">
+            <Plus className="h-4 w-4" />
+            Nuova pratica
+          </Button>
+        )}
       </div>
 
+      {/* Combined summary bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="rounded-lg border bg-card px-4 py-3">
+          <p className="text-xs text-muted-foreground mb-1">Totale attive</p>
+          <p className="text-xl font-bold">{totalAttive}</p>
+        </div>
+        <div className="rounded-lg border bg-card px-4 py-3">
+          <p className="text-xs text-muted-foreground mb-1">Pronte da fare</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xl font-bold">{totalPronteDaFare}</p>
+            {totalPronteDaFare > 0 && (
+              <Badge className="bg-destructive text-destructive-foreground text-xs h-5">
+                {totalPronteDaFare}
+              </Badge>
+            )}
+          </div>
+        </div>
+        <div className="rounded-lg border bg-card px-4 py-3">
+          <p className="text-xs text-muted-foreground mb-1">Alert stale &gt;7g</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xl font-bold">{totalAlert}</p>
+            {totalAlert > 0 && <AlertTriangle className="h-4 w-4 text-amber-500" />}
+          </div>
+        </div>
+        <div className="rounded-lg border bg-card px-4 py-3">
+          <p className="text-xs text-muted-foreground mb-1">Archiviate (mese)</p>
+          <p className="text-xl font-bold">{totalArchiviateMese}</p>
+        </div>
+      </div>
+
+      {/* Tabs */}
       <Tabs defaultValue="enea">
         <TabsList>
-          <TabsTrigger value="enea">ENEA</TabsTrigger>
-          <TabsTrigger value="conto_termico">Conto Termico</TabsTrigger>
+          <TabsTrigger value="enea" className="gap-2">
+            ENEA
+            <Badge variant="secondary" className="text-xs h-5 px-1.5">{eneaTotal}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="conto_termico" className="gap-2">
+            Conto Termico
+            <Badge variant="secondary" className="text-xs h-5 px-1.5">{ctTotal}</Badge>
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="enea" className="mt-6">
           <DashboardContent brand="enea" />

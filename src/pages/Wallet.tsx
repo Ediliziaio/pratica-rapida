@@ -19,7 +19,7 @@ export default function EstrattoConto() {
       if (!companyId) return [];
       const { data, error } = await supabase
         .from("pratiche")
-        .select("id, titolo, stato, prezzo, pagamento_stato, created_at, dati_pratica")
+        .select("id, titolo, stato, prezzo, pagamento_stato, created_at")
         .eq("company_id", companyId)
         .in("stato", ["inviata", "in_lavorazione", "in_attesa_documenti", "completata"])
         .order("created_at", { ascending: false });

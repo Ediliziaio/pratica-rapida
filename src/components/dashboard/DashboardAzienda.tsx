@@ -300,7 +300,7 @@ export function DashboardAzienda() {
         </div>
       )}
 
-      {/* Brand breakdown + Wallet */}
+      {/* Brand breakdown + Fatturazione */}
       {!isLoading && brandStats.total > 0 && (
         <div className="grid gap-4 sm:grid-cols-3">
           <Card>

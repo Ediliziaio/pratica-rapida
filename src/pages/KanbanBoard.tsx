@@ -36,7 +36,6 @@ import {
   SlidersHorizontal,
   Columns,
   Tag,
-  GripVertical,
   MoveHorizontal,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -249,32 +248,23 @@ function PracticeCard({
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`group rounded-md bg-background border p-3 space-y-2 text-sm shadow-sm transition-shadow ${
+          {...provided.dragHandleProps}
+          onClick={() => !snapshot.isDragging && onOpen(practice)}
+          className={`group rounded-md bg-background border p-3 space-y-2 text-sm cursor-grab active:cursor-grabbing shadow-sm transition-shadow ${
             snapshot.isDragging ? "shadow-lg ring-2 ring-primary" : "hover:shadow-md"
           }`}
         >
-          {/* Drag handle row */}
+          {/* Header row */}
           <div className="flex items-start justify-between gap-1">
-            <div
-              {...provided.dragHandleProps}
-              className="flex items-center gap-1.5 flex-1 min-w-0 cursor-grab active:cursor-grabbing"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <GripVertical className="h-3.5 w-3.5 text-muted-foreground/30 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <button
-                className="font-semibold leading-tight text-left truncate hover:text-primary transition-colors"
-                onClick={() => onOpen(practice)}
-              >
-                {practice.cliente_nome} {practice.cliente_cognome}
-              </button>
-            </div>
+            <span className="font-semibold leading-tight truncate">
+              {practice.cliente_nome} {practice.cliente_cognome}
+            </span>
             <Badge
-              className="text-xs flex-shrink-0 cursor-pointer"
+              className="text-xs flex-shrink-0"
               style={{
                 backgroundColor: practice.brand === "enea" ? "#3b82f6" : "#f97316",
                 color: "white",
               }}
-              onClick={() => onOpen(practice)}
             >
               {practice.brand === "enea" ? "ENEA" : "CT"}
             </Badge>

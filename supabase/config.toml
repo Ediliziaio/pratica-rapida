@@ -17,7 +17,6 @@ verify_jwt = true
 
 [functions.process-automations]
 verify_jwt = false
-schedule = "0 * * * *"
 
 [functions.elevenlabs-call]
 verify_jwt = true

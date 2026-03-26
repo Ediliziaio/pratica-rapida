@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { FolderOpen, Clock, AlertCircle, CheckCircle2, Wallet } from "lucide-react";
+import { FolderOpen, Clock, AlertCircle, CheckCircle2, Receipt } from "lucide-react";
 import { STATO_CONFIG } from "@/lib/pratiche-config";
 
 interface PraticheSummaryBarProps {
@@ -16,9 +16,12 @@ export function PraticheSummaryBar({ pratiche }: PraticheSummaryBarProps) {
     const inLavorazione = pratiche.filter(p => p.stato === "in_lavorazione").length;
     const attesaDocumenti = pratiche.filter(p => p.stato === "in_attesa_documenti").length;
     const completateMese = pratiche.filter(p => p.stato === "completata" && new Date(p.updated_at) >= startOfMonth).length;
-    const spesaTotale = pratiche.reduce((sum, p) => sum + (p.prezzo || 0), 0);
+    // Da fatturare = pratiche completate questo mese non ancora pagate
+    const daFatturareMese = pratiche
+      .filter(p => p.stato === "completata" && p.pagamento_stato === "non_pagata" && new Date(p.updated_at) >= startOfMonth)
+      .reduce((sum, p) => sum + (p.prezzo || 0), 0);
 
-    return { totale, inLavorazione, attesaDocumenti, completateMese, spesaTotale };
+    return { totale, inLavorazione, attesaDocumenti, completateMese, daFatturareMese };
   }, [pratiche]);
 
   const cards = [
@@ -51,9 +54,9 @@ export function PraticheSummaryBar({ pratiche }: PraticheSummaryBarProps) {
       bgColor: "bg-success/10",
     },
     {
-      label: "Spesa Totale",
-      value: `€ ${stats.spesaTotale.toFixed(2)}`,
-      icon: Wallet,
+      label: "Da fatturare (mese)",
+      value: `€ ${stats.daFatturareMese.toFixed(2)}`,
+      icon: Receipt,
       color: "text-primary",
       bgColor: "bg-primary/10",
     },

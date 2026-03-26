@@ -160,7 +160,7 @@ export default function NuovaPratica() {
   const brandConf = brand ? BRAND_CONFIG[brand] : null;
   const tipiIntervento = brand === "conto_termico" ? TIPI_INTERVENTO_CT : TIPI_INTERVENTO_ENEA;
 
-  // Fetch service from catalog
+  // Fetch service from catalog (used to store service_id and prezzo for billing)
   const { data: praticaService } = useQuery({
     queryKey: ["enea-service"],
     queryFn: async () => {
@@ -175,24 +175,7 @@ export default function NuovaPratica() {
     },
   });
 
-  // Fetch company balance
-  const { data: companyData } = useQuery({
-    queryKey: ["company-balance", companyId],
-    queryFn: async () => {
-      if (!companyId) return null;
-      const { data } = await supabase
-        .from("companies")
-        .select("wallet_balance")
-        .eq("id", companyId)
-        .single();
-      return data;
-    },
-    enabled: !!companyId,
-  });
-
-  const walletBalance = companyData?.wallet_balance ?? 0;
   const prezzo = praticaService?.prezzo_base || 0;
-  const hasSufficientCredit = walletBalance >= prezzo;
 
   const getClienteFormData = () => ({
     nome: clienteNome,
@@ -310,59 +293,24 @@ export default function NuovaPratica() {
 
       const titoloBase = `Pratica ${BRAND_CONFIG[brand].praticaLabel} - ${validated.nome} ${validated.cognome}`;
 
-      if (!asBozza && prezzo > 0) {
-        const { data: pratica, error } = await supabase.from("pratiche").insert({
-          company_id: companyId,
-          creato_da: user.id,
-          service_id: praticaService?.id || null,
-          cliente_finale_id: clienteId,
-          categoria: "enea_bonus" as const,
-          titolo: titoloBase,
-          stato: "bozza",
-          priorita: "normale",
-          prezzo,
-          pagamento_stato: "non_pagata",
-          dati_pratica: datiPratica,
-        }).select().single();
-        if (error) throw error;
-
-        const { data: success, error: deductError } = await supabase.rpc("wallet_deduct", {
-          _company_id: companyId,
-          _importo: prezzo,
-          _pratica_id: pratica.id,
-          _user_id: user.id,
-        });
-        if (deductError) throw deductError;
-        if (!success) {
-          await supabase.from("pratiche").delete().eq("id", pratica.id);
-          throw new Error("Credito insufficiente");
-        }
-
-        const { error: updateError } = await supabase.from("pratiche").update({
-          stato: "inviata",
-          pagamento_stato: "pagata",
-        }).eq("id", pratica.id);
-        if (updateError) throw updateError;
-      } else {
-        const { error } = await supabase.from("pratiche").insert({
-          company_id: companyId,
-          creato_da: user.id,
-          service_id: praticaService?.id || null,
-          cliente_finale_id: clienteId,
-          categoria: "enea_bonus" as const,
-          titolo: titoloBase,
-          stato: "bozza",
-          priorita: "normale",
-          prezzo,
-          pagamento_stato: "non_pagata",
-          dati_pratica: datiPratica,
-        }).select().single();
-        if (error) throw error;
-      }
+      // Fatturazione mensile posticipata: nessuna verifica wallet, la pratica viene inviata direttamente
+      const { error } = await supabase.from("pratiche").insert({
+        company_id: companyId,
+        creato_da: user.id,
+        service_id: praticaService?.id || null,
+        cliente_finale_id: clienteId,
+        categoria: "enea_bonus" as const,
+        titolo: titoloBase,
+        stato: asBozza ? "bozza" : "inviata",
+        priorita: "normale",
+        prezzo,
+        pagamento_stato: "non_pagata",
+        dati_pratica: datiPratica,
+      });
+      if (error) throw error;
     },
     onSuccess: (_, asBozza) => {
       queryClient.invalidateQueries({ queryKey: ["pratiche"] });
-      queryClient.invalidateQueries({ queryKey: ["company-balance"] });
       const brandLabel = brand ? BRAND_CONFIG[brand].praticaLabel : "Pratica";
       toast({ title: asBozza ? "Bozza salvata" : `${brandLabel} inviata con successo!` });
       navigate("/pratiche");
@@ -601,21 +549,15 @@ export default function NuovaPratica() {
               )}
 
               <div className="border-t pt-3 space-y-2">
-                <div className="flex justify-between">
-                  <span className="font-semibold">Costo servizio</span>
-                  <span className="text-lg font-bold">€ {prezzo.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Saldo Wallet</span>
-                  <span className={`font-semibold ${hasSufficientCredit ? "text-success" : "text-destructive"}`}>
-                    € {walletBalance.toFixed(2)}
-                  </span>
-                </div>
-                {!hasSufficientCredit && prezzo > 0 && (
-                  <p className="text-sm text-destructive">
-                    ⚠️ Credito insufficiente. Puoi salvare come bozza e ricaricare il wallet.
-                  </p>
+                {prezzo > 0 && (
+                  <div className="flex justify-between">
+                    <span className="font-semibold">Costo servizio</span>
+                    <span className="text-lg font-bold">€ {prezzo.toFixed(2)}</span>
+                  </div>
                 )}
+                <p className="text-xs text-muted-foreground">
+                  💳 Il pagamento avviene tramite bonifico a fine mese, insieme a tutte le pratiche del periodo.
+                </p>
               </div>
             </div>
           </CardContent>
@@ -642,7 +584,7 @@ export default function NuovaPratica() {
               Avanti<ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
-            <Button onClick={() => submitPratica.mutate(false)} disabled={submitPratica.isPending || (!hasSufficientCredit && prezzo > 0)}>
+            <Button onClick={() => submitPratica.mutate(false)} disabled={submitPratica.isPending}>
               {submitPratica.isPending ? (
                 <><div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Invio in corso...</>
               ) : (

@@ -1,8 +1,6 @@
 import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-
-type AppRole = "super_admin" | "admin_interno" | "operatore" | "azienda_admin" | "azienda_user" | "partner";
+import { useAuth, AppRole } from "@/hooks/useAuth";
 
 interface RoleGuardProps {
   children: ReactNode;
@@ -11,9 +9,12 @@ interface RoleGuardProps {
 }
 
 export function RoleGuard({ children, allowed, fallback = "/" }: RoleGuardProps) {
-  const { roles, loading } = useAuth();
+  const { roles, loading, isBlocked, isReseller } = useAuth();
 
   if (loading) return null;
+
+  // Reseller bloccato → redirect a /blocked
+  if (isReseller && isBlocked) return <Navigate to="/blocked" replace />;
 
   const hasAccess = roles.some(r => allowed.includes(r as AppRole));
   if (!hasAccess) return <Navigate to={fallback} replace />;

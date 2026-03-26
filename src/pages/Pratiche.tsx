@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 
 type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
 type ViewMode = "list" | "pipeline";
+type BrandFilter = "all" | "enea" | "conto_termico";
 
 export default function Pratiche() {
   const { companyId } = useCompany();
@@ -35,6 +36,7 @@ export default function Pratiche() {
   const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
   const [filterCliente, setFilterCliente] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [filterBrand, setFilterBrand] = useState<BrandFilter>("all");
 
   const { data: pratiche = [], isLoading } = useQuery({
     queryKey: ["pratiche", companyId],
@@ -70,7 +72,9 @@ export default function Pratiche() {
     const createdAt = new Date(p.created_at);
     const matchDateFrom = !filterDateFrom || createdAt >= filterDateFrom;
     const matchDateTo = !filterDateTo || createdAt <= new Date(filterDateTo.getTime() + 86400000);
-    return matchSearch && matchStato && matchCliente && matchDateFrom && matchDateTo;
+    const matchBrand = filterBrand === "all" || (p.dati_pratica as any)?.brand === filterBrand ||
+      (filterBrand === "enea" && !(p.dati_pratica as any)?.brand); // legacy ENEA without brand field
+    return matchSearch && matchStato && matchCliente && matchDateFrom && matchDateTo && matchBrand;
   });
 
   const resetFilters = () => {
@@ -175,8 +179,8 @@ export default function Pratiche() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight">Pratiche ENEA</h1>
-          <p className="text-muted-foreground">Tutte le tue pratiche ENEA</p>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Le mie Pratiche</h1>
+          <p className="text-muted-foreground">Tutte le tue pratiche ENEA e Conto Termico</p>
         </div>
         <Button onClick={() => navigate("/pratiche/nuova")}>
           <Plus className="mr-2 h-4 w-4" />Nuova Pratica
@@ -216,22 +220,32 @@ export default function Pratiche() {
         />
 
         {viewMode === "list" && (
-          <div className="flex flex-wrap items-center gap-2">
-            {filtered.length > 0 && (
-              <div className="flex items-center gap-2 mr-2" onClick={e => e.stopPropagation()}>
-                <Checkbox
-                  checked={selectedIds.size === filtered.length && filtered.length > 0}
-                  onCheckedChange={toggleSelectAll}
-                />
-                <span className="text-xs text-muted-foreground">Tutte</span>
-              </div>
-            )}
-            <Badge variant={!filterStato ? "default" : "outline"} className="cursor-pointer" onClick={() => setFilterStato("")}>Tutte</Badge>
-            {STATO_ORDER.map((stato) => (
-              <Badge key={stato} variant={filterStato === stato ? "default" : "outline"} className="cursor-pointer" onClick={() => setFilterStato(stato)}>
-                {STATO_CONFIG[stato].label}
-              </Badge>
-            ))}
+          <div className="space-y-2">
+            {/* Brand filter */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-muted-foreground font-medium">Tipo:</span>
+              <Badge variant={filterBrand === "all" ? "default" : "outline"} className="cursor-pointer" onClick={() => setFilterBrand("all")}>Tutte</Badge>
+              <Badge variant={filterBrand === "enea" ? "default" : "outline"} className={`cursor-pointer ${filterBrand === "enea" ? "" : "hover:bg-blue-50"}`} onClick={() => setFilterBrand("enea")}>ENEA</Badge>
+              <Badge variant={filterBrand === "conto_termico" ? "default" : "outline"} className={`cursor-pointer ${filterBrand === "conto_termico" ? "" : "hover:bg-orange-50"}`} onClick={() => setFilterBrand("conto_termico")}>Conto Termico</Badge>
+            </div>
+            {/* Stato filter */}
+            <div className="flex flex-wrap items-center gap-2">
+              {filtered.length > 0 && (
+                <div className="flex items-center gap-2 mr-2" onClick={e => e.stopPropagation()}>
+                  <Checkbox
+                    checked={selectedIds.size === filtered.length && filtered.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                  <span className="text-xs text-muted-foreground">Tutte</span>
+                </div>
+              )}
+              <Badge variant={!filterStato ? "default" : "outline"} className="cursor-pointer" onClick={() => setFilterStato("")}>Tutti gli stati</Badge>
+              {STATO_ORDER.map((stato) => (
+                <Badge key={stato} variant={filterStato === stato ? "default" : "outline"} className="cursor-pointer" onClick={() => setFilterStato(stato)}>
+                  {STATO_CONFIG[stato].label}
+                </Badge>
+              ))}
+            </div>
           </div>
         )}
       </div>

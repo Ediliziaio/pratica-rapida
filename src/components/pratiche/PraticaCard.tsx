@@ -26,9 +26,9 @@ export function ListView({ pratiche, navigate, selectable, selectedIds, onToggle
           <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
             <FileText className="h-10 w-10 text-primary" />
           </div>
-          <h3 className="font-display text-xl font-bold">Invia la tua prima pratica ENEA in meno di 2 minuti</h3>
+          <h3 className="font-display text-xl font-bold">Invia la tua prima pratica in meno di 2 minuti</h3>
           <p className="mt-2 max-w-md text-sm text-muted-foreground">
-            Gestisci le tue pratiche ENEA in modo semplice e veloce. Nessuna burocrazia, prezzo fisso e consegna garantita.
+            Gestisci le tue pratiche ENEA e Conto Termico in modo semplice e veloce. Nessuna burocrazia, prezzo fisso e consegna garantita.
           </p>
           <ul className="mt-4 space-y-2 text-sm text-left">
             <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success shrink-0" /> Consegna entro 24 ore lavorative</li>
@@ -73,7 +73,14 @@ export function ListView({ pratiche, navigate, selectable, selectedIds, onToggle
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-medium truncate">{p.titolo}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium truncate">{p.titolo}</p>
+                  {(p.dati_pratica as any)?.brand === "conto_termico" ? (
+                    <Badge className="shrink-0 bg-orange-100 text-orange-700 text-xs">CT</Badge>
+                  ) : (
+                    <Badge className="shrink-0 bg-blue-100 text-blue-700 text-xs">ENEA</Badge>
+                  )}
+                </div>
                 <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                   {p.clienti_finali && <span>{(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}</span>}
                   <span className="text-xs">

@@ -34,11 +34,23 @@ const ImpostazioniPiattaforma = lazy(() => import("./pages/ImpostazioniPiattafor
 const ImpostazioniAzienda = lazy(() => import("./pages/ImpostazioniAzienda"));
 const Assistenza = lazy(() => import("./pages/Assistenza"));
 const AdminTicket = lazy(() => import("./pages/AdminTicket"));
+const Blocked = lazy(() => import("./pages/Blocked"));
+const FormPubblico = lazy(() => import("./pages/FormPubblico"));
+const KanbanBoard = lazy(() => import("./pages/KanbanBoard"));
+const NuovaPraticaEnea = lazy(() => import("./pages/rivenditore/NuovaPraticaEnea"));
+const GestionaleAdmin = lazy(() => import("./pages/admin/Gestionale"));
+const Automazioni = lazy(() => import("./pages/admin/Automazioni"));
+const EneaDashboard = lazy(() => import("./pages/EneaDashboard"));
+const ComunicazioniLog = lazy(() => import("./pages/ComunicazioniLog"));
+const CalendarioChiamate = lazy(() => import("./pages/CalendarioChiamate"));
+const ImpostazioniCampi = lazy(() => import("./pages/admin/ImpostazioniCampi"));
 
 const queryClient = new QueryClient();
 
 const INTERNAL_ROLES = ["super_admin", "admin_interno", "operatore"] as const;
 const ADMIN_ROLES = ["super_admin"] as const;
+const RESELLER_ROLES = ["rivenditore"] as const;
+const ALL_AUTH_ROLES = [...INTERNAL_ROLES, ...RESELLER_ROLES] as const;
 
 function PageLoader() {
   return (
@@ -81,6 +93,8 @@ const App = () => (
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
                 <Route path="/auth" element={<AuthRoute />} />
+                <Route path="/blocked" element={<Blocked />} />
+                <Route path="/form/:token" element={<FormPubblico />} />
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/pratiche" element={<ProtectedRoute><Pratiche /></ProtectedRoute>} />
                 <Route path="/pratiche/nuova" element={<ProtectedRoute><NuovaPratica /></ProtectedRoute>} />
@@ -103,6 +117,16 @@ const App = () => (
 
                 {/* Super admin only */}
                 <Route path="/admin/impostazioni" element={<ProtectedRoute><RoleGuard allowed={[...ADMIN_ROLES]}><ImpostazioniPiattaforma /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/campi" element={<ProtectedRoute><RoleGuard allowed={[...ADMIN_ROLES]}><ImpostazioniCampi /></RoleGuard></ProtectedRoute>} />
+
+                {/* Pratica Rapida v2.0 — ENEA/CT */}
+                <Route path="/kanban" element={<ProtectedRoute><RoleGuard allowed={[...ALL_AUTH_ROLES]}><KanbanBoard /></RoleGuard></ProtectedRoute>} />
+                <Route path="/enea/nuova" element={<ProtectedRoute><RoleGuard allowed={[...RESELLER_ROLES]}><NuovaPraticaEnea /></RoleGuard></ProtectedRoute>} />
+                <Route path="/enea/dashboard" element={<ProtectedRoute><RoleGuard allowed={[...ALL_AUTH_ROLES]}><EneaDashboard /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/gestionale" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><GestionaleAdmin /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/automazioni" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><Automazioni /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/comunicazioni" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><ComunicazioniLog /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/calendario" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><CalendarioChiamate /></RoleGuard></ProtectedRoute>} />
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

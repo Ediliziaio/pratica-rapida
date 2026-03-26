@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -15,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Building2, Plus, Search, Wallet, Users, FolderOpen, CreditCard, LogIn,
   ChevronDown, BarChart3, TrendingUp, CircleDollarSign, CalendarDays, CheckCircle2, Clock,
+  ShieldOff, ShieldCheck,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCompany } from "@/hooks/useCompany";
@@ -49,6 +51,7 @@ export default function Aziende() {
   const superAdmin = isSuperAdmin(roles);
   const [openPanels, setOpenPanels] = useState<Record<string, boolean>>({});
   const [sortBy, setSortBy] = useState<SortOption>("nome");
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "suspended">("all");
 
   const [form, setForm] = useState({
     ragione_sociale: "", piva: "", codice_fiscale: "", email: "",
@@ -131,10 +134,61 @@ export default function Aziende() {
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
 
+  const [showBlockDialog, setShowBlockDialog] = useState<string | null>(null);
+  const [blockReason, setBlockReason] = useState("");
+
+  const blockCompany = useMutation({
+    mutationFn: async ({ companyId, reason }: { companyId: string; reason: string }) => {
+      if (!user) throw new Error("Utente non autenticato");
+      const { error } = await supabase
+        .from("companies")
+        .update({
+          is_active: false,
+          blocked_at: new Date().toISOString(),
+          blocked_by: user.id,
+          blocked_reason: reason,
+        })
+        .eq("id", companyId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-companies"] });
+      setShowBlockDialog(null);
+      setBlockReason("");
+      toast({ title: "Account bloccato", description: "L'account è stato sospeso con successo." });
+    },
+    onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  const unblockCompany = useMutation({
+    mutationFn: async (companyId: string) => {
+      const { error } = await supabase
+        .from("companies")
+        .update({
+          is_active: true,
+          blocked_at: null,
+          blocked_by: null,
+          blocked_reason: null,
+        })
+        .eq("id", companyId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-companies"] });
+      toast({ title: "Account sbloccato", description: "L'account è stato riattivato con successo." });
+    },
+    onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
   const filtered = useMemo(() => {
-    let list = companies.filter(c =>
-      `${c.ragione_sociale} ${c.piva} ${c.email}`.toLowerCase().includes(search.toLowerCase())
-    );
+    let list = companies.filter(c => {
+      const matchSearch = `${c.ragione_sociale} ${c.piva} ${c.email}`.toLowerCase().includes(search.toLowerCase());
+      const matchStatus =
+        filterStatus === "all" ||
+        (filterStatus === "active" && c.is_active !== false) ||
+        (filterStatus === "suspended" && c.is_active === false);
+      return matchSearch && matchStatus;
+    });
 
     list.sort((a, b) => {
       const statsA = companyStats[a.id] || { totalPratiche: 0 };
@@ -216,6 +270,16 @@ export default function Aziende() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Cerca aziende..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
           </div>
+          <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as "all" | "active" | "suspended")}>
+            <SelectTrigger className="w-full sm:w-[160px]">
+              <SelectValue placeholder="Stato" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tutti gli stati</SelectItem>
+              <SelectItem value="active">Solo attive</SelectItem>
+              <SelectItem value="suspended">Solo sospese</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Ordina per" />
@@ -259,9 +323,28 @@ export default function Aziende() {
                           <Building2 className="h-6 w-6 text-primary" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold truncate cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/aziende/${c.id}`)}>
-                            {c.ragione_sociale}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold truncate cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/aziende/${c.id}`)}>
+                              {c.ragione_sociale}
+                            </p>
+                            {c.is_active === false && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Badge variant="destructive" className="shrink-0 text-xs cursor-default">Sospeso</Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    {c.blocked_at ? (
+                                      <div>
+                                        <p>Sospeso il {format(new Date(c.blocked_at), "dd MMM yyyy", { locale: it })}</p>
+                                        {c.blocked_reason && <p className="text-xs opacity-80 mt-0.5">{c.blocked_reason}</p>}
+                                      </div>
+                                    ) : <p>Account sospeso</p>}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
                           <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                             {c.piva && <span>P.IVA: {c.piva}</span>}
                             {c.email && <span>{c.email}</span>}
@@ -286,6 +369,29 @@ export default function Aziende() {
                             <Button variant="outline" size="sm" onClick={() => { setImpersonatedCompany(c.id, c.ragione_sociale); navigate("/"); }}>
                               <LogIn className="mr-1 h-4 w-4" />Accedi
                             </Button>
+                          )}
+
+                          {superAdmin && (
+                            c.is_active !== false ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive border-destructive hover:bg-destructive/10"
+                                onClick={() => { setShowBlockDialog(c.id); setBlockReason(""); }}
+                              >
+                                <ShieldOff className="mr-1 h-4 w-4" />Blocca
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-success border-success hover:bg-success/10"
+                                onClick={() => unblockCompany.mutate(c.id)}
+                                disabled={unblockCompany.isPending}
+                              >
+                                <ShieldCheck className="mr-1 h-4 w-4" />Sblocca
+                              </Button>
+                            )
                           )}
 
                           <CollapsibleTrigger asChild>
@@ -342,6 +448,35 @@ export default function Aziende() {
               <div><Label>Causale</Label><Input value={topupCausale} onChange={e => setTopupCausale(e.target.value)} /></div>
               <Button onClick={() => walletTopup.mutate()} disabled={!topupAmount || parseFloat(topupAmount) <= 0 || walletTopup.isPending}>
                 {walletTopup.isPending ? "Ricarica in corso..." : "Conferma Ricarica"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Block account dialog */}
+        <Dialog open={!!showBlockDialog} onOpenChange={(o) => !o && setShowBlockDialog(null)}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Blocca Account Rivenditore</DialogTitle></DialogHeader>
+            <div className="grid gap-4">
+              <p className="text-sm text-muted-foreground">
+                L'account verrà sospeso e il rivenditore non potrà più accedere alla piattaforma.
+              </p>
+              <div>
+                <Label>Motivo del blocco</Label>
+                <Textarea
+                  placeholder="Inserisci il motivo del blocco..."
+                  value={blockReason}
+                  onChange={e => setBlockReason(e.target.value)}
+                  className="mt-1"
+                  rows={3}
+                />
+              </div>
+              <Button
+                variant="destructive"
+                onClick={() => showBlockDialog && blockCompany.mutate({ companyId: showBlockDialog, reason: blockReason })}
+                disabled={!blockReason.trim() || blockCompany.isPending}
+              >
+                {blockCompany.isPending ? "Blocco in corso..." : "Conferma Blocco"}
               </Button>
             </div>
           </DialogContent>

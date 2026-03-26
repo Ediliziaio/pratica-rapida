@@ -2,3 +2,22 @@ project_id = "rsiektihpdhhwmziogkt"
 
 [functions.create-user]
 verify_jwt = false
+
+[functions.send-email]
+verify_jwt = true
+
+[functions.send-whatsapp]
+verify_jwt = true
+
+[functions.whatsapp-webhook]
+verify_jwt = false
+
+[functions.on-practice-created]
+verify_jwt = true
+
+[functions.process-automations]
+verify_jwt = false
+schedule = "0 * * * *"
+
+[functions.elevenlabs-call]
+verify_jwt = true

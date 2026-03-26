@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Shield, Search, UserPlus, X, Building2, Plus } from "lucide-react";
+import { Shield, Search, UserPlus, X, Building2, Plus, Users } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
@@ -23,6 +23,7 @@ const ROLE_LABELS: Record<AppRole, string> = {
   operatore: "Operatore",
   azienda_admin: "Azienda Admin",
   azienda_user: "Azienda User",
+  rivenditore: "Rivenditore",
   partner: "Partner",
 };
 
@@ -32,6 +33,7 @@ const ROLE_COLORS: Record<AppRole, string> = {
   operatore: "bg-warning/10 text-warning",
   azienda_admin: "bg-success/10 text-success",
   azienda_user: "bg-muted text-muted-foreground",
+  rivenditore: "bg-blue-100 text-blue-700",
   partner: "bg-accent text-accent-foreground",
 };
 
@@ -47,6 +49,7 @@ export default function Utenti() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [filterRole, setFilterRole] = useState<AppRole | "">("");
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [newRole, setNewRole] = useState<AppRole | "">("");
   const [selectedCompany, setSelectedCompany] = useState("");
@@ -188,12 +191,15 @@ export default function Utenti() {
     createUser.mutate(newUserForm);
   };
 
-  const filtered = profiles.filter(p =>
-    `${p.nome} ${p.cognome} ${p.email}`.toLowerCase().includes(search.toLowerCase())
-  );
-
   const getUserRoles = (userId: string) => allRoles.filter(r => r.user_id === userId);
   const getUserAssignments = (userId: string) => allAssignments.filter(a => a.user_id === userId);
+
+  const filtered = profiles.filter(p => {
+    const matchSearch = `${p.nome} ${p.cognome} ${p.email}`.toLowerCase().includes(search.toLowerCase());
+    const userRoles = getUserRoles(p.id);
+    const matchRole = !filterRole || userRoles.some(r => r.role === filterRole);
+    return matchSearch && matchRole;
+  });
 
   return (
     <div className="space-y-6">
@@ -208,15 +214,48 @@ export default function Utenti() {
         </Button>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Cerca utenti..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
+      {/* Stats bar */}
+      <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <Users className="h-4 w-4" />
+          <strong className="text-foreground">{profiles.length}</strong> utenti totali
+        </span>
+        {Object.entries(ROLE_LABELS).map(([role, label]) => {
+          const count = allRoles.filter(r => r.role === role).length;
+          if (count === 0) return null;
+          return (
+            <button
+              key={role}
+              onClick={() => setFilterRole(filterRole === role as AppRole ? "" : role as AppRole)}
+              className={`rounded-full px-2 py-0.5 text-xs border transition-colors ${
+                filterRole === role
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "hover:bg-muted border-border"
+              } ${ROLE_COLORS[role as AppRole]}`}
+            >
+              {label}: {count}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Cerca utenti..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
+        </div>
       </div>
 
       {isLoading ? (
         <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
       ) : (
         <div className="grid gap-3">
+          {filtered.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              <Users className="mx-auto h-10 w-10 mb-3 opacity-30" />
+              <p className="text-sm">Nessun utente trovato con i filtri selezionati.</p>
+            </div>
+          )}
           {filtered.map(profile => {
             const roles = getUserRoles(profile.id);
             const assignments = getUserAssignments(profile.id);

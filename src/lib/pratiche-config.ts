@@ -29,10 +29,15 @@ export const STATO_CONFIG: Record<PraticaStato, StatoConfigItem> = {
   annullata: { label: "Annullata", color: "bg-muted text-muted-foreground", bgColumn: "bg-muted/20", icon: Ban },
 };
 
+// Modello fatturazione mensile posticipata con bonifico:
+// non_pagata  = completata, da includere nella prossima fattura
+// in_verifica = fattura emessa, in attesa di bonifico
+// pagata      = bonifico ricevuto e verificato
+// rimborsata  = stornata / rimborsata
 export const PAGAMENTO_BADGE: Record<string, { label: string; className: string }> = {
   pagata: { label: "Pagata", className: "bg-success/10 text-success border-success/20" },
-  non_pagata: { label: "Non pagata", className: "bg-muted text-muted-foreground border-muted" },
-  in_verifica: { label: "In verifica", className: "bg-warning/10 text-warning border-warning/20" },
+  non_pagata: { label: "Da fatturare", className: "bg-muted text-muted-foreground border-muted" },
+  in_verifica: { label: "Fatturata", className: "bg-warning/10 text-warning border-warning/20" },
   rimborsata: { label: "Rimborsata", className: "bg-primary/10 text-primary border-primary/20" },
 };
 

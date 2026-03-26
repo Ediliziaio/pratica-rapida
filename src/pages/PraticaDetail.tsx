@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,12 +9,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Send, ExternalLink, FileDown } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  ArrowLeft, Send, ExternalLink, FileDown, Copy, Check,
+  CalendarDays, User, Tag, CreditCard, Clock, Hash,
+} from "lucide-react";
 import { PracticeChat } from "@/components/PracticeChat";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { ChecklistPanel } from "@/components/ChecklistPanel";
-import { STATO_CONFIG, INTERNAL_TRANSITIONS } from "@/lib/pratiche-config";
+import { STATO_CONFIG, INTERNAL_TRANSITIONS, PAGAMENTO_BADGE } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
+import { format } from "date-fns";
+import { it } from "date-fns/locale";
 
 // Typed interfaces for joined data
 interface ClienteFinale {
@@ -26,11 +33,42 @@ interface ClienteFinale {
 }
 
 interface DatiPratica {
+  brand?: "enea" | "conto_termico";
   tipo_intervento?: string;
   dati_catastali?: string;
   data_fine_lavori?: string;
   importo_lavori?: number;
   note_aggiuntive?: string;
+}
+
+// Copy button with feedback
+function CopyBtn({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(text).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  };
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-5 w-5 shrink-0 opacity-40 hover:opacity-100 transition-opacity"
+            onClick={handleCopy}
+          >
+            {copied
+              ? <Check className="h-3 w-3 text-success" />
+              : <Copy className="h-3 w-3" />}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{copied ? "Copiato!" : "Copia"}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 }
 
 // Output section component
@@ -40,7 +78,11 @@ function OutputSection({ outputUrls, noteConsegna }: { outputUrls: unknown; note
 
   return (
     <Card>
-      <CardHeader><CardTitle className="flex items-center gap-2 text-sm"><FileDown className="h-4 w-4" />Documenti di Output</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <FileDown className="h-4 w-4" />Documenti di Output
+        </CardTitle>
+      </CardHeader>
       <CardContent className="space-y-3">
         {urls.length > 0 && (
           <div className="space-y-2">
@@ -122,6 +164,22 @@ export default function PraticaDetail() {
     enabled: !!id,
   });
 
+  // Fetch assignee profile when present
+  const { data: assigneeProfile } = useQuery({
+    queryKey: ["assignee-profile", (pratica as any)?.assegnatario_id],
+    queryFn: async () => {
+      const assigneeId = (pratica as any)?.assegnatario_id;
+      if (!assigneeId) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("nome, cognome, email")
+        .eq("id", assigneeId)
+        .single();
+      return data;
+    },
+    enabled: !!(pratica as any)?.assegnatario_id && isInternalUser,
+  });
+
   const updateStato = useMutation({
     mutationFn: async (newStato: PraticaStato) => {
       const { error } = await supabase
@@ -138,23 +196,60 @@ export default function PraticaDetail() {
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
 
+  const markAsPaid = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("pratiche")
+        .update({ pagamento_stato: "pagata" })
+        .eq("id", id!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pratica", id] });
+      toast({ title: "Pratica marcata come pagata" });
+    },
+    onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["pratica", id] });
     queryClient.invalidateQueries({ queryKey: ["pratiche"] });
   };
 
   if (isLoading) {
-    return <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
+    return (
+      <div className="flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
   }
 
   if (!pratica) {
-    return <div className="py-12 text-center text-muted-foreground">Pratica non trovata</div>;
+    return (
+      <div className="flex flex-col items-center py-20 text-center gap-4">
+        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+          <Hash className="h-8 w-8 text-muted-foreground/40" />
+        </div>
+        <div>
+          <h2 className="font-display text-lg font-semibold">Pratica non trovata</h2>
+          <p className="text-sm text-muted-foreground mt-1">La pratica richiesta non esiste o non hai i permessi per visualizzarla.</p>
+        </div>
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          <ArrowLeft className="mr-2 h-4 w-4" />Torna indietro
+        </Button>
+      </div>
+    );
   }
 
   const statoConf = STATO_CONFIG[pratica.stato];
   const Icon = statoConf.icon;
   const datiPratica = (pratica.dati_pratica as DatiPratica | null) || {};
+  const brand = datiPratica.brand ?? "enea";
+  const brandLabel = brand === "conto_termico" ? "Conto Termico" : "ENEA";
+  const brandBadgeClass = brand === "conto_termico" ? "bg-orange-100 text-orange-700" : "bg-blue-100 text-blue-700";
   const cliente = pratica.clienti_finali as ClienteFinale | null;
+  const serviceName = (pratica.service_catalog as any)?.nome;
+  const pagamentoBadge = PAGAMENTO_BADGE?.[pratica.pagamento_stato as string];
 
   // Only show valid target states for internal users
   const validTargetStates = isInternalUser
@@ -164,14 +259,19 @@ export default function PraticaDetail() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/pratiche")}>
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div className="flex-1">
-          <h1 className="font-display text-2xl font-bold tracking-tight">{pratica.titolo}</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <Badge variant="outline">Pratica ENEA</Badge>
+        <div className="flex-1 min-w-0">
+          <h1 className="font-display text-2xl font-bold tracking-tight truncate">{pratica.titolo}</h1>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <Badge className={brandBadgeClass}>Pratica {brandLabel}</Badge>
             <Badge className={statoConf.color}><Icon className="mr-1 h-3 w-3" />{statoConf.label}</Badge>
+            {serviceName && (
+              <Badge variant="secondary" className="gap-1">
+                <Tag className="h-3 w-3" />{serviceName}
+              </Badge>
+            )}
           </div>
         </div>
       </div>
@@ -181,35 +281,58 @@ export default function PraticaDetail() {
           {/* Cliente info */}
           {cliente && (
             <Card>
-              <CardHeader><CardTitle>Dati Cliente</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />Dati Cliente
+                </CardTitle>
+              </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-muted-foreground">Nome</span>
-                    <p className="font-medium">{cliente.nome} {cliente.cognome}</p>
+                    <span className="text-muted-foreground">Nome completo</span>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <p className="font-medium">{cliente.nome} {cliente.cognome}</p>
+                      <CopyBtn text={`${cliente.nome} ${cliente.cognome}`} />
+                    </div>
                   </div>
                   {cliente.codice_fiscale && (
                     <div>
                       <span className="text-muted-foreground">Codice Fiscale</span>
-                      <p className="font-medium">{cliente.codice_fiscale}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <p className="font-medium font-mono text-xs">{cliente.codice_fiscale}</p>
+                        <CopyBtn text={cliente.codice_fiscale} />
+                      </div>
                     </div>
                   )}
                   {cliente.email && (
                     <div>
                       <span className="text-muted-foreground">Email</span>
-                      <p className="font-medium">{cliente.email}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <a href={`mailto:${cliente.email}`} className="font-medium text-primary hover:underline truncate max-w-[160px]">
+                          {cliente.email}
+                        </a>
+                        <CopyBtn text={cliente.email} />
+                      </div>
                     </div>
                   )}
                   {cliente.telefono && (
                     <div>
                       <span className="text-muted-foreground">Telefono</span>
-                      <p className="font-medium">{cliente.telefono}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <a href={`tel:${cliente.telefono}`} className="font-medium text-primary hover:underline">
+                          {cliente.telefono}
+                        </a>
+                        <CopyBtn text={cliente.telefono} />
+                      </div>
                     </div>
                   )}
                   {cliente.indirizzo && (
                     <div className="col-span-2">
                       <span className="text-muted-foreground">Indirizzo immobile</span>
-                      <p className="font-medium">{cliente.indirizzo}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <p className="font-medium">{cliente.indirizzo}</p>
+                        <CopyBtn text={cliente.indirizzo} />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -217,42 +340,55 @@ export default function PraticaDetail() {
             </Card>
           )}
 
-          {/* Dati ENEA */}
+          {/* Dati Pratica */}
           <Card>
-            <CardHeader><CardTitle>Dati Pratica ENEA</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Dati Pratica {brandLabel}</CardTitle></CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 {datiPratica.tipo_intervento && (
                   <div>
                     <span className="text-muted-foreground">Tipo Intervento</span>
-                    <p className="font-medium">{datiPratica.tipo_intervento}</p>
+                    <p className="font-medium mt-0.5">{datiPratica.tipo_intervento}</p>
                   </div>
                 )}
                 {datiPratica.dati_catastali && (
                   <div>
                     <span className="text-muted-foreground">Dati Catastali</span>
-                    <p className="font-medium">{datiPratica.dati_catastali}</p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <p className="font-medium">{datiPratica.dati_catastali}</p>
+                      <CopyBtn text={datiPratica.dati_catastali} />
+                    </div>
                   </div>
                 )}
                 {datiPratica.data_fine_lavori && (
                   <div>
                     <span className="text-muted-foreground">Data Fine Lavori</span>
-                    <p className="font-medium">{new Date(datiPratica.data_fine_lavori).toLocaleDateString("it-IT")}</p>
+                    <p className="font-medium mt-0.5">{new Date(datiPratica.data_fine_lavori).toLocaleDateString("it-IT")}</p>
                   </div>
                 )}
                 {datiPratica.importo_lavori != null && datiPratica.importo_lavori > 0 && (
                   <div>
                     <span className="text-muted-foreground">Importo Lavori</span>
-                    <p className="font-medium">€ {Number(datiPratica.importo_lavori).toLocaleString("it-IT", { minimumFractionDigits: 2 })}</p>
+                    <p className="font-medium mt-0.5">€ {Number(datiPratica.importo_lavori).toLocaleString("it-IT", { minimumFractionDigits: 2 })}</p>
                   </div>
                 )}
                 <div>
                   <span className="text-muted-foreground">Prezzo Servizio</span>
-                  <p className="font-medium">€ {pratica.prezzo.toFixed(2)}</p>
+                  <p className="font-bold text-base mt-0.5">€ {pratica.prezzo.toFixed(2)}</p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Pagamento</span>
-                  <Badge variant="outline" className="capitalize">{pratica.pagamento_stato.replace("_", " ")}</Badge>
+                  <span className="text-muted-foreground">Stato Pagamento</span>
+                  <div className="mt-0.5">
+                    {pagamentoBadge ? (
+                      <Badge variant="outline" className={`text-xs ${pagamentoBadge.className ?? ""}`}>
+                        {pagamentoBadge.label}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="capitalize text-xs">
+                        {pratica.pagamento_stato.replace(/_/g, " ")}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
               {pratica.descrizione && (
@@ -277,26 +413,97 @@ export default function PraticaDetail() {
             <SendPraticaButton praticaId={pratica.id} stato={pratica.stato} onSuccess={invalidateAll} />
           )}
 
+          {/* Gestione stato — internal */}
           {isInternalUser && (
             <Card>
               <CardHeader><CardTitle className="text-sm">Gestione Stato</CardTitle></CardHeader>
-              <CardContent>
+              <CardContent className="space-y-3">
                 <Select value={pratica.stato} onValueChange={(v) => updateStato.mutate(v as PraticaStato)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {/* Current state + valid targets */}
                     <SelectItem value={pratica.stato}>{STATO_CONFIG[pratica.stato as PraticaStato].label} (corrente)</SelectItem>
                     {validTargetStates.map((s) => (
                       <SelectItem key={s} value={s}>{STATO_CONFIG[s].label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+
+                {/* Mark as paid */}
+                {pratica.pagamento_stato !== "pagata" && pratica.stato === "completata" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2 border-success/40 text-success hover:bg-success/10"
+                    onClick={() => markAsPaid.mutate()}
+                    disabled={markAsPaid.isPending}
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    {markAsPaid.isPending ? "Aggiornamento..." : "Segna come pagata"}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Assigned operator — internal only */}
+          {isInternalUser && (
+            <Card>
+              <CardHeader><CardTitle className="text-sm flex items-center gap-2"><User className="h-4 w-4" />Assegnatario</CardTitle></CardHeader>
+              <CardContent>
+                {assigneeProfile ? (
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
+                      {assigneeProfile.nome?.[0]}{assigneeProfile.cognome?.[0]}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{assigneeProfile.nome} {assigneeProfile.cognome}</p>
+                      {assigneeProfile.email && (
+                        <p className="text-xs text-muted-foreground">{assigneeProfile.email}</p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-orange-500 flex items-center gap-1.5">
+                    <User className="h-4 w-4" />Non assegnata
+                  </p>
+                )}
               </CardContent>
             </Card>
           )}
 
           <ChecklistPanel praticaId={pratica.id} companyId={pratica.company_id} serviceId={pratica.service_id} />
 
+          {/* Timestamps */}
+          <Card>
+            <CardHeader><CardTitle className="text-sm flex items-center gap-2"><Clock className="h-4 w-4" />Date</CardTitle></CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground flex items-center gap-1.5">
+                  <CalendarDays className="h-3.5 w-3.5" />Creata
+                </span>
+                <span className="font-medium">
+                  {format(new Date(pratica.created_at), "dd MMM yyyy HH:mm", { locale: it })}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground flex items-center gap-1.5">
+                  <CalendarDays className="h-3.5 w-3.5" />Aggiornata
+                </span>
+                <span className="font-medium">
+                  {format(new Date(pratica.updated_at), "dd MMM yyyy HH:mm", { locale: it })}
+                </span>
+              </div>
+              <div className="pt-1 border-t">
+                <span className="text-muted-foreground text-xs">ID Pratica</span>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <code className="text-xs font-mono text-muted-foreground">{pratica.id.slice(0, 16)}…</code>
+                  <CopyBtn text={pratica.id} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Cosa fare ora */}
           <Card>
             <CardHeader><CardTitle className="text-sm">Cosa fare ora?</CardTitle></CardHeader>
             <CardContent>
@@ -307,13 +514,13 @@ export default function PraticaDetail() {
                 <p className="text-sm text-muted-foreground">La pratica è in attesa di presa in carico da Pratica Rapida.</p>
               )}
               {pratica.stato === "in_lavorazione" && (
-                <p className="text-sm text-muted-foreground">La pratica ENEA è in fase di lavorazione. Riceverai aggiornamenti.</p>
+                <p className="text-sm text-muted-foreground">La pratica è in fase di lavorazione. Riceverai aggiornamenti.</p>
               )}
               {pratica.stato === "in_attesa_documenti" && (
-                <p className="text-sm text-warning">Documenti mancanti! Carica i documenti richiesti.</p>
+                <p className="text-sm text-warning font-medium">⚠ Documenti mancanti! Carica i documenti richiesti.</p>
               )}
               {pratica.stato === "completata" && (
-                <p className="text-sm text-success">Pratica ENEA completata con successo!</p>
+                <p className="text-sm text-success font-medium">✓ Pratica {brandLabel} completata con successo!</p>
               )}
               {pratica.stato === "annullata" && (
                 <p className="text-sm text-muted-foreground">Questa pratica è stata annullata.</p>

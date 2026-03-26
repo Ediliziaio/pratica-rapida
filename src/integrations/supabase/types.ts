@@ -818,6 +818,7 @@ export type Database = {
         | "operatore"
         | "azienda_admin"
         | "azienda_user"
+        | "rivenditore"
         | "partner"
       movimento_tipo: "credito" | "debito"
       pagamento_stato: "non_pagata" | "pagata" | "in_verifica" | "rimborsata"
@@ -972,6 +973,7 @@ export const Constants = {
         "operatore",
         "azienda_admin",
         "azienda_user",
+        "rivenditore",
         "partner",
       ],
       movimento_tipo: ["credito", "debito"],
@@ -996,6 +998,183 @@ export const Constants = {
       ticket_priorita: ["bassa", "normale", "alta"],
       ticket_stato: ["aperto", "in_lavorazione", "risolto", "chiuso"],
       visibilita_documento: ["azienda_interno", "solo_interno"],
+      // Pratica Rapida v2.0 enums
+      practice_brand: ["enea", "conto_termico"],
+      stage_type: [
+        "inviata",
+        "attesa_compilazione",
+        "pronte_da_fare",
+        "documenti_mancanti",
+        "da_inviare",
+        "gestionale",
+        "recensione",
+        "archiviate",
+      ],
+      comm_channel: ["whatsapp", "email", "phone", "sms"],
+      comm_direction: ["outbound", "inbound"],
+      comm_status: ["sent", "delivered", "read", "failed", "pending"],
+      custom_field_type: [
+        "text", "textarea", "number", "date", "boolean",
+        "select", "multi_select", "email", "phone", "url",
+      ],
+      custom_field_entity: ["enea_practice", "reseller", "cliente"],
     },
   },
 } as const
+
+// =============================================
+// PRATICA RAPIDA v2.0 — Extended Types
+// =============================================
+
+export type PracticeBrand = "enea" | "conto_termico"
+
+export type StageType =
+  | "inviata"
+  | "attesa_compilazione"
+  | "pronte_da_fare"
+  | "documenti_mancanti"
+  | "da_inviare"
+  | "gestionale"
+  | "recensione"
+  | "archiviate"
+
+export type CommChannel = "whatsapp" | "email" | "phone" | "sms"
+export type CommDirection = "outbound" | "inbound"
+export type CommStatus = "sent" | "delivered" | "read" | "failed" | "pending"
+
+export type CustomFieldType =
+  | "text" | "textarea" | "number" | "date" | "boolean"
+  | "select" | "multi_select" | "email" | "phone" | "url"
+
+export type CustomFieldEntity = "enea_practice" | "reseller" | "cliente"
+
+export interface PipelineStage {
+  id: string
+  reseller_id: string | null
+  name: string
+  stage_type: StageType
+  order_index: number
+  color: string
+  brand: string
+  is_visible: boolean
+  created_at: string
+}
+
+export interface EneaPractice {
+  id: string
+  reseller_id: string
+  current_stage_id: string | null
+  brand: PracticeBrand
+  cliente_nome: string
+  cliente_cognome: string
+  cliente_email: string | null
+  cliente_telefono: string | null
+  cliente_indirizzo: string | null
+  cliente_cf: string | null
+  prodotto_installato: string | null
+  fornitore: string | null
+  note: string | null
+  note_interne: string | null
+  fatture_urls: string[]
+  documenti_enea_urls: string[]
+  documenti_aggiuntivi_urls: string[]
+  documenti_mancanti: string[]
+  note_documenti_mancanti: string | null
+  guadagno_lordo: number | null
+  guadagno_netto: number | null
+  data_invio_pratica: string | null
+  note_gestionale: string | null
+  operatore_id: string | null
+  assigned_at: string | null
+  ultimo_sollecito_privato: string | null
+  conteggio_solleciti: number
+  ultimo_sollecito_fornitore: string | null
+  form_compilato_at: string | null
+  form_token: string
+  recensione_richiesta_at: string | null
+  recensione_ricevuta_at: string | null
+  recensione_testo: string | null
+  recensione_stelle: number | null
+  archived_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface CommunicationLog {
+  id: string
+  practice_id: string
+  channel: CommChannel
+  direction: CommDirection
+  recipient: string
+  subject: string | null
+  body_preview: string | null
+  status: CommStatus
+  sent_at: string
+  read_at: string | null
+  n8n_execution_id: string | null
+  wa_message_id: string | null
+  resend_email_id: string | null
+  error_message: string | null
+  metadata: Record<string, unknown>
+}
+
+export interface AutomationRule {
+  id: string
+  name: string
+  description: string | null
+  trigger_event: string
+  trigger_config: Record<string, unknown>
+  channel: CommChannel
+  template_id: string | null
+  template_body: string | null
+  is_enabled: boolean
+  order_index: number
+  category: string
+  created_at: string
+  updated_at: string
+}
+
+export interface CallBooking {
+  id: string
+  practice_id: string | null
+  cliente_nome: string
+  cliente_email: string
+  cliente_telefono: string | null
+  slot_datetime: string
+  duration_minutes: number
+  notes: string | null
+  status: "pending" | "confirmed" | "completed" | "cancelled" | "no_show"
+  meeting_link: string | null
+  reminder_sent: boolean
+  created_at: string
+}
+
+export interface CustomField {
+  id: string
+  entity: CustomFieldEntity
+  field_key: string
+  field_label: string
+  field_type: CustomFieldType
+  placeholder: string | null
+  default_value: string | null
+  options: Array<{ value: string; label: string }>
+  is_required: boolean
+  is_visible_reseller: boolean
+  is_visible_admin: boolean
+  order_index: number
+  group_name: string
+  description: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface CustomFieldValue {
+  id: string
+  field_id: string
+  entity_id: string
+  entity_type: CustomFieldEntity
+  value: string | null
+  value_json: unknown | null
+  created_at: string
+  updated_at: string
+}

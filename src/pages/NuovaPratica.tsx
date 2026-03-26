@@ -12,16 +12,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, Check, FileText, Briefcase, Send, CalendarIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, ArrowRight, Check, FileText, Briefcase, Send, CalendarIcon, Zap, Flame } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import type { PracticeBrand } from "@/integrations/supabase/types";
 
-const STEPS = ["Dati Cliente", "Dati Pratica ENEA", "Riepilogo"];
+type Brand = PracticeBrand;
 
-const TIPI_INTERVENTO = [
+const STEPS = ["Dati Cliente", "Dati Pratica", "Riepilogo"];
+
+const TIPI_INTERVENTO_ENEA = [
   "Sostituzione infissi",
   "Schermature solari",
   "Caldaia a condensazione",
@@ -34,7 +38,47 @@ const TIPI_INTERVENTO = [
   "Altro",
 ];
 
-// #1 Fix: dedicated schema for the wizard (no 'tipo' required, nome/cognome mandatory)
+const TIPI_INTERVENTO_CT = [
+  "Sostituzione generatore a biomassa",
+  "Pompa di calore (riscaldamento)",
+  "Solare termico con collettori",
+  "Sistemi ibridi pompa di calore",
+  "Caldaia a condensazione",
+  "Impianti geotermici",
+  "Scaldacqua a pompa di calore",
+  "Caldaia a gas naturale (efficienza)",
+  "Altro",
+];
+
+const BRAND_CONFIG: Record<Brand, {
+  label: string;
+  shortLabel: string;
+  description: string;
+  color: string;
+  badgeClass: string;
+  praticaLabel: string;
+  icon: React.ElementType;
+}> = {
+  enea: {
+    label: "Pratica ENEA",
+    shortLabel: "ENEA",
+    description: "Detrazioni fiscali 50–110%: Ecobonus, SuperBonus, detrazioni per riqualificazione energetica.",
+    color: "bg-blue-50 border-blue-200 hover:border-blue-400",
+    badgeClass: "bg-blue-100 text-blue-700",
+    praticaLabel: "ENEA",
+    icon: Zap,
+  },
+  conto_termico: {
+    label: "Conto Termico",
+    shortLabel: "CT",
+    description: "Contributi GSE a fondo perduto per sostituzione generatori di calore e fonti rinnovabili.",
+    color: "bg-orange-50 border-orange-200 hover:border-orange-400",
+    badgeClass: "bg-orange-100 text-orange-700",
+    praticaLabel: "Conto Termico",
+    icon: Flame,
+  },
+};
+
 const nuovaPraticaClienteSchema = z.object({
   nome: z.string().trim().min(1, "Nome obbligatorio").max(100, "Massimo 100 caratteri"),
   cognome: z.string().trim().min(1, "Cognome obbligatorio").max(100, "Massimo 100 caratteri"),
@@ -71,8 +115,7 @@ const nuovaPraticaClienteSchema = z.object({
 
 type NuovaPraticaClienteData = z.infer<typeof nuovaPraticaClienteSchema>;
 
-// #3 Fix: validate importo
-const praticaEneaSchema = z.object({
+const praticaSchema = z.object({
   tipo_intervento: z.string().optional().or(z.literal("")),
   dati_catastali: z.string().trim().max(255).optional().or(z.literal("")),
   data_fine_lavori: z.date().optional(),
@@ -94,6 +137,7 @@ export default function NuovaPratica() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  const [brand, setBrand] = useState<Brand | null>(null);
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -105,7 +149,7 @@ export default function NuovaPratica() {
   const [clienteTelefono, setClienteTelefono] = useState("");
   const [clienteIndirizzo, setClienteIndirizzo] = useState("");
 
-  // Step 2: Dati Pratica ENEA
+  // Step 2: Dati Pratica
   const [tipoIntervento, setTipoIntervento] = useState("");
   const [datiCatastali, setDatiCatastali] = useState("");
   const [dataFineLavori, setDataFineLavori] = useState<Date | undefined>();
@@ -113,8 +157,11 @@ export default function NuovaPratica() {
   const [noteAggiuntive, setNoteAggiuntive] = useState("");
   const [step2Errors, setStep2Errors] = useState<Record<string, string>>({});
 
-  // Fetch ENEA service from catalog
-  const { data: eneaService } = useQuery({
+  const brandConf = brand ? BRAND_CONFIG[brand] : null;
+  const tipiIntervento = brand === "conto_termico" ? TIPI_INTERVENTO_CT : TIPI_INTERVENTO_ENEA;
+
+  // Fetch service from catalog
+  const { data: praticaService } = useQuery({
     queryKey: ["enea-service"],
     queryFn: async () => {
       const { data } = await supabase
@@ -144,7 +191,7 @@ export default function NuovaPratica() {
   });
 
   const walletBalance = companyData?.wallet_balance ?? 0;
-  const prezzo = eneaService?.prezzo_base || 0;
+  const prezzo = praticaService?.prezzo_base || 0;
   const hasSufficientCredit = walletBalance >= prezzo;
 
   const getClienteFormData = () => ({
@@ -172,7 +219,7 @@ export default function NuovaPratica() {
   };
 
   const validateStep2 = (): boolean => {
-    const result = praticaEneaSchema.safeParse({
+    const result = praticaSchema.safeParse({
       tipo_intervento: tipoIntervento,
       dati_catastali: datiCatastali,
       data_fine_lavori: dataFineLavori,
@@ -194,7 +241,7 @@ export default function NuovaPratica() {
 
   const submitPratica = useMutation({
     mutationFn: async (asBozza: boolean) => {
-      if (!companyId || !user) throw new Error("Missing data");
+      if (!companyId || !user || !brand) throw new Error("Missing data");
 
       const validated = nuovaPraticaClienteSchema.parse(getClienteFormData());
 
@@ -251,8 +298,8 @@ export default function NuovaPratica() {
         clienteId = cliente.id;
       }
 
-      // Build dati_pratica JSONB with validated importo
-      const datiPratica: Record<string, string | number> = {};
+      // Build dati_pratica JSONB
+      const datiPratica: Record<string, string | number> = { brand };
       if (tipoIntervento) datiPratica.tipo_intervento = tipoIntervento;
       if (datiCatastali) datiPratica.dati_catastali = datiCatastali;
       if (dataFineLavori) datiPratica.data_fine_lavori = format(dataFineLavori, "yyyy-MM-dd");
@@ -261,25 +308,24 @@ export default function NuovaPratica() {
       }
       if (noteAggiuntive) datiPratica.note_aggiuntive = noteAggiuntive;
 
-      // #2 Fix: If sending (not draft), deduct FIRST, then create practice
+      const titoloBase = `Pratica ${BRAND_CONFIG[brand].praticaLabel} - ${validated.nome} ${validated.cognome}`;
+
       if (!asBozza && prezzo > 0) {
-        // Create practice as bozza first, then deduct, then update to inviata
         const { data: pratica, error } = await supabase.from("pratiche").insert({
           company_id: companyId,
           creato_da: user.id,
-          service_id: eneaService?.id || null,
+          service_id: praticaService?.id || null,
           cliente_finale_id: clienteId,
           categoria: "enea_bonus" as const,
-          titolo: `Pratica ENEA - ${validated.nome} ${validated.cognome}`,
+          titolo: titoloBase,
           stato: "bozza",
           priorita: "normale",
           prezzo,
           pagamento_stato: "non_pagata",
-          dati_pratica: Object.keys(datiPratica).length > 0 ? datiPratica : {},
+          dati_pratica: datiPratica,
         }).select().single();
         if (error) throw error;
 
-        // Deduct wallet
         const { data: success, error: deductError } = await supabase.rpc("wallet_deduct", {
           _company_id: companyId,
           _importo: prezzo,
@@ -288,31 +334,28 @@ export default function NuovaPratica() {
         });
         if (deductError) throw deductError;
         if (!success) {
-          // Cleanup: delete the draft pratica
           await supabase.from("pratiche").delete().eq("id", pratica.id);
           throw new Error("Credito insufficiente");
         }
 
-        // Now update to inviata + pagata atomically
         const { error: updateError } = await supabase.from("pratiche").update({
           stato: "inviata",
           pagamento_stato: "pagata",
         }).eq("id", pratica.id);
         if (updateError) throw updateError;
       } else {
-        // Draft: just create
         const { error } = await supabase.from("pratiche").insert({
           company_id: companyId,
           creato_da: user.id,
-          service_id: eneaService?.id || null,
+          service_id: praticaService?.id || null,
           cliente_finale_id: clienteId,
           categoria: "enea_bonus" as const,
-          titolo: `Pratica ENEA - ${validated.nome} ${validated.cognome}`,
+          titolo: titoloBase,
           stato: "bozza",
           priorita: "normale",
           prezzo,
           pagamento_stato: "non_pagata",
-          dati_pratica: Object.keys(datiPratica).length > 0 ? datiPratica : {},
+          dati_pratica: datiPratica,
         }).select().single();
         if (error) throw error;
       }
@@ -320,7 +363,8 @@ export default function NuovaPratica() {
     onSuccess: (_, asBozza) => {
       queryClient.invalidateQueries({ queryKey: ["pratiche"] });
       queryClient.invalidateQueries({ queryKey: ["company-balance"] });
-      toast({ title: asBozza ? "Bozza salvata" : "Pratica ENEA inviata con successo!" });
+      const brandLabel = brand ? BRAND_CONFIG[brand].praticaLabel : "Pratica";
+      toast({ title: asBozza ? "Bozza salvata" : `${brandLabel} inviata con successo!` });
       navigate("/pratiche");
     },
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
@@ -344,11 +388,57 @@ export default function NuovaPratica() {
     );
   }
 
+  // Brand selection screen
+  if (!brand) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica</h1>
+          <p className="text-muted-foreground">Seleziona il tipo di incentivo per questa pratica</p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {(Object.entries(BRAND_CONFIG) as [Brand, typeof BRAND_CONFIG[Brand]][]).map(([key, conf]) => {
+            const Icon = conf.icon;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setBrand(key)}
+                className={`rounded-xl border-2 p-6 text-left transition-all ${conf.color} focus:outline-none focus:ring-2 focus:ring-primary`}
+              >
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-white shadow-sm">
+                  <Icon className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-display text-lg font-bold">{conf.label}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{conf.description}</p>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex">
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            <ArrowLeft className="mr-2 h-4 w-4" />Annulla
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica ENEA</h1>
-        <p className="text-muted-foreground">Inserisci i dati per la pratica ENEA</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica</h1>
+            <Badge className={brandConf!.badgeClass}>{brandConf!.shortLabel}</Badge>
+          </div>
+          <p className="text-muted-foreground">
+            {brand === "enea" ? "Inserisci i dati per la pratica ENEA" : "Inserisci i dati per la pratica Conto Termico"}
+          </p>
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => { setBrand(null); setStep(0); }} className="text-muted-foreground">
+          Cambia tipo
+        </Button>
       </div>
 
       {/* Step indicator */}
@@ -376,7 +466,7 @@ export default function NuovaPratica() {
         <Card>
           <CardHeader>
             <CardTitle>Dati del Cliente</CardTitle>
-            <CardDescription>Inserisci i dati del cliente per la pratica ENEA</CardDescription>
+            <CardDescription>Inserisci i dati del cliente per questa pratica</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -417,11 +507,13 @@ export default function NuovaPratica() {
         </Card>
       )}
 
-      {/* Step 1: Dati Pratica ENEA */}
+      {/* Step 1: Dati Pratica */}
       {step === 1 && (
         <Card>
           <CardHeader>
-            <CardTitle>Dati della Pratica ENEA</CardTitle>
+            <CardTitle>
+              Dati della Pratica {brandConf!.shortLabel}
+            </CardTitle>
             <CardDescription>Inserisci i dettagli specifici dell'intervento (opzionali, compilabili anche dopo)</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -432,7 +524,7 @@ export default function NuovaPratica() {
                   <SelectValue placeholder="Seleziona tipo intervento" />
                 </SelectTrigger>
                 <SelectContent>
-                  {TIPI_INTERVENTO.map(t => (
+                  {tipiIntervento.map(t => (
                     <SelectItem key={t} value={t}>{t}</SelectItem>
                   ))}
                 </SelectContent>
@@ -481,7 +573,12 @@ export default function NuovaPratica() {
           </CardHeader>
           <CardContent>
             <div className="rounded-lg bg-muted p-4 space-y-3">
-              <h3 className="font-semibold text-sm">Cliente</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-sm">Tipo pratica</h3>
+                <Badge className={brandConf!.badgeClass}>{brandConf!.label}</Badge>
+              </div>
+
+              <h3 className="font-semibold text-sm border-t pt-3">Cliente</h3>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div><span className="text-muted-foreground">Nome:</span> {clienteNome} {clienteCognome}</div>
                 {clienteCF && <div><span className="text-muted-foreground">CF:</span> {clienteCF}</div>}
@@ -492,7 +589,7 @@ export default function NuovaPratica() {
 
               {(tipoIntervento || datiCatastali || dataFineLavori || importoLavori) && (
                 <>
-                  <h3 className="font-semibold text-sm border-t pt-3">Dati Pratica ENEA</h3>
+                  <h3 className="font-semibold text-sm border-t pt-3">Dati Pratica {brandConf!.shortLabel}</h3>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     {tipoIntervento && <div><span className="text-muted-foreground">Intervento:</span> {tipoIntervento}</div>}
                     {datiCatastali && <div><span className="text-muted-foreground">Catastali:</span> {datiCatastali}</div>}
@@ -527,8 +624,8 @@ export default function NuovaPratica() {
 
       {/* Navigation */}
       <div className="flex items-center justify-between">
-        <Button variant="outline" onClick={() => step > 0 ? setStep(step - 1) : navigate(-1)}>
-          <ArrowLeft className="mr-2 h-4 w-4" />{step === 0 ? "Annulla" : "Indietro"}
+        <Button variant="outline" onClick={() => step > 0 ? setStep(step - 1) : setBrand(null)}>
+          <ArrowLeft className="mr-2 h-4 w-4" />{step === 0 ? "Indietro" : "Indietro"}
         </Button>
         <div className="flex gap-2">
           {step === lastStep && (
@@ -549,7 +646,7 @@ export default function NuovaPratica() {
               {submitPratica.isPending ? (
                 <><div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Invio in corso...</>
               ) : (
-                <><Send className="mr-2 h-4 w-4" />Invia Pratica ENEA</>
+                <><Send className="mr-2 h-4 w-4" />Invia Pratica {brandConf!.shortLabel}</>
               )}
             </Button>
           )}

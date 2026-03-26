@@ -195,6 +195,24 @@ export default function Listino() {
         <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
       ) : (
         <div className="grid gap-3">
+          {filtered.length === 0 && (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center py-12 text-center">
+                <Package className="mb-4 h-12 w-12 text-muted-foreground/40" />
+                <h3 className="font-display text-base font-semibold">
+                  {search || filterCat ? "Nessun servizio trovato" : "Nessun servizio nel listino"}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {search || filterCat ? "Prova a modificare i filtri di ricerca." : "Crea il primo servizio per iniziare."}
+                </p>
+                {!search && !filterCat && (
+                  <Button className="mt-4" onClick={() => setShowForm(true)}>
+                    <Plus className="mr-2 h-4 w-4" />Crea Servizio
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
           {filtered.map(s => (
             <Card key={s.id} className={`cursor-pointer transition-colors hover:bg-accent/50 ${!s.attivo ? "opacity-60" : ""}`} onClick={() => openEdit(s)}>
               <CardContent className="flex items-center gap-4 p-4">

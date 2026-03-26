@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const VALID_ROLES = ["super_admin", "admin_interno", "operatore", "azienda_admin", "azienda_user", "partner"];
+const VALID_ROLES = ["super_admin", "admin_interno", "operatore", "azienda_admin", "azienda_user", "rivenditore", "partner"];
 
 function validateEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -27,27 +27,24 @@ Deno.serve(async (req) => {
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify caller identity
-    const callerClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    // Use admin client for all operations
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
+    // Verify caller identity via JWT
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user: callerUser }, error: userError } = await adminClient.auth.getUser(token);
+    if (userError || !callerUser) {
       return new Response(JSON.stringify({ error: "Token non valido" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const callerId = claimsData.claims.sub;
+    const callerId = callerUser.id;
 
-    // Check caller is super_admin using service role
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    // Check caller is super_admin
 
     const { data: callerRoles } = await adminClient
       .from("user_roles")

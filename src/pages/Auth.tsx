@@ -63,7 +63,7 @@ export default function Auth() {
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-2">
           <img src="/pratica-rapida-logo.png" alt="Pratica Rapida" className="w-[200px]" />
-          <p className="text-sm text-muted-foreground">La tua Pratica ENEA, semplice e veloce</p>
+          <p className="text-sm text-muted-foreground">Pratiche ENEA e Conto Termico, semplici e veloci</p>
         </div>
 
         <Card>
@@ -127,7 +127,7 @@ export default function Auth() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          Pratica Rapida gestisce le pratiche ENEA per conto delle aziende,<br />
+          Pratica Rapida gestisce le pratiche ENEA e Conto Termico per conto delle aziende,<br />
           coordinando le attività con professionisti abilitati.
         </p>
       </div>

@@ -11,9 +11,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
-  FolderOpen, Clock, FileCheck, Wallet, AlertCircle,
-  ArrowRight, Plus, CreditCard, Zap, Flame, LifeBuoy,
-  CheckCircle2, AlertTriangle, TrendingUp, TrendingDown,
+  FolderOpen, FileCheck, AlertCircle,
+  ArrowRight, Plus, Receipt, Zap, Flame, LifeBuoy,
+  CheckCircle2, TrendingUp, TrendingDown,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { STATO_CONFIG } from "@/lib/pratiche-config";
@@ -22,7 +22,6 @@ import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
 
 const MONTH_NAMES = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
-const LOW_WALLET_THRESHOLD = 20;
 
 export function DashboardAzienda() {
   const { user } = useAuth();
@@ -36,12 +35,12 @@ export function DashboardAzienda() {
   const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
 
   const { data: company, isLoading: loadingCompany } = useQuery({
-    queryKey: ["company-balance", companyId],
+    queryKey: ["company-info", companyId],
     queryFn: async () => {
       if (!companyId) return null;
       const { data } = await supabase
         .from("companies")
-        .select("wallet_balance, ragione_sociale")
+        .select("ragione_sociale")
         .eq("id", companyId)
         .single();
       return data;
@@ -55,7 +54,7 @@ export function DashboardAzienda() {
       if (!companyId) return [];
       const { data } = await supabase
         .from("pratiche")
-        .select("id, titolo, stato, prezzo, created_at, updated_at, dati_pratica, clienti_finali(nome, cognome)")
+        .select("id, titolo, stato, prezzo, pagamento_stato, created_at, updated_at, dati_pratica, clienti_finali(nome, cognome)")
         .eq("company_id", companyId)
         .order("created_at", { ascending: false })
         .limit(500);
@@ -79,13 +78,18 @@ export function DashboardAzienda() {
       return p.stato === "completata" && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
     }).length;
 
+    // Da fatturare = pratiche completate non ancora pagate (tutto il periodo, non solo il mese)
+    const daFatturare = pratiche
+      .filter(p => p.stato === "completata" && (p as any).pagamento_stato === "non_pagata")
+      .reduce((s, p) => s + (p.prezzo || 0), 0);
+    // Spesa mese corrente (completate questo mese) per confronto trend
     const spesaMese = pratiche.filter(p => {
-      const d = new Date(p.created_at);
-      return d.getMonth() === thisMonth && d.getFullYear() === thisYear && p.stato !== "bozza";
+      const d = new Date(p.updated_at);
+      return p.stato === "completata" && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
     }).reduce((s, p) => s + (p.prezzo || 0), 0);
     const spesaMesePrec = pratiche.filter(p => {
-      const d = new Date(p.created_at);
-      return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear && p.stato !== "bozza";
+      const d = new Date(p.updated_at);
+      return p.stato === "completata" && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
     }).reduce((s, p) => s + (p.prezzo || 0), 0);
 
     const createMese = pratiche.filter(p => {
@@ -96,12 +100,11 @@ export function DashboardAzienda() {
     const completateProgress = createMese > 0 ? (completateMese / createMese) * 100 : 0;
     const diffCompletate = completateMese - completateMesePrec;
     const diffSpesa = spesaMese - spesaMesePrec;
-
     return {
       aperte, attesaDoc, inLavorazione,
       completateMese, completateMesePrec, createMese,
       completateProgress, diffCompletate,
-      spesaMese, spesaMesePrec, diffSpesa,
+      daFatturare, spesaMese, spesaMesePrec, diffSpesa,
     };
   }, [pratiche, thisMonth, thisYear, lastMonth, lastMonthYear]);
 
@@ -144,9 +147,6 @@ export function DashboardAzienda() {
   };
 
   const recentPratiche = pratiche.slice(0, 6);
-  const walletBalance = company?.wallet_balance ?? 0;
-  const isLowWallet = walletBalance < LOW_WALLET_THRESHOLD;
-
   const isLoading = loadingPratiche || loadingCompany;
 
   // ---- Empty state ----
@@ -167,9 +167,6 @@ export function DashboardAzienda() {
               <Button onClick={() => navigate("/pratiche/nuova")} size="lg">
                 <Plus className="mr-2 h-4 w-4" />Crea la tua prima pratica
               </Button>
-              <Button variant="outline" size="lg" onClick={() => navigate("/wallet")}>
-                <CreditCard className="mr-2 h-4 w-4" />Ricarica Wallet
-              </Button>
             </div>
             <ul className="mt-8 space-y-2 text-sm text-left max-w-sm">
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success shrink-0" /> Consegna entro 24 ore lavorative</li>
@@ -186,46 +183,6 @@ export function DashboardAzienda() {
   return (
     <div className="space-y-6">
       <DashboardHeader user={user} companyName={company?.ragione_sociale} navigate={navigate} />
-
-      {/* Low wallet alert */}
-      {!loadingCompany && isLowWallet && walletBalance > 0 && (
-        <Card className="border-warning/50 bg-warning/5">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-warning/10">
-              <Wallet className="h-5 w-5 text-warning" />
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-warning">Credito in esaurimento</p>
-              <p className="text-sm text-muted-foreground">
-                Hai <strong>€ {walletBalance.toFixed(2)}</strong> di credito residuo. Ricarica per continuare ad inviare pratiche.
-              </p>
-            </div>
-            <Button size="sm" onClick={() => navigate("/wallet")}>
-              <CreditCard className="mr-2 h-4 w-4" />Ricarica
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Zero wallet alert */}
-      {!loadingCompany && walletBalance <= 0 && pratiche.length > 0 && (
-        <Card className="border-destructive/50 bg-destructive/5">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-destructive/10">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-destructive">Wallet esaurito</p>
-              <p className="text-sm text-muted-foreground">
-                Non hai credito sufficiente per inviare nuove pratiche. Ricarica il wallet per sbloccare l'invio.
-              </p>
-            </div>
-            <Button size="sm" variant="destructive" onClick={() => navigate("/wallet")}>
-              <CreditCard className="mr-2 h-4 w-4" />Ricarica ora
-            </Button>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Action required: pratiche in attesa documenti */}
       {kpis.attesaDoc.length > 0 && (
@@ -324,18 +281,18 @@ export function DashboardAzienda() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Spesa del Mese</CardTitle>
-              <CreditCard className="h-4 w-4 text-primary" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Da fatturare</CardTitle>
+              <Receipt className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">€ {kpis.spesaMese.toFixed(0)}</div>
+              <div className="text-3xl font-bold">€ {kpis.daFatturare.toFixed(0)}</div>
               <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                 {kpis.diffSpesa > 0 ? (
                   <><TrendingUp className="h-3 w-3 text-warning" /><span className="text-warning">+€ {kpis.diffSpesa.toFixed(0)} vs mese prec.</span></>
                 ) : kpis.diffSpesa < 0 ? (
                   <><TrendingDown className="h-3 w-3 text-success" /><span className="text-success">-€ {Math.abs(kpis.diffSpesa).toFixed(0)} vs mese prec.</span></>
                 ) : (
-                  <span>Invariata vs mese prec.</span>
+                  <span>Pagamento fine mese via bonifico</span>
                 )}
               </div>
             </CardContent>
@@ -376,16 +333,16 @@ export function DashboardAzienda() {
             </CardContent>
           </Card>
 
-          <Card className={isLowWallet ? "border-warning/50" : ""}>
+          <Card>
             <CardContent className="flex items-center gap-4 p-4">
-              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${isLowWallet ? "bg-warning/10" : "bg-primary/10"}`}>
-                <Wallet className={`h-6 w-6 ${isLowWallet ? "text-warning" : "text-primary"}`} />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                <Receipt className="h-6 w-6 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-2xl font-bold">€ {walletBalance.toFixed(2)}</p>
-                <p className="text-sm text-muted-foreground">Credito disponibile</p>
+                <p className="text-2xl font-bold">€ {kpis.daFatturare.toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground">Da fatturare</p>
                 <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => navigate("/wallet")}>
-                  Gestisci wallet <ArrowRight className="ml-1 h-3 w-3" />
+                  Estratto Conto <ArrowRight className="ml-1 h-3 w-3" />
                 </Button>
               </div>
             </CardContent>
@@ -475,7 +432,7 @@ export function DashboardAzienda() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <QuickAction icon={Zap} label="Nuova Pratica ENEA" color="blue" onClick={() => navigate("/pratiche/nuova")} />
             <QuickAction icon={Flame} label="Nuova Pratica CT" color="orange" onClick={() => navigate("/pratiche/nuova")} />
-            <QuickAction icon={CreditCard} label="Ricarica Wallet" color="primary" onClick={() => navigate("/wallet")} />
+            <QuickAction icon={Receipt} label="Estratto Conto" color="primary" onClick={() => navigate("/wallet")} />
             <QuickAction icon={LifeBuoy} label="Assistenza" color="muted" onClick={() => navigate("/assistenza")} />
           </div>
         </CardContent>
@@ -504,7 +461,7 @@ function DashboardHeader({ user, companyName, navigate }: { user: any; companyNa
           <Plus className="mr-2 h-4 w-4" />Nuova Pratica
         </Button>
         <Button variant="outline" onClick={() => navigate("/wallet")} size="sm">
-          <Wallet className="mr-2 h-4 w-4" />Wallet
+          <Receipt className="mr-2 h-4 w-4" />Estratto Conto
         </Button>
       </div>
     </div>

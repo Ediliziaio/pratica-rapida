@@ -68,50 +68,43 @@ export function DashboardInterno() {
     enabled: operatorIds.length > 0,
   });
 
-  // ---- KPIs ----
+  // ---- KPIs (single pass) ----
   const kpis = useMemo(() => {
-    const totalRevenue = allPratiche.reduce((s, p) => s + (p.prezzo || 0), 0);
-    const totalPratiche = allPratiche.length;
-    const completate = allPratiche.filter(p => p.stato === "completata").length;
-    const backlog = allPratiche.filter(p => !["completata", "annullata"].includes(p.stato)).length;
+    let totalRevenue = 0, totalPratiche = 0, completate = 0, backlog = 0;
+    let revenueThisMonth = 0, revenueLastMonth = 0;
+    let praticheThisMonth = 0, praticheLastMonth = 0;
+    let completateThisMonth = 0, completateLastMonth = 0;
+    let praticheInviate = 0, praticheAttesaDoc = 0;
 
-    const revenueThisMonth = allPratiche.filter(p => {
-      const d = new Date(p.created_at);
-      return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-    }).reduce((s, p) => s + (p.prezzo || 0), 0);
-    const revenueLastMonth = allPratiche.filter(p => {
-      const d = new Date(p.created_at);
-      return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
-    }).reduce((s, p) => s + (p.prezzo || 0), 0);
+    allPratiche.forEach(p => {
+      const prezzo = p.prezzo || 0;
+      const cM = new Date(p.created_at).getMonth(), cY = new Date(p.created_at).getFullYear();
+      const uM = new Date(p.updated_at).getMonth(), uY = new Date(p.updated_at).getFullYear();
 
-    const praticheThisMonth = allPratiche.filter(p => {
-      const d = new Date(p.created_at);
-      return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-    }).length;
-    const praticheLastMonth = allPratiche.filter(p => {
-      const d = new Date(p.created_at);
-      return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
-    }).length;
+      totalRevenue += prezzo;
+      totalPratiche++;
 
-    const completateThisMonth = allPratiche.filter(p => {
-      const d = new Date(p.updated_at);
-      return p.stato === "completata" && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-    }).length;
-    const completateLastMonth = allPratiche.filter(p => {
-      const d = new Date(p.updated_at);
-      return p.stato === "completata" && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
-    }).length;
+      if (cM === thisMonth && cY === thisYear) { revenueThisMonth += prezzo; praticheThisMonth++; }
+      if (cM === lastMonth && cY === lastMonthYear) { revenueLastMonth += prezzo; praticheLastMonth++; }
 
-    const praticheInviate = allPratiche.filter(p => p.stato === "inviata").length;
-    const praticheAttesaDoc = allPratiche.filter(p => p.stato === "in_attesa_documenti").length;
-    const praticheInAttesa = praticheInviate + praticheAttesaDoc;
+      if (p.stato === "completata") {
+        completate++;
+        if (uM === thisMonth && uY === thisYear) completateThisMonth++;
+        if (uM === lastMonth && uY === lastMonthYear) completateLastMonth++;
+      } else if (p.stato !== "annullata") {
+        backlog++;
+        if (p.stato === "inviata") praticheInviate++;
+        else if (p.stato === "in_attesa_documenti") praticheAttesaDoc++;
+      }
+    });
 
     return {
       totalRevenue, totalPratiche, completate, backlog,
       revenueDiff: revenueThisMonth - revenueLastMonth,
       praticheDiff: praticheThisMonth - praticheLastMonth,
       completateDiff: completateThisMonth - completateLastMonth,
-      praticheInAttesa, praticheInviate, praticheAttesaDoc,
+      praticheInAttesa: praticheInviate + praticheAttesaDoc,
+      praticheInviate, praticheAttesaDoc,
     };
   }, [allPratiche, thisMonth, thisYear, lastMonth, lastMonthYear]);
 
@@ -175,17 +168,12 @@ export function DashboardInterno() {
   }, [allPratiche, operatorProfiles]);
 
   // ---- Unpaid ----
-  const unpaidPratiche = useMemo(() => {
-    return allPratiche
+  const unpaid = useMemo(() => {
+    const list = allPratiche
       .filter(p => p.stato === "completata" && p.pagamento_stato === "non_pagata")
-      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-      .slice(0, 10);
-  }, [allPratiche]);
-
-  const totalUnpaid = useMemo(() => {
-    return allPratiche
-      .filter(p => p.stato === "completata" && p.pagamento_stato === "non_pagata")
-      .reduce((s, p) => s + (p.prezzo || 0), 0);
+      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+    const total = list.reduce((s, p) => s + (p.prezzo || 0), 0);
+    return { list: list.slice(0, 10), total };
   }, [allPratiche]);
 
   // ---- Charts ----
@@ -460,20 +448,20 @@ export function DashboardInterno() {
       </div>
 
       {/* Unpaid Practices */}
-      {unpaidPratiche.length > 0 && (
+      {unpaid.list.length > 0 && (
         <Card className="border-warning/50">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-medium flex items-center gap-1.5">
               <DollarSign className="h-4 w-4 text-warning" /> Pratiche Completate Non Pagate
             </CardTitle>
             <Badge variant="outline" className="text-warning">
-              € {totalUnpaid.toFixed(2)} da riscuotere
+              € {unpaid.total.toFixed(2)} da riscuotere
             </Badge>
           </CardHeader>
           <CardContent>
             <ScrollArea className="max-h-[250px]">
               <div className="space-y-2">
-                {unpaidPratiche.map(p => {
+                {unpaid.list.map(p => {
                   const companyName = allCompanies.find(c => c.id === p.company_id)?.ragione_sociale || "—";
                   return (
                     <div

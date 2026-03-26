@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -88,14 +88,16 @@ export default function CodaPratiche() {
     },
   });
 
-  const assigneeIds = [...new Set(pratiche.map(p => p.assegnatario_id).filter(Boolean))].sort().join(",");
+  const assigneeIds = useMemo(
+    () => [...new Set(pratiche.map(p => p.assegnatario_id).filter(Boolean) as string[])].sort(),
+    [pratiche],
+  );
 
   const { data: assigneeProfiles = {} } = useQuery({
     queryKey: ["assignee-profiles", assigneeIds],
     queryFn: async () => {
-      const ids = assigneeIds.split(",").filter(Boolean);
-      if (!ids.length) return {};
-      const { data } = await supabase.from("profiles").select("id, nome, cognome").in("id", ids);
+      if (!assigneeIds.length) return {};
+      const { data } = await supabase.from("profiles").select("id, nome, cognome").in("id", assigneeIds);
       const map: Record<string, { nome: string; cognome: string }> = {};
       (data || []).forEach(p => { map[p.id] = p; });
       return map;

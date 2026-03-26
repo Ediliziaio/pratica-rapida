@@ -35,11 +35,10 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { PraticheTableView } from "@/components/pratiche/PraticheTableView";
-
-type ViewMode = "list" | "pipeline" | "table";
-
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
+
+type ViewMode = "list" | "pipeline" | "table";
 
 
 function AdminDraggableCard({ pratica, navigate, assigneeMap }: { pratica: any; navigate: (path: string) => void; assigneeMap: Record<string, { nome: string; cognome: string }> }) {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -140,25 +140,33 @@ export default function ComunicazioniLog() {
     onError: (e: Error) => toast({ title: "Errore invio", description: e.message, variant: "destructive" }),
   });
 
-  const today = new Date().toISOString().slice(0, 10);
-  const todayLogs = logs.filter((l) => l.sent_at?.startsWith(today));
-  const failedLogs = logs.filter((l) => l.status === "failed");
-  const deliveredLogs = logs.filter((l) => l.status === "delivered" || l.status === "read");
-  const deliveryRate = logs.length > 0 ? Math.round((deliveredLogs.length / logs.length) * 100) : 0;
+  const { todayCount, failedCount, deliveredCount, readCount, deliveryRate, channelStats } = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    let todayCount = 0, failedCount = 0, deliveredCount = 0, readCount = 0;
+    const channelCounts: Record<string, number> = {};
 
-  // Per-channel stats
-  const channelStats = Object.entries(CHANNEL_CONFIG).map(([ch, cfg]) => ({
-    channel: ch as CommChannel,
-    cfg,
-    count: logs.filter(l => l.channel === ch).length,
-  })).filter(s => s.count > 0);
+    logs.forEach(l => {
+      if (l.sent_at?.startsWith(today)) todayCount++;
+      if (l.status === "failed") failedCount++;
+      if (l.status === "delivered" || l.status === "read") deliveredCount++;
+      if (l.status === "read") readCount++;
+      if (l.channel) channelCounts[l.channel] = (channelCounts[l.channel] || 0) + 1;
+    });
 
-  const filtered = logs.filter((l) => {
+    const deliveryRate = logs.length > 0 ? Math.round((deliveredCount / logs.length) * 100) : 0;
+    const channelStats = Object.entries(CHANNEL_CONFIG)
+      .map(([ch, cfg]) => ({ channel: ch as CommChannel, cfg, count: channelCounts[ch] || 0 }))
+      .filter(s => s.count > 0);
+
+    return { todayCount, failedCount, deliveredCount, readCount, deliveryRate, channelStats };
+  }, [logs]);
+
+  const filtered = useMemo(() => logs.filter((l) => {
     if (channelFilter !== "all" && l.channel !== channelFilter) return false;
     if (statusFilter !== "all" && l.status !== statusFilter) return false;
     if (searchRecipient.trim() && !l.recipient.toLowerCase().includes(searchRecipient.toLowerCase())) return false;
     return true;
-  });
+  }), [logs, channelFilter, statusFilter, searchRecipient]);
 
   const handleExportCSV = () => {
     const rows = filtered.map((l) => ({
@@ -214,7 +222,7 @@ export default function ComunicazioniLog() {
             <Mail className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{todayLogs.length}</div>
+            <div className="text-2xl font-bold">{todayCount}</div>
             <p className="text-xs text-muted-foreground">comunicazioni inviate</p>
           </CardContent>
         </Card>
@@ -225,19 +233,19 @@ export default function ComunicazioniLog() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-emerald-600">{deliveryRate}%</div>
-            <p className="text-xs text-muted-foreground">{deliveredLogs.length} su {logs.length} consegnati</p>
+            <p className="text-xs text-muted-foreground">{deliveredCount} su {logs.length} consegnati</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Falliti</CardTitle>
-            <AlertTriangle className={`h-4 w-4 ${failedLogs.length > 0 ? "text-destructive" : "text-muted-foreground"}`} />
+            <AlertTriangle className={`h-4 w-4 ${failedCount > 0 ? "text-destructive" : "text-muted-foreground"}`} />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${failedLogs.length > 0 ? "text-destructive" : ""}`}>
-              {failedLogs.length}
+            <div className={`text-2xl font-bold ${failedCount > 0 ? "text-destructive" : ""}`}>
+              {failedCount}
             </div>
-            {failedLogs.length > 0 && <p className="text-xs text-destructive">Richiede attenzione</p>}
+            {failedCount > 0 && <p className="text-xs text-destructive">Richiede attenzione</p>}
           </CardContent>
         </Card>
         <Card>
@@ -246,7 +254,7 @@ export default function ComunicazioniLog() {
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{logs.filter(l => l.status === "read").length}</div>
+            <div className="text-2xl font-bold">{readCount}</div>
             <p className="text-xs text-muted-foreground">confermati come letti</p>
           </CardContent>
         </Card>

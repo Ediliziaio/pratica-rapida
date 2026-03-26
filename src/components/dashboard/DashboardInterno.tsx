@@ -10,9 +10,9 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  FolderOpen, Clock, FileCheck, Wallet, TrendingUp, AlertCircle,
+  FolderOpen, Clock, FileCheck, TrendingUp, AlertCircle,
   ArrowRight, CreditCard, BarChart3, Trophy, Users as UsersIcon,
-  Building2, User, AlertTriangle, DollarSign, Timer, Plus,
+  Building2, User, AlertTriangle, DollarSign, Timer,
   Zap, Flame,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";

@@ -1,9 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Download, CheckCircle, Loader2, TrendingUp, ClipboardList, ArrowRight } from "lucide-react";
+import { Download, CheckCircle, Loader2, TrendingUp, ClipboardList, ArrowRight, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { EneaPractice } from "@/integrations/supabase/types";
 import * as XLSX from "xlsx";
@@ -90,10 +89,11 @@ export default function Gestionale() {
   const navigate = useNavigate();
   const [brandFilter, setBrandFilter] = useState("all");
   const [resellerFilter, setResellerFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const [saving, setSaving] = useState<string | null>(null);
 
   const { data: practices = [], isLoading } = useQuery({
-    queryKey: ["gestionale_practices", brandFilter, resellerFilter],
+    queryKey: ["gestionale_practices"],
     queryFn: async () => {
       // Find gestionale stage IDs
       const { data: stageData } = await supabase
@@ -113,14 +113,31 @@ export default function Gestionale() {
       if (stageIds.length > 0) {
         q = q.in("current_stage_id", stageIds);
       }
-      if (brandFilter !== "all") q = q.eq("brand", brandFilter);
-      if (resellerFilter !== "all") q = q.eq("reseller_id", resellerFilter);
 
       const { data, error } = await q;
       if (error) throw error;
       return data as PracticeRow[];
     },
   });
+
+  const resellers = useMemo(() => {
+    const map = new Map<string, string>();
+    practices.forEach(p => {
+      if (p.reseller_id && p.companies?.ragione_sociale)
+        map.set(p.reseller_id, p.companies.ragione_sociale);
+    });
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [practices]);
+
+  const filtered = useMemo(() => {
+    return practices.filter(p => {
+      const matchBrand = brandFilter === "all" || p.brand === brandFilter;
+      const matchReseller = resellerFilter === "all" || p.reseller_id === resellerFilter;
+      const matchSearch = !search ||
+        `${p.cliente_nome} ${p.cliente_cognome}`.toLowerCase().includes(search.toLowerCase());
+      return matchBrand && matchReseller && matchSearch;
+    });
+  }, [practices, brandFilter, resellerFilter, search]);
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, field, value }: { id: string; field: EditableField; value: string }) => {
@@ -163,11 +180,19 @@ export default function Gestionale() {
     },
   });
 
-  const totalLordo = practices.reduce((s, p) => s + (p.guadagno_lordo ?? 0), 0);
-  const totalNetto = practices.reduce((s, p) => s + (p.guadagno_netto ?? 0), 0);
+  const totalLordo = filtered.reduce((s, p) => s + (p.guadagno_lordo ?? 0), 0);
+  const totalNetto = filtered.reduce((s, p) => s + (p.guadagno_netto ?? 0), 0);
+  const filteredCount = filtered.length;
+
+  const now = new Date();
+  const monthLordo = filtered.filter((p) => {
+    const dateStr = p.data_invio_pratica ?? p.created_at;
+    const d = new Date(dateStr);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).reduce((s, p) => s + (p.guadagno_lordo ?? 0), 0);
 
   const exportCSV = () => {
-    const rows = practices.map((p) => ({
+    const rows = filtered.map((p) => ({
       ID: p.id.slice(0, 8),
       Cliente: `${p.cliente_nome} ${p.cliente_cognome}`,
       Rivenditore: p.companies?.ragione_sociale ?? "",
@@ -185,17 +210,13 @@ export default function Gestionale() {
     XLSX.writeFile(wb, "gestionale_pratiche.xlsx");
   };
 
-  const thisMonth = practices.filter((p) => {
-    const d = new Date(p.created_at);
-    const now = new Date();
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  });
-  const monthLordo = thisMonth.reduce((s, p) => s + (p.guadagno_lordo ?? 0), 0);
-
   return (
     <div className="p-4 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold">Gestionale pratiche</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-bold">Gestionale pratiche</h1>
+          <span className="text-sm text-muted-foreground">{filtered.length} pratiche</span>
+        </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={exportCSV}>
             <Download className="h-4 w-4 mr-1" />
@@ -205,39 +226,90 @@ export default function Gestionale() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <Select value={brandFilter} onValueChange={setBrandFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Brand" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tutti i brand</SelectItem>
-            <SelectItem value="enea">ENEA</SelectItem>
-            <SelectItem value="conto_termico">Conto Termico</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="flex flex-wrap gap-3 items-center">
+        {/* Brand pill buttons */}
+        <div className="flex gap-1">
+          {[["all","Tutti"],["enea","ENEA"],["conto_termico","CT"]].map(([val,label]) => (
+            <button key={val} onClick={() => setBrandFilter(val)}
+              className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors ${
+                brandFilter === val ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"
+              }`}>{label}</button>
+          ))}
+        </div>
+
+        {/* Reseller filter */}
+        {resellers.length > 0 && (
+          <Select value={resellerFilter} onValueChange={setResellerFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Tutti i rivenditori" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tutti i rivenditori</SelectItem>
+              {resellers.map(r => (
+                <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            className="pl-8 w-56"
+            placeholder="Cerca cliente..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
       </div>
 
       {/* Stats */}
-      <div className="flex flex-wrap gap-3">
-        <div className="rounded-lg border px-4 py-3 flex items-center gap-3">
-          <TrendingUp className="h-5 w-5 text-green-500" />
-          <div>
-            <p className="text-xs text-muted-foreground">Totale lordo</p>
-            <p className="font-bold">€ {totalLordo.toFixed(2)}</p>
-          </div>
-        </div>
-        <div className="rounded-lg border px-4 py-3 flex items-center gap-3">
-          <TrendingUp className="h-5 w-5 text-blue-500" />
-          <div>
-            <p className="text-xs text-muted-foreground">Totale netto</p>
-            <p className="font-bold">€ {totalNetto.toFixed(2)}</p>
-          </div>
-        </div>
-        <div className="rounded-lg border px-4 py-3 bg-primary/5">
-          <p className="text-xs text-muted-foreground">Mese corrente (lordo)</p>
-          <p className="font-bold text-primary">€ {monthLordo.toFixed(2)}</p>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card>
+          <CardContent className="flex items-center gap-3 p-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-100">
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Totale lordo</p>
+              <p className="font-bold">€ {totalLordo.toFixed(2)}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 p-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100">
+              <TrendingUp className="h-4 w-4 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Totale netto</p>
+              <p className="font-bold">€ {totalNetto.toFixed(2)}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 p-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <TrendingUp className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Mese corrente (lordo)</p>
+              <p className="font-bold text-primary">€ {monthLordo.toFixed(2)}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 p-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
+              <ClipboardList className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Pratiche visibili</p>
+              <p className="font-bold">{filteredCount}</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Table */}
@@ -248,8 +320,8 @@ export default function Gestionale() {
       ) : (
         <div className="overflow-x-auto rounded-lg border">
           <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
+            <thead>
+              <tr style={{ position: 'sticky', top: 0, zIndex: 10 }} className="bg-muted/50">
                 {["ID", "Cliente", "Rivenditore", "Brand", "Prodotto", "Data invio", "Lordo €", "Netto €", "Note", "Azione"].map(
                   (h) => (
                     <th key={h} className="text-left px-3 py-2 font-medium text-muted-foreground whitespace-nowrap">
@@ -260,7 +332,7 @@ export default function Gestionale() {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {practices.map((p) => (
+              {filtered.map((p) => (
                 <tr key={p.id} className={`hover:bg-muted/20 ${saving === p.id ? "opacity-60" : ""}`}>
                   <td className="px-3 py-2 text-muted-foreground font-mono text-xs">{p.id.slice(0, 8)}</td>
                   <td className="px-3 py-2 font-medium whitespace-nowrap">
@@ -308,10 +380,15 @@ export default function Gestionale() {
                       size="sm"
                       variant="outline"
                       className="h-7 text-xs whitespace-nowrap"
+                      title="Sposta in Recensione"
                       onClick={() => moveToRecensione.mutate(p.id)}
                       disabled={moveToRecensione.isPending}
                     >
-                      <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
+                      {moveToRecensione.isPending ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
+                      )}
                       Fatto
                     </Button>
                   </td>
@@ -330,7 +407,7 @@ export default function Gestionale() {
               </tr>
             </tfoot>
           </table>
-          {practices.length === 0 && !isLoading && (
+          {filtered.length === 0 && !isLoading && (
             <div className="flex flex-col items-center py-16 text-center gap-4">
               <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center">
                 <ClipboardList className="h-7 w-7 text-muted-foreground/40" />

@@ -32,8 +32,10 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 6dbe45e3a0714108638841b2593a7168
-          command: pages deploy dist --project-name=pratica-rapida --commit-dirty=true
+          projectName: pratica-rapida
+          directory: dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

@@ -9,41 +9,35 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  Building2, ArrowLeft, FolderOpen, Wallet, Users, FileText, TrendingUp,
-  Mail, Phone, MapPin, CreditCard, Clock, Download, Plus, RotateCcw,
+  Building2, ArrowLeft, FolderOpen, Receipt, Users, FileText, TrendingUp,
+  Mail, Phone, MapPin, CreditCard, Clock, Download,
 } from "lucide-react";
 import { exportToCSV } from "@/lib/csv-export";
 import { STATO_CONFIG, PAGAMENTO_BADGE } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { it } from "date-fns/locale";
 
 export default function AziendaDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { roles, user } = useAuth();
+  const { roles } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isAdmin = isSuperAdmin(roles);
 
-  // Dialog states
-  const [topupOpen, setTopupOpen] = useState(false);
-  const [topupAmount, setTopupAmount] = useState("");
-  const [topupCausale, setTopupCausale] = useState("Bonifico ricevuto");
-  const [refundOpen, setRefundOpen] = useState(false);
-  const [refundAmount, setRefundAmount] = useState("");
-  const [refundCausale, setRefundCausale] = useState("Rimborso");
-  const [refundPraticaId, setRefundPraticaId] = useState<string>("none");
-
   const { data: company, isLoading } = useQuery({
     queryKey: ["company-detail", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("companies").select("*").eq("id", id!).single();
+      const { data, error } = await supabase
+        .from("companies")
+        .select("id, ragione_sociale, piva, codice_fiscale, email, telefono, indirizzo, cap, citta, provincia, settore")
+        .eq("id", id!)
+        .single();
       if (error) throw error;
       return data;
     },
@@ -55,23 +49,9 @@ export default function AziendaDetail() {
     queryFn: async () => {
       const { data } = await supabase
         .from("pratiche")
-        .select("id, titolo, stato, prezzo, created_at, pagamento_stato")
+        .select("id, titolo, stato, prezzo, created_at, updated_at, pagamento_stato")
         .eq("company_id", id!)
         .order("created_at", { ascending: false });
-      return data || [];
-    },
-    enabled: !!id,
-  });
-
-  const { data: movements = [] } = useQuery({
-    queryKey: ["company-wallet-movements", id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("wallet_movements")
-        .select("*")
-        .eq("company_id", id!)
-        .order("created_at", { ascending: false })
-        .limit(50);
       return data || [];
     },
     enabled: !!id,
@@ -100,56 +80,6 @@ export default function AziendaDetail() {
     enabled: users.length > 0,
   });
 
-  // Mutations
-  const walletTopup = useMutation({
-    mutationFn: async () => {
-      const amount = parseFloat(topupAmount);
-      if (isNaN(amount) || amount <= 0) throw new Error("Importo non valido");
-      const { error } = await supabase.rpc("wallet_topup", {
-        _company_id: id!,
-        _importo: amount,
-        _causale: topupCausale,
-        _user_id: user!.id,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["company-detail", id] });
-      queryClient.invalidateQueries({ queryKey: ["company-wallet-movements", id] });
-      toast({ title: "Wallet ricaricato con successo" });
-      setTopupOpen(false);
-      setTopupAmount("");
-      setTopupCausale("Bonifico ricevuto");
-    },
-    onError: (e: any) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
-  });
-
-  const walletRefund = useMutation({
-    mutationFn: async () => {
-      const amount = parseFloat(refundAmount);
-      if (isNaN(amount) || amount <= 0) throw new Error("Importo non valido");
-      const { error } = await supabase.rpc("wallet_refund", {
-        _company_id: id!,
-        _importo: amount,
-        _causale: refundCausale,
-        _pratica_id: refundPraticaId === "none" ? null : refundPraticaId,
-        _user_id: user!.id,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["company-detail", id] });
-      queryClient.invalidateQueries({ queryKey: ["company-wallet-movements", id] });
-      queryClient.invalidateQueries({ queryKey: ["company-pratiche", id] });
-      toast({ title: "Rimborso effettuato" });
-      setRefundOpen(false);
-      setRefundAmount("");
-      setRefundCausale("Rimborso");
-      setRefundPraticaId("none");
-    },
-    onError: (e: any) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
-  });
-
   const changePagamentoStato = useMutation({
     mutationFn: async ({ praticaId, stato }: { praticaId: string; stato: string }) => {
       const { error } = await supabase.from("pratiche").update({ pagamento_stato: stato as any }).eq("id", praticaId);
@@ -165,10 +95,30 @@ export default function AziendaDetail() {
   const kpis = useMemo(() => {
     const revenue = pratiche.reduce((s, p) => s + (p.prezzo || 0), 0);
     const completate = pratiche.filter(p => p.stato === "completata").length;
-    const nonPagate = pratiche.filter(p => p.pagamento_stato === "non_pagata" && p.stato === "completata").length;
+    const daFatturare = pratiche
+      .filter(p => p.stato === "completata" && p.pagamento_stato === "non_pagata")
+      .reduce((s, p) => s + (p.prezzo || 0), 0);
     const statoCounts: Record<string, number> = {};
     pratiche.forEach(p => { statoCounts[p.stato] = (statoCounts[p.stato] || 0) + 1; });
-    return { revenue, completate, nonPagate, total: pratiche.length, statoCounts };
+    return { revenue, completate, daFatturare, total: pratiche.length, statoCounts };
+  }, [pratiche]);
+
+  // Raggruppamento per mese per tab fatturazione
+  const fatturazionePerMese = useMemo(() => {
+    const map: Record<string, { label: string; pratiche: typeof pratiche; totale: number }> = {};
+    pratiche
+      .filter(p => p.stato === "completata")
+      .forEach(p => {
+        const d = new Date(p.updated_at);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        const label = format(d, "MMMM yyyy", { locale: it });
+        if (!map[key]) map[key] = { label, pratiche: [], totale: 0 };
+        map[key].pratiche.push(p);
+        map[key].totale += p.prezzo || 0;
+      });
+    return Object.entries(map)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([, v]) => v);
   }, [pratiche]);
 
   if (isLoading) {
@@ -227,19 +177,22 @@ export default function AziendaDetail() {
               <p className="text-xs text-muted-foreground">{kpis.completate} completate</p>
             </CardContent>
           </Card>
+          <Card className={kpis.daFatturare > 0 ? "border-warning/50" : ""}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Da Fatturare</CardTitle>
+              <Receipt className="h-4 w-4 text-warning" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">€ {kpis.daFatturare.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">pratiche completate non pagate</p>
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Wallet</CardTitle>
-              <Wallet className="h-4 w-4 text-primary" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Utenti Assegnati</CardTitle>
+              <Users className="h-4 w-4 text-primary" />
             </CardHeader>
-            <CardContent><div className="text-2xl font-bold">€ {company.wallet_balance.toFixed(2)}</div></CardContent>
-          </Card>
-          <Card className={kpis.nonPagate > 0 ? "border-warning/50" : ""}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Non Pagate</CardTitle>
-              <CreditCard className="h-4 w-4 text-warning" />
-            </CardHeader>
-            <CardContent><div className="text-2xl font-bold">{kpis.nonPagate}</div></CardContent>
+            <CardContent><div className="text-2xl font-bold">{users.length}</div></CardContent>
           </Card>
         </div>
 
@@ -248,7 +201,7 @@ export default function AziendaDetail() {
           <TabsList>
             <TabsTrigger value="info"><Building2 className="mr-1.5 h-4 w-4" />Anagrafica</TabsTrigger>
             <TabsTrigger value="pratiche"><FolderOpen className="mr-1.5 h-4 w-4" />Pratiche</TabsTrigger>
-            <TabsTrigger value="wallet"><Wallet className="mr-1.5 h-4 w-4" />Wallet</TabsTrigger>
+            <TabsTrigger value="fatturazione"><Receipt className="mr-1.5 h-4 w-4" />Fatturazione</TabsTrigger>
             <TabsTrigger value="utenti"><Users className="mr-1.5 h-4 w-4" />Utenti</TabsTrigger>
           </TabsList>
 
@@ -312,12 +265,12 @@ export default function AziendaDetail() {
                                   value={p.pagamento_stato}
                                   onValueChange={v => changePagamentoStato.mutate({ praticaId: p.id, stato: v })}
                                 >
-                                  <SelectTrigger className={`h-7 w-32 text-xs ${pagamento.className}`}>
+                                  <SelectTrigger className={`h-7 w-36 text-xs ${pagamento.className}`}>
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="non_pagata">Non pagata</SelectItem>
-                                    <SelectItem value="in_verifica">In verifica</SelectItem>
+                                    <SelectItem value="non_pagata">Da fatturare</SelectItem>
+                                    <SelectItem value="in_verifica">Fatturata</SelectItem>
                                     <SelectItem value="pagata">Pagata</SelectItem>
                                     <SelectItem value="rimborsata">Rimborsata</SelectItem>
                                   </SelectContent>
@@ -341,72 +294,112 @@ export default function AziendaDetail() {
             </Card>
           </TabsContent>
 
-          {/* Wallet */}
-          <TabsContent value="wallet">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Movimenti Wallet</CardTitle>
-                <div className="flex items-center gap-2">
-                  {isAdmin && (
-                    <>
-                      <Button variant="default" size="sm" onClick={() => setTopupOpen(true)}>
-                        <Plus className="mr-1.5 h-4 w-4" />Ricarica
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => setRefundOpen(true)}>
-                        <RotateCcw className="mr-1.5 h-4 w-4" />Rimborso
-                      </Button>
-                    </>
-                  )}
-                  <Button variant="outline" size="sm" onClick={() => exportToCSV(movements.map(m => ({
-                    data: new Date(m.created_at).toLocaleDateString("it-IT"),
-                    tipo: m.tipo,
-                    importo: m.importo.toFixed(2),
-                    causale: m.causale,
-                  })), `wallet-${company.ragione_sociale}`, [
-                    { key: "data", label: "Data" },
-                    { key: "tipo", label: "Tipo" },
-                    { key: "importo", label: "Importo" },
-                    { key: "causale", label: "Causale" },
-                  ])}>
-                    <Download className="mr-2 h-4 w-4" />CSV
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <ScrollArea className="max-h-[400px]">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Importo</TableHead>
-                        <TableHead>Causale</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {movements.length === 0 ? (
-                        <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nessun movimento</TableCell></TableRow>
-                      ) : movements.map(m => (
-                        <TableRow key={m.id}>
-                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                            {new Date(m.created_at).toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" })}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={m.tipo === "credito" ? "text-success" : "text-destructive"}>
-                              {m.tipo === "credito" ? "+" : "-"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className={`font-semibold ${m.tipo === "credito" ? "text-success" : "text-destructive"}`}>
-                            {m.tipo === "credito" ? "+" : "-"}€ {m.importo.toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-sm">{m.causale}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+          {/* Fatturazione */}
+          <TabsContent value="fatturazione">
+            <div className="space-y-4">
+              {fatturazionePerMese.length === 0 ? (
+                <Card>
+                  <CardContent className="flex flex-col items-center py-12 text-center">
+                    <Receipt className="mb-3 h-10 w-10 text-muted-foreground/40" />
+                    <p className="text-muted-foreground">Nessuna pratica completata da fatturare</p>
+                  </CardContent>
+                </Card>
+              ) : fatturazionePerMese.map((mese) => {
+                const daFatturare = mese.pratiche.filter(p => p.pagamento_stato === "non_pagata").reduce((s, p) => s + (p.prezzo || 0), 0);
+                const fatturate = mese.pratiche.filter(p => p.pagamento_stato === "in_verifica").reduce((s, p) => s + (p.prezzo || 0), 0);
+                const pagate = mese.pratiche.filter(p => p.pagamento_stato === "pagata").reduce((s, p) => s + (p.prezzo || 0), 0);
+                return (
+                  <Card key={mese.label}>
+                    <CardHeader className="pb-3">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <CardTitle className="capitalize text-base">{mese.label}</CardTitle>
+                        <div className="flex flex-wrap gap-3 text-sm">
+                          {daFatturare > 0 && (
+                            <span className="text-muted-foreground">Da fatturare: <span className="font-semibold text-foreground">€ {daFatturare.toFixed(2)}</span></span>
+                          )}
+                          {fatturate > 0 && (
+                            <span className="text-warning">Fatturate: <span className="font-semibold">€ {fatturate.toFixed(2)}</span></span>
+                          )}
+                          {pagate > 0 && (
+                            <span className="text-success">Pagate: <span className="font-semibold">€ {pagate.toFixed(2)}</span></span>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7"
+                            onClick={() => exportToCSV(
+                              mese.pratiche.map(p => ({
+                                titolo: p.titolo,
+                                prezzo: p.prezzo.toFixed(2),
+                                pagamento: PAGAMENTO_BADGE[p.pagamento_stato]?.label || p.pagamento_stato,
+                                data: new Date(p.updated_at).toLocaleDateString("it-IT"),
+                              })),
+                              `fatturazione-${company.ragione_sociale}-${mese.label}`,
+                              [
+                                { key: "titolo", label: "Pratica" },
+                                { key: "prezzo", label: "Importo (€)" },
+                                { key: "pagamento", label: "Stato Pagamento" },
+                                { key: "data", label: "Data Completamento" },
+                              ]
+                            )}
+                          >
+                            <Download className="mr-1.5 h-3.5 w-3.5" />CSV
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Pratica</TableHead>
+                            <TableHead>Importo</TableHead>
+                            <TableHead>Stato Pagamento</TableHead>
+                            <TableHead>Data</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {mese.pratiche.map(p => {
+                            const pagamento = PAGAMENTO_BADGE[p.pagamento_stato] || PAGAMENTO_BADGE.non_pagata;
+                            return (
+                              <TableRow key={p.id} className="cursor-pointer" onClick={() => navigate(`/pratiche/${p.id}`)}>
+                                <TableCell className="font-medium truncate max-w-[220px]">{p.titolo}</TableCell>
+                                <TableCell>€ {p.prezzo.toFixed(2)}</TableCell>
+                                <TableCell onClick={e => e.stopPropagation()}>
+                                  {isAdmin ? (
+                                    <Select
+                                      value={p.pagamento_stato}
+                                      onValueChange={v => changePagamentoStato.mutate({ praticaId: p.id, stato: v })}
+                                    >
+                                      <SelectTrigger className={`h-7 w-36 text-xs ${pagamento.className}`}>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="non_pagata">Da fatturare</SelectItem>
+                                        <SelectItem value="in_verifica">Fatturata</SelectItem>
+                                        <SelectItem value="pagata">Pagata</SelectItem>
+                                        <SelectItem value="rimborsata">Rimborsata</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  ) : (
+                                    <Badge variant="outline" className={pagamento.className}>
+                                      {pagamento.label}
+                                    </Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                                  {new Date(p.updated_at).toLocaleDateString("it-IT")}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           </TabsContent>
 
           {/* Utenti */}
@@ -442,78 +435,6 @@ export default function AziendaDetail() {
             </Card>
           </TabsContent>
         </Tabs>
-
-        {/* Topup Dialog */}
-        <Dialog open={topupOpen} onOpenChange={setTopupOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Ricarica Wallet</DialogTitle>
-              <DialogDescription>Aggiungi credito al wallet di {company.ragione_sociale}</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Importo (€)</Label>
-                <Input type="number" min="0.01" step="0.01" placeholder="100.00" value={topupAmount} onChange={e => setTopupAmount(e.target.value)} />
-              </div>
-              <div>
-                <Label>Causale</Label>
-                <Select value={topupCausale} onValueChange={setTopupCausale}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Bonifico ricevuto">Bonifico ricevuto</SelectItem>
-                    <SelectItem value="Ricarica manuale">Ricarica manuale</SelectItem>
-                    <SelectItem value="Pagamento contanti">Pagamento contanti</SelectItem>
-                    <SelectItem value="Altro">Altro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setTopupOpen(false)}>Annulla</Button>
-              <Button onClick={() => walletTopup.mutate()} disabled={walletTopup.isPending}>
-                {walletTopup.isPending ? "Ricaricando..." : "Ricarica"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Refund Dialog */}
-        <Dialog open={refundOpen} onOpenChange={setRefundOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Rimborso Wallet</DialogTitle>
-              <DialogDescription>Rimborsa credito al wallet di {company.ragione_sociale}</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Importo (€)</Label>
-                <Input type="number" min="0.01" step="0.01" placeholder="50.00" value={refundAmount} onChange={e => setRefundAmount(e.target.value)} />
-              </div>
-              <div>
-                <Label>Causale</Label>
-                <Input value={refundCausale} onChange={e => setRefundCausale(e.target.value)} placeholder="Rimborso pratica annullata" />
-              </div>
-              <div>
-                <Label>Pratica collegata (opzionale)</Label>
-                <Select value={refundPraticaId} onValueChange={setRefundPraticaId}>
-                  <SelectTrigger><SelectValue placeholder="Nessuna" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nessuna</SelectItem>
-                    {pratiche.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.titolo} — € {p.prezzo.toFixed(2)}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setRefundOpen(false)}>Annulla</Button>
-              <Button onClick={() => walletRefund.mutate()} disabled={walletRefund.isPending}>
-                {walletRefund.isPending ? "Rimborsando..." : "Rimborsa"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </TooltipProvider>
   );

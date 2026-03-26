@@ -14,7 +14,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Building2, Plus, Search, Wallet, Users, FolderOpen, CreditCard, LogIn,
+  Building2, Plus, Search, Receipt, Users, FolderOpen, LogIn,
   ChevronDown, BarChart3, TrendingUp, CircleDollarSign, CalendarDays, CheckCircle2, Clock,
   ShieldOff, ShieldCheck,
 } from "lucide-react";
@@ -35,16 +35,13 @@ interface CompanyStats {
   prezzoMedio: number;
 }
 
-type SortOption = "nome" | "pratiche" | "wallet" | "data";
+type SortOption = "nome" | "pratiche" | "daIncassare" | "data";
 
 export default function Aziende() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
-  const [showTopup, setShowTopup] = useState<string | null>(null);
-  const [topupAmount, setTopupAmount] = useState("");
-  const [topupCausale, setTopupCausale] = useState("Ricarica wallet");
   const { user, roles } = useAuth();
   const navigate = useNavigate();
   const { setImpersonatedCompany } = useCompany();
@@ -114,26 +111,6 @@ export default function Aziende() {
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
 
-  const walletTopup = useMutation({
-    mutationFn: async () => {
-      if (!showTopup || !user) return;
-      const { error } = await supabase.rpc("wallet_topup", {
-        _company_id: showTopup,
-        _importo: parseFloat(topupAmount),
-        _causale: topupCausale,
-        _user_id: user.id,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-companies"] });
-      setShowTopup(null);
-      setTopupAmount("");
-      toast({ title: "Wallet ricaricato" });
-    },
-    onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
-  });
-
   const [showBlockDialog, setShowBlockDialog] = useState<string | null>(null);
   const [blockReason, setBlockReason] = useState("");
 
@@ -196,8 +173,8 @@ export default function Aziende() {
       switch (sortBy) {
         case "pratiche":
           return statsB.totalPratiche - statsA.totalPratiche;
-        case "wallet":
-          return b.wallet_balance - a.wallet_balance;
+        case "daIncassare":
+          return (companyStats[b.id]?.revenueDaIncassare || 0) - (companyStats[a.id]?.revenueDaIncassare || 0);
         case "data":
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         default:
@@ -212,9 +189,9 @@ export default function Aziende() {
   const aggregates = useMemo(() => {
     const totalAziende = companies.length;
     const totalPratiche = Object.values(companyStats).reduce((s, c) => s + c.totalPratiche, 0);
-    const totalWallet = companies.reduce((s, c) => s + c.wallet_balance, 0);
+    const totalDaIncassare = Object.values(companyStats).reduce((s, c) => s + c.revenueDaIncassare, 0);
     const totalUtenti = Object.values(userCounts).reduce((s, c) => s + c, 0);
-    return { totalAziende, totalPratiche, totalWallet, totalUtenti };
+    return { totalAziende, totalPratiche, totalDaIncassare, totalUtenti };
   }, [companies, companyStats, userCounts]);
 
   const togglePanel = (id: string) => {
@@ -260,7 +237,7 @@ export default function Aziende() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <SummaryCard icon={Building2} label="Aziende" value={String(aggregates.totalAziende)} />
           <SummaryCard icon={FolderOpen} label="Pratiche Totali" value={String(aggregates.totalPratiche)} />
-          <SummaryCard icon={Wallet} label="Wallet Totale" value={`€ ${aggregates.totalWallet.toFixed(2)}`} />
+          <SummaryCard icon={Receipt} label="Da Incassare" value={`€ ${aggregates.totalDaIncassare.toFixed(2)}`} />
           <SummaryCard icon={Users} label="Utenti Totali" value={String(aggregates.totalUtenti)} />
         </div>
 
@@ -287,7 +264,7 @@ export default function Aziende() {
             <SelectContent>
               <SelectItem value="nome">Nome</SelectItem>
               <SelectItem value="pratiche">Pratiche</SelectItem>
-              <SelectItem value="wallet">Wallet</SelectItem>
+              <SelectItem value="daIncassare">Da Incassare</SelectItem>
               <SelectItem value="data">Data registrazione</SelectItem>
             </SelectContent>
           </Select>
@@ -358,12 +335,17 @@ export default function Aziende() {
                           <StatWithTooltip icon={Clock} value={inCorso} label="In corso" className="text-warning" />
                           <StatWithTooltip icon={Users} value={userCounts[c.id] || 0} label="Utenti" />
 
-                          <div className="text-right">
-                            <p className="font-semibold">€ {c.wallet_balance.toFixed(2)}</p>
-                            <Button variant="ghost" size="sm" className="h-auto p-0 text-xs text-primary" onClick={() => setShowTopup(c.id)}>
-                              <CreditCard className="mr-1 h-3 w-3" />Ricarica
-                            </Button>
-                          </div>
+                          {stats.revenueDaIncassare > 0 && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-1 text-warning cursor-default">
+                                  <Receipt className="h-4 w-4" />
+                                  <span className="text-sm font-semibold">€ {stats.revenueDaIncassare.toFixed(2)}</span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>Da incassare</TooltipContent>
+                            </Tooltip>
+                          )}
 
                           {superAdmin && (
                             <Button variant="outline" size="sm" onClick={() => { setImpersonatedCompany(c.id, c.ragione_sociale); navigate("/"); }}>
@@ -438,20 +420,6 @@ export default function Aziende() {
             })}
           </div>
         )}
-
-        {/* Topup dialog */}
-        <Dialog open={!!showTopup} onOpenChange={(o) => !o && setShowTopup(null)}>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Ricarica Wallet</DialogTitle></DialogHeader>
-            <div className="grid gap-4">
-              <div><Label>Importo (€)</Label><Input type="number" min="1" value={topupAmount} onChange={e => setTopupAmount(e.target.value)} /></div>
-              <div><Label>Causale</Label><Input value={topupCausale} onChange={e => setTopupCausale(e.target.value)} /></div>
-              <Button onClick={() => walletTopup.mutate()} disabled={!topupAmount || parseFloat(topupAmount) <= 0 || walletTopup.isPending}>
-                {walletTopup.isPending ? "Ricarica in corso..." : "Conferma Ricarica"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
 
         {/* Block account dialog */}
         <Dialog open={!!showBlockDialog} onOpenChange={(o) => !o && setShowBlockDialog(null)}>

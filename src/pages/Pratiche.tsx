@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/hooks/useCompany";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -176,36 +175,46 @@ export default function Pratiche() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4">
         <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Gestione</p>
           <h1 className="font-display text-2xl font-bold tracking-tight">Le mie Pratiche</h1>
-          <p className="text-muted-foreground">Tutte le tue pratiche ENEA e Conto Termico</p>
         </div>
-        <Button onClick={() => navigate("/pratiche/nuova")}>
-          <Plus className="mr-2 h-4 w-4" />Nuova Pratica
+        <Button onClick={() => navigate("/pratiche/nuova")} className="gap-1.5 shrink-0">
+          <Plus className="h-4 w-4" />Nuova Pratica
         </Button>
       </div>
 
       {!isLoading && pratiche.length > 0 && <PraticheSummaryBar pratiche={pratiche} />}
 
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Cerca pratiche..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
-          </div>
-          <Button variant="outline" size="sm" onClick={handleExport} disabled={filtered.length === 0}>
-            <Download className="mr-2 h-4 w-4" />CSV
-          </Button>
-          <div className="flex rounded-lg border bg-muted p-0.5">
-            <Button variant={viewMode === "list" ? "default" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("list")}>
-              <List className="h-4 w-4" />
-            </Button>
-            <Button variant={viewMode === "pipeline" ? "default" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("pipeline")}>
-              <Columns3 className="h-4 w-4" />
-            </Button>
-          </div>
+      {/* ── Toolbar ────────────────────────────────────────────────────── */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Cerca per titolo, cliente..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-8 h-9 text-sm bg-muted/50 border-transparent focus-visible:border-input focus-visible:bg-background transition-all"
+          />
+        </div>
+
+        <div className="inline-flex items-center gap-0.5 bg-muted rounded-md p-0.5 shrink-0">
+          {(["all", "enea", "conto_termico"] as const).map((b) => (
+            <button
+              key={b}
+              onClick={() => setFilterBrand(b)}
+              className={`px-2.5 py-1 rounded text-xs font-medium transition-all duration-150 ${
+                filterBrand === b
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {b === "all" ? "Tutti" : b === "enea" ? "ENEA" : "Conto Termico"}
+            </button>
+          ))}
         </div>
 
         <PraticheFilters
@@ -219,38 +228,72 @@ export default function Pratiche() {
           clienti={uniqueClienti}
         />
 
-        {viewMode === "list" && (
-          <div className="space-y-2">
-            {/* Brand filter */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-muted-foreground font-medium">Tipo:</span>
-              <Badge variant={filterBrand === "all" ? "default" : "outline"} className="cursor-pointer" onClick={() => setFilterBrand("all")}>Tutte</Badge>
-              <Badge variant={filterBrand === "enea" ? "default" : "outline"} className={`cursor-pointer ${filterBrand === "enea" ? "" : "hover:bg-blue-50"}`} onClick={() => setFilterBrand("enea")}>ENEA</Badge>
-              <Badge variant={filterBrand === "conto_termico" ? "default" : "outline"} className={`cursor-pointer ${filterBrand === "conto_termico" ? "" : "hover:bg-orange-50"}`} onClick={() => setFilterBrand("conto_termico")}>Conto Termico</Badge>
-            </div>
-            {/* Stato filter */}
-            <div className="flex flex-wrap items-center gap-2">
-              {filtered.length > 0 && (
-                <div className="flex items-center gap-2 mr-2" onClick={e => e.stopPropagation()}>
-                  <Checkbox
-                    checked={selectedIds.size === filtered.length && filtered.length > 0}
-                    onCheckedChange={toggleSelectAll}
-                  />
-                  <span className="text-xs text-muted-foreground">Tutte</span>
-                </div>
-              )}
-              <Badge variant={!filterStato ? "default" : "outline"} className="cursor-pointer" onClick={() => setFilterStato("")}>Tutti gli stati</Badge>
-              {STATO_ORDER.map((stato) => (
-                <Badge key={stato} variant={filterStato === stato ? "default" : "outline"} className="cursor-pointer" onClick={() => setFilterStato(stato)}>
-                  {STATO_CONFIG[stato].label}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-9 gap-1.5 shrink-0"
+          onClick={handleExport}
+          disabled={filtered.length === 0}
+        >
+          <Download className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline text-xs">CSV</span>
+        </Button>
+
+        <div className="inline-flex items-center gap-0.5 bg-muted rounded-md p-0.5 shrink-0">
+          <button
+            onClick={() => setViewMode("list")}
+            className={`p-1.5 rounded transition-all ${viewMode === "list" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            title="Vista lista"
+          >
+            <List className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={() => setViewMode("pipeline")}
+            className={`p-1.5 rounded transition-all ${viewMode === "pipeline" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            title="Vista pipeline"
+          >
+            <Columns3 className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
-      {/* Bulk actions bar */}
+      {/* Stato chips (list mode) */}
+      {viewMode === "list" && (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {filtered.length > 0 && (
+            <div className="flex items-center gap-1.5 mr-1" onClick={(e) => e.stopPropagation()}>
+              <Checkbox
+                checked={selectedIds.size === filtered.length && filtered.length > 0}
+                onCheckedChange={toggleSelectAll}
+              />
+            </div>
+          )}
+          {(["", ...STATO_ORDER] as const).map((stato) => {
+            const label = stato === "" ? "Tutti" : STATO_CONFIG[stato as PraticaStato].label;
+            const active = filterStato === stato;
+            return (
+              <button
+                key={stato || "all"}
+                onClick={() => setFilterStato(stato as PraticaStato | "")}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+                  active
+                    ? "bg-foreground text-background border-foreground"
+                    : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/40"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+          {filtered.length !== pratiche.length && (
+            <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+              {filtered.length}/{pratiche.length}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Bulk actions */}
       {selectedIds.size > 0 && (
         <BulkActionsBar
           count={selectedIds.size}
@@ -261,9 +304,8 @@ export default function Pratiche() {
         />
       )}
 
-      {isLoading ? (
-        <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
-      ) : viewMode === "list" ? (
+      {/* List or pipeline */}
+      {viewMode === "list" ? (
         <ListView
           pratiche={filtered}
           navigate={navigate}
@@ -272,6 +314,7 @@ export default function Pratiche() {
           onToggle={toggleSelect}
           onDelete={handleSingleDelete}
           canDelete={canDelete}
+          isLoading={isLoading}
         />
       ) : (
         <PipelineView pratiche={filtered} navigate={navigate} />

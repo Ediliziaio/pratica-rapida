@@ -355,7 +355,7 @@ export default function NuovaPratica() {
           <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica</h1>
           <p className="text-muted-foreground">Seleziona il tipo di incentivo per questa pratica</p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           {(Object.entries(BRAND_CONFIG) as [Brand, typeof BRAND_CONFIG[Brand]][]).map(([key, conf]) => {
             const Icon = conf.icon;
             return (
@@ -363,13 +363,16 @@ export default function NuovaPratica() {
                 key={key}
                 type="button"
                 onClick={() => setBrand(key)}
-                className={`rounded-xl border-2 p-6 text-left transition-all ${conf.color} focus:outline-none focus:ring-2 focus:ring-primary`}
+                className={`group rounded-xl border-2 p-5 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${conf.color} focus:outline-none focus:ring-2 focus:ring-primary`}
               >
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-white shadow-sm">
-                  <Icon className="h-6 w-6 text-primary" />
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm group-hover:shadow transition-shadow">
+                  <Icon className="h-5 w-5 text-primary" />
                 </div>
-                <h3 className="font-display text-lg font-bold">{conf.label}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{conf.description}</p>
+                <h3 className="font-semibold text-base">{conf.label}</h3>
+                <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{conf.description}</p>
+                <div className="mt-4 flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                  Seleziona <ArrowRight className="h-3 w-3" />
+                </div>
               </button>
             );
           })}
@@ -401,23 +404,44 @@ export default function NuovaPratica() {
       </div>
 
       {/* Step indicator */}
-      <div className="flex items-center gap-2">
-        {STEPS.map((s, i) => (
-          <div key={s} className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={i > step}
-              onClick={() => { if (i < step) setStep(i); }}
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors ${
-                i <= step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-              } ${i < step ? "cursor-pointer hover:bg-primary/80" : i > step ? "cursor-not-allowed" : ""}`}
-            >
-              {i < step ? <Check className="h-4 w-4" /> : i + 1}
-            </button>
-            <span className={`text-sm ${i === step ? "font-medium" : "text-muted-foreground"} hidden sm:inline`}>{s}</span>
-            {i < STEPS.length - 1 && <div className="h-px w-8 bg-border" />}
-          </div>
-        ))}
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          {STEPS.map((s, i) => (
+            <div key={s} className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={i > step}
+                onClick={() => { if (i < step) setStep(i); }}
+                className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold transition-all ${
+                  i < step
+                    ? "bg-primary text-primary-foreground cursor-pointer hover:bg-primary/80"
+                    : i === step
+                    ? "bg-primary text-primary-foreground ring-4 ring-primary/20"
+                    : "bg-muted text-muted-foreground cursor-not-allowed"
+                }`}
+              >
+                {i < step ? <Check className="h-3 w-3" /> : i + 1}
+              </button>
+              <span
+                className={`text-sm hidden sm:inline transition-colors ${
+                  i === step ? "font-semibold text-foreground" : i < step ? "text-muted-foreground" : "text-muted-foreground/50"
+                }`}
+              >
+                {s}
+              </span>
+              {i < STEPS.length - 1 && (
+                <div className={`h-px w-8 transition-colors ${i < step ? "bg-primary" : "bg-border"}`} />
+              )}
+            </div>
+          ))}
+        </div>
+        {/* Progress bar */}
+        <div className="h-0.5 w-full bg-muted rounded-full overflow-hidden">
+          <div
+            className="h-full bg-primary rounded-full transition-all duration-300 ease-out"
+            style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+          />
+        </div>
       </div>
 
       {/* Step 0: Dati Cliente */}

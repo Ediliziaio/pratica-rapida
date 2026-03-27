@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { CalendarIcon, X } from "lucide-react";
+import { CalendarIcon, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -29,19 +29,20 @@ export function PraticheFilters({
   clienti,
 }: PraticheFiltersProps) {
   const hasFilters = filterDateFrom || filterDateTo || filterCliente;
+  const activeCount = [filterDateFrom, filterDateTo, filterCliente].filter(Boolean).length;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex items-center gap-1.5 flex-wrap">
       {/* Date From */}
       <Popover>
         <PopoverTrigger asChild>
           <Button
-            variant="outline"
+            variant={filterDateFrom ? "secondary" : "outline"}
             size="sm"
-            className={cn("h-9 justify-start text-left font-normal", !filterDateFrom && "text-muted-foreground")}
+            className="h-9 gap-1.5 text-xs font-normal"
           >
-            <CalendarIcon className="mr-2 h-3.5 w-3.5" />
-            {filterDateFrom ? format(filterDateFrom, "dd/MM/yyyy") : "Da"}
+            <CalendarIcon className="h-3.5 w-3.5" />
+            {filterDateFrom ? format(filterDateFrom, "dd/MM/yy") : "Dal"}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -59,12 +60,12 @@ export function PraticheFilters({
       <Popover>
         <PopoverTrigger asChild>
           <Button
-            variant="outline"
+            variant={filterDateTo ? "secondary" : "outline"}
             size="sm"
-            className={cn("h-9 justify-start text-left font-normal", !filterDateTo && "text-muted-foreground")}
+            className="h-9 gap-1.5 text-xs font-normal"
           >
-            <CalendarIcon className="mr-2 h-3.5 w-3.5" />
-            {filterDateTo ? format(filterDateTo, "dd/MM/yyyy") : "A"}
+            <CalendarIcon className="h-3.5 w-3.5" />
+            {filterDateTo ? format(filterDateTo, "dd/MM/yy") : "Al"}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -78,24 +79,33 @@ export function PraticheFilters({
         </PopoverContent>
       </Popover>
 
-      {/* Client filter */}
-      <Select value={filterCliente || "all"} onValueChange={(v) => onClienteChange(v === "all" ? "" : v)}>
-        <SelectTrigger className="h-9 w-[180px]">
-          <SelectValue placeholder="Tutti i clienti" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Tutti i clienti</SelectItem>
-          {clienti.map((c) => (
-            <SelectItem key={c.id} value={c.id}>
-              {c.nome} {c.cognome}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {/* Client */}
+      {clienti.length > 0 && (
+        <Select value={filterCliente || "all"} onValueChange={(v) => onClienteChange(v === "all" ? "" : v)}>
+          <SelectTrigger className={cn("h-9 w-auto text-xs gap-1", filterCliente ? "bg-secondary" : "")}>
+            <SelectValue placeholder="Cliente" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tutti i clienti</SelectItem>
+            {clienti.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.nome} {c.cognome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
+      {/* Reset */}
       {hasFilters && (
-        <Button variant="ghost" size="sm" className="h-9" onClick={onReset}>
-          <X className="mr-1 h-3.5 w-3.5" /> Reset
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-9 gap-1 text-xs text-muted-foreground hover:text-foreground px-2"
+          onClick={onReset}
+        >
+          <X className="h-3.5 w-3.5" />
+          {activeCount > 1 ? `Reset (${activeCount})` : "Reset"}
         </Button>
       )}
     </div>

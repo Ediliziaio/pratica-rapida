@@ -1,8 +1,8 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Zap, FileText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CheckCircle2, Zap, FileText, Trash2, Plus } from "lucide-react";
 import { STATO_CONFIG, PAGAMENTO_BADGE, getAgingDot } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
 import { formatDistanceToNow } from "date-fns";
@@ -16,35 +16,62 @@ interface ListViewProps {
   onToggle?: (id: string) => void;
   onDelete?: (id: string) => void;
   canDelete?: (pratica: any) => boolean;
+  isLoading?: boolean;
 }
 
-export function ListView({ pratiche, navigate, selectable, selectedIds, onToggle, onDelete, canDelete }: ListViewProps) {
+export function ListView({
+  pratiche,
+  navigate,
+  selectable,
+  selectedIds,
+  onToggle,
+  onDelete,
+  canDelete,
+  isLoading,
+}: ListViewProps) {
+  if (isLoading) {
+    return (
+      <div className="rounded-xl border divide-y overflow-hidden">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="flex items-center gap-4 px-4 py-3">
+            <Skeleton className="h-8 w-8 rounded-lg shrink-0" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-3.5 w-48" />
+              <Skeleton className="h-3 w-28" />
+            </div>
+            <Skeleton className="h-5 w-16 rounded-full" />
+            <Skeleton className="h-5 w-20 rounded-full" />
+            <Skeleton className="h-4 w-14" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   if (pratiche.length === 0) {
     return (
-      <Card className="border-dashed border-2">
-        <CardContent className="flex flex-col items-center py-16 text-center">
-          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-            <FileText className="h-10 w-10 text-primary" />
-          </div>
-          <h3 className="font-display text-xl font-bold">Invia la tua prima pratica in meno di 2 minuti</h3>
-          <p className="mt-2 max-w-md text-sm text-muted-foreground">
-            Gestisci le tue pratiche ENEA e Conto Termico in modo semplice e veloce. Nessuna burocrazia, prezzo fisso e consegna garantita.
-          </p>
-          <ul className="mt-4 space-y-2 text-sm text-left">
-            <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success shrink-0" /> Consegna entro 24 ore lavorative</li>
-            <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success shrink-0" /> Prezzo fisso e trasparente</li>
-            <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success shrink-0" /> Zero burocrazia — pensiamo a tutto noi</li>
-          </ul>
-          <Button size="lg" className="mt-6" onClick={() => navigate("/pratiche/nuova")}>
-            <Zap className="mr-2 h-4 w-4" />Crea la tua prima pratica
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed py-16 text-center">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+          <FileText className="h-8 w-8 text-primary" />
+        </div>
+        <h3 className="font-semibold text-lg">Nessuna pratica trovata</h3>
+        <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
+          Crea la tua prima pratica ENEA o Conto Termico. Consegna garantita entro 24 ore lavorative.
+        </p>
+        <div className="mt-5 flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-success" /> Prezzo fisso</span>
+          <span className="flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-success" /> Zero burocrazia</span>
+          <span className="flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-success" /> Consegna 24h</span>
+        </div>
+        <Button size="sm" className="mt-6 gap-1.5" onClick={() => navigate("/pratiche/nuova")}>
+          <Plus className="h-4 w-4" /> Nuova Pratica
+        </Button>
+      </div>
     );
   }
 
   return (
-    <div className="grid gap-3">
+    <div className="rounded-xl border overflow-hidden divide-y">
       {pratiche.map((p) => {
         const statoConf = STATO_CONFIG[p.stato as PraticaStato];
         const Icon = statoConf.icon;
@@ -52,61 +79,77 @@ export function ListView({ pratiche, navigate, selectable, selectedIds, onToggle
         const pagamento = PAGAMENTO_BADGE[p.pagamento_stato] || PAGAMENTO_BADGE.non_pagata;
         const isSelected = selectedIds?.has(p.id) ?? false;
         const deletable = canDelete ? canDelete(p) : false;
+        const isCT = (p.dati_pratica as any)?.brand === "conto_termico";
 
         return (
-          <Card key={p.id} className={`cursor-pointer transition-colors hover:bg-accent/50 ${isSelected ? "ring-2 ring-primary" : ""}`} onClick={() => navigate(`/pratiche/${p.id}`)}>
-            <CardContent className="flex items-center gap-4 p-4">
-              {selectable && (
-                <div onClick={e => e.stopPropagation()}>
-                  <Checkbox
-                    checked={isSelected}
-                    onCheckedChange={() => onToggle?.(p.id)}
-                  />
-                </div>
+          <div
+            key={p.id}
+            className={`list-row flex items-center gap-3 px-4 py-3 cursor-pointer ${isSelected ? "bg-primary/5" : "bg-background"}`}
+            onClick={() => navigate(`/pratiche/${p.id}`)}
+          >
+            {/* Checkbox */}
+            {selectable && (
+              <div onClick={(e) => e.stopPropagation()} className="shrink-0">
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => onToggle?.(p.id)}
+                />
+              </div>
+            )}
+
+            {/* Status icon with aging dot */}
+            <div className="relative shrink-0">
+              <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${statoConf.color}`}>
+                <Icon className="h-4 w-4" />
+              </div>
+              {aging && (
+                <span
+                  className={`absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background ${aging.color}`}
+                  title={aging.label}
+                />
               )}
-              <div className="relative">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${statoConf.color}`}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                {aging && (
-                  <span className={`absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-background ${aging.color}`} title={aging.label} />
-                )}
+            </div>
+
+            {/* Title + client */}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <span className="font-medium text-sm truncate leading-tight">{p.titolo}</span>
+                <span
+                  className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                    isCT
+                      ? "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300"
+                      : "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                  }`}
+                >
+                  {isCT ? "CT" : "ENEA"}
+                </span>
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-medium truncate">{p.titolo}</p>
-                  {(p.dati_pratica as any)?.brand === "conto_termico" ? (
-                    <Badge className="shrink-0 bg-orange-100 text-orange-700 text-xs">CT</Badge>
-                  ) : (
-                    <Badge className="shrink-0 bg-blue-100 text-blue-700 text-xs">ENEA</Badge>
-                  )}
-                </div>
-                <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                  {p.clienti_finali && <span>{(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}</span>}
-                  <span className="text-xs">
-                    {formatDistanceToNow(new Date(p.created_at), { addSuffix: true, locale: it })}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className={`text-xs ${pagamento.className}`}>{pagamento.label}</Badge>
-                <div className="text-right">
-                  <p className="font-semibold">€ {p.prezzo.toFixed(2)}</p>
-                  <Badge className={`text-xs ${statoConf.color}`}>{statoConf.label}</Badge>
-                </div>
-                {deletable && onDelete && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive"
-                    onClick={e => { e.stopPropagation(); onDelete(p.id); }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+              <p className="text-xs text-muted-foreground truncate mt-0.5">
+                {p.clienti_finali
+                  ? `${(p.clienti_finali as any).nome} ${(p.clienti_finali as any).cognome} · `
+                  : ""}
+                {formatDistanceToNow(new Date(p.created_at), { addSuffix: true, locale: it })}
+              </p>
+            </div>
+
+            {/* Right side: stato + price */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Badge className={`text-[11px] hidden sm:inline-flex ${statoConf.color}`}>
+                {statoConf.label}
+              </Badge>
+              <span className="font-semibold text-sm tabular-nums">€ {p.prezzo.toFixed(0)}</span>
+              {deletable && onDelete && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                  onClick={(e) => { e.stopPropagation(); onDelete(p.id); }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
+          </div>
         );
       })}
     </div>

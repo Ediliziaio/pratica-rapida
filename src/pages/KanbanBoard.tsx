@@ -30,7 +30,10 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription,
+  SheetFooter,
+  SheetClose,
 } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -821,10 +824,12 @@ export default function KanbanBoard() {
   const [selectedPractice, setSelectedPractice] = useState<PracticeWithRelations | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>("recenti");
   const [operatoreFilter, setOperatoreFilter] = useState<string>("all");
-  const [showFilters, setShowFilters] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [aziendaFilter, setAziendaFilter] = useState<string>("all");
+  const [clienteFilter, setClienteFilter] = useState("");
+  const [stageFilter, setStageFilter] = useState<string>("all");
   const [archiveConfirm, setArchiveConfirm] = useState<{
     practiceId: string;
     newStageId: string;
@@ -891,12 +896,27 @@ export default function KanbanBoard() {
   const filteredPractices = practices.filter((p) => {
     if (isInternal && operatoreFilter !== "all" && p.operatore_id !== operatoreFilter) return false;
     if (isInternal && aziendaFilter !== "all" && p.companies?.id !== aziendaFilter) return false;
+    if (stageFilter !== "all" && p.current_stage_id !== stageFilter) return false;
     if (dateFrom && p.created_at < dateFrom) return false;
     if (dateTo && p.created_at > dateTo + "T23:59:59") return false;
+    if (clienteFilter.trim()) {
+      const q = clienteFilter.trim().toLowerCase();
+      const fullName = `${p.cliente_nome ?? ""} ${p.cliente_cognome ?? ""}`.toLowerCase();
+      const email = (p.cliente_email ?? "").toLowerCase();
+      const cf = (p.cliente_cf ?? "").toLowerCase();
+      if (!fullName.includes(q) && !email.includes(q) && !cf.includes(q)) return false;
+    }
     return true;
   });
 
-  const hasActiveFilters = dateFrom || dateTo || aziendaFilter !== "all" || operatoreFilter !== "all";
+  const activeFilterCount = [
+    dateFrom, dateTo,
+    aziendaFilter !== "all",
+    operatoreFilter !== "all",
+    stageFilter !== "all",
+    clienteFilter.trim() !== "",
+  ].filter(Boolean).length;
+  const hasActiveFilters = activeFilterCount > 0;
 
   // Export to CSV
   const exportCSV = () => {
@@ -945,6 +965,8 @@ export default function KanbanBoard() {
     setDateTo("");
     setAziendaFilter("all");
     setOperatoreFilter("all");
+    setClienteFilter("");
+    setStageFilter("all");
   };
 
   const byStage = useCallback(
@@ -1089,16 +1111,16 @@ export default function KanbanBoard() {
         {/* Right action buttons */}
         <div className="flex items-center gap-0.5 ml-auto">
           <Button
-            variant={showFilters ? "secondary" : "ghost"}
+            variant={hasActiveFilters ? "secondary" : "ghost"}
             size="sm"
             className="h-8 px-2.5 gap-1.5 relative text-xs"
-            onClick={() => setShowFilters((v) => !v)}
+            onClick={() => setFiltersOpen(true)}
           >
             <Filter className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Filtri</span>
             {hasActiveFilters && (
               <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-primary text-primary-foreground text-[9px] flex items-center justify-center font-bold leading-none">
-                {[dateFrom, dateTo, aziendaFilter !== "all", operatoreFilter !== "all"].filter(Boolean).length}
+                {activeFilterCount}
               </span>
             )}
           </Button>
@@ -1168,73 +1190,6 @@ export default function KanbanBoard() {
         </div>
       </div>
 
-      {/* ── Filter panel ──────────────────────────────────────────────────── */}
-      {showFilters && (
-        <div className="flex flex-wrap items-end gap-3 px-4 py-3 border-b bg-muted/20 shrink-0">
-          <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Dal</label>
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="h-8 rounded-md border border-input bg-background px-2.5 py-1 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Al</label>
-            <input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="h-8 rounded-md border border-input bg-background px-2.5 py-1 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-          </div>
-          {isInternal && companyList.length > 0 && (
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Azienda</label>
-              <Select value={aziendaFilter} onValueChange={setAziendaFilter}>
-                <SelectTrigger className="h-8 text-sm w-48">
-                  <SelectValue placeholder="Tutte le aziende" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tutte le aziende</SelectItem>
-                  {companyList.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          {isInternal && operators.length > 0 && (
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Operatore</label>
-              <Select value={operatoreFilter} onValueChange={setOperatoreFilter}>
-                <SelectTrigger className="h-8 text-sm w-44">
-                  <SelectValue placeholder="Tutti" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tutti gli operatori</SelectItem>
-                  {operators.map((op) => (
-                    <SelectItem key={op.id} value={op.id}>{op.nome} {op.cognome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          {hasActiveFilters && (
-            <button
-              onClick={clearFilters}
-              className="self-end flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground pb-1.5 transition-colors"
-            >
-              <FilterX className="h-3.5 w-3.5" /> Rimuovi filtri
-            </button>
-          )}
-          <p className="self-end text-[11px] text-muted-foreground pb-1.5 ml-auto">
-            {filteredPractices.length} pratiche{hasActiveFilters ? " filtrate" : ""}
-          </p>
-        </div>
-      )}
-
       {/* ── Stats bar ─────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-2 px-4 py-2 bg-background/80 border-b shrink-0 overflow-x-auto">
         <StatPill label="Attive" value={activePractices.length} />
@@ -1248,14 +1203,158 @@ export default function KanbanBoard() {
           value={staleCount}
           intent={staleCount > 0 ? "danger" : "default"}
         />
-        {isInternal && (
-          <StatPill
-            label="Guadagno mese"
-            value={`€ ${guadagnoMese.toLocaleString("it-IT", { maximumFractionDigits: 0 })}`}
-            intent="success"
-          />
+        {hasActiveFilters && (
+          <span className="ml-auto text-xs text-muted-foreground">
+            {filteredPractices.length} filtrate
+          </span>
         )}
       </div>
+
+      {/* ── Filters Sheet (right side) ─────────────────────────────────── */}
+      <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <SheetContent side="right" className="w-80 flex flex-col p-0">
+          <SheetHeader className="px-5 pt-5 pb-4 border-b">
+            <SheetTitle className="text-base">Filtri pipeline</SheetTitle>
+            <SheetDescription className="text-xs">
+              Filtra le pratiche per data, cliente, stage e operatore.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+            {/* Cliente */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Cliente
+              </label>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                <Input
+                  placeholder="Nome, cognome, CF, email..."
+                  className="pl-8 h-9 text-sm"
+                  value={clienteFilter}
+                  onChange={(e) => setClienteFilter(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Periodo */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Periodo creazione
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <span className="text-[11px] text-muted-foreground">Dal</span>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-full h-9 rounded-md border border-input bg-background px-2.5 py-1 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[11px] text-muted-foreground">Al</span>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full h-9 rounded-md border border-input bg-background px-2.5 py-1 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Stage */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Stage
+              </label>
+              <Select value={stageFilter} onValueChange={setStageFilter}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue placeholder="Tutti gli stage" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tutti gli stage</SelectItem>
+                  {stages.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Azienda (internal only) */}
+            {isInternal && companyList.length > 0 && (
+              <>
+                <Separator />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Azienda
+                  </label>
+                  <Select value={aziendaFilter} onValueChange={setAziendaFilter}>
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue placeholder="Tutte le aziende" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tutte le aziende</SelectItem>
+                      {companyList.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+
+            {/* Operatore (internal only) */}
+            {isInternal && operators.length > 0 && (
+              <>
+                <Separator />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Operatore
+                  </label>
+                  <Select value={operatoreFilter} onValueChange={setOperatoreFilter}>
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue placeholder="Tutti gli operatori" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tutti gli operatori</SelectItem>
+                      {operators.map((op) => (
+                        <SelectItem key={op.id} value={op.id}>
+                          {op.nome} {op.cognome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+          </div>
+
+          <SheetFooter className="px-5 py-4 border-t flex-row gap-2">
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 gap-1.5"
+                onClick={() => { clearFilters(); }}
+              >
+                <FilterX className="h-3.5 w-3.5" />
+                Rimuovi ({activeFilterCount})
+              </Button>
+            )}
+            <SheetClose asChild>
+              <Button size="sm" className="flex-1">
+                Mostra {filteredPractices.length} pratiche
+              </Button>
+            </SheetClose>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       {/* Board */}
       {isLoading ? (

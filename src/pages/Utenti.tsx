@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Shield, Search, UserPlus, X, Building2, Plus, Users } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Shield, Search, UserPlus, X, Building2, Plus, Users, Check } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
@@ -44,6 +45,141 @@ const newUserSchema = z.object({
   password: z.string().min(8, "Minimo 8 caratteri"),
   role: z.enum(Constants.public.Enums.app_role as unknown as [string, ...string[]], { required_error: "Seleziona un ruolo" }),
 });
+
+// --- PERMISSIONS MATRIX ---
+
+type PermRole = "super_admin" | "admin_interno" | "operatore" | "azienda_admin" | "azienda_user" | "rivenditore";
+
+const PERM_ROLES: PermRole[] = [
+  "super_admin",
+  "admin_interno",
+  "operatore",
+  "azienda_admin",
+  "azienda_user",
+  "rivenditore",
+];
+
+const PERM_ROLE_LABELS: Record<PermRole, string> = {
+  super_admin: "Super Admin",
+  admin_interno: "Admin",
+  operatore: "Operatore",
+  azienda_admin: "Az. Admin",
+  azienda_user: "Az. User",
+  rivenditore: "Rivenditore",
+};
+
+const PERM_ROLE_COLORS: Record<PermRole, string> = {
+  super_admin: "bg-destructive/10 text-destructive",
+  admin_interno: "bg-primary/10 text-primary",
+  operatore: "bg-warning/10 text-warning",
+  azienda_admin: "bg-success/10 text-success",
+  azienda_user: "bg-muted text-muted-foreground",
+  rivenditore: "bg-blue-100 text-blue-700",
+};
+
+interface PermRow {
+  label: string;
+  perms: Record<PermRole, boolean>;
+  category?: string; // shown as section header above the row
+}
+
+const PERM_MATRIX: PermRow[] = [
+  // GENERALE
+  { label: "Dashboard",             category: "GENERALE",  perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: true,  azienda_user: true,  rivenditore: false } },
+  // PRATICHE
+  { label: "Kanban Board",          category: "PRATICHE",  perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: false, azienda_user: false, rivenditore: true  } },
+  { label: "Pipeline ENEA/CT",                             perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: false, azienda_user: false, rivenditore: true  } },
+  { label: "Nuova Pratica",                                perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: true,  azienda_user: true,  rivenditore: true  } },
+  { label: "Pratiche (admin view)",                        perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: false, azienda_user: false, rivenditore: false } },
+  { label: "Le mie Pratiche",                              perms: { super_admin: false, admin_interno: false, operatore: false, azienda_admin: true,  azienda_user: true,  rivenditore: false } },
+  { label: "Attività (coda)",                              perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: false, azienda_user: false, rivenditore: false } },
+  // CRM
+  { label: "Gestionale",            category: "CRM",       perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: false, azienda_user: false, rivenditore: false } },
+  { label: "Automazioni",                                  perms: { super_admin: true,  admin_interno: true,  operatore: false, azienda_admin: false, azienda_user: false, rivenditore: false } },
+  { label: "Email/WhatsApp",                               perms: { super_admin: true,  admin_interno: true,  operatore: false, azienda_admin: false, azienda_user: false, rivenditore: false } },
+  { label: "Calendari",                                    perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: false, azienda_user: false, rivenditore: false } },
+  { label: "Aziende / CRM",                                perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: false, azienda_user: false, rivenditore: false } },
+  { label: "Promo",                                        perms: { super_admin: true,  admin_interno: true,  operatore: false, azienda_admin: false, azienda_user: false, rivenditore: false } },
+  // SUPPORTO
+  { label: "Ticket (admin)",        category: "SUPPORTO",  perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: false, azienda_user: false, rivenditore: false } },
+  { label: "Assistenza (cliente)",                         perms: { super_admin: false, admin_interno: false, operatore: false, azienda_admin: true,  azienda_user: true,  rivenditore: false } },
+  { label: "Wallet / Estratto Conto",                      perms: { super_admin: false, admin_interno: false, operatore: false, azienda_admin: true,  azienda_user: true,  rivenditore: false } },
+  // SISTEMA
+  { label: "Analytics",             category: "SISTEMA",   perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: false, azienda_user: false, rivenditore: false } },
+  { label: "Audit Log",                                    perms: { super_admin: true,  admin_interno: true,  operatore: false, azienda_admin: false, azienda_user: false, rivenditore: false } },
+  { label: "Listino",                                      perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: false, azienda_user: false, rivenditore: false } },
+  { label: "Utenti & Ruoli",                               perms: { super_admin: true,  admin_interno: true,  operatore: false, azienda_admin: false, azienda_user: false, rivenditore: false } },
+  { label: "Impostazioni (admin)",                         perms: { super_admin: true,  admin_interno: false, operatore: false, azienda_admin: false, azienda_user: false, rivenditore: false } },
+  { label: "Campi Personalizzati",                         perms: { super_admin: true,  admin_interno: false, operatore: false, azienda_admin: false, azienda_user: false, rivenditore: false } },
+  { label: "Impersonificazione",                           perms: { super_admin: true,  admin_interno: true,  operatore: false, azienda_admin: false, azienda_user: false, rivenditore: false } },
+];
+
+function PermessiTab() {
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-base font-semibold">Matrice dei Permessi</h2>
+        <p className="text-sm text-muted-foreground">Panoramica in sola lettura dei permessi per ciascun ruolo.</p>
+      </div>
+
+      <div className="overflow-x-auto rounded-lg border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-muted/60 sticky top-0 z-10">
+              <th className="px-4 py-3 text-left font-semibold text-foreground min-w-[200px]">Sezione / Azione</th>
+              {PERM_ROLES.map((role) => (
+                <th key={role} className="px-3 py-3 text-center font-medium min-w-[100px]">
+                  <Badge className={`text-xs whitespace-nowrap ${PERM_ROLE_COLORS[role]}`}>
+                    {PERM_ROLE_LABELS[role]}
+                  </Badge>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {PERM_MATRIX.map((row, idx) => (
+              <>
+                {row.category && (
+                  <tr key={`cat-${row.category}`} className="bg-muted/30">
+                    <td colSpan={PERM_ROLES.length + 1} className="px-4 py-1.5">
+                      <span className="text-[11px] font-bold tracking-widest text-muted-foreground uppercase">
+                        {row.category}
+                      </span>
+                    </td>
+                  </tr>
+                )}
+                <tr key={row.label} className={idx % 2 === 0 ? "bg-background" : "bg-muted/20"}>
+                  <td className="px-4 py-2.5 font-medium">{row.label}</td>
+                  {PERM_ROLES.map((role) => (
+                    <td key={role} className="px-3 py-2.5 text-center">
+                      {row.perms[role] ? (
+                        <Check className="mx-auto h-4 w-4 text-success" strokeWidth={2.5} />
+                      ) : (
+                        <span className="text-muted-foreground/50 font-medium">—</span>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              </>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-4 text-xs text-muted-foreground border rounded-md px-4 py-2.5 bg-muted/20 w-fit">
+        <span className="flex items-center gap-1.5">
+          <Check className="h-3.5 w-3.5 text-success" strokeWidth={2.5} />
+          = accesso completo
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="text-muted-foreground/50 font-medium">—</span>
+          = nessun accesso
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export default function Utenti() {
   const { toast } = useToast();
@@ -214,189 +350,210 @@ export default function Utenti() {
         </Button>
       </div>
 
-      {/* Stats bar */}
-      <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-        <span className="flex items-center gap-1.5">
-          <Users className="h-4 w-4" />
-          <strong className="text-foreground">{profiles.length}</strong> utenti totali
-        </span>
-        {Object.entries(ROLE_LABELS).map(([role, label]) => {
-          const count = allRoles.filter(r => r.role === role).length;
-          if (count === 0) return null;
-          return (
-            <button
-              key={role}
-              onClick={() => setFilterRole(filterRole === role as AppRole ? "" : role as AppRole)}
-              className={`rounded-full px-2 py-0.5 text-xs border transition-colors ${
-                filterRole === role
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "hover:bg-muted border-border"
-              } ${ROLE_COLORS[role as AppRole]}`}
-            >
-              {label}: {count}
-            </button>
-          );
-        })}
-      </div>
+      <Tabs defaultValue="utenti">
+        <TabsList>
+          <TabsTrigger value="utenti">
+            <Users className="mr-2 h-4 w-4" />
+            Utenti
+          </TabsTrigger>
+          <TabsTrigger value="permessi">
+            <Shield className="mr-2 h-4 w-4" />
+            Permessi
+          </TabsTrigger>
+        </TabsList>
 
-      <div className="flex gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Cerca utenti..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
-        </div>
-      </div>
+        {/* ---- UTENTI TAB ---- */}
+        <TabsContent value="utenti" className="mt-4 space-y-4">
+          {/* Stats bar */}
+          <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <Users className="h-4 w-4" />
+              <strong className="text-foreground">{profiles.length}</strong> utenti totali
+            </span>
+            {Object.entries(ROLE_LABELS).map(([role, label]) => {
+              const count = allRoles.filter(r => r.role === role).length;
+              if (count === 0) return null;
+              return (
+                <button
+                  key={role}
+                  onClick={() => setFilterRole(filterRole === role as AppRole ? "" : role as AppRole)}
+                  className={`rounded-full px-2 py-0.5 text-xs border transition-colors ${
+                    filterRole === role
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "hover:bg-muted border-border"
+                  } ${ROLE_COLORS[role as AppRole]}`}
+                >
+                  {label}: {count}
+                </button>
+              );
+            })}
+          </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
-      ) : (
-        <div className="grid gap-3">
-          {filtered.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <Users className="mx-auto h-10 w-10 mb-3 opacity-30" />
-              <p className="text-sm">Nessun utente trovato con i filtri selezionati.</p>
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder="Cerca utenti..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
             </div>
-          )}
-          {filtered.map(profile => {
-            const roles = getUserRoles(profile.id);
-            const assignments = getUserAssignments(profile.id);
-            const isExpanded = selectedUser === profile.id;
+          </div>
 
-            return (
-              <Card key={profile.id} className={isExpanded ? "ring-2 ring-primary" : ""}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4 cursor-pointer" onClick={() => setSelectedUser(isExpanded ? null : profile.id)}>
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm">
-                      {profile.nome?.[0]}{profile.cognome?.[0]}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium">{profile.nome} {profile.cognome}</p>
-                      <p className="text-sm text-muted-foreground">{profile.email}</p>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {roles.map(r => (
-                        <Badge key={r.id} className={`text-xs ${ROLE_COLORS[r.role]}`}>
-                          {ROLE_LABELS[r.role]}
-                        </Badge>
-                      ))}
-                      {roles.length === 0 && <Badge variant="outline" className="text-xs">Nessun ruolo</Badge>}
-                    </div>
-                  </div>
+          {isLoading ? (
+            <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+          ) : (
+            <div className="grid gap-3">
+              {filtered.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Users className="mx-auto h-10 w-10 mb-3 opacity-30" />
+                  <p className="text-sm">Nessun utente trovato con i filtri selezionati.</p>
+                </div>
+              )}
+              {filtered.map(profile => {
+                const roles = getUserRoles(profile.id);
+                const assignments = getUserAssignments(profile.id);
+                const isExpanded = selectedUser === profile.id;
 
-                  {isExpanded && (
-                    <div className="mt-4 space-y-4 border-t pt-4">
-                      {/* Roles management */}
-                      <div>
-                        <Label className="text-sm font-medium">Ruoli</Label>
-                        <div className="mt-2 flex flex-wrap gap-2">
+                return (
+                  <Card key={profile.id} className={isExpanded ? "ring-2 ring-primary" : ""}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-4 cursor-pointer" onClick={() => setSelectedUser(isExpanded ? null : profile.id)}>
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                          {profile.nome?.[0]}{profile.cognome?.[0]}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium">{profile.nome} {profile.cognome}</p>
+                          <p className="text-sm text-muted-foreground">{profile.email}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
                           {roles.map(r => (
-                            <Badge key={r.id} className={`${ROLE_COLORS[r.role]} gap-1`}>
+                            <Badge key={r.id} className={`text-xs ${ROLE_COLORS[r.role]}`}>
                               {ROLE_LABELS[r.role]}
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <button className="ml-1 hover:text-destructive">
-                                    <X className="h-3 w-3" />
-                                  </button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Rimuovere il ruolo?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Stai per rimuovere il ruolo <strong>{ROLE_LABELS[r.role]}</strong> da{" "}
-                                      <strong>{profile.nome} {profile.cognome}</strong>. Questa azione cambierà i permessi dell'utente.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Annulla</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => removeRole.mutate(r.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                      Rimuovi
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
                             </Badge>
                           ))}
-                        </div>
-                        <div className="mt-2 flex gap-2">
-                          <Select value={newRole} onValueChange={v => setNewRole(v as AppRole)}>
-                            <SelectTrigger className="w-48"><SelectValue placeholder="Aggiungi ruolo..." /></SelectTrigger>
-                            <SelectContent>
-                              {Constants.public.Enums.app_role
-                                .filter(r => !roles.some(ur => ur.role === r))
-                                .map(r => (
-                                  <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                          <Button size="sm" disabled={!newRole} onClick={() => {
-                            if (newRole) addRole.mutate({ userId: profile.id, role: newRole });
-                          }}>
-                            <UserPlus className="mr-1 h-4 w-4" />Aggiungi
-                          </Button>
+                          {roles.length === 0 && <Badge variant="outline" className="text-xs">Nessun ruolo</Badge>}
                         </div>
                       </div>
 
-                      {/* Company assignments */}
-                      <div>
-                        <Label className="text-sm font-medium">Aziende Assegnate</Label>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {assignments.map(a => {
-                            const companyName = (a.companies as { ragione_sociale: string } | null)?.ragione_sociale || "—";
-                            return (
-                              <Badge key={a.id} variant="outline" className="gap-1">
-                                <Building2 className="h-3 w-3" />
-                                {companyName}
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <button className="ml-1 hover:text-destructive">
-                                      <X className="h-3 w-3" />
-                                    </button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Rimuovere l'assegnazione?</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        L'utente <strong>{profile.nome} {profile.cognome}</strong> non avrà più accesso ai dati di <strong>{companyName}</strong>.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Annulla</AlertDialogCancel>
-                                      <AlertDialogAction onClick={() => removeAssignment.mutate(a.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                        Rimuovi
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </Badge>
-                            );
-                          })}
-                          {assignments.length === 0 && <span className="text-sm text-muted-foreground">Nessuna azienda</span>}
+                      {isExpanded && (
+                        <div className="mt-4 space-y-4 border-t pt-4">
+                          {/* Roles management */}
+                          <div>
+                            <Label className="text-sm font-medium">Ruoli</Label>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {roles.map(r => (
+                                <Badge key={r.id} className={`${ROLE_COLORS[r.role]} gap-1`}>
+                                  {ROLE_LABELS[r.role]}
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <button className="ml-1 hover:text-destructive">
+                                        <X className="h-3 w-3" />
+                                      </button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Rimuovere il ruolo?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Stai per rimuovere il ruolo <strong>{ROLE_LABELS[r.role]}</strong> da{" "}
+                                          <strong>{profile.nome} {profile.cognome}</strong>. Questa azione cambierà i permessi dell'utente.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Annulla</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => removeRole.mutate(r.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                          Rimuovi
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </Badge>
+                              ))}
+                            </div>
+                            <div className="mt-2 flex gap-2">
+                              <Select value={newRole} onValueChange={v => setNewRole(v as AppRole)}>
+                                <SelectTrigger className="w-48"><SelectValue placeholder="Aggiungi ruolo..." /></SelectTrigger>
+                                <SelectContent>
+                                  {Constants.public.Enums.app_role
+                                    .filter(r => !roles.some(ur => ur.role === r))
+                                    .map(r => (
+                                      <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                              </Select>
+                              <Button size="sm" disabled={!newRole} onClick={() => {
+                                if (newRole) addRole.mutate({ userId: profile.id, role: newRole });
+                              }}>
+                                <UserPlus className="mr-1 h-4 w-4" />Aggiungi
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Company assignments */}
+                          <div>
+                            <Label className="text-sm font-medium">Aziende Assegnate</Label>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {assignments.map(a => {
+                                const companyName = (a.companies as { ragione_sociale: string } | null)?.ragione_sociale || "—";
+                                return (
+                                  <Badge key={a.id} variant="outline" className="gap-1">
+                                    <Building2 className="h-3 w-3" />
+                                    {companyName}
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <button className="ml-1 hover:text-destructive">
+                                          <X className="h-3 w-3" />
+                                        </button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Rimuovere l'assegnazione?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            L'utente <strong>{profile.nome} {profile.cognome}</strong> non avrà più accesso ai dati di <strong>{companyName}</strong>.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Annulla</AlertDialogCancel>
+                                          <AlertDialogAction onClick={() => removeAssignment.mutate(a.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                            Rimuovi
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  </Badge>
+                                );
+                              })}
+                              {assignments.length === 0 && <span className="text-sm text-muted-foreground">Nessuna azienda</span>}
+                            </div>
+                            <div className="mt-2 flex gap-2">
+                              <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                                <SelectTrigger className="w-48"><SelectValue placeholder="Assegna azienda..." /></SelectTrigger>
+                                <SelectContent>
+                                  {companies
+                                    .filter(c => !assignments.some(a => a.company_id === c.id))
+                                    .map(c => (
+                                      <SelectItem key={c.id} value={c.id}>{c.ragione_sociale}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                              </Select>
+                              <Button size="sm" disabled={!selectedCompany} onClick={() => {
+                                if (selectedCompany) assignCompany.mutate({ userId: profile.id, companyId: selectedCompany });
+                              }}>
+                                <Plus className="mr-1 h-4 w-4" />Assegna
+                              </Button>
+                            </div>
+                          </div>
                         </div>
-                        <div className="mt-2 flex gap-2">
-                          <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-                            <SelectTrigger className="w-48"><SelectValue placeholder="Assegna azienda..." /></SelectTrigger>
-                            <SelectContent>
-                              {companies
-                                .filter(c => !assignments.some(a => a.company_id === c.id))
-                                .map(c => (
-                                  <SelectItem key={c.id} value={c.id}>{c.ragione_sociale}</SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                          <Button size="sm" disabled={!selectedCompany} onClick={() => {
-                            if (selectedCompany) assignCompany.mutate({ userId: profile.id, companyId: selectedCompany });
-                          }}>
-                            <Plus className="mr-1 h-4 w-4" />Assegna
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* ---- PERMESSI TAB ---- */}
+        <TabsContent value="permessi" className="mt-4">
+          <PermessiTab />
+        </TabsContent>
+      </Tabs>
 
       {/* New User Dialog */}
       <Dialog open={showNewUser} onOpenChange={(open) => {

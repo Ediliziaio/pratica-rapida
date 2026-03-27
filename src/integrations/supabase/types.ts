@@ -1017,7 +1017,7 @@ export const Constants = {
         "text", "textarea", "number", "date", "boolean",
         "select", "multi_select", "email", "phone", "url",
       ],
-      custom_field_entity: ["enea_practice", "reseller", "cliente"],
+      custom_field_entity: ["enea_practice", "reseller", "cliente", "contatto", "azienda", "pratica"],
     },
   },
 } as const
@@ -1046,7 +1046,7 @@ export type CustomFieldType =
   | "text" | "textarea" | "number" | "date" | "boolean"
   | "select" | "multi_select" | "email" | "phone" | "url"
 
-export type CustomFieldEntity = "enea_practice" | "reseller" | "cliente"
+export type CustomFieldEntity = "enea_practice" | "reseller" | "cliente" | "contatto" | "azienda" | "pratica"
 
 export interface PipelineStage {
   id: string
@@ -1164,6 +1164,8 @@ export interface CustomField {
   order_index: number
   group_name: string
   description: string | null
+  folder: string | null
+  is_system: boolean
   created_at: string
   updated_at: string
 }

@@ -67,6 +67,10 @@ import {
   X,
   Plus,
   Check,
+  Download,
+  Filter,
+  FilterX,
+  FileSpreadsheet,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
@@ -799,6 +803,10 @@ export default function KanbanBoard() {
   const [selectedPractice, setSelectedPractice] = useState<PracticeWithRelations | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>("recenti");
   const [operatoreFilter, setOperatoreFilter] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [aziendaFilter, setAziendaFilter] = useState<string>("all");
   const [archiveConfirm, setArchiveConfirm] = useState<{
     practiceId: string;
     newStageId: string;
@@ -852,11 +860,74 @@ export default function KanbanBoard() {
     .filter((p) => p.created_at >= startOfMonth && p.guadagno_netto != null)
     .reduce((sum, p) => sum + (p.guadagno_netto ?? 0), 0);
 
-  // Apply operatore filter (for internal users)
-  const filteredPractices =
-    isInternal && operatoreFilter !== "all"
-      ? practices.filter((p) => p.operatore_id === operatoreFilter)
-      : practices;
+  // Unique companies from loaded practices (for internal filter)
+  const companyList = Array.from(
+    new Map(
+      practices
+        .filter((p) => p.companies)
+        .map((p) => [p.companies!.id, p.companies!.ragione_sociale])
+    ).entries()
+  ).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+
+  // Apply all client-side filters
+  const filteredPractices = practices.filter((p) => {
+    if (isInternal && operatoreFilter !== "all" && p.operatore_id !== operatoreFilter) return false;
+    if (isInternal && aziendaFilter !== "all" && p.companies?.id !== aziendaFilter) return false;
+    if (dateFrom && p.created_at < dateFrom) return false;
+    if (dateTo && p.created_at > dateTo + "T23:59:59") return false;
+    return true;
+  });
+
+  const hasActiveFilters = dateFrom || dateTo || aziendaFilter !== "all" || operatoreFilter !== "all";
+
+  // Export to CSV
+  const exportCSV = () => {
+    const headers = [
+      "Nome", "Cognome", "Email", "Telefono", "Codice Fiscale", "Brand",
+      "Azienda", "Stage", "Prodotto", "Fornitore", "Note",
+      "Guadagno Netto (€)", "Guadagno Lordo (€)", "Solleciti",
+      "Form Compilato", "Operatore", "Archiviata", "Creata il", "Aggiornata il",
+    ];
+    const rows = filteredPractices.map((p) => [
+      p.cliente_nome,
+      p.cliente_cognome,
+      p.cliente_email ?? "",
+      p.cliente_telefono ?? "",
+      p.cliente_cf ?? "",
+      p.brand === "enea" ? "ENEA" : "Conto Termico",
+      p.companies?.ragione_sociale ?? "",
+      p.pipeline_stages?.name ?? "",
+      p.prodotto_installato ?? "",
+      p.fornitore ?? "",
+      (p.note ?? "").replace(/[\r\n]+/g, " "),
+      p.guadagno_netto != null ? p.guadagno_netto.toFixed(2) : "",
+      p.guadagno_lordo != null ? p.guadagno_lordo.toFixed(2) : "",
+      p.conteggio_solleciti ?? 0,
+      p.form_compilato_at ? format(new Date(p.form_compilato_at), "dd/MM/yyyy") : "No",
+      p.operatore_id ? (operatorMap[p.operatore_id] ?? "") : "",
+      p.archived_at ? "Sì" : "No",
+      format(new Date(p.created_at), "dd/MM/yyyy HH:mm"),
+      format(new Date(p.updated_at), "dd/MM/yyyy HH:mm"),
+    ]);
+    const csv = [headers, ...rows]
+      .map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";"))
+      .join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pipeline-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: `Esportate ${filteredPractices.length} pratiche` });
+  };
+
+  const clearFilters = () => {
+    setDateFrom("");
+    setDateTo("");
+    setAziendaFilter("all");
+    setOperatoreFilter("all");
+  };
 
   const byStage = useCallback(
     (stageId: string) => {
@@ -1003,23 +1074,6 @@ export default function KanbanBoard() {
           ))}
         </div>
 
-        {/* Operatore filter (internal only) */}
-        {isInternal && operators.length > 0 && (
-          <Select value={operatoreFilter} onValueChange={setOperatoreFilter}>
-            <SelectTrigger className="h-9 text-sm w-44">
-              <SelectValue placeholder="Tutti gli operatori" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tutti gli operatori</SelectItem>
-              {operators.map((op) => (
-                <SelectItem key={op.id} value={op.id}>
-                  {op.nome} {op.cognome}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
         {/* Sort dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -1050,12 +1104,129 @@ export default function KanbanBoard() {
           {showArchived ? "Nascondi archiviate" : "Mostra archiviate"}
         </Button>
 
+        {/* Filters toggle */}
+        <Button
+          variant={showFilters || hasActiveFilters ? "secondary" : "outline"}
+          size="sm"
+          onClick={() => setShowFilters((v) => !v)}
+          className="gap-1.5 relative"
+        >
+          <Filter className="h-4 w-4" />
+          Filtri
+          {hasActiveFilters && (
+            <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center font-bold">
+              {[dateFrom, dateTo, aziendaFilter !== "all" ? 1 : 0, operatoreFilter !== "all" ? 1 : 0].filter(Boolean).length}
+            </span>
+          )}
+        </Button>
+
+        {/* Export */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Download className="h-4 w-4" />
+              Esporta
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={exportCSV} className="gap-2">
+              <FileSpreadsheet className="h-4 w-4 text-green-600" />
+              CSV / Excel ({filteredPractices.length} pratiche)
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         {/* Pipeline settings */}
         <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
           <SlidersHorizontal className="h-4 w-4 mr-1" />
-          Impostazioni pipeline
+          Pipeline
         </Button>
       </div>
+
+      {/* Advanced filters panel */}
+      {showFilters && (
+        <div className="flex flex-wrap items-end gap-3 px-4 py-3 border-b bg-muted/20 shrink-0">
+          {/* Date from */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-muted-foreground">Dal</label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </div>
+
+          {/* Date to */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-muted-foreground">Al</label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </div>
+
+          {/* Company filter (internal only) */}
+          {isInternal && companyList.length > 0 && (
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-muted-foreground">Azienda</label>
+              <Select value={aziendaFilter} onValueChange={setAziendaFilter}>
+                <SelectTrigger className="h-9 text-sm w-48">
+                  <SelectValue placeholder="Tutte le aziende" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tutte le aziende</SelectItem>
+                  {companyList.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Operatore filter (internal only) */}
+          {isInternal && operators.length > 0 && (
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-muted-foreground">Operatore</label>
+              <Select value={operatoreFilter} onValueChange={setOperatoreFilter}>
+                <SelectTrigger className="h-9 text-sm w-44">
+                  <SelectValue placeholder="Tutti gli operatori" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tutti gli operatori</SelectItem>
+                  {operators.map((op) => (
+                    <SelectItem key={op.id} value={op.id}>
+                      {op.nome} {op.cognome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Clear filters */}
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="gap-1.5 text-muted-foreground hover:text-foreground self-end"
+            >
+              <FilterX className="h-4 w-4" />
+              Rimuovi filtri
+            </Button>
+          )}
+
+          {/* Active filter summary */}
+          <div className="self-end pb-0.5">
+            <span className="text-xs text-muted-foreground">
+              {filteredPractices.length} pratiche{hasActiveFilters ? " (filtrate)" : ""}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Stats bar */}
       <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b bg-muted/30 shrink-0">

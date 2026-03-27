@@ -28,9 +28,17 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
 
+      - name: Install Wrangler
+        run: npm install -g wrangler
+
+      - name: Create Pages project if not exists
+        run: wrangler pages project create pratica-rapida --production-branch=main || true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: "6dbe45e3a0714108638841b2593a7168"
+
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: "6dbe45e3a0714108638841b2593a7168"
-          command: pages deploy dist --project-name=pratica-rapida --branch=main
+        run: wrangler pages deploy dist --project-name=pratica-rapida --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: "6dbe45e3a0714108638841b2593a7168"

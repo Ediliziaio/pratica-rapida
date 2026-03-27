@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Building2, Plus, Search, Receipt, Users, FolderOpen, LogIn,
   ChevronDown, BarChart3, TrendingUp, CircleDollarSign, CalendarDays, CheckCircle2, Clock,
-  ShieldOff, ShieldCheck,
+  ShieldOff, ShieldCheck, LayoutDashboard,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCompany } from "@/hooks/useCompany";
@@ -376,6 +376,16 @@ export default function Aziende() {
                             )
                           )}
 
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 gap-1 text-xs text-muted-foreground hover:text-primary"
+                            title="Vedi pratiche nel Kanban"
+                            onClick={() => navigate("/kanban", { state: { aziendaFilter: c.id } })}
+                          >
+                            <LayoutDashboard className="h-3.5 w-3.5" />
+                            Pipeline
+                          </Button>
                           <CollapsibleTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                               <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />

@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import {
   DragDropContext,
   Droppable,
@@ -54,6 +55,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import {
   Search,
+  Building2,
   MessageCircle,
   Mail,
   AlertTriangle,
@@ -827,8 +829,12 @@ export default function KanbanBoard() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [aziendaFilter, setAziendaFilter] = useState<string>("all");
+  const location = useLocation();
+  const [aziendaFilter, setAziendaFilter] = useState<string>(
+    (location.state as { aziendaFilter?: string } | null)?.aziendaFilter ?? "all"
+  );
   const [clienteFilter, setClienteFilter] = useState("");
+  const [aziendaSearch, setAziendaSearch] = useState("");
   const [stageFilter, setStageFilter] = useState<string>("all");
   const [archiveConfirm, setArchiveConfirm] = useState<{
     practiceId: string;
@@ -868,6 +874,25 @@ export default function KanbanBoard() {
   const operatorMap = Object.fromEntries(
     operators.map((o) => [o.id, `${o.nome} ${o.cognome}`.trim()])
   );
+
+  // All companies from DB (for internal filter - loads all, not just from loaded practices)
+  const { data: allCompaniesFromDB = [] } = useQuery({
+    queryKey: ["kanban-all-companies"],
+    enabled: isInternal,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("companies")
+        .select("id, ragione_sociale")
+        .order("ragione_sociale");
+      return data ?? [];
+    },
+  });
+
+  const filteredCompanyList = aziendaSearch
+    ? allCompaniesFromDB.filter((c) =>
+        c.ragione_sociale.toLowerCase().includes(aziendaSearch.toLowerCase())
+      )
+    : allCompaniesFromDB;
 
   // Stats
   const now = Date.now();
@@ -1087,6 +1112,19 @@ export default function KanbanBoard() {
           <span className="inline-flex h-5 min-w-[1.25rem] px-1.5 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground">
             {filteredPractices.length}
           </span>
+          {isInternal && aziendaFilter !== "all" && (
+            <button
+              onClick={() => setAziendaFilter("all")}
+              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-medium hover:bg-primary/20 transition-colors"
+              title="Rimuovi filtro azienda"
+            >
+              <Building2 className="h-3 w-3 shrink-0" />
+              <span className="max-w-[140px] truncate">
+                {allCompaniesFromDB.find((c) => c.id === aziendaFilter)?.ragione_sociale ?? "Azienda"}
+              </span>
+              <X className="h-3 w-3 shrink-0" />
+            </button>
+          )}
         </div>
 
         {/* Search */}
@@ -1287,24 +1325,48 @@ export default function KanbanBoard() {
             </div>
 
             {/* Azienda (internal only) */}
-            {isInternal && companyList.length > 0 && (
+            {isInternal && (
               <>
                 <Separator />
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Azienda
                   </label>
-                  <Select value={aziendaFilter} onValueChange={setAziendaFilter}>
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Tutte le aziende" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tutte le aziende</SelectItem>
-                      {companyList.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <Input
+                      placeholder="Cerca azienda..."
+                      className="pl-8 h-9 text-sm"
+                      value={aziendaSearch}
+                      onChange={(e) => setAziendaSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="max-h-48 overflow-y-auto rounded-md border divide-y">
+                    <button
+                      onClick={() => setAziendaFilter("all")}
+                      className={`w-full text-left px-3 py-2 hover:bg-muted/50 transition-colors flex items-center justify-between text-sm ${
+                        aziendaFilter === "all" ? "bg-primary/5 text-primary font-medium" : ""
+                      }`}
+                    >
+                      <span>Tutte le aziende</span>
+                      {aziendaFilter === "all" && <Check className="h-3.5 w-3.5 shrink-0" />}
+                    </button>
+                    {filteredCompanyList.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => setAziendaFilter(c.id)}
+                        className={`w-full text-left px-3 py-2 hover:bg-muted/50 transition-colors flex items-center justify-between text-sm ${
+                          aziendaFilter === c.id ? "bg-primary/5 text-primary font-medium" : ""
+                        }`}
+                      >
+                        <span className="truncate">{c.ragione_sociale}</span>
+                        {aziendaFilter === c.id && <Check className="h-3.5 w-3.5 shrink-0 text-primary" />}
+                      </button>
+                    ))}
+                    {filteredCompanyList.length === 0 && aziendaSearch && (
+                      <p className="text-center text-xs text-muted-foreground py-3">Nessuna azienda trovata</p>
+                    )}
+                  </div>
                 </div>
               </>
             )}

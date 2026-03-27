@@ -322,7 +322,7 @@ export default function Gestionale() {
           <table className="w-full text-sm">
             <thead>
               <tr style={{ position: 'sticky', top: 0, zIndex: 10 }} className="bg-muted/50">
-                {["ID", "Cliente", "Rivenditore", "Brand", "Prodotto", "Data invio", "Lordo €", "Netto €", "Note", "Azione"].map(
+                {["ID", "Cliente", "Rivenditore", "Brand", "Prodotto", "Data invio", "Lordo €", "Netto €", "Margine", "Note", "Azione"].map(
                   (h) => (
                     <th key={h} className="text-left px-3 py-2 font-medium text-muted-foreground whitespace-nowrap">
                       {h}
@@ -368,6 +368,24 @@ export default function Gestionale() {
                       onSave={(v) => updateMutation.mutate({ id: p.id, field: "guadagno_netto", value: v })}
                     />
                   </td>
+                  <td className="px-3 py-2">
+                    {p.guadagno_lordo != null && p.guadagno_netto != null ? (
+                      <div className="space-y-0.5">
+                        <span className={`text-xs font-semibold ${
+                          p.guadagno_lordo - p.guadagno_netto > 0 ? "text-green-600" : "text-muted-foreground"
+                        }`}>
+                          € {(p.guadagno_lordo - p.guadagno_netto).toFixed(2)}
+                        </span>
+                        {p.guadagno_lordo > 0 && (
+                          <p className="text-[10px] text-muted-foreground">
+                            {(((p.guadagno_lordo - p.guadagno_netto) / p.guadagno_lordo) * 100).toFixed(1)}%
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    )}
+                  </td>
                   <td className="px-3 py-2 max-w-[160px]">
                     <EditableCell
                       value={p.note_gestionale}
@@ -403,6 +421,14 @@ export default function Gestionale() {
                 </td>
                 <td className="px-3 py-2">€ {totalLordo.toFixed(2)}</td>
                 <td className="px-3 py-2">€ {totalNetto.toFixed(2)}</td>
+                <td className="px-3 py-2 text-green-600">
+                  € {(totalLordo - totalNetto).toFixed(2)}
+                  {totalLordo > 0 && (
+                    <span className="text-xs font-normal text-muted-foreground ml-1">
+                      ({(((totalLordo - totalNetto) / totalLordo) * 100).toFixed(1)}%)
+                    </span>
+                  )}
+                </td>
                 <td colSpan={2} />
               </tr>
             </tfoot>

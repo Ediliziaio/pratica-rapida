@@ -6,13 +6,15 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { DisclaimerBanner } from "@/components/DisclaimerBanner";
 import { useCompany } from "@/hooks/useCompany";
-import { Building2, X } from "lucide-react";
+import { Building2, X, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { isImpersonating, impersonatedCompanyName, clearImpersonation } = useCompany();
+  const { theme, setTheme } = useTheme();
 
   const handleExitImpersonation = () => {
     clearImpersonation();
@@ -45,8 +47,17 @@ export function AppLayout({ children }: { children: ReactNode }) {
           {/* Top header */}
           <header className="sticky top-0 z-10 flex h-12 items-center justify-between border-b bg-background/90 px-4 backdrop-blur-md shrink-0">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <GlobalSearch />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                title={theme === "dark" ? "Passa al tema chiaro" : "Passa al tema scuro"}
+              >
+                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
               <NotificationBell />
             </div>
           </header>

@@ -10,6 +10,7 @@ import { CompanyProvider } from "@/hooks/useCompany";
 import { AppLayout } from "@/components/AppLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { RoleGuard } from "@/components/RoleGuard";
+import { ThemeProvider } from "next-themes";
 
 // Lazy-loaded pages
 const Auth = lazy(() => import("./pages/Auth"));
@@ -104,6 +105,7 @@ function AuthRoute() {
 }
 
 const App = () => (
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <ErrorBoundary>
@@ -169,6 +171,7 @@ const App = () => (
       </ErrorBoundary>
     </TooltipProvider>
   </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

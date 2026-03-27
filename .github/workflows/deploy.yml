@@ -29,7 +29,8 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
 
       - name: Deploy to Cloudflare Pages
-        run: npx wrangler pages deploy dist --project-name=pratica-rapida
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: 6dbe45e3a0714108638841b2593a7168
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: "6dbe45e3a0714108638841b2593a7168"
+          command: pages deploy dist --project-name=pratica-rapida --branch=main

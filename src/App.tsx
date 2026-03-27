@@ -1,4 +1,5 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,7 @@ import { RoleGuard } from "@/components/RoleGuard";
 
 // Lazy-loaded pages
 const Auth = lazy(() => import("./pages/Auth"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const NuovaPratica = lazy(() => import("./pages/NuovaPratica"));
 const Pratiche = lazy(() => import("./pages/Pratiche"));
@@ -60,10 +62,27 @@ function PageLoader() {
   );
 }
 
+function useOnboardingCheck() {
+  const { user, roles } = useAuth();
+  const isAzienda = roles.some(r => ["azienda_admin", "azienda_user"].includes(r));
+  const [needsOnboarding, setNeedsOnboarding] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!user || !isAzienda) { setNeedsOnboarding(false); return; }
+    supabase.from("profiles").select("onboarding_completed").eq("id", user.id).single()
+      .then(({ data }) => setNeedsOnboarding(data?.onboarding_completed === false));
+  }, [user, isAzienda]);
+
+  return needsOnboarding;
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
-  if (loading) return <PageLoader />;
+  const needsOnboarding = useOnboardingCheck();
+
+  if (loading || needsOnboarding === null) return <PageLoader />;
   if (!session) return <Navigate to="/auth" replace />;
+  if (needsOnboarding) return <Navigate to="/onboarding" replace />;
   return (
     <CompanyProvider>
       <AppLayout>{children}</AppLayout>
@@ -95,6 +114,7 @@ const App = () => (
                 <Route path="/auth" element={<AuthRoute />} />
                 <Route path="/blocked" element={<Blocked />} />
                 <Route path="/form/:token" element={<FormPubblico />} />
+                <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/pratiche" element={<ProtectedRoute><Pratiche /></ProtectedRoute>} />
                 <Route path="/pratiche/nuova" element={<ProtectedRoute><NuovaPratica /></ProtectedRoute>} />

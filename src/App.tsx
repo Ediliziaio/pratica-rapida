@@ -46,6 +46,7 @@ const EneaDashboard = lazy(() => import("./pages/EneaDashboard"));
 const ComunicazioniLog = lazy(() => import("./pages/ComunicazioniLog"));
 const CalendarioChiamate = lazy(() => import("./pages/CalendarioChiamate"));
 const ImpostazioniCampi = lazy(() => import("./pages/admin/ImpostazioniCampi"));
+const PromoManager = lazy(() => import("./pages/admin/PromoManager"));
 
 const queryClient = new QueryClient();
 
@@ -147,6 +148,7 @@ const App = () => (
                 <Route path="/admin/automazioni" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><Automazioni /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/comunicazioni" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><ComunicazioniLog /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/calendario" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><CalendarioChiamate /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/promo" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><PromoManager /></RoleGuard></ProtectedRoute>} />
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

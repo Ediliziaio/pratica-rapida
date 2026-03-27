@@ -23,8 +23,10 @@ import {
   Gift,
   CalendarDays,
   UserSearch,
+  ChevronDown,
 } from "lucide-react";
 import type React from "react";
+import { useState } from "react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth, isSuperAdmin, isInternal, isAzienda, isReseller } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
@@ -41,6 +43,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 type NavItem = {
   title: string;
@@ -51,6 +54,8 @@ type NavItem = {
 
 type NavGroup = {
   label?: string;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
   items: NavItem[];
 };
 
@@ -58,30 +63,65 @@ function NavItems({ groups }: { groups: NavGroup[] }) {
   return (
     <>
       {groups.map((group, gi) => (
-        <SidebarGroup key={gi}>
-          {group.label && <SidebarGroupLabel>{group.label}</SidebarGroupLabel>}
+        group.collapsible && group.label ? (
+          <CollapsibleGroup key={gi} group={group} />
+        ) : (
+          <SidebarGroup key={gi}>
+            {group.label && <SidebarGroupLabel>{group.label}</SidebarGroupLabel>}
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => (
+                  <NavItemRow key={item.url + item.title} item={item} />
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )
+      ))}
+    </>
+  );
+}
+
+function CollapsibleGroup({ group }: { group: NavGroup }) {
+  const [open, setOpen] = useState(group.defaultOpen ?? true);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <SidebarGroup>
+        <CollapsibleTrigger asChild>
+          <SidebarGroupLabel className="cursor-pointer flex items-center justify-between hover:text-foreground transition-colors">
+            {group.label}
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${open ? "" : "-rotate-90"}`} />
+          </SidebarGroupLabel>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
           <SidebarGroupContent>
             <SidebarMenu>
               {group.items.map((item) => (
-                <SidebarMenuItem key={item.url + item.title}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
-                    <NavLink
-                      to={item.url}
-                      end={item.end ?? false}
-                      className="hover:bg-accent"
-                      activeClassName="bg-accent text-primary font-medium"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                <NavItemRow key={item.url + item.title} item={item} />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
-        </SidebarGroup>
-      ))}
-    </>
+        </CollapsibleContent>
+      </SidebarGroup>
+    </Collapsible>
+  );
+}
+
+function NavItemRow({ item }: { item: NavItem }) {
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild tooltip={item.title}>
+        <NavLink
+          to={item.url}
+          end={item.end ?? false}
+          className="hover:bg-accent"
+          activeClassName="bg-accent text-primary font-medium"
+        >
+          <item.icon className="h-4 w-4" />
+          <span>{item.title}</span>
+        </NavLink>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   );
 }
 
@@ -101,7 +141,6 @@ export function AppSidebar() {
   let groups: NavGroup[] = [];
 
   if (internal && !isImpersonating) {
-    // Super Admin / Interno: single unified navigation
     groups = [
       {
         items: [
@@ -112,26 +151,44 @@ export function AppSidebar() {
       },
       {
         label: "Pratiche",
+        collapsible: true,
+        defaultOpen: true,
         items: [
           { title: "Gestionale", url: "/admin/gestionale", icon: Table2 },
           { title: "Pratiche", url: "/admin/pratiche", icon: FolderOpen },
           { title: "Attività", url: "/coda-pratiche", icon: ListChecks },
           { title: "Automazioni", url: "/admin/automazioni", icon: Zap },
-          { title: "Comunicazioni", url: "/admin/comunicazioni", icon: MessageSquare },
-          { title: "Calendario Chiamate", url: "/admin/calendario", icon: CalendarClock },
+        ],
+      },
+      {
+        label: "Comunicazioni",
+        collapsible: true,
+        defaultOpen: false,
+        items: [
           { title: "Email", url: "/admin/email", icon: Mail },
           { title: "WhatsApp", url: "/admin/whatsapp", icon: MessageCircle },
+          { title: "Log", url: "/admin/comunicazioni", icon: MessageSquare },
+          { title: "Calendario Chiamate", url: "/admin/calendario", icon: CalendarClock },
           { title: "Calendario", url: "/admin/calendario-eventi", icon: CalendarDays },
         ],
       },
       {
-        label: "Gestione",
+        label: "CRM",
+        collapsible: true,
+        defaultOpen: false,
         items: [
           { title: "Aziende", url: "/aziende", icon: Building2 },
           { title: "Clienti", url: "/admin/clienti", icon: UserSearch },
-          { title: "Utenti", url: "/utenti", icon: Users },
           { title: "Promo", url: "/admin/promo", icon: Gift },
           { title: "Ticket", url: "/admin/ticket", icon: LifeBuoy },
+        ],
+      },
+      {
+        label: "Sistema",
+        collapsible: true,
+        defaultOpen: false,
+        items: [
+          { title: "Utenti", url: "/utenti", icon: Users },
           { title: "Listino", url: "/listino", icon: BookOpen },
           { title: "Analytics", url: "/analytics", icon: BarChart3 },
           { title: "Audit Log", url: "/admin/audit-log", icon: Shield },

@@ -13,7 +13,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight, Check, FileText, Briefcase, Send, CalendarIcon, Zap, Flame } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, FileText, Briefcase, Send, CalendarIcon, Zap, Flame, Gift } from "lucide-react";
+import { usePromo } from "@/hooks/usePromo";
+import { Switch } from "@/components/ui/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -136,6 +138,9 @@ export default function NuovaPratica() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const { activePromo, isPromoApplicable, daysToExpiry, applyPromo } = usePromo(user?.id);
+  const [usePromoOnSubmit, setUsePromoOnSubmit] = useState(false);
 
   const [brand, setBrand] = useState<Brand | null>(null);
   const [step, setStep] = useState(0);
@@ -294,7 +299,7 @@ export default function NuovaPratica() {
       const titoloBase = `Pratica ${BRAND_CONFIG[brand].praticaLabel} - ${validated.nome} ${validated.cognome}`;
 
       // Fatturazione mensile posticipata: nessuna verifica wallet, la pratica viene inviata direttamente
-      const { error } = await supabase.from("pratiche").insert({
+      const { data: inserted, error } = await supabase.from("pratiche").insert({
         company_id: companyId,
         creato_da: user.id,
         service_id: praticaService?.id || null,
@@ -306,8 +311,14 @@ export default function NuovaPratica() {
         prezzo,
         pagamento_stato: "non_pagata",
         dati_pratica: datiPratica,
-      });
+        is_free: !asBozza && usePromoOnSubmit && isPromoApplicable,
+      }).select("id").single();
       if (error) throw error;
+
+      // Applica promo se selezionata
+      if (!asBozza && usePromoOnSubmit && isPromoApplicable && inserted?.id) {
+        await applyPromo(inserted.id).catch(() => null);
+      }
     },
     onSuccess: (_, asBozza) => {
       queryClient.invalidateQueries({ queryKey: ["pratiche"] });
@@ -552,13 +563,49 @@ export default function NuovaPratica() {
                 {prezzo > 0 && (
                   <div className="flex justify-between">
                     <span className="font-semibold">Costo servizio</span>
-                    <span className="text-lg font-bold">€ {prezzo.toFixed(2)}</span>
+                    <span className={`text-lg font-bold ${usePromoOnSubmit && isPromoApplicable ? "line-through text-muted-foreground" : ""}`}>
+                      € {prezzo.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+                {usePromoOnSubmit && isPromoApplicable && (
+                  <div className="flex justify-between text-green-600 font-semibold">
+                    <span>Con promo</span>
+                    <span className="text-lg">€ 0.00 🎁</span>
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground">
                   💳 Il pagamento avviene tramite bonifico a fine mese, insieme a tutte le pratiche del periodo.
                 </p>
               </div>
+
+              {/* Banner promo */}
+              {isPromoApplicable && activePromo && (
+                <div className="border border-amber-200 bg-amber-50 rounded-lg p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Gift className="h-4 w-4 text-amber-600 shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-amber-800">
+                        Hai {activePromo.pratiche_free_remaining ?? "∞"} pratiche gratuite disponibili!
+                      </p>
+                      <p className="text-xs text-amber-600">
+                        {activePromo.promo_types?.name ?? "Promo attiva"}
+                        {daysToExpiry !== null && daysToExpiry <= 7 && (
+                          <span className="ml-1 text-orange-600 font-medium">· Scade tra {daysToExpiry}gg</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs text-amber-700">Usa promo</span>
+                    <Switch
+                      checked={usePromoOnSubmit}
+                      onCheckedChange={setUsePromoOnSubmit}
+                      className="data-[state=checked]:bg-amber-500"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -18,6 +18,11 @@ import {
   Zap,
   MessageSquare,
   CalendarClock,
+  Mail,
+  MessageCircle,
+  Gift,
+  CalendarDays,
+  UserSearch,
 } from "lucide-react";
 import type React from "react";
 import { NavLink } from "@/components/NavLink";
@@ -114,13 +119,18 @@ export function AppSidebar() {
           { title: "Automazioni", url: "/admin/automazioni", icon: Zap },
           { title: "Comunicazioni", url: "/admin/comunicazioni", icon: MessageSquare },
           { title: "Calendario Chiamate", url: "/admin/calendario", icon: CalendarClock },
+          { title: "Email", url: "/admin/email", icon: Mail },
+          { title: "WhatsApp", url: "/admin/whatsapp", icon: MessageCircle },
+          { title: "Calendario", url: "/admin/calendario-eventi", icon: CalendarDays },
         ],
       },
       {
         label: "Gestione",
         items: [
           { title: "Aziende", url: "/aziende", icon: Building2 },
+          { title: "Clienti", url: "/admin/clienti", icon: UserSearch },
           { title: "Utenti", url: "/utenti", icon: Users },
+          { title: "Promo", url: "/admin/promo", icon: Gift },
           { title: "Ticket", url: "/admin/ticket", icon: LifeBuoy },
           { title: "Listino", url: "/listino", icon: BookOpen },
           { title: "Analytics", url: "/analytics", icon: BarChart3 },

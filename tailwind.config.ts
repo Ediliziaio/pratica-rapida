@@ -69,6 +69,17 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // AEDIX brand tokens
+        brand: {
+          navy: "#0D1B2A",
+          gold: "#F5A623",
+        },
+        status: {
+          green: "#16a34a",
+          amber: "#d97706",
+          red: "#dc2626",
+          blue: "#2563eb",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

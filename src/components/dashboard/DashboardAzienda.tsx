@@ -233,67 +233,75 @@ export function DashboardAzienda() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Pratiche Aperte</CardTitle>
-              <FolderOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{kpis.aperte}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {kpis.inLavorazione > 0 ? `${kpis.inLavorazione} in lavorazione` : "Nessuna in lavorazione"}
-              </p>
+            <CardContent className="p-5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                <FolderOpen className="h-5 w-5 text-primary" />
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Pratiche Aperte</p>
+                <p className="mt-1 text-2xl font-bold tracking-tight">{kpis.aperte}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {kpis.inLavorazione > 0 ? `${kpis.inLavorazione} in lavorazione` : "Nessuna in lavorazione"}
+                </p>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className={kpis.attesaDoc.length > 0 ? "border-warning/50" : ""}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Attesa Documenti</CardTitle>
-              <AlertCircle className={`h-4 w-4 ${kpis.attesaDoc.length > 0 ? "text-warning" : "text-muted-foreground"}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{kpis.attesaDoc.length}</div>
-              {kpis.attesaDoc.length > 0 && (
-                <Button variant="link" size="sm" className="mt-1 h-auto p-0 text-xs text-warning" onClick={() => navigate("/pratiche")}>
-                  Carica ora <ArrowRight className="ml-1 h-3 w-3" />
-                </Button>
-              )}
+          <Card className={kpis.attesaDoc.length > 0 ? "border-warning/40" : ""}>
+            <CardContent className="p-5">
+              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${kpis.attesaDoc.length > 0 ? "bg-amber-100 dark:bg-amber-950" : "bg-muted"}`}>
+                <AlertCircle className={`h-5 w-5 ${kpis.attesaDoc.length > 0 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`} />
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Attesa Documenti</p>
+                <p className="mt-1 text-2xl font-bold tracking-tight">{kpis.attesaDoc.length}</p>
+                {kpis.attesaDoc.length > 0 && (
+                  <Button variant="link" size="sm" className="mt-0.5 h-auto p-0 text-xs text-amber-600" onClick={() => navigate("/pratiche")}>
+                    Carica ora <ArrowRight className="ml-1 h-3 w-3" />
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Completate (mese)</CardTitle>
-              <FileCheck className="h-4 w-4 text-success" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{kpis.completateMese}</div>
-              <Progress value={kpis.completateProgress} className="mt-2 h-1.5" />
-              <p className="text-xs text-muted-foreground mt-1">
-                {kpis.completateMese}/{kpis.createMese} create questo mese
-                {kpis.diffCompletate !== 0 && (
-                  <span className={kpis.diffCompletate > 0 ? " text-success" : " text-destructive"}>
-                    {" "}({kpis.diffCompletate > 0 ? "+" : ""}{kpis.diffCompletate})
-                  </span>
-                )}
-              </p>
+            <CardContent className="p-5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-950">
+                <FileCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Completate (mese)</p>
+                <p className="mt-1 text-2xl font-bold tracking-tight">{kpis.completateMese}</p>
+                <Progress value={kpis.completateProgress} className="mt-1.5 h-1" />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {kpis.completateMese}/{kpis.createMese} questo mese
+                  {kpis.diffCompletate !== 0 && (
+                    <span className={kpis.diffCompletate > 0 ? " text-success" : " text-destructive"}>
+                      {" "}({kpis.diffCompletate > 0 ? "+" : ""}{kpis.diffCompletate})
+                    </span>
+                  )}
+                </p>
+              </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Da fatturare</CardTitle>
-              <Receipt className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">€ {kpis.daFatturare.toFixed(0)}</div>
-              <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                {kpis.diffSpesa > 0 ? (
-                  <><TrendingUp className="h-3 w-3 text-warning" /><span className="text-warning">+€ {kpis.diffSpesa.toFixed(0)} vs mese prec.</span></>
-                ) : kpis.diffSpesa < 0 ? (
-                  <><TrendingDown className="h-3 w-3 text-success" /><span className="text-success">-€ {Math.abs(kpis.diffSpesa).toFixed(0)} vs mese prec.</span></>
-                ) : (
-                  <span>Pagamento fine mese via bonifico</span>
-                )}
+            <CardContent className="p-5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                <Receipt className="h-5 w-5 text-primary" />
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Da fatturare</p>
+                <p className="mt-1 text-2xl font-bold tracking-tight">€ {kpis.daFatturare.toFixed(0)}</p>
+                <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground">
+                  {kpis.diffSpesa > 0 ? (
+                    <><TrendingUp className="h-3 w-3 text-warning" /><span className="text-warning">+€ {kpis.diffSpesa.toFixed(0)} vs mese prec.</span></>
+                  ) : kpis.diffSpesa < 0 ? (
+                    <><TrendingDown className="h-3 w-3 text-success" /><span className="text-success">-€ {Math.abs(kpis.diffSpesa).toFixed(0)} vs mese prec.</span></>
+                  ) : (
+                    <span>Pagamento fine mese via bonifico</span>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -445,15 +453,16 @@ function DashboardHeader({ user, companyName, navigate }: { user: any; companyNa
   return (
     <div className="flex items-start justify-between flex-wrap gap-4">
       <div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+          {companyName ?? "Dashboard"}
+        </p>
         <h1 className="font-display text-2xl font-bold tracking-tight">
-          Bentornato{user?.user_metadata?.nome ? `, ${user.user_metadata.nome}` : ""}
+          {user?.user_metadata?.nome ? `Ciao, ${user.user_metadata.nome} 👋` : "Bentornato"}
         </h1>
-        <p className="text-muted-foreground">
-          {companyName ? (
-            <span>Dashboard di <span className="font-medium text-foreground">{companyName}</span></span>
-          ) : (
-            "Ecco la situazione delle tue pratiche."
-          )}
+        <p className="text-sm text-muted-foreground mt-0.5">
+          {companyName
+            ? "Ecco la situazione delle tue pratiche."
+            : "Panoramica delle tue pratiche."}
         </p>
       </div>
       <div className="flex gap-2">

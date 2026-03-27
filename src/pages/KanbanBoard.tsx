@@ -665,6 +665,33 @@ function PracticeDetailSheet({
   );
 }
 
+// ── StatPill ──────────────────────────────────────────────────────────────────
+
+function StatPill({
+  label,
+  value,
+  intent = "default",
+}: {
+  label: string;
+  value: number | string;
+  intent?: "default" | "warning" | "danger" | "success";
+}) {
+  const colors: Record<string, string> = {
+    default: "bg-muted/60 text-foreground",
+    warning: "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400",
+    danger: "bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400",
+    success: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400",
+  };
+  return (
+    <div
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs whitespace-nowrap ${colors[intent]}`}
+    >
+      <span className="font-normal opacity-70">{label}</span>
+      <span className="font-semibold">{value}</span>
+    </div>
+  );
+}
+
 // ── PracticeCard ──────────────────────────────────────────────────────────────
 
 function PracticeCard({
@@ -685,12 +712,8 @@ function PracticeCard({
   const stageType = practice.pipeline_stages?.stage_type;
   const operatorName = practice.operatore_id ? operatorMap[practice.operatore_id] : null;
 
-  const agingClassName =
-    days > 7
-      ? "text-destructive font-bold"
-      : days >= 4
-      ? "text-amber-600 font-medium"
-      : "text-muted-foreground";
+  const agingIntent =
+    days > 7 ? "text-destructive" : days >= 4 ? "text-amber-500" : "text-muted-foreground";
 
   return (
     <Draggable draggableId={practice.id} index={index}>
@@ -700,86 +723,81 @@ function PracticeCard({
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           onClick={() => !snapshot.isDragging && onOpen(practice)}
-          className={`group rounded-md bg-background border p-3 space-y-2 text-sm cursor-grab active:cursor-grabbing shadow-sm transition-all ${
+          className={`group rounded-lg bg-background border p-3 space-y-2 text-sm cursor-grab active:cursor-grabbing transition-all duration-150 ${
             snapshot.isDragging
-              ? "shadow-lg ring-2 ring-primary"
-              : "hover:shadow-md hover:-translate-y-0.5"
+              ? "shadow-xl ring-2 ring-primary/30 rotate-1"
+              : "shadow-sm hover:shadow-md hover:-translate-y-0.5"
           }`}
         >
-          {/* Top row: name + brand badge */}
-          <div className="flex items-start justify-between gap-1">
-            <span className="font-semibold leading-tight truncate">
+          {/* Top: name + brand */}
+          <div className="flex items-start justify-between gap-2">
+            <span className="font-semibold leading-snug truncate text-[13px]">
               {practice.cliente_nome} {practice.cliente_cognome}
             </span>
-            <Badge
-              className="text-xs flex-shrink-0"
-              style={{
-                backgroundColor: practice.brand === "enea" ? "#3b82f6" : "#f97316",
-                color: "white",
-              }}
+            <span
+              className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                practice.brand === "enea"
+                  ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                  : "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300"
+              }`}
             >
               {practice.brand === "enea" ? "ENEA" : "CT"}
-            </Badge>
+            </span>
           </div>
 
-          {/* Company pill (internal only) */}
+          {/* Company (internal only) */}
           {isInternal && practice.companies && (
-            <span className="inline-block text-xs bg-muted text-muted-foreground rounded-full px-2 py-0.5">
+            <p className="text-[11px] text-muted-foreground truncate">
               {practice.companies.ragione_sociale}
-            </span>
+            </p>
           )}
 
-          {/* Product tag */}
+          {/* Product */}
           {practice.prodotto_installato && (
             <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
-              <Tag className="h-3 w-3 flex-shrink-0" />
+              <Tag className="h-3 w-3 shrink-0" />
               {practice.prodotto_installato}
             </p>
           )}
 
-          {/* Form status */}
+          {/* Form status dot */}
           {practice.form_compilato_at ? (
             <div className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-500 flex-shrink-0" />
-              <span className="text-xs text-green-700 dark:text-green-400">Form compilato</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="text-[11px] text-emerald-700 dark:text-emerald-400">Form compilato</span>
             </div>
           ) : stageType === "attesa_compilazione" ? (
             <div className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 flex-shrink-0" />
-              <span className="text-xs text-amber-700 dark:text-amber-400">In attesa form</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" />
+              <span className="text-[11px] text-amber-600 dark:text-amber-400">In attesa form</span>
             </div>
           ) : null}
 
-          {/* Operator row (internal only) */}
+          {/* Operator (internal only) */}
           {isInternal && operatorName && (
             <div className="flex items-center gap-1.5">
-              <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold flex items-center justify-center flex-shrink-0">
+              <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[9px] font-bold flex items-center justify-center shrink-0">
                 {getInitials(operatorName)}
               </span>
-              <span className="text-xs text-muted-foreground truncate">{operatorName}</span>
+              <span className="text-[11px] text-muted-foreground truncate">{operatorName}</span>
             </div>
           )}
 
-          {/* Bottom row: aging + icons */}
-          <div className="flex items-center justify-between gap-1">
-            <span className={`text-xs ${agingClassName}`}>
-              {days > 7 ? "⚠ " : ""}{days}g
-            </span>
+          {/* Footer row */}
+          <div className="flex items-center justify-between pt-0.5">
+            <span className={`text-[11px] font-medium ${agingIntent}`}>{days}g fa</span>
             <div className="flex items-center gap-1.5">
               {hasMissingDocs && (
-                <span className="text-xs text-amber-600 font-medium flex items-center gap-0.5">
-                  <AlertTriangle className="h-3.5 w-3.5" />
+                <span className="flex items-center gap-0.5 text-[11px] text-amber-600 font-medium">
+                  <AlertTriangle className="h-3 w-3" />
                   {practice.documenti_mancanti.length}
                 </span>
               )}
               {practice.conteggio_solleciti > 0 && (
-                <span className="text-xs text-blue-500 flex items-center gap-0.5">
-                  <MessageCircle className="h-3.5 w-3.5" />
+                <span className="flex items-center gap-0.5 text-[11px] text-blue-500">
+                  <MessageCircle className="h-3 w-3" />
                   {practice.conteggio_solleciti}
                 </span>
-              )}
-              {practice.cliente_email && (
-                <Mail className="h-3.5 w-3.5 text-muted-foreground" />
               )}
             </div>
           </div>
@@ -1039,34 +1057,83 @@ export default function KanbanBoard() {
       className="flex flex-col -m-4 md:-m-6 lg:-m-8 overflow-hidden"
       style={{ height: "calc(100vh - 3.5rem)" }}
     >
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3 p-4 border-b bg-background shrink-0">
-        {/* Title */}
-        <div className="flex items-baseline gap-2 mr-2">
-          <span className="font-semibold text-sm">Pipeline</span>
+      {/* ── Toolbar row 1: title · search · actions ────────────────────── */}
+      <div className="flex items-center gap-2 px-4 py-2.5 border-b bg-background shrink-0">
+        {/* Title + count */}
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="font-semibold text-sm tracking-tight">Pipeline</span>
+          <span className="inline-flex h-5 min-w-[1.25rem] px-1.5 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground">
+            {filteredPractices.length}
+          </span>
         </div>
 
         {/* Search */}
-        <div className="relative flex-1 min-w-[180px] max-w-xs">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <div className="relative flex-1 max-w-sm mx-2">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
           <Input
-            placeholder="Cerca cliente..."
-            className="pl-8"
+            placeholder="Cerca cliente, CF, email..."
+            className="pl-8 h-8 text-sm bg-muted/50 border-transparent focus-visible:border-input focus-visible:bg-background transition-all"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
-        {/* Brand pills */}
-        <div className="flex gap-1">
+        {/* Right action buttons */}
+        <div className="flex items-center gap-0.5 ml-auto">
+          <Button
+            variant={showFilters ? "secondary" : "ghost"}
+            size="sm"
+            className="h-8 px-2.5 gap-1.5 relative text-xs"
+            onClick={() => setShowFilters((v) => !v)}
+          >
+            <Filter className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Filtri</span>
+            {hasActiveFilters && (
+              <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-primary text-primary-foreground text-[9px] flex items-center justify-center font-bold leading-none">
+                {[dateFrom, dateTo, aziendaFilter !== "all", operatoreFilter !== "all"].filter(Boolean).length}
+              </span>
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2.5 gap-1.5 text-xs"
+            onClick={exportCSV}
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Esporta</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setSettingsOpen(true)}
+            title="Impostazioni pipeline"
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* ── Toolbar row 2: brand segment · archive · sort ────────────────── */}
+      <div className="flex items-center gap-3 px-4 py-1.5 border-b bg-background shrink-0">
+        <div className="inline-flex items-center gap-0.5 bg-muted rounded-md p-0.5">
           {(["all", "enea", "conto_termico"] as const).map((b) => (
             <button
               key={b}
               onClick={() => setBrandFilter(b)}
-              className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors ${
+              className={`px-2.5 py-1 rounded text-xs font-medium transition-all duration-150 ${
                 brandFilter === b
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "border-border hover:bg-muted"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {b === "all" ? "Tutti" : b === "enea" ? "ENEA" : "Conto Termico"}
@@ -1074,106 +1141,59 @@ export default function KanbanBoard() {
           ))}
         </div>
 
-        {/* Sort dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1 h-9">
-              {sortLabels[sortOption]}
-              <ChevronDown className="h-3.5 w-3.5 ml-1" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setSortOption("recenti")}>
-              Più recenti
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSortOption("vecchie")}>
-              Più vecchie
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSortOption("stage")}>
-              Più in stage
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Show archived toggle */}
-        <Button
-          variant={showArchived ? "secondary" : "outline"}
-          size="sm"
-          onClick={() => setShowArchived(!showArchived)}
-        >
-          {showArchived ? "Nascondi archiviate" : "Mostra archiviate"}
-        </Button>
-
-        {/* Filters toggle */}
-        <Button
-          variant={showFilters || hasActiveFilters ? "secondary" : "outline"}
-          size="sm"
-          onClick={() => setShowFilters((v) => !v)}
-          className="gap-1.5 relative"
-        >
-          <Filter className="h-4 w-4" />
-          Filtri
-          {hasActiveFilters && (
-            <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center font-bold">
-              {[dateFrom, dateTo, aziendaFilter !== "all" ? 1 : 0, operatoreFilter !== "all" ? 1 : 0].filter(Boolean).length}
-            </span>
-          )}
-        </Button>
-
-        {/* Export */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <Download className="h-4 w-4" />
-              Esporta
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={exportCSV} className="gap-2">
-              <FileSpreadsheet className="h-4 w-4 text-green-600" />
-              CSV / Excel ({filteredPractices.length} pratiche)
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Pipeline settings */}
-        <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
-          <SlidersHorizontal className="h-4 w-4 mr-1" />
-          Pipeline
-        </Button>
+        <div className="ml-auto flex items-center gap-3">
+          <button
+            onClick={() => setShowArchived((v) => !v)}
+            className={`text-xs transition-colors ${
+              showArchived
+                ? "text-foreground font-medium"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {showArchived ? "Nascondi archiviate" : "Archiviate"}
+          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-7 px-2 gap-1 text-xs text-muted-foreground hover:text-foreground">
+                {sortLabels[sortOption]}
+                <ChevronDown className="h-3 w-3 ml-0.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setSortOption("recenti")}>Più recenti</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortOption("vecchie")}>Più vecchie</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortOption("stage")}>Più in stage</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      {/* Advanced filters panel */}
+      {/* ── Filter panel ──────────────────────────────────────────────────── */}
       {showFilters && (
         <div className="flex flex-wrap items-end gap-3 px-4 py-3 border-b bg-muted/20 shrink-0">
-          {/* Date from */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-muted-foreground">Dal</label>
+            <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Dal</label>
             <input
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="h-8 rounded-md border border-input bg-background px-2.5 py-1 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
-
-          {/* Date to */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-muted-foreground">Al</label>
+            <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Al</label>
             <input
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="h-8 rounded-md border border-input bg-background px-2.5 py-1 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
-
-          {/* Company filter (internal only) */}
           {isInternal && companyList.length > 0 && (
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">Azienda</label>
+              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Azienda</label>
               <Select value={aziendaFilter} onValueChange={setAziendaFilter}>
-                <SelectTrigger className="h-9 text-sm w-48">
+                <SelectTrigger className="h-8 text-sm w-48">
                   <SelectValue placeholder="Tutte le aziende" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1185,83 +1205,55 @@ export default function KanbanBoard() {
               </Select>
             </div>
           )}
-
-          {/* Operatore filter (internal only) */}
           {isInternal && operators.length > 0 && (
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">Operatore</label>
+              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Operatore</label>
               <Select value={operatoreFilter} onValueChange={setOperatoreFilter}>
-                <SelectTrigger className="h-9 text-sm w-44">
-                  <SelectValue placeholder="Tutti gli operatori" />
+                <SelectTrigger className="h-8 text-sm w-44">
+                  <SelectValue placeholder="Tutti" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tutti gli operatori</SelectItem>
                   {operators.map((op) => (
-                    <SelectItem key={op.id} value={op.id}>
-                      {op.nome} {op.cognome}
-                    </SelectItem>
+                    <SelectItem key={op.id} value={op.id}>{op.nome} {op.cognome}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           )}
-
-          {/* Clear filters */}
           {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
               onClick={clearFilters}
-              className="gap-1.5 text-muted-foreground hover:text-foreground self-end"
+              className="self-end flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground pb-1.5 transition-colors"
             >
-              <FilterX className="h-4 w-4" />
-              Rimuovi filtri
-            </Button>
+              <FilterX className="h-3.5 w-3.5" /> Rimuovi filtri
+            </button>
           )}
-
-          {/* Active filter summary */}
-          <div className="self-end pb-0.5">
-            <span className="text-xs text-muted-foreground">
-              {filteredPractices.length} pratiche{hasActiveFilters ? " (filtrate)" : ""}
-            </span>
-          </div>
+          <p className="self-end text-[11px] text-muted-foreground pb-1.5 ml-auto">
+            {filteredPractices.length} pratiche{hasActiveFilters ? " filtrate" : ""}
+          </p>
         </div>
       )}
 
-      {/* Stats bar */}
-      <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b bg-muted/30 shrink-0">
-        <span className="text-xs text-muted-foreground bg-background border rounded-full px-3 py-1">
-          Totale attive: <strong>{activePractices.length}</strong>
-        </span>
-        <span
-          className={`text-xs rounded-full px-3 py-1 border ${
-            pronteDaFare > 0
-              ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800"
-              : "bg-background text-muted-foreground"
-          }`}
-        >
-          Pronte da fare: <strong>{pronteDaFare}</strong>
-        </span>
-        <span
-          className={`text-xs rounded-full px-3 py-1 border ${
-            staleCount > 0
-              ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800"
-              : "bg-background text-muted-foreground"
-          }`}
-        >
-          Stale &gt;7g: <strong>{staleCount}</strong>
-        </span>
+      {/* ── Stats bar ─────────────────────────────────────────────────────── */}
+      <div className="flex items-center gap-2 px-4 py-2 bg-background/80 border-b shrink-0 overflow-x-auto">
+        <StatPill label="Attive" value={activePractices.length} />
+        <StatPill
+          label="Pronte da fare"
+          value={pronteDaFare}
+          intent={pronteDaFare > 0 ? "warning" : "default"}
+        />
+        <StatPill
+          label="Stale >7g"
+          value={staleCount}
+          intent={staleCount > 0 ? "danger" : "default"}
+        />
         {isInternal && (
-          <span className="text-xs text-muted-foreground bg-background border rounded-full px-3 py-1">
-            Guadagno mese:{" "}
-            <strong>
-              €{" "}
-              {guadagnoMese.toLocaleString("it-IT", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </strong>
-          </span>
+          <StatPill
+            label="Guadagno mese"
+            value={`€ ${guadagnoMese.toLocaleString("it-IT", { maximumFractionDigits: 0 })}`}
+            intent="success"
+          />
         )}
       </div>
 
@@ -1305,35 +1297,33 @@ export default function KanbanBoard() {
                 >
                   {/* Column header */}
                   <div
-                    className="flex items-center justify-between px-3 py-2 rounded-t-lg"
+                    className="flex items-center justify-between px-3 py-2.5 rounded-t-lg"
                     style={{ borderTop: `3px solid ${isArchived ? "#9ca3af" : stage.color}` }}
                   >
-                    <div className="flex flex-col min-w-0">
+                    <div className="flex flex-col min-w-0 gap-0.5">
                       <span
-                        className={`font-semibold text-sm truncate ${
-                          isArchived ? "text-muted-foreground" : ""
+                        className={`font-semibold text-xs uppercase tracking-wider truncate ${
+                          isArchived ? "text-muted-foreground" : "text-foreground/80"
                         }`}
                       >
                         {stage.name}
                       </span>
                       {isInternal && columnRevenue > 0 && (
                         <span className="text-[10px] text-muted-foreground">
-                          €{" "}
-                          {columnRevenue.toLocaleString("it-IT", {
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0,
-                          })}
+                          € {columnRevenue.toLocaleString("it-IT", { maximumFractionDigits: 0 })}
                         </span>
                       )}
                     </div>
-                    <Badge
-                      variant="secondary"
-                      className={`text-xs flex-shrink-0 ${
-                        isArchived ? "bg-muted text-muted-foreground" : ""
+                    <span
+                      className={`inline-flex h-5 min-w-[1.25rem] px-1.5 items-center justify-center rounded-full text-[10px] font-bold shrink-0 ${
+                        isArchived
+                          ? "bg-muted text-muted-foreground"
+                          : "text-white"
                       }`}
+                      style={isArchived ? {} : { backgroundColor: stage.color }}
                     >
                       {cards.length}
-                    </Badge>
+                    </span>
                   </div>
 
                   {/* Droppable area */}

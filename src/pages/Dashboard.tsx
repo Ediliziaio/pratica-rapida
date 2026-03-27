@@ -5,15 +5,16 @@ import { DashboardInterno } from "@/components/dashboard/DashboardInterno";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LayoutDashboard, Kanban } from "lucide-react";
 
 const EneaDashboardContent = lazy(() => import("./EneaDashboard"));
 
 function PageLoader() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pt-2">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
-          <Skeleton key={i} className="h-28 rounded-xl" />
+          <Skeleton key={i} className="h-[100px] rounded-xl" />
         ))}
       </div>
       <Skeleton className="h-72 rounded-xl" />
@@ -30,25 +31,36 @@ export default function Dashboard() {
   // Internal users without impersonation → unified dashboard with tabs
   if (isInternalUser && !companyId) {
     return (
-      <Tabs defaultValue="pratiche" className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="font-display text-2xl font-bold tracking-tight">Dashboard</h1>
-          <TabsList>
-            <TabsTrigger value="pratiche">Pratiche</TabsTrigger>
-            <TabsTrigger value="pipeline">Pipeline ENEA / CT</TabsTrigger>
-          </TabsList>
-        </div>
+      <div className="space-y-0">
+        <Tabs defaultValue="pratiche">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Panoramica</p>
+              <h1 className="font-display text-2xl font-bold tracking-tight">Dashboard</h1>
+            </div>
+            <TabsList className="bg-muted/60">
+              <TabsTrigger value="pratiche" className="gap-1.5 text-xs">
+                <LayoutDashboard className="h-3.5 w-3.5" />
+                Pratiche
+              </TabsTrigger>
+              <TabsTrigger value="pipeline" className="gap-1.5 text-xs">
+                <Kanban className="h-3.5 w-3.5" />
+                Pipeline ENEA / CT
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-        <TabsContent value="pratiche" className="mt-0">
-          <DashboardInterno />
-        </TabsContent>
+          <TabsContent value="pratiche" className="mt-0 focus-visible:ring-0 focus-visible:ring-offset-0">
+            <DashboardInterno />
+          </TabsContent>
 
-        <TabsContent value="pipeline" className="mt-0">
-          <Suspense fallback={<PageLoader />}>
-            <EneaDashboardContent />
-          </Suspense>
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="pipeline" className="mt-0 focus-visible:ring-0 focus-visible:ring-offset-0">
+            <Suspense fallback={<PageLoader />}>
+              <EneaDashboardContent />
+            </Suspense>
+          </TabsContent>
+        </Tabs>
+      </div>
     );
   }
 

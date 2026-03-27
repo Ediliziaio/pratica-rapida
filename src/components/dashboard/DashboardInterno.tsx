@@ -232,10 +232,11 @@ export function DashboardInterno() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Dashboard</p>
           <h1 className="font-display text-2xl font-bold tracking-tight">
-            Bentornato{user?.user_metadata?.nome ? `, ${user.user_metadata.nome}` : ""}
+            {user?.user_metadata?.nome ? `Ciao, ${user.user_metadata.nome} 👋` : "Panoramica"}
           </h1>
-          <p className="text-muted-foreground">Panoramica operativa della piattaforma.</p>
+          <p className="text-sm text-muted-foreground mt-0.5">Situazione operativa in tempo reale.</p>
         </div>
         <div className="flex gap-2">
           <Button size="sm" onClick={() => navigate("/coda-pratiche")}>
@@ -285,43 +286,59 @@ export function DashboardInterno() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Revenue (12 mesi)</CardTitle>
-              <TrendingUp className="h-4 w-4 text-success" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">€ {kpis.totalRevenue.toFixed(0)}</div>
-              <DiffBadge diff={kpis.revenueDiff} />
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-950">
+                  <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <DiffBadge diff={kpis.revenueDiff} />
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Revenue (12 mesi)</p>
+                <p className="mt-1 text-2xl font-bold tracking-tight">€ {kpis.totalRevenue.toFixed(0)}</p>
+              </div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Pratiche Totali</CardTitle>
-              <FolderOpen className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{kpis.totalPratiche}</div>
-              <DiffBadge diff={kpis.praticheDiff} />
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                  <FolderOpen className="h-5 w-5 text-primary" />
+                </div>
+                <DiffBadge diff={kpis.praticheDiff} />
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Pratiche Totali</p>
+                <p className="mt-1 text-2xl font-bold tracking-tight">{kpis.totalPratiche}</p>
+              </div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Completate</CardTitle>
-              <FileCheck className="h-4 w-4 text-success" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{kpis.completate}</div>
-              <DiffBadge diff={kpis.completateDiff} />
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-950">
+                  <FileCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <DiffBadge diff={kpis.completateDiff} />
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Completate</p>
+                <p className="mt-1 text-2xl font-bold tracking-tight">{kpis.completate}</p>
+              </div>
             </CardContent>
           </Card>
-          <Card className={kpis.backlog > 20 ? "border-warning/50" : ""}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Backlog</CardTitle>
-              <Clock className={`h-4 w-4 ${kpis.backlog > 20 ? "text-warning" : "text-muted-foreground"}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{kpis.backlog}</div>
-              <p className="text-xs text-muted-foreground">pratiche aperte</p>
+          <Card className={kpis.backlog > 20 ? "border-warning/40" : ""}>
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${kpis.backlog > 20 ? "bg-amber-100 dark:bg-amber-950" : "bg-muted"}`}>
+                  <Clock className={`h-5 w-5 ${kpis.backlog > 20 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`} />
+                </div>
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Backlog</p>
+                <p className="mt-1 text-2xl font-bold tracking-tight">{kpis.backlog}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">pratiche aperte</p>
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -49,6 +49,9 @@ const ImpostazioniCampi = lazy(() => import("./pages/admin/ImpostazioniCampi"));
 const PromoManager = lazy(() => import("./pages/admin/PromoManager"));
 const ClientiAdmin = lazy(() => import("./pages/admin/ClientiAdmin"));
 const ClienteDettaglio = lazy(() => import("./pages/admin/ClienteDettaglio"));
+const EmailTemplates = lazy(() => import("./pages/admin/EmailTemplates"));
+const WhatsappPanel = lazy(() => import("./pages/admin/WhatsappPanel"));
+const CalendarioAdmin = lazy(() => import("./pages/admin/CalendarioAdmin"));
 
 const queryClient = new QueryClient();
 
@@ -153,6 +156,9 @@ const App = () => (
                 <Route path="/admin/promo" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><PromoManager /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/clienti" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><ClientiAdmin /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/clienti/:id" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><ClienteDettaglio /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/email" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><EmailTemplates /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/whatsapp" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><WhatsappPanel /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/calendario-eventi" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><CalendarioAdmin /></RoleGuard></ProtectedRoute>} />
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

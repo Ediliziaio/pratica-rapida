@@ -116,3 +116,19 @@ export function useMoveStage() {
     },
   });
 }
+
+export function useUpdateEneaPractice() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<EneaPractice> }) => {
+      const { error } = await supabase
+        .from("enea_practices")
+        .update(updates)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["enea_practices"] });
+    },
+  });
+}

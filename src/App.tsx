@@ -47,6 +47,8 @@ const ComunicazioniLog = lazy(() => import("./pages/ComunicazioniLog"));
 const CalendarioChiamate = lazy(() => import("./pages/CalendarioChiamate"));
 const ImpostazioniCampi = lazy(() => import("./pages/admin/ImpostazioniCampi"));
 const PromoManager = lazy(() => import("./pages/admin/PromoManager"));
+const ClientiAdmin = lazy(() => import("./pages/admin/ClientiAdmin"));
+const ClienteDettaglio = lazy(() => import("./pages/admin/ClienteDettaglio"));
 
 const queryClient = new QueryClient();
 
@@ -149,6 +151,8 @@ const App = () => (
                 <Route path="/admin/comunicazioni" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><ComunicazioniLog /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/calendario" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><CalendarioChiamate /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/promo" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><PromoManager /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/clienti" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><ClientiAdmin /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/clienti/:id" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><ClienteDettaglio /></RoleGuard></ProtectedRoute>} />
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

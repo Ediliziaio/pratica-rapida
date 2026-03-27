@@ -213,7 +213,6 @@ export function AppSidebar() {
           { title: "Dashboard", url: "/", icon: LayoutDashboard, end: true },
           { title: "Nuova Pratica", url: "/pratiche/nuova", icon: FilePlus },
           { title: "Le mie Pratiche", url: "/pratiche", icon: FolderOpen },
-          { title: "Clienti", url: "/clienti", icon: Users },
           { title: "Estratto Conto", url: "/wallet", icon: Receipt },
           { title: "Assistenza", url: "/assistenza", icon: LifeBuoy },
           { title: "Impostazioni", url: "/impostazioni", icon: Settings },

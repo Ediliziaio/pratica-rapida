@@ -42,14 +42,14 @@
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 220 10% 30%;
-    --sidebar-primary: 220 72% 50%;
+    --sidebar-background: 213 54% 9%;
+    --sidebar-foreground: 215 20% 68%;
+    --sidebar-primary: 217 91% 62%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 96%;
-    --sidebar-accent-foreground: 220 20% 10%;
-    --sidebar-border: 220 13% 93%;
-    --sidebar-ring: 220 72% 50%;
+    --sidebar-accent: 213 40% 16%;
+    --sidebar-accent-foreground: 215 20% 94%;
+    --sidebar-border: 213 40% 15%;
+    --sidebar-ring: 217 91% 62%;
 
     /* Landing page brand colors */
     --pr-green: 152 100% 24%;
@@ -115,6 +115,22 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
   }
+}
+
+/* Sidebar active nav indicator */
+.sidebar-nav-active {
+  position: relative;
+}
+.sidebar-nav-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 1.25rem;
+  border-radius: 0 4px 4px 0;
+  background-color: hsl(var(--sidebar-primary));
 }
 
 /* Landing page animations */

@@ -28,22 +28,17 @@ import {
 import type React from "react";
 import { useState } from "react";
 import { NavLink } from "@/components/NavLink";
-import { useAuth, isSuperAdmin, isInternal, isAzienda, isReseller } from "@/hooks/useAuth";
+import { useAuth, isSuperAdmin, isInternal, isReseller } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 type NavItem = {
   title: string;
@@ -59,71 +54,101 @@ type NavGroup = {
   items: NavItem[];
 };
 
-function NavItems({ groups }: { groups: NavGroup[] }) {
+// ── Single nav item row ────────────────────────────────────────────────────────
+
+function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
+  const link = (
+    <NavLink
+      to={item.url}
+      end={item.end ?? false}
+      className="group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground sidebar-nav-active"
+    >
+      <item.icon className="h-[1.05rem] w-[1.05rem] shrink-0 opacity-75 group-hover:opacity-100 transition-opacity" />
+      {!collapsed && <span className="truncate">{item.title}</span>}
+    </NavLink>
+  );
+
+  if (collapsed) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{link}</TooltipTrigger>
+        <TooltipContent side="right" className="text-xs">
+          {item.title}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return link;
+}
+
+// ── Plain group (no label, no collapsible) ─────────────────────────────────────
+
+function NavGroup({ group, collapsed }: { group: NavGroup; collapsed: boolean }) {
   return (
-    <>
-      {groups.map((group, gi) => (
-        group.collapsible && group.label ? (
-          <CollapsibleGroup key={gi} group={group} />
-        ) : (
-          <SidebarGroup key={gi}>
-            {group.label && <SidebarGroupLabel>{group.label}</SidebarGroupLabel>}
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => (
-                  <NavItemRow key={item.url + item.title} item={item} />
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )
+    <div className="px-2 pb-1">
+      {group.items.map((item) => (
+        <NavItemRow key={item.url + item.title} item={item} collapsed={collapsed} />
       ))}
-    </>
+    </div>
   );
 }
 
-function CollapsibleGroup({ group }: { group: NavGroup }) {
+// ── Collapsible group ──────────────────────────────────────────────────────────
+
+function CollapsibleGroup({ group, collapsed }: { group: NavGroup; collapsed: boolean }) {
   const [open, setOpen] = useState(group.defaultOpen ?? true);
+
+  if (collapsed) {
+    // In collapsed mode render items directly without the label
+    return (
+      <div className="px-2 pb-1">
+        {group.items.map((item) => (
+          <NavItemRow key={item.url + item.title} item={item} collapsed={true} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <SidebarGroup>
+      <div className="px-2 pb-1">
         <CollapsibleTrigger asChild>
-          <SidebarGroupLabel className="cursor-pointer flex items-center justify-between hover:text-foreground transition-colors">
-            {group.label}
-            <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${open ? "" : "-rotate-90"}`} />
-          </SidebarGroupLabel>
+          <button className="flex w-full items-center justify-between px-3 py-1.5 mb-0.5 rounded-md text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/40 hover:text-sidebar-foreground/70 transition-colors">
+            <span>{group.label}</span>
+            <ChevronDown
+              className={`h-3 w-3 transition-transform duration-200 ${open ? "rotate-0" : "-rotate-90"}`}
+            />
+          </button>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {group.items.map((item) => (
-                <NavItemRow key={item.url + item.title} item={item} />
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
+          {group.items.map((item) => (
+            <NavItemRow key={item.url + item.title} item={item} collapsed={false} />
+          ))}
         </CollapsibleContent>
-      </SidebarGroup>
+      </div>
     </Collapsible>
   );
 }
 
-function NavItemRow({ item }: { item: NavItem }) {
+// ── All nav groups ─────────────────────────────────────────────────────────────
+
+function NavGroups({ groups, collapsed }: { groups: NavGroup[]; collapsed: boolean }) {
   return (
-    <SidebarMenuItem>
-      <SidebarMenuButton asChild tooltip={item.title}>
-        <NavLink
-          to={item.url}
-          end={item.end ?? false}
-          className="hover:bg-accent"
-          activeClassName="bg-accent text-primary font-medium"
-        >
-          <item.icon className="h-4 w-4" />
-          <span>{item.title}</span>
-        </NavLink>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
+    <>
+      {groups.map((group, i) =>
+        group.collapsible && group.label ? (
+          <CollapsibleGroup key={i} group={group} collapsed={collapsed} />
+        ) : (
+          <NavGroup key={i} group={group} collapsed={collapsed} />
+        )
+      )}
+    </>
   );
 }
+
+// ── Main sidebar ───────────────────────────────────────────────────────────────
 
 export function AppSidebar() {
   const { roles, user, signOut } = useAuth();
@@ -133,14 +158,19 @@ export function AppSidebar() {
 
   const superAdmin = isSuperAdmin(roles);
   const internal = isInternal(roles);
-  const azienda = isAzienda(roles);
   const rivenditore = isReseller(roles);
 
-  // ── Navigation per role ───────────────────────────────────────────────────
+  // Initials for avatar
+  const initials = user?.email?.slice(0, 2).toUpperCase() ?? "PR";
+
+  // ── Nav groups per role ──────────────────────────────────────────────────────
 
   let groups: NavGroup[] = [];
+  // Settings item that gets pinned to bottom (removed from nav groups)
+  let settingsItem: NavItem | null = null;
 
   if (internal && !isImpersonating) {
+    settingsItem = { title: "Impostazioni", url: "/admin/impostazioni", icon: Settings };
     groups = [
       {
         items: [
@@ -191,7 +221,6 @@ export function AppSidebar() {
           { title: "Listino", url: "/listino", icon: BookOpen },
           { title: "Analytics", url: "/analytics", icon: BarChart3 },
           { title: "Audit Log", url: "/admin/audit-log", icon: Shield },
-          { title: "Impostazioni", url: "/admin/impostazioni", icon: Settings },
         ],
       },
     ];
@@ -207,6 +236,7 @@ export function AppSidebar() {
     ];
   } else {
     // Azienda (default / impersonating)
+    settingsItem = { title: "Impostazioni", url: "/impostazioni", icon: Settings };
     groups = [
       {
         items: [
@@ -215,56 +245,81 @@ export function AppSidebar() {
           { title: "Le mie Pratiche", url: "/pratiche", icon: FolderOpen },
           { title: "Estratto Conto", url: "/wallet", icon: Receipt },
           { title: "Assistenza", url: "/assistenza", icon: LifeBuoy },
-          { title: "Impostazioni", url: "/impostazioni", icon: Settings },
         ],
       },
     ];
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarContent>
+      {/* ── Content ────────────────────────────────────────────────────────── */}
+      <SidebarContent className="overflow-x-hidden">
         {/* Logo */}
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <div className="flex items-center gap-3 px-2 py-4">
-              {collapsed ? (
-                <img
-                  src="/pratica-rapida-logo.png"
-                  alt="Pratica Rapida"
-                  className="h-9 w-9 shrink-0 rounded-xl object-cover"
-                />
-              ) : (
-                <img src="/pratica-rapida-logo.png" alt="Pratica Rapida" className="h-9" />
-              )}
-            </div>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <div className={`flex items-center px-4 ${collapsed ? "py-3 justify-center" : "py-4 gap-3"}`}>
+          <img
+            src="/pratica-rapida-logo.png"
+            alt="Pratica Rapida"
+            className={collapsed ? "h-8 w-8 rounded-lg object-cover" : "h-8"}
+          />
+        </div>
 
-        <NavItems groups={groups} />
+        {/* Thin separator */}
+        <div className="mx-3 mb-2 h-px bg-sidebar-border/60" />
+
+        {/* Nav */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-1">
+          <NavGroups groups={groups} collapsed={collapsed} />
+        </div>
       </SidebarContent>
 
-      <SidebarFooter>
-        <div className="flex items-center gap-2 px-2 py-2">
-          {!collapsed && user && (
+      {/* ── Footer ─────────────────────────────────────────────────────────── */}
+      <SidebarFooter className="px-0 pb-0">
+        {/* Separator */}
+        <div className="mx-3 h-px bg-sidebar-border/60" />
+
+        {/* Pinned: Impostazioni */}
+        {settingsItem && (
+          <div className="px-2 pt-1">
+            <NavItemRow item={settingsItem} collapsed={collapsed} />
+          </div>
+        )}
+
+        {/* User card */}
+        <div
+          className={`flex items-center gap-2.5 px-3 py-3 ${collapsed ? "justify-center" : ""}`}
+        >
+          {/* Avatar */}
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary/20 text-sidebar-primary text-xs font-bold select-none">
+            {initials}
+          </div>
+
+          {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-              {superAdmin && (
-                <p className="text-xs font-medium text-primary">Super Admin</p>
-              )}
+              <p className="truncate text-xs font-medium text-sidebar-accent-foreground leading-tight">
+                {user?.email ?? ""}
+              </p>
+              <p className="text-[10px] text-sidebar-foreground/50 leading-tight mt-0.5">
+                {superAdmin ? "Super Admin" : internal ? "Admin" : rivenditore ? "Rivenditore" : "Azienda"}
+              </p>
             </div>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="shrink-0"
-            onClick={signOut}
-            title="Esci"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
+
+          {/* Logout */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="shrink-0 h-7 w-7 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                onClick={signOut}
+              >
+                <LogOut className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="text-xs">Esci</TooltipContent>
+          </Tooltip>
         </div>
       </SidebarFooter>
     </Sidebar>

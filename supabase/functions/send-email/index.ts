@@ -149,5 +149,16 @@ serve(async (req) => {
     });
   }
 
+  // Log su email_logs (pannello admin)
+  await supabase.from("email_logs").insert({
+    client_id: data?.client_id ?? null,
+    pratica_id: data?.practice_id ?? null,
+    template_id: data?.template_id ?? null,
+    to_email: to,
+    subject,
+    status: success ? "sent" : "failed",
+    resend_id: emailData?.id ?? null,
+  });
+
   return Response.json({ success, id: emailData?.id });
 });

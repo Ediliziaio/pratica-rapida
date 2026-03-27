@@ -58,5 +58,17 @@ serve(async (req) => {
     });
   }
 
+  // Log su whatsapp_logs (pannello admin)
+  await supabase.from("whatsapp_logs").insert({
+    client_id: null,
+    pratica_id: practice_id ?? null,
+    direction: "outbound",
+    phone,
+    message_type: "template",
+    template_name,
+    status: success ? "sent" : "failed",
+    wa_message_id: wa_message_id ?? null,
+  });
+
   return Response.json({ success, wa_message_id });
 });

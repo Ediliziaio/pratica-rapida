@@ -146,7 +146,6 @@ export function AppSidebar() {
         items: [
           { title: "Dashboard", url: "/", icon: LayoutDashboard, end: true },
           { title: "Kanban Board", url: "/kanban", icon: Kanban },
-          { title: "Dashboard ENEA", url: "/enea/dashboard", icon: BarChart3 },
         ],
       },
       {

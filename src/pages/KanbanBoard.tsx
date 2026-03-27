@@ -405,9 +405,9 @@ export default function KanbanBoard() {
       : stages;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
+    <div className="flex flex-col -m-4 md:-m-6 lg:-m-8 overflow-hidden" style={{ height: "calc(100vh - 3.5rem)" }}>
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3 p-4 border-b bg-background">
+      <div className="flex flex-wrap items-center gap-3 p-4 border-b bg-background shrink-0">
         {/* Title + count */}
         <div className="flex items-baseline gap-2 mr-2">
           <span className="font-semibold text-sm">Pipeline</span>
@@ -461,7 +461,7 @@ export default function KanbanBoard() {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
       ) : deduped.length === 0 ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center p-8">
+        <div className="flex flex-1 min-h-0 flex-col items-center justify-center gap-4 text-center p-8">
           <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
             <Columns className="h-8 w-8 text-muted-foreground/40" />
           </div>
@@ -477,7 +477,7 @@ export default function KanbanBoard() {
         </div>
       ) : (
         <DragDropContext onDragEnd={onDragEnd}>
-          <div className="flex flex-1 gap-3 overflow-x-auto p-4">
+          <div className="flex flex-1 min-h-0 gap-3 overflow-x-auto p-4 pb-6">
             {deduped.map((stage) => {
               const cards = byStage(stage.id);
               const isArchived = stage.stage_type === "archiviate";
@@ -507,7 +507,7 @@ export default function KanbanBoard() {
                       <div
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        className={`flex flex-col gap-2 p-2 flex-1 min-h-[80px] max-h-[calc(100vh-14rem)] overflow-y-auto transition-colors ${
+                        className={`flex flex-col gap-2 p-2 flex-1 min-h-[80px] overflow-y-auto transition-colors ${
                           snapshot.isDraggingOver ? "bg-primary/5" : ""
                         }`}
                       >

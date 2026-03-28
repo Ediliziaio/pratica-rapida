@@ -109,7 +109,18 @@ export default function Aziende() {
         body: { ragione_sociale, email, password, piva, codice_fiscale, telefono, indirizzo, citta, cap, provincia, settore },
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      if (response.error) throw new Error(response.error.message);
+      if (response.error) {
+        // Extract actual error message from function response body
+        let msg = response.error.message;
+        try {
+          const ctx = (response.error as any).context;
+          if (ctx) {
+            const json = await ctx.json();
+            if (json?.error) msg = json.error;
+          }
+        } catch { /* ignore */ }
+        throw new Error(msg);
+      }
       if (response.data?.error) throw new Error(response.data.error);
       return response.data;
     },

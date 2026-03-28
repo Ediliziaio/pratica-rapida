@@ -17,7 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowLeft, ArrowRight, Check, FileText, Briefcase, Send,
   CalendarIcon, Zap, Flame, Gift, X,
-  ShieldCheck, AlertCircle, Upload,
+  ShieldCheck, AlertCircle, Upload, Sparkles, FolderUp,
 } from "lucide-react";
 import { usePromo } from "@/hooks/usePromo";
 import { useCompanyPromos, computeNextIsFree, getPromoDisplayInfo, useApplyCompanyPromo } from "@/hooks/useCompanyPromo";
@@ -275,9 +275,9 @@ export default function NuovaPratica() {
   const activeCompanyPromo = companyPromos.find(p => computeNextIsFree(p)) ?? null;
   const companyPromoInfo = activeCompanyPromo ? getPromoDisplayInfo(activeCompanyPromo) : null;
 
-  // ── Selezione iniziale (brand) ──
+  // ── Selezione iniziale (brand + tipo servizio) ──
   const [brand, setBrand] = useState<Brand | null>(null);
-  const tipoServizio = "pratica_only" as const;
+  const [tipoServizio, setTipoServizio] = useState<"servizio_completo" | "pratica_only" | null>(null);
 
   // ── Wizard ──
   const [step, setStep] = useState(0);
@@ -305,7 +305,14 @@ export default function NuovaPratica() {
   const tipiIntervento = brand === "conto_termico" ? TIPI_INTERVENTO_CT : TIPI_INTERVENTO_ENEA;
 
   // ── Dynamic STEPS ──────────────────────────────────────────────────────────
-  const STEPS = ["Dati Cliente", "Dati Pratica", "Documenti", "Riepilogo"];
+  const STEPS = tipoServizio === "servizio_completo"
+    ? ["Dati Cliente", "Fattura", "Riepilogo"]
+    : ["Dati Cliente", "Dati Pratica", "Documenti", "Riepilogo"];
+
+  // Docs visibili nello step documenti in base al tipo servizio
+  const VISIBLE_DOC_TYPES = tipoServizio === "servizio_completo"
+    ? DOC_TYPES.filter(d => d.id === "fattura")
+    : DOC_TYPES;
 
   const { data: praticaService } = useQuery({
     queryKey: ["enea-service"],
@@ -545,6 +552,9 @@ export default function NuovaPratica() {
           <span className="font-medium text-foreground">Tipo incentivo</span>
           <span className="h-px w-6 bg-border" />
           <span className="flex items-center justify-center h-5 w-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold">2</span>
+          <span>Tipo servizio</span>
+          <span className="h-px w-6 bg-border" />
+          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold">3</span>
           <span>Dati &amp; invio</span>
         </div>
 
@@ -578,6 +588,78 @@ export default function NuovaPratica() {
     );
   }
 
+  // ── Schermata 2: Selezione Tipo Servizio ─────────────────────────────────
+
+  if (!tipoServizio) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica</h1>
+          <p className="text-muted-foreground text-sm mt-1">Come vuoi procedere con questa pratica?</p>
+        </div>
+
+        {/* Step breadcrumb */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+            <Check className="h-3 w-3" />
+          </span>
+          <span className="text-muted-foreground">Tipo incentivo</span>
+          <span className="h-px w-6 bg-primary" />
+          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">2</span>
+          <span className="font-medium text-foreground">Tipo servizio</span>
+          <span className="h-px w-6 bg-border" />
+          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold">3</span>
+          <span>Dati &amp; invio</span>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          {/* Opzione A: Servizio Completo */}
+          <button
+            type="button"
+            onClick={() => setTipoServizio("servizio_completo")}
+            className="group relative rounded-xl border-2 border-primary/30 bg-primary/5 p-6 text-left transition-all hover:-translate-y-1 hover:border-primary hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm group-hover:bg-primary group-hover:text-white transition-all">
+              <Sparkles className="h-6 w-6" />
+            </div>
+            <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+              Consigliato
+            </div>
+            <h3 className="mt-2 font-semibold text-base leading-snug">Carico solo i dati del cliente e la fattura</h3>
+            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+              <span className="font-semibold text-foreground">Pratica Rapida pensa a tutto:</span> recuperiamo i documenti mancanti, gestiamo il cliente e seguiamo l'intera pratica per te.
+            </p>
+            <div className="mt-4 flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+              Seleziona <ArrowRight className="h-3 w-3" />
+            </div>
+          </button>
+
+          {/* Opzione B: Self Service */}
+          <button
+            type="button"
+            onClick={() => setTipoServizio("pratica_only")}
+            className="group relative rounded-xl border-2 border-border bg-card p-6 text-left transition-all hover:-translate-y-1 hover:border-foreground/30 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground shadow-sm group-hover:bg-foreground group-hover:text-background transition-all">
+              <FolderUp className="h-6 w-6" />
+            </div>
+            <h3 className="font-semibold text-base leading-snug">Carico tutti i documenti e i dati del cliente</h3>
+            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+              <span className="font-semibold text-foreground">Pratica Rapida crea solo la pratica:</span> fornisci tu tutte le informazioni e i documenti necessari. Noi gestiamo l'iter burocratico.
+            </p>
+            <div className="mt-4 flex items-center gap-1 text-xs font-medium text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+              Seleziona <ArrowRight className="h-3 w-3" />
+            </div>
+          </button>
+        </div>
+
+        <Button variant="outline" onClick={() => setBrand(null)}>
+          <ArrowLeft className="mr-2 h-4 w-4" />Indietro
+        </Button>
+      </div>
+    );
+  }
+
   // ── Wizard steps ──────────────────────────────────────────────────────────
 
   return (
@@ -590,7 +672,7 @@ export default function NuovaPratica() {
             <Badge className={brandConf!.badgeClass}>{brandConf!.shortLabel}</Badge>
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => { setBrand(null); setStep(0); }} className="text-muted-foreground">
+        <Button variant="ghost" size="sm" onClick={() => { setBrand(null); setTipoServizio(null); setStep(0); }} className="text-muted-foreground">
           Ricomincia
         </Button>
       </div>
@@ -741,26 +823,47 @@ export default function NuovaPratica() {
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Documenti del Cliente</CardTitle>
+              <CardTitle>
+                {tipoServizio === "servizio_completo" ? "Carica la Fattura" : "Documenti del Cliente"}
+              </CardTitle>
               <CardDescription>
-                Carica i documenti necessari per la pratica. Puoi aggiungere più file per categoria.
+                {tipoServizio === "servizio_completo"
+                  ? "Carica la fattura o proforma relativa ai lavori. Pensiamo noi al resto."
+                  : "Carica i documenti necessari per la pratica. Puoi aggiungere più file per categoria."}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Info banner */}
-              <div className="flex items-start gap-2.5 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/40 p-3">
-                <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-                <div className="text-xs text-blue-700 dark:text-blue-300">
-                  <p className="font-semibold">Documenti richiesti</p>
-                  <p className="mt-0.5 leading-relaxed">
-                    La <strong>fattura</strong> è obbligatoria. Gli altri documenti possono essere aggiunti anche in un secondo momento dalla pratica.
-                  </p>
+              <div className={`flex items-start gap-2.5 rounded-lg border p-3 ${
+                tipoServizio === "servizio_completo"
+                  ? "border-primary/20 bg-primary/5"
+                  : "border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/40"
+              }`}>
+                {tipoServizio === "servizio_completo"
+                  ? <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  : <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />}
+                <div className={`text-xs ${tipoServizio === "servizio_completo" ? "text-primary" : "text-blue-700 dark:text-blue-300"}`}>
+                  {tipoServizio === "servizio_completo" ? (
+                    <>
+                      <p className="font-semibold">Servizio Completo attivo</p>
+                      <p className="mt-0.5 leading-relaxed">
+                        Carica solo la <strong>fattura</strong>. Pratica Rapida recupererà tutti gli altri documenti necessari e gestirà la pratica per te.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-semibold">Documenti richiesti</p>
+                      <p className="mt-0.5 leading-relaxed">
+                        La <strong>fattura</strong> è obbligatoria. Gli altri documenti possono essere aggiunti anche in un secondo momento dalla pratica.
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
 
               {/* Upload cards grid */}
               <div className="grid gap-3 sm:grid-cols-2">
-                {DOC_TYPES.map((dt) => (
+                {VISIBLE_DOC_TYPES.map((dt) => (
                   <DocUploadCard
                     key={dt.id}
                     label={dt.label}
@@ -810,9 +913,12 @@ export default function NuovaPratica() {
             </CardHeader>
             <CardContent>
               <div className="rounded-lg bg-muted/50 p-4 space-y-3">
-                {/* Tipo pratica */}
+                {/* Tipo pratica + servizio */}
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge className={brandConf!.badgeClass}>{brandConf!.label}</Badge>
+                  <Badge variant="outline" className={tipoServizio === "servizio_completo" ? "border-primary/40 text-primary" : ""}>
+                    {tipoServizio === "servizio_completo" ? "✦ Servizio Completo" : "Self Service"}
+                  </Badge>
                 </div>
 
                 {/* Cliente */}

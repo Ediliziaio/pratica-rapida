@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { NavLink } from "@/components/NavLink";
 import { useAuth, isSuperAdmin, isInternal, isReseller } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
@@ -53,16 +54,24 @@ type NavGroup = {
 // ── Single nav item row ────────────────────────────────────────────────────────
 
 function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
+  const { pathname } = useLocation();
+
+  // Explicit active logic: with end=true → exact match, else prefix match
+  const isActive = item.end
+    ? pathname === item.url
+    : pathname === item.url || pathname.startsWith(item.url + "/");
+
   const link = (
-    <NavLink
+    <Link
       to={item.url}
-      end={item.end ?? false}
-      className="group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground sidebar-nav-active"
+      className={[
+        "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-white hover:bg-white/[0.15] hover:text-white",
+        isActive ? "sidebar-nav-active" : "",
+      ].join(" ").trim()}
     >
-      <item.icon className="h-[1.05rem] w-[1.05rem] shrink-0 opacity-75 group-hover:opacity-100 transition-opacity" />
+      <item.icon className="h-[1.05rem] w-[1.05rem] shrink-0 transition-all duration-200 group-hover:scale-110" />
       {!collapsed && <span className="truncate">{item.title}</span>}
-    </NavLink>
+    </Link>
   );
 
   if (collapsed) {
@@ -111,10 +120,10 @@ function CollapsibleGroup({ group, collapsed }: { group: NavGroup; collapsed: bo
     <Collapsible open={open} onOpenChange={setOpen}>
       <div className="px-2 pb-1">
         <CollapsibleTrigger asChild>
-          <button className="flex w-full items-center justify-between px-3 py-1.5 mb-0.5 rounded-md text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/40 hover:text-sidebar-foreground/70 transition-colors">
+          <button className="flex w-full items-center justify-between px-3 py-1.5 mb-1 rounded-md text-[10px] font-bold uppercase tracking-[0.08em] text-white/70 hover:text-white transition-colors">
             <span>{group.label}</span>
             <ChevronDown
-              className={`h-3 w-3 transition-transform duration-200 ${open ? "rotate-0" : "-rotate-90"}`}
+              className={`h-3 w-3 transition-transform duration-200 text-white/70 ${open ? "rotate-0" : "-rotate-90"}`}
             />
           </button>
         </CollapsibleTrigger>
@@ -153,7 +162,8 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
 
   const superAdmin = isSuperAdmin(roles);
-  const internal = isInternal(roles);
+  // admin_interno = company admin → should see the azienda view, NOT the internal staff view
+  const internal = roles.some(r => ["super_admin", "operatore"].includes(r));
   const rivenditore = isReseller(roles);
 
   // Initials for avatar
@@ -224,8 +234,8 @@ export function AppSidebar() {
       {
         items: [
           { title: "Dashboard", url: "/", icon: LayoutDashboard, end: true },
-          { title: "Nuova Pratica", url: "/pratiche/nuova", icon: FilePlus },
-          { title: "Le mie Pratiche", url: "/pratiche", icon: FolderOpen },
+          { title: "Nuova Pratica", url: "/pratiche/nuova", icon: FilePlus, end: true },
+          { title: "Le mie Pratiche", url: "/pratiche", icon: FolderOpen, end: true },
           { title: "Estratto Conto", url: "/wallet", icon: Receipt },
           { title: "Assistenza", url: "/assistenza", icon: LifeBuoy },
         ],
@@ -245,11 +255,12 @@ export function AppSidebar() {
             src="/pratica-rapida-logo.png"
             alt="Pratica Rapida"
             className={collapsed ? "h-8 w-8 rounded-lg object-cover" : "h-8"}
+            style={{ filter: "brightness(0) invert(1)" }}
           />
         </div>
 
         {/* Thin separator */}
-        <div className="mx-3 mb-2 h-px bg-sidebar-border/60" />
+        <div className="mx-3 mb-2 h-px bg-white/[0.09]" />
 
         {/* Nav */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden py-1">
@@ -260,7 +271,7 @@ export function AppSidebar() {
       {/* ── Footer ─────────────────────────────────────────────────────────── */}
       <SidebarFooter className="px-0 pb-0">
         {/* Separator */}
-        <div className="mx-3 h-px bg-sidebar-border/60" />
+        <div className="mx-3 h-px bg-white/[0.09]" />
 
         {/* Pinned: Impostazioni */}
         {settingsItem && (
@@ -274,17 +285,17 @@ export function AppSidebar() {
           className={`flex items-center gap-2.5 px-3 py-3 ${collapsed ? "justify-center" : ""}`}
         >
           {/* Avatar */}
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary/20 text-sidebar-primary text-xs font-bold select-none">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 text-white text-xs font-bold select-none ring-1 ring-white/30">
             {initials}
           </div>
 
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="truncate text-xs font-medium text-sidebar-accent-foreground leading-tight">
+              <p className="truncate text-xs font-semibold text-white leading-tight">
                 {user?.email ?? ""}
               </p>
-              <p className="text-[10px] text-sidebar-foreground/50 leading-tight mt-0.5">
-                {superAdmin ? "Super Admin" : internal ? "Admin" : rivenditore ? "Rivenditore" : "Azienda"}
+              <p className="text-[10px] text-white/70 leading-tight mt-0.5">
+                {superAdmin ? "Super Admin" : internal ? "Operatore" : rivenditore ? "Rivenditore" : "Azienda"}
               </p>
             </div>
           )}
@@ -295,7 +306,7 @@ export function AppSidebar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="shrink-0 h-7 w-7 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                className="shrink-0 h-7 w-7 text-white/60 hover:text-red-300 hover:bg-white/10 transition-colors duration-200"
                 onClick={signOut}
               >
                 <LogOut className="h-3.5 w-3.5" />

@@ -15,22 +15,22 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 10%;
 
-    --primary: 220 72% 50%;
+    --primary: 142 76% 34%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 96%;
+    --secondary: 142 14% 95%;
     --secondary-foreground: 220 20% 10%;
 
     --muted: 220 14% 96%;
     --muted-foreground: 220 10% 46%;
 
-    --accent: 220 14% 93%;
+    --accent: 142 20% 93%;
     --accent-foreground: 220 20% 10%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 152 60% 40%;
+    --success: 142 76% 34%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
@@ -38,18 +38,19 @@
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 220 72% 50%;
+    --ring: 142 76% 34%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 213 54% 9%;
-    --sidebar-foreground: 215 20% 68%;
-    --sidebar-primary: 217 91% 62%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 213 40% 16%;
-    --sidebar-accent-foreground: 215 20% 94%;
-    --sidebar-border: 213 40% 15%;
-    --sidebar-ring: 217 91% 62%;
+    /* Sidebar: premium forest green (matches auth page) */
+    --sidebar-background: 143 62% 20%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 143 62% 20%;
+    --sidebar-accent: 143 50% 28%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 143 45% 24%;
+    --sidebar-ring: 142 76% 60%;
 
     /* Landing page brand colors */
     --pr-green: 152 100% 24%;
@@ -68,7 +69,7 @@
     --popover: 220 20% 10%;
     --popover-foreground: 220 10% 94%;
 
-    --primary: 220 72% 55%;
+    --primary: 142 69% 40%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 14% 16%;
@@ -83,7 +84,7 @@
     --destructive: 0 62% 40%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 152 55% 45%;
+    --success: 142 69% 40%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 85% 55%;
@@ -91,16 +92,17 @@
 
     --border: 220 14% 18%;
     --input: 220 14% 18%;
-    --ring: 220 72% 55%;
+    --ring: 142 69% 40%;
 
-    --sidebar-background: 220 20% 8%;
-    --sidebar-foreground: 220 10% 80%;
-    --sidebar-primary: 220 72% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 14%;
-    --sidebar-accent-foreground: 220 10% 94%;
-    --sidebar-border: 220 14% 16%;
-    --sidebar-ring: 220 72% 55%;
+    /* Sidebar dark: deep forest */
+    --sidebar-background: 143 62% 14%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 143 62% 14%;
+    --sidebar-accent: 143 50% 20%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 143 45% 17%;
+    --sidebar-ring: 142 76% 50%;
   }
 }
 
@@ -117,10 +119,28 @@
   }
 }
 
-/* Sidebar active nav indicator */
+/* ── Premium Green Sidebar ─────────────────────────────────────────────── */
+
+/* Gradient background — forest green (matches auth page palette) */
+[data-sidebar="sidebar"] {
+  background: linear-gradient(160deg, #14532d 0%, #166534 45%, #15803d 100%) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark [data-sidebar="sidebar"] {
+  background: linear-gradient(160deg, #0d3d22 0%, #104a29 45%, #135c30 100%) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Active nav item — frosted white pill */
 .sidebar-nav-active {
   position: relative;
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: white !important;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
+
+/* Active left accent bar */
 .sidebar-nav-active::before {
   content: '';
   position: absolute;
@@ -128,9 +148,21 @@
   top: 50%;
   transform: translateY(-50%);
   width: 3px;
-  height: 1.25rem;
+  height: 1.5rem;
   border-radius: 0 4px 4px 0;
-  background-color: hsl(var(--sidebar-primary));
+  background: white;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+}
+
+/* Bell wiggle animation for new notifications */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  15%       { transform: rotate(15deg); }
+  30%       { transform: rotate(-13deg); }
+  45%       { transform: rotate(10deg); }
+  60%       { transform: rotate(-8deg); }
+  75%       { transform: rotate(5deg); }
+  90%       { transform: rotate(-3deg); }
 }
 
 /* Landing page animations */

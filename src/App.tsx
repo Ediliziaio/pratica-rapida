@@ -53,6 +53,8 @@ const queryClient = new QueryClient();
 
 const INTERNAL_ROLES = ["super_admin", "admin_interno", "operatore"] as const;
 const ADMIN_ROLES = ["super_admin"] as const;
+// Staff = internal Pratica Rapida employees only (NOT company admins like admin_interno)
+const STAFF_ROLES = ["super_admin", "operatore"] as const;
 const RESELLER_ROLES = ["rivenditore"] as const;
 const ALL_AUTH_ROLES = [...INTERNAL_ROLES, ...RESELLER_ROLES] as const;
 
@@ -100,7 +102,7 @@ function AuthRoute() {
 }
 
 const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+  <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <ErrorBoundary>
@@ -127,17 +129,17 @@ const App = () => (
                 <Route path="/assistenza" element={<ProtectedRoute><Assistenza /></ProtectedRoute>} />
                 <Route path="/clienti" element={<ProtectedRoute><Clienti /></ProtectedRoute>} />
 
-                {/* Internal-only routes */}
-                <Route path="/aziende" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><Aziende /></RoleGuard></ProtectedRoute>} />
-                <Route path="/aziende/:id" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><AziendaDetail /></RoleGuard></ProtectedRoute>} />
+                {/* Staff-only routes (super_admin + operatore — NOT admin_interno/company admins) */}
+                <Route path="/aziende" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><Aziende /></RoleGuard></ProtectedRoute>} />
+                <Route path="/aziende/:id" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><AziendaDetail /></RoleGuard></ProtectedRoute>} />
                 {/* Redirect legacy standalone routes to Impostazioni tabs */}
                 <Route path="/utenti" element={<Navigate to="/admin/impostazioni" replace />} />
                 <Route path="/listino" element={<Navigate to="/admin/impostazioni" replace />} />
                 <Route path="/admin/audit-log" element={<Navigate to="/admin/impostazioni" replace />} />
                 <Route path="/analytics" element={<Navigate to="/" replace />} />
-                <Route path="/coda-pratiche" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><CodaPratiche /></RoleGuard></ProtectedRoute>} />
-                <Route path="/admin/pratiche" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><AdminPratiche /></RoleGuard></ProtectedRoute>} />
-                <Route path="/admin/ticket" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><AdminTicket /></RoleGuard></ProtectedRoute>} />
+                <Route path="/coda-pratiche" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><CodaPratiche /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/pratiche" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><AdminPratiche /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/ticket" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><AdminTicket /></RoleGuard></ProtectedRoute>} />
 
                 {/* Super admin only */}
                 <Route path="/admin/impostazioni" element={<ProtectedRoute><RoleGuard allowed={[...ADMIN_ROLES]}><ImpostazioniPiattaforma /></RoleGuard></ProtectedRoute>} />
@@ -148,15 +150,15 @@ const App = () => (
                 <Route path="/kanban" element={<ProtectedRoute><RoleGuard allowed={[...RESELLER_ROLES]}><KanbanBoard /></RoleGuard></ProtectedRoute>} />
                 <Route path="/enea/nuova" element={<ProtectedRoute><RoleGuard allowed={[...RESELLER_ROLES]}><NuovaPraticaEnea /></RoleGuard></ProtectedRoute>} />
                 <Route path="/enea/dashboard" element={<ProtectedRoute><RoleGuard allowed={[...ALL_AUTH_ROLES]}><EneaDashboard /></RoleGuard></ProtectedRoute>} />
-                <Route path="/admin/gestionale" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><GestionaleAdmin /></RoleGuard></ProtectedRoute>} />
-                <Route path="/admin/automazioni" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><Automazioni /></RoleGuard></ProtectedRoute>} />
-                <Route path="/admin/comunicazioni" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><ComunicazioniLog /></RoleGuard></ProtectedRoute>} />
-                <Route path="/admin/calendario" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><CalendarioChiamate /></RoleGuard></ProtectedRoute>} />
-                <Route path="/admin/promo" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><PromoManager /></RoleGuard></ProtectedRoute>} />
-                <Route path="/admin/clienti" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><ClientiAdmin /></RoleGuard></ProtectedRoute>} />
-                <Route path="/admin/clienti/:id" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><ClienteDettaglio /></RoleGuard></ProtectedRoute>} />
-                <Route path="/admin/email" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><EmailTemplates /></RoleGuard></ProtectedRoute>} />
-                <Route path="/admin/whatsapp" element={<ProtectedRoute><RoleGuard allowed={[...INTERNAL_ROLES]}><WhatsappPanel /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/gestionale" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><GestionaleAdmin /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/automazioni" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><Automazioni /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/comunicazioni" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><ComunicazioniLog /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/calendario" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><CalendarioChiamate /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/promo" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><PromoManager /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/clienti" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><ClientiAdmin /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/clienti/:id" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><ClienteDettaglio /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/email" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><EmailTemplates /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/whatsapp" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><WhatsappPanel /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/calendario-eventi" element={<Navigate to="/admin/calendario" replace />} />
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

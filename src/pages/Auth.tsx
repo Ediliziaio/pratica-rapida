@@ -59,7 +59,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary/30 px-4">
+    <div className="flex min-h-screen items-center justify-center px-4" style={{ backgroundColor: "#ffffff" }}>
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-2">
           <img src="/pratica-rapida-logo.png" alt="Pratica Rapida" className="w-[200px]" />

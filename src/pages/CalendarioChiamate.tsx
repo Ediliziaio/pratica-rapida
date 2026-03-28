@@ -13,7 +13,7 @@ import { it } from "date-fns/locale";
 import {
   ChevronLeft, ChevronRight, Plus, Phone, Calendar,
   Video, Clock, Mail, AlignLeft, CheckCircle, XCircle,
-  PhoneOff, Search,
+  PhoneOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

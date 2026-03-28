@@ -55,9 +55,13 @@ export function useEneaPractices(filters?: {
       if (!filters?.includeArchived) q = q.is("archived_at", null);
 
       if (filters?.search) {
-        q = q.or(
-          `cliente_nome.ilike.%${filters.search}%,cliente_cognome.ilike.%${filters.search}%`
-        );
+        // Rimuove virgole e punti che rompono la sintassi or() di PostgREST
+        const safeSearch = filters.search.replace(/[,.()'"%]/g, " ").trim();
+        if (safeSearch) {
+          q = q.or(
+            `cliente_nome.ilike.%${safeSearch}%,cliente_cognome.ilike.%${safeSearch}%`
+          );
+        }
       }
 
       // Rivenditore vede solo le proprie
@@ -101,14 +105,16 @@ export function useMoveStage() {
         .eq("id", practiceId);
       if (error) throw error;
 
-      // 2. Log in communication_log
-      await supabase.from("communication_log").insert({
+      // 2. Log in communication_log (non-bloccante — ignoriamo errori di logging)
+      supabase.from("communication_log").insert({
         practice_id: practiceId,
-        channel: "phone",
-        direction: "inbound",
+        channel: "system",
+        direction: "outbound",
         recipient: userId,
-        body_preview: `Stage spostata da "${oldStageName}" a "${newStageName}"`,
+        body_preview: `Stage: "${oldStageName}" → "${newStageName}"`,
         status: "sent",
+      }).then(({ error }) => {
+        if (error) console.warn("communication_log insert failed:", error.message);
       });
     },
     onSuccess: () => {

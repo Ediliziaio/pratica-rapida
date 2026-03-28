@@ -7,10 +7,7 @@ import {
   Settings,
   ListChecks,
   LogOut,
-  Users,
-  BookOpen,
   BarChart3,
-  Shield,
   LifeBuoy,
   Kanban,
   PlusCircle,
@@ -21,7 +18,6 @@ import {
   Mail,
   MessageCircle,
   Gift,
-  CalendarDays,
   UserSearch,
   ChevronDown,
 } from "lucide-react";
@@ -175,7 +171,6 @@ export function AppSidebar() {
       {
         items: [
           { title: "Dashboard", url: "/", icon: LayoutDashboard, end: true },
-          { title: "Kanban Board", url: "/kanban", icon: Kanban },
         ],
       },
       {
@@ -183,8 +178,8 @@ export function AppSidebar() {
         collapsible: true,
         defaultOpen: true,
         items: [
-          { title: "Gestionale", url: "/admin/gestionale", icon: Table2 },
           { title: "Pratiche", url: "/admin/pratiche", icon: FolderOpen },
+          { title: "Gestionale", url: "/admin/gestionale", icon: Table2 },
           { title: "Attività", url: "/coda-pratiche", icon: ListChecks },
           { title: "Automazioni", url: "/admin/automazioni", icon: Zap },
         ],
@@ -197,8 +192,7 @@ export function AppSidebar() {
           { title: "Email", url: "/admin/email", icon: Mail },
           { title: "WhatsApp", url: "/admin/whatsapp", icon: MessageCircle },
           { title: "Log", url: "/admin/comunicazioni", icon: MessageSquare },
-          { title: "Calendario Chiamate", url: "/admin/calendario", icon: CalendarClock },
-          { title: "Calendario", url: "/admin/calendario-eventi", icon: CalendarDays },
+          { title: "Calendario", url: "/admin/calendario", icon: CalendarClock },
         ],
       },
       {
@@ -210,17 +204,6 @@ export function AppSidebar() {
           { title: "Clienti", url: "/admin/clienti", icon: UserSearch },
           { title: "Promo", url: "/admin/promo", icon: Gift },
           { title: "Ticket", url: "/admin/ticket", icon: LifeBuoy },
-        ],
-      },
-      {
-        label: "Sistema",
-        collapsible: true,
-        defaultOpen: false,
-        items: [
-          { title: "Utenti", url: "/utenti", icon: Users },
-          { title: "Listino", url: "/listino", icon: BookOpen },
-          { title: "Analytics", url: "/analytics", icon: BarChart3 },
-          { title: "Audit Log", url: "/admin/audit-log", icon: Shield },
         ],
       },
     ];

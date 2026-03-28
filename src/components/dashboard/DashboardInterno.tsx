@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+
+type PraticaDatiPratica = { brand?: "enea" | "conto_termico" } | null;
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -112,10 +114,10 @@ export function DashboardInterno() {
   const brandStats = useMemo(() => {
     const active = allPratiche.filter(p => !["bozza", "annullata"].includes(p.stato));
     const enea = active.filter(p => {
-      const brand = (p.dati_pratica as any)?.brand;
+      const brand = (p.dati_pratica as PraticaDatiPratica)?.brand;
       return !brand || brand === "enea";
     }).length;
-    const ct = active.filter(p => (p.dati_pratica as any)?.brand === "conto_termico").length;
+    const ct = active.filter(p => (p.dati_pratica as PraticaDatiPratica)?.brand === "conto_termico").length;
     return { enea, ct, total: active.length };
   }, [allPratiche]);
 

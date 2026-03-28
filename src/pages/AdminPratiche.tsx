@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -6,68 +6,112 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import {
-  FolderOpen, Search,
-  Building2, ArrowRight, User, List, Columns3, Download, Trash2, Table2,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  FolderOpen, Search, Building2, ArrowRight, User,
+  Download, Trash2, Table2, LayoutList, SlidersHorizontal,
+  CheckCircle2, Clock, Euro, X, ChevronDown, Kanban,
 } from "lucide-react";
 import { exportToCSV } from "@/lib/csv-export";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useOperatorPermissions } from "@/hooks/useOperatorPermissions";
 import { STATO_CONFIG, STATO_ORDER, PAGAMENTO_BADGE, getAgingDot } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
-import { PraticheSummaryBar } from "@/components/pratiche/PraticheSummaryBar";
 import { BulkActionsBar } from "@/components/pratiche/BulkActionsBar";
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { toast as sonnerToast } from "sonner";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  DndContext, DragEndEvent, DragOverlay, DragStartEvent,
+  useDroppable, useDraggable, PointerSensor, useSensor, useSensors,
+  pointerWithin, MeasuringStrategy,
+  type Modifier,
+} from "@dnd-kit/core";
+import { getEventCoordinates } from "@dnd-kit/utilities";
 
-import { PraticheTableView } from "@/components/pratiche/PraticheTableView";
-import { formatDistanceToNow } from "date-fns";
+// Keeps the DragOverlay card centered under the cursor regardless of
+// scroll containers or sidebar offsets (replaces @dnd-kit/modifiers snapCenterToCursor)
+const snapCenterToCursor: Modifier = ({ activatorEvent, draggingNodeRect, transform }) => {
+  if (draggingNodeRect && activatorEvent) {
+    const coords = getEventCoordinates(activatorEvent);
+    if (coords) {
+      return {
+        ...transform,
+        x: transform.x + coords.x - draggingNodeRect.left - draggingNodeRect.width / 2,
+        y: transform.y + coords.y - draggingNodeRect.top - draggingNodeRect.height / 2,
+      };
+    }
+  }
+  return transform;
+};
+import { toast as sonnerToast } from "sonner";
+import { formatDistanceToNow, format } from "date-fns";
 import { it } from "date-fns/locale";
+import { PraticheTableView } from "@/components/pratiche/PraticheTableView";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type ViewMode = "list" | "pipeline" | "table";
 
+interface FiltersState {
+  search: string;
+  stato: string;
+  azienda: string;
+  brand: "all" | "enea" | "conto_termico";
+  pagamento: string;
+  operatore: string;
+  dateFrom: string;
+  dateTo: string;
+}
 
-function AdminDraggableCard({ pratica, navigate, assigneeMap }: { pratica: any; navigate: (path: string) => void; assigneeMap: Record<string, { nome: string; cognome: string }> }) {
+const DEFAULT_FILTERS: FiltersState = {
+  search: "",
+  stato: "all",
+  azienda: "all",
+  brand: "all",
+  pagamento: "all",
+  operatore: "all",
+  dateFrom: "",
+  dateTo: "",
+};
+
+// ─── DnD Card ─────────────────────────────────────────────────────────────────
+
+function DraggableCard({
+  pratica,
+  navigate,
+  assigneeMap,
+  showPricing = true,
+}: {
+  pratica: any;
+  navigate: (path: string) => void;
+  assigneeMap: Record<string, { nome: string; cognome: string }>;
+  showPricing?: boolean;
+}) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: pratica.id,
     data: { stato: pratica.stato },
   });
-  const dragActivated = React.useRef(false);
-
-  React.useEffect(() => {
-    if (isDragging) dragActivated.current = true;
-  }, [isDragging]);
+  const dragActivated = useRef(false);
+  useEffect(() => { if (isDragging) dragActivated.current = true; }, [isDragging]);
 
   const style = {
-    transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.4 : 1,
+    // When DragOverlay is active, don't move the source — just hide it
+    opacity: isDragging ? 0 : 1,
+    touchAction: "none" as const,
+    userSelect: "none" as const,
+    // Preserve layout space so columns don't collapse during drag
+    visibility: isDragging ? ("hidden" as const) : ("visible" as const),
   };
 
   const assignee = pratica.assegnatario_id ? assigneeMap[pratica.assegnatario_id] : null;
   const aging = getAgingDot(pratica);
   const pagamento = PAGAMENTO_BADGE[pratica.pagamento_stato] || PAGAMENTO_BADGE.non_pagata;
-
-  const handleClick = () => {
-    if (dragActivated.current) {
-      dragActivated.current = false;
-      return;
-    }
-    navigate(`/pratiche/${pratica.id}`);
-  };
+  const brandDati = (pratica.dati_pratica as any)?.brand;
 
   return (
     <Card
@@ -75,73 +119,658 @@ function AdminDraggableCard({ pratica, navigate, assigneeMap }: { pratica: any; 
       style={style}
       {...listeners}
       {...attributes}
-      className="cursor-grab active:cursor-grabbing transition-all hover:shadow-md hover:-translate-y-0.5 touch-none"
-      onClick={handleClick}
+      className="cursor-grab active:cursor-grabbing select-none bg-card hover:shadow-md transition-shadow"
+      onClick={() => {
+        if (dragActivated.current) { dragActivated.current = false; return; }
+        navigate(`/pratiche/${pratica.id}`);
+      }}
     >
-      <CardContent className="p-3 space-y-1">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium truncate flex-1">{pratica.titolo}</p>
-          {aging && <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${aging.color}`} title={aging.label} />}
+      <CardContent className="p-2.5 space-y-1">
+        {/* Title + aging dot */}
+        <div className="flex items-start justify-between gap-1">
+          <p className="text-xs font-semibold leading-snug line-clamp-2 flex-1 min-w-0">{pratica.titolo}</p>
+          <div className="flex items-center gap-1 shrink-0 mt-0.5">
+            {aging && <span className={`h-1.5 w-1.5 rounded-full ${aging.color}`} title={aging.label} />}
+            {brandDati && (
+              <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${brandDati === "enea" ? "bg-blue-100 text-blue-700" : "bg-orange-100 text-orange-700"}`}>
+                {brandDati === "enea" ? "ENEA" : "CT"}
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col gap-0.5 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1"><Building2 className="h-3 w-3" />{(pratica.companies as any)?.ragione_sociale}</span>
-          {pratica.clienti_finali && <span>{(pratica.clienti_finali as any).nome} {(pratica.clienti_finali as any).cognome}</span>}
-          {assignee && (
-            <span className="flex items-center gap-1"><User className="h-3 w-3" />{assignee.nome} {assignee.cognome}</span>
-          )}
+        {/* Azienda */}
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground truncate">
+          <Building2 className="h-2.5 w-2.5 shrink-0" />
+          <span className="truncate">{(pratica.companies as any)?.ragione_sociale}</span>
         </div>
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold">€ {pratica.prezzo.toFixed(2)}</p>
-          <Badge variant="outline" className={`text-[10px] h-4 px-1 ${pagamento.className}`}>{pagamento.label}</Badge>
+        {/* Footer: price + pagamento + assignee */}
+        <div className="flex items-center justify-between gap-1 pt-1 border-t border-border/40">
+          {showPricing
+            ? <p className="text-[11px] font-bold">€ {(pratica.prezzo ?? 0).toFixed(0)}</p>
+            : <span className="text-[10px] text-muted-foreground">—</span>
+          }
+          <div className="flex items-center gap-1">
+            {assignee && (
+              <span className="text-[9px] bg-primary/10 text-primary px-1 py-0.5 rounded font-medium truncate max-w-[60px]">
+                {assignee.nome}
+              </span>
+            )}
+            <Badge variant="outline" className={`text-[9px] h-4 px-1 ${pagamento.className}`}>
+              {pagamento.label}
+            </Badge>
+          </div>
         </div>
-        <p className="text-[10px] text-muted-foreground">
-          {formatDistanceToNow(new Date(pratica.created_at), { addSuffix: true, locale: it })}
-        </p>
       </CardContent>
     </Card>
   );
 }
 
-function AdminDroppableColumn({ stato, children }: { stato: string; children: React.ReactNode }) {
-  const { isOver, setNodeRef } = useDroppable({ id: stato });
-  const conf = STATO_CONFIG[stato as PraticaStato];
+// ─── Droppable Column ─────────────────────────────────────────────────────────
 
+const COL_CARDS_PAGE = 20; // cards per "page" per column
+
+function DroppableColumn({
+  stato,
+  children,
+  isOver,
+}: {
+  stato: string;
+  children: React.ReactNode;
+  isOver: boolean;
+}) {
+  const conf = STATO_CONFIG[stato as PraticaStato];
   return (
     <div
-      ref={setNodeRef}
-      className={`flex w-[250px] shrink-0 flex-col rounded-xl ${conf.bgColumn} border transition-all ${isOver ? "ring-2 ring-primary shadow-lg scale-[1.02]" : ""}`}
+      className={`flex w-[272px] shrink-0 flex-col rounded-xl border transition-all duration-150 ${conf.bgColumn} ${
+        isOver ? "ring-2 ring-primary/70 shadow-lg scale-[1.01]" : ""
+      }`}
     >
       {children}
     </div>
   );
 }
 
+// ─── Pipeline View ────────────────────────────────────────────────────────────
+
+function PipelineView({
+  filtered,
+  assigneeMap,
+  navigate,
+  showPricing = true,
+}: {
+  filtered: any[];
+  assigneeMap: Record<string, { nome: string; cognome: string }>;
+  navigate: (p: string) => void;
+  showPricing?: boolean;
+}) {
+  const queryClient = useQueryClient();
+  const [activeId, setActiveId] = useState<string | null>(null);
+  // Per-column: how many pages of COL_CARDS_PAGE are shown
+  const [colPages, setColPages] = useState<Record<string, number>>({});
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
+
+  const activePratica = activeId ? filtered.find((p) => p.id === activeId) : null;
+
+  const handleDragStart = (e: DragStartEvent) => setActiveId(e.active.id as string);
+
+  const handleDragEnd = async (e: DragEndEvent) => {
+    setActiveId(null);
+    const { active, over } = e;
+    if (!over) return;
+    const praticaId = active.id as string;
+    const newStato = over.id as PraticaStato;
+    const oldStato = (active.data.current as any)?.stato as PraticaStato;
+    if (oldStato === newStato) return;
+
+    // Optimistic update
+    queryClient.setQueryData(["admin-all-pratiche"], (old: any[]) =>
+      old?.map((p) => (p.id === praticaId ? { ...p, stato: newStato } : p))
+    );
+
+    const { error } = await supabase.from("pratiche").update({ stato: newStato }).eq("id", praticaId);
+    if (error) {
+      queryClient.setQueryData(["admin-all-pratiche"], (old: any[]) =>
+        old?.map((p) => (p.id === praticaId ? { ...p, stato: oldStato } : p))
+      );
+      sonnerToast.error("Errore nello spostamento");
+    } else {
+      sonnerToast.success(`Spostata in ${STATO_CONFIG[newStato].label}`);
+      queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
+    }
+  };
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={pointerWithin}
+      measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      {/* Horizontal scroll wrapper — plain div, no ScrollArea */}
+      <div style={{ overflowX: "auto", overflowY: "visible", paddingBottom: 12 }}>
+        <div className="flex gap-3 pb-1" style={{ minWidth: STATO_ORDER.length * 284 }}>
+          {STATO_ORDER.map((stato) => {
+            const conf = STATO_CONFIG[stato];
+            const Icon = conf.icon;
+            const items = filtered.filter((p) => p.stato === stato);
+            const pageCount = colPages[stato] ?? 1;
+            const visibleItems = items.slice(0, pageCount * COL_CARDS_PAGE);
+            const remaining = items.length - visibleItems.length;
+            const totalRevenue = items.reduce((s, p) => s + (p.prezzo || 0), 0);
+
+            return (
+              <ColumnWithDroppable
+                key={stato}
+                stato={stato}
+                items={visibleItems}
+                allItemsCount={items.length}
+                remaining={remaining}
+                totalRevenue={totalRevenue}
+                Icon={Icon}
+                conf={conf}
+                navigate={navigate}
+                assigneeMap={assigneeMap}
+                onLoadMore={() => setColPages(prev => ({ ...prev, [stato]: (prev[stato] ?? 1) + 1 }))}
+                showPricing={showPricing}
+              />
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Drag overlay — renders outside all scroll contexts */}
+      <DragOverlay dropAnimation={null} modifiers={[snapCenterToCursor]} style={{ cursor: "grabbing" }}>
+        {activePratica && (
+          <Card className="w-[264px] shadow-2xl border-primary/30" style={{ transform: "rotate(1.5deg)" }}>
+            <CardContent className="p-3 space-y-1.5">
+              <p className="text-sm font-semibold truncate">{activePratica.titolo}</p>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Building2 className="h-3 w-3 shrink-0" />
+                <span className="truncate">{(activePratica.companies as any)?.ragione_sociale}</span>
+              </div>
+              <p className="text-sm font-bold text-primary">€ {(activePratica.prezzo ?? 0).toFixed(2)}</p>
+            </CardContent>
+          </Card>
+        )}
+      </DragOverlay>
+    </DndContext>
+  );
+}
+
+// ─── Column with its own useDroppable ─────────────────────────────────────────
+// Extracted so each column has its own droppable registration
+
+function ColumnWithDroppable({
+  stato,
+  items,
+  allItemsCount,
+  remaining,
+  totalRevenue,
+  Icon,
+  conf,
+  navigate,
+  assigneeMap,
+  onLoadMore,
+  showPricing = true,
+}: {
+  stato: string;
+  items: any[];
+  allItemsCount: number;
+  remaining: number;
+  totalRevenue: number;
+  Icon: React.ComponentType<{ className?: string }>;
+  conf: any;
+  navigate: (p: string) => void;
+  assigneeMap: Record<string, { nome: string; cognome: string }>;
+  onLoadMore: () => void;
+  showPricing?: boolean;
+}) {
+  const { isOver, setNodeRef } = useDroppable({ id: stato });
+
+  return (
+    <DroppableColumn stato={stato} isOver={isOver}>
+      {/* Column ref wraps the entire column — pointer-within checks this rect */}
+      <div ref={setNodeRef} className="flex flex-col h-full">
+        {/* Header */}
+        <div className="flex items-center gap-2 px-3 py-2.5 border-b rounded-t-xl bg-inherit">
+          <div className={`flex h-6 w-6 items-center justify-center rounded-md shrink-0 ${conf.color}`}>
+            <Icon className="h-3 w-3" />
+          </div>
+          <span className="text-xs font-semibold flex-1 truncate">{conf.label}</span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {showPricing && (
+              <span className="text-[10px] font-bold text-muted-foreground">
+                € {totalRevenue > 999 ? `${(totalRevenue / 1000).toFixed(1)}k` : totalRevenue.toFixed(0)}
+              </span>
+            )}
+            <Badge variant="secondary" className="text-[10px] h-4 px-1.5 min-w-[20px] text-center font-bold">
+              {allItemsCount}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Scrollable cards area — fixed height, independent scroll per column */}
+        <div
+          className="flex flex-col gap-1.5 p-2 overflow-y-auto overflow-x-hidden"
+          style={{ height: "calc(100vh - 320px)", minHeight: 200 }}
+        >
+          {allItemsCount === 0 ? (
+            <div className="flex flex-1 items-center justify-center py-8 m-1">
+              <p className="text-xs text-muted-foreground/40 text-center">Nessuna pratica</p>
+            </div>
+          ) : (
+            items.map((p) => (
+              <DraggableCard key={p.id} pratica={p} navigate={navigate} assigneeMap={assigneeMap} showPricing={showPricing} />
+            ))
+          )}
+
+          {remaining > 0 && (
+            <button
+              onClick={onLoadMore}
+              className="mt-1 w-full py-2 text-center text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg border border-dashed transition-colors"
+            >
+              + {remaining} altre pratiche
+            </button>
+          )}
+        </div>
+      </div>
+    </DroppableColumn>
+  );
+}
+
+// ─── Filter Sheet ─────────────────────────────────────────────────────────────
+
+function FilterSheet({
+  open,
+  onClose,
+  filters,
+  onChange,
+  onClear,
+  companies,
+  operators,
+}: {
+  open: boolean;
+  onClose: () => void;
+  filters: FiltersState;
+  onChange: (f: Partial<FiltersState>) => void;
+  onClear: () => void;
+  companies: { id: string; ragione_sociale: string }[];
+  operators: { id: string; nome: string; cognome: string }[];
+}) {
+  return (
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent side="right" className="w-full sm:max-w-sm flex flex-col">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4" />
+            Filtri avanzati
+          </SheetTitle>
+        </SheetHeader>
+
+        <div className="flex-1 overflow-y-auto py-4 space-y-5">
+          {/* Brand */}
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Brand</Label>
+            <div className="flex gap-1.5">
+              {(["all", "enea", "conto_termico"] as const).map((b) => (
+                <button
+                  key={b}
+                  onClick={() => onChange({ brand: b })}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                    filters.brand === b
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border hover:bg-muted"
+                  }`}
+                >
+                  {b === "all" ? "Tutti" : b === "enea" ? "ENEA" : "Conto Termico"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Stato */}
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Stato pratica</Label>
+            <div className="flex flex-col gap-1">
+              {[["all", "Tutti gli stati"], ...STATO_ORDER.map((s) => [s, STATO_CONFIG[s].label])].map(([val, label]) => (
+                <button
+                  key={val}
+                  onClick={() => onChange({ stato: val })}
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${
+                    filters.stato === val
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "hover:bg-muted text-foreground"
+                  }`}
+                >
+                  <span>{label}</span>
+                  {filters.stato === val && <CheckCircle2 className="h-3.5 w-3.5" />}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Pagamento */}
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Stato pagamento</Label>
+            <div className="flex flex-col gap-1">
+              {[
+                ["all", "Tutti"],
+                ["non_pagata", "Da fatturare"],
+                ["in_verifica", "Fatturata"],
+                ["pagata", "Pagata"],
+                ["rimborsata", "Rimborsata"],
+              ].map(([val, label]) => (
+                <button
+                  key={val}
+                  onClick={() => onChange({ pagamento: val })}
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${
+                    filters.pagamento === val
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "hover:bg-muted text-foreground"
+                  }`}
+                >
+                  <span>{label}</span>
+                  {filters.pagamento === val && <CheckCircle2 className="h-3.5 w-3.5" />}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Azienda */}
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Azienda</Label>
+            <Select value={filters.azienda} onValueChange={(v) => onChange({ azienda: v })}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue placeholder="Tutte le aziende" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tutte le aziende</SelectItem>
+                {companies.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.ragione_sociale}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Operatore */}
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Operatore assegnato</Label>
+            <Select value={filters.operatore} onValueChange={(v) => onChange({ operatore: v })}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue placeholder="Tutti gli operatori" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tutti gli operatori</SelectItem>
+                <SelectItem value="unassigned">Non assegnato</SelectItem>
+                {operators.map((op) => (
+                  <SelectItem key={op.id} value={op.id}>{op.nome} {op.cognome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Date range */}
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Periodo creazione</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Dal</Label>
+                <Input
+                  type="date"
+                  className="h-9 text-sm"
+                  value={filters.dateFrom}
+                  onChange={(e) => onChange({ dateFrom: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Al</Label>
+                <Input
+                  type="date"
+                  className="h-9 text-sm"
+                  value={filters.dateTo}
+                  onChange={(e) => onChange({ dateTo: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <SheetFooter className="pt-4 border-t gap-2">
+          <Button variant="outline" className="flex-1" onClick={onClear}>
+            <X className="h-3.5 w-3.5 mr-1.5" />
+            Reset filtri
+          </Button>
+          <Button className="flex-1" onClick={onClose}>
+            Applica
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// ─── KPI Cards ────────────────────────────────────────────────────────────────
+
+function KpiCards({ pratiche, showPricing = true }: { pratiche: any[]; showPricing?: boolean }) {
+  const totale = pratiche.length;
+  const attive = pratiche.filter((p) => ["inviata", "in_lavorazione", "in_attesa_documenti"].includes(p.stato)).length;
+  const completate = pratiche.filter((p) => p.stato === "completata").length;
+  const daFatturare = pratiche
+    .filter((p) => p.stato === "completata" && p.pagamento_stato === "non_pagata")
+    .reduce((s, p) => s + (p.prezzo || 0), 0);
+
+  const kpis = [
+    { label: "Totali", value: totale, icon: FolderOpen, color: "text-foreground", bg: "bg-muted/60" },
+    { label: "Attive", value: attive, icon: Clock, color: "text-warning", bg: "bg-warning/10" },
+    { label: "Completate", value: completate, icon: CheckCircle2, color: "text-success", bg: "bg-success/10" },
+    ...(showPricing ? [{ label: "Da fatturare", value: `€ ${daFatturare.toFixed(2)}`, icon: Euro, color: "text-primary", bg: "bg-primary/10" }] : []),
+  ];
+
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {kpis.map(({ label, value, icon: Icon, color, bg }) => (
+        <Card key={label}>
+          <CardContent className="flex items-center gap-3 p-3">
+            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${bg} shrink-0`}>
+              <Icon className={`h-4 w-4 ${color}`} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground truncate">{label}</p>
+              <p className={`font-bold text-sm ${color}`}>{value}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+// ─── Stato Chips ──────────────────────────────────────────────────────────────
+
+function StatoChips({ pratiche, active, onChange }: { pratiche: any[]; active: string; onChange: (s: string) => void }) {
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      <button
+        onClick={() => onChange("all")}
+        className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+          active === "all" ? "bg-foreground text-background border-foreground" : "border-border text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        Tutti ({pratiche.length})
+      </button>
+      {STATO_ORDER.map((stato) => {
+        const count = pratiche.filter((p) => p.stato === stato).length;
+        if (count === 0) return null;
+        const conf = STATO_CONFIG[stato];
+        return (
+          <button
+            key={stato}
+            onClick={() => onChange(active === stato ? "all" : stato)}
+            className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+              active === stato
+                ? "bg-foreground text-background border-foreground"
+                : `border-border ${conf.color} hover:opacity-80`
+            }`}
+          >
+            {conf.label} ({count})
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── List View Card ───────────────────────────────────────────────────────────
+
+function ListCard({
+  p,
+  isSelected,
+  onToggle,
+  onNavigate,
+  assigneeMap,
+  internalOperators,
+  quickChangeStato,
+  quickChangePagamento,
+  assignOperator,
+  bulkDelete,
+  showPricing = true,
+}: any) {
+  const conf = STATO_CONFIG[p.stato];
+  const Icon = conf.icon;
+  const aging = getAgingDot(p);
+  const pagamento = PAGAMENTO_BADGE[p.pagamento_stato] || PAGAMENTO_BADGE.non_pagata;
+  const assignee = p.assegnatario_id ? assigneeMap[p.assegnatario_id] : null;
+  const brandDati = (p.dati_pratica as any)?.brand;
+
+  return (
+    <Card className={`transition-all ${isSelected ? "ring-2 ring-primary bg-primary/5" : "hover:bg-accent/30"}`}>
+      <CardContent className="flex items-center gap-3 p-3">
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox checked={isSelected} onCheckedChange={() => onToggle(p.id)} />
+        </div>
+
+        <div className="relative shrink-0">
+          <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${conf.color}`}>
+            <Icon className="h-4 w-4" />
+          </div>
+          {aging && <span className={`absolute -top-1 -right-1 h-2 w-2 rounded-full border-2 border-background ${aging.color}`} />}
+        </div>
+
+        <div className="min-w-0 flex-1 cursor-pointer" onClick={() => onNavigate(`/pratiche/${p.id}`)}>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <p className="font-medium text-sm truncate">{p.titolo}</p>
+            {brandDati && (
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${brandDati === "enea" ? "bg-blue-100 text-blue-700" : "bg-orange-100 text-orange-700"}`}>
+                {brandDati === "enea" ? "ENEA" : "CT"}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0 text-xs text-muted-foreground mt-0.5">
+            <span className="flex items-center gap-1"><Building2 className="h-3 w-3" />{(p.companies as any)?.ragione_sociale}</span>
+            {p.clienti_finali && <span>{(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}</span>}
+            {assignee && <span className="text-primary flex items-center gap-1"><User className="h-3 w-3" />{assignee.nome} {assignee.cognome}</span>}
+            <span>{formatDistanceToNow(new Date(p.created_at), { addSuffix: true, locale: it })}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+          <Badge variant="outline" className={`text-xs h-6 px-2 hidden sm:flex ${pagamento.className}`}>{pagamento.label}</Badge>
+          {showPricing && <span className="text-sm font-bold hidden md:inline">€ {(p.prezzo ?? 0).toFixed(2)}</span>}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                <ChevronDown className="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Cambia Stato</div>
+              {STATO_ORDER.map((s) => (
+                <DropdownMenuItem
+                  key={s}
+                  onClick={() => quickChangeStato.mutate({ praticaId: p.id, stato: s })}
+                  className={`text-sm ${p.stato === s ? "bg-muted font-medium" : ""}`}
+                >
+                  {STATO_CONFIG[s].label}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Pagamento</div>
+              {[["non_pagata", "Da fatturare"], ["in_verifica", "Fatturata"], ["pagata", "Pagata"]].map(([val, lbl]) => (
+                <DropdownMenuItem
+                  key={val}
+                  onClick={() => quickChangePagamento.mutate({ praticaId: p.id, pagamentoStato: val })}
+                  className={`text-sm ${p.pagamento_stato === val ? "bg-muted font-medium" : ""}`}
+                >
+                  {lbl}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Operatore</div>
+              <DropdownMenuItem onClick={() => assignOperator.mutate({ praticaId: p.id, assegnatarioId: null })} className="text-sm text-muted-foreground">
+                Nessuno
+              </DropdownMenuItem>
+              {internalOperators.map((op: any) => (
+                <DropdownMenuItem key={op.id} onClick={() => assignOperator.mutate({ praticaId: p.id, assegnatarioId: op.id })} className={`text-sm ${p.assegnatario_id === op.id ? "bg-muted font-medium" : ""}`}>
+                  {op.nome} {op.cognome}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive focus:text-destructive text-sm" onClick={() => bulkDelete.mutate([p.id])}>
+                <Trash2 className="h-3.5 w-3.5 mr-2" /> Elimina
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onNavigate(`/pratiche/${p.id}`)}>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 export default function AdminPratiche() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState("");
-  const [filterStato, setFilterStato] = useState<string>("all");
-  const [filterAzienda, setFilterAzienda] = useState<string>("all");
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const { user } = useAuth();
+  const permissions = useOperatorPermissions();
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
-  );
+  const [filters, setFilters] = useState<FiltersState>(DEFAULT_FILTERS);
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+
+  const updateFilter = useCallback((f: Partial<FiltersState>) => {
+    setFilters((prev) => ({ ...prev, ...f }));
+    setSelectedIds(new Set());
+  }, []);
+
+  const clearFilters = useCallback(() => { setFilters(DEFAULT_FILTERS); setSelectedIds(new Set()); }, []);
+
+  // ── Queries ──────────────────────────────────────────────────────────────
 
   const { data: pratiche = [], isLoading } = useQuery({
-    queryKey: ["admin-all-pratiche"],
+    queryKey: ["admin-all-pratiche", permissions.see_all_pratiche, user?.id],
     queryFn: async () => {
-      const sixMonthsAgo = new Date();
-      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-      const { data, error } = await supabase
+      let q = supabase
         .from("pratiche")
         .select("*, companies(ragione_sociale), clienti_finali(nome, cognome)")
-        .gte("created_at", sixMonthsAgo.toISOString())
         .order("created_at", { ascending: false })
-        .limit(500);
+        .limit(1000);
+      // If operatore cannot see all practices, restrict to assigned only
+      if (!permissions.see_all_pratiche && user?.id) {
+        q = q.eq("assegnatario_id", user.id);
+      }
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
@@ -158,36 +787,70 @@ export default function AdminPratiche() {
   const { data: internalOperators = [] } = useQuery({
     queryKey: ["admin-internal-operators"],
     queryFn: async () => {
-      const { data: roles, error } = await supabase
-        .from("user_roles")
-        .select("user_id, role")
-        .in("role", ["super_admin", "admin_interno", "operatore"]);
-      if (error) throw error;
-      const uniqueIds = [...new Set((roles || []).map(r => r.user_id))];
+      const { data: roles } = await supabase.from("user_roles").select("user_id").in("role", ["super_admin", "admin_interno", "operatore"]);
+      const uniqueIds = [...new Set((roles || []).map((r) => r.user_id))];
       if (!uniqueIds.length) return [];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, nome, cognome")
-        .in("id", uniqueIds);
+      const { data: profiles } = await supabase.from("profiles").select("id, nome, cognome").in("id", uniqueIds);
       return profiles || [];
     },
   });
 
   const assigneeMap = useMemo(() => {
     const map: Record<string, { nome: string; cognome: string }> = {};
-    internalOperators.forEach(p => { map[p.id] = p; });
+    internalOperators.forEach((p) => { map[p.id] = p; });
     return map;
   }, [internalOperators]);
+
+  // ── Filtered ─────────────────────────────────────────────────────────────
+
+  const filtered = useMemo(() => {
+    return pratiche.filter((p) => {
+      const searchStr = filters.search.toLowerCase();
+      const matchSearch = !filters.search || [
+        p.titolo,
+        (p.companies as any)?.ragione_sociale ?? "",
+        (p.clienti_finali as any)?.nome ?? "",
+        (p.clienti_finali as any)?.cognome ?? "",
+      ].join(" ").toLowerCase().includes(searchStr);
+
+      const matchStato = filters.stato === "all" || p.stato === filters.stato;
+      const matchAzienda = filters.azienda === "all" || p.company_id === filters.azienda;
+      const brandDati = (p.dati_pratica as any)?.brand;
+      const matchBrand = filters.brand === "all"
+        || (filters.brand === "enea" && (!brandDati || brandDati === "enea"))
+        || (filters.brand === "conto_termico" && brandDati === "conto_termico");
+      const matchPagamento = filters.pagamento === "all" || p.pagamento_stato === filters.pagamento;
+      const matchOperatore = filters.operatore === "all"
+        || (filters.operatore === "unassigned" && !p.assegnatario_id)
+        || p.assegnatario_id === filters.operatore;
+      const created = new Date(p.created_at);
+      const matchFrom = !filters.dateFrom || created >= new Date(filters.dateFrom);
+      const matchTo = !filters.dateTo || created <= new Date(filters.dateTo + "T23:59:59");
+
+      return matchSearch && matchStato && matchAzienda && matchBrand && matchPagamento && matchOperatore && matchFrom && matchTo;
+    });
+  }, [pratiche, filters]);
+
+  const activeFilterCount = useMemo(() => {
+    let n = 0;
+    if (filters.stato !== "all") n++;
+    if (filters.brand !== "all") n++;
+    if (filters.azienda !== "all") n++;
+    if (filters.pagamento !== "all") n++;
+    if (filters.operatore !== "all") n++;
+    if (filters.dateFrom) n++;
+    if (filters.dateTo) n++;
+    return n;
+  }, [filters]);
+
+  // ── Mutations ─────────────────────────────────────────────────────────────
 
   const quickChangeStato = useMutation({
     mutationFn: async ({ praticaId, stato }: { praticaId: string; stato: PraticaStato }) => {
       const { error } = await supabase.from("pratiche").update({ stato }).eq("id", praticaId);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
-      toast({ title: "Stato aggiornato" });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] }),
   });
 
   const quickChangePagamento = useMutation({
@@ -195,10 +858,7 @@ export default function AdminPratiche() {
       const { error } = await supabase.from("pratiche").update({ pagamento_stato: pagamentoStato as any }).eq("id", praticaId);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
-      toast({ title: "Stato pagamento aggiornato" });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] }),
   });
 
   const assignOperator = useMutation({
@@ -206,48 +866,9 @@ export default function AdminPratiche() {
       const { error } = await supabase.from("pratiche").update({ assegnatario_id: assegnatarioId }).eq("id", praticaId);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
-      toast({ title: "Operatore assegnato" });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] }),
   });
 
-  const filtered = useMemo(() => {
-    return pratiche.filter(p => {
-      const matchSearch = `${p.titolo} ${(p.companies as any)?.ragione_sociale || ""} ${(p.clienti_finali as any)?.nome || ""} ${(p.clienti_finali as any)?.cognome || ""}`.toLowerCase().includes(search.toLowerCase());
-      const matchStato = filterStato === "all" || p.stato === filterStato;
-      const matchAzienda = filterAzienda === "all" || p.company_id === filterAzienda;
-      return matchSearch && matchStato && matchAzienda;
-    });
-  }, [pratiche, search, filterStato, filterAzienda]);
-
-  const handleAssignOperator = (praticaId: string, value: string) => {
-    assignOperator.mutate({
-      praticaId,
-      assegnatarioId: value === "unassigned" ? null : value,
-    });
-  };
-
-  // Selection
-  const toggleSelect = useCallback((id: string) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const toggleSelectAll = useCallback(() => {
-    if (selectedIds.size === filtered.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(filtered.map(p => p.id)));
-    }
-  }, [filtered, selectedIds.size]);
-
-  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
-
-  // Bulk mutations
   const bulkDelete = useMutation({
     mutationFn: async (ids: string[]) => {
       const { error } = await supabase.from("pratiche").delete().in("id", ids);
@@ -258,7 +879,7 @@ export default function AdminPratiche() {
       clearSelection();
       toast({ title: "Pratiche eliminate" });
     },
-    onError: () => toast({ title: "Errore nell'eliminazione", variant: "destructive" }),
+    onError: () => toast({ title: "Errore", variant: "destructive" }),
   });
 
   const bulkChangeStato = useMutation({
@@ -266,11 +887,7 @@ export default function AdminPratiche() {
       const { error } = await supabase.from("pratiche").update({ stato: stato as any }).in("id", ids);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
-      clearSelection();
-      toast({ title: "Stato aggiornato" });
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] }); clearSelection(); toast({ title: "Stato aggiornato" }); },
   });
 
   const bulkChangePagamento = useMutation({
@@ -278,335 +895,223 @@ export default function AdminPratiche() {
       const { error } = await supabase.from("pratiche").update({ pagamento_stato: pagamento as any }).in("id", ids);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
-      clearSelection();
-      toast({ title: "Stato pagamento aggiornato" });
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] }); clearSelection(); toast({ title: "Pagamento aggiornato" }); },
   });
 
-  const activePratica = activeId ? pratiche.find(p => p.id === activeId) : null;
+  // ── Selection ─────────────────────────────────────────────────────────────
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  }, []);
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds(selectedIds.size === filtered.length ? new Set() : new Set(filtered.map((p) => p.id)));
+  }, [filtered, selectedIds.size]);
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    setActiveId(null);
-    const { active, over } = event;
-    if (!over) return;
-
-    const praticaId = active.id as string;
-    const newStato = over.id as PraticaStato;
-    const oldStato = (active.data.current as any)?.stato;
-
-    if (oldStato === newStato) return;
-
-    // Admin pipeline — all transitions allowed for internal users
-    queryClient.setQueryData(["admin-all-pratiche"], (old: any[]) =>
-      old?.map(p => p.id === praticaId ? { ...p, stato: newStato } : p)
-    );
-
-    const { error } = await supabase
-      .from("pratiche")
-      .update({ stato: newStato })
-      .eq("id", praticaId);
-
-    if (error) {
-      queryClient.setQueryData(["admin-all-pratiche"], (old: any[]) =>
-        old?.map(p => p.id === praticaId ? { ...p, stato: oldStato } : p)
-      );
-      sonnerToast.error("Errore nello spostamento della pratica");
-    } else {
-      sonnerToast.success(`Pratica spostata in ${STATO_CONFIG[newStato].label}`);
-      queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
-    }
-  };
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight">Tutte le Pratiche</h1>
-        <p className="text-muted-foreground">Vista globale di tutte le pratiche di tutte le aziende</p>
-      </div>
-
-      {!isLoading && pratiche.length > 0 && <PraticheSummaryBar pratiche={pratiche} />}
-
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Cerca pratica, azienda o cliente..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
-          </div>
-          <Select value={filterStato} onValueChange={setFilterStato}>
-            <SelectTrigger className="w-44"><SelectValue placeholder="Stato" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tutti gli stati</SelectItem>
-              {STATO_ORDER.map(s => <SelectItem key={s} value={s}>{STATO_CONFIG[s].label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={filterAzienda} onValueChange={setFilterAzienda}>
-            <SelectTrigger className="w-52"><SelectValue placeholder="Azienda" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tutte le aziende</SelectItem>
-              {companies.map(c => <SelectItem key={c.id} value={c.id}>{c.ragione_sociale}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm" onClick={() => exportToCSV(filtered.map(p => ({
-            titolo: p.titolo,
-            azienda: (p.companies as any)?.ragione_sociale || "",
-            cliente: p.clienti_finali ? `${(p.clienti_finali as any).nome} ${(p.clienti_finali as any).cognome}` : "",
-            stato: p.stato,
-            prezzo: p.prezzo,
-            data: new Date(p.created_at).toLocaleDateString("it-IT"),
-          })), "pratiche-export", [
-            { key: "titolo", label: "Titolo" },
-            { key: "azienda", label: "Azienda" },
-            { key: "cliente", label: "Cliente" },
-            { key: "stato", label: "Stato" },
-            { key: "prezzo", label: "Prezzo" },
-            { key: "data", label: "Data" },
-          ])}>
-            <Download className="mr-2 h-4 w-4" />CSV
-          </Button>
-          <div className="flex rounded-lg border bg-muted p-0.5">
-            <Button variant={viewMode === "list" ? "default" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("list")}>
-              <List className="h-4 w-4" />
-            </Button>
-            <Button variant={viewMode === "pipeline" ? "default" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("pipeline")}>
-              <Columns3 className="h-4 w-4" />
-            </Button>
-            <Button variant={viewMode === "table" ? "default" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("table")}>
-              <Table2 className="h-4 w-4" />
-            </Button>
-          </div>
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Admin</p>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Tutte le Pratiche</h1>
         </div>
-
-        {/* Stats + select all */}
-        <div className="flex flex-wrap items-center gap-2">
-          {(viewMode === "list" || viewMode === "table") && filtered.length > 0 && (
-            <div className="flex items-center gap-2 mr-2">
-              <Checkbox
-                checked={selectedIds.size === filtered.length && filtered.length > 0}
-                onCheckedChange={toggleSelectAll}
-              />
-              <span className="text-xs text-muted-foreground">Tutte</span>
-            </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-9 gap-1.5"
+          onClick={() => exportToCSV(
+            filtered.map((p) => ({
+              titolo: p.titolo,
+              azienda: (p.companies as any)?.ragione_sociale || "",
+              cliente: p.clienti_finali ? `${(p.clienti_finali as any).nome} ${(p.clienti_finali as any).cognome}` : "",
+              stato: p.stato,
+              pagamento: p.pagamento_stato,
+              prezzo: p.prezzo,
+              data: format(new Date(p.created_at), "dd/MM/yyyy"),
+            })),
+            "pratiche-export",
+            [
+              { key: "titolo", label: "Titolo" },
+              { key: "azienda", label: "Azienda" },
+              { key: "cliente", label: "Cliente" },
+              { key: "stato", label: "Stato" },
+              { key: "pagamento", label: "Pagamento" },
+              { key: "prezzo", label: "Prezzo" },
+              { key: "data", label: "Data" },
+            ]
           )}
-          {STATO_ORDER.map(stato => {
-            const count = pratiche.filter(p => p.stato === stato).length;
-            if (count === 0) return null;
-            const conf = STATO_CONFIG[stato];
-            return (
-              <Badge key={stato} variant={filterStato === stato ? "default" : "outline"} className={`cursor-pointer ${filterStato !== stato ? conf.color : ""}`}
-                onClick={() => setFilterStato(filterStato === stato ? "all" : stato)}>
-                {conf.label}: {count}
-              </Badge>
-            );
-          })}
+          disabled={filtered.length === 0}
+        >
+          <Download className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline text-xs">CSV</span>
+        </Button>
+      </div>
+
+      {/* KPI */}
+      {!isLoading && pratiche.length > 0 && <KpiCards pratiche={pratiche} showPricing={permissions.see_pricing} />}
+
+      {/* Toolbar */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* Search */}
+        <div className="relative flex-1 min-w-[180px]">
+          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Cerca pratica, azienda, cliente..."
+            value={filters.search}
+            onChange={(e) => updateFilter({ search: e.target.value })}
+            className="pl-8 h-9 text-sm bg-muted/40 border-transparent focus-visible:border-input focus-visible:bg-background"
+          />
+          {filters.search && (
+            <button className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={() => updateFilter({ search: "" })}>
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Filter sheet trigger */}
+        <Button
+          variant="outline"
+          size="sm"
+          className={`h-9 gap-1.5 shrink-0 ${activeFilterCount > 0 ? "border-primary text-primary" : ""}`}
+          onClick={() => setFilterSheetOpen(true)}
+        >
+          <SlidersHorizontal className="h-3.5 w-3.5" />
+          <span className="text-xs">Filtri</span>
+          {activeFilterCount > 0 && (
+            <Badge className="h-4 w-4 p-0 text-[10px] flex items-center justify-center">{activeFilterCount}</Badge>
+          )}
+        </Button>
+
+        {activeFilterCount > 0 && (
+          <Button variant="ghost" size="sm" className="h-9 gap-1 text-muted-foreground shrink-0" onClick={clearFilters}>
+            <X className="h-3.5 w-3.5" />
+            <span className="text-xs hidden sm:inline">Reset</span>
+          </Button>
+        )}
+
+        {/* View mode toggle */}
+        <div className="flex items-center gap-0.5 bg-muted rounded-lg p-0.5 shrink-0">
+          {([
+            { mode: "list", icon: LayoutList, label: "Lista" },
+            { mode: "pipeline", icon: Kanban, label: "Pipeline" },
+            { mode: "table", icon: Table2, label: "Tabella" },
+          ] as const).map(({ mode, icon: Icon, label }) => (
+            <button
+              key={mode}
+              title={label}
+              onClick={() => setViewMode(mode)}
+              className={`p-1.5 rounded-md transition-all ${viewMode === mode ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <Icon className="h-4 w-4" />
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Bulk actions bar */}
+      {/* Stato chips (list/table only) */}
+      {viewMode !== "pipeline" && (
+        <StatoChips pratiche={pratiche} active={filters.stato} onChange={(s) => updateFilter({ stato: s })} />
+      )}
+
+      {/* Result count */}
+      {!isLoading && filtered.length !== pratiche.length && (
+        <p className="text-xs text-muted-foreground">
+          Mostrando {filtered.length} di {pratiche.length} pratiche
+        </p>
+      )}
+
+      {/* Bulk selection row */}
+      {(viewMode === "list" || viewMode === "table") && filtered.length > 0 && (
+        <div className="flex items-center gap-2">
+          <Checkbox
+            checked={selectedIds.size === filtered.length && filtered.length > 0}
+            onCheckedChange={toggleSelectAll}
+          />
+          <span className="text-xs text-muted-foreground">
+            {selectedIds.size > 0 ? `${selectedIds.size} selezionate` : "Seleziona tutte"}
+          </span>
+        </div>
+      )}
+
+      {/* Bulk actions */}
       {selectedIds.size > 0 && (
         <BulkActionsBar
           count={selectedIds.size}
           onClear={clearSelection}
           onDelete={() => bulkDelete.mutate(Array.from(selectedIds))}
-          onChangeStato={(stato) => bulkChangeStato.mutate({ ids: Array.from(selectedIds), stato })}
-          onChangePagamento={(pagamento) => bulkChangePagamento.mutate({ ids: Array.from(selectedIds), pagamento })}
+          onChangeStato={(stato: string) => bulkChangeStato.mutate({ ids: Array.from(selectedIds), stato })}
+          onChangePagamento={(pagamento: string) => bulkChangePagamento.mutate({ ids: Array.from(selectedIds), pagamento })}
           isAdmin
         />
       )}
 
+      {/* Content */}
       {isLoading ? (
-        <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+        <div className="flex justify-center py-14">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
       ) : viewMode === "table" ? (
         <PraticheTableView
           pratiche={filtered}
           selectedIds={selectedIds}
           toggleSelect={toggleSelect}
           toggleSelectAll={toggleSelectAll}
-          onChangeStato={(id, stato) => quickChangeStato.mutate({ praticaId: id, stato })}
-          onChangePagamento={(id, pag) => quickChangePagamento.mutate({ praticaId: id, pagamentoStato: pag })}
-          onAssignOperator={handleAssignOperator}
-          onDelete={(ids) => bulkDelete.mutate(ids)}
+          onChangeStato={(id: string, stato: PraticaStato) => quickChangeStato.mutate({ praticaId: id, stato })}
+          onChangePagamento={(id: string, pag: string) => quickChangePagamento.mutate({ praticaId: id, pagamentoStato: pag })}
+          onAssignOperator={(praticaId: string, value: string) => assignOperator.mutate({ praticaId, assegnatarioId: value === "unassigned" ? null : value })}
+          onDelete={(ids: string[]) => bulkDelete.mutate(ids)}
           assigneeMap={assigneeMap}
           internalOperators={internalOperators}
         />
-      ) : viewMode === "list" ? (
-        filtered.length === 0 ? (
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center py-12 text-center">
-              <FolderOpen className="mb-4 h-12 w-12 text-muted-foreground/40" />
-              <h3 className="font-display text-lg font-semibold">Nessuna pratica trovata</h3>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-3">
-            {filtered.map(p => {
-              const conf = STATO_CONFIG[p.stato];
-              const Icon = conf.icon;
-              const assignee = p.assegnatario_id ? assigneeMap[p.assegnatario_id] : null;
-              const aging = getAgingDot(p);
-              const pagamento = PAGAMENTO_BADGE[p.pagamento_stato] || PAGAMENTO_BADGE.non_pagata;
-              const isSelected = selectedIds.has(p.id);
-              return (
-                <Card key={p.id} className={`transition-colors hover:bg-accent/50 ${isSelected ? "ring-2 ring-primary" : ""}`}>
-                  <CardContent className="flex items-center gap-4 p-4">
-                    <div onClick={e => e.stopPropagation()}>
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={() => toggleSelect(p.id)}
-                      />
-                    </div>
-                    <div className="relative">
-                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${conf.color}`}>
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      {aging && (
-                        <span className={`absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-background ${aging.color}`} title={aging.label} />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1 cursor-pointer" onClick={() => navigate(`/pratiche/${p.id}`)}>
-                      <p className="font-medium truncate">{p.titolo}</p>
-                      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Building2 className="h-3 w-3" />
-                          {(p.companies as any)?.ragione_sociale}
-                        </span>
-                        {p.clienti_finali && (
-                          <span>{(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}</span>
-                        )}
-                        <span className="text-xs">
-                          {formatDistanceToNow(new Date(p.created_at), { addSuffix: true, locale: it })}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Select
-                        value={p.pagamento_stato}
-                        onValueChange={v => quickChangePagamento.mutate({ praticaId: p.id, pagamentoStato: v })}
-                      >
-                        <SelectTrigger className={`h-7 w-32 text-xs ${pagamento.className}`}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="non_pagata">Non pagata</SelectItem>
-                          <SelectItem value="in_verifica">In verifica</SelectItem>
-                          <SelectItem value="pagata">Pagata</SelectItem>
-                          <SelectItem value="rimborsata">Rimborsata</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <span className="text-sm font-semibold">€ {p.prezzo.toFixed(2)}</span>
-                      <Select
-                        value={p.assegnatario_id || "unassigned"}
-                        onValueChange={v => handleAssignOperator(p.id, v)}
-                      >
-                        <SelectTrigger className="h-8 w-40 text-xs">
-                          <SelectValue placeholder="Non assegnato" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="unassigned">Non assegnato</SelectItem>
-                          {internalOperators.map(op => (
-                            <SelectItem key={op.id} value={op.id}>
-                              {op.nome} {op.cognome}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Select value={p.stato} onValueChange={v => quickChangeStato.mutate({ praticaId: p.id, stato: v as PraticaStato })}>
-                        <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {STATO_ORDER.map(s => <SelectItem key={s} value={s}>{STATO_CONFIG[s].label}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Elimina pratica</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Stai per eliminare la pratica "{p.titolo}". Questa azione è irreversibile.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Annulla</AlertDialogCancel>
-                            <AlertDialogAction
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              onClick={() => bulkDelete.mutate([p.id])}
-                            >
-                              Elimina
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                      <Button variant="ghost" size="icon" onClick={() => navigate(`/pratiche/${p.id}`)}>
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )
-      ) : (
-        /* Pipeline view with DnD */
-        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <ScrollArea className="w-full">
-            <div className="flex gap-3 pb-4" style={{ minWidth: STATO_ORDER.length * 260 }}>
-              {STATO_ORDER.map(stato => {
-                const conf = STATO_CONFIG[stato];
-                const Icon = conf.icon;
-                const items = filtered.filter(p => p.stato === stato);
-
-                return (
-                  <AdminDroppableColumn key={stato} stato={stato}>
-                    <div className="flex items-center gap-2 p-3 border-b">
-                      <div className={`flex h-7 w-7 items-center justify-center rounded-md ${conf.color}`}>
-                        <Icon className="h-3.5 w-3.5" />
-                      </div>
-                      <span className="text-sm font-semibold flex-1">{conf.label}</span>
-                      <Badge variant="secondary" className="text-xs h-5 px-1.5">{items.length}</Badge>
-                    </div>
-                    <div className="flex flex-col gap-2 p-2 min-h-[120px] max-h-[60vh] overflow-y-auto">
-                      {items.length === 0 ? (
-                        <div className="flex items-center justify-center py-8 text-xs text-muted-foreground">
-                          Nessuna pratica
-                        </div>
-                      ) : (
-                        items.map(p => (
-                          <AdminDraggableCard key={p.id} pratica={p} navigate={navigate} assigneeMap={assigneeMap} />
-                        ))
-                      )}
-                    </div>
-                  </AdminDroppableColumn>
-                );
-              })}
-            </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
-
-          <DragOverlay>
-            {activePratica && (
-              <Card className="w-[230px] shadow-xl rotate-2">
-                <CardContent className="p-3 space-y-1">
-                  <p className="text-sm font-medium truncate">{activePratica.titolo}</p>
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Building2 className="h-3 w-3" />{(activePratica.companies as any)?.ragione_sociale}
-                  </span>
-                  <p className="text-xs font-semibold">€ {activePratica.prezzo.toFixed(2)}</p>
-                </CardContent>
-              </Card>
+      ) : viewMode === "pipeline" ? (
+        <PipelineView filtered={filtered} assigneeMap={assigneeMap} navigate={navigate} showPricing={permissions.see_pricing} />
+      ) : filtered.length === 0 ? (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center py-14 text-center">
+            <FolderOpen className="mb-4 h-12 w-12 text-muted-foreground/30" />
+            <h3 className="font-semibold text-lg">Nessuna pratica trovata</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              {activeFilterCount > 0 ? "Prova a modificare i filtri attivi" : "Nessuna pratica disponibile"}
+            </p>
+            {activeFilterCount > 0 && (
+              <Button variant="outline" size="sm" className="mt-4" onClick={clearFilters}>Reset filtri</Button>
             )}
-          </DragOverlay>
-        </DndContext>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-2">
+          {filtered.map((p) => (
+            <ListCard
+              key={p.id}
+              p={p}
+              isSelected={selectedIds.has(p.id)}
+              onToggle={toggleSelect}
+              onNavigate={navigate}
+              assigneeMap={assigneeMap}
+              internalOperators={internalOperators}
+              quickChangeStato={quickChangeStato}
+              quickChangePagamento={quickChangePagamento}
+              assignOperator={assignOperator}
+              bulkDelete={bulkDelete}
+              showPricing={permissions.see_pricing}
+            />
+          ))}
+        </div>
       )}
+
+      {/* Filter Sheet */}
+      <FilterSheet
+        open={filterSheetOpen}
+        onClose={() => setFilterSheetOpen(false)}
+        filters={filters}
+        onChange={updateFilter}
+        onClear={clearFilters}
+        companies={companies}
+        operators={internalOperators}
+      />
     </div>
   );
 }

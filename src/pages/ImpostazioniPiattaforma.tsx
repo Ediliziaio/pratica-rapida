@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -34,10 +33,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Clock, Building2, Users, FolderOpen, Save, Sliders, Plus, Pencil, Trash2, GripVertical, X, Mail, MessageCircle, Puzzle, Eye, EyeOff, CheckCircle, XCircle, Layers } from "lucide-react";
+import { Settings, Clock, Building2, Users, FolderOpen, Save, Plus, Pencil, Trash2, GripVertical, X, Mail, MessageCircle, Puzzle, Eye, EyeOff, CheckCircle, XCircle, Layers, Shield, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import type { CustomField, CustomFieldType, CustomFieldEntity } from "@/integrations/supabase/types";
+import UtentiPage from "./Utenti";
+import ListinoPage from "./Listino";
+import AuditLogPage from "./AuditLog";
 
 // ─── Integration Section ──────────────────────────────────────────────────────
 
@@ -757,11 +759,35 @@ interface SLASettings {
   completamentoOre: number;
 }
 
+// ─── Nav items definition ─────────────────────────────────────────────────────
+
+type SettingsSection =
+  | "sla" | "utenti" | "listino" | "audit"
+  | "email" | "whatsapp" | "integrazioni" | "campi" | "info";
+
+const SETTINGS_NAV: {
+  id: SettingsSection;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  description: string;
+}[] = [
+  { id: "sla", label: "SLA & Performance", icon: Clock, description: "Soglie operative" },
+  { id: "utenti", label: "Utenti", icon: Users, description: "Gestione accessi" },
+  { id: "listino", label: "Listino Prezzi", icon: BookOpen, description: "Tariffari" },
+  { id: "audit", label: "Audit Log", icon: Shield, description: "Registro attività" },
+  { id: "email", label: "Email", icon: Mail, description: "Resend & SMTP" },
+  { id: "whatsapp", label: "WhatsApp", icon: MessageCircle, description: "Cloud API" },
+  { id: "integrazioni", label: "Integrazioni", icon: Puzzle, description: "ElevenLabs, n8n" },
+  { id: "campi", label: "Campi Custom", icon: Layers, description: "Campi personalizzati" },
+  { id: "info", label: "Info Piattaforma", icon: Building2, description: "Versione & stats" },
+];
+
 export default function ImpostazioniPiattaforma() {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [activeSection, setActiveSection] = useState<SettingsSection>("sla");
 
   const { data: slaRow } = useQuery({
     queryKey: ["platform-settings", "sla_settings"],
@@ -839,199 +865,288 @@ export default function ImpostazioniPiattaforma() {
     }
   };
 
+  const activeNav = SETTINGS_NAV.find(n => n.id === activeSection)!;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Settings className="h-6 w-6" /> Impostazioni Piattaforma
-          </h1>
-          <p className="text-muted-foreground">Configurazione globale della piattaforma</p>
-        </div>
-        <Button variant="outline" size="sm" onClick={() => navigate("/admin/campi")} className="gap-2 shrink-0">
-          <Layers className="h-4 w-4" />Campi Personalizzati
-        </Button>
+      {/* Header */}
+      <div>
+        <h1 className="font-display text-2xl font-bold tracking-tight flex items-center gap-2">
+          <Settings className="h-6 w-6" /> Impostazioni
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">Gestione piattaforma, utenti, listino e configurazioni</p>
       </div>
 
-      <Tabs defaultValue="sla">
-        <TabsList className="flex-wrap h-auto gap-1">
-          <TabsTrigger value="sla"><Clock className="mr-1.5 h-4 w-4" />SLA</TabsTrigger>
-          <TabsTrigger value="email"><Mail className="mr-1.5 h-4 w-4" />Email</TabsTrigger>
-          <TabsTrigger value="whatsapp"><MessageCircle className="mr-1.5 h-4 w-4" />WhatsApp</TabsTrigger>
-          <TabsTrigger value="integrazioni"><Puzzle className="mr-1.5 h-4 w-4" />Integrazioni</TabsTrigger>
-          <TabsTrigger value="info"><Building2 className="mr-1.5 h-4 w-4" />Info</TabsTrigger>
-        </TabsList>
+      {/* Layout: left nav + content */}
+      <div className="flex gap-6 items-start">
 
-        <TabsContent value="sla" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Soglie SLA</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Definisci i tempi target per il monitoraggio delle performance operative. Questi valori vengono usati nella Dashboard per evidenziare le pratiche fuori SLA.
-              </p>
-              <div className="grid gap-4 sm:grid-cols-2 max-w-lg">
-                <div className="space-y-2">
-                  <Label>Presa in carico (ore)</Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    step={1}
-                    value={sla.presaInCaricoOre}
-                    onChange={e => {
-                      setSla(s => ({ ...s, presaInCaricoOre: Number(e.target.value) }));
-                      setSlaErrors(prev => ({ ...prev, presaInCaricoOre: undefined }));
-                    }}
-                  />
-                  <p className="text-xs text-muted-foreground">Tempo max da "inviata" a "in_lavorazione"</p>
-                  {slaErrors.presaInCaricoOre && <p className="text-xs text-destructive">{slaErrors.presaInCaricoOre}</p>}
+        {/* ── Left sidebar nav ──────────────────────────────── */}
+        <nav className="hidden md:flex w-52 shrink-0 flex-col gap-0.5">
+          {SETTINGS_NAV.map(item => {
+            const Icon = item.icon;
+            const active = activeSection === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveSection(item.id)}
+                className={`flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-left transition-all ${
+                  active
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "hover:bg-muted text-foreground/70 hover:text-foreground"
+                }`}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium leading-none truncate">{item.label}</p>
+                  <p className={`text-[10px] mt-0.5 truncate ${active ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                    {item.description}
+                  </p>
                 </div>
-                <div className="space-y-2">
-                  <Label>Completamento (ore)</Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    step={1}
-                    value={sla.completamentoOre}
-                    onChange={e => {
-                      setSla(s => ({ ...s, completamentoOre: Number(e.target.value) }));
-                      setSlaErrors(prev => ({ ...prev, completamentoOre: undefined }));
-                    }}
-                  />
-                  <p className="text-xs text-muted-foreground">Tempo max da "in_lavorazione" a "completata"</p>
-                  {slaErrors.completamentoOre && <p className="text-xs text-destructive">{slaErrors.completamentoOre}</p>}
-                </div>
-              </div>
-              <Button onClick={saveSLA} disabled={saving} className="gap-2">
-                <Save className="h-4 w-4" /> {saving ? "Salvataggio..." : "Salva Soglie"}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </button>
+            );
+          })}
+        </nav>
 
-        <TabsContent value="email" className="space-y-4">
-          <IntegrationSection
-            title="Configurazione Email (Resend)"
-            description="Imposta il dominio mittente e le credenziali Resend per l'invio di email transazionali."
-            fields={[
-              { key: "email_from_address", label: "Indirizzo mittente", placeholder: "noreply@tuodominio.it", description: "Es. noreply@praticaapida.it" },
-              { key: "email_from_name", label: "Nome mittente", placeholder: "Pratica Rapida", description: "Nome visualizzato nella casella email del destinatario" },
-              { key: "email_reply_to", label: "Reply-To", placeholder: "supporto@tuodominio.it", description: "Indirizzo di risposta (opzionale)" },
-              { key: "resend_api_key", label: "Resend API Key", placeholder: "re_xxxxxxxxxxxx", secret: true, description: "Chiave API da dashboard Resend" },
-            ]}
-            settingKey="email_config"
-          />
-        </TabsContent>
-
-        <TabsContent value="whatsapp" className="space-y-4">
-          <IntegrationSection
-            title="WhatsApp Cloud API (Meta)"
-            description="Configura l'integrazione WhatsApp Business per l'invio di messaggi ai clienti."
-            fields={[
-              { key: "wa_phone_number_id", label: "Phone Number ID", placeholder: "123456789012345", description: "ID numero di telefono da Meta Business Manager" },
-              { key: "wa_waba_id", label: "WABA ID", placeholder: "123456789012345", description: "WhatsApp Business Account ID" },
-              { key: "wa_access_token", label: "Access Token", placeholder: "EAAxxxxxxxxx...", secret: true, description: "Token di accesso permanente (non temporaneo)" },
-              { key: "wa_webhook_verify_token", label: "Webhook Verify Token", placeholder: "token_segreto_webhook", secret: true, description: "Token personalizzato per la verifica del webhook Meta" },
-            ]}
-            settingKey="whatsapp_config"
-          />
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Template WhatsApp approvati</CardTitle>
-              <CardDescription className="text-xs">I template devono essere approvati da Meta Business Manager prima dell'uso</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {[
-                  { name: "pratica_ricevuta", status: "pending", desc: "Conferma ricezione pratica" },
-                  { name: "sollecito_documenti", status: "pending", desc: "Sollecito caricamento documenti" },
-                  { name: "pratica_completata", status: "pending", desc: "Notifica pratica completata" },
-                  { name: "recensione_request", status: "pending", desc: "Richiesta recensione" },
-                  { name: "appuntamento_reminder", status: "pending", desc: "Reminder appuntamento call" },
-                ].map(t => (
-                  <div key={t.name} className="flex items-center justify-between rounded-lg border p-3">
-                    <div>
-                      <code className="text-xs font-mono text-muted-foreground">{t.name}</code>
-                      <p className="text-sm">{t.desc}</p>
-                    </div>
-                    <Badge variant="outline" className="text-orange-600 border-orange-200 text-xs gap-1">
-                      <Clock className="h-3 w-3" />In attesa approvazione
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="integrazioni" className="space-y-4">
-          <IntegrationSection
-            title="ElevenLabs Conversational AI"
-            description="Configura l'integrazione per le chiamate AI outbound ai clienti."
-            fields={[
-              { key: "elevenlabs_api_key", label: "API Key", placeholder: "el_xxxxxxxxxxxx", secret: true, description: "Chiave API da dashboard ElevenLabs" },
-              { key: "elevenlabs_agent_id", label: "Agent ID (default)", placeholder: "agent_xxxxxxxxxxxx", description: "ID dell'agente conversazionale default" },
-              { key: "elevenlabs_caller_id", label: "Caller ID (numero chiamante)", placeholder: "+39xxxxxxxxxx", description: "Numero telefonico registrato in ElevenLabs" },
-            ]}
-            settingKey="elevenlabs_config"
-          />
-          <IntegrationSection
-            title="n8n / Google Sheets"
-            description="Sincronizza le pratiche con un foglio Google Sheets tramite n8n webhook."
-            fields={[
-              { key: "n8n_webhook_url", label: "n8n Webhook URL", placeholder: "https://n8n.tuodominio.it/webhook/xxxx", description: "URL del webhook n8n per la sincronizzazione" },
-              { key: "gsheets_spreadsheet_id", label: "Google Sheets ID (opzionale)", placeholder: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms", description: "ID del foglio Google (dalla URL)" },
-            ]}
-            settingKey="n8n_config"
-          />
-        </TabsContent>
-
-        <TabsContent value="info" className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Aziende</CardTitle>
-                <Building2 className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent><div className="text-3xl font-bold">{stats?.aziende ?? "—"}</div></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Utenti</CardTitle>
-                <Users className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent><div className="text-3xl font-bold">{stats?.utenti ?? "—"}</div></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Pratiche Totali</CardTitle>
-                <FolderOpen className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent><div className="text-3xl font-bold">{stats?.pratiche ?? "—"}</div></CardContent>
-            </Card>
+        {/* Mobile: compact horizontal pills */}
+        <div className="md:hidden w-full">
+          <div className="flex flex-wrap gap-1 mb-4">
+            {SETTINGS_NAV.map(item => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveSection(item.id)}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                    activeSection === item.id
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted hover:bg-muted/80 text-muted-foreground"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />{item.label}
+                </button>
+              );
+            })}
           </div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Versione piattaforma</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Pratica Rapida</span>
-                <Badge variant="outline">v2.0.0</Badge>
+        </div>
+
+        {/* ── Content panel ─────────────────────────────────── */}
+        <div className="flex-1 min-w-0 space-y-4">
+
+          {/* Section title */}
+          <div className="flex items-center gap-2 pb-1 border-b">
+            <activeNav.icon className="h-4 w-4 text-muted-foreground" />
+            <h2 className="font-semibold text-base">{activeNav.label}</h2>
+            <span className="text-xs text-muted-foreground">{activeNav.description}</span>
+          </div>
+
+          {/* ── SLA ─────────────────────────────────────────── */}
+          {activeSection === "sla" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Soglie SLA</CardTitle>
+                <CardDescription className="text-xs">
+                  Definisci i tempi target per il monitoraggio delle performance operative.
+                  Questi valori vengono usati nella Dashboard per evidenziare le pratiche fuori SLA.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2 max-w-lg">
+                  <div className="space-y-2">
+                    <Label>Presa in carico (ore)</Label>
+                    <Input
+                      type="number" min={1} step={1}
+                      value={sla.presaInCaricoOre}
+                      onChange={e => {
+                        setSla(s => ({ ...s, presaInCaricoOre: Number(e.target.value) }));
+                        setSlaErrors(prev => ({ ...prev, presaInCaricoOre: undefined }));
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">Tempo max da "inviata" a "in_lavorazione"</p>
+                    {slaErrors.presaInCaricoOre && <p className="text-xs text-destructive">{slaErrors.presaInCaricoOre}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Completamento (ore)</Label>
+                    <Input
+                      type="number" min={1} step={1}
+                      value={sla.completamentoOre}
+                      onChange={e => {
+                        setSla(s => ({ ...s, completamentoOre: Number(e.target.value) }));
+                        setSlaErrors(prev => ({ ...prev, completamentoOre: undefined }));
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">Tempo max da "in_lavorazione" a "completata"</p>
+                    {slaErrors.completamentoOre && <p className="text-xs text-destructive">{slaErrors.completamentoOre}</p>}
+                  </div>
+                </div>
+                <Button onClick={saveSLA} disabled={saving} className="gap-2">
+                  <Save className="h-4 w-4" />{saving ? "Salvataggio..." : "Salva Soglie"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ── Utenti ──────────────────────────────────────── */}
+          {activeSection === "utenti" && <UtentiPage />}
+
+          {/* ── Listino ─────────────────────────────────────── */}
+          {activeSection === "listino" && <ListinoPage />}
+
+          {/* ── Audit Log ───────────────────────────────────── */}
+          {activeSection === "audit" && <AuditLogPage />}
+
+          {/* ── Email ───────────────────────────────────────── */}
+          {activeSection === "email" && (
+            <IntegrationSection
+              title="Configurazione Email (Resend)"
+              description="Imposta il dominio mittente e le credenziali Resend per l'invio di email transazionali."
+              fields={[
+                { key: "email_from_address", label: "Indirizzo mittente", placeholder: "noreply@tuodominio.it", description: "Es. noreply@praticaapida.it" },
+                { key: "email_from_name", label: "Nome mittente", placeholder: "Pratica Rapida", description: "Nome visualizzato nella casella email del destinatario" },
+                { key: "email_reply_to", label: "Reply-To", placeholder: "supporto@tuodominio.it", description: "Indirizzo di risposta (opzionale)" },
+                { key: "resend_api_key", label: "Resend API Key", placeholder: "re_xxxxxxxxxxxx", secret: true, description: "Chiave API da dashboard Resend" },
+              ]}
+              settingKey="email_config"
+            />
+          )}
+
+          {/* ── WhatsApp ────────────────────────────────────── */}
+          {activeSection === "whatsapp" && (
+            <>
+              <IntegrationSection
+                title="WhatsApp Cloud API (Meta)"
+                description="Configura l'integrazione WhatsApp Business per l'invio di messaggi ai clienti."
+                fields={[
+                  { key: "wa_phone_number_id", label: "Phone Number ID", placeholder: "123456789012345", description: "ID numero di telefono da Meta Business Manager" },
+                  { key: "wa_waba_id", label: "WABA ID", placeholder: "123456789012345", description: "WhatsApp Business Account ID" },
+                  { key: "wa_access_token", label: "Access Token", placeholder: "EAAxxxxxxxxx...", secret: true, description: "Token di accesso permanente (non temporaneo)" },
+                  { key: "wa_webhook_verify_token", label: "Webhook Verify Token", placeholder: "token_segreto_webhook", secret: true, description: "Token personalizzato per la verifica del webhook Meta" },
+                ]}
+                settingKey="whatsapp_config"
+              />
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Template WhatsApp approvati</CardTitle>
+                  <CardDescription className="text-xs">I template devono essere approvati da Meta Business Manager prima dell'uso</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {[
+                      { name: "pratica_ricevuta", desc: "Conferma ricezione pratica" },
+                      { name: "sollecito_documenti", desc: "Sollecito caricamento documenti" },
+                      { name: "pratica_completata", desc: "Notifica pratica completata" },
+                      { name: "recensione_request", desc: "Richiesta recensione" },
+                      { name: "appuntamento_reminder", desc: "Reminder appuntamento call" },
+                    ].map(t => (
+                      <div key={t.name} className="flex items-center justify-between rounded-lg border p-3">
+                        <div>
+                          <code className="text-xs font-mono text-muted-foreground">{t.name}</code>
+                          <p className="text-sm">{t.desc}</p>
+                        </div>
+                        <Badge variant="outline" className="text-orange-600 border-orange-200 text-xs gap-1">
+                          <Clock className="h-3 w-3" />In attesa approvazione
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+
+          {/* ── Integrazioni ────────────────────────────────── */}
+          {activeSection === "integrazioni" && (
+            <>
+              <IntegrationSection
+                title="ElevenLabs Conversational AI"
+                description="Configura l'integrazione per le chiamate AI outbound ai clienti."
+                fields={[
+                  { key: "elevenlabs_api_key", label: "API Key", placeholder: "el_xxxxxxxxxxxx", secret: true, description: "Chiave API da dashboard ElevenLabs" },
+                  { key: "elevenlabs_agent_id", label: "Agent ID (default)", placeholder: "agent_xxxxxxxxxxxx", description: "ID dell'agente conversazionale default" },
+                  { key: "elevenlabs_caller_id", label: "Caller ID (numero chiamante)", placeholder: "+39xxxxxxxxxx", description: "Numero telefonico registrato in ElevenLabs" },
+                ]}
+                settingKey="elevenlabs_config"
+              />
+              <IntegrationSection
+                title="n8n / Google Sheets"
+                description="Sincronizza le pratiche con un foglio Google Sheets tramite n8n webhook."
+                fields={[
+                  { key: "n8n_webhook_url", label: "n8n Webhook URL", placeholder: "https://n8n.tuodominio.it/webhook/xxxx", description: "URL del webhook n8n per la sincronizzazione" },
+                  { key: "gsheets_spreadsheet_id", label: "Google Sheets ID (opzionale)", placeholder: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms", description: "ID del foglio Google (dalla URL)" },
+                ]}
+                settingKey="n8n_config"
+              />
+            </>
+          )}
+
+          {/* ── Campi Personalizzati ─────────────────────────── */}
+          {activeSection === "campi" && <CampiPersonalizzati />}
+
+          {/* ── Info Piattaforma ─────────────────────────────── */}
+          {activeSection === "info" && (
+            <>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Card>
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                        <Building2 className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Aziende</p>
+                        <p className="text-2xl font-bold">{stats?.aziende ?? "—"}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-950">
+                        <Users className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Utenti</p>
+                        <p className="text-2xl font-bold">{stats?.utenti ?? "—"}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-950">
+                        <FolderOpen className="h-5 w-5 text-emerald-600" />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Pratiche</p>
+                        <p className="text-2xl font-bold">{stats?.pratiche ?? "—"}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Database</span>
-                <Badge variant="outline">Supabase</Badge>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Ambiente</span>
-                <Badge variant="outline" className="text-emerald-600 border-emerald-200">Produzione</Badge>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Versione piattaforma</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2.5">
+                  {[
+                    { label: "Pratica Rapida", value: "v2.0.0", variant: "outline" as const },
+                    { label: "Database", value: "Supabase", variant: "outline" as const },
+                    { label: "Ambiente", value: "Produzione", className: "text-emerald-600 border-emerald-200" },
+                  ].map(row => (
+                    <div key={row.label} className="flex items-center justify-between text-sm py-1 border-b last:border-0">
+                      <span className="text-muted-foreground">{row.label}</span>
+                      <Badge variant={row.variant ?? "outline"} className={row.className}>{row.value}</Badge>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </>
+          )}
+
+        </div>
+      </div>
     </div>
   );
 }

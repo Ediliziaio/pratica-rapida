@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,310 +6,254 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Download, CheckCircle, Loader2, TrendingUp, ClipboardList, ArrowRight, Search } from "lucide-react";
+import {
+  Download, Loader2, TrendingUp, ClipboardList, Search,
+  Building2, User, Euro, ArrowRight, Zap, Flame,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { EneaPractice } from "@/integrations/supabase/types";
 import * as XLSX from "xlsx";
+import { format } from "date-fns";
+import { STATO_CONFIG, PAGAMENTO_BADGE } from "@/lib/pratiche-config";
 
-type PracticeRow = EneaPractice & {
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type BrandFilter = "all" | "enea" | "conto_termico";
+
+type PraticaRow = {
+  id: string;
+  titolo: string;
+  stato: string;
+  prezzo: number | null;
+  pagamento_stato: string;
+  created_at: string;
+  company_id: string;
+  assegnatario_id: string | null;
+  dati_pratica: unknown;
   companies: { ragione_sociale: string } | null;
+  clienti_finali: { nome: string; cognome: string } | null;
 };
 
-type EditableField = "data_invio_pratica" | "guadagno_lordo" | "guadagno_netto" | "note_gestionale";
+// ─── KPI Cards ────────────────────────────────────────────────────────────────
 
-function EditableCell({
-  value,
-  onSave,
-  type = "text",
-}: {
-  value: string | number | null;
-  onSave: (v: string) => void;
-  type?: "text" | "number" | "date" | "textarea";
-}) {
-  const [editing, setEditing] = useState(false);
-  const [local, setLocal] = useState(String(value ?? ""));
-  const inputRef = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
-
-  const commit = () => {
-    setEditing(false);
-    if (local !== String(value ?? "")) onSave(local);
-  };
-
-  if (!editing) {
-    return (
-      <span
-        className="cursor-pointer rounded px-1 hover:bg-muted min-w-[60px] block"
-        onClick={() => {
-          setLocal(String(value ?? ""));
-          setEditing(true);
-          setTimeout(() => inputRef.current?.focus(), 10);
-        }}
-      >
-        {value ?? <span className="text-muted-foreground text-xs">—</span>}
-      </span>
-    );
-  }
-
-  if (type === "textarea") {
-    return (
-      <textarea
-        ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-        value={local}
-        onChange={(e) => setLocal(e.target.value)}
-        onBlur={commit}
-        rows={2}
-        className="w-full text-sm border rounded px-1 resize-none"
-      />
-    );
-  }
-
+function KpiCards({
+  fatturato, incassato, monthFatturato, count,
+}: { fatturato: number; incassato: number; monthFatturato: number; count: number }) {
   return (
-    <input
-      ref={inputRef as React.RefObject<HTMLInputElement>}
-      type={type}
-      value={local}
-      onChange={(e) => setLocal(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => e.key === "Enter" && commit()}
-      className="w-full text-sm border rounded px-1"
-    />
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {[
+        { label: "Totale fatturato",  value: `€ ${fatturato.toFixed(2)}`,      icon: TrendingUp,  color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950" },
+        { label: "Totale incassato",  value: `€ ${incassato.toFixed(2)}`,      icon: Euro,        color: "text-blue-600",    bg: "bg-blue-50 dark:bg-blue-950"       },
+        { label: "Mese corrente",     value: `€ ${monthFatturato.toFixed(2)}`, icon: TrendingUp,  color: "text-primary",     bg: "bg-primary/10"                     },
+        { label: "Pratiche visibili", value: String(count),                    icon: ClipboardList,color:"text-muted-foreground",bg: "bg-muted"                      },
+      ].map(({ label, value, icon: Icon, color, bg }) => (
+        <Card key={label}>
+          <CardContent className="flex items-center gap-3 p-3">
+            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${bg} shrink-0`}>
+              <Icon className={`h-4 w-4 ${color}`} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground truncate">{label}</p>
+              <p className={`font-bold text-sm ${color}`}>{value}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 }
 
-export default function Gestionale() {
+// ─── Shared Pratiche Table Tab ────────────────────────────────────────────────
+// Used by all three tabs — brand="all" shows everything, "enea"/"conto_termico"
+// filter by dati_pratica->>'brand' at the Supabase query level.
+
+function PraticheTab({ brandFilter }: { brandFilter: BrandFilter }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [brandFilter, setBrandFilter] = useState("all");
-  const [resellerFilter, setResellerFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [statoFilter, setStatoFilter] = useState("all");
+  const [pagamentoFilter, setPagamentoFilter] = useState("all");
   const [saving, setSaving] = useState<string | null>(null);
 
-  const { data: practices = [], isLoading } = useQuery({
-    queryKey: ["gestionale_practices"],
+  const queryKey = ["gestionale_pratiche", brandFilter];
+
+  const { data: pratiche = [], isLoading } = useQuery({
+    queryKey,
     queryFn: async () => {
-      // Find gestionale stage IDs
-      const { data: stageData } = await supabase
-        .from("pipeline_stages")
-        .select("id")
-        .eq("stage_type", "gestionale")
-        .is("reseller_id", null);
-
-      const stageIds = stageData?.map((s) => s.id) ?? [];
-
       let q = supabase
-        .from("enea_practices")
-        .select("*, companies:reseller_id(ragione_sociale)")
-        .is("archived_at", null)
-        .order("created_at", { ascending: false });
+        .from("pratiche")
+        .select("id, titolo, stato, prezzo, pagamento_stato, created_at, company_id, assegnatario_id, dati_pratica, companies(ragione_sociale), clienti_finali(nome, cognome)")
+        .order("created_at", { ascending: false })
+        .limit(2000);
 
-      if (stageIds.length > 0) {
-        q = q.in("current_stage_id", stageIds);
+      // Filter by brand inside the JSONB dati_pratica column
+      if (brandFilter !== "all") {
+        q = q.filter("dati_pratica->>brand", "eq", brandFilter);
       }
 
       const { data, error } = await q;
       if (error) throw error;
-      return data as PracticeRow[];
+      return (data ?? []) as PraticaRow[];
     },
   });
 
-  const resellers = useMemo(() => {
-    const map = new Map<string, string>();
-    practices.forEach(p => {
-      if (p.reseller_id && p.companies?.ragione_sociale)
-        map.set(p.reseller_id, p.companies.ragione_sociale);
-    });
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [practices]);
+  const { data: operators = [] } = useQuery({
+    queryKey: ["gestionale-operators"],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .in("role", ["super_admin", "admin_interno", "operatore"]);
+      const ids = [...new Set((roles ?? []).map(r => r.user_id))];
+      if (!ids.length) return [];
+      const { data } = await supabase.from("profiles").select("id, nome, cognome").in("id", ids);
+      return data ?? [];
+    },
+  });
 
-  const filtered = useMemo(() => {
-    return practices.filter(p => {
-      const matchBrand = brandFilter === "all" || p.brand === brandFilter;
-      const matchReseller = resellerFilter === "all" || p.reseller_id === resellerFilter;
-      const matchSearch = !search ||
-        `${p.cliente_nome} ${p.cliente_cognome}`.toLowerCase().includes(search.toLowerCase());
-      return matchBrand && matchReseller && matchSearch;
-    });
-  }, [practices, brandFilter, resellerFilter, search]);
+  const operatorMap = useMemo(() => {
+    const m: Record<string, string> = {};
+    operators.forEach(o => { m[o.id] = `${o.nome} ${o.cognome}`.trim(); });
+    return m;
+  }, [operators]);
 
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, field, value }: { id: string; field: EditableField; value: string }) => {
+  const filtered = useMemo(() => pratiche.filter(p => {
+    const dati = p.dati_pratica as Record<string, unknown> | null;
+    const brand = dati?.brand as string | undefined;
+    const matchSearch = !search || [
+      p.titolo,
+      p.companies?.ragione_sociale ?? "",
+      (p.clienti_finali as any)?.nome ?? "",
+      (p.clienti_finali as any)?.cognome ?? "",
+    ].join(" ").toLowerCase().includes(search.toLowerCase());
+    const matchStato = statoFilter === "all" || p.stato === statoFilter;
+    const matchPag = pagamentoFilter === "all" || p.pagamento_stato === pagamentoFilter;
+    // If "all" tab: also let user further filter by brand via a pill (done in UI below)
+    return matchSearch && matchStato && matchPag;
+  }), [pratiche, search, statoFilter, pagamentoFilter]);
+
+  const [brandPill, setBrandPill] = useState<"all" | "enea" | "conto_termico">("all");
+  const displayRows = useMemo(() => {
+    if (brandFilter !== "all" || brandPill === "all") return filtered;
+    return filtered.filter(p => (p.dati_pratica as any)?.brand === brandPill);
+  }, [filtered, brandFilter, brandPill]);
+
+  const now = new Date();
+  const totalFatturato = displayRows.reduce((s, p) => s + (p.prezzo ?? 0), 0);
+  const monthFatturato = displayRows.filter(p => {
+    const d = new Date(p.created_at);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).reduce((s, p) => s + (p.prezzo ?? 0), 0);
+  const totalIncassato = displayRows.filter(p => p.pagamento_stato === "pagata").reduce((s, p) => s + (p.prezzo ?? 0), 0);
+
+  const updatePagamento = useMutation({
+    mutationFn: async ({ id, pagamento }: { id: string; pagamento: string }) => {
       setSaving(id);
-      const update: Partial<EneaPractice> = {};
-      if (field === "guadagno_lordo" || field === "guadagno_netto") {
-        update[field] = value ? parseFloat(value) : null;
-      } else {
-        (update as Record<string, string | null>)[field] = value || null;
-      }
-      const { error } = await supabase.from("enea_practices").update(update).eq("id", id);
+      const { error } = await supabase.from("pratiche").update({ pagamento_stato: pagamento as any }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["gestionale_practices"] });
-      toast({ title: "Salvato" });
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey }); toast({ title: "Salvato" }); },
     onError: () => toast({ variant: "destructive", title: "Errore nel salvataggio" }),
     onSettled: () => setSaving(null),
   });
 
-  const moveToRecensione = useMutation({
-    mutationFn: async (practiceId: string) => {
-      const { data: stage } = await supabase
-        .from("pipeline_stages")
-        .select("id")
-        .eq("stage_type", "recensione")
-        .is("reseller_id", null)
-        .single();
-      if (!stage) throw new Error("Stage recensione non trovato");
-      const { error } = await supabase
-        .from("enea_practices")
-        .update({ current_stage_id: stage.id })
-        .eq("id", practiceId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["gestionale_practices"] });
-      toast({ title: "Pratica spostata in Recensione" });
-    },
-  });
-
-  const totalLordo = filtered.reduce((s, p) => s + (p.guadagno_lordo ?? 0), 0);
-  const totalNetto = filtered.reduce((s, p) => s + (p.guadagno_netto ?? 0), 0);
-  const filteredCount = filtered.length;
-
-  const now = new Date();
-  const monthLordo = filtered.filter((p) => {
-    const dateStr = p.data_invio_pratica ?? p.created_at;
-    const d = new Date(dateStr);
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  }).reduce((s, p) => s + (p.guadagno_lordo ?? 0), 0);
-
-  const exportCSV = () => {
-    const rows = filtered.map((p) => ({
+  const exportExcel = () => {
+    const rows = displayRows.map(p => ({
       ID: p.id.slice(0, 8),
-      Cliente: `${p.cliente_nome} ${p.cliente_cognome}`,
-      Rivenditore: p.companies?.ragione_sociale ?? "",
-      Fornitore: p.fornitore ?? "",
-      Prodotto: p.prodotto_installato ?? "",
-      Brand: p.brand,
-      "Data invio": p.data_invio_pratica ?? "",
-      "Guadagno lordo": p.guadagno_lordo ?? "",
-      "Guadagno netto": p.guadagno_netto ?? "",
-      Note: p.note_gestionale ?? "",
+      Titolo: p.titolo,
+      Azienda: p.companies?.ragione_sociale ?? "",
+      Cliente: p.clienti_finali ? `${(p.clienti_finali as any).nome} ${(p.clienti_finali as any).cognome}` : "",
+      Brand: (p.dati_pratica as any)?.brand ?? "—",
+      Stato: p.stato,
+      Pagamento: p.pagamento_stato,
+      "Importo €": (p.prezzo ?? 0).toFixed(2),
+      Operatore: p.assegnatario_id ? (operatorMap[p.assegnatario_id] ?? "—") : "—",
+      Data: format(new Date(p.created_at), "dd/MM/yyyy"),
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Gestionale");
-    XLSX.writeFile(wb, "gestionale_pratiche.xlsx");
+    XLSX.writeFile(wb, `gestionale_${brandFilter}.xlsx`);
   };
 
+  const STATI = ["bozza", "inviata", "in_lavorazione", "in_attesa_documenti", "completata", "annullata"];
+
   return (
-    <div className="p-4 space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold">Gestionale pratiche</h1>
-          <span className="text-sm text-muted-foreground">{filtered.length} pratiche</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={exportCSV}>
-            <Download className="h-4 w-4 mr-1" />
-            Esporta Excel
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-4">
+      <KpiCards
+        fatturato={totalFatturato}
+        incassato={totalIncassato}
+        monthFatturato={monthFatturato}
+        count={displayRows.length}
+      />
 
-      {/* Filters */}
+      {/* Toolbar */}
       <div className="flex flex-wrap gap-3 items-center">
-        {/* Brand pill buttons */}
-        <div className="flex gap-1">
-          {[["all","Tutti"],["enea","ENEA"],["conto_termico","CT"]].map(([val,label]) => (
-            <button key={val} onClick={() => setBrandFilter(val)}
-              className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors ${
-                brandFilter === val ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"
-              }`}>{label}</button>
-          ))}
-        </div>
-
-        {/* Reseller filter */}
-        {resellers.length > 0 && (
-          <Select value={resellerFilter} onValueChange={setResellerFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Tutti i rivenditori" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tutti i rivenditori</SelectItem>
-              {resellers.map(r => (
-                <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Brand pill — only visible in "Tutte le Pratiche" tab */}
+        {brandFilter === "all" && (
+          <div className="flex gap-1">
+            {([
+              ["all",           "Tutti"],
+              ["enea",          "ENEA"],
+              ["conto_termico", "Conto Termico"],
+            ] as const).map(([val, lbl]) => (
+              <button
+                key={val}
+                onClick={() => setBrandPill(val)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                  brandPill === val
+                    ? val === "enea"
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : val === "conto_termico"
+                        ? "bg-orange-500 text-white border-orange-500"
+                        : "bg-primary text-primary-foreground border-primary"
+                    : "border-border hover:bg-muted"
+                }`}
+              >{lbl}</button>
+            ))}
+          </div>
         )}
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="relative flex-1 min-w-[180px]">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
-            className="pl-8 w-56"
-            placeholder="Cerca cliente..."
+            className="pl-8 h-9 text-sm"
+            placeholder="Cerca pratica, azienda, cliente..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
           />
         </div>
-      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card>
-          <CardContent className="flex items-center gap-3 p-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-100">
-              <TrendingUp className="h-4 w-4 text-green-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Totale lordo</p>
-              <p className="font-bold">€ {totalLordo.toFixed(2)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 p-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100">
-              <TrendingUp className="h-4 w-4 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Totale netto</p>
-              <p className="font-bold">€ {totalNetto.toFixed(2)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 p-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-              <TrendingUp className="h-4 w-4 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Mese corrente (lordo)</p>
-              <p className="font-bold text-primary">€ {monthLordo.toFixed(2)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 p-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
-              <ClipboardList className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Pratiche visibili</p>
-              <p className="font-bold">{filteredCount}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <Select value={statoFilter} onValueChange={setStatoFilter}>
+          <SelectTrigger className="w-44 h-9 text-sm"><SelectValue placeholder="Tutti gli stati" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tutti gli stati</SelectItem>
+            {STATI.map(s => (
+              <SelectItem key={s} value={s}>
+                {STATO_CONFIG[s as keyof typeof STATO_CONFIG]?.label ?? s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={pagamentoFilter} onValueChange={setPagamentoFilter}>
+          <SelectTrigger className="w-40 h-9 text-sm"><SelectValue placeholder="Pagamento" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tutti i pagamenti</SelectItem>
+            <SelectItem value="non_pagata">Da fatturare</SelectItem>
+            <SelectItem value="in_verifica">Fatturata</SelectItem>
+            <SelectItem value="pagata">Pagata</SelectItem>
+            <SelectItem value="rimborsata">Rimborsata</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Button variant="outline" size="sm" onClick={exportExcel} className="h-9 gap-1.5 shrink-0">
+          <Download className="h-3.5 w-3.5" />Esporta Excel
+        </Button>
       </div>
 
       {/* Table */}
@@ -320,137 +264,205 @@ export default function Gestionale() {
       ) : (
         <div className="overflow-x-auto rounded-lg border">
           <table className="w-full text-sm">
-            <thead>
-              <tr style={{ position: 'sticky', top: 0, zIndex: 10 }} className="bg-muted/50">
-                {["ID", "Cliente", "Rivenditore", "Brand", "Prodotto", "Data invio", "Lordo €", "Netto €", "Margine", "Note", "Azione"].map(
-                  (h) => (
-                    <th key={h} className="text-left px-3 py-2 font-medium text-muted-foreground whitespace-nowrap">
-                      {h}
-                    </th>
-                  )
-                )}
+            <thead className="sticky top-0 z-10">
+              <tr className="bg-muted/80 border-b backdrop-blur-sm">
+                {["ID", "Azienda / Cliente", "Brand", "Stato", "Importo €", "Pagamento", "Operatore", "Data", ""].map(h => (
+                  <th key={h} className="text-left px-3 py-2.5 font-medium text-muted-foreground whitespace-nowrap text-xs">{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y">
-              {filtered.map((p) => (
-                <tr key={p.id} className={`hover:bg-muted/20 ${saving === p.id ? "opacity-60" : ""}`}>
-                  <td className="px-3 py-2 text-muted-foreground font-mono text-xs">{p.id.slice(0, 8)}</td>
-                  <td className="px-3 py-2 font-medium whitespace-nowrap">
-                    {p.cliente_nome} {p.cliente_cognome}
-                  </td>
-                  <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
-                    {p.companies?.ragione_sociale ?? "—"}
-                  </td>
-                  <td className="px-3 py-2">
-                    <Badge variant="outline" className="text-xs">
-                      {p.brand === "enea" ? "ENEA" : "CT"}
-                    </Badge>
-                  </td>
-                  <td className="px-3 py-2 max-w-[140px] truncate">{p.prodotto_installato ?? "—"}</td>
-                  <td className="px-3 py-2">
-                    <EditableCell
-                      value={p.data_invio_pratica}
-                      type="date"
-                      onSave={(v) => updateMutation.mutate({ id: p.id, field: "data_invio_pratica", value: v })}
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <EditableCell
-                      value={p.guadagno_lordo}
-                      type="number"
-                      onSave={(v) => updateMutation.mutate({ id: p.id, field: "guadagno_lordo", value: v })}
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <EditableCell
-                      value={p.guadagno_netto}
-                      type="number"
-                      onSave={(v) => updateMutation.mutate({ id: p.id, field: "guadagno_netto", value: v })}
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    {p.guadagno_lordo != null && p.guadagno_netto != null ? (
-                      <div className="space-y-0.5">
-                        <span className={`text-xs font-semibold ${
-                          p.guadagno_lordo - p.guadagno_netto > 0 ? "text-green-600" : "text-muted-foreground"
-                        }`}>
-                          € {(p.guadagno_lordo - p.guadagno_netto).toFixed(2)}
-                        </span>
-                        {p.guadagno_lordo > 0 && (
-                          <p className="text-[10px] text-muted-foreground">
-                            {(((p.guadagno_lordo - p.guadagno_netto) / p.guadagno_lordo) * 100).toFixed(1)}%
-                          </p>
+              {displayRows.map(p => {
+                const pagBadge = PAGAMENTO_BADGE[p.pagamento_stato] ?? PAGAMENTO_BADGE.non_pagata;
+                const statoConf = STATO_CONFIG[p.stato as keyof typeof STATO_CONFIG];
+                const brand = (p.dati_pratica as any)?.brand as string | undefined;
+                const operatorName = p.assegnatario_id ? (operatorMap[p.assegnatario_id] ?? "—") : "—";
+
+                return (
+                  <tr
+                    key={p.id}
+                    className={`hover:bg-muted/20 cursor-pointer transition-colors ${saving === p.id ? "opacity-60" : ""}`}
+                    onClick={() => navigate(`/pratiche/${p.id}`)}
+                  >
+                    <td className="px-3 py-2 text-muted-foreground font-mono text-xs">{p.id.slice(0, 8)}</td>
+                    <td className="px-3 py-2">
+                      <div className="font-medium text-sm truncate max-w-[200px]">{p.titolo}</div>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                        <Building2 className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{p.companies?.ragione_sociale ?? "—"}</span>
+                        {p.clienti_finali && (
+                          <span className="truncate">
+                            · {(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}
+                          </span>
                         )}
                       </div>
-                    ) : (
-                      <span className="text-muted-foreground text-xs">—</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 max-w-[160px]">
-                    <EditableCell
-                      value={p.note_gestionale}
-                      type="textarea"
-                      onSave={(v) => updateMutation.mutate({ id: p.id, field: "note_gestionale", value: v })}
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 text-xs whitespace-nowrap"
-                      title="Sposta in Recensione"
-                      onClick={() => moveToRecensione.mutate(p.id)}
-                      disabled={moveToRecensione.isPending}
-                    >
-                      {moveToRecensione.isPending ? (
-                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                    </td>
+                    <td className="px-3 py-2">
+                      {brand ? (
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                          brand === "enea"
+                            ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+                            : "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300"
+                        }`}>
+                          {brand === "enea" ? "ENEA" : "CT"}
+                        </span>
                       ) : (
-                        <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
+                        <span className="text-xs text-muted-foreground">—</span>
                       )}
-                      Fatto
-                    </Button>
+                    </td>
+                    <td className="px-3 py-2">
+                      {statoConf && (
+                        <Badge variant="outline" className={`text-xs gap-1 ${statoConf.color}`}>
+                          {statoConf.label}
+                        </Badge>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 font-semibold">€ {(p.prezzo ?? 0).toFixed(2)}</td>
+                    <td className="px-3 py-2" onClick={e => e.stopPropagation()}>
+                      <Select
+                        value={p.pagamento_stato}
+                        onValueChange={val => updatePagamento.mutate({ id: p.id, pagamento: val })}
+                      >
+                        <SelectTrigger className={`h-7 text-xs w-32 border-0 bg-transparent p-0 focus:ring-0 ${pagBadge.className}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="non_pagata">Da fatturare</SelectItem>
+                          <SelectItem value="in_verifica">Fatturata</SelectItem>
+                          <SelectItem value="pagata">Pagata</SelectItem>
+                          <SelectItem value="rimborsata">Rimborsata</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="px-3 py-2 text-xs text-muted-foreground">
+                      {p.assegnatario_id ? (
+                        <div className="flex items-center gap-1">
+                          <User className="h-3 w-3" />{operatorName}
+                        </div>
+                      ) : "—"}
+                    </td>
+                    <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">
+                      {format(new Date(p.created_at), "dd/MM/yyyy")}
+                    </td>
+                    <td className="px-3 py-2" onClick={e => e.stopPropagation()}>
+                      <Button
+                        size="sm" variant="ghost"
+                        className="h-7 w-7 p-0"
+                        onClick={() => navigate(`/pratiche/${p.id}`)}
+                      >
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+
+            {displayRows.length > 0 && (
+              <tfoot className="bg-muted/30 font-semibold border-t">
+                <tr>
+                  <td colSpan={4} className="px-3 py-2 text-right text-xs text-muted-foreground">Totali:</td>
+                  <td className="px-3 py-2 text-sm">€ {totalFatturato.toFixed(2)}</td>
+                  <td colSpan={4} className="px-3 py-2 text-xs text-muted-foreground">
+                    Pagato: € {totalIncassato.toFixed(2)} · Da incassare: € {(totalFatturato - totalIncassato).toFixed(2)}
                   </td>
                 </tr>
-              ))}
-            </tbody>
-            {/* Totals row */}
-            <tfoot className="bg-muted/30 font-semibold">
-              <tr>
-                <td colSpan={6} className="px-3 py-2 text-right text-muted-foreground">
-                  Totali:
-                </td>
-                <td className="px-3 py-2">€ {totalLordo.toFixed(2)}</td>
-                <td className="px-3 py-2">€ {totalNetto.toFixed(2)}</td>
-                <td className="px-3 py-2 text-green-600">
-                  € {(totalLordo - totalNetto).toFixed(2)}
-                  {totalLordo > 0 && (
-                    <span className="text-xs font-normal text-muted-foreground ml-1">
-                      ({(((totalLordo - totalNetto) / totalLordo) * 100).toFixed(1)}%)
-                    </span>
-                  )}
-                </td>
-                <td colSpan={2} />
-              </tr>
-            </tfoot>
+              </tfoot>
+            )}
           </table>
-          {filtered.length === 0 && !isLoading && (
-            <div className="flex flex-col items-center py-16 text-center gap-4">
-              <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center">
-                <ClipboardList className="h-7 w-7 text-muted-foreground/40" />
+
+          {displayRows.length === 0 && !isLoading && (
+            <div className="flex flex-col items-center py-16 text-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                <ClipboardList className="h-6 w-6 text-muted-foreground/40" />
               </div>
               <div>
-                <p className="font-semibold text-base">Nessuna pratica in gestionale</p>
-                <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
-                  Le pratiche in fase di gestionale appariranno qui una volta spostate nella pipeline.
+                <p className="font-semibold">Nessuna pratica trovata</p>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {brandFilter !== "all"
+                    ? `Non ci sono pratiche ${brandFilter === "enea" ? "ENEA" : "Conto Termico"}.`
+                    : "Prova a modificare i filtri."}
                 </p>
               </div>
-              <Button variant="outline" size="sm" onClick={() => navigate("/kanban")} className="gap-2">
-                <ArrowRight className="h-4 w-4" />Vai al Kanban Board
-              </Button>
             </div>
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Tab config ───────────────────────────────────────────────────────────────
+
+const TABS: {
+  id: BrandFilter;
+  label: string;
+  icon: React.ElementType;
+  activeClass: string;
+  accentIcon: string;
+}[] = [
+  {
+    id: "all",
+    label: "Tutte le Pratiche",
+    icon: ClipboardList,
+    activeClass: "bg-background shadow-sm text-foreground",
+    accentIcon: "text-foreground",
+  },
+  {
+    id: "enea",
+    label: "ENEA",
+    icon: Zap,
+    activeClass: "bg-background shadow-sm text-foreground",
+    accentIcon: "text-blue-600",
+  },
+  {
+    id: "conto_termico",
+    label: "Conto Termico",
+    icon: Flame,
+    activeClass: "bg-background shadow-sm text-foreground",
+    accentIcon: "text-orange-500",
+  },
+];
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
+export default function Gestionale() {
+  const [activeTab, setActiveTab] = useState<BrandFilter>("all");
+
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Gestionale</p>
+        <h1 className="font-display text-2xl font-bold tracking-tight">Gestionale Pratiche</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Vista finanziaria e operativa · filtrata per brand
+        </p>
+      </div>
+
+      {/* Tab nav */}
+      <div className="flex items-center gap-1 bg-muted/60 rounded-xl p-1 w-fit">
+        {TABS.map(({ id, label, icon: Icon, activeClass, accentIcon }) => {
+          const isActive = activeTab === id;
+          return (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                isActive
+                  ? activeClass
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+              }`}
+            >
+              <Icon className={`h-3.5 w-3.5 ${isActive ? accentIcon : ""}`} />
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Content — single component, different brandFilter prop */}
+      <PraticheTab key={activeTab} brandFilter={activeTab} />
     </div>
   );
 }

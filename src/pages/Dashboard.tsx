@@ -5,16 +5,17 @@ import { DashboardInterno } from "@/components/dashboard/DashboardInterno";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, Kanban } from "lucide-react";
+import { LayoutDashboard, Kanban, BarChart3 } from "lucide-react";
 
 const EneaDashboardContent = lazy(() => import("./EneaDashboard"));
+const AnalyticsContent = lazy(() => import("./Analytics"));
 
 function PageLoader() {
   return (
     <div className="space-y-4 pt-2">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
-          <Skeleton key={i} className="h-[100px] rounded-xl" />
+        {["kpi-1", "kpi-2", "kpi-3", "kpi-4"].map((k) => (
+          <Skeleton key={k} className="h-[100px] rounded-xl" />
         ))}
       </div>
       <Skeleton className="h-72 rounded-xl" />
@@ -47,6 +48,10 @@ export default function Dashboard() {
                 <Kanban className="h-3.5 w-3.5" />
                 Pipeline ENEA / CT
               </TabsTrigger>
+              <TabsTrigger value="analytics" className="gap-1.5 text-xs">
+                <BarChart3 className="h-3.5 w-3.5" />
+                Analytics
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -57,6 +62,12 @@ export default function Dashboard() {
           <TabsContent value="pipeline" className="mt-0 focus-visible:ring-0 focus-visible:ring-offset-0">
             <Suspense fallback={<PageLoader />}>
               <EneaDashboardContent />
+            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-0 focus-visible:ring-0 focus-visible:ring-offset-0">
+            <Suspense fallback={<PageLoader />}>
+              <AnalyticsContent />
             </Suspense>
           </TabsContent>
         </Tabs>

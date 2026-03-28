@@ -1095,6 +1095,7 @@ export interface EneaPractice {
   recensione_ricevuta_at: string | null
   recensione_testo: string | null
   recensione_stelle: number | null
+  tipo_servizio: "servizio_completo" | "pratica_only" | null
   archived_at: string | null
   created_at: string
   updated_at: string

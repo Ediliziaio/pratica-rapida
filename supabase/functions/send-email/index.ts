@@ -110,6 +110,74 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
         `),
       };
 
+    // ── Support ticket: conferma all'utente ────────────────────────────────
+    case "ticket_conferma":
+      return {
+        subject: r("✓ Ticket ricevuto — {{oggetto}}"),
+        html: base(`
+          <h2 style="margin-top:0">Ticket ricevuto ✓</h2>
+          <p>Ciao <strong>${r("{{nome}}")}</strong>,</p>
+          <p>Il tuo ticket di assistenza è stato ricevuto. Ti risponderemo entro <strong>24 ore lavorative</strong>.</p>
+          <table width="100%" cellpadding="0" cellspacing="0"
+            style="border-collapse:collapse;margin:20px 0;background:#f9f9f9;border-radius:6px;overflow:hidden;">
+            <tr>
+              <td style="padding:10px 16px;font-weight:bold;color:#555;width:28%;border-bottom:1px solid #eee">Oggetto</td>
+              <td style="padding:10px 16px;border-bottom:1px solid #eee">${r("{{oggetto}}")}</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;font-weight:bold;color:#555;border-bottom:1px solid #eee">Priorità</td>
+              <td style="padding:10px 16px;border-bottom:1px solid #eee">${r("{{priorita}}")}</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;font-weight:bold;color:#555;vertical-align:top">Descrizione</td>
+              <td style="padding:10px 16px;white-space:pre-wrap">${r("{{descrizione}}")}</td>
+            </tr>
+          </table>
+          <p style="color:#666;font-size:13px;margin-top:24px">
+            Per ulteriori informazioni: <a href="mailto:supporto@pratica-rapida.it" style="color:${COLORS.cta}">supporto@pratica-rapida.it</a>
+          </p>
+        `),
+      };
+
+    // ── Support ticket: notifica al team interno ────────────────────────────
+    case "ticket_nuovo":
+      return {
+        subject: r("[TICKET] {{priorita_upper}} — {{oggetto}} ({{company}})"),
+        html: base(`
+          <h2 style="margin-top:0">Nuovo ticket di assistenza</h2>
+          <table width="100%" cellpadding="0" cellspacing="0"
+            style="border-collapse:collapse;margin:20px 0;background:#f9f9f9;border-radius:6px;overflow:hidden;">
+            <tr>
+              <td style="padding:10px 16px;font-weight:bold;color:#555;width:28%;border-bottom:1px solid #eee">Azienda</td>
+              <td style="padding:10px 16px;border-bottom:1px solid #eee"><strong>${r("{{company}}")}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;font-weight:bold;color:#555;border-bottom:1px solid #eee">Utente</td>
+              <td style="padding:10px 16px;border-bottom:1px solid #eee">${r("{{nome}}")} &lt;${r("{{email}}")}&gt;</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;font-weight:bold;color:#555;border-bottom:1px solid #eee">Oggetto</td>
+              <td style="padding:10px 16px;border-bottom:1px solid #eee">${r("{{oggetto}}")}</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;font-weight:bold;color:#555;border-bottom:1px solid #eee">Priorità</td>
+              <td style="padding:10px 16px;border-bottom:1px solid #eee">
+                <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:bold;
+                  background:${r("{{priorita}}") === "alta" ? "#fee2e2" : r("{{priorita}}") === "normale" ? "#fef9c3" : "#f0fdf4"};
+                  color:${r("{{priorita}}") === "alta" ? "#b91c1c" : r("{{priorita}}") === "normale" ? "#854d0e" : "#166534"}">
+                  ${r("{{priorita_upper}}")}
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;font-weight:bold;color:#555;vertical-align:top">Descrizione</td>
+              <td style="padding:10px 16px;white-space:pre-wrap">${r("{{descrizione}}")}</td>
+            </tr>
+          </table>
+          ${data.link ? cta("Gestisci nel pannello", r("{{link}}")) : ""}
+        `),
+      };
+
     default:
       return { subject: "Notifica da Pratica Rapida", html: base(`<p>${r("{{message}}")}</p>`) };
   }

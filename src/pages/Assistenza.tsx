@@ -9,14 +9,77 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { LifeBuoy, Plus, Clock, MessageSquare } from "lucide-react";
+import { LifeBuoy, Plus, Clock, MessageSquare, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { ticketSchema } from "@/lib/validation-schemas";
 import type { Tables } from "@/integrations/supabase/types";
+
+const SUPPORT_EMAIL = "supporto@pratica-rapida.it";
+
+async function sendTicketEmails({
+  userEmail,
+  userName,
+  companyName,
+  oggetto,
+  descrizione,
+  priorita,
+  notificaUtente,
+}: {
+  userEmail: string;
+  userName: string;
+  companyName: string;
+  oggetto: string;
+  descrizione: string;
+  priorita: string;
+  notificaUtente: boolean;
+}) {
+  const prioritaLabel = { bassa: "Bassa", normale: "Normale", alta: "Alta" }[priorita] ?? priorita;
+  const adminUrl = `${window.location.origin}/admin/assistenza`;
+
+  // 1. Notifica al team interno — sempre
+  supabase.functions
+    .invoke("send-email", {
+      body: {
+        to: SUPPORT_EMAIL,
+        template: "ticket_nuovo",
+        data: {
+          nome: userName,
+          email: userEmail,
+          company: companyName,
+          oggetto,
+          descrizione,
+          priorita: prioritaLabel,
+          priorita_upper: prioritaLabel.toUpperCase(),
+          link: adminUrl,
+        },
+      },
+    })
+    .then(({ error }) => {
+      if (error) console.warn("Ticket team notify failed:", error.message);
+    });
+
+  // 2. Conferma all'utente — solo se ha scelto di riceverla
+  if (notificaUtente) {
+    const { error } = await supabase.functions.invoke("send-email", {
+      body: {
+        to: userEmail,
+        template: "ticket_conferma",
+        data: {
+          nome: userName,
+          oggetto,
+          descrizione,
+          priorita: prioritaLabel,
+        },
+      },
+    });
+    if (error) console.warn("Ticket confirm email failed:", error.message);
+  }
+}
 
 type TicketStato = "aperto" | "in_lavorazione" | "risolto" | "chiuso";
 
@@ -47,6 +110,7 @@ export default function Assistenza() {
   const [open, setOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Tables<"support_tickets"> | null>(null);
   const [form, setForm] = useState({ oggetto: "", descrizione: "", priorita: "normale" as "bassa" | "normale" | "alta" });
+  const [notificaEmail, setNotificaEmail] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: tickets = [], isLoading } = useQuery({
@@ -60,6 +124,21 @@ export default function Assistenza() {
         .order("created_at", { ascending: false })
         .limit(100);
       if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId,
+  });
+
+  // Query company name for email notification
+  const { data: companyInfo } = useQuery({
+    queryKey: ["company-name-assistenza", companyId],
+    queryFn: async () => {
+      if (!companyId) return null;
+      const { data } = await supabase
+        .from("companies")
+        .select("ragione_sociale")
+        .eq("id", companyId)
+        .single();
       return data;
     },
     enabled: !!companyId,
@@ -86,11 +165,37 @@ export default function Assistenza() {
         priorita: validated.priorita,
       });
       if (error) throw error;
+
+      return { oggetto: validated.oggetto, descrizione: validated.descrizione, priorita: validated.priorita };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["support-tickets", companyId] });
-      toast({ title: "Ticket creato", description: "Il tuo ticket di assistenza è stato inviato." });
+
+      const userEmail = user?.email ?? "";
+      const userName = user?.user_metadata?.nome
+        ? `${user.user_metadata.nome} ${user.user_metadata.cognome ?? ""}`.trim()
+        : userEmail;
+      const companyName = companyInfo?.ragione_sociale ?? "Azienda";
+
+      // Fire-and-forget email notifications (non-blocking)
+      sendTicketEmails({
+        userEmail,
+        userName,
+        companyName,
+        oggetto: data.oggetto,
+        descrizione: data.descrizione,
+        priorita: data.priorita,
+        notificaUtente: notificaEmail,
+      }).catch((e) => console.warn("sendTicketEmails error:", e));
+
+      toast({
+        title: "Ticket inviato",
+        description: notificaEmail && userEmail
+          ? `Riceverai una conferma su ${userEmail}`
+          : "Il tuo ticket di assistenza è stato inviato.",
+      });
       setForm({ oggetto: "", descrizione: "", priorita: "normale" });
+      setNotificaEmail(true);
       setErrors({});
       setOpen(false);
     },
@@ -116,7 +221,7 @@ export default function Assistenza() {
           <LifeBuoy className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-bold">Assistenza</h1>
         </div>
-        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setErrors({}); }}>
+        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setErrors({}); setNotificaEmail(true); } }}>
           <DialogTrigger asChild>
             <Button><Plus className="mr-2 h-4 w-4" />Nuovo Ticket</Button>
           </DialogTrigger>
@@ -158,6 +263,34 @@ export default function Assistenza() {
                     <SelectItem value="alta">Alta</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Notifica email */}
+              <div
+                className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                  notificaEmail ? "border-primary/30 bg-primary/5" : "border-border hover:bg-muted/40"
+                }`}
+                onClick={() => setNotificaEmail((v) => !v)}
+              >
+                <Checkbox
+                  id="notifica-email"
+                  checked={notificaEmail}
+                  onCheckedChange={(v) => setNotificaEmail(!!v)}
+                  className="mt-0.5 shrink-0"
+                />
+                <div className="space-y-0.5 select-none">
+                  <div className="flex items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5 text-primary" />
+                    <label htmlFor="notifica-email" className="text-sm font-medium cursor-pointer">
+                      Ricevi conferma via email
+                    </label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {user?.email
+                      ? `Invieremo una conferma a ${user.email}`
+                      : "Conferma inviata al tuo indirizzo email registrato"}
+                  </p>
+                </div>
               </div>
             </div>
             <DialogFooter>

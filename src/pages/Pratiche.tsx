@@ -152,6 +152,34 @@ export default function Pratiche() {
 
   const canDelete = (p: any) => p.stato === "bozza";
 
+  const duplicatePratica = useMutation({
+    mutationFn: async (pratica: any) => {
+      const { data, error } = await supabase.from("pratiche").insert({
+        company_id: pratica.company_id,
+        service_id: pratica.service_id ?? null,
+        cliente_finale_id: pratica.cliente_finale_id ?? null,
+        creato_da: pratica.creato_da,
+        titolo: `Copia — ${pratica.titolo}`,
+        descrizione: pratica.descrizione ?? "",
+        categoria: pratica.categoria,
+        stato: "bozza",
+        priorita: pratica.priorita,
+        pagamento_stato: "non_pagata",
+        prezzo: pratica.prezzo,
+        dati_pratica: pratica.dati_pratica ?? {},
+        is_free: false,
+      }).select("id").single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["pratiche"] });
+      toast({ title: "Pratica duplicata", description: "La nuova bozza è pronta." });
+      navigate(`/pratiche/${data.id}`);
+    },
+    onError: () => toast({ title: "Errore duplicazione", variant: "destructive" }),
+  });
+
   // Bulk change stato
   const bulkChangeStato = useMutation({
     mutationFn: async ({ ids, stato }: { ids: string[]; stato: string }) => {
@@ -314,6 +342,7 @@ export default function Pratiche() {
           onToggle={toggleSelect}
           onDelete={handleSingleDelete}
           canDelete={canDelete}
+          onDuplicate={(p) => duplicatePratica.mutate(p)}
           isLoading={isLoading}
         />
       ) : (

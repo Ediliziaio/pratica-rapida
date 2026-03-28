@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, Zap, FileText, Trash2, Plus } from "lucide-react";
+import { CheckCircle2, Zap, FileText, Trash2, Plus, CopyPlus } from "lucide-react";
 import { STATO_CONFIG, PAGAMENTO_BADGE, getAgingDot } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
 import { formatDistanceToNow } from "date-fns";
@@ -16,6 +16,7 @@ interface ListViewProps {
   onToggle?: (id: string) => void;
   onDelete?: (id: string) => void;
   canDelete?: (pratica: any) => boolean;
+  onDuplicate?: (pratica: any) => void;
   isLoading?: boolean;
 }
 
@@ -27,6 +28,7 @@ export function ListView({
   onToggle,
   onDelete,
   canDelete,
+  onDuplicate,
   isLoading,
 }: ListViewProps) {
   if (isLoading) {
@@ -84,7 +86,7 @@ export function ListView({
         return (
           <div
             key={p.id}
-            className={`list-row flex items-center gap-3 px-4 py-3 cursor-pointer ${isSelected ? "bg-primary/5" : "bg-background"}`}
+            className={`list-row group flex items-center gap-3 px-4 py-3 cursor-pointer ${isSelected ? "bg-primary/5" : "bg-background"}`}
             onClick={() => navigate(`/pratiche/${p.id}`)}
           >
             {/* Checkbox */}
@@ -138,6 +140,17 @@ export function ListView({
                 {statoConf.label}
               </Badge>
               <span className="font-semibold text-sm tabular-nums">€ {p.prezzo.toFixed(0)}</span>
+              {onDuplicate && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => { e.stopPropagation(); onDuplicate(p); }}
+                  title="Duplica pratica"
+                >
+                  <CopyPlus className="h-3.5 w-3.5" />
+                </Button>
+              )}
               {deletable && onDelete && (
                 <Button
                   variant="ghost"

@@ -1,4 +1,5 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
+import { cn } from "@/lib/utils";
 import { useLocation } from "react-router-dom";
 import {
   DragDropContext,
@@ -52,6 +53,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import {
   Search,
@@ -64,6 +77,7 @@ import {
   Tag,
   MoveHorizontal,
   ChevronDown,
+  ChevronsUpDown,
   Phone,
   Link,
   Archive,
@@ -75,7 +89,6 @@ import {
   Download,
   Filter,
   FilterX,
-  FileSpreadsheet,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
@@ -255,6 +268,15 @@ function PracticeDetailSheet({
                   <Badge variant="outline" className="text-xs">
                     {practice.pipeline_stages.name}
                   </Badge>
+                )}
+                {practice.tipo_servizio === "servizio_completo" ? (
+                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300">
+                    ✦ Servizio Completo
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
+                    Self Service
+                  </span>
                 )}
                 {practice.archived_at && (
                   <Badge variant="secondary" className="text-xs">
@@ -834,7 +856,7 @@ export default function KanbanBoard() {
     (location.state as { aziendaFilter?: string } | null)?.aziendaFilter ?? "all"
   );
   const [clienteFilter, setClienteFilter] = useState("");
-  const [aziendaSearch, setAziendaSearch] = useState("");
+  const [aziendaComboboxOpen, setAziendaComboboxOpen] = useState(false);
   const [stageFilter, setStageFilter] = useState<string>("all");
   const [archiveConfirm, setArchiveConfirm] = useState<{
     practiceId: string;
@@ -888,14 +910,7 @@ export default function KanbanBoard() {
     },
   });
 
-  const filteredCompanyList = aziendaSearch
-    ? allCompaniesFromDB.filter((c) =>
-        c.ragione_sociale.toLowerCase().includes(aziendaSearch.toLowerCase())
-      )
-    : allCompaniesFromDB;
-
   // Stats
-  const now = Date.now();
   const activePractices = practices.filter((p) => !p.archived_at);
   const pronteDaFare = activePractices.filter(
     (p) => p.pipeline_stages?.stage_type === "pronte_da_fare"
@@ -903,19 +918,6 @@ export default function KanbanBoard() {
   const staleCount = activePractices.filter(
     (p) => daysAgo(p.updated_at) > 7
   ).length;
-  const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-  const guadagnoMese = activePractices
-    .filter((p) => p.created_at >= startOfMonth && p.guadagno_netto != null)
-    .reduce((sum, p) => sum + (p.guadagno_netto ?? 0), 0);
-
-  // Unique companies from loaded practices (for internal filter)
-  const companyList = Array.from(
-    new Map(
-      practices
-        .filter((p) => p.companies)
-        .map((p) => [p.companies!.id, p.companies!.ragione_sociale])
-    ).entries()
-  ).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
 
   // Apply all client-side filters
   const filteredPractices = practices.filter((p) => {
@@ -1332,41 +1334,48 @@ export default function KanbanBoard() {
                   <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Azienda
                   </label>
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-                    <Input
-                      placeholder="Cerca azienda..."
-                      className="pl-8 h-9 text-sm"
-                      value={aziendaSearch}
-                      onChange={(e) => setAziendaSearch(e.target.value)}
-                    />
-                  </div>
-                  <div className="max-h-48 overflow-y-auto rounded-md border divide-y">
-                    <button
-                      onClick={() => setAziendaFilter("all")}
-                      className={`w-full text-left px-3 py-2 hover:bg-muted/50 transition-colors flex items-center justify-between text-sm ${
-                        aziendaFilter === "all" ? "bg-primary/5 text-primary font-medium" : ""
-                      }`}
-                    >
-                      <span>Tutte le aziende</span>
-                      {aziendaFilter === "all" && <Check className="h-3.5 w-3.5 shrink-0" />}
-                    </button>
-                    {filteredCompanyList.map((c) => (
-                      <button
-                        key={c.id}
-                        onClick={() => setAziendaFilter(c.id)}
-                        className={`w-full text-left px-3 py-2 hover:bg-muted/50 transition-colors flex items-center justify-between text-sm ${
-                          aziendaFilter === c.id ? "bg-primary/5 text-primary font-medium" : ""
-                        }`}
+                  <Popover open={aziendaComboboxOpen} onOpenChange={setAziendaComboboxOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={aziendaComboboxOpen}
+                        className="w-full h-9 justify-between text-sm font-normal"
                       >
-                        <span className="truncate">{c.ragione_sociale}</span>
-                        {aziendaFilter === c.id && <Check className="h-3.5 w-3.5 shrink-0 text-primary" />}
-                      </button>
-                    ))}
-                    {filteredCompanyList.length === 0 && aziendaSearch && (
-                      <p className="text-center text-xs text-muted-foreground py-3">Nessuna azienda trovata</p>
-                    )}
-                  </div>
+                        <span className="truncate">
+                          {aziendaFilter === "all"
+                            ? "Tutte le aziende"
+                            : (allCompaniesFromDB.find((c) => c.id === aziendaFilter)?.ragione_sociale ?? "Azienda")}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Cerca azienda..." className="h-9 text-sm" />
+                        <CommandEmpty>Nessuna azienda trovata.</CommandEmpty>
+                        <CommandGroup className="max-h-56 overflow-y-auto">
+                          <CommandItem
+                            value="__all__"
+                            onSelect={() => { setAziendaFilter("all"); setAziendaComboboxOpen(false); }}
+                          >
+                            <Check className={cn("mr-2 h-3.5 w-3.5", aziendaFilter === "all" ? "opacity-100" : "opacity-0")} />
+                            Tutte le aziende
+                          </CommandItem>
+                          {allCompaniesFromDB.map((c) => (
+                            <CommandItem
+                              key={c.id}
+                              value={c.ragione_sociale}
+                              onSelect={() => { setAziendaFilter(c.id); setAziendaComboboxOpen(false); }}
+                            >
+                              <Check className={cn("mr-2 h-3.5 w-3.5", aziendaFilter === c.id ? "opacity-100" : "opacity-0")} />
+                              {c.ragione_sociale}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </>
             )}

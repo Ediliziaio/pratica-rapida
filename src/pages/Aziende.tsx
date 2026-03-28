@@ -380,8 +380,8 @@ export default function Aziende() {
                             variant="ghost"
                             size="sm"
                             className="h-8 px-2 gap-1 text-xs text-muted-foreground hover:text-primary"
-                            title="Vedi pratiche nel Kanban"
-                            onClick={() => navigate("/kanban", { state: { aziendaFilter: c.id } })}
+                            title="Vedi pratiche"
+                            onClick={() => navigate("/admin/pratiche")}
                           >
                             <LayoutDashboard className="h-3.5 w-3.5" />
                             Pipeline

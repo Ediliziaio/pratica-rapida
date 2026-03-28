@@ -28,6 +28,7 @@ const TYPE_LABEL: Record<string, string> = {
   free_pratiche:    "Pratiche Gratuite",
   discount_percent: "Sconto %",
   discount_fixed:   "Sconto Fisso €",
+  periodic_free:    "Periodica (N+M)",
 };
 
 // -----------------------------------------------
@@ -75,17 +76,21 @@ function CatalogoTab() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<PromoType | null>(null);
 
-  const [form, setForm] = useState({ name: "", description: "", type: "free_pratiche", value: "", max_pratiche: "", validity_days: "" });
+  const [form, setForm] = useState({ name: "", description: "", type: "free_pratiche", value: "", max_pratiche: "", validity_days: "", ciclo_pratiche: "", free_per_ciclo: "" });
 
   const upsert = useMutation({
     mutationFn: async () => {
-      const payload = {
+      const payload: Record<string, unknown> = {
         name: form.name,
         description: form.description || null,
         type: form.type,
-        value: form.value ? parseFloat(form.value) : null,
+        value: form.type === "periodic_free"
+          ? (form.free_per_ciclo ? parseInt(form.free_per_ciclo) : null)
+          : (form.value ? parseFloat(form.value) : null),
         max_pratiche: form.max_pratiche ? parseInt(form.max_pratiche) : null,
         validity_days: form.validity_days ? parseInt(form.validity_days) : null,
+        ciclo_pratiche: form.type === "periodic_free" && form.ciclo_pratiche ? parseInt(form.ciclo_pratiche) : null,
+        free_per_ciclo: form.type === "periodic_free" && form.free_per_ciclo ? parseInt(form.free_per_ciclo) : null,
       };
       if (editing) {
         const { error } = await supabase.from("promo_types").update(payload).eq("id", editing.id);
@@ -100,7 +105,7 @@ function CatalogoTab() {
       toast({ title: editing ? "Promo aggiornata" : "Promo creata" });
       setOpen(false);
       setEditing(null);
-      setForm({ name: "", description: "", type: "free_pratiche", value: "", max_pratiche: "", validity_days: "" });
+      setForm({ name: "", description: "", type: "free_pratiche", value: "", max_pratiche: "", validity_days: "", ciclo_pratiche: "", free_per_ciclo: "" });
     },
     onError: () => toast({ title: "Errore", variant: "destructive" }),
   });
@@ -115,7 +120,16 @@ function CatalogoTab() {
 
   const openEdit = (p: PromoType) => {
     setEditing(p);
-    setForm({ name: p.name, description: p.description ?? "", type: p.type, value: p.value?.toString() ?? "", max_pratiche: p.max_pratiche?.toString() ?? "", validity_days: p.validity_days?.toString() ?? "" });
+    setForm({
+      name: p.name,
+      description: p.description ?? "",
+      type: p.type,
+      value: p.value?.toString() ?? "",
+      max_pratiche: p.max_pratiche?.toString() ?? "",
+      validity_days: p.validity_days?.toString() ?? "",
+      ciclo_pratiche: (p as unknown as { ciclo_pratiche?: number }).ciclo_pratiche?.toString() ?? "",
+      free_per_ciclo: (p as unknown as { free_per_ciclo?: number }).free_per_ciclo?.toString() ?? "",
+    });
     setOpen(true);
   };
 
@@ -124,7 +138,7 @@ function CatalogoTab() {
       <div className="flex justify-end">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => { setEditing(null); setForm({ name: "", description: "", type: "free_pratiche", value: "", max_pratiche: "", validity_days: "" }); }}>
+            <Button onClick={() => { setEditing(null); setForm({ name: "", description: "", type: "free_pratiche", value: "", max_pratiche: "", validity_days: "", ciclo_pratiche: "", free_per_ciclo: "" }); }}>
               <Plus className="h-4 w-4 mr-2" /> Nuova Promo
             </Button>
           </DialogTrigger>
@@ -149,23 +163,43 @@ function CatalogoTab() {
                     <SelectItem value="free_pratiche">🎁 Pratiche Gratuite</SelectItem>
                     <SelectItem value="discount_percent">% Sconto Percentuale</SelectItem>
                     <SelectItem value="discount_fixed">€ Sconto Fisso</SelectItem>
+                    <SelectItem value="periodic_free">🔄 Periodica (ogni N pratiche, M gratis)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <Label>Valore</Label>
-                  <Input value={form.value} onChange={e => setForm(f => ({ ...f, value: e.target.value }))} placeholder="2" type="number" className="mt-1" />
+              {form.type === "periodic_free" ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Ogni N pratiche</Label>
+                      <Input value={form.ciclo_pratiche} onChange={e => setForm(f => ({ ...f, ciclo_pratiche: e.target.value }))} placeholder="10" type="number" min="1" className="mt-1" />
+                    </div>
+                    <div>
+                      <Label>Di cui M gratis</Label>
+                      <Input value={form.free_per_ciclo} onChange={e => setForm(f => ({ ...f, free_per_ciclo: e.target.value }))} placeholder="2" type="number" min="1" className="mt-1" />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Durata (gg)</Label>
+                    <Input value={form.validity_days} onChange={e => setForm(f => ({ ...f, validity_days: e.target.value }))} placeholder="90" type="number" className="mt-1" />
+                  </div>
                 </div>
-                <div>
-                  <Label>Max pratiche</Label>
-                  <Input value={form.max_pratiche} onChange={e => setForm(f => ({ ...f, max_pratiche: e.target.value }))} placeholder="5" type="number" className="mt-1" />
+              ) : (
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <Label>Valore</Label>
+                    <Input value={form.value} onChange={e => setForm(f => ({ ...f, value: e.target.value }))} placeholder="2" type="number" className="mt-1" />
+                  </div>
+                  <div>
+                    <Label>Max pratiche</Label>
+                    <Input value={form.max_pratiche} onChange={e => setForm(f => ({ ...f, max_pratiche: e.target.value }))} placeholder="5" type="number" className="mt-1" />
+                  </div>
+                  <div>
+                    <Label>Durata (gg)</Label>
+                    <Input value={form.validity_days} onChange={e => setForm(f => ({ ...f, validity_days: e.target.value }))} placeholder="90" type="number" className="mt-1" />
+                  </div>
                 </div>
-                <div>
-                  <Label>Durata (gg)</Label>
-                  <Input value={form.validity_days} onChange={e => setForm(f => ({ ...f, validity_days: e.target.value }))} placeholder="90" type="number" className="mt-1" />
-                </div>
-              </div>
+              )}
               <Button className="w-full" onClick={() => upsert.mutate()} disabled={!form.name || upsert.isPending}>
                 {upsert.isPending ? "Salvataggio..." : editing ? "Aggiorna" : "Crea Promo"}
               </Button>
@@ -193,8 +227,18 @@ function CatalogoTab() {
                   </div>
                   <p className="text-sm text-muted-foreground">{p.description}</p>
                   <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
-                    {p.value != null && <span>Valore: {p.type === "discount_percent" ? `${p.value}%` : p.type === "discount_fixed" ? `€${p.value}` : `${p.value} pratiche`}</span>}
-                    {p.max_pratiche && <span>Max: {p.max_pratiche} pratiche</span>}
+                    {p.type === "periodic_free" ? (
+                      <>
+                        {(p as unknown as { ciclo_pratiche?: number }).ciclo_pratiche != null && (p as unknown as { free_per_ciclo?: number }).free_per_ciclo != null && (
+                          <span>Ogni {(p as unknown as { ciclo_pratiche?: number }).ciclo_pratiche} pratiche, {(p as unknown as { free_per_ciclo?: number }).free_per_ciclo} gratis</span>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {p.value != null && <span>Valore: {p.type === "discount_percent" ? `${p.value}%` : p.type === "discount_fixed" ? `€${p.value}` : `${p.value} pratiche`}</span>}
+                        {p.max_pratiche && <span>Max: {p.max_pratiche} pratiche</span>}
+                      </>
+                    )}
                     {p.validity_days && <span>Durata: {p.validity_days}gg</span>}
                   </div>
                 </div>

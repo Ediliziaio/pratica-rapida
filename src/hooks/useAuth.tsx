@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -47,8 +47,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [resellerId, setResellerId] = useState<string | null>(null);
   const [isBlocked, setIsBlocked] = useState(false);
   const [loading, setLoading] = useState(true);
+  // Guard against concurrent fetches for the same userId (race condition between
+  // onAuthStateChange and getSession both firing on initial load)
+  const fetchingForRef = useRef<string | null>(null);
 
   const fetchRolesAndProfile = async (userId: string) => {
+    if (fetchingForRef.current === userId) return; // already in-flight for this user
+    fetchingForRef.current = userId;
     // Fetch roles
     const { data: roleData } = await supabase
       .from("user_roles")
@@ -76,16 +81,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setResellerId(null);
       setIsBlocked(false);
     }
+    fetchingForRef.current = null;
   };
 
   useEffect(() => {
+    // getSession handles the initial load; onAuthStateChange handles subsequent changes.
+    // Both can fire on startup — the fetchingForRef guard prevents duplicate DB calls.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          setTimeout(() => fetchRolesAndProfile(session.user.id), 0);
+          // Reset the guard on every new auth event so re-logins always re-fetch
+          fetchingForRef.current = null;
+          fetchRolesAndProfile(session.user.id).catch(console.error);
         } else {
+          fetchingForRef.current = null;
           setRoles([]);
           setResellerId(null);
           setIsBlocked(false);
@@ -98,10 +109,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchRolesAndProfile(session.user.id);
+        fetchRolesAndProfile(session.user.id).catch(console.error);
       }
       setLoading(false);
-    });
+    }).catch(console.error);
 
     return () => subscription.unsubscribe();
   }, []);

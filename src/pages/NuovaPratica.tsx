@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,8 +13,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight, Check, FileText, Briefcase, Send, CalendarIcon, Zap, Flame, Gift } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  ArrowLeft, ArrowRight, Check, FileText, Briefcase, Send,
+  CalendarIcon, Zap, Flame, Gift, Sparkles, FolderOpen, X,
+  ShieldCheck, AlertCircle, Upload,
+} from "lucide-react";
 import { usePromo } from "@/hooks/usePromo";
+import { useCompanyPromos, computeNextIsFree, getPromoDisplayInfo, useApplyCompanyPromo } from "@/hooks/useCompanyPromo";
 import { Switch } from "@/components/ui/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -24,8 +30,34 @@ import { cn } from "@/lib/utils";
 import type { PracticeBrand } from "@/integrations/supabase/types";
 
 type Brand = PracticeBrand;
+type TipoServizio = "servizio_completo" | "pratica_only";
 
-const STEPS = ["Dati Cliente", "Dati Pratica", "Riepilogo"];
+// ── Document upload config (mirrors DocumentUpload.tsx) ───────────────────────
+const ALLOWED_MIME_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "text/plain",
+];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const STORAGE_BUCKET = "documenti";
+
+// ── Document types (Self Service upload) ──────────────────────────────────────
+const DOC_TYPES = [
+  { id: "identita",           label: "Documento d'Identità",          description: "Carta d'identità o passaporto in corso di validità" },
+  { id: "codice_fiscale",     label: "Codice Fiscale / Tessera San.", description: "Tessera sanitaria o codice fiscale del cliente" },
+  { id: "fattura",            label: "Fattura / Proforma",            description: "Fattura o proforma relativa ai lavori eseguiti" },
+  { id: "contratto",          label: "Contratto / Preventivo",        description: "Contratto firmato o preventivo dell'intervento" },
+  { id: "certificati",        label: "Certificati Tecnici",           description: "APE, certificati di conformità, libretti impianto" },
+  { id: "catastali",          label: "Visura Catastale",              description: "Visura catastale, planimetrie o dati immobile" },
+  { id: "relazione_tecnica",  label: "Relazione Tecnica",             description: "Relazione tecnica dell'installatore o asseverazione" },
+  { id: "altri",              label: "Altri Documenti",               description: "Qualsiasi altro documento utile alla pratica" },
+] as const;
+
+type DocTypeId = typeof DOC_TYPES[number]["id"];
 
 const TIPI_INTERVENTO_ENEA = [
   "Sostituzione infissi",
@@ -81,56 +113,234 @@ const BRAND_CONFIG: Record<Brand, {
   },
 };
 
+// ── Schemas ───────────────────────────────────────────────────────────────────
+
 const nuovaPraticaClienteSchema = z.object({
   nome: z.string().trim().min(1, "Nome obbligatorio").max(100, "Massimo 100 caratteri"),
   cognome: z.string().trim().min(1, "Cognome obbligatorio").max(100, "Massimo 100 caratteri"),
   codice_fiscale: z
-    .string()
-    .trim()
-    .toUpperCase()
-    .refine(
-      (val) => val === "" || /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/i.test(val),
-      { message: "Codice fiscale non valido (16 caratteri alfanumerici)" }
-    )
-    .optional()
-    .or(z.literal("")),
+    .string().trim().toUpperCase()
+    .refine((val) => val === "" || /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/i.test(val), {
+      message: "Codice fiscale non valido (16 caratteri alfanumerici)",
+    })
+    .optional().or(z.literal("")),
   email: z
-    .string()
-    .trim()
-    .refine(
-      (val) => val === "" || z.string().email().safeParse(val).success,
-      { message: "Indirizzo email non valido" }
-    )
-    .optional()
-    .or(z.literal("")),
+    .string().trim()
+    .refine((val) => val === "" || z.string().email().safeParse(val).success, {
+      message: "Indirizzo email non valido",
+    })
+    .optional().or(z.literal("")),
   telefono: z
+    .string().trim()
+    .refine((val) => val === "" || /^[\d\s\+\-().]{6,20}$/.test(val), {
+      message: "Numero di telefono non valido",
+    })
+    .optional().or(z.literal("")),
+  indirizzo: z.string().trim().max(255).optional().or(z.literal("")),
+});
+
+const praticaSchema = z.object({
+  tipo_intervento: z.string().optional().or(z.literal("")),
+  data_fine_lavori: z.date().optional(),
+  importo_lavori: z
     .string()
-    .trim()
-    .refine(
-      (val) => val === "" || /^[\d\s\+\-().]{6,20}$/.test(val),
-      { message: "Numero di telefono non valido" }
-    )
-    .optional()
-    .or(z.literal("")),
-  indirizzo: z.string().trim().max(255, "Massimo 255 caratteri").optional().or(z.literal("")),
+    .refine((val) => val === "" || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0), {
+      message: "Importo non valido (deve essere ≥ 0)",
+    })
+    .optional().or(z.literal("")),
+  note_aggiuntive: z.string().trim().max(2000).optional().or(z.literal("")),
 });
 
 type NuovaPraticaClienteData = z.infer<typeof nuovaPraticaClienteSchema>;
 
-const praticaSchema = z.object({
-  tipo_intervento: z.string().optional().or(z.literal("")),
-  dati_catastali: z.string().trim().max(255).optional().or(z.literal("")),
-  data_fine_lavori: z.date().optional(),
-  importo_lavori: z
-    .string()
-    .refine(
-      (val) => val === "" || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0),
-      { message: "Importo non valido (deve essere ≥ 0)" }
-    )
-    .optional()
-    .or(z.literal("")),
-  note_aggiuntive: z.string().trim().max(2000, "Massimo 2000 caratteri").optional().or(z.literal("")),
-});
+// ── TipoServizio card ─────────────────────────────────────────────────────────
+
+function TipoServizioCard({
+  tipo,
+  selected,
+  onSelect,
+}: {
+  tipo: TipoServizio;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const isCompleto = tipo === "servizio_completo";
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={cn(
+        "relative flex flex-col items-start gap-4 rounded-xl border-2 p-5 text-left transition-all duration-150 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-full",
+        selected
+          ? "border-primary bg-primary/5 shadow-sm"
+          : "border-border bg-card hover:border-primary/40"
+      )}
+    >
+      {/* Checkmark */}
+      <span className={cn(
+        "absolute right-4 top-4 flex h-5 w-5 items-center justify-center rounded-full transition-all",
+        selected ? "bg-primary text-primary-foreground" : "border-2 border-muted-foreground/30"
+      )}>
+        {selected && <Check className="h-3 w-3" />}
+      </span>
+
+      {/* Icon */}
+      <div className={cn(
+        "flex h-11 w-11 items-center justify-center rounded-lg",
+        isCompleto
+          ? "bg-violet-100 text-violet-600 dark:bg-violet-950/60 dark:text-violet-400"
+          : "bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400"
+      )}>
+        {isCompleto ? <Sparkles className="h-5 w-5" /> : <FolderOpen className="h-5 w-5" />}
+      </div>
+
+      {/* Testo */}
+      <div className="space-y-1 pr-6">
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="font-semibold text-sm leading-snug">
+            {isCompleto
+              ? "Carico le informazioni del cliente"
+              : "Carico informazioni e documenti del cliente"}
+          </p>
+          <span className={cn(
+            "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+            isCompleto
+              ? "bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-400"
+              : "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400"
+          )}>
+            {isCompleto ? "Servizio Completo" : "Self Service"}
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          {isCompleto
+            ? "Pratica Rapida pensa a tutto: recupera i documenti, contatta il cliente e gestisce l'intera pratica per te."
+            : "Fornisci tu tutte le informazioni e i documenti. Pratica Rapida si occupa esclusivamente dell'iter burocratico."}
+        </p>
+      </div>
+    </button>
+  );
+}
+
+// ── DocUploadCard ─────────────────────────────────────────────────────────────
+
+function DocUploadCard({
+  label,
+  description,
+  files,
+  onAdd,
+  onRemove,
+  onValidationError,
+}: {
+  label: string;
+  description: string;
+  files: File[];
+  onAdd: (newFiles: File[]) => void;
+  onRemove: (index: number) => void;
+  onValidationError?: (msg: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const validateAndAdd = useCallback((rawFiles: File[]) => {
+    const valid: File[] = [];
+    const errors: string[] = [];
+    rawFiles.forEach((f) => {
+      if (!ALLOWED_MIME_TYPES.includes(f.type)) {
+        errors.push(`"${f.name}" — formato non supportato`);
+      } else if (f.size > MAX_FILE_SIZE) {
+        errors.push(`"${f.name}" — supera 10 MB`);
+      } else {
+        valid.push(f);
+      }
+    });
+    if (errors.length) onValidationError?.(errors.join("; "));
+    if (valid.length) onAdd(valid);
+  }, [onAdd, onValidationError]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const dropped = Array.from(e.dataTransfer.files).filter((f) => f.size > 0);
+    if (dropped.length) validateAndAdd(dropped);
+  }, [validateAndAdd]);
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files ?? []);
+    if (selected.length) validateAndAdd(selected);
+    e.target.value = "";
+  }, [validateAndAdd]);
+
+  return (
+    <div className="rounded-lg border bg-card">
+      <div className="flex items-start justify-between px-4 pt-3 pb-2 gap-2">
+        <div className="min-w-0">
+          <p className="text-sm font-medium leading-snug">{label}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{description}</p>
+        </div>
+        {files.length > 0 && (
+          <Badge variant="secondary" className="shrink-0 text-[10px] font-semibold">
+            {files.length} file
+          </Badge>
+        )}
+      </div>
+
+      {/* Drop zone */}
+      <div
+        className={cn(
+          "mx-4 mb-3 rounded-md border-2 border-dashed p-3 text-center cursor-pointer transition-colors select-none",
+          isDragOver
+            ? "border-primary bg-primary/5"
+            : "border-border hover:border-primary/40 hover:bg-muted/30"
+        )}
+        onClick={() => inputRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDrop={handleDrop}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
+      >
+        <Upload className="mx-auto mb-1 h-4 w-4 text-muted-foreground" />
+        <p className="text-xs text-muted-foreground">
+          Trascina qui o <span className="text-primary font-medium">clicca per sfogliare</span>
+        </p>
+        <p className="text-[10px] text-muted-foreground/70 mt-0.5">PDF, JPG, PNG, DOCX, XLSX · max 10 MB</p>
+        <input ref={inputRef} type="file" multiple hidden onChange={handleChange} accept={ALLOWED_MIME_TYPES.join(",")} />
+      </div>
+
+      {/* File list */}
+      {files.length > 0 && (
+        <ul className="px-4 pb-3 space-y-1.5">
+          {files.map((f, i) => (
+            <li key={i} className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2.5 py-1.5">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <span className="text-xs truncate max-w-[160px]">{f.name}</span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                  {f.size < 1024 * 1024
+                    ? `${(f.size / 1024).toFixed(0)} KB`
+                    : `${(f.size / (1024 * 1024)).toFixed(1)} MB`}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onRemove(i); }}
+                  className="rounded p-0.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  aria-label="Rimuovi file"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 
 export default function NuovaPratica() {
   const { user } = useAuth();
@@ -142,11 +352,21 @@ export default function NuovaPratica() {
   const { activePromo, isPromoApplicable, daysToExpiry, applyPromo } = usePromo(user?.id);
   const [usePromoOnSubmit, setUsePromoOnSubmit] = useState(false);
 
+  const { data: companyPromos = [] } = useCompanyPromos(companyId ?? undefined);
+  const applyCompanyPromo = useApplyCompanyPromo();
+  // Find first active company promo that gives a free practice
+  const activeCompanyPromo = companyPromos.find(p => computeNextIsFree(p)) ?? null;
+  const companyPromoInfo = activeCompanyPromo ? getPromoDisplayInfo(activeCompanyPromo) : null;
+
+  // ── Selezione iniziale (brand → tipo) ──
   const [brand, setBrand] = useState<Brand | null>(null);
+  const [tipoServizio, setTipoServizio] = useState<TipoServizio | null>(null);
+
+  // ── Wizard ──
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Step 1: Dati Cliente
+  // Step 0: Dati Cliente
   const [clienteNome, setClienteNome] = useState("");
   const [clienteCognome, setClienteCognome] = useState("");
   const [clienteCF, setClienteCF] = useState("");
@@ -154,18 +374,29 @@ export default function NuovaPratica() {
   const [clienteTelefono, setClienteTelefono] = useState("");
   const [clienteIndirizzo, setClienteIndirizzo] = useState("");
 
-  // Step 2: Dati Pratica
+  // Step 1: Dati Pratica
   const [tipoIntervento, setTipoIntervento] = useState("");
-  const [datiCatastali, setDatiCatastali] = useState("");
   const [dataFineLavori, setDataFineLavori] = useState<Date | undefined>();
   const [importoLavori, setImportoLavori] = useState("");
   const [noteAggiuntive, setNoteAggiuntive] = useState("");
   const [step2Errors, setStep2Errors] = useState<Record<string, string>>({});
 
+  // Step Documenti (Self Service): Record<DocTypeId, File[]>
+  const [documenti, setDocumenti] = useState<Record<string, File[]>>({});
+
+  // Step Riepilogo: accettazione prezzo
+  const [accettazionePrezzo, setAccettazionePrezzo] = useState(false);
+
   const brandConf = brand ? BRAND_CONFIG[brand] : null;
   const tipiIntervento = brand === "conto_termico" ? TIPI_INTERVENTO_CT : TIPI_INTERVENTO_ENEA;
+  const isServizioCompleto = tipoServizio === "servizio_completo";
 
-  // Fetch service from catalog (used to store service_id and prezzo for billing)
+  // ── Dynamic STEPS (inside component so tipoServizio is in scope) ──────────
+  const STEPS =
+    tipoServizio === "pratica_only"
+      ? ["Dati Cliente", "Dati Pratica", "Documenti", "Riepilogo"]
+      : ["Dati Cliente", "Dati Pratica", "Riepilogo"];
+
   const { data: praticaService } = useQuery({
     queryKey: ["enea-service"],
     queryFn: async () => {
@@ -180,7 +411,27 @@ export default function NuovaPratica() {
     },
   });
 
-  const prezzo = praticaService?.prezzo_base || 0;
+  // Company-specific price override (set by super admin per azienda)
+  const { data: companyPricingRow } = useQuery({
+    queryKey: ["company-pricing-row", companyId, brand],
+    queryFn: async () => {
+      if (!companyId || !brand) return null;
+      const { data } = await supabase
+        .from("company_pricing")
+        .select("prezzo")
+        .eq("company_id", companyId)
+        .eq("brand", brand)
+        .maybeSingle();
+      return data as { prezzo: number } | null;
+    },
+    enabled: !!companyId && !!brand,
+  });
+
+  // Priority: company custom price > service catalog price > 65 (hardcoded fallback)
+  const prezzoNetto: number =
+    companyPricingRow?.prezzo ?? praticaService?.prezzo_base ?? 65;
+  const prezzoIva = prezzoNetto * 0.22;
+  const prezzoTotale = prezzoNetto + prezzoIva;
 
   const getClienteFormData = () => ({
     nome: clienteNome,
@@ -209,7 +460,6 @@ export default function NuovaPratica() {
   const validateStep2 = (): boolean => {
     const result = praticaSchema.safeParse({
       tipo_intervento: tipoIntervento,
-      dati_catastali: datiCatastali,
       data_fine_lavori: dataFineLavori,
       importo_lavori: importoLavori,
       note_aggiuntive: noteAggiuntive,
@@ -263,8 +513,7 @@ export default function NuovaPratica() {
               telefono: validated.telefono || null,
               indirizzo: validated.indirizzo || null,
             })
-            .select()
-            .single();
+            .select().single();
           if (clienteError) throw clienteError;
           clienteId = cliente.id;
         }
@@ -280,16 +529,16 @@ export default function NuovaPratica() {
             telefono: validated.telefono || null,
             indirizzo: validated.indirizzo || null,
           })
-          .select()
-          .single();
+          .select().single();
         if (clienteError) throw clienteError;
         clienteId = cliente.id;
       }
 
-      // Build dati_pratica JSONB
-      const datiPratica: Record<string, string | number> = { brand };
+      const datiPratica: Record<string, string | number> = {
+        brand,
+        tipo_servizio: tipoServizio ?? "pratica_only",
+      };
       if (tipoIntervento) datiPratica.tipo_intervento = tipoIntervento;
-      if (datiCatastali) datiPratica.dati_catastali = datiCatastali;
       if (dataFineLavori) datiPratica.data_fine_lavori = format(dataFineLavori, "yyyy-MM-dd");
       if (importoLavori && !isNaN(parseFloat(importoLavori)) && parseFloat(importoLavori) >= 0) {
         datiPratica.importo_lavori = parseFloat(importoLavori);
@@ -298,7 +547,6 @@ export default function NuovaPratica() {
 
       const titoloBase = `Pratica ${BRAND_CONFIG[brand].praticaLabel} - ${validated.nome} ${validated.cognome}`;
 
-      // Fatturazione mensile posticipata: nessuna verifica wallet, la pratica viene inviata direttamente
       const { data: inserted, error } = await supabase.from("pratiche").insert({
         company_id: companyId,
         creato_da: user.id,
@@ -308,22 +556,79 @@ export default function NuovaPratica() {
         titolo: titoloBase,
         stato: asBozza ? "bozza" : "inviata",
         priorita: "normale",
-        prezzo,
+        prezzo: prezzoNetto,
         pagamento_stato: "non_pagata",
         dati_pratica: datiPratica,
-        is_free: !asBozza && usePromoOnSubmit && isPromoApplicable,
+        is_free: (!asBozza && usePromoOnSubmit && isPromoApplicable) || (!asBozza && !!activeCompanyPromo && computeNextIsFree(activeCompanyPromo)),
       }).select("id").single();
       if (error) throw error;
 
-      // Applica promo se selezionata
       if (!asBozza && usePromoOnSubmit && isPromoApplicable && inserted?.id) {
         await applyPromo(inserted.id).catch(() => null);
       }
+
+      if (!asBozza && activeCompanyPromo && computeNextIsFree(activeCompanyPromo) && inserted?.id) {
+        await applyCompanyPromo.mutateAsync({ promo: activeCompanyPromo, praticaId: inserted.id }).catch(() => null);
+      }
+
+      // ── Upload documents (Self Service only) ──────────────────────────────
+      // Documents go into the "documenti" bucket + documenti table so they appear
+      // in PraticaDetail and all admin views automatically (same as DocumentUpload.tsx).
+      if (tipoServizio === "pratica_only" && inserted?.id) {
+        const allUploads: { typeId: string; file: File }[] = DOC_TYPES.flatMap((dt) =>
+          (documenti[dt.id] ?? []).map((file) => ({ typeId: dt.id, file }))
+        );
+
+        if (allUploads.length > 0) {
+          const results = await Promise.allSettled(
+            allUploads.map(async ({ typeId, file }) => {
+              // 1. Upload to storage (path mirrors DocumentUpload.tsx)
+              const path = `${companyId}/${inserted.id}/${crypto.randomUUID()}.${file.name.split(".").pop() ?? "bin"}`;
+              const { error: uploadError } = await supabase.storage
+                .from(STORAGE_BUCKET)
+                .upload(path, file, { upsert: false });
+              if (uploadError) throw new Error(`${file.name}: ${uploadError.message}`);
+
+              // 2. Insert row into documenti table — this is what makes them visible in admin
+              const { error: dbError } = await supabase.from("documenti").insert({
+                pratica_id: inserted.id,
+                company_id: companyId,
+                caricato_da: user.id,
+                nome_file: file.name,
+                storage_path: path,
+                mime_type: file.type,
+                size_bytes: file.size,
+                tipo: typeId,                          // categoria (es. "identita", "fattura")
+                visibilita: "azienda_interno" as const,
+                versione: 1,
+              });
+              if (dbError) throw new Error(`${file.name} (DB): ${dbError.message}`);
+            })
+          );
+
+          const failed = results
+            .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+            .map((r) => r.reason?.message ?? "Upload fallito");
+
+          if (failed.length > 0) {
+            console.warn("Upload parziale — file non caricati:", failed);
+            return { partialUploadFailed: failed };
+          }
+        }
+      }
     },
-    onSuccess: (_, asBozza) => {
+    onSuccess: (result, asBozza) => {
       queryClient.invalidateQueries({ queryKey: ["pratiche"] });
       const brandLabel = brand ? BRAND_CONFIG[brand].praticaLabel : "Pratica";
-      toast({ title: asBozza ? "Bozza salvata" : `${brandLabel} inviata con successo!` });
+      if (result && "partialUploadFailed" in result && result.partialUploadFailed.length > 0) {
+        toast({
+          title: asBozza ? "Bozza salvata (upload parziale)" : `${brandLabel} inviata — upload parziale`,
+          description: `Alcuni file non sono stati caricati: ${result.partialUploadFailed.slice(0, 3).join(", ")}`,
+          variant: "destructive",
+        });
+      } else {
+        toast({ title: asBozza ? "Bozza salvata" : `${brandLabel} inviata con successo!` });
+      }
       navigate("/pratiche");
     },
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
@@ -337,6 +642,8 @@ export default function NuovaPratica() {
 
   const lastStep = STEPS.length - 1;
 
+  // ── Guard ──────────────────────────────────────────────────────────────────
+
   if (!companyId) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -347,14 +654,28 @@ export default function NuovaPratica() {
     );
   }
 
-  // Brand selection screen
+  // ── Schermata 1: Selezione Brand ──────────────────────────────────────────
+
   if (!brand) {
     return (
       <div className="mx-auto max-w-2xl space-y-6">
         <div>
           <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica</h1>
-          <p className="text-muted-foreground">Seleziona il tipo di incentivo per questa pratica</p>
+          <p className="text-muted-foreground text-sm mt-1">Seleziona il tipo di incentivo per questa pratica</p>
         </div>
+
+        {/* Step breadcrumb */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">1</span>
+          <span className="font-medium text-foreground">Tipo incentivo</span>
+          <span className="h-px w-6 bg-border" />
+          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold">2</span>
+          <span>Modalità servizio</span>
+          <span className="h-px w-6 bg-border" />
+          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold">3</span>
+          <span>Dati &amp; invio</span>
+        </div>
+
         <div className="grid gap-3 sm:grid-cols-2">
           {(Object.entries(BRAND_CONFIG) as [Brand, typeof BRAND_CONFIG[Brand]][]).map(([key, conf]) => {
             const Icon = conf.icon;
@@ -363,7 +684,7 @@ export default function NuovaPratica() {
                 key={key}
                 type="button"
                 onClick={() => setBrand(key)}
-                className={`group rounded-xl border-2 p-5 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${conf.color} focus:outline-none focus:ring-2 focus:ring-primary`}
+                className={`group rounded-xl border-2 p-5 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${conf.color} focus:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
               >
                 <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm group-hover:shadow transition-shadow">
                   <Icon className="h-5 w-5 text-primary" />
@@ -377,29 +698,105 @@ export default function NuovaPratica() {
             );
           })}
         </div>
-        <div className="flex">
-          <Button variant="outline" onClick={() => navigate(-1)}>
-            <ArrowLeft className="mr-2 h-4 w-4" />Annulla
-          </Button>
-        </div>
+
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          <ArrowLeft className="mr-2 h-4 w-4" />Annulla
+        </Button>
       </div>
     );
   }
 
+  // ── Schermata 2: Selezione Tipo Servizio ──────────────────────────────────
+
+  if (!tipoServizio) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-6">
+        {/* Header con brand selezionato */}
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge className={brandConf!.badgeClass}>{brandConf!.label}</Badge>
+              <button
+                type="button"
+                onClick={() => setBrand(null)}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              >
+                <X className="h-3 w-3" /> cambia
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Step breadcrumb */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">✓</span>
+          <span className="text-muted-foreground line-through">Tipo incentivo</span>
+          <span className="h-px w-6 bg-primary" />
+          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">2</span>
+          <span className="font-medium text-foreground">Modalità servizio</span>
+          <span className="h-px w-6 bg-border" />
+          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold">3</span>
+          <span>Dati &amp; invio</span>
+        </div>
+
+        <div>
+          <h2 className="text-base font-semibold">Come vuoi procedere con questa pratica?</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Scegli la modalità di gestione — puoi sempre richiedere supporto in seguito.
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <TipoServizioCard
+            tipo="servizio_completo"
+            selected={false}
+            onSelect={() => setTipoServizio("servizio_completo")}
+          />
+          <TipoServizioCard
+            tipo="pratica_only"
+            selected={false}
+            onSelect={() => setTipoServizio("pratica_only")}
+          />
+        </div>
+
+        <Button variant="outline" onClick={() => setBrand(null)}>
+          <ArrowLeft className="mr-2 h-4 w-4" />Indietro
+        </Button>
+      </div>
+    );
+  }
+
+  // ── Wizard step 0–2 ───────────────────────────────────────────────────────
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica</h1>
             <Badge className={brandConf!.badgeClass}>{brandConf!.shortLabel}</Badge>
           </div>
-          <p className="text-muted-foreground">
-            {brand === "enea" ? "Inserisci i dati per la pratica ENEA" : "Inserisci i dati per la pratica Conto Termico"}
-          </p>
+          {/* Tipo servizio pill — cliccabile per tornare indietro */}
+          <button
+            type="button"
+            onClick={() => setTipoServizio(null)}
+            className={cn(
+              "inline-flex items-center gap-1.5 mt-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-opacity hover:opacity-70",
+              isServizioCompleto
+                ? "bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-400"
+                : "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400"
+            )}
+            title="Clicca per cambiare modalità"
+          >
+            {isServizioCompleto ? <Sparkles className="h-3 w-3" /> : <FolderOpen className="h-3 w-3" />}
+            {isServizioCompleto ? "Servizio Completo" : "Self Service"}
+            <X className="h-3 w-3 opacity-60" />
+          </button>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => { setBrand(null); setStep(0); }} className="text-muted-foreground">
-          Cambia tipo
+        <Button variant="ghost" size="sm" onClick={() => { setBrand(null); setTipoServizio(null); setStep(0); }} className="text-muted-foreground">
+          Ricomincia
         </Button>
       </div>
 
@@ -422,11 +819,9 @@ export default function NuovaPratica() {
               >
                 {i < step ? <Check className="h-3 w-3" /> : i + 1}
               </button>
-              <span
-                className={`text-sm hidden sm:inline transition-colors ${
-                  i === step ? "font-semibold text-foreground" : i < step ? "text-muted-foreground" : "text-muted-foreground/50"
-                }`}
-              >
+              <span className={`text-sm hidden sm:inline transition-colors ${
+                i === step ? "font-semibold text-foreground" : i < step ? "text-muted-foreground" : "text-muted-foreground/50"
+              }`}>
                 {s}
               </span>
               {i < STEPS.length - 1 && (
@@ -435,7 +830,6 @@ export default function NuovaPratica() {
             </div>
           ))}
         </div>
-        {/* Progress bar */}
         <div className="h-0.5 w-full bg-muted rounded-full overflow-hidden">
           <div
             className="h-full bg-primary rounded-full transition-all duration-300 ease-out"
@@ -444,60 +838,92 @@ export default function NuovaPratica() {
         </div>
       </div>
 
-      {/* Step 0: Dati Cliente */}
+      {/* ── Step 0: Dati Cliente ───────────────────────────────────────────── */}
       {step === 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Dati del Cliente</CardTitle>
-            <CardDescription>Inserisci i dati del cliente per questa pratica</CardDescription>
+            <CardDescription>
+              {isServizioCompleto
+                ? "Inserisci le informazioni di base — Pratica Rapida contatterà il cliente per il resto."
+                : "Inserisci i dati del cliente per questa pratica."}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Nome *</Label>
-                <Input value={clienteNome} onChange={(e) => { setClienteNome(e.target.value); setErrors(prev => ({ ...prev, nome: "" })); }} placeholder="Mario" />
+                <Input
+                  value={clienteNome}
+                  onChange={(e) => { setClienteNome(e.target.value); setErrors(prev => ({ ...prev, nome: "" })); }}
+                  placeholder="Mario"
+                />
                 {errors.nome && <p className="text-sm text-destructive">{errors.nome}</p>}
               </div>
               <div className="space-y-2">
                 <Label>Cognome *</Label>
-                <Input value={clienteCognome} onChange={(e) => { setClienteCognome(e.target.value); setErrors(prev => ({ ...prev, cognome: "" })); }} placeholder="Rossi" />
+                <Input
+                  value={clienteCognome}
+                  onChange={(e) => { setClienteCognome(e.target.value); setErrors(prev => ({ ...prev, cognome: "" })); }}
+                  placeholder="Rossi"
+                />
                 {errors.cognome && <p className="text-sm text-destructive">{errors.cognome}</p>}
               </div>
             </div>
             <div className="space-y-2">
               <Label>Codice Fiscale</Label>
-              <Input value={clienteCF} onChange={(e) => { setClienteCF(e.target.value.toUpperCase()); setErrors(prev => ({ ...prev, codice_fiscale: "" })); }} placeholder="RSSMRA80A01H501Z" maxLength={16} />
+              <Input
+                value={clienteCF}
+                onChange={(e) => { setClienteCF(e.target.value.toUpperCase()); setErrors(prev => ({ ...prev, codice_fiscale: "" })); }}
+                placeholder="RSSMRA80A01H501Z"
+                maxLength={16}
+              />
               {errors.codice_fiscale && <p className="text-sm text-destructive">{errors.codice_fiscale}</p>}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Email</Label>
-                <Input type="email" value={clienteEmail} onChange={(e) => { setClienteEmail(e.target.value); setErrors(prev => ({ ...prev, email: "" })); }} placeholder="mario@esempio.it" />
+                <Input
+                  type="email"
+                  value={clienteEmail}
+                  onChange={(e) => { setClienteEmail(e.target.value); setErrors(prev => ({ ...prev, email: "" })); }}
+                  placeholder="mario@esempio.it"
+                />
                 {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
               </div>
               <div className="space-y-2">
                 <Label>Telefono</Label>
-                <Input value={clienteTelefono} onChange={(e) => { setClienteTelefono(e.target.value); setErrors(prev => ({ ...prev, telefono: "" })); }} placeholder="+39 333 1234567" />
+                <Input
+                  value={clienteTelefono}
+                  onChange={(e) => { setClienteTelefono(e.target.value); setErrors(prev => ({ ...prev, telefono: "" })); }}
+                  placeholder="+39 333 1234567"
+                />
                 {errors.telefono && <p className="text-sm text-destructive">{errors.telefono}</p>}
               </div>
             </div>
             <div className="space-y-2">
               <Label>Indirizzo dell'immobile</Label>
-              <Input value={clienteIndirizzo} onChange={(e) => { setClienteIndirizzo(e.target.value); setErrors(prev => ({ ...prev, indirizzo: "" })); }} placeholder="Via Roma 1, 00100 Roma (RM)" />
+              <Input
+                value={clienteIndirizzo}
+                onChange={(e) => { setClienteIndirizzo(e.target.value); setErrors(prev => ({ ...prev, indirizzo: "" })); }}
+                placeholder="Via Roma 1, 00100 Roma (RM)"
+              />
               {errors.indirizzo && <p className="text-sm text-destructive">{errors.indirizzo}</p>}
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Step 1: Dati Pratica */}
+      {/* ── Step 1: Dati Pratica ───────────────────────────────────────────── */}
       {step === 1 && (
         <Card>
           <CardHeader>
-            <CardTitle>
-              Dati della Pratica {brandConf!.shortLabel}
-            </CardTitle>
-            <CardDescription>Inserisci i dettagli specifici dell'intervento (opzionali, compilabili anche dopo)</CardDescription>
+            <CardTitle>Dati della Pratica {brandConf!.shortLabel}</CardTitle>
+            <CardDescription>
+              {isServizioCompleto
+                ? "Inserisci quello che hai — Pratica Rapida raccoglierà il resto dal cliente."
+                : "Inserisci i dettagli specifici dell'intervento (opzionali, compilabili anche dopo)."}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -512,10 +938,6 @@ export default function NuovaPratica() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Dati catastali</Label>
-              <Input value={datiCatastali} onChange={e => setDatiCatastali(e.target.value)} placeholder="Foglio 10, Particella 123, Sub. 4" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -533,79 +955,223 @@ export default function NuovaPratica() {
                 </Popover>
               </div>
               <div className="space-y-2">
-                <Label>Importo lavori (€)</Label>
-                <Input type="number" value={importoLavori} onChange={e => { setImportoLavori(e.target.value); setStep2Errors(prev => ({ ...prev, importo_lavori: "" })); }} placeholder="15000" min="0" step="0.01" />
+                <Label>Importo contratto</Label>
+                <p className="text-xs text-muted-foreground -mt-1">Valore totale del contratto/lavori con il cliente</p>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium pointer-events-none">€</span>
+                  <Input
+                    type="number"
+                    value={importoLavori}
+                    onChange={e => { setImportoLavori(e.target.value); setStep2Errors(prev => ({ ...prev, importo_lavori: "" })); }}
+                    placeholder="15.000,00"
+                    min="0"
+                    step="0.01"
+                    className="pl-7"
+                  />
+                </div>
                 {step2Errors.importo_lavori && <p className="text-sm text-destructive">{step2Errors.importo_lavori}</p>}
               </div>
             </div>
             <div className="space-y-2">
               <Label>Note aggiuntive</Label>
-              <Textarea value={noteAggiuntive} onChange={e => setNoteAggiuntive(e.target.value)} placeholder="Informazioni aggiuntive sulla pratica..." rows={3} maxLength={2000} />
+              <Textarea
+                value={noteAggiuntive}
+                onChange={e => setNoteAggiuntive(e.target.value)}
+                placeholder="Informazioni aggiuntive sulla pratica..."
+                rows={3}
+                maxLength={2000}
+              />
               {step2Errors.note_aggiuntive && <p className="text-sm text-destructive">{step2Errors.note_aggiuntive}</p>}
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Step 2: Riepilogo */}
-      {step === 2 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Riepilogo</CardTitle>
-            <CardDescription>Verifica i dettagli prima di inviare</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-lg bg-muted p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-sm">Tipo pratica</h3>
-                <Badge className={brandConf!.badgeClass}>{brandConf!.label}</Badge>
+      {/* ── Step 2: Documenti (Self Service only) ─────────────────────────── */}
+      {step === 2 && tipoServizio === "pratica_only" && (
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Documenti del Cliente</CardTitle>
+              <CardDescription>
+                Carica i documenti necessari per la pratica. Puoi aggiungere più file per categoria.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Info banner */}
+              <div className="flex items-start gap-2.5 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/40 p-3">
+                <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                <div className="text-xs text-blue-700 dark:text-blue-300">
+                  <p className="font-semibold">Documenti richiesti — Self Service</p>
+                  <p className="mt-0.5 leading-relaxed">
+                    Carica almeno il <strong>documento d'identità</strong> e il <strong>codice fiscale</strong>.
+                    Gli altri documenti possono essere aggiunti anche in un secondo momento dalla pratica.
+                  </p>
+                </div>
               </div>
 
-              <h3 className="font-semibold text-sm border-t pt-3">Cliente</h3>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div><span className="text-muted-foreground">Nome:</span> {clienteNome} {clienteCognome}</div>
-                {clienteCF && <div><span className="text-muted-foreground">CF:</span> {clienteCF}</div>}
-                {clienteEmail && <div><span className="text-muted-foreground">Email:</span> {clienteEmail}</div>}
-                {clienteTelefono && <div><span className="text-muted-foreground">Tel:</span> {clienteTelefono}</div>}
-                {clienteIndirizzo && <div className="col-span-2"><span className="text-muted-foreground">Indirizzo:</span> {clienteIndirizzo}</div>}
+              {/* Upload cards grid */}
+              <div className="grid gap-3 sm:grid-cols-2">
+                {DOC_TYPES.map((dt) => (
+                  <DocUploadCard
+                    key={dt.id}
+                    label={dt.label}
+                    description={dt.description}
+                    files={documenti[dt.id] ?? []}
+                    onAdd={(newFiles) =>
+                      setDocumenti((prev) => ({
+                        ...prev,
+                        [dt.id]: [...(prev[dt.id] ?? []), ...newFiles],
+                      }))
+                    }
+                    onRemove={(idx) =>
+                      setDocumenti((prev) => ({
+                        ...prev,
+                        [dt.id]: (prev[dt.id] ?? []).filter((_, i) => i !== idx),
+                      }))
+                    }
+                    onValidationError={(msg) =>
+                      toast({ title: "File non valido", description: msg, variant: "destructive" })
+                    }
+                  />
+                ))}
               </div>
 
-              {(tipoIntervento || datiCatastali || dataFineLavori || importoLavori) && (
-                <>
-                  <h3 className="font-semibold text-sm border-t pt-3">Dati Pratica {brandConf!.shortLabel}</h3>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    {tipoIntervento && <div><span className="text-muted-foreground">Intervento:</span> {tipoIntervento}</div>}
-                    {datiCatastali && <div><span className="text-muted-foreground">Catastali:</span> {datiCatastali}</div>}
-                    {dataFineLavori && <div><span className="text-muted-foreground">Fine lavori:</span> {format(dataFineLavori, "dd/MM/yyyy", { locale: it })}</div>}
-                    {importoLavori && <div><span className="text-muted-foreground">Importo:</span> € {parseFloat(importoLavori).toFixed(2)}</div>}
-                    {noteAggiuntive && <div className="col-span-2"><span className="text-muted-foreground">Note:</span> {noteAggiuntive}</div>}
-                  </div>
-                </>
-              )}
+              {/* File count summary */}
+              {(() => {
+                const total = Object.values(documenti).reduce((sum, arr) => sum + arr.length, 0);
+                return total > 0 ? (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <Check className="h-3.5 w-3.5 text-green-600" />
+                    {total} {total === 1 ? "file selezionato" : "file selezionati"} — verranno caricati all'invio della pratica
+                  </p>
+                ) : null;
+              })()}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
-              <div className="border-t pt-3 space-y-2">
-                {prezzo > 0 && (
-                  <div className="flex justify-between">
-                    <span className="font-semibold">Costo servizio</span>
-                    <span className={`text-lg font-bold ${usePromoOnSubmit && isPromoApplicable ? "line-through text-muted-foreground" : ""}`}>
-                      € {prezzo.toFixed(2)}
-                    </span>
-                  </div>
+      {/* ── Step 2/3: Riepilogo ────────────────────────────────────────────── */}
+      {step === lastStep && (
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Riepilogo</CardTitle>
+              <CardDescription>Verifica i dettagli prima di inviare</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-lg bg-muted/50 p-4 space-y-3">
+                {/* Tipo pratica + servizio */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge className={brandConf!.badgeClass}>{brandConf!.label}</Badge>
+                  <span className={cn(
+                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                    isServizioCompleto
+                      ? "bg-violet-100 text-violet-700"
+                      : "bg-blue-100 text-blue-700"
+                  )}>
+                    {isServizioCompleto ? <Sparkles className="h-3 w-3" /> : <FolderOpen className="h-3 w-3" />}
+                    {isServizioCompleto ? "Servizio Completo" : "Self Service"}
+                  </span>
+                </div>
+
+                {/* Cliente */}
+                <h3 className="font-semibold text-sm border-t pt-3">Cliente</h3>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div><span className="text-muted-foreground">Nome:</span> {clienteNome} {clienteCognome}</div>
+                  {clienteCF && <div><span className="text-muted-foreground">CF:</span> {clienteCF}</div>}
+                  {clienteEmail && <div><span className="text-muted-foreground">Email:</span> {clienteEmail}</div>}
+                  {clienteTelefono && <div><span className="text-muted-foreground">Tel:</span> {clienteTelefono}</div>}
+                  {clienteIndirizzo && <div className="col-span-2"><span className="text-muted-foreground">Indirizzo:</span> {clienteIndirizzo}</div>}
+                </div>
+
+                {/* Dati pratica */}
+                {(tipoIntervento || dataFineLavori || importoLavori) && (
+                  <>
+                    <h3 className="font-semibold text-sm border-t pt-3">Dati Pratica {brandConf!.shortLabel}</h3>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      {tipoIntervento && <div><span className="text-muted-foreground">Intervento:</span> {tipoIntervento}</div>}
+                      {dataFineLavori && <div><span className="text-muted-foreground">Fine lavori:</span> {format(dataFineLavori, "dd/MM/yyyy", { locale: it })}</div>}
+                      {importoLavori && <div><span className="text-muted-foreground">Importo:</span> € {parseFloat(importoLavori).toFixed(2)}</div>}
+                      {noteAggiuntive && <div className="col-span-2"><span className="text-muted-foreground">Note:</span> {noteAggiuntive}</div>}
+                    </div>
+                  </>
                 )}
+
+                {/* Documenti caricati (Self Service) */}
+                {tipoServizio === "pratica_only" && (() => {
+                  const totalFiles = Object.values(documenti).reduce((sum, arr) => sum + arr.length, 0);
+                  const typesWithFiles = DOC_TYPES.filter((dt) => (documenti[dt.id]?.length ?? 0) > 0);
+                  return (
+                    <>
+                      <h3 className="font-semibold text-sm border-t pt-3">Documenti</h3>
+                      {totalFiles === 0 ? (
+                        <p className="text-xs text-muted-foreground italic">Nessun documento caricato</p>
+                      ) : (
+                        <div className="space-y-1">
+                          {typesWithFiles.map((dt) => (
+                            <div key={dt.id} className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground">{dt.label}:</span>
+                              <span className="font-medium">{documenti[dt.id]!.length} file</span>
+                            </div>
+                          ))}
+                          <div className="flex items-center gap-1 text-xs text-green-600 font-medium pt-1">
+                            <Check className="h-3 w-3" />
+                            {totalFiles} {totalFiles === 1 ? "file" : "file"} pronti per il caricamento
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+
+                {/* Promo */}
                 {usePromoOnSubmit && isPromoApplicable && (
-                  <div className="flex justify-between text-green-600 font-semibold">
+                  <div className="flex justify-between text-green-600 font-semibold border-t pt-3">
                     <span>Con promo</span>
                     <span className="text-lg">€ 0.00 🎁</span>
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  💳 Il pagamento avviene tramite bonifico a fine mese, insieme a tutte le pratiche del periodo.
-                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ── Banner prezzo + accettazione ──────────────────────────────── */}
+          <Card className={cn(
+            "border-2 transition-colors",
+            accettazionePrezzo ? "border-primary/30 bg-primary/5" : "border-border"
+          )}>
+            <CardContent className="pt-5 space-y-4">
+              {/* Riepilogo costo */}
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 shrink-0">
+                  <ShieldCheck className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">Costo del servizio</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Fatturazione mensile posticipata tramite bonifico
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className={cn(
+                    "text-2xl font-bold tabular-nums",
+                    usePromoOnSubmit && isPromoApplicable ? "line-through text-muted-foreground text-base" : ""
+                  )}>
+                    € {prezzoNetto.toFixed(2)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">+ IVA 22% (€ {prezzoIva.toFixed(2)})</p>
+                  <p className="text-xs font-semibold text-muted-foreground">Totale € {prezzoTotale.toFixed(2)}</p>
+                  {usePromoOnSubmit && isPromoApplicable && (
+                    <p className="text-base font-bold text-green-600 mt-0.5">€ 0,00 🎁</p>
+                  )}
+                </div>
               </div>
 
               {/* Banner promo */}
               {isPromoApplicable && activePromo && (
-                <div className="border border-amber-200 bg-amber-50 rounded-lg p-3 flex items-center justify-between gap-3">
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
                   <div className="flex items-center gap-2">
                     <Gift className="h-4 w-4 text-amber-600 shrink-0" />
                     <div>
@@ -630,19 +1196,77 @@ export default function NuovaPratica() {
                   </div>
                 </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
+
+              {/* Banner promo aziendale */}
+              {activeCompanyPromo && computeNextIsFree(activeCompanyPromo) && (
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3 flex items-start gap-2">
+                  <Gift className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-green-700">Questa pratica è gratuita!</p>
+                    <p className="text-xs text-green-600">{companyPromoInfo?.detail}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Checkbox accettazione — obbligatoria */}
+              <div
+                className={cn(
+                  "flex items-start gap-3 rounded-lg border p-3.5 cursor-pointer transition-colors",
+                  accettazionePrezzo
+                    ? "border-primary/40 bg-primary/5"
+                    : "border-border hover:border-primary/30 hover:bg-muted/40"
+                )}
+                onClick={() => setAccettazionePrezzo(v => !v)}
+              >
+                <Checkbox
+                  id="accettazione-prezzo"
+                  checked={accettazionePrezzo}
+                  onCheckedChange={(v) => setAccettazionePrezzo(!!v)}
+                  className="mt-0.5 shrink-0"
+                />
+                <label htmlFor="accettazione-prezzo" className="text-sm leading-relaxed cursor-pointer select-none">
+                  Confermo di aver preso visione che, al completamento della pratica,
+                  il costo del servizio sarà di{" "}
+                  <strong className={usePromoOnSubmit && isPromoApplicable ? "line-through text-muted-foreground" : ""}>
+                    € {prezzoNetto.toFixed(2)} + IVA 22%
+                  </strong>
+                  {usePromoOnSubmit && isPromoApplicable && (
+                    <strong className="text-green-600 ml-1">€ 0,00 (promo applicata)</strong>
+                  )}
+                  {" "}e verrà fatturato a fine mese.
+                </label>
+              </div>
+
+              {/* Avviso se non accettato */}
+              {!accettazionePrezzo && (
+                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  Accetta le condizioni economiche per procedere con l'invio.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
 
-      {/* Navigation */}
+      {/* ── Navigation ────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
-        <Button variant="outline" onClick={() => step > 0 ? setStep(step - 1) : setBrand(null)}>
-          <ArrowLeft className="mr-2 h-4 w-4" />{step === 0 ? "Indietro" : "Indietro"}
+        <Button
+          variant="outline"
+          onClick={() => {
+            if (step > 0) setStep(step - 1);
+            else setTipoServizio(null);
+          }}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />Indietro
         </Button>
         <div className="flex gap-2">
           {step === lastStep && (
-            <Button variant="outline" onClick={() => submitPratica.mutate(true)} disabled={submitPratica.isPending}>
+            <Button
+              variant="outline"
+              onClick={() => submitPratica.mutate(true)}
+              disabled={submitPratica.isPending}
+            >
               {submitPratica.isPending ? (
                 <><div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Salvataggio...</>
               ) : (
@@ -655,7 +1279,11 @@ export default function NuovaPratica() {
               Avanti<ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
-            <Button onClick={() => submitPratica.mutate(false)} disabled={submitPratica.isPending}>
+            <Button
+              onClick={() => submitPratica.mutate(false)}
+              disabled={submitPratica.isPending || !accettazionePrezzo}
+              title={!accettazionePrezzo ? "Accetta le condizioni economiche per procedere" : undefined}
+            >
               {submitPratica.isPending ? (
                 <><div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Invio in corso...</>
               ) : (

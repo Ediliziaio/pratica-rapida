@@ -49,6 +49,7 @@ jobs:
           version: latest
 
       - name: Deploy Edge Functions
+        continue-on-error: true
         run: |
           supabase functions deploy create-company-user \
             --project-ref xmkjrhwmmuzaqjqlvzxm \

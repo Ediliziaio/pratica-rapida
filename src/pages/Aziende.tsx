@@ -102,8 +102,12 @@ export default function Aziende() {
   const createCompany = useMutation({
     mutationFn: async () => {
       const { ragione_sociale, email, password, piva, codice_fiscale, telefono, indirizzo, citta, cap, provincia, settore } = form;
+      // Explicitly get session token to ensure it's passed (not anon key)
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Sessione scaduta, rieffettua il login.");
       const response = await supabase.functions.invoke("create-company-user", {
         body: { ragione_sociale, email, password, piva, codice_fiscale, telefono, indirizzo, citta, cap, provincia, settore },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (response.error) throw new Error(response.error.message);
       if (response.data?.error) throw new Error(response.data.error);

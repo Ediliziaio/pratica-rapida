@@ -80,7 +80,7 @@ function PraticheTab({ brandFilter }: { brandFilter: BrandFilter }) {
 
   const queryKey = ["gestionale_pratiche", brandFilter];
 
-  const { data: pratiche = [], isLoading } = useQuery({
+  const { data: pratiche = [], isLoading, isError } = useQuery({
     queryKey,
     queryFn: async () => {
       let q = supabase
@@ -127,8 +127,8 @@ function PraticheTab({ brandFilter }: { brandFilter: BrandFilter }) {
     const matchSearch = !search || [
       p.titolo,
       p.companies?.ragione_sociale ?? "",
-      (p.clienti_finali as any)?.nome ?? "",
-      (p.clienti_finali as any)?.cognome ?? "",
+      p.clienti_finali?.nome ?? "",
+      p.clienti_finali?.cognome ?? "",
     ].join(" ").toLowerCase().includes(search.toLowerCase());
     const matchStato = statoFilter === "all" || p.stato === statoFilter;
     const matchPag = pagamentoFilter === "all" || p.pagamento_stato === pagamentoFilter;
@@ -166,7 +166,7 @@ function PraticheTab({ brandFilter }: { brandFilter: BrandFilter }) {
       ID: p.id.slice(0, 8),
       Titolo: p.titolo,
       Azienda: p.companies?.ragione_sociale ?? "",
-      Cliente: p.clienti_finali ? `${(p.clienti_finali as any).nome} ${(p.clienti_finali as any).cognome}` : "",
+      Cliente: p.clienti_finali ? `${p.clienti_finali.nome} ${p.clienti_finali.cognome}` : "",
       Brand: (p.dati_pratica as any)?.brand ?? "—",
       Stato: p.stato,
       Pagamento: p.pagamento_stato,
@@ -261,6 +261,24 @@ function PraticheTab({ brandFilter }: { brandFilter: BrandFilter }) {
         <div className="flex justify-center py-10">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
+      ) : isError ? (
+        <div className="flex flex-col items-center py-16 text-center gap-3">
+          <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center">
+            <ClipboardList className="h-6 w-6 text-destructive/60" />
+          </div>
+          <div>
+            <p className="font-semibold">Errore nel caricamento</p>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Impossibile caricare le pratiche. Ricarica la pagina.
+            </p>
+          </div>
+          <button
+            className="text-sm text-primary hover:underline"
+            onClick={() => window.location.reload()}
+          >
+            Ricarica
+          </button>
+        </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border">
           <table className="w-full text-sm">
@@ -292,7 +310,7 @@ function PraticheTab({ brandFilter }: { brandFilter: BrandFilter }) {
                         <span className="truncate">{p.companies?.ragione_sociale ?? "—"}</span>
                         {p.clienti_finali && (
                           <span className="truncate">
-                            · {(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}
+                            · {p.clienti_finali?.nome} {p.clienti_finali?.cognome}
                           </span>
                         )}
                       </div>

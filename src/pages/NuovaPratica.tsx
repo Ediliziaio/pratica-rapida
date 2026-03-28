@@ -138,8 +138,6 @@ const praticaSchema = z.object({
   note_aggiuntive: z.string().trim().max(2000).optional().or(z.literal("")),
 });
 
-type NuovaPraticaClienteData = z.infer<typeof nuovaPraticaClienteSchema>;
-
 // ── DocUploadCard ─────────────────────────────────────────────────────────────
 
 function DocUploadCard({

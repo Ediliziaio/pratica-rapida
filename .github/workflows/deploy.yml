@@ -35,10 +35,10 @@ jobs:
         run: wrangler pages project create pratica-rapida --production-branch=main || true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: "b3423ec9073bbd86dcc206273d7e093c"
+          CLOUDFLARE_ACCOUNT_ID: "6dbe45e3a0714108638841b2593a7168"
 
       - name: Deploy to Cloudflare Pages
         run: wrangler pages deploy dist --project-name=pratica-rapida --branch=main --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: "b3423ec9073bbd86dcc206273d7e093c"
+          CLOUDFLARE_ACCOUNT_ID: "6dbe45e3a0714108638841b2593a7168"

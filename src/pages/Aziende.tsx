@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Building2, Plus, Search, Receipt, Users, FolderOpen, LogIn,
   ChevronDown, BarChart3, TrendingUp, CircleDollarSign, CalendarDays, CheckCircle2, Clock,
-  ShieldOff, ShieldCheck, LayoutDashboard,
+  ShieldOff, ShieldCheck, LayoutDashboard, Eye, EyeOff,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCompany } from "@/hooks/useCompany";
@@ -53,7 +53,9 @@ export default function Aziende() {
   const [form, setForm] = useState({
     ragione_sociale: "", piva: "", codice_fiscale: "", email: "",
     telefono: "", indirizzo: "", citta: "", cap: "", provincia: "", settore: "",
+    password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const { data: companies = [], isLoading } = useQuery({
     queryKey: ["admin-companies"],
@@ -99,14 +101,20 @@ export default function Aziende() {
 
   const createCompany = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("companies").insert(form);
-      if (error) throw error;
+      const { ragione_sociale, email, password, piva, codice_fiscale, telefono, indirizzo, citta, cap, provincia, settore } = form;
+      const response = await supabase.functions.invoke("create-company-user", {
+        body: { ragione_sociale, email, password, piva, codice_fiscale, telefono, indirizzo, citta, cap, provincia, settore },
+      });
+      if (response.error) throw new Error(response.error.message);
+      if (response.data?.error) throw new Error(response.data.error);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-companies"] });
       setShowCreate(false);
-      setForm({ ragione_sociale: "", piva: "", codice_fiscale: "", email: "", telefono: "", indirizzo: "", citta: "", cap: "", provincia: "", settore: "" });
-      toast({ title: "Azienda creata" });
+      setForm({ ragione_sociale: "", piva: "", codice_fiscale: "", email: "", telefono: "", indirizzo: "", citta: "", cap: "", provincia: "", settore: "", password: "" });
+      setShowPassword(false);
+      toast({ title: "Azienda creata", description: "Utente Auth e azienda creati con successo." });
     },
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
@@ -217,7 +225,27 @@ export default function Aziende() {
                   <div><Label>Ragione Sociale *</Label><Input value={form.ragione_sociale} onChange={e => setForm(f => ({ ...f, ragione_sociale: e.target.value }))} /></div>
                   <div><Label>P.IVA</Label><Input value={form.piva} onChange={e => setForm(f => ({ ...f, piva: e.target.value }))} /></div>
                   <div><Label>Codice Fiscale</Label><Input value={form.codice_fiscale} onChange={e => setForm(f => ({ ...f, codice_fiscale: e.target.value }))} /></div>
-                  <div><Label>Email</Label><Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
+                  <div><Label>Email *</Label><Input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
+                  <div>
+                    <Label>Password *</Label>
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        value={form.password}
+                        onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                        placeholder="Min. 8 caratteri"
+                        className="pr-9"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(v => !v)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
                   <div><Label>Telefono</Label><Input value={form.telefono} onChange={e => setForm(f => ({ ...f, telefono: e.target.value }))} /></div>
                   <div><Label>Settore</Label><Input value={form.settore} onChange={e => setForm(f => ({ ...f, settore: e.target.value }))} /></div>
                   <div><Label>Indirizzo</Label><Input value={form.indirizzo} onChange={e => setForm(f => ({ ...f, indirizzo: e.target.value }))} /></div>
@@ -225,7 +253,7 @@ export default function Aziende() {
                   <div><Label>CAP</Label><Input value={form.cap} onChange={e => setForm(f => ({ ...f, cap: e.target.value }))} /></div>
                   <div><Label>Provincia</Label><Input value={form.provincia} onChange={e => setForm(f => ({ ...f, provincia: e.target.value }))} /></div>
                 </div>
-                <Button onClick={() => createCompany.mutate()} disabled={!form.ragione_sociale || createCompany.isPending}>
+                <Button onClick={() => createCompany.mutate()} disabled={!form.ragione_sociale || !form.email || !form.password || form.password.length < 8 || createCompany.isPending}>
                   {createCompany.isPending ? "Creazione..." : "Crea Azienda"}
                 </Button>
               </div>

@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowLeft, ArrowRight, Check, FileText, Briefcase, Send,
-  CalendarIcon, Zap, Flame, Gift, Sparkles, FolderOpen, X,
+  CalendarIcon, Zap, Flame, Gift, X,
   ShieldCheck, AlertCircle, Upload,
 } from "lucide-react";
 import { usePromo } from "@/hooks/usePromo";
@@ -30,7 +30,6 @@ import { cn } from "@/lib/utils";
 import type { PracticeBrand } from "@/integrations/supabase/types";
 
 type Brand = PracticeBrand;
-type TipoServizio = "servizio_completo" | "pratica_only";
 
 // ── Document upload config (mirrors DocumentUpload.tsx) ───────────────────────
 const ALLOWED_MIME_TYPES = [
@@ -48,7 +47,6 @@ const STORAGE_BUCKET = "documenti";
 // ── Document types (Self Service upload) ──────────────────────────────────────
 const DOC_TYPES = [
   { id: "identita",           label: "Documento d'Identità",          description: "Carta d'identità o passaporto in corso di validità" },
-  { id: "codice_fiscale",     label: "Codice Fiscale / Tessera San.", description: "Tessera sanitaria o codice fiscale del cliente" },
   { id: "fattura",            label: "Fattura / Proforma",            description: "Fattura o proforma relativa ai lavori eseguiti" },
   { id: "contratto",          label: "Contratto / Preventivo",        description: "Contratto firmato o preventivo dell'intervento" },
   { id: "certificati",        label: "Certificati Tecnici",           description: "APE, certificati di conformità, libretti impianto" },
@@ -68,6 +66,7 @@ const TIPI_INTERVENTO_ENEA = [
   "Coibentazione strutture",
   "Building automation",
   "Scaldacqua a pompa di calore",
+  "Vepa",
   "Microgeneratori",
   "Altro",
 ];
@@ -80,6 +79,7 @@ const TIPI_INTERVENTO_CT = [
   "Caldaia a condensazione",
   "Impianti geotermici",
   "Scaldacqua a pompa di calore",
+  "Vepa",
   "Caldaia a gas naturale (efficienza)",
   "Altro",
 ];
@@ -118,12 +118,6 @@ const BRAND_CONFIG: Record<Brand, {
 const nuovaPraticaClienteSchema = z.object({
   nome: z.string().trim().min(1, "Nome obbligatorio").max(100, "Massimo 100 caratteri"),
   cognome: z.string().trim().min(1, "Cognome obbligatorio").max(100, "Massimo 100 caratteri"),
-  codice_fiscale: z
-    .string().trim().toUpperCase()
-    .refine((val) => val === "" || /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/i.test(val), {
-      message: "Codice fiscale non valido (16 caratteri alfanumerici)",
-    })
-    .optional().or(z.literal("")),
   email: z
     .string().trim()
     .refine((val) => val === "" || z.string().email().safeParse(val).success, {
@@ -136,90 +130,15 @@ const nuovaPraticaClienteSchema = z.object({
       message: "Numero di telefono non valido",
     })
     .optional().or(z.literal("")),
-  indirizzo: z.string().trim().max(255).optional().or(z.literal("")),
 });
 
 const praticaSchema = z.object({
   tipo_intervento: z.string().optional().or(z.literal("")),
   data_fine_lavori: z.date().optional(),
-  importo_lavori: z
-    .string()
-    .refine((val) => val === "" || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0), {
-      message: "Importo non valido (deve essere ≥ 0)",
-    })
-    .optional().or(z.literal("")),
   note_aggiuntive: z.string().trim().max(2000).optional().or(z.literal("")),
 });
 
 type NuovaPraticaClienteData = z.infer<typeof nuovaPraticaClienteSchema>;
-
-// ── TipoServizio card ─────────────────────────────────────────────────────────
-
-function TipoServizioCard({
-  tipo,
-  selected,
-  onSelect,
-}: {
-  tipo: TipoServizio;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  const isCompleto = tipo === "servizio_completo";
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={cn(
-        "relative flex flex-col items-start gap-4 rounded-xl border-2 p-5 text-left transition-all duration-150 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-full",
-        selected
-          ? "border-primary bg-primary/5 shadow-sm"
-          : "border-border bg-card hover:border-primary/40"
-      )}
-    >
-      {/* Checkmark */}
-      <span className={cn(
-        "absolute right-4 top-4 flex h-5 w-5 items-center justify-center rounded-full transition-all",
-        selected ? "bg-primary text-primary-foreground" : "border-2 border-muted-foreground/30"
-      )}>
-        {selected && <Check className="h-3 w-3" />}
-      </span>
-
-      {/* Icon */}
-      <div className={cn(
-        "flex h-11 w-11 items-center justify-center rounded-lg",
-        isCompleto
-          ? "bg-violet-100 text-violet-600 dark:bg-violet-950/60 dark:text-violet-400"
-          : "bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400"
-      )}>
-        {isCompleto ? <Sparkles className="h-5 w-5" /> : <FolderOpen className="h-5 w-5" />}
-      </div>
-
-      {/* Testo */}
-      <div className="space-y-1 pr-6">
-        <div className="flex items-center gap-2 flex-wrap">
-          <p className="font-semibold text-sm leading-snug">
-            {isCompleto
-              ? "Carico le informazioni del cliente"
-              : "Carico informazioni e documenti del cliente"}
-          </p>
-          <span className={cn(
-            "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-            isCompleto
-              ? "bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-400"
-              : "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400"
-          )}>
-            {isCompleto ? "Servizio Completo" : "Self Service"}
-          </span>
-        </div>
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          {isCompleto
-            ? "Pratica Rapida pensa a tutto: recupera i documenti, contatta il cliente e gestisce l'intera pratica per te."
-            : "Fornisci tu tutte le informazioni e i documenti. Pratica Rapida si occupa esclusivamente dell'iter burocratico."}
-        </p>
-      </div>
-    </button>
-  );
-}
 
 // ── DocUploadCard ─────────────────────────────────────────────────────────────
 
@@ -358,9 +277,9 @@ export default function NuovaPratica() {
   const activeCompanyPromo = companyPromos.find(p => computeNextIsFree(p)) ?? null;
   const companyPromoInfo = activeCompanyPromo ? getPromoDisplayInfo(activeCompanyPromo) : null;
 
-  // ── Selezione iniziale (brand → tipo) ──
+  // ── Selezione iniziale (brand) ──
   const [brand, setBrand] = useState<Brand | null>(null);
-  const [tipoServizio, setTipoServizio] = useState<TipoServizio | null>(null);
+  const tipoServizio = "pratica_only" as const;
 
   // ── Wizard ──
   const [step, setStep] = useState(0);
@@ -369,15 +288,12 @@ export default function NuovaPratica() {
   // Step 0: Dati Cliente
   const [clienteNome, setClienteNome] = useState("");
   const [clienteCognome, setClienteCognome] = useState("");
-  const [clienteCF, setClienteCF] = useState("");
   const [clienteEmail, setClienteEmail] = useState("");
   const [clienteTelefono, setClienteTelefono] = useState("");
-  const [clienteIndirizzo, setClienteIndirizzo] = useState("");
 
   // Step 1: Dati Pratica
   const [tipoIntervento, setTipoIntervento] = useState("");
   const [dataFineLavori, setDataFineLavori] = useState<Date | undefined>();
-  const [importoLavori, setImportoLavori] = useState("");
   const [noteAggiuntive, setNoteAggiuntive] = useState("");
   const [step2Errors, setStep2Errors] = useState<Record<string, string>>({});
 
@@ -389,13 +305,9 @@ export default function NuovaPratica() {
 
   const brandConf = brand ? BRAND_CONFIG[brand] : null;
   const tipiIntervento = brand === "conto_termico" ? TIPI_INTERVENTO_CT : TIPI_INTERVENTO_ENEA;
-  const isServizioCompleto = tipoServizio === "servizio_completo";
 
-  // ── Dynamic STEPS (inside component so tipoServizio is in scope) ──────────
-  const STEPS =
-    tipoServizio === "pratica_only"
-      ? ["Dati Cliente", "Dati Pratica", "Documenti", "Riepilogo"]
-      : ["Dati Cliente", "Dati Pratica", "Riepilogo"];
+  // ── Dynamic STEPS ──────────────────────────────────────────────────────────
+  const STEPS = ["Dati Cliente", "Dati Pratica", "Documenti", "Riepilogo"];
 
   const { data: praticaService } = useQuery({
     queryKey: ["enea-service"],
@@ -436,10 +348,8 @@ export default function NuovaPratica() {
   const getClienteFormData = () => ({
     nome: clienteNome,
     cognome: clienteCognome,
-    codice_fiscale: clienteCF,
     email: clienteEmail,
     telefono: clienteTelefono,
-    indirizzo: clienteIndirizzo,
   });
 
   const validateStep1 = (): boolean => {
@@ -461,7 +371,6 @@ export default function NuovaPratica() {
     const result = praticaSchema.safeParse({
       tipo_intervento: tipoIntervento,
       data_fine_lavori: dataFineLavori,
-      importo_lavori: importoLavori,
       note_aggiuntive: noteAggiuntive,
     });
     if (!result.success) {
@@ -483,66 +392,27 @@ export default function NuovaPratica() {
 
       const validated = nuovaPraticaClienteSchema.parse(getClienteFormData());
 
-      // Find or create client
-      let clienteId: string;
-      if (validated.codice_fiscale) {
-        const { data: existing } = await supabase
-          .from("clienti_finali")
-          .select("id")
-          .eq("company_id", companyId)
-          .eq("codice_fiscale", validated.codice_fiscale)
-          .maybeSingle();
-        if (existing) {
-          clienteId = existing.id;
-          await supabase.from("clienti_finali").update({
-            nome: validated.nome,
-            cognome: validated.cognome,
-            email: validated.email || null,
-            telefono: validated.telefono || null,
-            indirizzo: validated.indirizzo || null,
-          }).eq("id", clienteId);
-        } else {
-          const { data: cliente, error: clienteError } = await supabase
-            .from("clienti_finali")
-            .insert({
-              company_id: companyId,
-              nome: validated.nome,
-              cognome: validated.cognome,
-              codice_fiscale: validated.codice_fiscale,
-              email: validated.email || null,
-              telefono: validated.telefono || null,
-              indirizzo: validated.indirizzo || null,
-            })
-            .select().single();
-          if (clienteError) throw clienteError;
-          clienteId = cliente.id;
-        }
-      } else {
-        const { data: cliente, error: clienteError } = await supabase
-          .from("clienti_finali")
-          .insert({
-            company_id: companyId,
-            nome: validated.nome,
-            cognome: validated.cognome,
-            codice_fiscale: null,
-            email: validated.email || null,
-            telefono: validated.telefono || null,
-            indirizzo: validated.indirizzo || null,
-          })
-          .select().single();
-        if (clienteError) throw clienteError;
-        clienteId = cliente.id;
-      }
+      const { data: cliente, error: clienteError } = await supabase
+        .from("clienti_finali")
+        .insert({
+          company_id: companyId,
+          nome: validated.nome,
+          cognome: validated.cognome,
+          codice_fiscale: null,
+          email: validated.email || null,
+          telefono: validated.telefono || null,
+          indirizzo: null,
+        })
+        .select().single();
+      if (clienteError) throw clienteError;
+      const clienteId = cliente.id;
 
       const datiPratica: Record<string, string | number> = {
         brand,
-        tipo_servizio: tipoServizio ?? "pratica_only",
+        tipo_servizio: tipoServizio,
       };
       if (tipoIntervento) datiPratica.tipo_intervento = tipoIntervento;
       if (dataFineLavori) datiPratica.data_fine_lavori = format(dataFineLavori, "yyyy-MM-dd");
-      if (importoLavori && !isNaN(parseFloat(importoLavori)) && parseFloat(importoLavori) >= 0) {
-        datiPratica.importo_lavori = parseFloat(importoLavori);
-      }
       if (noteAggiuntive) datiPratica.note_aggiuntive = noteAggiuntive;
 
       const titoloBase = `Pratica ${BRAND_CONFIG[brand].praticaLabel} - ${validated.nome} ${validated.cognome}`;
@@ -571,10 +441,10 @@ export default function NuovaPratica() {
         await applyCompanyPromo.mutateAsync({ promo: activeCompanyPromo, praticaId: inserted.id }).catch(() => null);
       }
 
-      // ── Upload documents (Self Service only) ──────────────────────────────
+      // ── Upload documents ───────────────────────────────────────────────────
       // Documents go into the "documenti" bucket + documenti table so they appear
       // in PraticaDetail and all admin views automatically (same as DocumentUpload.tsx).
-      if (tipoServizio === "pratica_only" && inserted?.id) {
+      if (inserted?.id) {
         const allUploads: { typeId: string; file: File }[] = DOC_TYPES.flatMap((dt) =>
           (documenti[dt.id] ?? []).map((file) => ({ typeId: dt.id, file }))
         );
@@ -637,6 +507,13 @@ export default function NuovaPratica() {
   const handleNext = () => {
     if (step === 0 && !validateStep1()) return;
     if (step === 1 && !validateStep2()) return;
+    if (step === 2) {
+      const fattureFiles = documenti["fattura"] ?? [];
+      if (fattureFiles.length === 0) {
+        toast({ title: "Fattura obbligatoria", description: "Carica almeno una fattura per procedere.", variant: "destructive" });
+        return;
+      }
+    }
     setStep(step + 1);
   };
 
@@ -670,9 +547,6 @@ export default function NuovaPratica() {
           <span className="font-medium text-foreground">Tipo incentivo</span>
           <span className="h-px w-6 bg-border" />
           <span className="flex items-center justify-center h-5 w-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold">2</span>
-          <span>Modalità servizio</span>
-          <span className="h-px w-6 bg-border" />
-          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold">3</span>
           <span>Dati &amp; invio</span>
         </div>
 
@@ -706,68 +580,7 @@ export default function NuovaPratica() {
     );
   }
 
-  // ── Schermata 2: Selezione Tipo Servizio ──────────────────────────────────
-
-  if (!tipoServizio) {
-    return (
-      <div className="mx-auto max-w-2xl space-y-6">
-        {/* Header con brand selezionato */}
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica</h1>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge className={brandConf!.badgeClass}>{brandConf!.label}</Badge>
-              <button
-                type="button"
-                onClick={() => setBrand(null)}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-              >
-                <X className="h-3 w-3" /> cambia
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Step breadcrumb */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">✓</span>
-          <span className="text-muted-foreground line-through">Tipo incentivo</span>
-          <span className="h-px w-6 bg-primary" />
-          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">2</span>
-          <span className="font-medium text-foreground">Modalità servizio</span>
-          <span className="h-px w-6 bg-border" />
-          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold">3</span>
-          <span>Dati &amp; invio</span>
-        </div>
-
-        <div>
-          <h2 className="text-base font-semibold">Come vuoi procedere con questa pratica?</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Scegli la modalità di gestione — puoi sempre richiedere supporto in seguito.
-          </p>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <TipoServizioCard
-            tipo="servizio_completo"
-            selected={false}
-            onSelect={() => setTipoServizio("servizio_completo")}
-          />
-          <TipoServizioCard
-            tipo="pratica_only"
-            selected={false}
-            onSelect={() => setTipoServizio("pratica_only")}
-          />
-        </div>
-
-        <Button variant="outline" onClick={() => setBrand(null)}>
-          <ArrowLeft className="mr-2 h-4 w-4" />Indietro
-        </Button>
-      </div>
-    );
-  }
-
-  // ── Wizard step 0–2 ───────────────────────────────────────────────────────
+  // ── Wizard steps ──────────────────────────────────────────────────────────
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -778,24 +591,8 @@ export default function NuovaPratica() {
             <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica</h1>
             <Badge className={brandConf!.badgeClass}>{brandConf!.shortLabel}</Badge>
           </div>
-          {/* Tipo servizio pill — cliccabile per tornare indietro */}
-          <button
-            type="button"
-            onClick={() => setTipoServizio(null)}
-            className={cn(
-              "inline-flex items-center gap-1.5 mt-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-opacity hover:opacity-70",
-              isServizioCompleto
-                ? "bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-400"
-                : "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400"
-            )}
-            title="Clicca per cambiare modalità"
-          >
-            {isServizioCompleto ? <Sparkles className="h-3 w-3" /> : <FolderOpen className="h-3 w-3" />}
-            {isServizioCompleto ? "Servizio Completo" : "Self Service"}
-            <X className="h-3 w-3 opacity-60" />
-          </button>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => { setBrand(null); setTipoServizio(null); setStep(0); }} className="text-muted-foreground">
+        <Button variant="ghost" size="sm" onClick={() => { setBrand(null); setStep(0); }} className="text-muted-foreground">
           Ricomincia
         </Button>
       </div>
@@ -843,11 +640,7 @@ export default function NuovaPratica() {
         <Card>
           <CardHeader>
             <CardTitle>Dati del Cliente</CardTitle>
-            <CardDescription>
-              {isServizioCompleto
-                ? "Inserisci le informazioni di base — Pratica Rapida contatterà il cliente per il resto."
-                : "Inserisci i dati del cliente per questa pratica."}
-            </CardDescription>
+            <CardDescription>Inserisci i dati del cliente per questa pratica.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -870,16 +663,6 @@ export default function NuovaPratica() {
                 {errors.cognome && <p className="text-sm text-destructive">{errors.cognome}</p>}
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Codice Fiscale</Label>
-              <Input
-                value={clienteCF}
-                onChange={(e) => { setClienteCF(e.target.value.toUpperCase()); setErrors(prev => ({ ...prev, codice_fiscale: "" })); }}
-                placeholder="RSSMRA80A01H501Z"
-                maxLength={16}
-              />
-              {errors.codice_fiscale && <p className="text-sm text-destructive">{errors.codice_fiscale}</p>}
-            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Email</Label>
@@ -901,15 +684,6 @@ export default function NuovaPratica() {
                 {errors.telefono && <p className="text-sm text-destructive">{errors.telefono}</p>}
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Indirizzo dell'immobile</Label>
-              <Input
-                value={clienteIndirizzo}
-                onChange={(e) => { setClienteIndirizzo(e.target.value); setErrors(prev => ({ ...prev, indirizzo: "" })); }}
-                placeholder="Via Roma 1, 00100 Roma (RM)"
-              />
-              {errors.indirizzo && <p className="text-sm text-destructive">{errors.indirizzo}</p>}
-            </div>
           </CardContent>
         </Card>
       )}
@@ -919,11 +693,7 @@ export default function NuovaPratica() {
         <Card>
           <CardHeader>
             <CardTitle>Dati della Pratica {brandConf!.shortLabel}</CardTitle>
-            <CardDescription>
-              {isServizioCompleto
-                ? "Inserisci quello che hai — Pratica Rapida raccoglierà il resto dal cliente."
-                : "Inserisci i dettagli specifici dell'intervento (opzionali, compilabili anche dopo)."}
-            </CardDescription>
+            <CardDescription>Inserisci i dettagli specifici dell'intervento.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -939,38 +709,19 @@ export default function NuovaPratica() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Data fine lavori</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !dataFineLavori && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dataFineLavori ? format(dataFineLavori, "dd/MM/yyyy", { locale: it }) : "Seleziona data"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={dataFineLavori} onSelect={setDataFineLavori} locale={it} />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="space-y-2">
-                <Label>Importo contratto</Label>
-                <p className="text-xs text-muted-foreground -mt-1">Valore totale del contratto/lavori con il cliente</p>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium pointer-events-none">€</span>
-                  <Input
-                    type="number"
-                    value={importoLavori}
-                    onChange={e => { setImportoLavori(e.target.value); setStep2Errors(prev => ({ ...prev, importo_lavori: "" })); }}
-                    placeholder="15.000,00"
-                    min="0"
-                    step="0.01"
-                    className="pl-7"
-                  />
-                </div>
-                {step2Errors.importo_lavori && <p className="text-sm text-destructive">{step2Errors.importo_lavori}</p>}
-              </div>
+            <div className="space-y-2">
+              <Label>Data fine lavori</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !dataFineLavori && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dataFineLavori ? format(dataFineLavori, "dd/MM/yyyy", { locale: it }) : "Seleziona data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar mode="single" selected={dataFineLavori} onSelect={setDataFineLavori} locale={it} />
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-2">
               <Label>Note aggiuntive</Label>
@@ -987,8 +738,8 @@ export default function NuovaPratica() {
         </Card>
       )}
 
-      {/* ── Step 2: Documenti (Self Service only) ─────────────────────────── */}
-      {step === 2 && tipoServizio === "pratica_only" && (
+      {/* ── Step 2: Documenti ─────────────────────────────────────────────── */}
+      {step === 2 && (
         <div className="space-y-4">
           <Card>
             <CardHeader>
@@ -1002,10 +753,9 @@ export default function NuovaPratica() {
               <div className="flex items-start gap-2.5 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/40 p-3">
                 <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                 <div className="text-xs text-blue-700 dark:text-blue-300">
-                  <p className="font-semibold">Documenti richiesti — Self Service</p>
+                  <p className="font-semibold">Documenti richiesti</p>
                   <p className="mt-0.5 leading-relaxed">
-                    Carica almeno il <strong>documento d'identità</strong> e il <strong>codice fiscale</strong>.
-                    Gli altri documenti possono essere aggiunti anche in un secondo momento dalla pratica.
+                    La <strong>fattura</strong> è obbligatoria. Gli altri documenti possono essere aggiunti anche in un secondo momento dalla pratica.
                   </p>
                 </div>
               </div>
@@ -1062,45 +812,33 @@ export default function NuovaPratica() {
             </CardHeader>
             <CardContent>
               <div className="rounded-lg bg-muted/50 p-4 space-y-3">
-                {/* Tipo pratica + servizio */}
+                {/* Tipo pratica */}
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge className={brandConf!.badgeClass}>{brandConf!.label}</Badge>
-                  <span className={cn(
-                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                    isServizioCompleto
-                      ? "bg-violet-100 text-violet-700"
-                      : "bg-blue-100 text-blue-700"
-                  )}>
-                    {isServizioCompleto ? <Sparkles className="h-3 w-3" /> : <FolderOpen className="h-3 w-3" />}
-                    {isServizioCompleto ? "Servizio Completo" : "Self Service"}
-                  </span>
                 </div>
 
                 {/* Cliente */}
                 <h3 className="font-semibold text-sm border-t pt-3">Cliente</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div><span className="text-muted-foreground">Nome:</span> {clienteNome} {clienteCognome}</div>
-                  {clienteCF && <div><span className="text-muted-foreground">CF:</span> {clienteCF}</div>}
                   {clienteEmail && <div><span className="text-muted-foreground">Email:</span> {clienteEmail}</div>}
                   {clienteTelefono && <div><span className="text-muted-foreground">Tel:</span> {clienteTelefono}</div>}
-                  {clienteIndirizzo && <div className="col-span-2"><span className="text-muted-foreground">Indirizzo:</span> {clienteIndirizzo}</div>}
                 </div>
 
                 {/* Dati pratica */}
-                {(tipoIntervento || dataFineLavori || importoLavori) && (
+                {(tipoIntervento || dataFineLavori) && (
                   <>
                     <h3 className="font-semibold text-sm border-t pt-3">Dati Pratica {brandConf!.shortLabel}</h3>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       {tipoIntervento && <div><span className="text-muted-foreground">Intervento:</span> {tipoIntervento}</div>}
                       {dataFineLavori && <div><span className="text-muted-foreground">Fine lavori:</span> {format(dataFineLavori, "dd/MM/yyyy", { locale: it })}</div>}
-                      {importoLavori && <div><span className="text-muted-foreground">Importo:</span> € {parseFloat(importoLavori).toFixed(2)}</div>}
                       {noteAggiuntive && <div className="col-span-2"><span className="text-muted-foreground">Note:</span> {noteAggiuntive}</div>}
                     </div>
                   </>
                 )}
 
-                {/* Documenti caricati (Self Service) */}
-                {tipoServizio === "pratica_only" && (() => {
+                {/* Documenti caricati */}
+                {(() => {
                   const totalFiles = Object.values(documenti).reduce((sum, arr) => sum + arr.length, 0);
                   const typesWithFiles = DOC_TYPES.filter((dt) => (documenti[dt.id]?.length ?? 0) > 0);
                   return (
@@ -1255,7 +993,7 @@ export default function NuovaPratica() {
           variant="outline"
           onClick={() => {
             if (step > 0) setStep(step - 1);
-            else setTipoServizio(null);
+            else setBrand(null);
           }}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />Indietro

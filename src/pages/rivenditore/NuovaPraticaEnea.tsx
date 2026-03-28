@@ -27,9 +27,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Save,
-  Sparkles,
   FolderOpen,
-  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +35,7 @@ const PRODUCTS = [
   "Caldaia a condensazione",
   "Pompa di calore",
   "Pannelli solari termici",
+  "Vepa",
   "Infissi e serramenti",
   "Cappotto termico",
   "Impianto fotovoltaico",
@@ -44,18 +43,11 @@ const PRODUCTS = [
   "Altro",
 ];
 
-const CF_REGEX = /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/i;
-
 const schema = z.object({
   cliente_nome: z.string().min(1, "Campo obbligatorio"),
   cliente_cognome: z.string().min(1, "Campo obbligatorio"),
   cliente_email: z.string().email("Email non valida").or(z.literal("")),
   cliente_telefono: z.string().min(6, "Telefono obbligatorio"),
-  cliente_indirizzo: z.string().optional(),
-  cliente_cf: z
-    .string()
-    .optional()
-    .refine((v) => !v || CF_REGEX.test(v), "Codice fiscale non valido"),
   brand: z.enum(["enea", "conto_termico"]),
   prodotto_installato: z.string().min(1, "Campo obbligatorio"),
   fornitore: z.string().optional(),
@@ -63,10 +55,9 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
-type TipoServizio = "servizio_completo" | "pratica_only";
+type TipoServizio = "pratica_only";
 
-// Step 0 = Tipo servizio (non conteggiato nel progress)
-// Steps 1-4 = Cliente · Pratica · Documenti · Conferma
+// Steps 0-3 = Cliente · Pratica · Documenti · Conferma
 const STEPS = ["Cliente", "Pratica", "Documenti", "Conferma"];
 const STORAGE_KEY = "nuova_pratica_enea_draft";
 
@@ -81,100 +72,18 @@ function storageTryRemove(key: string): void {
   try { localStorage.removeItem(key); } catch { /* silent — private mode */ }
 }
 
-// ── Tipo Servizio selection card ─────────────────────────────────────────────
-
-function TipoServizioCard({
-  tipo,
-  selected,
-  onSelect,
-}: {
-  tipo: TipoServizio;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  const isCompleto = tipo === "servizio_completo";
-
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={cn(
-        "relative flex flex-col items-start gap-4 rounded-xl border-2 p-5 text-left transition-all duration-150 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        selected
-          ? "border-primary bg-primary/5 shadow-sm"
-          : "border-border bg-card hover:border-primary/40"
-      )}
-    >
-      {/* Selected checkmark */}
-      <span
-        className={cn(
-          "absolute right-4 top-4 flex h-5 w-5 items-center justify-center rounded-full transition-all",
-          selected
-            ? "bg-primary text-primary-foreground"
-            : "border-2 border-muted-foreground/30"
-        )}
-      >
-        {selected && <Check className="h-3 w-3" />}
-      </span>
-
-      {/* Icon */}
-      <div
-        className={cn(
-          "flex h-11 w-11 items-center justify-center rounded-lg",
-          isCompleto
-            ? "bg-violet-100 text-violet-600 dark:bg-violet-950/60 dark:text-violet-400"
-            : "bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400"
-        )}
-      >
-        {isCompleto ? (
-          <Sparkles className="h-5 w-5" />
-        ) : (
-          <FolderOpen className="h-5 w-5" />
-        )}
-      </div>
-
-      {/* Text */}
-      <div className="space-y-1 pr-6">
-        <div className="flex items-center gap-2 flex-wrap">
-          <p className="font-semibold text-sm leading-snug">
-            {isCompleto
-              ? "Carico le informazioni del cliente"
-              : "Carico informazioni e documenti del cliente"}
-          </p>
-          <span
-            className={cn(
-              "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-              isCompleto
-                ? "bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-400"
-                : "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400"
-            )}
-          >
-            {isCompleto ? "Servizio Completo" : "Self Service"}
-          </span>
-        </div>
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          {isCompleto
-            ? "Pratica Rapida pensa a tutto: recupera i documenti, contatta il cliente e gestisce l'intera pratica per te."
-            : "Fornisci tu tutte le informazioni e i documenti. Pratica Rapida si occupa esclusivamente dell'iter burocratico."}
-        </p>
-      </div>
-    </button>
-  );
-}
-
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function NuovaPraticaEnea() {
   const { resellerId } = useAuth();
   const { toast } = useToast();
 
-  // step -1 = selezione tipo servizio (schermata intro, fuori dal wizard)
   // step  0 = Cliente
   // step  1 = Pratica
   // step  2 = Documenti
   // step  3 = Conferma
-  const [step, setStep] = useState<number>(-1);
-  const [tipoServizio, setTipoServizio] = useState<TipoServizio | null>(null);
+  const [step, setStep] = useState<number>(0);
+  const tipoServizio: TipoServizio = "pratica_only";
   const [fatture, setFatture] = useState<File[]>([]);
   const [docAggiuntivi, setDocAggiuntivi] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -254,7 +163,7 @@ export default function NuovaPraticaEnea() {
 
   // Campi da validare per ogni step del wizard (step 0→3)
   const stepFields: (keyof FormValues)[][] = [
-    ["cliente_nome", "cliente_cognome", "cliente_telefono", "cliente_email", "cliente_cf"],
+    ["cliente_nome", "cliente_cognome", "cliente_telefono", "cliente_email"],
     ["brand", "prodotto_installato"],
     [],
     [],
@@ -263,7 +172,12 @@ export default function NuovaPraticaEnea() {
   const nextStep = async () => {
     const fieldsToValidate = stepFields[step];
     const valid = await trigger(fieldsToValidate);
-    if (valid) setStep((s) => s + 1);
+    if (!valid) return;
+    if (step === 2 && fatture.length === 0) {
+      toast({ variant: "destructive", title: "Fattura obbligatoria", description: "Carica almeno una fattura per procedere." });
+      return;
+    }
+    setStep((s) => s + 1);
   };
 
   const saveDraft = () => {
@@ -288,12 +202,12 @@ export default function NuovaPraticaEnea() {
           cliente_cognome: values.cliente_cognome,
           cliente_email: values.cliente_email || null,
           cliente_telefono: values.cliente_telefono,
-          cliente_indirizzo: values.cliente_indirizzo || null,
-          cliente_cf: values.cliente_cf || null,
+          cliente_indirizzo: null,
+          cliente_cf: null,
           prodotto_installato: values.prodotto_installato,
           fornitore: values.fornitore || null,
           note: values.note || null,
-          tipo_servizio: tipoServizio ?? "pratica_only",
+          tipo_servizio: tipoServizio,
         })
         .select()
         .single();
@@ -340,8 +254,7 @@ export default function NuovaPraticaEnea() {
             variant="outline"
             onClick={() => {
               setSubmitted(null);
-              setStep(-1);
-              setTipoServizio(null);
+              setStep(0);
               setFatture([]);
               setDocAggiuntivi([]);
             }}
@@ -356,79 +269,16 @@ export default function NuovaPraticaEnea() {
     );
   }
 
-  // ── Step -1: Selezione tipo servizio ────────────────────────────────────────
-
-  if (step === -1) {
-    return (
-      <div className="max-w-2xl mx-auto p-6 space-y-6">
-        <div>
-          <h1 className="text-xl font-bold">Nuova Pratica ENEA / Conto Termico</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Seleziona come vuoi procedere con questa pratica.
-          </p>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <TipoServizioCard
-            tipo="servizio_completo"
-            selected={tipoServizio === "servizio_completo"}
-            onSelect={() => setTipoServizio("servizio_completo")}
-          />
-          <TipoServizioCard
-            tipo="pratica_only"
-            selected={tipoServizio === "pratica_only"}
-            onSelect={() => setTipoServizio("pratica_only")}
-          />
-        </div>
-
-        <div className="flex justify-end">
-          <Button
-            disabled={!tipoServizio}
-            onClick={() => setStep(0)}
-            className="gap-2"
-          >
-            Continua
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   // ── Wizard steps 0–3 ────────────────────────────────────────────────────────
 
   const suggestions = PRODUCTS.filter(
     (p) => p.toLowerCase().includes(productInput.toLowerCase()) && productInput.length > 0
   );
 
-  const isServizioCompleto = tipoServizio === "servizio_completo";
-
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold">Nuova Pratica ENEA / Conto Termico</h1>
-          {/* Tipo badge */}
-          <button
-            type="button"
-            onClick={() => setStep(-1)}
-            className={cn(
-              "inline-flex items-center gap-1.5 mt-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-opacity hover:opacity-70",
-              isServizioCompleto
-                ? "bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-400"
-                : "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400"
-            )}
-            title="Clicca per cambiare tipo"
-          >
-            {isServizioCompleto ? (
-              <Sparkles className="h-3 w-3" />
-            ) : (
-              <FolderOpen className="h-3 w-3" />
-            )}
-            {isServizioCompleto ? "Servizio Completo" : "Self Service"}
-            <X className="h-3 w-3 opacity-60" />
-          </button>
-        </div>
+        <h1 className="text-xl font-bold">Nuova Pratica ENEA / Conto Termico</h1>
         <Button variant="ghost" size="sm" onClick={saveDraft}>
           <Save className="h-4 w-4 mr-1" />
           Salva bozza
@@ -484,19 +334,6 @@ export default function NuovaPraticaEnea() {
               <Label>Telefono *</Label>
               <Input placeholder="+39 333 1234567" {...register("cliente_telefono")} />
               {errors.cliente_telefono && <p className="text-xs text-destructive">{errors.cliente_telefono.message}</p>}
-            </div>
-            <div className="space-y-1">
-              <Label>Indirizzo</Label>
-              <Input {...register("cliente_indirizzo")} />
-            </div>
-            <div className="space-y-1">
-              <Label>Codice Fiscale</Label>
-              <Input
-                {...register("cliente_cf")}
-                onChange={(e) => setValue("cliente_cf", e.target.value.toUpperCase())}
-                maxLength={16}
-              />
-              {errors.cliente_cf && <p className="text-xs text-destructive">{errors.cliente_cf.message}</p>}
             </div>
           </div>
         )}
@@ -566,39 +403,20 @@ export default function NuovaPraticaEnea() {
         {/* Step 2 — Documenti */}
         {step === 2 && (
           <div className="space-y-6">
-            {/* Avviso contestuale in base al tipo servizio */}
-            {isServizioCompleto ? (
-              <div className="flex items-start gap-3 rounded-lg border border-violet-200 bg-violet-50 p-4 dark:border-violet-800/40 dark:bg-violet-950/20">
-                <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-violet-800 dark:text-violet-300">
-                    Servizio Completo — documenti opzionali
-                  </p>
-                  <p className="text-xs text-violet-700/80 dark:text-violet-400/80 mt-0.5">
-                    Pratica Rapida si occuperà di raccogliere i documenti e contattare il cliente.
-                    Puoi comunque allegare quello che hai già disponibile.
-                  </p>
-                </div>
+            <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800/40 dark:bg-blue-950/20">
+              <FolderOpen className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                  Documenti — carica i documenti del cliente
+                </p>
+                <p className="text-xs text-blue-700/80 dark:text-blue-400/80 mt-0.5">
+                  La fattura è obbligatoria. Puoi aggiungere altri documenti utili alla pratica.
+                </p>
               </div>
-            ) : (
-              <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800/40 dark:bg-blue-950/20">
-                <FolderOpen className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
-                    Self Service — carica i documenti del cliente
-                  </p>
-                  <p className="text-xs text-blue-700/80 dark:text-blue-400/80 mt-0.5">
-                    Allega fatture e documenti prima di inviare. Pratica Rapida li utilizzerà per
-                    completare l'iter burocratico.
-                  </p>
-                </div>
-              </div>
-            )}
+            </div>
 
             <div className="space-y-2">
-              <Label>
-                Fatture{isServizioCompleto ? " (opzionale)" : " *"} — max 5, PDF/JPG/PNG, max 10MB
-              </Label>
+              <Label>Fattura * — max 5, PDF/JPG/PNG, max 10MB</Label>
               <div
                 {...getFattureProps()}
                 className={cn(
@@ -663,10 +481,6 @@ export default function NuovaPraticaEnea() {
             <h2 className="font-semibold">Riepilogo pratica</h2>
             <div className="rounded-lg border divide-y text-sm">
               {[
-                [
-                  "Tipo servizio",
-                  isServizioCompleto ? "Servizio Completo" : "Self Service",
-                ],
                 ["Nome cliente", `${watch("cliente_nome")} ${watch("cliente_cognome")}`],
                 ["Email", watch("cliente_email") || "—"],
                 ["Telefono", watch("cliente_telefono")],
@@ -691,10 +505,7 @@ export default function NuovaPraticaEnea() {
               Indietro
             </Button>
           ) : (
-            <Button type="button" variant="ghost" onClick={() => setStep(-1)}>
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Tipo servizio
-            </Button>
+            <div />
           )}
           {step < STEPS.length - 1 ? (
             <Button type="button" onClick={nextStep}>

@@ -233,10 +233,8 @@ export function AppSidebar() {
     groups = [
       {
         items: [
-          { title: "Dashboard", url: "/", icon: LayoutDashboard, end: true },
-          { title: "Nuova Pratica", url: "/pratiche/nuova", icon: FilePlus, end: true },
           { title: "Le mie Pratiche", url: "/pratiche", icon: FolderOpen, end: true },
-          { title: "Estratto Conto", url: "/wallet", icon: Receipt },
+          { title: "Nuova Pratica", url: "/pratiche/nuova", icon: FilePlus, end: true },
           { title: "Assistenza", url: "/assistenza", icon: LifeBuoy },
         ],
       },

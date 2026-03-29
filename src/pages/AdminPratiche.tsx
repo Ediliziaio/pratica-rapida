@@ -143,7 +143,7 @@ function DraggableCard({
           <Building2 className="h-2.5 w-2.5 shrink-0" />
           <span className="truncate">{(pratica.companies as any)?.ragione_sociale}</span>
         </div>
-        {/* Footer: price + pagamento + assignee */}
+        {/* Footer: price + assignee */}
         <div className="flex items-center justify-between gap-1 pt-1 border-t border-border/40">
           {showPricing
             ? <p className="text-[11px] font-bold">€ {(pratica.prezzo ?? 0).toFixed(0)}</p>
@@ -155,9 +155,6 @@ function DraggableCard({
                 {assignee.nome}
               </span>
             )}
-            <Badge variant="outline" className={`text-[9px] h-4 px-1 ${pagamento.className}`}>
-              {pagamento.label}
-            </Badge>
           </div>
         </div>
       </CardContent>
@@ -559,15 +556,19 @@ function KpiCards({ pratiche }: { pratiche: any[] }) {
   const totale = pratiche.length;
   const attive = pratiche.filter((p) => ["inviata", "in_lavorazione", "in_attesa_documenti"].includes(p.stato)).length;
   const completate = pratiche.filter((p) => p.stato === "completata").length;
+  const daFatturare = pratiche
+    .filter((p) => p.stato === "completata" && p.pagamento_stato === "non_pagata")
+    .reduce((s, p) => s + (p.prezzo || 0), 0);
 
   const kpis = [
     { label: "Totali", value: totale, icon: FolderOpen, color: "text-foreground", bg: "bg-muted/60" },
     { label: "Attive", value: attive, icon: Clock, color: "text-warning", bg: "bg-warning/10" },
     { label: "Completate", value: completate, icon: CheckCircle2, color: "text-success", bg: "bg-success/10" },
+    { label: "Da fatturare", value: `€ ${daFatturare.toFixed(2)}`, icon: Euro, color: "text-primary", bg: "bg-primary/10" },
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {kpis.map(({ label, value, icon: Icon, color, bg }) => (
         <Card key={label}>
           <CardContent className="flex items-center gap-3 p-3">
@@ -674,7 +675,6 @@ function ListCard({
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-          <Badge variant="outline" className={`text-xs h-6 px-2 hidden sm:flex ${pagamento.className}`}>{pagamento.label}</Badge>
           {showPricing && <span className="text-sm font-bold hidden md:inline">€ {(p.prezzo ?? 0).toFixed(2)}</span>}
 
           <DropdownMenu>

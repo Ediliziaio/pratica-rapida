@@ -87,17 +87,10 @@ export function ModuloCliente({ praticaId }: ModuloClienteProps) {
 
   const sendReminder = useMutation({
     mutationFn: async (tokenId: string) => {
-      const { error } = await supabase
-        .from("client_form_tokens")
-        .update({
-          reminder_count: (tokens.find(t => t.id === tokenId)?.reminder_count ?? 0) + 1,
-          last_reminder_at: new Date().toISOString(),
-          stato: "inviato",
-        })
-        .eq("id", tokenId);
+      const { error } = await supabase.functions.invoke("notify-cliente", {
+        body: { token_id: tokenId, channel: "email", is_reminder: true },
+      });
       if (error) throw error;
-      // Edge function will be called in Prompt 4
-      console.log("[ModuloCliente] reminder sent for token", tokenId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["client-form-tokens", praticaId] });
@@ -119,16 +112,30 @@ export function ModuloCliente({ praticaId }: ModuloClienteProps) {
     queryClient.invalidateQueries({ queryKey: ["client-form-tokens", praticaId] });
   };
 
-  const handleSendEmail = (token: Token) => {
-    // Will be wired to edge function in Prompt 4
-    console.log("[ModuloCliente] send email for token", token.id);
-    toast({ title: "Email", description: "Funzionalità email disponibile in prossimo aggiornamento." });
+  const handleSendEmail = async (token: Token) => {
+    try {
+      const { error } = await supabase.functions.invoke("notify-cliente", {
+        body: { token_id: token.id, channel: "email", is_reminder: false },
+      });
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["client-form-tokens", praticaId] });
+      toast({ title: "Email inviata al cliente" });
+    } catch (e: any) {
+      toast({ title: "Errore invio email", description: e.message, variant: "destructive" });
+    }
   };
 
-  const handleSendWhatsApp = (token: Token) => {
-    // Will be wired to edge function in Prompt 4
-    console.log("[ModuloCliente] send whatsapp for token", token.id);
-    toast({ title: "WhatsApp", description: "Funzionalità WhatsApp disponibile in prossimo aggiornamento." });
+  const handleSendWhatsApp = async (token: Token) => {
+    try {
+      const { error } = await supabase.functions.invoke("notify-cliente", {
+        body: { token_id: token.id, channel: "whatsapp", is_reminder: false },
+      });
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["client-form-tokens", praticaId] });
+      toast({ title: "WhatsApp inviato al cliente" });
+    } catch (e: any) {
+      toast({ title: "Errore invio WhatsApp", description: e.message, variant: "destructive" });
+    }
   };
 
   return (

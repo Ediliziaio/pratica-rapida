@@ -30,7 +30,7 @@ export default function Pratiche() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterStato, setFilterStato] = useState<PraticaStato | "">("");
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [viewMode, setViewMode] = useState<ViewMode>("pipeline");
   const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>();
   const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
   const [filterCliente, setFilterCliente] = useState("");

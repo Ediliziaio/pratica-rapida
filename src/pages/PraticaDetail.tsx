@@ -613,7 +613,7 @@ export default function PraticaDetail() {
           <OutputSection outputUrls={pratica.output_urls} noteConsegna={pratica.note_consegna} />
 
           <DocumentUpload praticaId={pratica.id} companyId={pratica.company_id} />
-          <PracticeChat praticaId={pratica.id} companyId={pratica.company_id} />
+          <PracticeChat praticaId={pratica.id} companyId={pratica.company_id} praticaTitle={pratica.titolo} />
         </div>
 
         <div className="space-y-4">

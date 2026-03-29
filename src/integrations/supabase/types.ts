@@ -68,8 +68,11 @@ export type Database = {
           completato_da: string | null
           created_at: string
           id: string
+          note: string | null
           ordine: number
           pratica_id: string
+          priorita: string | null
+          scadenza: string | null
           titolo: string
         }
         Insert: {
@@ -80,8 +83,11 @@ export type Database = {
           completato_da?: string | null
           created_at?: string
           id?: string
+          note?: string | null
           ordine?: number
           pratica_id: string
+          priorita?: string | null
+          scadenza?: string | null
           titolo: string
         }
         Update: {
@@ -92,8 +98,11 @@ export type Database = {
           completato_da?: string | null
           created_at?: string
           id?: string
+          note?: string | null
           ordine?: number
           pratica_id?: string
+          priorita?: string | null
+          scadenza?: string | null
           titolo?: string
         }
         Relationships: [

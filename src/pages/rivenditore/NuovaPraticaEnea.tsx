@@ -433,7 +433,7 @@ export default function NuovaPraticaEnea() {
               {fatture.length > 0 && (
                 <ul className="space-y-1">
                   {fatture.map((f, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm">
+                    <li key={f.name} className="flex items-center gap-2 text-sm">
                       <FileText className="h-4 w-4 text-muted-foreground" />
                       <span className="flex-1 truncate">{f.name}</span>
                       <button type="button" onClick={() => setFatture((p) => p.filter((_, j) => j !== i))}>
@@ -461,7 +461,7 @@ export default function NuovaPraticaEnea() {
               {docAggiuntivi.length > 0 && (
                 <ul className="space-y-1">
                   {docAggiuntivi.map((f, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm">
+                    <li key={f.name} className="flex items-center gap-2 text-sm">
                       <FileText className="h-4 w-4 text-muted-foreground" />
                       <span className="flex-1 truncate">{f.name}</span>
                       <button type="button" onClick={() => setDocAggiuntivi((p) => p.filter((_, j) => j !== i))}>

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { FolderOpen, Clock, AlertCircle, CheckCircle2, Receipt } from "lucide-react";
+import { FolderOpen, Clock, AlertCircle, CheckCircle2 } from "lucide-react";
 import { STATO_CONFIG } from "@/lib/pratiche-config";
 
 interface PraticheSummaryBarProps {
@@ -16,12 +16,8 @@ export function PraticheSummaryBar({ pratiche }: PraticheSummaryBarProps) {
     const inLavorazione = pratiche.filter(p => p.stato === "in_lavorazione").length;
     const attesaDocumenti = pratiche.filter(p => p.stato === "in_attesa_documenti").length;
     const completateMese = pratiche.filter(p => p.stato === "completata" && new Date(p.updated_at) >= startOfMonth).length;
-    // Da fatturare = pratiche completate questo mese non ancora pagate
-    const daFatturareMese = pratiche
-      .filter(p => p.stato === "completata" && p.pagamento_stato === "non_pagata" && new Date(p.updated_at) >= startOfMonth)
-      .reduce((sum, p) => sum + (p.prezzo || 0), 0);
 
-    return { totale, inLavorazione, attesaDocumenti, completateMese, daFatturareMese };
+    return { totale, inLavorazione, attesaDocumenti, completateMese };
   }, [pratiche]);
 
   const cards = [
@@ -53,17 +49,10 @@ export function PraticheSummaryBar({ pratiche }: PraticheSummaryBarProps) {
       color: "text-success",
       bgColor: "bg-success/10",
     },
-    {
-      label: "Da fatturare (mese)",
-      value: `€ ${stats.daFatturareMese.toFixed(2)}`,
-      icon: Receipt,
-      color: "text-primary",
-      bgColor: "bg-primary/10",
-    },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {cards.map((c) => {
         const Icon = c.icon;
         return (

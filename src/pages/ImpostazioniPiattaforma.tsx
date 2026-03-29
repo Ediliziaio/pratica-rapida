@@ -671,7 +671,7 @@ function CampiPersonalizzati() {
               <div className="space-y-2 rounded-lg border p-3">
                 <p className="text-sm font-medium">Opzioni</p>
                 {form.options.map((opt, i) => (
-                  <div key={i} className="flex items-center gap-2">
+                  <div key={opt.value || i} className="flex items-center gap-2">
                     <code className="flex-1 rounded bg-muted px-2 py-1 text-xs font-mono">
                       {opt.value}
                     </code>

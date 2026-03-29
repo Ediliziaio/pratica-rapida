@@ -71,7 +71,6 @@ function DraggableCard({ pratica, navigate }: { pratica: any; navigate: (path: s
             {(pratica.clienti_finali as any).nome} {(pratica.clienti_finali as any).cognome}
           </p>
         )}
-        <p className="text-sm font-semibold">€ {pratica.prezzo.toFixed(2)}</p>
       </CardContent>
     </Card>
   );
@@ -185,7 +184,6 @@ export function PipelineView({ pratiche, navigate }: { pratiche: any[]; navigate
           <Card className="w-[230px] shadow-xl rotate-2">
             <CardContent className="p-3 space-y-1.5">
               <p className="text-sm font-medium truncate">{activePratica.titolo}</p>
-              <p className="text-sm font-semibold">€ {activePratica.prezzo.toFixed(2)}</p>
             </CardContent>
           </Card>
         )}

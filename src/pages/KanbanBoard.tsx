@@ -449,7 +449,7 @@ function PracticeDetailSheet({
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {editDocs.map((doc, i) => (
                       <span
-                        key={i}
+                        key={doc}
                         className="inline-flex items-center gap-1 text-xs bg-amber-50 text-amber-800 border border-amber-200 rounded-full px-2 py-0.5"
                       >
                         {doc}
@@ -615,9 +615,9 @@ function PracticeDetailSheet({
                       Documenti mancanti
                     </h3>
                     <ul className="space-y-1">
-                      {practice.documenti_mancanti.map((doc: string, i: number) => (
+                      {practice.documenti_mancanti.map((doc: string) => (
                         <li
-                          key={i}
+                          key={doc}
                           className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400"
                         >
                           <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />

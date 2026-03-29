@@ -134,12 +134,11 @@ export function ListView({
               </p>
             </div>
 
-            {/* Right side: stato + price */}
+            {/* Right side: stato */}
             <div className="flex items-center gap-2 shrink-0">
               <Badge className={`text-[11px] hidden sm:inline-flex ${statoConf.color}`}>
                 {statoConf.label}
               </Badge>
-              <span className="font-semibold text-sm tabular-nums">€ {p.prezzo.toFixed(0)}</span>
               {onDuplicate && (
                 <Button
                   variant="ghost"

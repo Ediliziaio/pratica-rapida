@@ -15,7 +15,6 @@ import { ThemeProvider } from "next-themes";
 // Lazy-loaded pages
 const Auth = lazy(() => import("./pages/Auth"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
 const NuovaPratica = lazy(() => import("./pages/NuovaPratica"));
 const Pratiche = lazy(() => import("./pages/Pratiche"));
 const WalletPage = lazy(() => import("./pages/Wallet"));

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle2, AlertTriangle, Clock, FileText } from "lucide-react";
 
 type TipoModulo = "schermature-solari" | "infissi" | "impianto-termico";
@@ -22,13 +23,52 @@ interface TokenInfo {
 // ── Form state types ─────────────────────────────────────────────────────────
 
 interface FormSchermature {
+  // Dati personali
   nome_cliente: string;
   cognome_cliente: string;
-  indirizzo_intervento: string;
+  data_nascita: string;
+  comune_nascita: string;
+  provincia_nascita: string;
+  codice_fiscale: string;
+  email: string;
+  telefono: string;
+  // Cointestatario
+  cointestatario_nome: string;
+  cointestatario_cognome: string;
+  cointestatario_cf: string;
+  // Residenza
+  comune_residenza: string;
+  provincia_residenza: string;
+  indirizzo_residenza: string;
+  civico_residenza: string;
+  cap_residenza: string;
+  // Appartamento (luogo lavori)
+  comune_appartamento: string;
+  provincia_appartamento: string;
+  indirizzo_appartamento: string;
+  civico_appartamento: string;
+  cap_appartamento: string;
+  // Catasto
+  catasto_foglio: string;
+  catasto_mappale: string;
+  catasto_subalterno: string;
+  tipo_conduzione: string;
+  // Impianto termico esistente
+  impianto_tipo: string;
+  impianto_combustibile: string;
+  impianto_tipo_caldaia: string;
+  impianto_condizionamento: string;
+  // Schermatura
   tipologia_schermatura: string;
+  produttore: string;
+  orientamento: string;
   larghezza_cm: string;
   altezza_cm: string;
+  numero_unita: string;
+  motorizzato: string;
   colore: string;
+  // Fattura
+  costo_totale_iva: string;
   note: string;
 }
 
@@ -100,31 +140,69 @@ function NoteField({ value, onChange }: { value: string; onChange: (v: string) =
   );
 }
 
+function SelectField({
+  label, id, value, onChange, options, required, placeholder = "Seleziona...",
+}: {
+  label: string; id: string; value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+  required?: boolean; placeholder?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-sm font-medium">
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      </Label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger id={id} className="h-11 text-base">
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map(o => (
+            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
 // ── Section divider ───────────────────────────────────────────────────────────
 
-function Section({ title }: { title: string }) {
+function Section({ title, description }: { title: string; description?: string }) {
   return (
-    <div className="pt-2">
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1.5">{title}</p>
+    <div className="pt-3">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b pb-1.5">{title}</p>
+      {description && <p className="text-xs text-muted-foreground mt-1.5">{description}</p>}
     </div>
   );
 }
 
 // ── Form: Schermature Solari ──────────────────────────────────────────────────
 
+const EMPTY_SCHERMATURE: FormSchermature = {
+  nome_cliente: "", cognome_cliente: "", data_nascita: "", comune_nascita: "",
+  provincia_nascita: "", codice_fiscale: "", email: "", telefono: "",
+  cointestatario_nome: "", cointestatario_cognome: "", cointestatario_cf: "",
+  comune_residenza: "", provincia_residenza: "", indirizzo_residenza: "",
+  civico_residenza: "", cap_residenza: "",
+  comune_appartamento: "", provincia_appartamento: "", indirizzo_appartamento: "",
+  civico_appartamento: "", cap_appartamento: "",
+  catasto_foglio: "", catasto_mappale: "", catasto_subalterno: "", tipo_conduzione: "",
+  impianto_tipo: "", impianto_combustibile: "", impianto_tipo_caldaia: "", impianto_condizionamento: "",
+  tipologia_schermatura: "", produttore: "", orientamento: "",
+  larghezza_cm: "", altezza_cm: "", numero_unita: "", motorizzato: "", colore: "",
+  costo_totale_iva: "", note: "",
+};
+
 function FormSchermatureView({
   tokenId, praticaId, nomeCliente, onSuccess,
 }: { tokenId: string; praticaId: string; nomeCliente: string; onSuccess: () => void }) {
   const parts = nomeCliente.split(" ");
   const [form, setForm] = useState<FormSchermature>({
+    ...EMPTY_SCHERMATURE,
     nome_cliente: parts[0] ?? "",
     cognome_cliente: parts.slice(1).join(" "),
-    indirizzo_intervento: "",
-    tipologia_schermatura: "",
-    larghezza_cm: "",
-    altezza_cm: "",
-    colore: "",
-    note: "",
   });
 
   const set = (k: keyof FormSchermature) => (v: string) => setForm(f => ({ ...f, [k]: v }));
@@ -136,11 +214,42 @@ function FormSchermatureView({
         pratica_id: praticaId,
         nome_cliente: form.nome_cliente,
         cognome_cliente: form.cognome_cliente,
-        indirizzo_intervento: form.indirizzo_intervento || null,
+        data_nascita: form.data_nascita || null,
+        comune_nascita: form.comune_nascita || null,
+        provincia_nascita: form.provincia_nascita || null,
+        codice_fiscale: form.codice_fiscale || null,
+        email: form.email || null,
+        telefono: form.telefono || null,
+        cointestatario_nome: form.cointestatario_nome || null,
+        cointestatario_cognome: form.cointestatario_cognome || null,
+        cointestatario_cf: form.cointestatario_cf || null,
+        comune_residenza: form.comune_residenza || null,
+        provincia_residenza: form.provincia_residenza || null,
+        indirizzo_residenza: form.indirizzo_residenza || null,
+        civico_residenza: form.civico_residenza || null,
+        cap_residenza: form.cap_residenza || null,
+        comune_appartamento: form.comune_appartamento || null,
+        provincia_appartamento: form.provincia_appartamento || null,
+        indirizzo_appartamento: form.indirizzo_appartamento || null,
+        civico_appartamento: form.civico_appartamento || null,
+        cap_appartamento: form.cap_appartamento || null,
+        catasto_foglio: form.catasto_foglio || null,
+        catasto_mappale: form.catasto_mappale || null,
+        catasto_subalterno: form.catasto_subalterno || null,
+        tipo_conduzione: form.tipo_conduzione || null,
+        impianto_tipo: form.impianto_tipo || null,
+        impianto_combustibile: form.impianto_combustibile || null,
+        impianto_tipo_caldaia: form.impianto_tipo_caldaia || null,
+        impianto_condizionamento: form.impianto_condizionamento || null,
         tipologia_schermatura: form.tipologia_schermatura || null,
+        produttore: form.produttore || null,
+        orientamento: form.orientamento || null,
         larghezza_cm: form.larghezza_cm ? Number(form.larghezza_cm) : null,
         altezza_cm: form.altezza_cm ? Number(form.altezza_cm) : null,
+        numero_unita: form.numero_unita ? Number(form.numero_unita) : null,
+        motorizzato: form.motorizzato ? form.motorizzato === "si" : null,
         colore: form.colore || null,
+        costo_totale_iva: form.costo_totale_iva ? Number(form.costo_totale_iva) : null,
         note: form.note || null,
       });
       if (insertError) throw insertError;
@@ -156,20 +265,211 @@ function FormSchermatureView({
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); submit.mutate(); }} className="space-y-4">
-      <Section title="Dati personali" />
+
+      {/* ── 1. Dati personali ── */}
+      <Section title="Dati del richiedente" description="Inserisci i dati anagrafici del beneficiario della detrazione." />
       <div className="grid grid-cols-2 gap-3">
         <Field label="Nome" id="nome" value={form.nome_cliente} onChange={set("nome_cliente")} required />
         <Field label="Cognome" id="cognome" value={form.cognome_cliente} onChange={set("cognome_cliente")} required />
       </div>
-      <Field label="Indirizzo intervento" id="indirizzo" value={form.indirizzo_intervento} onChange={set("indirizzo_intervento")} placeholder="Via, Città, CAP" />
-
-      <Section title="Dettagli schermatura" />
-      <Field label="Tipologia schermatura" id="tipo" value={form.tipologia_schermatura} onChange={set("tipologia_schermatura")} placeholder="Es. Tenda da sole, Veneziana, Rullo..." />
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Larghezza (cm)" id="larghezza" value={form.larghezza_cm} onChange={set("larghezza_cm")} type="number" placeholder="0" />
-        <Field label="Altezza (cm)" id="altezza" value={form.altezza_cm} onChange={set("altezza_cm")} type="number" placeholder="0" />
+        <Field label="Comune di nascita" id="comune_nascita" value={form.comune_nascita} onChange={set("comune_nascita")} required />
+        <Field label="Provincia di nascita" id="prov_nascita" value={form.provincia_nascita} onChange={set("provincia_nascita")} placeholder="Es. MI" required />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Data di nascita" id="data_nascita" value={form.data_nascita} onChange={set("data_nascita")} type="date" required />
+        <Field label="Codice Fiscale" id="cf" value={form.codice_fiscale} onChange={set("codice_fiscale")} placeholder="RSSMRA80A01H501Z" required />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Email" id="email" value={form.email} onChange={set("email")} type="email" required />
+        <Field label="Telefono" id="tel" value={form.telefono} onChange={set("telefono")} type="tel" />
+      </div>
+
+      {/* ── 2. Cointestatario ── */}
+      <Section title="Cointestatario" description="Compila solo se l'immobile è intestato a più persone." />
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Nome cointestatario" id="co_nome" value={form.cointestatario_nome} onChange={set("cointestatario_nome")} />
+        <Field label="Cognome cointestatario" id="co_cognome" value={form.cointestatario_cognome} onChange={set("cointestatario_cognome")} />
+      </div>
+      <Field label="Codice Fiscale cointestatario" id="co_cf" value={form.cointestatario_cf} onChange={set("cointestatario_cf")} placeholder="RSSMRA80A01H501Z" />
+
+      {/* ── 3. Residenza ── */}
+      <Section title="Indirizzo di residenza" description="Indirizzo di residenza del beneficiario." />
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Comune di residenza" id="com_res" value={form.comune_residenza} onChange={set("comune_residenza")} required />
+        <Field label="Provincia" id="prov_res" value={form.provincia_residenza} onChange={set("provincia_residenza")} placeholder="Es. MI" required />
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="col-span-2">
+          <Field label="Indirizzo" id="ind_res" value={form.indirizzo_residenza} onChange={set("indirizzo_residenza")} placeholder="Via/Piazza..." required />
+        </div>
+        <Field label="N° civico" id="civ_res" value={form.civico_residenza} onChange={set("civico_residenza")} required />
+      </div>
+      <Field label="CAP" id="cap_res" value={form.cap_residenza} onChange={set("cap_residenza")} placeholder="20100" required />
+
+      {/* ── 4. Appartamento (luogo lavori) ── */}
+      <Section title="Dati dell'appartamento dove sono stati effettuati i lavori"
+        description="Se diverso dalla residenza, inserisci l'indirizzo dove è stato eseguito l'intervento." />
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Comune" id="com_app" value={form.comune_appartamento} onChange={set("comune_appartamento")} required />
+        <Field label="Provincia" id="prov_app" value={form.provincia_appartamento} onChange={set("provincia_appartamento")} placeholder="Es. MI" required />
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="col-span-2">
+          <Field label="Indirizzo" id="ind_app" value={form.indirizzo_appartamento} onChange={set("indirizzo_appartamento")} placeholder="Via/Piazza..." required />
+        </div>
+        <Field label="N° civico" id="civ_app" value={form.civico_appartamento} onChange={set("civico_appartamento")} required />
+      </div>
+      <Field label="CAP" id="cap_app" value={form.cap_appartamento} onChange={set("cap_appartamento")} placeholder="20100" required />
+
+      {/* ── 5. Dati catastali ── */}
+      <Section title="Dati catastali" description="Dati catastali dell'unità immobiliare oggetto dell'intervento." />
+      <div className="grid grid-cols-3 gap-3">
+        <Field label="Foglio" id="foglio" value={form.catasto_foglio} onChange={set("catasto_foglio")} required />
+        <Field label="Mappale/Particella" id="mappale" value={form.catasto_mappale} onChange={set("catasto_mappale")} required />
+        <Field label="Subalterno" id="subalter" value={form.catasto_subalterno} onChange={set("catasto_subalterno")} />
+      </div>
+      <SelectField
+        label="Tipo di conduzione"
+        id="conduzione"
+        value={form.tipo_conduzione}
+        onChange={set("tipo_conduzione")}
+        options={[
+          { value: "proprietario", label: "Proprietario" },
+          { value: "inquilino", label: "Inquilino" },
+          { value: "nudo_proprietario", label: "Nudo proprietario" },
+          { value: "usufruttario", label: "Usufruttario" },
+          { value: "comodatario", label: "Comodatario" },
+        ]}
+      />
+
+      {/* ── 6. Impianto termico esistente ── */}
+      <Section title="Impianto termico esistente"
+        description="Indica le caratteristiche dell'impianto di riscaldamento presente nell'appartamento." />
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField
+          label="Tipo di impianto"
+          id="imp_tipo"
+          value={form.impianto_tipo}
+          onChange={set("impianto_tipo")}
+          options={[
+            { value: "centralizzato", label: "Centralizzato" },
+            { value: "autonomo", label: "Autonomo" },
+            { value: "assente", label: "Assente" },
+          ]}
+          required
+        />
+        <SelectField
+          label="Combustibile"
+          id="combustibile"
+          value={form.impianto_combustibile}
+          onChange={set("impianto_combustibile")}
+          options={[
+            { value: "gas_metano", label: "Gas metano" },
+            { value: "gpl", label: "GPL" },
+            { value: "gasolio", label: "Gasolio" },
+            { value: "elettrico", label: "Elettrico" },
+            { value: "pompa_calore", label: "Pompa di calore" },
+            { value: "altro", label: "Altro" },
+          ]}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField
+          label="Tipo di caldaia"
+          id="caldaia"
+          value={form.impianto_tipo_caldaia}
+          onChange={set("impianto_tipo_caldaia")}
+          options={[
+            { value: "tradizionale", label: "Tradizionale" },
+            { value: "a_condensazione", label: "A condensazione" },
+            { value: "a_bassa_temperatura", label: "A bassa temperatura" },
+            { value: "non_presente", label: "Non presente" },
+          ]}
+        />
+        <SelectField
+          label="È presente un impianto di condizionamento?"
+          id="condizionamento"
+          value={form.impianto_condizionamento}
+          onChange={set("impianto_condizionamento")}
+          options={[
+            { value: "si", label: "Sì" },
+            { value: "no", label: "No" },
+          ]}
+          required
+        />
+      </div>
+
+      {/* ── 7. Dati schermature ── */}
+      <Section title="Dati delle schermature solari"
+        description="Indica le caratteristiche del prodotto installato. Inserisci il totale dell'intervento al netto delle tasse per avere una stima del totale delle fatture." />
+      <SelectField
+        label="Tipologia schermatura"
+        id="tipo_schermatura"
+        value={form.tipologia_schermatura}
+        onChange={set("tipologia_schermatura")}
+        options={[
+          { value: "tenda_da_sole", label: "Tenda da sole" },
+          { value: "tenda_a_rullo", label: "Tenda a rullo" },
+          { value: "veneziana", label: "Veneziana" },
+          { value: "persiana", label: "Persiana" },
+          { value: "scuro_avvolgibile", label: "Scuro/Avvolgibile" },
+          { value: "frangisole", label: "Frangisole" },
+          { value: "altro", label: "Altro" },
+        ]}
+        required
+      />
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Produttore" id="produttore" value={form.produttore} onChange={set("produttore")} placeholder="Es. Somfy, Griesser..." required />
+        <SelectField
+          label="Orientamento"
+          id="orientamento"
+          value={form.orientamento}
+          onChange={set("orientamento")}
+          options={[
+            { value: "nord", label: "Nord" },
+            { value: "nord_est", label: "Nord-Est" },
+            { value: "est", label: "Est" },
+            { value: "sud_est", label: "Sud-Est" },
+            { value: "sud", label: "Sud" },
+            { value: "sud_ovest", label: "Sud-Ovest" },
+            { value: "ovest", label: "Ovest" },
+            { value: "nord_ovest", label: "Nord-Ovest" },
+          ]}
+          required
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Larghezza (cm)" id="larghezza" value={form.larghezza_cm} onChange={set("larghezza_cm")} type="number" placeholder="0" required />
+        <Field label="Altezza (cm)" id="altezza" value={form.altezza_cm} onChange={set("altezza_cm")} type="number" placeholder="0" required />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Numero di unità" id="num_unita" value={form.numero_unita} onChange={set("numero_unita")} type="number" placeholder="1" required />
+        <SelectField
+          label="Il prodotto è motorizzato?"
+          id="motorizzato"
+          value={form.motorizzato}
+          onChange={set("motorizzato")}
+          options={[
+            { value: "si", label: "Sì" },
+            { value: "no", label: "No" },
+          ]}
+          required
+        />
       </div>
       <Field label="Colore" id="colore" value={form.colore} onChange={set("colore")} placeholder="Es. Bianco, Grigio antracite..." />
+
+      {/* ── 8. Fattura ── */}
+      <Section title="Fattura" description="Inserisci il costo totale dell'intervento comprensivo di IVA." />
+      <Field
+        label="Costo totale dell'intervento (comprensivo IVA) €"
+        id="costo"
+        value={form.costo_totale_iva}
+        onChange={set("costo_totale_iva")}
+        type="number"
+        placeholder="0.00"
+        required
+      />
       <NoteField value={form.note} onChange={set("note")} />
 
       <SubmitButton isPending={submit.isPending} error={submit.error as Error | null} />

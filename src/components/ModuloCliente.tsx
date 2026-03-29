@@ -38,6 +38,12 @@ const TIPO_LABEL: Record<TipoModulo, string> = {
   "impianto-termico": "Impianto Termico",
 };
 
+const TIPO_PATH: Record<TipoModulo, string> = {
+  "schermature-solari": "schermature-solari",
+  "infissi": "modulo-infissi",
+  "impianto-termico": "impianto-termico",
+};
+
 const STATO_BADGE: Record<StatoToken, { label: string; className: string }> = {
   pending: { label: "In attesa", className: "border-yellow-400/50 text-yellow-600 bg-yellow-50 dark:bg-yellow-950/20" },
   inviato: { label: "Inviato", className: "border-blue-400/50 text-blue-600 bg-blue-50 dark:bg-blue-950/20" },
@@ -45,8 +51,23 @@ const STATO_BADGE: Record<StatoToken, { label: string; className: string }> = {
   scaduto: { label: "Scaduto", className: "border-red-400/50 text-red-600 bg-red-50 dark:bg-red-950/20" },
 };
 
-function getModuloUrl(token: string) {
-  return `${window.location.origin}/modulo/${token}`;
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function buildToken(nome: string, cognome: string): string {
+  const suffix = Math.random().toString(16).slice(2, 8);
+  const base = [slugify(nome), slugify(cognome)].filter(Boolean).join("-");
+  return base ? `${base}-${suffix}` : suffix;
+}
+
+function getModuloUrl(tipoModulo: TipoModulo, token: string): string {
+  return `${window.location.origin}/${TIPO_PATH[tipoModulo]}/${token}`;
 }
 
 export function ModuloCliente({ praticaId }: ModuloClienteProps) {
@@ -70,9 +91,18 @@ export function ModuloCliente({ praticaId }: ModuloClienteProps) {
 
   const generateToken = useMutation({
     mutationFn: async () => {
+      // Fetch client name to build a readable token
+      const { data: pratica } = await supabase
+        .from("pratiche")
+        .select("clienti_finali(nome, cognome)")
+        .eq("id", praticaId)
+        .maybeSingle();
+      const cliente = (pratica?.clienti_finali as any);
+      const tokenValue = buildToken(cliente?.nome ?? "", cliente?.cognome ?? "");
+
       const { data, error } = await supabase
         .from("client_form_tokens")
-        .insert({ pratica_id: praticaId, tipo_modulo: tipoModulo })
+        .insert({ pratica_id: praticaId, tipo_modulo: tipoModulo, token: tokenValue })
         .select("*")
         .single();
       if (error) throw error;
@@ -100,7 +130,7 @@ export function ModuloCliente({ praticaId }: ModuloClienteProps) {
   });
 
   const handleCopy = async (token: Token) => {
-    await navigator.clipboard.writeText(getModuloUrl(token.token));
+    await navigator.clipboard.writeText(getModuloUrl(token.tipo_modulo, token.token));
     setCopiedId(token.id);
     setTimeout(() => setCopiedId(null), 2000);
     // Mark as sent
@@ -186,7 +216,7 @@ export function ModuloCliente({ praticaId }: ModuloClienteProps) {
           <div className="space-y-3">
             {tokens.map((t) => {
               const badge = STATO_BADGE[t.stato];
-              const url = getModuloUrl(t.token);
+              const url = getModuloUrl(t.tipo_modulo, t.token);
               const copied = copiedId === t.id;
               const isExpired = new Date(t.expires_at) < new Date();
 

@@ -18,6 +18,12 @@ const TIPO_LABEL: Record<string, string> = {
   "impianto-termico": "Impianto Termico",
 };
 
+const TIPO_PATH: Record<string, string> = {
+  "schermature-solari": "schermature-solari",
+  "infissi": "modulo-infissi",
+  "impianto-termico": "impianto-termico",
+};
+
 function htmlEmail(nome: string, moduloUrl: string, isReminder: boolean) {
   const heading = isReminder
     ? "Ricordati di compilare il modulo!"
@@ -174,7 +180,8 @@ serve(async (req) => {
     const nome = cliente ? `${cliente.nome} ${cliente.cognome}`.trim() : "Cliente";
     const email = cliente?.email as string | null;
     const telefono = cliente?.telefono as string | null;
-    const moduloUrl = `${APP_URL}/modulo/${token.token}`;
+    const tipoPath = TIPO_PATH[token.tipo_modulo] ?? "modulo";
+    const moduloUrl = `${APP_URL}/${tipoPath}/${token.token}`;
     const results: Record<string, unknown> = {};
 
     // Send email

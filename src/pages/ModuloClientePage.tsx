@@ -364,6 +364,8 @@ const TIPO_LABEL: Record<TipoModulo, string> = {
 
 export default function ModuloClientePage() {
   const { token } = useParams<{ token: string }>();
+  // token param works for all three route patterns:
+  // /schermature-solari/:token, /modulo-infissi/:token, /impianto-termico/:token
   const [submitted, setSubmitted] = useState(false);
 
   const { data: tokenInfo, isLoading, error } = useQuery<TokenInfo | null>({

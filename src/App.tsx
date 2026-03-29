@@ -129,7 +129,9 @@ const App = () => (
                 <Route path="/auth" element={<AuthRoute />} />
                 <Route path="/blocked" element={<Blocked />} />
                 <Route path="/form/:token" element={<FormPubblico />} />
-                <Route path="/modulo/:token" element={<ModuloClientePage />} />
+                <Route path="/schermature-solari/:token" element={<ModuloClientePage />} />
+                <Route path="/modulo-infissi/:token" element={<ModuloClientePage />} />
+                <Route path="/impianto-termico/:token" element={<ModuloClientePage />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/" element={<ProtectedRoute><RootRedirect /></ProtectedRoute>} />
                 <Route path="/pratiche" element={<ProtectedRoute><Pratiche /></ProtectedRoute>} />

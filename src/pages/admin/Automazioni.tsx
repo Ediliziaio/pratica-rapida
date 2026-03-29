@@ -1,4 +1,12 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import TiptapUnderline from "@tiptap/extension-underline";
+import { TextStyle as TiptapTextStyle } from "@tiptap/extension-text-style";
+import { Color as TiptapColor } from "@tiptap/extension-text-style";
+import TiptapTextAlign from "@tiptap/extension-text-align";
+import TiptapImage from "@tiptap/extension-image";
+import TiptapLink from "@tiptap/extension-link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -39,6 +47,24 @@ import {
   Copy,
   Eye,
   Save,
+  Bold,
+  Italic,
+  Underline as UnderlineIcon,
+  Strikethrough,
+  Heading1,
+  Heading2,
+  List,
+  ListOrdered,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Link2,
+  ImageIcon,
+  Undo2,
+  Redo2,
+  Code,
+  Quote,
+  Palette,
 } from "lucide-react";
 import type { AutomationRule } from "@/integrations/supabase/types";
 import {
@@ -232,6 +258,144 @@ const MODULO_TEMPLATES = [
   { event: "modulo_cliente_reminder", label: "Reminder", description: "Inviata automaticamente dopo 3 giorni se il modulo non è stato compilato" },
 ];
 
+// ─── Rich text toolbar ────────────────────────────────────────────────────────
+
+function ToolbarBtn({
+  onClick,
+  active,
+  title,
+  children,
+  disabled,
+}: {
+  onClick: () => void;
+  active?: boolean;
+  title: string;
+  children: React.ReactNode;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      disabled={disabled}
+      onMouseDown={e => { e.preventDefault(); onClick(); }}
+      className={`p-1.5 rounded transition-colors ${
+        active
+          ? "bg-primary text-primary-foreground"
+          : "hover:bg-muted text-muted-foreground hover:text-foreground"
+      } disabled:opacity-40`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function RichTextToolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
+  if (!editor) return null;
+
+  const addImage = () => {
+    const url = window.prompt("URL immagine:");
+    if (url) editor.chain().focus().setImage({ src: url }).run();
+  };
+
+  const setLink = () => {
+    const prev = editor.getAttributes("link").href ?? "";
+    const url = window.prompt("URL link:", prev);
+    if (url === null) return;
+    if (url === "") editor.chain().focus().unsetLink().run();
+    else editor.chain().focus().setLink({ href: url, target: "_blank" }).run();
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b bg-muted/20">
+      {/* Undo/Redo */}
+      <ToolbarBtn title="Annulla" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
+        <Undo2 className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+      <ToolbarBtn title="Ripeti" onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()}>
+        <Redo2 className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+
+      <div className="w-px h-5 bg-border mx-1" />
+
+      {/* Headings */}
+      <ToolbarBtn title="Titolo H1" active={editor.isActive("heading", { level: 1 })} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>
+        <Heading1 className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+      <ToolbarBtn title="Titolo H2" active={editor.isActive("heading", { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
+        <Heading2 className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+
+      <div className="w-px h-5 bg-border mx-1" />
+
+      {/* Text formatting */}
+      <ToolbarBtn title="Grassetto" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}>
+        <Bold className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+      <ToolbarBtn title="Corsivo" active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()}>
+        <Italic className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+      <ToolbarBtn title="Sottolineato" active={editor.isActive("underline")} onClick={() => editor.chain().focus().toggleUnderline().run()}>
+        <UnderlineIcon className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+      <ToolbarBtn title="Barrato" active={editor.isActive("strike")} onClick={() => editor.chain().focus().toggleStrike().run()}>
+        <Strikethrough className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+      <ToolbarBtn title="Codice" active={editor.isActive("code")} onClick={() => editor.chain().focus().toggleCode().run()}>
+        <Code className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+
+      <div className="w-px h-5 bg-border mx-1" />
+
+      {/* Lists */}
+      <ToolbarBtn title="Elenco puntato" active={editor.isActive("bulletList")} onClick={() => editor.chain().focus().toggleBulletList().run()}>
+        <List className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+      <ToolbarBtn title="Elenco numerato" active={editor.isActive("orderedList")} onClick={() => editor.chain().focus().toggleOrderedList().run()}>
+        <ListOrdered className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+      <ToolbarBtn title="Citazione" active={editor.isActive("blockquote")} onClick={() => editor.chain().focus().toggleBlockquote().run()}>
+        <Quote className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+
+      <div className="w-px h-5 bg-border mx-1" />
+
+      {/* Alignment */}
+      <ToolbarBtn title="Allinea a sinistra" active={editor.isActive({ textAlign: "left" })} onClick={() => editor.chain().focus().setTextAlign("left").run()}>
+        <AlignLeft className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+      <ToolbarBtn title="Centra" active={editor.isActive({ textAlign: "center" })} onClick={() => editor.chain().focus().setTextAlign("center").run()}>
+        <AlignCenter className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+      <ToolbarBtn title="Allinea a destra" active={editor.isActive({ textAlign: "right" })} onClick={() => editor.chain().focus().setTextAlign("right").run()}>
+        <AlignRight className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+
+      <div className="w-px h-5 bg-border mx-1" />
+
+      {/* Links & Images */}
+      <ToolbarBtn title="Link" active={editor.isActive("link")} onClick={setLink}>
+        <Link2 className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+      <ToolbarBtn title="Inserisci immagine" onClick={addImage}>
+        <ImageIcon className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+
+      {/* Color picker */}
+      <div className="w-px h-5 bg-border mx-1" />
+      <label title="Colore testo" className="relative p-1.5 rounded hover:bg-muted cursor-pointer flex items-center gap-0.5">
+        <Palette className="h-3.5 w-3.5 text-muted-foreground" />
+        <input
+          type="color"
+          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+          defaultValue="#000000"
+          onChange={e => editor.chain().focus().setColor(e.target.value).run()}
+        />
+      </label>
+    </div>
+  );
+}
+
 function EmailTemplateEditor({ tmpl, onClose, onSaved }: {
   tmpl: EmailTmpl;
   onClose: () => void;
@@ -240,13 +404,59 @@ function EmailTemplateEditor({ tmpl, onClose, onSaved }: {
   const { toast } = useToast();
   const [subject, setSubject] = useState(tmpl.subject);
   const [body, setBody] = useState(tmpl.html_body);
-  const [tab, setTab] = useState<"edit" | "preview">("edit");
+  const [tab, setTab] = useState<"visual" | "html" | "preview">("visual");
+  const bodyRef = useRef(body);
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      TiptapUnderline,
+      TiptapTextStyle,
+      TiptapColor,
+      TiptapTextAlign.configure({ types: ["heading", "paragraph"] }),
+      TiptapImage.configure({ inline: false, allowBase64: true }),
+      TiptapLink.configure({ openOnClick: false }),
+    ],
+    content: tmpl.html_body,
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML();
+      bodyRef.current = html;
+      setBody(html);
+    },
+    editorProps: {
+      attributes: {
+        class: "prose prose-sm max-w-none p-4 min-h-[300px] focus:outline-none",
+      },
+    },
+  });
+
+  // When switching from html tab → visual, sync textarea content into editor
+  const handleTabChange = useCallback((newTab: string) => {
+    if (newTab === "visual" && tab === "html" && editor) {
+      editor.commands.setContent(bodyRef.current, false);
+    }
+    setTab(newTab as "visual" | "html" | "preview");
+  }, [tab, editor]);
+
+  const insertVar = (v: string) => {
+    if (tab === "visual" && editor) {
+      editor.chain().focus().insertContent(v).run();
+    } else if (tab === "html") {
+      const ta = document.getElementById("email-body-editor") as HTMLTextAreaElement | null;
+      if (!ta) { setBody(b => { bodyRef.current = b + v; return b + v; }); return; }
+      const s = ta.selectionStart, end = ta.selectionEnd;
+      const newVal = ta.value.slice(0, s) + v + ta.value.slice(end);
+      setBody(newVal);
+      bodyRef.current = newVal;
+      requestAnimationFrame(() => { ta.focus(); ta.setSelectionRange(s + v.length, s + v.length); });
+    }
+  };
 
   const save = useMutation({
     mutationFn: async () => {
       const { error } = await supabase
         .from("email_templates")
-        .update({ subject, html_body: body })
+        .update({ subject, html_body: bodyRef.current })
         .eq("id", tmpl.id);
       if (error) throw error;
     },
@@ -257,14 +467,6 @@ function EmailTemplateEditor({ tmpl, onClose, onSaved }: {
     },
     onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
-
-  const insertVar = (v: string) => {
-    const ta = document.getElementById("email-body-editor") as HTMLTextAreaElement | null;
-    if (!ta) { setBody(b => b + v); return; }
-    const s = ta.selectionStart, e = ta.selectionEnd;
-    setBody(b => b.slice(0, s) + v + b.slice(e));
-    requestAnimationFrame(() => { ta.focus(); ta.setSelectionRange(s + v.length, s + v.length); });
-  };
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -290,7 +492,7 @@ function EmailTemplateEditor({ tmpl, onClose, onSaved }: {
 
           {/* Variables chips */}
           <div className="shrink-0">
-            <p className="text-xs text-muted-foreground mb-1.5">Variabili disponibili (clicca per inserire nel corpo):</p>
+            <p className="text-xs text-muted-foreground mb-1.5">Variabili (clicca per inserire):</p>
             <div className="flex flex-wrap gap-1.5">
               {AVAILABLE_VARS.map(v => (
                 <button
@@ -305,12 +507,16 @@ function EmailTemplateEditor({ tmpl, onClose, onSaved }: {
             </div>
           </div>
 
-          {/* Body editor / preview tabs */}
-          <Tabs value={tab} onValueChange={v => setTab(v as "edit" | "preview")} className="flex-1 flex flex-col min-h-0">
+          {/* Tabs */}
+          <Tabs value={tab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0">
             <TabsList className="shrink-0 w-fit">
-              <TabsTrigger value="edit" className="gap-1.5 text-xs">
+              <TabsTrigger value="visual" className="gap-1.5 text-xs">
                 <Pencil className="h-3.5 w-3.5" />
-                Modifica HTML
+                Visuale
+              </TabsTrigger>
+              <TabsTrigger value="html" className="gap-1.5 text-xs">
+                <Code className="h-3.5 w-3.5" />
+                HTML
               </TabsTrigger>
               <TabsTrigger value="preview" className="gap-1.5 text-xs">
                 <Eye className="h-3.5 w-3.5" />
@@ -318,16 +524,27 @@ function EmailTemplateEditor({ tmpl, onClose, onSaved }: {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="edit" className="flex-1 mt-2 min-h-0">
+            {/* Visual editor */}
+            <TabsContent value="visual" className="flex-1 mt-2 min-h-0 overflow-auto border rounded-md bg-white">
+              <RichTextToolbar editor={editor} />
+              <EditorContent
+                editor={editor}
+                className="[&_.ProseMirror]:min-h-[280px] [&_.ProseMirror_p]:my-2 [&_.ProseMirror_h1]:text-2xl [&_.ProseMirror_h1]:font-bold [&_.ProseMirror_h2]:text-xl [&_.ProseMirror_h2]:font-bold [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-5 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-5 [&_.ProseMirror_blockquote]:border-l-4 [&_.ProseMirror_blockquote]:border-muted [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:italic [&_.ProseMirror_a]:text-blue-600 [&_.ProseMirror_a]:underline [&_.ProseMirror_img]:max-w-full [&_.ProseMirror_img]:rounded"
+              />
+            </TabsContent>
+
+            {/* HTML editor */}
+            <TabsContent value="html" className="flex-1 mt-2 min-h-0">
               <textarea
                 id="email-body-editor"
                 value={body}
-                onChange={e => setBody(e.target.value)}
-                className="w-full h-full min-h-[300px] font-mono text-xs border rounded-md p-3 resize-none focus:outline-none focus:ring-2 focus:ring-ring bg-muted/30"
+                onChange={e => { setBody(e.target.value); bodyRef.current = e.target.value; }}
+                className="w-full h-full min-h-[350px] font-mono text-xs border rounded-md p-3 resize-none focus:outline-none focus:ring-2 focus:ring-ring bg-muted/30"
                 spellCheck={false}
               />
             </TabsContent>
 
+            {/* Preview */}
             <TabsContent value="preview" className="flex-1 mt-2 min-h-0 overflow-auto border rounded-md bg-white">
               <iframe
                 srcDoc={applyPreviewVars(body)}

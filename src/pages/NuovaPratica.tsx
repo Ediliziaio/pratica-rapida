@@ -31,7 +31,7 @@ import type { PracticeBrand } from "@/integrations/supabase/types";
 
 type Brand = PracticeBrand;
 
-// ── Document upload config (mirrors DocumentUpload.tsx) ───────────────────────
+// ── Upload config ─────────────────────────────────────────────────────────────
 const ALLOWED_MIME_TYPES = [
   "application/pdf",
   "image/jpeg",
@@ -44,19 +44,10 @@ const ALLOWED_MIME_TYPES = [
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const STORAGE_BUCKET = "documenti";
 
-// ── Document types (Self Service upload) ──────────────────────────────────────
-const DOC_TYPES = [
-  { id: "identita",           label: "Documento d'Identità",          description: "Carta d'identità o passaporto in corso di validità" },
-  { id: "fattura",            label: "Fattura / Proforma",            description: "Fattura o proforma relativa ai lavori eseguiti" },
-  { id: "contratto",          label: "Contratto / Preventivo",        description: "Contratto firmato o preventivo dell'intervento" },
-  { id: "certificati",        label: "Certificati Tecnici",           description: "APE, certificati di conformità, libretti impianto" },
-  { id: "catastali",          label: "Visura Catastale",              description: "Visura catastale, planimetrie o dati immobile" },
-  { id: "relazione_tecnica",  label: "Relazione Tecnica",             description: "Relazione tecnica dell'installatore o asseverazione" },
-  { id: "altri",              label: "Altri Documenti",               description: "Qualsiasi altro documento utile alla pratica" },
-] as const;
+// Single key used for all uploaded documents
+const UPLOAD_KEY = "allegati";
 
-type DocTypeId = typeof DOC_TYPES[number]["id"];
-
+// ── Intervention types ────────────────────────────────────────────────────────
 const TIPI_INTERVENTO_ENEA = [
   "Sostituzione infissi",
   "Schermature solari",
@@ -84,57 +75,7 @@ const TIPI_INTERVENTO_CT = [
   "Altro",
 ];
 
-// ── Documenti aggiuntivi (opzionali) per tipo intervento — flusso Servizio Completo ──
-type ExtraDoc = { id: string; label: string; description: string };
-
-const DOCS_PER_INTERVENTO: Record<string, ExtraDoc[]> = {
-  // ENEA
-  "Sostituzione infissi": [
-    { id: "certificato_trasmittanza", label: "Certificato di Trasmittanza", description: "Certificato di trasmittanza termica degli infissi installati (opzionale)" },
-  ],
-  "Schermature solari": [],
-  "Caldaia a condensazione": [
-    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica della caldaia a condensazione (opzionale)" },
-  ],
-  "Pompa di calore": [
-    { id: "libretto_tecnico", label: "Libretto Tecnico", description: "Libretto tecnico con modello del dispositivo installato (opzionale)" },
-  ],
-  "Impianto solare termico": [
-    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica del sistema solare termico (opzionale)" },
-  ],
-  "Coibentazione strutture": [
-    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica del materiale isolante utilizzato (opzionale)" },
-  ],
-  "Building automation": [],
-  "Scaldacqua a pompa di calore": [
-    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica dello scaldacqua a pompa di calore (opzionale)" },
-  ],
-  "Vepa": [],
-  "Microgeneratori": [
-    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica del microgeneratore (opzionale)" },
-  ],
-  "Altro": [],
-  // CT
-  "Sostituzione generatore a biomassa": [
-    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica del generatore a biomassa (opzionale)" },
-  ],
-  "Pompa di calore (riscaldamento)": [
-    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica della pompa di calore (opzionale)" },
-  ],
-  "Solare termico con collettori": [
-    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica dei collettori solari termici (opzionale)" },
-  ],
-  "Sistemi ibridi pompa di calore": [
-    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica del sistema ibrido (opzionale)" },
-  ],
-  "Impianti geotermici": [
-    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica dell'impianto geotermico (opzionale)" },
-  ],
-  "Caldaia a gas naturale (efficienza)": [
-    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica della caldaia a gas (opzionale)" },
-  ],
-};
-
+// ── Brand config ──────────────────────────────────────────────────────────────
 const BRAND_CONFIG: Record<Brand, {
   label: string;
   shortLabel: string;
@@ -164,9 +105,8 @@ const BRAND_CONFIG: Record<Brand, {
   },
 };
 
-// ── Schemas ───────────────────────────────────────────────────────────────────
-
-const nuovaPraticaClienteSchema = z.object({
+// ── Validation schemas ────────────────────────────────────────────────────────
+const clienteSchema = z.object({
   nome: z.string().trim().min(1, "Nome obbligatorio").max(100, "Massimo 100 caratteri"),
   cognome: z.string().trim().min(1, "Cognome obbligatorio").max(100, "Massimo 100 caratteri"),
   email: z
@@ -183,14 +123,7 @@ const nuovaPraticaClienteSchema = z.object({
     .optional().or(z.literal("")),
 });
 
-const praticaSchema = z.object({
-  tipo_intervento: z.string().optional().or(z.literal("")),
-  data_fine_lavori: z.date().optional(),
-  note_aggiuntive: z.string().trim().max(2000).optional().or(z.literal("")),
-});
-
 // ── DocUploadCard ─────────────────────────────────────────────────────────────
-
 function DocUploadCard({
   label,
   description,
@@ -247,7 +180,7 @@ function DocUploadCard({
         </div>
         {files.length > 0 && (
           <Badge variant="secondary" className="shrink-0 text-[10px] font-semibold">
-            {files.length} file
+            {files.length} {files.length === 1 ? "file" : "file"}
           </Badge>
         )}
       </div>
@@ -255,7 +188,7 @@ function DocUploadCard({
       {/* Drop zone */}
       <div
         className={cn(
-          "mx-4 mb-3 rounded-md border-2 border-dashed p-3 text-center cursor-pointer transition-colors select-none",
+          "mx-4 mb-3 rounded-md border-2 border-dashed p-5 text-center cursor-pointer transition-colors select-none",
           isDragOver
             ? "border-primary bg-primary/5"
             : "border-border hover:border-primary/40 hover:bg-muted/30"
@@ -268,22 +201,29 @@ function DocUploadCard({
         tabIndex={0}
         onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
       >
-        <Upload className="mx-auto mb-1 h-4 w-4 text-muted-foreground" />
-        <p className="text-xs text-muted-foreground">
-          Trascina qui o <span className="text-primary font-medium">clicca per sfogliare</span>
+        <Upload className="mx-auto mb-2 h-6 w-6 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">
+          Trascina i file qui o <span className="text-primary font-medium">clicca per sfogliare</span>
         </p>
-        <p className="text-[10px] text-muted-foreground/70 mt-0.5">PDF, JPG, PNG, DOCX, XLSX · max 10 MB</p>
-        <input ref={inputRef} type="file" multiple hidden onChange={handleChange} accept={ALLOWED_MIME_TYPES.join(",")} />
+        <p className="text-xs text-muted-foreground/70 mt-1">PDF, JPG, PNG, DOCX, XLSX · max 10 MB per file</p>
+        <input
+          ref={inputRef}
+          type="file"
+          multiple
+          hidden
+          onChange={handleChange}
+          accept={ALLOWED_MIME_TYPES.join(",")}
+        />
       </div>
 
       {/* File list */}
       {files.length > 0 && (
         <ul className="px-4 pb-3 space-y-1.5">
           {files.map((f, i) => (
-            <li key={f.name} className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2.5 py-1.5">
+            <li key={`${f.name}-${i}`} className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2.5 py-1.5">
               <div className="flex items-center gap-1.5 min-w-0">
                 <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                <span className="text-xs truncate max-w-[160px]">{f.name}</span>
+                <span className="text-xs truncate max-w-[200px]">{f.name}</span>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-[10px] text-muted-foreground whitespace-nowrap">
@@ -308,8 +248,10 @@ function DocUploadCard({
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Steps (same for both flows) ───────────────────────────────────────────────
+const STEPS = ["Informazioni", "Documenti", "Riepilogo"] as const;
 
+// ── Main component ────────────────────────────────────────────────────────────
 export default function NuovaPratica() {
   const { user } = useAuth();
   const { companyId } = useCompany();
@@ -322,49 +264,39 @@ export default function NuovaPratica() {
 
   const { data: companyPromos = [] } = useCompanyPromos(companyId ?? undefined);
   const applyCompanyPromo = useApplyCompanyPromo();
-  // Find first active company promo that gives a free practice
   const activeCompanyPromo = companyPromos.find(p => computeNextIsFree(p)) ?? null;
   const companyPromoInfo = activeCompanyPromo ? getPromoDisplayInfo(activeCompanyPromo) : null;
 
-  // ── Selezione iniziale (brand + tipo servizio) ──
+  // ── Selection ──────────────────────────────────────────────────────────────
   const [brand, setBrand] = useState<Brand | null>(null);
   const [tipoServizio, setTipoServizio] = useState<"servizio_completo" | "pratica_only" | null>(null);
 
-  // ── Wizard ──
+  // ── Wizard ─────────────────────────────────────────────────────────────────
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Step 0: Dati Cliente
+  // Step 0 fields — cliente
   const [clienteNome, setClienteNome] = useState("");
   const [clienteCognome, setClienteCognome] = useState("");
   const [clienteEmail, setClienteEmail] = useState("");
   const [clienteTelefono, setClienteTelefono] = useState("");
 
-  // Step 1: Dati Pratica
+  // Step 0 fields — pratica (optional for both flows)
   const [tipoIntervento, setTipoIntervento] = useState("");
   const [dataFineLavori, setDataFineLavori] = useState<Date | undefined>();
   const [noteAggiuntive, setNoteAggiuntive] = useState("");
-  const [step2Errors, setStep2Errors] = useState<Record<string, string>>({});
 
-  // Step Documenti (Self Service): Record<DocTypeId, File[]>
-  const [documenti, setDocumenti] = useState<Record<string, File[]>>({});
+  // Step 1 — single unified document bag
+  const [documenti, setDocumenti] = useState<File[]>([]);
 
-  // Step Riepilogo: accettazione prezzo
+  // Step 2 — price acceptance
   const [accettazionePrezzo, setAccettazionePrezzo] = useState(false);
 
   const brandConf = brand ? BRAND_CONFIG[brand] : null;
   const tipiIntervento = brand === "conto_termico" ? TIPI_INTERVENTO_CT : TIPI_INTERVENTO_ENEA;
+  const lastStep = STEPS.length - 1;
 
-  // ── Dynamic STEPS ──────────────────────────────────────────────────────────
-  const STEPS = tipoServizio === "servizio_completo"
-    ? ["Dati Cliente", "Intervento & Fattura", "Riepilogo"]
-    : ["Dati Cliente", "Dati Pratica", "Documenti", "Riepilogo"];
-
-  // Docs aggiuntivi opzionali per il flusso servizio_completo
-  const extraDocs: ExtraDoc[] = tipoServizio === "servizio_completo" && tipoIntervento
-    ? (DOCS_PER_INTERVENTO[tipoIntervento] ?? [])
-    : [];
-
+  // ── Pricing ────────────────────────────────────────────────────────────────
   const { data: praticaService } = useQuery({
     queryKey: ["enea-service"],
     queryFn: async () => {
@@ -379,7 +311,6 @@ export default function NuovaPratica() {
     },
   });
 
-  // Company-specific price override (set by super admin per azienda)
   const { data: companyPricingRow } = useQuery({
     queryKey: ["company-pricing-row", companyId, brand],
     queryFn: async () => {
@@ -395,21 +326,18 @@ export default function NuovaPratica() {
     enabled: !!companyId && !!brand,
   });
 
-  // Priority: company custom price > service catalog price > 65 (hardcoded fallback)
-  const prezzoNetto: number =
-    companyPricingRow?.prezzo ?? praticaService?.prezzo_base ?? 65;
-  const prezzoIva = prezzoNetto * 0.22;
+  const prezzoNetto: number = companyPricingRow?.prezzo ?? praticaService?.prezzo_base ?? 65;
+  const prezzoIva    = prezzoNetto * 0.22;
   const prezzoTotale = prezzoNetto + prezzoIva;
 
-  const getClienteFormData = () => ({
-    nome: clienteNome,
-    cognome: clienteCognome,
-    email: clienteEmail,
-    telefono: clienteTelefono,
-  });
-
-  const validateStep1 = (): boolean => {
-    const result = nuovaPraticaClienteSchema.safeParse(getClienteFormData());
+  // ── Validation ─────────────────────────────────────────────────────────────
+  const validateStep0 = (): boolean => {
+    const result = clienteSchema.safeParse({
+      nome: clienteNome,
+      cognome: clienteCognome,
+      email: clienteEmail,
+      telefono: clienteTelefono,
+    });
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
       result.error.errors.forEach((err) => {
@@ -423,31 +351,24 @@ export default function NuovaPratica() {
     return true;
   };
 
-  const validateStep2 = (): boolean => {
-    const result = praticaSchema.safeParse({
-      tipo_intervento: tipoIntervento,
-      data_fine_lavori: dataFineLavori,
-      note_aggiuntive: noteAggiuntive,
-    });
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.errors.forEach((err) => {
-        const field = err.path[0] as string;
-        if (!fieldErrors[field]) fieldErrors[field] = err.message;
-      });
-      setStep2Errors(fieldErrors);
-      return false;
-    }
-    setStep2Errors({});
-    return true;
+  const handleNext = () => {
+    if (step === 0 && !validateStep0()) return;
+    setStep(step + 1);
   };
 
+  // ── Submit ─────────────────────────────────────────────────────────────────
   const submitPratica = useMutation({
     mutationFn: async (asBozza: boolean) => {
       if (!companyId || !user || !brand) throw new Error("Missing data");
 
-      const validated = nuovaPraticaClienteSchema.parse(getClienteFormData());
+      const validated = clienteSchema.parse({
+        nome: clienteNome,
+        cognome: clienteCognome,
+        email: clienteEmail,
+        telefono: clienteTelefono,
+      });
 
+      // 1. Insert client
       const { data: cliente, error: clienteError } = await supabase
         .from("clienti_finali")
         .insert({
@@ -461,90 +382,85 @@ export default function NuovaPratica() {
         })
         .select().single();
       if (clienteError) throw clienteError;
-      const clienteId = cliente.id;
 
+      // 2. Build dati_pratica
       const datiPratica: Record<string, string | number> = {
         brand,
-        tipo_servizio: tipoServizio,
+        tipo_servizio: tipoServizio!,
       };
-      if (tipoIntervento) datiPratica.tipo_intervento = tipoIntervento;
-      if (dataFineLavori) datiPratica.data_fine_lavori = format(dataFineLavori, "yyyy-MM-dd");
-      if (noteAggiuntive) datiPratica.note_aggiuntive = noteAggiuntive;
+      if (tipoIntervento)  datiPratica.tipo_intervento  = tipoIntervento;
+      if (dataFineLavori)  datiPratica.data_fine_lavori = format(dataFineLavori, "yyyy-MM-dd");
+      if (noteAggiuntive)  datiPratica.note_aggiuntive  = noteAggiuntive;
 
       const titoloBase = `Pratica ${BRAND_CONFIG[brand].praticaLabel} - ${validated.nome} ${validated.cognome}`;
 
+      // 3. Insert pratica
       const { data: inserted, error } = await supabase.from("pratiche").insert({
-        company_id: companyId,
-        creato_da: user.id,
-        service_id: praticaService?.id || null,
-        cliente_finale_id: clienteId,
-        categoria: "enea_bonus" as const,
-        titolo: titoloBase,
-        stato: asBozza ? "bozza" : "inviata",
-        priorita: "normale",
-        prezzo: prezzoNetto,
+        company_id:      companyId,
+        creato_da:       user.id,
+        service_id:      praticaService?.id || null,
+        cliente_finale_id: cliente.id,
+        categoria:       "enea_bonus" as const,
+        titolo:          titoloBase,
+        stato:           asBozza ? "bozza" : "inviata",
+        priorita:        "normale",
+        prezzo:          prezzoNetto,
         pagamento_stato: "non_pagata",
-        dati_pratica: datiPratica,
-        is_free: (!asBozza && usePromoOnSubmit && isPromoApplicable) || (!asBozza && !!activeCompanyPromo && computeNextIsFree(activeCompanyPromo)),
+        dati_pratica:    datiPratica,
+        is_free:
+          (!asBozza && usePromoOnSubmit && isPromoApplicable) ||
+          (!asBozza && !!activeCompanyPromo && computeNextIsFree(activeCompanyPromo)),
       }).select("id").single();
       if (error) throw error;
 
+      // 4. Apply promos
       if (!asBozza && usePromoOnSubmit && isPromoApplicable && inserted?.id) {
         await applyPromo(inserted.id).catch(() => null);
       }
-
       if (!asBozza && activeCompanyPromo && computeNextIsFree(activeCompanyPromo) && inserted?.id) {
         await applyCompanyPromo.mutateAsync({ promo: activeCompanyPromo, praticaId: inserted.id }).catch(() => null);
       }
 
-      // ── Upload documents ───────────────────────────────────────────────────
-      // Documents go into the "documenti" bucket + documenti table so they appear
-      // in PraticaDetail and all admin views automatically (same as DocumentUpload.tsx).
-      if (inserted?.id) {
-        const allUploads: { typeId: string; file: File }[] = DOC_TYPES.flatMap((dt) =>
-          (documenti[dt.id] ?? []).map((file) => ({ typeId: dt.id, file }))
+      // 5. Upload all documents (single bucket, tipo = UPLOAD_KEY)
+      if (inserted?.id && documenti.length > 0) {
+        const results = await Promise.allSettled(
+          documenti.map(async (file) => {
+            const path = `${companyId}/${inserted.id}/${crypto.randomUUID()}.${file.name.split(".").pop() ?? "bin"}`;
+            const { error: uploadError } = await supabase.storage
+              .from(STORAGE_BUCKET)
+              .upload(path, file, { upsert: false });
+            if (uploadError) throw new Error(`${file.name}: ${uploadError.message}`);
+
+            const { error: dbError } = await supabase.from("documenti").insert({
+              pratica_id:   inserted.id,
+              company_id:   companyId,
+              caricato_da:  user.id,
+              nome_file:    file.name,
+              storage_path: path,
+              mime_type:    file.type,
+              size_bytes:   file.size,
+              tipo:         UPLOAD_KEY,
+              visibilita:   "azienda_interno" as const,
+              versione:     1,
+            });
+            if (dbError) throw new Error(`${file.name} (DB): ${dbError.message}`);
+          })
         );
 
-        if (allUploads.length > 0) {
-          const results = await Promise.allSettled(
-            allUploads.map(async ({ typeId, file }) => {
-              // 1. Upload to storage (path mirrors DocumentUpload.tsx)
-              const path = `${companyId}/${inserted.id}/${crypto.randomUUID()}.${file.name.split(".").pop() ?? "bin"}`;
-              const { error: uploadError } = await supabase.storage
-                .from(STORAGE_BUCKET)
-                .upload(path, file, { upsert: false });
-              if (uploadError) throw new Error(`${file.name}: ${uploadError.message}`);
+        const failed = results
+          .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+          .map((r) => r.reason?.message ?? "Upload fallito");
 
-              // 2. Insert row into documenti table — this is what makes them visible in admin
-              const { error: dbError } = await supabase.from("documenti").insert({
-                pratica_id: inserted.id,
-                company_id: companyId,
-                caricato_da: user.id,
-                nome_file: file.name,
-                storage_path: path,
-                mime_type: file.type,
-                size_bytes: file.size,
-                tipo: typeId,                          // categoria (es. "identita", "fattura")
-                visibilita: "azienda_interno" as const,
-                versione: 1,
-              });
-              if (dbError) throw new Error(`${file.name} (DB): ${dbError.message}`);
-            })
-          );
-
-          const failed = results
-            .filter((r): r is PromiseRejectedResult => r.status === "rejected")
-            .map((r) => r.reason?.message ?? "Upload fallito");
-
-          if (failed.length > 0) {
-            console.warn("Upload parziale — file non caricati:", failed);
-            return { partialUploadFailed: failed };
-          }
+        if (failed.length > 0) {
+          console.warn("Upload parziale:", failed);
+          return { partialUploadFailed: failed };
         }
       }
     },
     onSuccess: (result, asBozza) => {
       queryClient.invalidateQueries({ queryKey: ["pratiche"] });
+      queryClient.invalidateQueries({ queryKey: ["pratiche-server"] });
+      queryClient.invalidateQueries({ queryKey: ["pratiche-kpi"] });
       const brandLabel = brand ? BRAND_CONFIG[brand].praticaLabel : "Pratica";
       if (result && "partialUploadFailed" in result && result.partialUploadFailed.length > 0) {
         toast({
@@ -560,37 +476,7 @@ export default function NuovaPratica() {
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
 
-  const handleNext = () => {
-    if (step === 0 && !validateStep1()) return;
-
-    if (tipoServizio === "servizio_completo") {
-      // Step 1 = "Intervento & Fattura" — fattura obbligatoria
-      if (step === 1) {
-        const fattureFiles = documenti["fattura"] ?? [];
-        if (fattureFiles.length === 0) {
-          toast({ title: "Fattura obbligatoria", description: "Carica almeno una fattura per procedere.", variant: "destructive" });
-          return;
-        }
-      }
-    } else {
-      // pratica_only: step 1 = Dati Pratica, step 2 = Documenti
-      if (step === 1 && !validateStep2()) return;
-      if (step === 2) {
-        const fattureFiles = documenti["fattura"] ?? [];
-        if (fattureFiles.length === 0) {
-          toast({ title: "Fattura obbligatoria", description: "Carica almeno una fattura per procedere.", variant: "destructive" });
-          return;
-        }
-      }
-    }
-
-    setStep(step + 1);
-  };
-
-  const lastStep = STEPS.length - 1;
-
   // ── Guard ──────────────────────────────────────────────────────────────────
-
   if (!companyId) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -601,8 +487,7 @@ export default function NuovaPratica() {
     );
   }
 
-  // ── Schermata 1: Selezione Brand ──────────────────────────────────────────
-
+  // ── Screen 1: Brand selection ──────────────────────────────────────────────
   if (!brand) {
     return (
       <div className="mx-auto max-w-2xl space-y-6">
@@ -611,7 +496,6 @@ export default function NuovaPratica() {
           <p className="text-muted-foreground text-sm mt-1">Seleziona il tipo di incentivo per questa pratica</p>
         </div>
 
-        {/* Step breadcrumb */}
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">1</span>
           <span className="font-medium text-foreground">Tipo incentivo</span>
@@ -653,8 +537,7 @@ export default function NuovaPratica() {
     );
   }
 
-  // ── Schermata 2: Selezione Tipo Servizio ─────────────────────────────────
-
+  // ── Screen 2: Service type selection ──────────────────────────────────────
   if (!tipoServizio) {
     return (
       <div className="mx-auto max-w-2xl space-y-6">
@@ -663,7 +546,6 @@ export default function NuovaPratica() {
           <p className="text-muted-foreground text-sm mt-1">Come vuoi procedere con questa pratica?</p>
         </div>
 
-        {/* Step breadcrumb */}
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
             <Check className="h-3 w-3" />
@@ -678,7 +560,6 @@ export default function NuovaPratica() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          {/* Opzione A: Servizio Completo */}
           <button
             type="button"
             onClick={() => setTipoServizio("servizio_completo")}
@@ -699,7 +580,6 @@ export default function NuovaPratica() {
             </div>
           </button>
 
-          {/* Opzione B: Self Service */}
           <button
             type="button"
             onClick={() => setTipoServizio("pratica_only")}
@@ -725,19 +605,24 @@ export default function NuovaPratica() {
     );
   }
 
-  // ── Wizard steps ──────────────────────────────────────────────────────────
-
+  // ── Wizard ─────────────────────────────────────────────────────────────────
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica</h1>
-            <Badge className={brandConf!.badgeClass}>{brandConf!.shortLabel}</Badge>
-          </div>
+        <div className="flex items-center gap-2">
+          <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica</h1>
+          <Badge className={brandConf!.badgeClass}>{brandConf!.shortLabel}</Badge>
+          {tipoServizio === "servizio_completo" && (
+            <Badge variant="outline" className="border-primary/40 text-primary text-[10px]">✦ Servizio Completo</Badge>
+          )}
         </div>
-        <Button variant="ghost" size="sm" onClick={() => { setBrand(null); setTipoServizio(null); setStep(0); }} className="text-muted-foreground">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => { setBrand(null); setTipoServizio(null); setStep(0); }}
+          className="text-muted-foreground"
+        >
           Ricomincia
         </Button>
       </div>
@@ -780,75 +665,83 @@ export default function NuovaPratica() {
         </div>
       </div>
 
-      {/* ── Step 0: Dati Cliente ───────────────────────────────────────────── */}
+      {/* ── Step 0: Informazioni (Cliente + Pratica unificati) ──────────────── */}
       {step === 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Dati del Cliente</CardTitle>
-            <CardDescription>Inserisci i dati del cliente per questa pratica.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Nome *</Label>
-                <Input
-                  value={clienteNome}
-                  onChange={(e) => { setClienteNome(e.target.value); setErrors(prev => ({ ...prev, nome: "" })); }}
-                  placeholder="Mario"
-                />
-                {errors.nome && <p className="text-sm text-destructive">{errors.nome}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label>Cognome *</Label>
-                <Input
-                  value={clienteCognome}
-                  onChange={(e) => { setClienteCognome(e.target.value); setErrors(prev => ({ ...prev, cognome: "" })); }}
-                  placeholder="Rossi"
-                />
-                {errors.cognome && <p className="text-sm text-destructive">{errors.cognome}</p>}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  value={clienteEmail}
-                  onChange={(e) => { setClienteEmail(e.target.value); setErrors(prev => ({ ...prev, email: "" })); }}
-                  placeholder="mario@esempio.it"
-                />
-                {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label>Telefono</Label>
-                <Input
-                  value={clienteTelefono}
-                  onChange={(e) => { setClienteTelefono(e.target.value); setErrors(prev => ({ ...prev, telefono: "" })); }}
-                  placeholder="+39 333 1234567"
-                />
-                {errors.telefono && <p className="text-sm text-destructive">{errors.telefono}</p>}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ── Step 1 (Servizio Completo): Intervento & Fattura ─────────────── */}
-      {step === 1 && tipoServizio === "servizio_completo" && (
         <div className="space-y-4">
+          {/* Servizio Completo helper banner */}
+          {tipoServizio === "servizio_completo" && (
+            <div className="flex items-start gap-2.5 rounded-lg border border-primary/20 bg-primary/5 p-3">
+              <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+              <p className="text-xs text-primary leading-relaxed">
+                <span className="font-semibold">Servizio Completo:</span> inserisci i dati del cliente e, se disponibile, il tipo di intervento. Pratica Rapida gestirà tutto il resto.
+              </p>
+            </div>
+          )}
+
           <Card>
             <CardHeader>
-              <CardTitle>Tipo di Intervento & Documenti</CardTitle>
-              <CardDescription>
-                Seleziona il tipo di intervento e carica la fattura. Pratica Rapida gestirà il resto.
-              </CardDescription>
+              <CardTitle>Dati del Cliente</CardTitle>
+              <CardDescription>Inserisci i dati anagrafici del cliente finale.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-5">
-              {/* Tipo intervento */}
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="nome">Nome *</Label>
+                  <Input
+                    id="nome"
+                    value={clienteNome}
+                    onChange={(e) => { setClienteNome(e.target.value); setErrors(prev => ({ ...prev, nome: "" })); }}
+                    placeholder="Mario"
+                  />
+                  {errors.nome && <p className="text-sm text-destructive">{errors.nome}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cognome">Cognome *</Label>
+                  <Input
+                    id="cognome"
+                    value={clienteCognome}
+                    onChange={(e) => { setClienteCognome(e.target.value); setErrors(prev => ({ ...prev, cognome: "" })); }}
+                    placeholder="Rossi"
+                  />
+                  {errors.cognome && <p className="text-sm text-destructive">{errors.cognome}</p>}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={clienteEmail}
+                    onChange={(e) => { setClienteEmail(e.target.value); setErrors(prev => ({ ...prev, email: "" })); }}
+                    placeholder="mario@esempio.it"
+                  />
+                  {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="telefono">Telefono</Label>
+                  <Input
+                    id="telefono"
+                    value={clienteTelefono}
+                    onChange={(e) => { setClienteTelefono(e.target.value); setErrors(prev => ({ ...prev, telefono: "" })); }}
+                    placeholder="+39 333 1234567"
+                  />
+                  {errors.telefono && <p className="text-sm text-destructive">{errors.telefono}</p>}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Dettagli Pratica</CardTitle>
+              <CardDescription>Informazioni aggiuntive sull'intervento (opzionali).</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Tipo di intervento</Label>
+                <Label htmlFor="tipo-intervento">Tipo di intervento</Label>
                 <Select value={tipoIntervento} onValueChange={setTipoIntervento}>
-                  <SelectTrigger>
+                  <SelectTrigger id="tipo-intervento">
                     <SelectValue placeholder="Seleziona tipo intervento" />
                   </SelectTrigger>
                   <SelectContent>
@@ -859,167 +752,86 @@ export default function NuovaPratica() {
                 </Select>
               </div>
 
-              {/* Info banner */}
-              <div className="flex items-start gap-2.5 rounded-lg border border-primary/20 bg-primary/5 p-3">
-                <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                <div className="text-xs text-primary">
-                  <p className="font-semibold">Servizio Completo attivo</p>
-                  <p className="mt-0.5 leading-relaxed">
-                    La <strong>fattura</strong> è obbligatoria.
-                    {extraDocs.length > 0
-                      ? " Se disponibile, puoi caricare anche la documentazione tecnica (opzionale)."
-                      : " Pratica Rapida recupererà tutti gli altri documenti necessari."}
-                  </p>
-                </div>
-              </div>
-
-              {/* Fattura — sempre obbligatoria */}
-              <DocUploadCard
-                label="Fattura / Proforma *"
-                description={tipoIntervento === "Vepa"
-                  ? "Fattura o proforma con le dimensioni del prodotto installato indicate"
-                  : "Fattura o proforma relativa ai lavori eseguiti (obbligatoria)"}
-                files={documenti["fattura"] ?? []}
-                onAdd={(newFiles) => setDocumenti(prev => ({ ...prev, fattura: [...(prev["fattura"] ?? []), ...newFiles] }))}
-                onRemove={(idx) => setDocumenti(prev => ({ ...prev, fattura: (prev["fattura"] ?? []).filter((_, i) => i !== idx) }))}
-                onValidationError={(msg) => toast({ title: "File non valido", description: msg, variant: "destructive" })}
-              />
-
-              {/* Documenti aggiuntivi opzionali in base al tipo intervento */}
-              {extraDocs.length > 0 && (
-                <div className="space-y-3">
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Documenti opzionali</p>
-                  {extraDocs.map(dt => (
-                    <DocUploadCard
-                      key={dt.id}
-                      label={dt.label}
-                      description={dt.description}
-                      files={documenti[dt.id] ?? []}
-                      onAdd={(newFiles) => setDocumenti(prev => ({ ...prev, [dt.id]: [...(prev[dt.id] ?? []), ...newFiles] }))}
-                      onRemove={(idx) => setDocumenti(prev => ({ ...prev, [dt.id]: (prev[dt.id] ?? []).filter((_, i) => i !== idx) }))}
-                      onValidationError={(msg) => toast({ title: "File non valido", description: msg, variant: "destructive" })}
-                    />
-                  ))}
+              {/* Data fine lavori — solo self service */}
+              {tipoServizio !== "servizio_completo" && (
+                <div className="space-y-2">
+                  <Label>Data fine lavori</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn("w-full justify-start text-left font-normal", !dataFineLavori && "text-muted-foreground")}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dataFineLavori ? format(dataFineLavori, "dd/MM/yyyy", { locale: it }) : "Seleziona data"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar mode="single" selected={dataFineLavori} onSelect={setDataFineLavori} locale={it} />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               )}
+
+              <div className="space-y-2">
+                <Label htmlFor="note">Note aggiuntive</Label>
+                <Textarea
+                  id="note"
+                  value={noteAggiuntive}
+                  onChange={e => setNoteAggiuntive(e.target.value)}
+                  placeholder="Informazioni aggiuntive sulla pratica..."
+                  rows={3}
+                  maxLength={2000}
+                />
+              </div>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* ── Step 1 (Self Service): Dati Pratica ────────────────────────────── */}
-      {step === 1 && tipoServizio !== "servizio_completo" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Dati della Pratica {brandConf!.shortLabel}</CardTitle>
-            <CardDescription>Inserisci i dettagli specifici dell'intervento.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Tipo di intervento</Label>
-              <Select value={tipoIntervento} onValueChange={setTipoIntervento}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleziona tipo intervento" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tipiIntervento.map(t => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Data fine lavori</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !dataFineLavori && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dataFineLavori ? format(dataFineLavori, "dd/MM/yyyy", { locale: it }) : "Seleziona data"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={dataFineLavori} onSelect={setDataFineLavori} locale={it} />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="space-y-2">
-              <Label>Note aggiuntive</Label>
-              <Textarea
-                value={noteAggiuntive}
-                onChange={e => setNoteAggiuntive(e.target.value)}
-                placeholder="Informazioni aggiuntive sulla pratica..."
-                rows={3}
-                maxLength={2000}
-              />
-              {step2Errors.note_aggiuntive && <p className="text-sm text-destructive">{step2Errors.note_aggiuntive}</p>}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ── Step 2 (Self Service): Documenti ──────────────────────────────── */}
-      {step === 2 && tipoServizio !== "servizio_completo" && (
+      {/* ── Step 1: Documenti — unico calderone ─────────────────────────────── */}
+      {step === 1 && (
         <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Documenti del Cliente</CardTitle>
-              <CardDescription>Carica i documenti necessari per la pratica. Puoi aggiungere più file per categoria.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Info banner */}
-              <div className="flex items-start gap-2.5 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/40 p-3">
-                <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-                <div className="text-xs text-blue-700 dark:text-blue-300">
-                  <p className="font-semibold">Documenti richiesti</p>
-                  <p className="mt-0.5 leading-relaxed">
-                    La <strong>fattura</strong> è obbligatoria. Gli altri documenti possono essere aggiunti anche in un secondo momento dalla pratica.
-                  </p>
-                </div>
-              </div>
+          {tipoServizio === "servizio_completo" ? (
+            <div className="flex items-start gap-2.5 rounded-lg border border-primary/20 bg-primary/5 p-3">
+              <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+              <p className="text-xs text-primary leading-relaxed">
+                <span className="font-semibold">Servizio Completo:</span> carica la <strong>fattura</strong> e qualsiasi altro documento disponibile. Pratica Rapida recupererà il resto.
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-start gap-2.5 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/40 p-3">
+              <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+              <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                <span className="font-semibold">Documenti richiesti:</span> carica fattura, documento d'identità e qualsiasi altro file necessario alla pratica. Puoi aggiungerne altri anche in seguito dalla pagina della pratica.
+              </p>
+            </div>
+          )}
 
-              {/* Upload cards grid */}
-              <div className="grid gap-3 sm:grid-cols-2">
-                {DOC_TYPES.map((dt) => (
-                  <DocUploadCard
-                    key={dt.id}
-                    label={dt.label}
-                    description={dt.description}
-                    files={documenti[dt.id] ?? []}
-                    onAdd={(newFiles) =>
-                      setDocumenti((prev) => ({
-                        ...prev,
-                        [dt.id]: [...(prev[dt.id] ?? []), ...newFiles],
-                      }))
-                    }
-                    onRemove={(idx) =>
-                      setDocumenti((prev) => ({
-                        ...prev,
-                        [dt.id]: (prev[dt.id] ?? []).filter((_, i) => i !== idx),
-                      }))
-                    }
-                    onValidationError={(msg) =>
-                      toast({ title: "File non valido", description: msg, variant: "destructive" })
-                    }
-                  />
-                ))}
-              </div>
+          <DocUploadCard
+            label="Carica i documenti"
+            description="Trascina o seleziona tutti i file. Puoi caricare PDF, immagini, Word, Excel e altri formati."
+            files={documenti}
+            onAdd={(newFiles) => setDocumenti(prev => [...prev, ...newFiles])}
+            onRemove={(idx) => setDocumenti(prev => prev.filter((_, i) => i !== idx))}
+            onValidationError={(msg) => toast({ title: "File non valido", description: msg, variant: "destructive" })}
+          />
 
-              {/* File count summary */}
-              {(() => {
-                const total = Object.values(documenti).reduce((sum, arr) => sum + arr.length, 0);
-                return total > 0 ? (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    <Check className="h-3.5 w-3.5 text-green-600" />
-                    {total} {total === 1 ? "file selezionato" : "file selezionati"} — verranno caricati all'invio della pratica
-                  </p>
-                ) : null;
-              })()}
-            </CardContent>
-          </Card>
+          {documenti.length === 0 && (
+            <p className="text-xs text-muted-foreground text-center">
+              I documenti sono opzionali — potrai caricarli anche dalla pagina della pratica dopo l'invio.
+            </p>
+          )}
+          {documenti.length > 0 && (
+            <p className="flex items-center gap-1.5 text-xs text-green-600">
+              <Check className="h-3.5 w-3.5" />
+              {documenti.length} {documenti.length === 1 ? "file selezionato" : "file selezionati"} — verranno caricati all'invio
+            </p>
+          )}
         </div>
       )}
 
-      {/* ── Step 2/3: Riepilogo ────────────────────────────────────────────── */}
+      {/* ── Step 2: Riepilogo ────────────────────────────────────────────────── */}
       {step === lastStep && (
         <div className="space-y-4">
           <Card>
@@ -1041,50 +853,34 @@ export default function NuovaPratica() {
                 <h3 className="font-semibold text-sm border-t pt-3">Cliente</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div><span className="text-muted-foreground">Nome:</span> {clienteNome} {clienteCognome}</div>
-                  {clienteEmail && <div><span className="text-muted-foreground">Email:</span> {clienteEmail}</div>}
+                  {clienteEmail    && <div><span className="text-muted-foreground">Email:</span> {clienteEmail}</div>}
                   {clienteTelefono && <div><span className="text-muted-foreground">Tel:</span> {clienteTelefono}</div>}
                 </div>
 
                 {/* Dati pratica */}
-                {(tipoIntervento || dataFineLavori) && (
+                {(tipoIntervento || dataFineLavori || noteAggiuntive) && (
                   <>
-                    <h3 className="font-semibold text-sm border-t pt-3">Dati Pratica {brandConf!.shortLabel}</h3>
+                    <h3 className="font-semibold text-sm border-t pt-3">Dettagli {brandConf!.shortLabel}</h3>
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      {tipoIntervento && <div><span className="text-muted-foreground">Intervento:</span> {tipoIntervento}</div>}
-                      {dataFineLavori && <div><span className="text-muted-foreground">Fine lavori:</span> {format(dataFineLavori, "dd/MM/yyyy", { locale: it })}</div>}
-                      {noteAggiuntive && <div className="col-span-2"><span className="text-muted-foreground">Note:</span> {noteAggiuntive}</div>}
+                      {tipoIntervento  && <div><span className="text-muted-foreground">Intervento:</span> {tipoIntervento}</div>}
+                      {dataFineLavori  && <div><span className="text-muted-foreground">Fine lavori:</span> {format(dataFineLavori, "dd/MM/yyyy", { locale: it })}</div>}
+                      {noteAggiuntive  && <div className="col-span-2"><span className="text-muted-foreground">Note:</span> {noteAggiuntive}</div>}
                     </div>
                   </>
                 )}
 
-                {/* Documenti caricati */}
-                {(() => {
-                  const totalFiles = Object.values(documenti).reduce((sum, arr) => sum + arr.length, 0);
-                  const typesWithFiles = DOC_TYPES.filter((dt) => (documenti[dt.id]?.length ?? 0) > 0);
-                  return (
-                    <>
-                      <h3 className="font-semibold text-sm border-t pt-3">Documenti</h3>
-                      {totalFiles === 0 ? (
-                        <p className="text-xs text-muted-foreground italic">Nessun documento caricato</p>
-                      ) : (
-                        <div className="space-y-1">
-                          {typesWithFiles.map((dt) => (
-                            <div key={dt.id} className="flex items-center justify-between text-xs">
-                              <span className="text-muted-foreground">{dt.label}:</span>
-                              <span className="font-medium">{documenti[dt.id]!.length} file</span>
-                            </div>
-                          ))}
-                          <div className="flex items-center gap-1 text-xs text-green-600 font-medium pt-1">
-                            <Check className="h-3 w-3" />
-                            {totalFiles} {totalFiles === 1 ? "file" : "file"} pronti per il caricamento
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  );
-                })()}
+                {/* Documenti */}
+                <h3 className="font-semibold text-sm border-t pt-3">Documenti</h3>
+                {documenti.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">Nessun documento caricato — potrai aggiungerli dalla pratica</p>
+                ) : (
+                  <p className="flex items-center gap-1.5 text-xs text-green-600 font-medium">
+                    <Check className="h-3 w-3" />
+                    {documenti.length} {documenti.length === 1 ? "file pronto" : "file pronti"} per il caricamento
+                  </p>
+                )}
 
-                {/* Promo */}
+                {/* Promo utente */}
                 {usePromoOnSubmit && isPromoApplicable && (
                   <div className="flex justify-between text-green-600 font-semibold border-t pt-3">
                     <span>Con promo</span>
@@ -1095,28 +891,19 @@ export default function NuovaPratica() {
             </CardContent>
           </Card>
 
-          {/* ── Banner prezzo + accettazione ──────────────────────────────── */}
-          <Card className={cn(
-            "border-2 transition-colors",
-            accettazionePrezzo ? "border-primary/30 bg-primary/5" : "border-border"
-          )}>
+          {/* Prezzo + accettazione */}
+          <Card className={cn("border-2 transition-colors", accettazionePrezzo ? "border-primary/30 bg-primary/5" : "border-border")}>
             <CardContent className="pt-5 space-y-4">
-              {/* Riepilogo costo */}
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 shrink-0">
                   <ShieldCheck className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-semibold">Costo del servizio</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Fatturazione mensile posticipata tramite bonifico
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Fatturazione mensile posticipata tramite bonifico</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className={cn(
-                    "text-2xl font-bold tabular-nums",
-                    usePromoOnSubmit && isPromoApplicable ? "line-through text-muted-foreground text-base" : ""
-                  )}>
+                  <p className={cn("text-2xl font-bold tabular-nums", usePromoOnSubmit && isPromoApplicable ? "line-through text-muted-foreground text-base" : "")}>
                     € {prezzoNetto.toFixed(2)}
                   </p>
                   <p className="text-xs text-muted-foreground">+ IVA 22% (€ {prezzoIva.toFixed(2)})</p>
@@ -1127,7 +914,7 @@ export default function NuovaPratica() {
                 </div>
               </div>
 
-              {/* Banner promo */}
+              {/* Promo utente */}
               {isPromoApplicable && activePromo && (
                 <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
                   <div className="flex items-center gap-2">
@@ -1155,7 +942,7 @@ export default function NuovaPratica() {
                 </div>
               )}
 
-              {/* Banner promo aziendale */}
+              {/* Promo aziendale */}
               {activeCompanyPromo && computeNextIsFree(activeCompanyPromo) && (
                 <div className="rounded-lg border border-green-200 bg-green-50 p-3 flex items-start gap-2">
                   <Gift className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
@@ -1166,13 +953,11 @@ export default function NuovaPratica() {
                 </div>
               )}
 
-              {/* Checkbox accettazione — obbligatoria */}
+              {/* Checkbox accettazione */}
               <div
                 className={cn(
                   "flex items-start gap-3 rounded-lg border p-3.5 cursor-pointer transition-colors",
-                  accettazionePrezzo
-                    ? "border-primary/40 bg-primary/5"
-                    : "border-border hover:border-primary/30 hover:bg-muted/40"
+                  accettazionePrezzo ? "border-primary/40 bg-primary/5" : "border-border hover:border-primary/30 hover:bg-muted/40"
                 )}
                 onClick={() => setAccettazionePrezzo(v => !v)}
               >
@@ -1183,8 +968,7 @@ export default function NuovaPratica() {
                   className="mt-0.5 shrink-0"
                 />
                 <label htmlFor="accettazione-prezzo" className="text-sm leading-relaxed cursor-pointer select-none">
-                  Confermo di aver preso visione che, al completamento della pratica,
-                  il costo del servizio sarà di{" "}
+                  Confermo di aver preso visione che, al completamento della pratica, il costo del servizio sarà di{" "}
                   <strong className={usePromoOnSubmit && isPromoApplicable ? "line-through text-muted-foreground" : ""}>
                     € {prezzoNetto.toFixed(2)} + IVA 22%
                   </strong>
@@ -1195,7 +979,6 @@ export default function NuovaPratica() {
                 </label>
               </div>
 
-              {/* Avviso se non accettato */}
               {!accettazionePrezzo && (
                 <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <AlertCircle className="h-3.5 w-3.5 shrink-0" />
@@ -1207,17 +990,18 @@ export default function NuovaPratica() {
         </div>
       )}
 
-      {/* ── Navigation ────────────────────────────────────────────────────── */}
+      {/* ── Navigation ──────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <Button
           variant="outline"
           onClick={() => {
             if (step > 0) setStep(step - 1);
-            else setBrand(null);
+            else { setBrand(null); setTipoServizio(null); }
           }}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />Indietro
         </Button>
+
         <div className="flex gap-2">
           {step === lastStep && (
             <Button
@@ -1225,13 +1009,12 @@ export default function NuovaPratica() {
               onClick={() => submitPratica.mutate(true)}
               disabled={submitPratica.isPending}
             >
-              {submitPratica.isPending ? (
-                <><div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Salvataggio...</>
-              ) : (
-                <><FileText className="mr-2 h-4 w-4" />Salva Bozza</>
-              )}
+              {submitPratica.isPending
+                ? <><div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Salvataggio...</>
+                : <><FileText className="mr-2 h-4 w-4" />Salva Bozza</>}
             </Button>
           )}
+
           {step < lastStep ? (
             <Button onClick={handleNext}>
               Avanti<ArrowRight className="ml-2 h-4 w-4" />
@@ -1242,11 +1025,9 @@ export default function NuovaPratica() {
               disabled={submitPratica.isPending || !accettazionePrezzo}
               title={!accettazionePrezzo ? "Accetta le condizioni economiche per procedere" : undefined}
             >
-              {submitPratica.isPending ? (
-                <><div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Invio in corso...</>
-              ) : (
-                <><Send className="mr-2 h-4 w-4" />Invia Pratica {brandConf!.shortLabel}</>
-              )}
+              {submitPratica.isPending
+                ? <><div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Invio in corso...</>
+                : <><Send className="mr-2 h-4 w-4" />Invia Pratica {brandConf!.shortLabel}</>}
             </Button>
           )}
         </div>

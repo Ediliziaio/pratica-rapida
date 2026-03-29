@@ -37,8 +37,19 @@ import {
   CheckCircle2,
   Pencil,
   Copy,
+  Eye,
+  Save,
 } from "lucide-react";
 import type { AutomationRule } from "@/integrations/supabase/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -192,6 +203,251 @@ const EMAIL_TEMPLATES = [
 function genId() {
   return crypto.randomUUID();
 }
+
+// ─── Email Moduli Cliente Editor ──────────────────────────────────────────────
+
+interface EmailTmpl {
+  id: string;
+  name: string;
+  subject: string;
+  html_body: string;
+  trigger_event: string;
+  is_active: boolean;
+}
+
+const SAMPLE_VARS = { nome: "Mario Rossi", link: "#", tipo_modulo: "Schermature Solari" };
+
+function applyPreviewVars(text: string): string {
+  return text.replace(/\{\{(\w+)\}\}/g, (_, k) => (SAMPLE_VARS as Record<string, string>)[k] ?? `{{${k}}}`);
+}
+
+const AVAILABLE_VARS = [
+  { key: "{{nome}}", desc: "Nome e cognome del cliente" },
+  { key: "{{link}}", desc: "Link al modulo da compilare" },
+  { key: "{{tipo_modulo}}", desc: "Es. Schermature Solari, Infissi..." },
+];
+
+const MODULO_TEMPLATES = [
+  { event: "modulo_cliente_invio", label: "Primo Invio", description: "Inviata quando si genera e condivide il link al cliente" },
+  { event: "modulo_cliente_reminder", label: "Reminder", description: "Inviata automaticamente dopo 3 giorni se il modulo non è stato compilato" },
+];
+
+function EmailTemplateEditor({ tmpl, onClose, onSaved }: {
+  tmpl: EmailTmpl;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const { toast } = useToast();
+  const [subject, setSubject] = useState(tmpl.subject);
+  const [body, setBody] = useState(tmpl.html_body);
+  const [tab, setTab] = useState<"edit" | "preview">("edit");
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("email_templates")
+        .update({ subject, html_body: body })
+        .eq("id", tmpl.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "Template salvato" });
+      onSaved();
+      onClose();
+    },
+    onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  const insertVar = (v: string) => {
+    const ta = document.getElementById("email-body-editor") as HTMLTextAreaElement | null;
+    if (!ta) { setBody(b => b + v); return; }
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    setBody(b => b.slice(0, s) + v + b.slice(e));
+    requestAnimationFrame(() => { ta.focus(); ta.setSelectionRange(s + v.length, s + v.length); });
+  };
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="px-6 pt-5 pb-3 border-b shrink-0">
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Mail className="h-4 w-4" />
+            {tmpl.name}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-hidden flex flex-col px-6 py-4 gap-4">
+          {/* Subject */}
+          <div className="space-y-1.5 shrink-0">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Oggetto email</Label>
+            <Input
+              value={subject}
+              onChange={e => setSubject(e.target.value)}
+              className="text-sm font-medium"
+              placeholder="Es. Compila il tuo modulo ENEA — {{tipo_modulo}}"
+            />
+          </div>
+
+          {/* Variables chips */}
+          <div className="shrink-0">
+            <p className="text-xs text-muted-foreground mb-1.5">Variabili disponibili (clicca per inserire nel corpo):</p>
+            <div className="flex flex-wrap gap-1.5">
+              {AVAILABLE_VARS.map(v => (
+                <button
+                  key={v.key}
+                  onClick={() => insertVar(v.key)}
+                  title={v.desc}
+                  className="text-xs font-mono bg-primary/10 text-primary border border-primary/20 rounded px-2 py-0.5 hover:bg-primary/20 transition-colors"
+                >
+                  {v.key}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Body editor / preview tabs */}
+          <Tabs value={tab} onValueChange={v => setTab(v as "edit" | "preview")} className="flex-1 flex flex-col min-h-0">
+            <TabsList className="shrink-0 w-fit">
+              <TabsTrigger value="edit" className="gap-1.5 text-xs">
+                <Pencil className="h-3.5 w-3.5" />
+                Modifica HTML
+              </TabsTrigger>
+              <TabsTrigger value="preview" className="gap-1.5 text-xs">
+                <Eye className="h-3.5 w-3.5" />
+                Anteprima
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="edit" className="flex-1 mt-2 min-h-0">
+              <textarea
+                id="email-body-editor"
+                value={body}
+                onChange={e => setBody(e.target.value)}
+                className="w-full h-full min-h-[300px] font-mono text-xs border rounded-md p-3 resize-none focus:outline-none focus:ring-2 focus:ring-ring bg-muted/30"
+                spellCheck={false}
+              />
+            </TabsContent>
+
+            <TabsContent value="preview" className="flex-1 mt-2 min-h-0 overflow-auto border rounded-md bg-white">
+              <iframe
+                srcDoc={applyPreviewVars(body)}
+                className="w-full h-full min-h-[400px] border-0"
+                title="Email preview"
+                sandbox="allow-same-origin"
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        <DialogFooter className="px-6 py-4 border-t shrink-0">
+          <Button variant="outline" onClick={onClose}>Annulla</Button>
+          <Button onClick={() => save.mutate()} disabled={save.isPending} className="gap-1.5">
+            {save.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+            Salva template
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EmailModuliClienteSection() {
+  const queryClient = useQueryClient();
+  const [editing, setEditing] = useState<EmailTmpl | null>(null);
+
+  const { data: templates = [] } = useQuery<EmailTmpl[]>({
+    queryKey: ["email_templates_modulo"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("email_templates")
+        .select("*")
+        .in("trigger_event", ["modulo_cliente_invio", "modulo_cliente_reminder"]);
+      if (error) throw error;
+      return data as EmailTmpl[];
+    },
+  });
+
+  const toggleActive = useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await supabase.from("email_templates").update({ is_active }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["email_templates_modulo"] }),
+  });
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <h2 className="text-base font-semibold flex items-center gap-2">
+          <Mail className="h-4 w-4 text-primary" />
+          Email Moduli Cliente
+        </h2>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Personalizza i testi delle email inviate ai clienti per la compilazione dei moduli ENEA.
+        </p>
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-3">
+        {MODULO_TEMPLATES.map(mt => {
+          const tmpl = templates.find(t => t.trigger_event === mt.event);
+          return (
+            <Card key={mt.event} className="border">
+              <CardHeader className="pb-2 pt-4 px-4">
+                <CardTitle className="text-sm flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Mail className="h-3.5 w-3.5 text-blue-500" />
+                    {mt.label}
+                  </span>
+                  {tmpl && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{tmpl.is_active ? "Attiva" : "Disattivata"}</span>
+                      <Switch
+                        checked={tmpl.is_active}
+                        onCheckedChange={v => toggleActive.mutate({ id: tmpl.id, is_active: v })}
+                      />
+                    </div>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4 space-y-3">
+                <p className="text-xs text-muted-foreground">{mt.description}</p>
+                {tmpl ? (
+                  <>
+                    <div className="bg-muted/40 rounded-md px-3 py-2 space-y-0.5">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Oggetto</p>
+                      <p className="text-xs font-medium truncate">{tmpl.subject}</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-1.5 h-8 text-xs"
+                      onClick={() => setEditing(tmpl)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      Modifica template
+                    </Button>
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground italic">Template non trovato in DB</p>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {editing && (
+        <EmailTemplateEditor
+          tmpl={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => queryClient.invalidateQueries({ queryKey: ["email_templates_modulo"] })}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function parseFlow(rule: AutomationRule): AutomationFlow {
   const config = rule.trigger_config as Record<string, unknown>;
@@ -1119,7 +1375,7 @@ export default function Automazioni() {
 
   // ── List view ─────────────────────────────────────────────────────────────
   return (
-    <div className="p-4 space-y-5 max-w-5xl">
+    <div className="p-4 space-y-8 max-w-5xl">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-bold flex items-center gap-2">
@@ -1141,6 +1397,8 @@ export default function Automazioni() {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       )}
+
+      <EmailModuliClienteSection />
 
       {!isLoading && rules.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">

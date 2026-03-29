@@ -24,61 +24,49 @@ const TIPO_PATH: Record<string, string> = {
   "impianto-termico": "impianto-termico",
 };
 
-function htmlEmail(nome: string, moduloUrl: string, isReminder: boolean) {
-  const heading = isReminder
-    ? "Ricordati di compilare il modulo!"
-    : "Abbiamo bisogno di alcune informazioni";
-  const intro = isReminder
-    ? `Ciao <strong>${nome}</strong>, ti ricordiamo che hai un modulo in attesa di compilazione per la tua pratica ENEA.`
-    : `Ciao <strong>${nome}</strong>, per procedere con la tua pratica ENEA abbiamo bisogno di alcune informazioni tecniche.`;
-
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:20px 0">
-<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%">
-  <tr><td style="background:#1a1a2e;padding:24px;text-align:center;">
-    <h1 style="color:#ffffff;margin:0;font-size:22px;">Pratica Rapida</h1>
-    <p style="color:#aaaacc;margin:6px 0 0;font-size:13px;">Pratiche ENEA e Conto Termico</p>
-  </td></tr>
-  <tr><td style="padding:32px 40px;color:#333;line-height:1.7;">
-    <h2 style="color:#1a1a2e;margin-top:0;">${heading}</h2>
-    <p>${intro}</p>
-    <p>Ci vogliono solo <strong>5 minuti</strong> per completare il modulo online.</p>
-    <div style="text-align:center;margin:28px 0">
-      <a href="${moduloUrl}" style="background:#e94560;color:#ffffff;padding:14px 32px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:16px;display:inline-block;">
-        Compila il modulo ora →
-      </a>
-    </div>
-    <p style="color:#888;font-size:13px;">Oppure copia questo link nel tuo browser:<br>
-      <a href="${moduloUrl}" style="color:#e94560;word-break:break-all;">${moduloUrl}</a>
-    </p>
-    <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
-    <p style="font-size:13px;color:#888;">Per assistenza: <a href="mailto:supporto@pratica-rapida.it" style="color:#e94560;">supporto@pratica-rapida.it</a></p>
-  </td></tr>
-  <tr><td style="background:#f4f4f4;padding:16px;text-align:center;font-size:12px;color:#888;">
-    © ${new Date().getFullYear()} Pratica Rapida · AEDIX
-  </td></tr>
-</table></td></tr></table></body></html>`;
+function applyVars(template: string, vars: Record<string, string>): string {
+  return template.replace(/\{\{(\w+)\}\}/g, (_, k) => vars[k] ?? "");
 }
 
 function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
 }
 
-async function sendEmail(to: string, nome: string, moduloUrl: string, isReminder: boolean) {
-  const subject = isReminder
-    ? "Reminder: completa il modulo ENEA"
-    : "Compila il tuo modulo ENEA";
+async function sendEmail(
+  to: string,
+  nome: string,
+  moduloUrl: string,
+  tipoModulo: string,
+  isReminder: boolean,
+  supabase: ReturnType<typeof import("https://esm.sh/@supabase/supabase-js@2").createClient>
+) {
+  const triggerEvent = isReminder ? "modulo_cliente_reminder" : "modulo_cliente_invio";
+  const vars = {
+    nome,
+    link: moduloUrl,
+    tipo_modulo: TIPO_LABEL[tipoModulo] ?? tipoModulo,
+  };
+
+  // Try to load template from DB
+  const { data: tmpl } = await supabase
+    .from("email_templates")
+    .select("subject, html_body")
+    .eq("trigger_event", triggerEvent)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  const subject = tmpl?.subject
+    ? applyVars(tmpl.subject, vars)
+    : isReminder ? "Reminder: completa il modulo ENEA" : "Compila il tuo modulo ENEA";
+
+  const html = tmpl?.html_body
+    ? applyVars(tmpl.html_body, vars)
+    : `<p>Ciao ${nome}, compila il modulo: <a href="${moduloUrl}">${moduloUrl}</a></p>`;
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from: FROM_EMAIL,
-      to: [to],
-      subject,
-      html: htmlEmail(nome, moduloUrl, isReminder),
-    }),
+    body: JSON.stringify({ from: FROM_EMAIL, to: [to], subject, html }),
   });
   if (!res.ok) {
     const err = await res.text();
@@ -186,7 +174,7 @@ serve(async (req) => {
 
     // Send email
     if ((channel === "email" || channel === "both") && email) {
-      results.email = await sendEmail(email, nome, moduloUrl, is_reminder);
+      results.email = await sendEmail(email, nome, moduloUrl, token.tipo_modulo, is_reminder, supabase);
     } else if ((channel === "email" || channel === "both") && !email) {
       results.email = { skipped: "nessuna email disponibile" };
     }

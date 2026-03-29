@@ -52,6 +52,12 @@ const WhatsappPanel = lazy(() => import("./pages/admin/WhatsappPanel"));
 
 const queryClient = new QueryClient();
 
+function RootRedirect() {
+  const { roles } = useAuth();
+  const isInternal = roles.some(r => ["super_admin", "admin_interno", "operatore"].includes(r));
+  return <Navigate to={isInternal ? "/admin/pratiche" : "/pratiche"} replace />;
+}
+
 const INTERNAL_ROLES = ["super_admin", "admin_interno", "operatore"] as const;
 const ADMIN_ROLES = ["super_admin"] as const;
 // Staff = internal Pratica Rapida employees only (NOT company admins like admin_interno)
@@ -96,9 +102,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AuthRoute() {
-  const { session, loading } = useAuth();
+  const { session, loading, roles } = useAuth();
   if (loading) return null;
-  if (session) return <Navigate to="/" replace />;
+  if (session) {
+    const isInternal = roles.some(r => ["super_admin", "admin_interno", "operatore"].includes(r));
+    return <Navigate to={isInternal ? "/admin/pratiche" : "/"} replace />;
+  }
   return <Auth />;
 }
 
@@ -122,7 +131,7 @@ const App = () => (
                 <Route path="/form/:token" element={<FormPubblico />} />
                 <Route path="/modulo/:token" element={<ModuloClientePage />} />
                 <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/" element={<ProtectedRoute><RootRedirect /></ProtectedRoute>} />
                 <Route path="/pratiche" element={<ProtectedRoute><Pratiche /></ProtectedRoute>} />
                 <Route path="/pratiche/nuova" element={<ProtectedRoute><NuovaPratica /></ProtectedRoute>} />
                 <Route path="/pratiche/:id" element={<ProtectedRoute><PraticaDetail /></ProtectedRoute>} />

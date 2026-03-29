@@ -96,7 +96,7 @@ const BRAND_CONFIG: Record<Brand, {
   enea: {
     label: "Pratica ENEA",
     shortLabel: "ENEA",
-    description: "Detrazioni fiscali 50–110%: Ecobonus, SuperBonus, detrazioni per riqualificazione energetica.",
+    description: "Detrazioni fiscali al 50% per prima casa e 36% per seconda casa: Ecobonus, detrazioni per riqualificazione energetica.",
     color: "bg-blue-50 border-blue-200 hover:border-blue-400",
     badgeClass: "bg-blue-100 text-blue-700",
     praticaLabel: "ENEA",

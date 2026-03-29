@@ -84,6 +84,57 @@ const TIPI_INTERVENTO_CT = [
   "Altro",
 ];
 
+// ── Documenti aggiuntivi (opzionali) per tipo intervento — flusso Servizio Completo ──
+type ExtraDoc = { id: string; label: string; description: string };
+
+const DOCS_PER_INTERVENTO: Record<string, ExtraDoc[]> = {
+  // ENEA
+  "Sostituzione infissi": [
+    { id: "certificato_trasmittanza", label: "Certificato di Trasmittanza", description: "Certificato di trasmittanza termica degli infissi installati (opzionale)" },
+  ],
+  "Schermature solari": [],
+  "Caldaia a condensazione": [
+    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica della caldaia a condensazione (opzionale)" },
+  ],
+  "Pompa di calore": [
+    { id: "libretto_tecnico", label: "Libretto Tecnico", description: "Libretto tecnico con modello del dispositivo installato (opzionale)" },
+  ],
+  "Impianto solare termico": [
+    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica del sistema solare termico (opzionale)" },
+  ],
+  "Coibentazione strutture": [
+    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica del materiale isolante utilizzato (opzionale)" },
+  ],
+  "Building automation": [],
+  "Scaldacqua a pompa di calore": [
+    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica dello scaldacqua a pompa di calore (opzionale)" },
+  ],
+  "Vepa": [],
+  "Microgeneratori": [
+    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica del microgeneratore (opzionale)" },
+  ],
+  "Altro": [],
+  // CT
+  "Sostituzione generatore a biomassa": [
+    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica del generatore a biomassa (opzionale)" },
+  ],
+  "Pompa di calore (riscaldamento)": [
+    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica della pompa di calore (opzionale)" },
+  ],
+  "Solare termico con collettori": [
+    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica dei collettori solari termici (opzionale)" },
+  ],
+  "Sistemi ibridi pompa di calore": [
+    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica del sistema ibrido (opzionale)" },
+  ],
+  "Impianti geotermici": [
+    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica dell'impianto geotermico (opzionale)" },
+  ],
+  "Caldaia a gas naturale (efficienza)": [
+    { id: "scheda_tecnica", label: "Scheda Tecnica", description: "Scheda tecnica della caldaia a gas (opzionale)" },
+  ],
+};
+
 const BRAND_CONFIG: Record<Brand, {
   label: string;
   shortLabel: string;
@@ -306,13 +357,13 @@ export default function NuovaPratica() {
 
   // ── Dynamic STEPS ──────────────────────────────────────────────────────────
   const STEPS = tipoServizio === "servizio_completo"
-    ? ["Dati Cliente", "Fattura", "Riepilogo"]
+    ? ["Dati Cliente", "Intervento & Fattura", "Riepilogo"]
     : ["Dati Cliente", "Dati Pratica", "Documenti", "Riepilogo"];
 
-  // Docs visibili nello step documenti in base al tipo servizio
-  const VISIBLE_DOC_TYPES = tipoServizio === "servizio_completo"
-    ? DOC_TYPES.filter(d => d.id === "fattura")
-    : DOC_TYPES;
+  // Docs aggiuntivi opzionali per il flusso servizio_completo
+  const extraDocs: ExtraDoc[] = tipoServizio === "servizio_completo" && tipoIntervento
+    ? (DOCS_PER_INTERVENTO[tipoIntervento] ?? [])
+    : [];
 
   const { data: praticaService } = useQuery({
     queryKey: ["enea-service"],
@@ -511,14 +562,28 @@ export default function NuovaPratica() {
 
   const handleNext = () => {
     if (step === 0 && !validateStep1()) return;
-    if (step === 1 && !validateStep2()) return;
-    if (step === 2) {
-      const fattureFiles = documenti["fattura"] ?? [];
-      if (fattureFiles.length === 0) {
-        toast({ title: "Fattura obbligatoria", description: "Carica almeno una fattura per procedere.", variant: "destructive" });
-        return;
+
+    if (tipoServizio === "servizio_completo") {
+      // Step 1 = "Intervento & Fattura" — fattura obbligatoria
+      if (step === 1) {
+        const fattureFiles = documenti["fattura"] ?? [];
+        if (fattureFiles.length === 0) {
+          toast({ title: "Fattura obbligatoria", description: "Carica almeno una fattura per procedere.", variant: "destructive" });
+          return;
+        }
+      }
+    } else {
+      // pratica_only: step 1 = Dati Pratica, step 2 = Documenti
+      if (step === 1 && !validateStep2()) return;
+      if (step === 2) {
+        const fattureFiles = documenti["fattura"] ?? [];
+        if (fattureFiles.length === 0) {
+          toast({ title: "Fattura obbligatoria", description: "Carica almeno una fattura per procedere.", variant: "destructive" });
+          return;
+        }
       }
     }
+
     setStep(step + 1);
   };
 
@@ -768,8 +833,82 @@ export default function NuovaPratica() {
         </Card>
       )}
 
-      {/* ── Step 1: Dati Pratica ───────────────────────────────────────────── */}
-      {step === 1 && (
+      {/* ── Step 1 (Servizio Completo): Intervento & Fattura ─────────────── */}
+      {step === 1 && tipoServizio === "servizio_completo" && (
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Tipo di Intervento & Documenti</CardTitle>
+              <CardDescription>
+                Seleziona il tipo di intervento e carica la fattura. Pratica Rapida gestirà il resto.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {/* Tipo intervento */}
+              <div className="space-y-2">
+                <Label>Tipo di intervento</Label>
+                <Select value={tipoIntervento} onValueChange={setTipoIntervento}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleziona tipo intervento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tipiIntervento.map(t => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Info banner */}
+              <div className="flex items-start gap-2.5 rounded-lg border border-primary/20 bg-primary/5 p-3">
+                <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                <div className="text-xs text-primary">
+                  <p className="font-semibold">Servizio Completo attivo</p>
+                  <p className="mt-0.5 leading-relaxed">
+                    La <strong>fattura</strong> è obbligatoria.
+                    {extraDocs.length > 0
+                      ? " Se disponibile, puoi caricare anche la documentazione tecnica (opzionale)."
+                      : " Pratica Rapida recupererà tutti gli altri documenti necessari."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Fattura — sempre obbligatoria */}
+              <DocUploadCard
+                label="Fattura / Proforma *"
+                description={tipoIntervento === "Vepa"
+                  ? "Fattura o proforma con le dimensioni del prodotto installato indicate"
+                  : "Fattura o proforma relativa ai lavori eseguiti (obbligatoria)"}
+                files={documenti["fattura"] ?? []}
+                onAdd={(newFiles) => setDocumenti(prev => ({ ...prev, fattura: [...(prev["fattura"] ?? []), ...newFiles] }))}
+                onRemove={(idx) => setDocumenti(prev => ({ ...prev, fattura: (prev["fattura"] ?? []).filter((_, i) => i !== idx) }))}
+                onValidationError={(msg) => toast({ title: "File non valido", description: msg, variant: "destructive" })}
+              />
+
+              {/* Documenti aggiuntivi opzionali in base al tipo intervento */}
+              {extraDocs.length > 0 && (
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Documenti opzionali</p>
+                  {extraDocs.map(dt => (
+                    <DocUploadCard
+                      key={dt.id}
+                      label={dt.label}
+                      description={dt.description}
+                      files={documenti[dt.id] ?? []}
+                      onAdd={(newFiles) => setDocumenti(prev => ({ ...prev, [dt.id]: [...(prev[dt.id] ?? []), ...newFiles] }))}
+                      onRemove={(idx) => setDocumenti(prev => ({ ...prev, [dt.id]: (prev[dt.id] ?? []).filter((_, i) => i !== idx) }))}
+                      onValidationError={(msg) => toast({ title: "File non valido", description: msg, variant: "destructive" })}
+                    />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* ── Step 1 (Self Service): Dati Pratica ────────────────────────────── */}
+      {step === 1 && tipoServizio !== "servizio_completo" && (
         <Card>
           <CardHeader>
             <CardTitle>Dati della Pratica {brandConf!.shortLabel}</CardTitle>
@@ -818,52 +957,29 @@ export default function NuovaPratica() {
         </Card>
       )}
 
-      {/* ── Step 2: Documenti ─────────────────────────────────────────────── */}
-      {step === 2 && (
+      {/* ── Step 2 (Self Service): Documenti ──────────────────────────────── */}
+      {step === 2 && tipoServizio !== "servizio_completo" && (
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>
-                {tipoServizio === "servizio_completo" ? "Carica la Fattura" : "Documenti del Cliente"}
-              </CardTitle>
-              <CardDescription>
-                {tipoServizio === "servizio_completo"
-                  ? "Carica la fattura o proforma relativa ai lavori. Pensiamo noi al resto."
-                  : "Carica i documenti necessari per la pratica. Puoi aggiungere più file per categoria."}
-              </CardDescription>
+              <CardTitle>Documenti del Cliente</CardTitle>
+              <CardDescription>Carica i documenti necessari per la pratica. Puoi aggiungere più file per categoria.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Info banner */}
-              <div className={`flex items-start gap-2.5 rounded-lg border p-3 ${
-                tipoServizio === "servizio_completo"
-                  ? "border-primary/20 bg-primary/5"
-                  : "border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/40"
-              }`}>
-                {tipoServizio === "servizio_completo"
-                  ? <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                  : <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />}
-                <div className={`text-xs ${tipoServizio === "servizio_completo" ? "text-primary" : "text-blue-700 dark:text-blue-300"}`}>
-                  {tipoServizio === "servizio_completo" ? (
-                    <>
-                      <p className="font-semibold">Servizio Completo attivo</p>
-                      <p className="mt-0.5 leading-relaxed">
-                        Carica solo la <strong>fattura</strong>. Pratica Rapida recupererà tutti gli altri documenti necessari e gestirà la pratica per te.
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="font-semibold">Documenti richiesti</p>
-                      <p className="mt-0.5 leading-relaxed">
-                        La <strong>fattura</strong> è obbligatoria. Gli altri documenti possono essere aggiunti anche in un secondo momento dalla pratica.
-                      </p>
-                    </>
-                  )}
+              <div className="flex items-start gap-2.5 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/40 p-3">
+                <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                <div className="text-xs text-blue-700 dark:text-blue-300">
+                  <p className="font-semibold">Documenti richiesti</p>
+                  <p className="mt-0.5 leading-relaxed">
+                    La <strong>fattura</strong> è obbligatoria. Gli altri documenti possono essere aggiunti anche in un secondo momento dalla pratica.
+                  </p>
                 </div>
               </div>
 
               {/* Upload cards grid */}
               <div className="grid gap-3 sm:grid-cols-2">
-                {VISIBLE_DOC_TYPES.map((dt) => (
+                {DOC_TYPES.map((dt) => (
                   <DocUploadCard
                     key={dt.id}
                     label={dt.label}

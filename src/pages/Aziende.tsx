@@ -391,7 +391,7 @@ export default function Aziende() {
                           )}
 
                           {superAdmin && (
-                            <Button variant="outline" size="sm" onClick={() => { setImpersonatedCompany(c.id, c.ragione_sociale); navigate("/"); }}>
+                            <Button variant="outline" size="sm" onClick={() => { setImpersonatedCompany(c.id, c.ragione_sociale); navigate("/pratiche"); }}>
                               <LogIn className="mr-1 h-4 w-4" />Accedi
                             </Button>
                           )}

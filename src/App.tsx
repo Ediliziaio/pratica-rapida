@@ -105,7 +105,7 @@ function AuthRoute() {
   if (loading) return null;
   if (session) {
     const isInternal = roles.some(r => ["super_admin", "admin_interno", "operatore"].includes(r));
-    return <Navigate to={isInternal ? "/admin/pratiche" : "/"} replace />;
+    return <Navigate to={isInternal ? "/admin/pratiche" : "/pratiche"} replace />;
   }
   return <Auth />;
 }

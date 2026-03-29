@@ -6,14 +6,13 @@ import { useCompany } from "@/hooks/useCompany";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   FolderOpen, FileCheck, AlertCircle,
-  ArrowRight, Plus, Receipt, Zap, Flame, LifeBuoy,
-  CheckCircle2, TrendingUp, TrendingDown,
+  ArrowRight, Plus, Zap, Flame, LifeBuoy,
+  CheckCircle2, Layers,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { STATO_CONFIG } from "@/lib/pratiche-config";
@@ -31,8 +30,6 @@ export function DashboardAzienda() {
   const now = new Date();
   const thisMonth = now.getMonth();
   const thisYear = now.getFullYear();
-  const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
-  const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
 
   const { data: company, isLoading: loadingCompany } = useQuery({
     queryKey: ["company-info", companyId],
@@ -54,7 +51,7 @@ export function DashboardAzienda() {
       if (!companyId) return [];
       const { data } = await supabase
         .from("pratiche")
-        .select("id, titolo, stato, prezzo, pagamento_stato, created_at, updated_at, dati_pratica, clienti_finali(nome, cognome)")
+        .select("id, titolo, stato, created_at, updated_at, dati_pratica, clienti_finali(nome, cognome)")
         .eq("company_id", companyId)
         .order("created_at", { ascending: false })
         .limit(500);
@@ -65,7 +62,9 @@ export function DashboardAzienda() {
 
   // ---- KPIs ----
   const kpis = useMemo(() => {
-    const aperte = pratiche.filter(p => !["completata", "annullata"].includes(p.stato)).length;
+    const totali = pratiche.length;
+    const attive = pratiche.filter(p => !["completata", "annullata"].includes(p.stato)).length;
+    const completate = pratiche.filter(p => p.stato === "completata").length;
     const attesaDoc = pratiche.filter(p => p.stato === "in_attesa_documenti");
     const inLavorazione = pratiche.filter(p => p.stato === "in_lavorazione").length;
 
@@ -73,40 +72,9 @@ export function DashboardAzienda() {
       const d = new Date(p.updated_at);
       return p.stato === "completata" && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
     }).length;
-    const completateMesePrec = pratiche.filter(p => {
-      const d = new Date(p.updated_at);
-      return p.stato === "completata" && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
-    }).length;
 
-    // Da fatturare = pratiche completate non ancora pagate (tutto il periodo, non solo il mese)
-    const daFatturare = pratiche
-      .filter(p => p.stato === "completata" && (p as any).pagamento_stato === "non_pagata")
-      .reduce((s, p) => s + (p.prezzo || 0), 0);
-    // Spesa mese corrente (completate questo mese) per confronto trend
-    const spesaMese = pratiche.filter(p => {
-      const d = new Date(p.updated_at);
-      return p.stato === "completata" && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-    }).reduce((s, p) => s + (p.prezzo || 0), 0);
-    const spesaMesePrec = pratiche.filter(p => {
-      const d = new Date(p.updated_at);
-      return p.stato === "completata" && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
-    }).reduce((s, p) => s + (p.prezzo || 0), 0);
-
-    const createMese = pratiche.filter(p => {
-      const d = new Date(p.created_at);
-      return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-    }).length;
-
-    const completateProgress = createMese > 0 ? (completateMese / createMese) * 100 : 0;
-    const diffCompletate = completateMese - completateMesePrec;
-    const diffSpesa = spesaMese - spesaMesePrec;
-    return {
-      aperte, attesaDoc, inLavorazione,
-      completateMese, completateMesePrec, createMese,
-      completateProgress, diffCompletate,
-      daFatturare, spesaMese, spesaMesePrec, diffSpesa,
-    };
-  }, [pratiche, thisMonth, thisYear, lastMonth, lastMonthYear]);
+    return { totali, attive, completate, attesaDoc, inLavorazione, completateMese };
+  }, [pratiche, thisMonth, thisYear]);
 
   // ---- Brand breakdown ----
   const brandStats = useMemo(() => {
@@ -161,7 +129,7 @@ export function DashboardAzienda() {
             </div>
             <h3 className="font-display text-xl font-bold">Benvenuto su Pratica Rapida</h3>
             <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              Gestisci pratiche ENEA e Conto Termico per i tuoi clienti. Prezzi fissi, consegna garantita entro 24 ore.
+              Gestisci pratiche ENEA e Conto Termico per i tuoi clienti. Consegna garantita entro 24 ore lavorative.
             </p>
             <div className="mt-6 flex flex-wrap gap-3 justify-center">
               <Button onClick={() => navigate("/pratiche/nuova")} size="lg">
@@ -170,7 +138,6 @@ export function DashboardAzienda() {
             </div>
             <ul className="mt-8 space-y-2 text-sm text-left max-w-sm">
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success shrink-0" /> Consegna entro 24 ore lavorative</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success shrink-0" /> Prezzo fisso e trasparente</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success shrink-0" /> Zero burocrazia — pensiamo a tutto noi</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success shrink-0" /> ENEA + Conto Termico nella stessa piattaforma</li>
             </ul>
@@ -220,10 +187,10 @@ export function DashboardAzienda() {
         </Card>
       )}
 
-      {/* KPI Cards */}
+      {/* KPI Cards — Totali, Attive, Completate */}
       {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map(i => (
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[1, 2, 3].map(i => (
             <Card key={i}>
               <CardHeader className="pb-2"><Skeleton className="h-4 w-24" /></CardHeader>
               <CardContent><Skeleton className="h-8 w-16" /></CardContent>
@@ -231,86 +198,64 @@ export function DashboardAzienda() {
           ))}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-3">
+          {/* Totali */}
           <Card>
             <CardContent className="p-5">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                <FolderOpen className="h-5 w-5 text-primary" />
+                <Layers className="h-5 w-5 text-primary" />
               </div>
               <div className="mt-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Pratiche Aperte</p>
-                <p className="mt-1 text-2xl font-bold tracking-tight">{kpis.aperte}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Pratiche Totali</p>
+                <p className="mt-1 text-2xl font-bold tracking-tight">{kpis.totali}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {kpis.inLavorazione > 0 ? `${kpis.inLavorazione} in lavorazione` : "Nessuna in lavorazione"}
+                  {kpis.completateMese > 0 ? `+${kpis.completateMese} completate questo mese` : "Nessuna completata questo mese"}
                 </p>
               </div>
             </CardContent>
           </Card>
 
+          {/* Attive */}
           <Card className={kpis.attesaDoc.length > 0 ? "border-warning/40" : ""}>
             <CardContent className="p-5">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${kpis.attesaDoc.length > 0 ? "bg-amber-100 dark:bg-amber-950" : "bg-muted"}`}>
-                <AlertCircle className={`h-5 w-5 ${kpis.attesaDoc.length > 0 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`} />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-950">
+                <FolderOpen className={`h-5 w-5 ${kpis.attive > 0 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`} />
               </div>
               <div className="mt-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Attesa Documenti</p>
-                <p className="mt-1 text-2xl font-bold tracking-tight">{kpis.attesaDoc.length}</p>
-                {kpis.attesaDoc.length > 0 && (
-                  <Button variant="link" size="sm" className="mt-0.5 h-auto p-0 text-xs text-amber-600" onClick={() => navigate("/pratiche")}>
-                    Carica ora <ArrowRight className="ml-1 h-3 w-3" />
-                  </Button>
-                )}
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Pratiche Attive</p>
+                <p className="mt-1 text-2xl font-bold tracking-tight">{kpis.attive}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {kpis.attesaDoc.length > 0
+                    ? <span className="text-amber-600">{kpis.attesaDoc.length} in attesa documenti</span>
+                    : kpis.inLavorazione > 0
+                      ? `${kpis.inLavorazione} in lavorazione`
+                      : "Nessuna in attesa"}
+                </p>
               </div>
             </CardContent>
           </Card>
 
+          {/* Completate */}
           <Card>
             <CardContent className="p-5">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-950">
                 <FileCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div className="mt-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Completate (mese)</p>
-                <p className="mt-1 text-2xl font-bold tracking-tight">{kpis.completateMese}</p>
-                <Progress value={kpis.completateProgress} className="mt-1.5 h-1" />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {kpis.completateMese}/{kpis.createMese} questo mese
-                  {kpis.diffCompletate !== 0 && (
-                    <span className={kpis.diffCompletate > 0 ? " text-success" : " text-destructive"}>
-                      {" "}({kpis.diffCompletate > 0 ? "+" : ""}{kpis.diffCompletate})
-                    </span>
-                  )}
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Pratiche Completate</p>
+                <p className="mt-1 text-2xl font-bold tracking-tight">{kpis.completate}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {kpis.totali > 0 ? `${Math.round((kpis.completate / kpis.totali) * 100)}% del totale` : "—"}
                 </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                <Receipt className="h-5 w-5 text-primary" />
-              </div>
-              <div className="mt-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Da fatturare</p>
-                <p className="mt-1 text-2xl font-bold tracking-tight">€ {kpis.daFatturare.toFixed(0)}</p>
-                <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground">
-                  {kpis.diffSpesa > 0 ? (
-                    <><TrendingUp className="h-3 w-3 text-warning" /><span className="text-warning">+€ {kpis.diffSpesa.toFixed(0)} vs mese prec.</span></>
-                  ) : kpis.diffSpesa < 0 ? (
-                    <><TrendingDown className="h-3 w-3 text-success" /><span className="text-success">-€ {Math.abs(kpis.diffSpesa).toFixed(0)} vs mese prec.</span></>
-                  ) : (
-                    <span>Pagamento fine mese via bonifico</span>
-                  )}
-                </div>
               </div>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* Brand breakdown + Fatturazione */}
+      {/* Brand breakdown */}
       {!isLoading && brandStats.total > 0 && (
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Card>
             <CardContent className="flex items-center gap-4 p-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100">
@@ -337,21 +282,6 @@ export function DashboardAzienda() {
                 {brandStats.total > 0 && (
                   <p className="text-xs text-muted-foreground">{Math.round((brandStats.ct / brandStats.total) * 100)}% del totale</p>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                <Receipt className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-2xl font-bold">€ {kpis.daFatturare.toFixed(2)}</p>
-                <p className="text-sm text-muted-foreground">Da fatturare</p>
-                <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => navigate("/wallet")}>
-                  Estratto Conto <ArrowRight className="ml-1 h-3 w-3" />
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -385,9 +315,14 @@ export function DashboardAzienda() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-medium">Pratiche recenti</CardTitle>
-            <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate("/pratiche")}>
-              Vedi tutte <ArrowRight className="ml-1 h-3 w-3" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button size="sm" className="h-7 text-xs" onClick={() => navigate("/pratiche/nuova")}>
+                <Plus className="mr-1 h-3 w-3" />Aggiungi pratica
+              </Button>
+              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => navigate("/pratiche")}>
+                Vedi tutte <ArrowRight className="ml-1 h-3 w-3" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-2">
             {isLoading ? (
@@ -419,10 +354,7 @@ export function DashboardAzienda() {
                         {(p.clienti_finali as any)?.nome} {(p.clienti_finali as any)?.cognome}
                       </p>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-semibold">€ {p.prezzo.toFixed(2)}</p>
-                      <Badge variant="outline" className={`text-[10px] ${conf?.color}`}>{conf?.label}</Badge>
-                    </div>
+                    <Badge variant="outline" className={`text-[10px] shrink-0 ${conf?.color}`}>{conf?.label}</Badge>
                   </div>
                 );
               })
@@ -437,10 +369,9 @@ export function DashboardAzienda() {
           <CardTitle className="text-sm font-medium">Azioni rapide</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-3 gap-3">
             <QuickAction icon={Zap} label="Nuova Pratica ENEA" color="blue" onClick={() => navigate("/pratiche/nuova")} />
             <QuickAction icon={Flame} label="Nuova Pratica CT" color="orange" onClick={() => navigate("/pratiche/nuova")} />
-            <QuickAction icon={Receipt} label="Estratto Conto" color="primary" onClick={() => navigate("/wallet")} />
             <QuickAction icon={LifeBuoy} label="Assistenza" color="muted" onClick={() => navigate("/assistenza")} />
           </div>
         </CardContent>
@@ -465,14 +396,9 @@ function DashboardHeader({ user, companyName, navigate }: { user: any; companyNa
             : "Panoramica delle tue pratiche."}
         </p>
       </div>
-      <div className="flex gap-2">
-        <Button onClick={() => navigate("/pratiche/nuova")} size="sm">
-          <Plus className="mr-2 h-4 w-4" />Nuova Pratica
-        </Button>
-        <Button variant="outline" onClick={() => navigate("/wallet")} size="sm">
-          <Receipt className="mr-2 h-4 w-4" />Estratto Conto
-        </Button>
-      </div>
+      <Button onClick={() => navigate("/pratiche/nuova")} size="sm">
+        <Plus className="mr-2 h-4 w-4" />Aggiungi pratica
+      </Button>
     </div>
   );
 }
@@ -482,13 +408,12 @@ function QuickAction({
 }: {
   icon: React.ElementType;
   label: string;
-  color: "blue" | "orange" | "primary" | "muted";
+  color: "blue" | "orange" | "muted";
   onClick: () => void;
 }) {
   const colorMap = {
     blue: "bg-blue-50 hover:bg-blue-100 text-blue-700",
     orange: "bg-orange-50 hover:bg-orange-100 text-orange-700",
-    primary: "bg-primary/10 hover:bg-primary/20 text-primary",
     muted: "bg-muted hover:bg-muted/80 text-muted-foreground",
   };
   return (

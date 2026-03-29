@@ -37,7 +37,7 @@ export const clienteSchema = z.object({
     .string()
     .trim()
     .refine(
-      (val) => val === "" || /^[\d\s\+\-().]{6,20}$/.test(val),
+      (val) => val === "" || /^[\d\s+\-().]{6,20}$/.test(val),
       { message: "Numero di telefono non valido" }
     )
     .optional()

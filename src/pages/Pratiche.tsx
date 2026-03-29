@@ -37,7 +37,7 @@ export default function Pratiche() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [filterBrand, setFilterBrand] = useState<BrandFilter>("all");
 
-  const { data: pratiche = [], isLoading } = useQuery({
+  const { data: pratiche = [], isLoading, isError } = useQuery({
     queryKey: ["pratiche", companyId],
     queryFn: async () => {
       if (!companyId) return [];
@@ -198,6 +198,16 @@ export default function Pratiche() {
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <FolderOpen className="mb-4 h-12 w-12 text-muted-foreground/40" />
         <h2 className="font-display text-lg font-semibold">Nessuna azienda associata</h2>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <FolderOpen className="mb-4 h-12 w-12 text-destructive/40" />
+        <h2 className="font-display text-lg font-semibold">Problema temporaneo</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Impossibile caricare le pratiche. Ricarica la pagina.</p>
       </div>
     );
   }

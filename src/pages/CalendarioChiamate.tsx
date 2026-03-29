@@ -254,7 +254,7 @@ function WeekView({ events, currentDate, onSlotClick, onEventClick }: {
       map.set(key, layoutDay(dayEvs));
     }
     return map;
-  }, [events, currentDate]);
+  }, [events, days]);
 
   useEffect(() => {
     if (scrollRef.current) {

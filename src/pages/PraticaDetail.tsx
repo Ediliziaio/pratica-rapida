@@ -88,9 +88,9 @@ function OutputSection({ outputUrls, noteConsegna }: { outputUrls: unknown; note
       <CardContent className="space-y-3">
         {urls.length > 0 && (
           <div className="space-y-2">
-            {urls.map((url, i) => (
+            {urls.map((url) => (
               <a
-                key={i}
+                key={url}
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -336,9 +336,9 @@ export default function PraticaDetail() {
 
   // Fetch assignee profile when present
   const { data: assigneeProfile } = useQuery({
-    queryKey: ["assignee-profile", (pratica as any)?.assegnatario_id],
+    queryKey: ["assignee-profile", pratica?.assegnatario_id],
     queryFn: async () => {
-      const assigneeId = (pratica as any)?.assegnatario_id;
+      const assigneeId = pratica?.assegnatario_id;
       if (!assigneeId) return null;
       const { data } = await supabase
         .from("profiles")
@@ -347,7 +347,7 @@ export default function PraticaDetail() {
         .single();
       return data;
     },
-    enabled: !!(pratica as any)?.assegnatario_id && isInternalUser,
+    enabled: !!pratica?.assegnatario_id && isInternalUser,
   });
 
   const updateStato = useMutation({

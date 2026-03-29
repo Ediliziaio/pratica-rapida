@@ -177,7 +177,7 @@ const nuovaPraticaClienteSchema = z.object({
     .optional().or(z.literal("")),
   telefono: z
     .string().trim()
-    .refine((val) => val === "" || /^[\d\s\+\-().]{6,20}$/.test(val), {
+    .refine((val) => val === "" || /^[\d\s+\-().]{6,20}$/.test(val), {
       message: "Numero di telefono non valido",
     })
     .optional().or(z.literal("")),
@@ -280,7 +280,7 @@ function DocUploadCard({
       {files.length > 0 && (
         <ul className="px-4 pb-3 space-y-1.5">
           {files.map((f, i) => (
-            <li key={i} className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2.5 py-1.5">
+            <li key={f.name} className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2.5 py-1.5">
               <div className="flex items-center gap-1.5 min-w-0">
                 <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                 <span className="text-xs truncate max-w-[160px]">{f.name}</span>

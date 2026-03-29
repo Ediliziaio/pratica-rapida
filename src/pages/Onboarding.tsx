@@ -89,26 +89,44 @@ export default function Onboarding() {
 
   const handleStep1 = async (data: Step1) => {
     setSaving(true);
-    await supabase.from("profiles").update({ nome: data.nome, cognome: data.cognome, telefono: data.telefono, preferred_contact: data.preferred_contact, onboarding_step: 1 }).eq("id", user!.id);
-    await saveStep(data);
-    setSaving(false);
-    goTo(1);
+    try {
+      const { error } = await supabase.from("profiles").update({ nome: data.nome, cognome: data.cognome, telefono: data.telefono, preferred_contact: data.preferred_contact, onboarding_step: 1 }).eq("id", user!.id);
+      if (error) throw error;
+      await saveStep(data);
+      goTo(1);
+    } catch {
+      toast({ title: "Errore", description: "Impossibile salvare. Riprova.", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleStep2 = async (data: Step2) => {
     setSaving(true);
-    await supabase.from("profiles").update({ company_name: data.company_name, piva: data.piva, address: data.address, city: data.city, onboarding_step: 2 }).eq("id", user!.id);
-    await saveStep(data);
-    setSaving(false);
-    goTo(2);
+    try {
+      const { error } = await supabase.from("profiles").update({ company_name: data.company_name, piva: data.piva, address: data.address, city: data.city, onboarding_step: 2 }).eq("id", user!.id);
+      if (error) throw error;
+      await saveStep(data);
+      goTo(2);
+    } catch {
+      toast({ title: "Errore", description: "Impossibile salvare. Riprova.", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleStep3 = async (data: Step3) => {
     setSaving(true);
-    await supabase.from("profiles").update({ referral_source: data.referral_source, notes: data.notes ?? null, onboarding_step: 3 }).eq("id", user!.id);
-    await saveStep(data);
-    setSaving(false);
-    goTo(3);
+    try {
+      const { error } = await supabase.from("profiles").update({ referral_source: data.referral_source, notes: data.notes ?? null, onboarding_step: 3 }).eq("id", user!.id);
+      if (error) throw error;
+      await saveStep(data);
+      goTo(3);
+    } catch {
+      toast({ title: "Errore", description: "Impossibile salvare. Riprova.", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleStep4 = async () => {

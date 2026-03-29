@@ -49,54 +49,59 @@ export function GlobalSearch() {
         return;
       }
       setLoading(true);
-      const all: SearchResult[] = [];
-      const pattern = `%${q}%`;
+      try {
+        const all: SearchResult[] = [];
+        const pattern = `%${q}%`;
 
-      let praticheQuery = supabase
-        .from("pratiche")
-        .select("id, titolo, stato, categoria")
-        .or(`titolo.ilike.${pattern},descrizione.ilike.${pattern}`)
-        .limit(5);
-      if (!isInternal(roles) && companyId) {
-        praticheQuery = praticheQuery.eq("company_id", companyId);
-      }
-      const { data: pratiche } = await praticheQuery;
-      if (pratiche) {
-        pratiche.forEach((p) =>
-          all.push({
-            id: p.id,
-            label: p.titolo,
-            sublabel: `${p.categoria} · ${p.stato}`,
-            type: "pratica",
-            url: `/pratiche/${p.id}`,
-          })
-        );
-      }
-
-      if (companyId) {
-        const { data: clienti } = await supabase
-          .from("clienti_finali")
-          .select("id, nome, cognome, email")
-          .eq("company_id", companyId)
-          .or(`nome.ilike.${pattern},cognome.ilike.${pattern},email.ilike.${pattern}`)
+        let praticheQuery = supabase
+          .from("pratiche")
+          .select("id, titolo, stato, categoria")
+          .or(`titolo.ilike.${pattern},descrizione.ilike.${pattern}`)
           .limit(5);
-        if (clienti) {
-          clienti.forEach((c) =>
+        if (!isInternal(roles) && companyId) {
+          praticheQuery = praticheQuery.eq("company_id", companyId);
+        }
+        const { data: pratiche } = await praticheQuery;
+        if (pratiche) {
+          pratiche.forEach((p) =>
             all.push({
-              id: c.id,
-              label: `${c.nome} ${c.cognome}`,
-              sublabel: c.email || undefined,
-              type: "cliente",
-              url: `/clienti`,
+              id: p.id,
+              label: p.titolo,
+              sublabel: `${p.categoria} · ${p.stato}`,
+              type: "pratica",
+              url: `/pratiche/${p.id}`,
             })
           );
         }
-      }
 
-      setResults(all);
-      setLoading(false);
+        if (companyId) {
+          const { data: clienti } = await supabase
+            .from("clienti_finali")
+            .select("id, nome, cognome, email")
+            .eq("company_id", companyId)
+            .or(`nome.ilike.${pattern},cognome.ilike.${pattern},email.ilike.${pattern}`)
+            .limit(5);
+          if (clienti) {
+            clienti.forEach((c) =>
+              all.push({
+                id: c.id,
+                label: `${c.nome} ${c.cognome}`,
+                sublabel: c.email || undefined,
+                type: "cliente",
+                url: `/clienti`,
+              })
+            );
+          }
+        }
+
+        setResults(all);
+      } catch {
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
     },
-    [companyId]
+    [companyId, roles]
   );
 
   useEffect(() => {

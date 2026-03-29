@@ -901,7 +901,7 @@ export default function AdminPratiche() {
   // ── Selection ─────────────────────────────────────────────────────────────
 
   const toggleSelect = useCallback((id: string) => {
-    setSelectedIds((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+    setSelectedIds((prev) => { const n = new Set(prev); if (n.has(id)) { n.delete(id); } else { n.add(id); } return n; });
   }, []);
   const toggleSelectAll = useCallback(() => {
     setSelectedIds(selectedIds.size === filtered.length ? new Set() : new Set(filtered.map((p) => p.id)));

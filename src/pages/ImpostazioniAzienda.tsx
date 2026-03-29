@@ -30,7 +30,7 @@ const companySchema = z.object({
   piva: z.string().trim().refine(v => v === "" || /^(IT)?\d{11}$/.test(v.replace(/\s/g, "")), { message: "P.IVA non valida (11 cifre)" }).optional().or(z.literal("")),
   codice_fiscale: z.string().trim().max(16).optional().or(z.literal("")),
   email: z.string().trim().refine(v => v === "" || z.string().email().safeParse(v).success, { message: "Email non valida" }).optional().or(z.literal("")),
-  telefono: z.string().trim().refine(v => v === "" || /^[\d\s\+\-().]{6,20}$/.test(v), { message: "Telefono non valido" }).optional().or(z.literal("")),
+  telefono: z.string().trim().refine(v => v === "" || /^[\d\s+\-().]{6,20}$/.test(v), { message: "Telefono non valido" }).optional().or(z.literal("")),
   indirizzo: z.string().trim().max(255).optional().or(z.literal("")),
   citta: z.string().trim().max(100).optional().or(z.literal("")),
   cap: z.string().trim().refine(v => v === "" || /^\d{5}$/.test(v), { message: "CAP non valido (5 cifre)" }).optional().or(z.literal("")),
@@ -40,7 +40,7 @@ const companySchema = z.object({
 const profileSchema = z.object({
   nome: z.string().trim().min(1, "Nome obbligatorio").max(100),
   cognome: z.string().trim().min(1, "Cognome obbligatorio").max(100),
-  telefono: z.string().trim().refine(v => v === "" || /^[\d\s\+\-().]{6,20}$/.test(v), { message: "Telefono non valido" }).optional().or(z.literal("")),
+  telefono: z.string().trim().refine(v => v === "" || /^[\d\s+\-().]{6,20}$/.test(v), { message: "Telefono non valido" }).optional().or(z.literal("")),
 });
 
 const passwordSchema = z.object({

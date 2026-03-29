@@ -325,6 +325,7 @@ export function PracticeChat({ praticaId, companyId, praticaTitle }: PracticeCha
             <Button
               type="submit"
               size="icon"
+              aria-label="Invia messaggio"
               className="h-9 w-9 shrink-0"
               disabled={!message.trim() || sendMessage.isPending}
             >

@@ -181,7 +181,7 @@ export default function Aziende() {
   });
 
   const filtered = useMemo(() => {
-    let list = companies.filter(c => {
+    const list = companies.filter(c => {
       const matchSearch = `${c.ragione_sociale} ${c.piva} ${c.email}`.toLowerCase().includes(search.toLowerCase());
       const matchStatus =
         filterStatus === "all" ||
@@ -206,7 +206,7 @@ export default function Aziende() {
     });
 
     return list;
-  }, [companies, search, sortBy, companyStats]);
+  }, [companies, search, sortBy, companyStats, filterStatus]);
 
   // Aggregati
   const aggregates = useMemo(() => {

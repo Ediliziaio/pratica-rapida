@@ -29,7 +29,10 @@ const dashboardItems = [
 ];
 
 function DashboardRows() {
-  const counts = dashboardItems.map((item) => useCounter(item.target, item.delay));
+  const c0 = useCounter(dashboardItems[0].target, dashboardItems[0].delay);
+  const c1 = useCounter(dashboardItems[1].target, dashboardItems[1].delay);
+  const c2 = useCounter(dashboardItems[2].target, dashboardItems[2].delay);
+  const counts = [c0, c1, c2];
   return (
     <>
       {dashboardItems.map((item, i) => (

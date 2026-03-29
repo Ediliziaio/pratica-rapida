@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, isSuperAdmin, isInternal } from "@/hooks/useAuth";
@@ -11,6 +11,17 @@ import {
   Upload, FileText, Download, Trash2, AlertCircle, CheckCircle2,
   FolderOpen, FileBadge, Lock,
 } from "lucide-react";
+
+// ── Format chips shown in the drop zone ───────────────────────────────────
+const FORMAT_CHIPS = [
+  { label: "PDF",  color: "bg-red-50 text-red-600 border-red-200" },
+  { label: "JPEG", color: "bg-yellow-50 text-yellow-700 border-yellow-200" },
+  { label: "PNG",  color: "bg-blue-50 text-blue-600 border-blue-200" },
+  { label: "XLS / XLSX", color: "bg-green-50 text-green-700 border-green-200" },
+  { label: "CSV",  color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  { label: "Word", color: "bg-indigo-50 text-indigo-600 border-indigo-200" },
+  { label: "ZIP",  color: "bg-gray-50 text-gray-600 border-gray-200" },
+];
 import {
   AlertDialog,
   AlertDialogAction,
@@ -135,9 +146,11 @@ function UploadZone({
             ? `Caricamento in corso… (${queueDone}/${queue.length})`
             : <><span>{label} </span><span className="text-primary font-medium">clicca per sfogliare</span></>}
         </p>
-        <p className="mt-1 text-xs text-muted-foreground/70">
-          {sublabel ?? `PDF, immagini, Word, Excel, ZIP · max 20 MB · fino a ${MAX_FILES_PER_BATCH} file`}
-        </p>
+        {!isUploading && (
+          <p className="mt-1 text-xs text-muted-foreground/70">
+            {sublabel ?? `Fino a ${MAX_FILES_PER_BATCH} file · max 20 MB per file`}
+          </p>
+        )}
         <input
           ref={inputRef}
           type="file"
@@ -148,6 +161,23 @@ function UploadZone({
           disabled={isUploading}
         />
       </div>
+
+      {/* Format chips + size limit */}
+      {!isUploading && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {FORMAT_CHIPS.map((f) => (
+            <span
+              key={f.label}
+              className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-medium ${f.color}`}
+            >
+              {f.label}
+            </span>
+          ))}
+          <span className="ml-auto text-[10px] text-muted-foreground font-medium whitespace-nowrap">
+            max 20 MB
+          </span>
+        </div>
+      )}
 
       {/* Queue progress */}
       {queue.length > 0 && (
@@ -286,6 +316,18 @@ export function DocumentUpload({ praticaId, companyId }: DocumentUploadProps) {
   const [praticaQueue, setPraticaQueue] = useState<UploadItem[]>([]);
   const [isPraticaUploading, setIsPraticaUploading] = useState(false);
 
+  // ── Block navigation while any upload is in progress ───────────────────
+  const anyUploading = isUploading || isPraticaUploading;
+  useEffect(() => {
+    if (!anyUploading) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "Upload in corso — se esci perdi i file. Continuare?";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [anyUploading]);
+
   // ── Query ───────────────────────────────────────────────────────────────
   const { data: documenti = [], isLoading } = useQuery({
     queryKey: ["documenti", praticaId],
@@ -305,7 +347,7 @@ export function DocumentUpload({ praticaId, companyId }: DocumentUploadProps) {
   const docPratica  = documenti.filter((d) => d.tipo && PRATICA_DOC_TYPES.has(d.tipo));
 
   // ── Upload helpers ──────────────────────────────────────────────────────
-  const uploadSingleFile = async (
+  const uploadSingleFile = useCallback(async (
     file: File,
     visibilita: VisibilitaDocumento = "azienda_interno",
     tipo?: string,
@@ -342,7 +384,7 @@ export function DocumentUpload({ praticaId, companyId }: DocumentUploadProps) {
       await supabase.storage.from("documenti").remove([path]).catch(() => {});
       throw new Error(`${file.name} (DB): ${dbError.message}`);
     }
-  };
+  }, [user, companyId, praticaId, documenti]);
 
   const validateFiles = useCallback((files: File[]): File[] | null => {
     const allowed: File[] = [];
@@ -396,7 +438,7 @@ export function DocumentUpload({ praticaId, companyId }: DocumentUploadProps) {
       toast({ title: "Upload parziale", description: errors[0], variant: "destructive" });
       setTimeout(() => setQueue([]), 4000);
     }
-  }, [user, companyId, praticaId, documenti, queryClient, toast]);
+  }, [user, praticaId, queryClient, toast, uploadSingleFile]);
 
   // Practice docs upload
   const processPraticaQueue = useCallback(async (files: File[]) => {
@@ -427,7 +469,7 @@ export function DocumentUpload({ praticaId, companyId }: DocumentUploadProps) {
       toast({ title: "Upload parziale", description: errors[0], variant: "destructive" });
       setTimeout(() => setPraticaQueue([]), 4000);
     }
-  }, [user, companyId, praticaId, documenti, queryClient, toast]);
+  }, [user, praticaId, queryClient, toast, uploadSingleFile]);
 
   const handleFiles = useCallback((files: File[], isPratica = false) => {
     const valid = validateFiles(files);

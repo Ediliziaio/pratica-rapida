@@ -37,7 +37,7 @@ export function PipelineSettingsDrawer({ open, onClose }: PipelineSettingsDrawer
 
   useEffect(() => {
     setLocalStages(resellerStages);
-  }, [stages]);
+  }, [resellerStages]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {

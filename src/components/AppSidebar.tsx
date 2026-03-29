@@ -1,8 +1,6 @@
 import {
-  LayoutDashboard,
   FolderOpen,
   FilePlus,
-  Receipt,
   Building2,
   Settings,
   ListChecks,
@@ -24,7 +22,6 @@ import {
 import type React from "react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { NavLink } from "@/components/NavLink";
 import { useAuth, isSuperAdmin, isInternal, isReseller } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
 import {
@@ -178,11 +175,6 @@ export function AppSidebar() {
   if (internal && !isImpersonating) {
     settingsItem = { title: "Impostazioni", url: "/admin/impostazioni", icon: Settings };
     groups = [
-      {
-        items: [
-          { title: "Dashboard", url: "/", icon: LayoutDashboard, end: true },
-        ],
-      },
       {
         label: "Pratiche",
         collapsible: true,

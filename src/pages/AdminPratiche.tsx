@@ -864,8 +864,6 @@ export default function AdminPratiche() {
   const invalidateAll = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["pratiche-server"] });
     queryClient.invalidateQueries({ queryKey: ["pratiche-kpi"] });
-    // Legacy key kept for PipelineView inside AdminPratiche which uses setQueryData on it
-    queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
   }, [queryClient]);
 
   const quickChangeStato = useMutation({

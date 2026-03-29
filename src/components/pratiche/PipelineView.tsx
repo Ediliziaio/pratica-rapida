@@ -3,7 +3,6 @@ import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, us
 import { CSS } from "@dnd-kit/utilities";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCompany } from "@/hooks/useCompany";
 import { useAuth, isInternal as checkInternal } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -76,10 +75,19 @@ function DraggableCard({ pratica, navigate }: { pratica: any; navigate: (path: s
   );
 }
 
-export function PipelineView({ pratiche, navigate }: { pratiche: any[]; navigate: (path: string) => void }) {
-  const { companyId } = useCompany();
+export function PipelineView({
+  pratiche,
+  navigate,
+  cacheKey,
+}: {
+  pratiche: any[];
+  navigate: (path: string) => void;
+  /** React-Query cache key used for optimistic updates. Defaults to ["pratiche-server"]. */
+  cacheKey?: unknown[];
+}) {
   const { roles } = useAuth();
   const queryClient = useQueryClient();
+  const resolvedCacheKey = cacheKey ?? ["pratiche-server"];
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const isInternalUser = checkInternal(roles);
@@ -117,9 +125,15 @@ export function PipelineView({ pratiche, navigate }: { pratiche: any[]; navigate
       return;
     }
 
-    queryClient.setQueryData(["pratiche", companyId], (old: any[]) =>
-      old?.map(p => p.id === praticaId ? { ...p, stato: newStato } : p)
-    );
+    // Optimistic update on the correct cache entry
+    queryClient.setQueryData(resolvedCacheKey, (old: any) => {
+      if (!old) return old;
+      // Support both plain array and { items, ... } shape
+      if (Array.isArray(old)) {
+        return old.map((p: any) => p.id === praticaId ? { ...p, stato: newStato } : p);
+      }
+      return { ...old, items: old.items?.map((p: any) => p.id === praticaId ? { ...p, stato: newStato } : p) };
+    });
 
     const { error } = await supabase
       .from("pratiche")
@@ -127,13 +141,19 @@ export function PipelineView({ pratiche, navigate }: { pratiche: any[]; navigate
       .eq("id", praticaId);
 
     if (error) {
-      queryClient.setQueryData(["pratiche", companyId], (old: any[]) =>
-        old?.map(p => p.id === praticaId ? { ...p, stato: oldStato } : p)
-      );
+      // Revert on failure
+      queryClient.setQueryData(resolvedCacheKey, (old: any) => {
+        if (!old) return old;
+        if (Array.isArray(old)) {
+          return old.map((p: any) => p.id === praticaId ? { ...p, stato: oldStato } : p);
+        }
+        return { ...old, items: old.items?.map((p: any) => p.id === praticaId ? { ...p, stato: oldStato } : p) };
+      });
       toast.error("Errore nello spostamento della pratica");
     } else {
       toast.success(`Pratica spostata in ${STATO_CONFIG[newStato].label}`);
-      queryClient.invalidateQueries({ queryKey: ["pratiche", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["pratiche-server"] });
+      queryClient.invalidateQueries({ queryKey: ["pratiche-kpi"] });
     }
   };
 

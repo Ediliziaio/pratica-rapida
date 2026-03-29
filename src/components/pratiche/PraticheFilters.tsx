@@ -1,6 +1,5 @@
 import { format } from "date-fns";
-import { it } from "date-fns/locale";
-import { CalendarIcon, X, ChevronDown } from "lucide-react";
+import { CalendarIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

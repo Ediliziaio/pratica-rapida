@@ -88,7 +88,7 @@ function OutputSection({ outputUrls, noteConsegna }: { outputUrls: unknown; note
       <CardContent className="space-y-3">
         {urls.length > 0 && (
           <div className="space-y-2">
-            {urls.map((url) => (
+            {urls.map((url, i) => (
               <a
                 key={url}
                 href={url}
@@ -360,7 +360,8 @@ export default function PraticaDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pratica", id] });
-      queryClient.invalidateQueries({ queryKey: ["pratiche"] });
+      queryClient.invalidateQueries({ queryKey: ["pratiche-server"] });
+      queryClient.invalidateQueries({ queryKey: ["pratiche-kpi"] });
       toast({ title: "Stato aggiornato" });
     },
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
@@ -376,6 +377,7 @@ export default function PraticaDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pratica", id] });
+      queryClient.invalidateQueries({ queryKey: ["pratiche-kpi"] });
       toast({ title: "Pratica marcata come pagata" });
     },
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
@@ -383,7 +385,8 @@ export default function PraticaDetail() {
 
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["pratica", id] });
-    queryClient.invalidateQueries({ queryKey: ["pratiche"] });
+    queryClient.invalidateQueries({ queryKey: ["pratiche-server"] });
+    queryClient.invalidateQueries({ queryKey: ["pratiche-kpi"] });
   };
 
   const duplicatePratica = useMutation({
@@ -408,7 +411,8 @@ export default function PraticaDetail() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["pratiche"] });
+      queryClient.invalidateQueries({ queryKey: ["pratiche-server"] });
+      queryClient.invalidateQueries({ queryKey: ["pratiche-kpi"] });
       toast({ title: "Pratica duplicata", description: "La nuova bozza è pronta per la modifica." });
       navigate(`/pratiche/${data.id}`);
     },

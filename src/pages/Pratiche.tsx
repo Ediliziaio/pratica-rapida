@@ -82,16 +82,25 @@ export default function Pratiche() {
   const { data: kpi } = useCompanyPraticheKpi(companyId);
 
   // ── Clients dropdown (for filter) ─────────────────────────────────────────
+  // Load only clients that have at least one pratica belonging to this company
   const { data: clientiOptions = [] } = useQuery({
     queryKey: ["clienti-options", companyId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("clienti_finali")
-        .select("id, nome, cognome")
-        .order("cognome");
-      // clienti_finali doesn't have company_id so we get all; filter via pratiche join would be complex
-      // This is fine — the dropdown just lists clients the user has worked with
-      return data ?? [];
+        .from("pratiche")
+        .select("clienti_finali!inner(id, nome, cognome)")
+        .eq("company_id", companyId!)
+        .not("cliente_finale_id", "is", null)
+        .order("created_at", { ascending: false });
+      if (!data) return [];
+      // Deduplicate by client id
+      const seen = new Set<string>();
+      const unique: { id: string; nome: string; cognome: string }[] = [];
+      data.forEach((row: any) => {
+        const c = row.clienti_finali;
+        if (c && !seen.has(c.id)) { seen.add(c.id); unique.push(c); }
+      });
+      return unique.sort((a, b) => a.cognome.localeCompare(b.cognome));
     },
     enabled: !!companyId,
     staleTime: 120_000,
@@ -401,7 +410,11 @@ export default function Pratiche() {
           />
         </>
       ) : (
-        <PipelineView pratiche={items} navigate={navigate} />
+        <PipelineView
+          pratiche={items}
+          navigate={navigate}
+          cacheKey={["pratiche-server", "all", serverFilters, COMPANY_SELECT]}
+        />
       )}
     </div>
   );

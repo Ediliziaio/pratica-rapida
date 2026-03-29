@@ -274,6 +274,8 @@ export default function NuovaPratica() {
   // ── Wizard ─────────────────────────────────────────────────────────────────
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Track which submit button was clicked to show correct loading text
+  const [pendingAction, setPendingAction] = useState<"bozza" | "invia" | null>(null);
 
   // Step 0 fields — cliente
   const [clienteNome, setClienteNome] = useState("");
@@ -331,6 +333,25 @@ export default function NuovaPratica() {
   const prezzoTotale = prezzoNetto + prezzoIva;
 
   // ── Validation ─────────────────────────────────────────────────────────────
+  // Full reset — clears every piece of wizard state back to initial values
+  const resetAll = () => {
+    setBrand(null);
+    setTipoServizio(null);
+    setStep(0);
+    setErrors({});
+    setClienteNome("");
+    setClienteCognome("");
+    setClienteEmail("");
+    setClienteTelefono("");
+    setTipoIntervento("");
+    setDataFineLavori(undefined);
+    setNoteAggiuntive("");
+    setDocumenti([]);
+    setAccettazionePrezzo(false);
+    setUsePromoOnSubmit(false);
+    setPendingAction(null);
+  };
+
   const validateStep0 = (): boolean => {
     const result = clienteSchema.safeParse({
       nome: clienteNome,
@@ -354,6 +375,7 @@ export default function NuovaPratica() {
   const handleNext = () => {
     if (step === 0 && !validateStep0()) return;
     setStep(step + 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // ── Submit ─────────────────────────────────────────────────────────────────
@@ -458,7 +480,7 @@ export default function NuovaPratica() {
       }
     },
     onSuccess: (result, asBozza) => {
-      queryClient.invalidateQueries({ queryKey: ["pratiche"] });
+      setPendingAction(null);
       queryClient.invalidateQueries({ queryKey: ["pratiche-server"] });
       queryClient.invalidateQueries({ queryKey: ["pratiche-kpi"] });
       const brandLabel = brand ? BRAND_CONFIG[brand].praticaLabel : "Pratica";
@@ -473,7 +495,7 @@ export default function NuovaPratica() {
       }
       navigate("/pratiche");
     },
-    onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+    onError: (e) => { setPendingAction(null); toast({ title: "Errore", description: e.message, variant: "destructive" }); },
   });
 
   // ── Guard ──────────────────────────────────────────────────────────────────
@@ -620,7 +642,7 @@ export default function NuovaPratica() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => { setBrand(null); setTipoServizio(null); setStep(0); }}
+          onClick={resetAll}
           className="text-muted-foreground"
         >
           Ricomincia
@@ -995,7 +1017,7 @@ export default function NuovaPratica() {
         <Button
           variant="outline"
           onClick={() => {
-            if (step > 0) setStep(step - 1);
+            if (step > 0) { setStep(step - 1); window.scrollTo({ top: 0, behavior: "smooth" }); }
             else { setBrand(null); setTipoServizio(null); }
           }}
         >
@@ -1006,10 +1028,10 @@ export default function NuovaPratica() {
           {step === lastStep && (
             <Button
               variant="outline"
-              onClick={() => submitPratica.mutate(true)}
+              onClick={() => { setPendingAction("bozza"); submitPratica.mutate(true); }}
               disabled={submitPratica.isPending}
             >
-              {submitPratica.isPending
+              {submitPratica.isPending && pendingAction === "bozza"
                 ? <><div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Salvataggio...</>
                 : <><FileText className="mr-2 h-4 w-4" />Salva Bozza</>}
             </Button>
@@ -1021,11 +1043,11 @@ export default function NuovaPratica() {
             </Button>
           ) : (
             <Button
-              onClick={() => submitPratica.mutate(false)}
+              onClick={() => { setPendingAction("invia"); submitPratica.mutate(false); }}
               disabled={submitPratica.isPending || !accettazionePrezzo}
               title={!accettazionePrezzo ? "Accetta le condizioni economiche per procedere" : undefined}
             >
-              {submitPratica.isPending
+              {submitPratica.isPending && pendingAction === "invia"
                 ? <><div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Invio in corso...</>
                 : <><Send className="mr-2 h-4 w-4" />Invia Pratica {brandConf!.shortLabel}</>}
             </Button>

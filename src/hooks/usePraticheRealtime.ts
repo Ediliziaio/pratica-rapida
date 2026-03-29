@@ -34,8 +34,6 @@ export function usePraticheRealtime() {
             toast.info(`Pratica "${newRow.titolo}" spostata in ${label}`);
           }
 
-          // Invalidate both legacy key and new server-query keys
-          queryClient.invalidateQueries({ queryKey: ["pratiche", companyId] });
           queryClient.invalidateQueries({ queryKey: ["pratiche-server"] });
           queryClient.invalidateQueries({ queryKey: ["pratiche-kpi"] });
         }
@@ -49,7 +47,6 @@ export function usePraticheRealtime() {
           filter: `company_id=eq.${companyId}`,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["pratiche", companyId] });
           queryClient.invalidateQueries({ queryKey: ["pratiche-server"] });
           queryClient.invalidateQueries({ queryKey: ["pratiche-kpi"] });
         }

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { PracticeChat } from "@/components/PracticeChat";
 import { DocumentUpload } from "@/components/DocumentUpload";
+import { ModuloCliente } from "@/components/ModuloCliente";
 import { ChecklistPanel } from "@/components/ChecklistPanel";
 import { STATO_CONFIG, INTERNAL_TRANSITIONS, PAGAMENTO_BADGE } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
@@ -613,6 +614,7 @@ export default function PraticaDetail() {
           <OutputSection outputUrls={pratica.output_urls} noteConsegna={pratica.note_consegna} />
 
           <DocumentUpload praticaId={pratica.id} companyId={pratica.company_id} />
+          <ModuloCliente praticaId={pratica.id} />
           <PracticeChat praticaId={pratica.id} companyId={pratica.company_id} praticaTitle={pratica.titolo} />
         </div>
 

@@ -35,6 +35,7 @@ const Assistenza = lazy(() => import("./pages/Assistenza"));
 const AdminTicket = lazy(() => import("./pages/AdminTicket"));
 const Blocked = lazy(() => import("./pages/Blocked"));
 const FormPubblico = lazy(() => import("./pages/FormPubblico"));
+const ModuloClientePage = lazy(() => import("./pages/ModuloClientePage"));
 const KanbanBoard = lazy(() => import("./pages/KanbanBoard"));
 const NuovaPraticaEnea = lazy(() => import("./pages/rivenditore/NuovaPraticaEnea"));
 const GestionaleAdmin = lazy(() => import("./pages/admin/Gestionale"));
@@ -119,6 +120,7 @@ const App = () => (
                 <Route path="/auth" element={<AuthRoute />} />
                 <Route path="/blocked" element={<Blocked />} />
                 <Route path="/form/:token" element={<FormPubblico />} />
+                <Route path="/modulo/:token" element={<ModuloClientePage />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/pratiche" element={<ProtectedRoute><Pratiche /></ProtectedRoute>} />

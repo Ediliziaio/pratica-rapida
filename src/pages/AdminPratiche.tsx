@@ -52,6 +52,15 @@ import { toast as sonnerToast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
 import { it } from "date-fns/locale";
 import { PraticheTableView } from "@/components/pratiche/PraticheTableView";
+import { PaginationControls } from "@/components/ui/PaginationControls";
+import {
+  usePratichePagedQuery,
+  usePraticheAllQuery,
+  useAdminPraticheKpi,
+  type PraticheServerFilters,
+  type AdminKpi,
+  type AllResult,
+} from "@/hooks/usePraticheServerQuery";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -194,11 +203,14 @@ function PipelineView({
   assigneeMap,
   navigate,
   showPricing = true,
+  cacheKey,
 }: {
   filtered: any[];
   assigneeMap: Record<string, { nome: string; cognome: string }>;
   navigate: (p: string) => void;
   showPricing?: boolean;
+  /** Full React Query key for the all-records query — used for optimistic updates */
+  cacheKey: unknown[];
 }) {
   const queryClient = useQueryClient();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -222,20 +234,25 @@ function PipelineView({
     const oldStato = (active.data.current as any)?.stato as PraticaStato;
     if (oldStato === newStato) return;
 
-    // Optimistic update
-    queryClient.setQueryData(["admin-all-pratiche"], (old: any[]) =>
-      old?.map((p) => (p.id === praticaId ? { ...p, stato: newStato } : p))
+    // Optimistic update on the server-query cache
+    const patchItems = (items: any[], stato: string) =>
+      items.map((p) => (p.id === praticaId ? { ...p, stato } : p));
+
+    queryClient.setQueryData(cacheKey, (old: AllResult | undefined) =>
+      old ? { ...old, items: patchItems(old.items, newStato) } : old
     );
 
     const { error } = await supabase.from("pratiche").update({ stato: newStato }).eq("id", praticaId);
     if (error) {
-      queryClient.setQueryData(["admin-all-pratiche"], (old: any[]) =>
-        old?.map((p) => (p.id === praticaId ? { ...p, stato: oldStato } : p))
+      // Roll back
+      queryClient.setQueryData(cacheKey, (old: AllResult | undefined) =>
+        old ? { ...old, items: patchItems(old.items, oldStato) } : old
       );
       sonnerToast.error("Errore nello spostamento");
     } else {
       sonnerToast.success(`Spostata in ${STATO_CONFIG[newStato].label}`);
-      queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
+      queryClient.invalidateQueries({ queryKey: ["pratiche-server"] });
+      queryClient.invalidateQueries({ queryKey: ["pratiche-kpi"] });
     }
   };
 
@@ -552,19 +569,12 @@ function FilterSheet({
 
 // ─── KPI Cards ────────────────────────────────────────────────────────────────
 
-function KpiCards({ pratiche }: { pratiche: any[] }) {
-  const totale = pratiche.length;
-  const attive = pratiche.filter((p) => ["inviata", "in_lavorazione", "in_attesa_documenti"].includes(p.stato)).length;
-  const completate = pratiche.filter((p) => p.stato === "completata").length;
-  const daFatturare = pratiche
-    .filter((p) => p.stato === "completata" && p.pagamento_stato === "non_pagata")
-    .reduce((s, p) => s + (p.prezzo || 0), 0);
-
+function KpiCards({ kpi }: { kpi: AdminKpi }) {
   const kpis = [
-    { label: "Totali", value: totale, icon: FolderOpen, color: "text-foreground", bg: "bg-muted/60" },
-    { label: "Attive", value: attive, icon: Clock, color: "text-warning", bg: "bg-warning/10" },
-    { label: "Completate", value: completate, icon: CheckCircle2, color: "text-success", bg: "bg-success/10" },
-    { label: "Da fatturare", value: `€ ${daFatturare.toFixed(2)}`, icon: Euro, color: "text-primary", bg: "bg-primary/10" },
+    { label: "Totali",       value: kpi.totale,                    icon: FolderOpen,  color: "text-foreground", bg: "bg-muted/60" },
+    { label: "Attive",       value: kpi.attive,                    icon: Clock,       color: "text-warning",    bg: "bg-warning/10" },
+    { label: "Completate",   value: kpi.completate,                icon: CheckCircle2,color: "text-success",    bg: "bg-success/10" },
+    { label: "Da fatturare", value: `€ ${kpi.daFatturare.toFixed(2)}`, icon: Euro,   color: "text-primary",    bg: "bg-primary/10" },
   ];
 
   return (
@@ -588,20 +598,28 @@ function KpiCards({ pratiche }: { pratiche: any[] }) {
 
 // ─── Stato Chips ──────────────────────────────────────────────────────────────
 
-function StatoChips({ pratiche, active, onChange }: { pratiche: any[]; active: string; onChange: (s: string) => void }) {
+function StatoChips({
+  active,
+  onChange,
+  total,
+}: {
+  active: string;
+  onChange: (s: string) => void;
+  total: number;
+}) {
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       <button
         onClick={() => onChange("all")}
         className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
-          active === "all" ? "bg-foreground text-background border-foreground" : "border-border text-muted-foreground hover:text-foreground"
+          active === "all"
+            ? "bg-foreground text-background border-foreground"
+            : "border-border text-muted-foreground hover:text-foreground"
         }`}
       >
-        Tutti ({pratiche.length})
+        Tutti {total > 0 ? `(${total})` : ""}
       </button>
       {STATO_ORDER.map((stato) => {
-        const count = pratiche.filter((p) => p.stato === stato).length;
-        if (count === 0) return null;
         const conf = STATO_CONFIG[stato];
         return (
           <button
@@ -613,7 +631,7 @@ function StatoChips({ pratiche, active, onChange }: { pratiche: any[]; active: s
                 : `border-border ${conf.color} hover:opacity-80`
             }`}
           >
-            {conf.label} ({count})
+            {conf.label}
           </button>
         );
       })}
@@ -744,33 +762,65 @@ export default function AdminPratiche() {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [page, setPage] = useState(0);
 
   const updateFilter = useCallback((f: Partial<FiltersState>) => {
     setFilters((prev) => ({ ...prev, ...f }));
     setSelectedIds(new Set());
+    setPage(0);
   }, []);
 
-  const clearFilters = useCallback(() => { setFilters(DEFAULT_FILTERS); setSelectedIds(new Set()); }, []);
+  const clearFilters = useCallback(() => {
+    setFilters(DEFAULT_FILTERS);
+    setSelectedIds(new Set());
+    setPage(0);
+  }, []);
+
+  // ── Build server-side filter bag ─────────────────────────────────────────
+
+  const ADMIN_SELECT = "*, companies(ragione_sociale), clienti_finali(nome, cognome)";
+
+  const serverFilters: PraticheServerFilters = useMemo(() => ({
+    restrictToUserId: !permissions.see_all_pratiche && user?.id ? user.id : undefined,
+    search:      filters.search     || undefined,
+    stato:       filters.stato      !== "all" ? filters.stato      : undefined,
+    brand:       filters.brand,
+    dateFrom:    filters.dateFrom   || undefined,
+    dateTo:      filters.dateTo     || undefined,
+    aziendaId:   filters.azienda    !== "all" ? filters.azienda    : undefined,
+    pagamento:   filters.pagamento  !== "all" ? filters.pagamento  : undefined,
+    operatoreId: filters.operatore  !== "all" ? filters.operatore  : undefined,
+  }), [filters, permissions.see_all_pratiche, user?.id]);
 
   // ── Queries ──────────────────────────────────────────────────────────────
 
-  const { data: pratiche = [], isLoading } = useQuery({
-    queryKey: ["admin-all-pratiche", permissions.see_all_pratiche, user?.id],
-    queryFn: async () => {
-      let q = supabase
-        .from("pratiche")
-        .select("*, companies(ragione_sociale), clienti_finali(nome, cognome)")
-        .order("created_at", { ascending: false })
-        .limit(1000);
-      // If operatore cannot see all practices, restrict to assigned only
-      if (!permissions.see_all_pratiche && user?.id) {
-        q = q.eq("assegnatario_id", user.id);
-      }
-      const { data, error } = await q;
-      if (error) throw error;
-      return data;
-    },
-  });
+  // Paginated (list / table)
+  const {
+    data: pagedData,
+    isLoading: pagedLoading,
+    isFetching: pagedFetching,
+  } = usePratichePagedQuery(serverFilters, page, ADMIN_SELECT, viewMode !== "pipeline");
+
+  // All records (pipeline — server-filtered, capped at 300)
+  const {
+    data: allData,
+    isLoading: allLoading,
+  } = usePraticheAllQuery(serverFilters, ADMIN_SELECT, viewMode === "pipeline");
+
+  // Global KPI counters (independent of current filters)
+  const { data: kpiData } = useAdminPraticheKpi(permissions.see_all_pratiche, user?.id ?? null);
+
+  // Merge: use the right dataset based on viewMode
+  const pratiche = viewMode === "pipeline"
+    ? (allData?.items ?? [])
+    : (pagedData?.items ?? []);
+  const total     = viewMode === "pipeline" ? (allData?.total ?? 0) : (pagedData?.total ?? 0);
+  const pageCount = pagedData?.pageCount ?? 1;
+  const isLoading = viewMode === "pipeline" ? allLoading : pagedLoading;
+
+  // In the new server-side approach, "filtered" IS the fetched set — no client-side filtering needed.
+  // Keep the name `filtered` so the rest of the render tree stays intact.
+  const filtered = pratiche;
 
   const { data: companies = [] } = useQuery({
     queryKey: ["admin-companies-select"],
@@ -797,36 +847,6 @@ export default function AdminPratiche() {
     return map;
   }, [internalOperators]);
 
-  // ── Filtered ─────────────────────────────────────────────────────────────
-
-  const filtered = useMemo(() => {
-    return pratiche.filter((p) => {
-      const searchStr = filters.search.toLowerCase();
-      const matchSearch = !filters.search || [
-        p.titolo,
-        (p.companies as any)?.ragione_sociale ?? "",
-        (p.clienti_finali as any)?.nome ?? "",
-        (p.clienti_finali as any)?.cognome ?? "",
-      ].join(" ").toLowerCase().includes(searchStr);
-
-      const matchStato = filters.stato === "all" || p.stato === filters.stato;
-      const matchAzienda = filters.azienda === "all" || p.company_id === filters.azienda;
-      const brandDati = (p.dati_pratica as any)?.brand;
-      const matchBrand = filters.brand === "all"
-        || (filters.brand === "enea" && (!brandDati || brandDati === "enea"))
-        || (filters.brand === "conto_termico" && brandDati === "conto_termico");
-      const matchPagamento = filters.pagamento === "all" || p.pagamento_stato === filters.pagamento;
-      const matchOperatore = filters.operatore === "all"
-        || (filters.operatore === "unassigned" && !p.assegnatario_id)
-        || p.assegnatario_id === filters.operatore;
-      const created = new Date(p.created_at);
-      const matchFrom = !filters.dateFrom || created >= new Date(filters.dateFrom);
-      const matchTo = !filters.dateTo || created <= new Date(filters.dateTo + "T23:59:59");
-
-      return matchSearch && matchStato && matchAzienda && matchBrand && matchPagamento && matchOperatore && matchFrom && matchTo;
-    });
-  }, [pratiche, filters]);
-
   const activeFilterCount = useMemo(() => {
     let n = 0;
     if (filters.stato !== "all") n++;
@@ -841,12 +861,19 @@ export default function AdminPratiche() {
 
   // ── Mutations ─────────────────────────────────────────────────────────────
 
+  const invalidateAll = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["pratiche-server"] });
+    queryClient.invalidateQueries({ queryKey: ["pratiche-kpi"] });
+    // Legacy key kept for PipelineView inside AdminPratiche which uses setQueryData on it
+    queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
+  }, [queryClient]);
+
   const quickChangeStato = useMutation({
     mutationFn: async ({ praticaId, stato }: { praticaId: string; stato: PraticaStato }) => {
       const { error } = await supabase.from("pratiche").update({ stato }).eq("id", praticaId);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] }),
+    onSuccess: invalidateAll,
   });
 
   const quickChangePagamento = useMutation({
@@ -854,7 +881,7 @@ export default function AdminPratiche() {
       const { error } = await supabase.from("pratiche").update({ pagamento_stato: pagamentoStato as any }).eq("id", praticaId);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] }),
+    onSuccess: invalidateAll,
   });
 
   const assignOperator = useMutation({
@@ -862,7 +889,7 @@ export default function AdminPratiche() {
       const { error } = await supabase.from("pratiche").update({ assegnatario_id: assegnatarioId }).eq("id", praticaId);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] }),
+    onSuccess: invalidateAll,
   });
 
   const bulkDelete = useMutation({
@@ -870,11 +897,7 @@ export default function AdminPratiche() {
       const { error } = await supabase.from("pratiche").delete().in("id", ids);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] });
-      clearSelection();
-      toast({ title: "Pratiche eliminate" });
-    },
+    onSuccess: () => { invalidateAll(); clearSelection(); toast({ title: "Pratiche eliminate" }); },
     onError: () => toast({ title: "Errore", variant: "destructive" }),
   });
 
@@ -883,7 +906,7 @@ export default function AdminPratiche() {
       const { error } = await supabase.from("pratiche").update({ stato: stato as any }).in("id", ids);
       if (error) throw error;
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] }); clearSelection(); toast({ title: "Stato aggiornato" }); },
+    onSuccess: () => { invalidateAll(); clearSelection(); toast({ title: "Stato aggiornato" }); },
   });
 
   const bulkChangePagamento = useMutation({
@@ -891,7 +914,7 @@ export default function AdminPratiche() {
       const { error } = await supabase.from("pratiche").update({ pagamento_stato: pagamento as any }).in("id", ids);
       if (error) throw error;
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-all-pratiche"] }); clearSelection(); toast({ title: "Pagamento aggiornato" }); },
+    onSuccess: () => { invalidateAll(); clearSelection(); toast({ title: "Pagamento aggiornato" }); },
   });
 
   // ── Selection ─────────────────────────────────────────────────────────────
@@ -947,7 +970,7 @@ export default function AdminPratiche() {
       </div>
 
       {/* KPI */}
-      {!isLoading && pratiche.length > 0 && <KpiCards pratiche={pratiche} />}
+      {kpiData && <KpiCards kpi={kpiData} />}
 
       {/* Toolbar */}
       <div className="flex items-center gap-2 flex-wrap">
@@ -1009,13 +1032,13 @@ export default function AdminPratiche() {
 
       {/* Stato chips (list/table only) */}
       {viewMode !== "pipeline" && (
-        <StatoChips pratiche={pratiche} active={filters.stato} onChange={(s) => updateFilter({ stato: s })} />
+        <StatoChips active={filters.stato} onChange={(s) => updateFilter({ stato: s })} total={total} />
       )}
 
-      {/* Result count */}
-      {!isLoading && filtered.length !== pratiche.length && (
-        <p className="text-xs text-muted-foreground">
-          Mostrando {filtered.length} di {pratiche.length} pratiche
+      {/* Pipeline capped warning */}
+      {viewMode === "pipeline" && allData?.capped && (
+        <p className="text-xs text-amber-600 dark:text-amber-400">
+          Visualizzando le prime 300 pratiche. Usa i filtri per restringere la ricerca.
         </p>
       )}
 
@@ -1050,20 +1073,35 @@ export default function AdminPratiche() {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
       ) : viewMode === "table" ? (
-        <PraticheTableView
-          pratiche={filtered}
-          selectedIds={selectedIds}
-          toggleSelect={toggleSelect}
-          toggleSelectAll={toggleSelectAll}
-          onChangeStato={(id: string, stato: PraticaStato) => quickChangeStato.mutate({ praticaId: id, stato })}
-          onChangePagamento={(id: string, pag: string) => quickChangePagamento.mutate({ praticaId: id, pagamentoStato: pag })}
-          onAssignOperator={(praticaId: string, value: string) => assignOperator.mutate({ praticaId, assegnatarioId: value === "unassigned" ? null : value })}
-          onDelete={(ids: string[]) => bulkDelete.mutate(ids)}
-          assigneeMap={assigneeMap}
-          internalOperators={internalOperators}
-        />
+        <>
+          <PraticheTableView
+            pratiche={filtered}
+            selectedIds={selectedIds}
+            toggleSelect={toggleSelect}
+            toggleSelectAll={toggleSelectAll}
+            onChangeStato={(id: string, stato: PraticaStato) => quickChangeStato.mutate({ praticaId: id, stato })}
+            onChangePagamento={(id: string, pag: string) => quickChangePagamento.mutate({ praticaId: id, pagamentoStato: pag })}
+            onAssignOperator={(praticaId: string, value: string) => assignOperator.mutate({ praticaId, assegnatarioId: value === "unassigned" ? null : value })}
+            onDelete={(ids: string[]) => bulkDelete.mutate(ids)}
+            assigneeMap={assigneeMap}
+            internalOperators={internalOperators}
+          />
+          <PaginationControls
+            page={page}
+            pageCount={pageCount}
+            total={total}
+            onPageChange={setPage}
+            isLoading={pagedFetching}
+          />
+        </>
       ) : viewMode === "pipeline" ? (
-        <PipelineView filtered={filtered} assigneeMap={assigneeMap} navigate={navigate} showPricing={permissions.see_pricing} />
+        <PipelineView
+          filtered={filtered}
+          assigneeMap={assigneeMap}
+          navigate={navigate}
+          showPricing={permissions.see_pricing}
+          cacheKey={["pratiche-server", "all", serverFilters, ADMIN_SELECT]}
+        />
       ) : filtered.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center py-14 text-center">
@@ -1078,24 +1116,33 @@ export default function AdminPratiche() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-2">
-          {filtered.map((p) => (
-            <ListCard
-              key={p.id}
-              p={p}
-              isSelected={selectedIds.has(p.id)}
-              onToggle={toggleSelect}
-              onNavigate={navigate}
-              assigneeMap={assigneeMap}
-              internalOperators={internalOperators}
-              quickChangeStato={quickChangeStato}
-              quickChangePagamento={quickChangePagamento}
-              assignOperator={assignOperator}
-              bulkDelete={bulkDelete}
-              showPricing={permissions.see_pricing}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid gap-2">
+            {filtered.map((p) => (
+              <ListCard
+                key={p.id}
+                p={p}
+                isSelected={selectedIds.has(p.id)}
+                onToggle={toggleSelect}
+                onNavigate={navigate}
+                assigneeMap={assigneeMap}
+                internalOperators={internalOperators}
+                quickChangeStato={quickChangeStato}
+                quickChangePagamento={quickChangePagamento}
+                assignOperator={assignOperator}
+                bulkDelete={bulkDelete}
+                showPricing={permissions.see_pricing}
+              />
+            ))}
+          </div>
+          <PaginationControls
+            page={page}
+            pageCount={pageCount}
+            total={total}
+            onPageChange={setPage}
+            isLoading={pagedFetching}
+          />
+        </>
       )}
 
       {/* Filter Sheet */}

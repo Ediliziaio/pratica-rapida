@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/hooks/useCompany";
@@ -14,7 +14,14 @@ import { PipelineView } from "@/components/pratiche/PipelineView";
 import { PraticheFilters } from "@/components/pratiche/PraticheFilters";
 import { PraticheSummaryBar } from "@/components/pratiche/PraticheSummaryBar";
 import { BulkActionsBar } from "@/components/pratiche/BulkActionsBar";
+import { PaginationControls } from "@/components/ui/PaginationControls";
 import { usePraticheRealtime } from "@/hooks/usePraticheRealtime";
+import {
+  usePratichePagedQuery,
+  usePraticheAllQuery,
+  useCompanyPraticheKpi,
+  type PraticheServerFilters,
+} from "@/hooks/usePraticheServerQuery";
 import { exportToCSV } from "@/lib/csv-export";
 import { useToast } from "@/hooks/use-toast";
 
@@ -22,12 +29,16 @@ type PraticaStato = Database["public"]["Enums"]["pratica_stato"];
 type ViewMode = "list" | "pipeline";
 type BrandFilter = "all" | "enea" | "conto_termico";
 
+const COMPANY_SELECT = "*, clienti_finali(id, nome, cognome)";
+
 export default function Pratiche() {
   const { companyId } = useCompany();
   usePraticheRealtime();
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // ── UI state ──────────────────────────────────────────────────────────────
   const [search, setSearch] = useState("");
   const [filterStato, setFilterStato] = useState<PraticaStato | "">("");
   const [viewMode, setViewMode] = useState<ViewMode>("pipeline");
@@ -36,46 +47,66 @@ export default function Pratiche() {
   const [filterCliente, setFilterCliente] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [filterBrand, setFilterBrand] = useState<BrandFilter>("all");
+  const [page, setPage] = useState(0);
 
-  const { data: pratiche = [], isLoading, isError } = useQuery({
-    queryKey: ["pratiche", companyId],
+  // ── Reset page when filters change ────────────────────────────────────────
+  useEffect(() => { setPage(0); }, [search, filterStato, filterBrand, filterDateFrom, filterDateTo, filterCliente]);
+
+  // ── Build server-side filter bag ──────────────────────────────────────────
+  const serverFilters: PraticheServerFilters = useMemo(() => ({
+    companyId,
+    search:    search   || undefined,
+    stato:     filterStato || undefined,
+    brand:     filterBrand,
+    dateFrom:  filterDateFrom ? filterDateFrom.toISOString().slice(0, 10) : undefined,
+    dateTo:    filterDateTo   ? filterDateTo.toISOString().slice(0, 10)   : undefined,
+    clienteId: filterCliente || undefined,
+  }), [companyId, search, filterStato, filterBrand, filterDateFrom, filterDateTo, filterCliente]);
+
+  // ── Paginated query (list view) ───────────────────────────────────────────
+  const {
+    data: pagedData,
+    isLoading: pagedLoading,
+    isFetching: pagedFetching,
+    isError: pagedError,
+  } = usePratichePagedQuery(serverFilters, page, COMPANY_SELECT, viewMode === "list" && !!companyId);
+
+  // ── All-records query (pipeline view, capped at 300) ──────────────────────
+  const {
+    data: allData,
+    isLoading: allLoading,
+    isError: allError,
+  } = usePraticheAllQuery(serverFilters, COMPANY_SELECT, viewMode === "pipeline" && !!companyId);
+
+  // ── KPI counts (separate lightweight HEAD queries) ────────────────────────
+  const { data: kpi } = useCompanyPraticheKpi(companyId);
+
+  // ── Clients dropdown (for filter) ─────────────────────────────────────────
+  const { data: clientiOptions = [] } = useQuery({
+    queryKey: ["clienti-options", companyId],
     queryFn: async () => {
-      if (!companyId) return [];
-      const { data, error } = await supabase
-        .from("pratiche")
-        .select("*, clienti_finali(id, nome, cognome)")
-        .eq("company_id", companyId)
-        .order("created_at", { ascending: false })
-        .limit(500);
-      if (error) throw error;
-      return data;
+      const { data } = await supabase
+        .from("clienti_finali")
+        .select("id, nome, cognome")
+        .order("cognome");
+      // clienti_finali doesn't have company_id so we get all; filter via pratiche join would be complex
+      // This is fine — the dropdown just lists clients the user has worked with
+      return data ?? [];
     },
     enabled: !!companyId,
+    staleTime: 120_000,
   });
 
-  const uniqueClienti = useMemo(() => {
-    const map = new Map<string, { id: string; nome: string; cognome: string }>();
-    pratiche.forEach((p) => {
-      if (p.clienti_finali && (p.clienti_finali as any).id) {
-        const c = p.clienti_finali as any;
-        map.set(c.id, { id: c.id, nome: c.nome, cognome: c.cognome });
-      }
-    });
-    return Array.from(map.values());
-  }, [pratiche]);
+  // Active data for the current view
+  const items = viewMode === "list"
+    ? (pagedData?.items ?? [])
+    : (allData?.items ?? []);
+  const total     = viewMode === "list" ? (pagedData?.total ?? 0) : (allData?.total ?? 0);
+  const pageCount = pagedData?.pageCount ?? 1;
+  const isLoading = viewMode === "list" ? pagedLoading : allLoading;
+  const isError   = viewMode === "list" ? pagedError   : allError;
 
-  const filtered = pratiche.filter((p) => {
-    const matchSearch = `${p.titolo} ${p.descrizione}`.toLowerCase().includes(search.toLowerCase());
-    const matchStato = !filterStato || p.stato === filterStato;
-    const matchCliente = !filterCliente || (p.clienti_finali as any)?.id === filterCliente;
-    const createdAt = new Date(p.created_at);
-    const matchDateFrom = !filterDateFrom || createdAt >= filterDateFrom;
-    const matchDateTo = !filterDateTo || createdAt <= new Date(filterDateTo.getTime() + 86400000);
-    const matchBrand = filterBrand === "all" || (p.dati_pratica as any)?.brand === filterBrand ||
-      (filterBrand === "enea" && !(p.dati_pratica as any)?.brand); // legacy ENEA without brand field
-    return matchSearch && matchStato && matchCliente && matchDateFrom && matchDateTo && matchBrand;
-  });
-
+  // ── Helpers ───────────────────────────────────────────────────────────────
   const resetFilters = () => {
     setFilterDateFrom(undefined);
     setFilterDateTo(undefined);
@@ -84,29 +115,29 @@ export default function Pratiche() {
 
   const handleExport = () => {
     exportToCSV(
-      filtered.map((p) => ({
-        titolo: p.titolo,
-        cliente: p.clienti_finali ? `${(p.clienti_finali as any).nome} ${(p.clienti_finali as any).cognome}` : "",
-        stato: p.stato,
+      items.map((p) => ({
+        titolo:   p.titolo,
+        cliente:  p.clienti_finali ? `${(p.clienti_finali as any).nome} ${(p.clienti_finali as any).cognome}` : "",
+        stato:    p.stato,
         pagamento: p.pagamento_stato,
-        prezzo: p.prezzo,
-        data: new Date(p.created_at).toLocaleDateString("it-IT"),
+        prezzo:   p.prezzo,
+        data:     new Date(p.created_at).toLocaleDateString("it-IT"),
       })),
       "pratiche-export",
       [
-        { key: "titolo", label: "Titolo" },
-        { key: "cliente", label: "Cliente" },
-        { key: "stato", label: "Stato" },
+        { key: "titolo",    label: "Titolo" },
+        { key: "cliente",   label: "Cliente" },
+        { key: "stato",     label: "Stato" },
         { key: "pagamento", label: "Pagamento" },
-        { key: "prezzo", label: "Prezzo" },
-        { key: "data", label: "Data" },
-      ]
+        { key: "prezzo",    label: "Prezzo" },
+        { key: "data",      label: "Data" },
+      ],
     );
   };
 
-  // Selection helpers
+  // ── Selection helpers ─────────────────────────────────────────────────────
   const toggleSelect = useCallback((id: string) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
@@ -114,85 +145,79 @@ export default function Pratiche() {
   }, []);
 
   const toggleSelectAll = useCallback(() => {
-    if (selectedIds.size === filtered.length) {
+    if (selectedIds.size === items.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(filtered.map(p => p.id)));
+      setSelectedIds(new Set(items.map((p) => p.id)));
     }
-  }, [filtered, selectedIds.size]);
+  }, [items, selectedIds.size]);
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
-  // Bulk delete (company users can only delete bozza)
+  // ── Mutations ─────────────────────────────────────────────────────────────
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["pratiche-server"] });
+    queryClient.invalidateQueries({ queryKey: ["pratiche-kpi"] });
+  };
+
   const bulkDelete = useMutation({
     mutationFn: async (ids: string[]) => {
       const { error } = await supabase.from("pratiche").delete().in("id", ids);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pratiche"] });
-      clearSelection();
-      toast({ title: "Pratiche eliminate" });
-    },
-    onError: () => toast({ title: "Errore nell'eliminazione", variant: "destructive" }),
+    onSuccess: () => { invalidate(); clearSelection(); toast({ title: "Pratiche eliminate" }); },
+    onError:   () => toast({ title: "Errore nell'eliminazione", variant: "destructive" }),
   });
 
   const handleBulkDelete = () => {
-    // Company users can only delete drafts
-    const deletableIds = Array.from(selectedIds).filter(id => {
-      const p = pratiche.find(pr => pr.id === id);
+    const deletableIds = Array.from(selectedIds).filter((id) => {
+      const p = items.find((pr) => pr.id === id);
       return p?.stato === "bozza";
     });
     if (deletableIds.length > 0) bulkDelete.mutate(deletableIds);
   };
 
-  const handleSingleDelete = (id: string) => {
-    bulkDelete.mutate([id]);
-  };
+  const handleSingleDelete = (id: string) => bulkDelete.mutate([id]);
 
   const canDelete = (p: any) => p.stato === "bozza";
 
   const duplicatePratica = useMutation({
     mutationFn: async (pratica: any) => {
       const { data, error } = await supabase.from("pratiche").insert({
-        company_id: pratica.company_id,
-        service_id: pratica.service_id ?? null,
+        company_id:        pratica.company_id,
+        service_id:        pratica.service_id ?? null,
         cliente_finale_id: pratica.cliente_finale_id ?? null,
-        creato_da: pratica.creato_da,
-        titolo: `Copia — ${pratica.titolo}`,
-        descrizione: pratica.descrizione ?? "",
-        categoria: pratica.categoria,
-        stato: "bozza",
-        priorita: pratica.priorita,
-        pagamento_stato: "non_pagata",
-        prezzo: pratica.prezzo,
-        dati_pratica: pratica.dati_pratica ?? {},
-        is_free: false,
+        creato_da:         pratica.creato_da,
+        titolo:            `Copia — ${pratica.titolo}`,
+        descrizione:       pratica.descrizione ?? "",
+        categoria:         pratica.categoria,
+        stato:             "bozza",
+        priorita:          pratica.priorita,
+        pagamento_stato:   "non_pagata",
+        prezzo:            pratica.prezzo,
+        dati_pratica:      pratica.dati_pratica ?? {},
+        is_free:           false,
       }).select("id").single();
       if (error) throw error;
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["pratiche"] });
+      invalidate();
       toast({ title: "Pratica duplicata", description: "La nuova bozza è pronta." });
       navigate(`/pratiche/${data.id}`);
     },
     onError: () => toast({ title: "Errore duplicazione", variant: "destructive" }),
   });
 
-  // Bulk change stato
   const bulkChangeStato = useMutation({
     mutationFn: async ({ ids, stato }: { ids: string[]; stato: string }) => {
       const { error } = await supabase.from("pratiche").update({ stato: stato as any }).in("id", ids);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pratiche"] });
-      clearSelection();
-      toast({ title: "Stato aggiornato" });
-    },
+    onSuccess: () => { invalidate(); clearSelection(); toast({ title: "Stato aggiornato" }); },
   });
 
+  // ── Guards ────────────────────────────────────────────────────────────────
   if (!companyId) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -212,6 +237,7 @@ export default function Pratiche() {
     );
   }
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -225,20 +251,22 @@ export default function Pratiche() {
         </Button>
       </div>
 
-      {!isLoading && pratiche.length > 0 && <PraticheSummaryBar pratiche={pratiche} />}
+      {/* KPI summary (always shows global counts, not filtered) */}
+      {kpi && <PraticheSummaryBar counts={kpi} />}
 
-      {/* ── Toolbar ────────────────────────────────────────────────────── */}
+      {/* ── Toolbar ──────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <Input
-            placeholder="Cerca per titolo, cliente..."
+            placeholder="Cerca per titolo..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-8 h-9 text-sm bg-muted/50 border-transparent focus-visible:border-input focus-visible:bg-background transition-all"
           />
         </div>
 
+        {/* Brand toggle */}
         <div className="inline-flex items-center gap-0.5 bg-muted rounded-md p-0.5 shrink-0">
           {(["all", "enea", "conto_termico"] as const).map((b) => (
             <button
@@ -263,7 +291,7 @@ export default function Pratiche() {
           onDateToChange={setFilterDateTo}
           onClienteChange={setFilterCliente}
           onReset={resetFilters}
-          clienti={uniqueClienti}
+          clienti={clientiOptions}
         />
 
         <Button
@@ -271,12 +299,13 @@ export default function Pratiche() {
           size="sm"
           className="h-9 gap-1.5 shrink-0"
           onClick={handleExport}
-          disabled={filtered.length === 0}
+          disabled={items.length === 0}
         >
           <Download className="h-3.5 w-3.5" />
           <span className="hidden sm:inline text-xs">CSV</span>
         </Button>
 
+        {/* View mode */}
         <div className="inline-flex items-center gap-0.5 bg-muted rounded-md p-0.5 shrink-0">
           <button
             onClick={() => setViewMode("list")}
@@ -295,19 +324,19 @@ export default function Pratiche() {
         </div>
       </div>
 
-      {/* Stato chips (list mode) */}
+      {/* Stato chips (list mode only) */}
       {viewMode === "list" && (
         <div className="flex items-center gap-1.5 flex-wrap">
-          {filtered.length > 0 && (
+          {items.length > 0 && (
             <div className="flex items-center gap-1.5 mr-1" onClick={(e) => e.stopPropagation()}>
               <Checkbox
-                checked={selectedIds.size === filtered.length && filtered.length > 0}
+                checked={selectedIds.size === items.length && items.length > 0}
                 onCheckedChange={toggleSelectAll}
               />
             </div>
           )}
           {(["", ...STATO_ORDER] as const).map((stato) => {
-            const label = stato === "" ? "Tutti" : STATO_CONFIG[stato as PraticaStato].label;
+            const label  = stato === "" ? "Tutti" : STATO_CONFIG[stato as PraticaStato].label;
             const active = filterStato === stato;
             return (
               <button
@@ -323,12 +352,19 @@ export default function Pratiche() {
               </button>
             );
           })}
-          {filtered.length !== pratiche.length && (
+          {total > 0 && (
             <span className="ml-auto text-xs text-muted-foreground tabular-nums">
-              {filtered.length}/{pratiche.length}
+              {total} {total === 1 ? "pratica" : "pratiche"}
             </span>
           )}
         </div>
+      )}
+
+      {/* Pipeline capped warning */}
+      {viewMode === "pipeline" && allData?.capped && (
+        <p className="text-xs text-amber-600 dark:text-amber-400">
+          Visualizzando le prime 300 pratiche. Usa i filtri per restringere la ricerca.
+        </p>
       )}
 
       {/* Bulk actions */}
@@ -342,21 +378,30 @@ export default function Pratiche() {
         />
       )}
 
-      {/* List or pipeline */}
+      {/* Main content */}
       {viewMode === "list" ? (
-        <ListView
-          pratiche={filtered}
-          navigate={navigate}
-          selectable
-          selectedIds={selectedIds}
-          onToggle={toggleSelect}
-          onDelete={handleSingleDelete}
-          canDelete={canDelete}
-          onDuplicate={(p) => duplicatePratica.mutate(p)}
-          isLoading={isLoading}
-        />
+        <>
+          <ListView
+            pratiche={items}
+            navigate={navigate}
+            selectable
+            selectedIds={selectedIds}
+            onToggle={toggleSelect}
+            onDelete={handleSingleDelete}
+            canDelete={canDelete}
+            onDuplicate={(p) => duplicatePratica.mutate(p)}
+            isLoading={isLoading}
+          />
+          <PaginationControls
+            page={page}
+            pageCount={pageCount}
+            total={total}
+            onPageChange={setPage}
+            isLoading={pagedFetching}
+          />
+        </>
       ) : (
-        <PipelineView pratiche={filtered} navigate={navigate} />
+        <PipelineView pratiche={items} navigate={navigate} />
       )}
     </div>
   );

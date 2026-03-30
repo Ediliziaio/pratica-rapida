@@ -2,10 +2,10 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
-const FROM_EMAIL = `Pratica Rapida <noreply@${Deno.env.get("EMAIL_FROM_DOMAIN") ?? "pratica-rapida.it"}>`;
+const FROM_EMAIL = `Pratica Rapida <noreply@${Deno.env.get("EMAIL_FROM_DOMAIN") ?? "praticarapida.it"}>`;
 const PHONE_NUMBER_ID = Deno.env.get("WA_PHONE_NUMBER_ID")!;
 const ACCESS_TOKEN = Deno.env.get("WA_ACCESS_TOKEN")!;
-const APP_URL = Deno.env.get("APP_URL") ?? "https://app.pratica-rapida.it";
+const APP_URL = Deno.env.get("APP_URL") ?? "https://app.praticarapida.it";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",

@@ -120,10 +120,10 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Step 3 — Assign role admin_interno
+  // Step 3 — Assign role azienda_admin (NOT admin_interno which is reserved for internal staff)
   const { error: roleErr } = await adminClient
     .from("user_roles")
-    .insert({ user_id: userId, role: "admin_interno" });
+    .insert({ user_id: userId, role: "azienda_admin" });
   if (roleErr) {
     await adminClient.from("companies").delete().eq("id", company.id);
     await adminClient.auth.admin.deleteUser(userId);

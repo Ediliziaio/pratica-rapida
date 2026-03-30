@@ -3,9 +3,9 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, FileCheck, Zap, Shield, ArrowLeft, Eye, EyeOff, Building2 } from "lucide-react";
+import { Loader2, FileCheck, Zap, Shield, ArrowLeft, Eye, EyeOff } from "lucide-react";
 
-type View = "login" | "forgot" | "register";
+type View = "login" | "forgot" | "register" | "reset";
 
 const APP_URL = "https://app.praticarapida.it";
 

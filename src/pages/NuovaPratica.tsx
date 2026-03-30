@@ -826,6 +826,15 @@ export default function NuovaPratica() {
               <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
               <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
                 <span className="font-semibold">Documenti richiesti:</span> carica fattura, documento d'identità e qualsiasi altro file necessario alla pratica. Puoi aggiungerne altri anche in seguito dalla pagina della pratica.
+                {" "}
+                <a
+                  href="https://drive.google.com/file/d/1ZZit5BsW1X0IkQ2_Xit5Jd8YRUuU6jrQ/view"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold underline underline-offset-2 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+                >
+                  📄 Scarica qui la lista documenti da allegare
+                </a>
               </p>
             </div>
           )}

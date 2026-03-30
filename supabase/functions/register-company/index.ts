@@ -24,6 +24,8 @@ Deno.serve(async (req) => {
 
   const {
     ragione_sociale,
+    nome,
+    cognome,
     email,
     password,
     piva,
@@ -38,6 +40,18 @@ Deno.serve(async (req) => {
   // Validation
   if (!ragione_sociale?.trim()) {
     return new Response(JSON.stringify({ error: "Ragione sociale obbligatoria" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  if (!nome?.trim()) {
+    return new Response(JSON.stringify({ error: "Nome obbligatorio" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  if (!cognome?.trim()) {
+    return new Response(JSON.stringify({ error: "Cognome obbligatorio" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -71,7 +85,7 @@ Deno.serve(async (req) => {
     email: email.trim(),
     password,
     email_confirm: true,
-    user_metadata: { nome: ragione_sociale.trim(), cognome: "" },
+    user_metadata: { nome: nome.trim(), cognome: cognome.trim() },
   });
   if (userErr) {
     const status = userErr.message?.includes("already registered") ? 409 : 400;
@@ -137,7 +151,19 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Step 5 — Send welcome email via Resend (fire and forget)
+  // Step 5 — Complete profile: skip onboarding (data already collected) + set nome/cognome/telefono
+  // The trigger creates the profile row on user creation; we update it immediately after.
+  await adminClient
+    .from("profiles")
+    .update({
+      nome: nome.trim(),
+      cognome: cognome.trim(),
+      telefono: telefono ?? "",
+      onboarding_completed: true,
+    })
+    .eq("id", userId);
+
+  // Step 6 — Send welcome email via Resend (fire and forget)
   const resendKey = Deno.env.get("RESEND_API_KEY");
   const fromDomain = Deno.env.get("EMAIL_FROM_DOMAIN") ?? "praticarapida.it";
   const loginUrl = Deno.env.get("APP_URL") ?? "https://app.praticarapida.it/auth";

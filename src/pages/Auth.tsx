@@ -25,6 +25,8 @@ export default function Auth() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   // Register fields
+  const [regNome, setRegNome] = useState("");
+  const [regCognome, setRegCognome] = useState("");
   const [regRagioneSociale, setRegRagioneSociale] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
@@ -115,6 +117,8 @@ export default function Auth() {
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
           body: JSON.stringify({
+            nome: regNome,
+            cognome: regCognome,
             ragione_sociale: regRagioneSociale,
             email: regEmail,
             password: regPassword,
@@ -699,6 +703,44 @@ export default function Auth() {
               </div>
 
               <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+
+                {/* Row 0: Nome + Cognome */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                  <div>
+                    <label htmlFor="reg-nome" style={labelStyle}>
+                      Nome <span style={{ color: "#ef4444" }}>*</span>
+                    </label>
+                    <input
+                      id="reg-nome"
+                      type="text"
+                      required
+                      autoComplete="given-name"
+                      value={regNome}
+                      onChange={(e) => setRegNome(e.target.value)}
+                      placeholder="Mario"
+                      onFocus={() => setFocusedField("reg-nome")}
+                      onBlur={() => setFocusedField(null)}
+                      style={inputStyle("reg-nome")}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="reg-cognome" style={labelStyle}>
+                      Cognome <span style={{ color: "#ef4444" }}>*</span>
+                    </label>
+                    <input
+                      id="reg-cognome"
+                      type="text"
+                      required
+                      autoComplete="family-name"
+                      value={regCognome}
+                      onChange={(e) => setRegCognome(e.target.value)}
+                      placeholder="Rossi"
+                      onFocus={() => setFocusedField("reg-cognome")}
+                      onBlur={() => setFocusedField(null)}
+                      style={inputStyle("reg-cognome")}
+                    />
+                  </div>
+                </div>
 
                 {/* Row 1: Ragione Sociale (full width) */}
                 <div>

@@ -109,8 +109,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AuthRoute() {
-  const { session, loading, roles } = useAuth();
+  const { session, loading, roles, isPasswordRecovery } = useAuth();
   if (loading) return null;
+  // If user landed via a password-reset link, always show the Auth page (reset view)
+  if (isPasswordRecovery) return <Auth />;
   if (session) {
     return <Navigate to={isStaff(roles) ? "/admin/pratiche" : "/pratiche"} replace />;
   }

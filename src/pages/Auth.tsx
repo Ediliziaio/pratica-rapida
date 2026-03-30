@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, FileCheck, Zap, Shield, ArrowLeft, Eye, EyeOff } from "lucide-react";
 
-type View = "login" | "forgot" | "reset";
+type View = "login" | "forgot";
 
 const APP_URL = "https://app.praticarapida.it";
 
@@ -18,18 +19,12 @@ export default function Auth() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const { isPasswordRecovery, clearPasswordRecovery } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Detect PASSWORD_RECOVERY event (user clicked the reset link in email)
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setView("reset");
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+  // Derive the active view: recovery takes priority over local state
+  const activeView = isPasswordRecovery ? "reset" : view;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,8 +80,7 @@ export default function Auth() {
         title: "Password aggiornata ✓",
         description: "Puoi ora accedere con la nuova password.",
       });
-      setNewPassword("");
-      setConfirmPassword("");
+      clearPasswordRecovery();
       navigate("/");
     }
   };
@@ -222,7 +216,7 @@ export default function Auth() {
       >
         <div style={{ width: "100%", maxWidth: "400px" }}>
 
-          {view === "login" ? (
+          {activeView === "login" ? (
             <>
               <div style={{ marginBottom: "2.5rem" }}>
                 <h2 style={{
@@ -439,7 +433,7 @@ export default function Auth() {
                 </button>
               </form>
             </>
-          ) : view === "reset" ? (
+          ) : activeView === "reset" ? (
             <>
               <div style={{ marginBottom: "2.5rem" }}>
                 <h2 style={{

@@ -23,6 +23,9 @@ interface AuthContextType {
   isInternal: boolean;
   resellerId: string | null;
   isBlocked: boolean;
+  /** True when the user landed via a password-reset link (PASSWORD_RECOVERY event) */
+  isPasswordRecovery: boolean;
+  clearPasswordRecovery: () => void;
   signOut: () => Promise<void>;
 }
 
@@ -37,6 +40,8 @@ const AuthContext = createContext<AuthContextType>({
   isInternal: false,
   resellerId: null,
   isBlocked: false,
+  isPasswordRecovery: false,
+  clearPasswordRecovery: () => {},
   signOut: async () => {},
 });
 
@@ -47,14 +52,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [resellerId, setResellerId] = useState<string | null>(null);
   const [isBlocked, setIsBlocked] = useState(false);
   const [loading, setLoading] = useState(true);
-  // Guard against concurrent fetches for the same userId (race condition between
-  // onAuthStateChange and getSession both firing on initial load)
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  // Guard against concurrent fetches for the same userId
   const fetchingForRef = useRef<string | null>(null);
 
   const fetchRolesAndProfile = async (userId: string) => {
-    if (fetchingForRef.current === userId) return; // already in-flight for this user
+    if (fetchingForRef.current === userId) return;
     fetchingForRef.current = userId;
-    // Fetch roles
+
     const { data: roleData } = await supabase
       .from("user_roles")
       .select("role")
@@ -63,7 +68,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRoles(roleData.map((r) => r.role as AppRole));
     }
 
-    // If rivenditore, fetch company assignment and check if blocked
     const isRivenditore = roleData?.some((r) => r.role === "rivenditore");
     if (isRivenditore) {
       const { data: assignment } = await supabase
@@ -85,29 +89,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // getSession handles the initial load; onAuthStateChange handles subsequent changes.
-    // Both can fire on startup — the fetchingForRef guard prevents duplicate DB calls.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          // Reset the guard on every new auth event so re-logins always re-fetch
+      (event, session) => {
+        if (event === "PASSWORD_RECOVERY") {
+          // User clicked the reset-password link — hold them on /auth, don't redirect
+          setIsPasswordRecovery(true);
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+          return; // do NOT fetch roles/profile in recovery mode
+        }
+
+        if (event === "SIGNED_OUT") {
+          setIsPasswordRecovery(false);
           fetchingForRef.current = null;
-          fetchRolesAndProfile(session.user.id).catch(console.error);
-        } else {
-          fetchingForRef.current = null;
+          setSession(null);
+          setUser(null);
           setRoles([]);
           setResellerId(null);
           setIsBlocked(false);
+          setLoading(false);
+          return;
+        }
+
+        // USER_UPDATED fires after successful updateUser (password change)
+        if (event === "USER_UPDATED") {
+          setIsPasswordRecovery(false);
+        }
+
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchingForRef.current = null;
+          fetchRolesAndProfile(session.user.id).catch(console.error);
         }
         setLoading(false);
       }
     );
 
+    // Initial session check — if the hash contains type=recovery Supabase will
+    // fire PASSWORD_RECOVERY via onAuthStateChange above before this resolves,
+    // so we only set session/loading here if not already in recovery mode.
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+      setSession(prev => prev ?? session);
+      setUser(prev => prev ?? (session?.user ?? null));
       if (session?.user) {
         fetchRolesAndProfile(session.user.id).catch(console.error);
       }
@@ -119,10 +144,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setIsPasswordRecovery(false);
     setRoles([]);
     setResellerId(null);
     setIsBlocked(false);
   };
+
+  const clearPasswordRecovery = () => setIsPasswordRecovery(false);
 
   const isAdminFlag = roles.includes("super_admin");
   const isOperatoreFlag = roles.some((r) => ["super_admin", "operatore"].includes(r));
@@ -141,6 +169,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isInternal: isInternalFlag,
       resellerId,
       isBlocked,
+      isPasswordRecovery,
+      clearPasswordRecovery,
       signOut,
     }}>
       {children}

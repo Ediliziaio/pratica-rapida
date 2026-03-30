@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { useScrollAnimation } from "../landing/hooks";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, MessageCircle } from "lucide-react";
+
+const WHATSAPP_URL = "https://wa.me/390398682691?text=Ciao%2C%20vorrei%20sapere%20come%20funziona%20Pratica%20Rapida";
 
 export default function FinalCTAHome() {
   const { ref, isVisible } = useScrollAnimation();
@@ -42,28 +44,30 @@ export default function FinalCTAHome() {
             Scegli il servizio che ti interessa. Nessun vincolo, nessun costo di attivazione.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
             <Link
-              to="/pratica-enea"
+              to="/auth"
               className="inline-flex items-center justify-center gap-2 text-white font-bold px-8 py-4 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
               style={{
                 background: "hsl(var(--pr-green))",
                 boxShadow: "0 0 40px hsla(152,100%,30%,0.5), 0 4px 20px hsla(152,100%,24%,0.4)",
               }}
             >
-              Inizia con le pratiche ENEA <ArrowRight size={16} />
+              Attiva Gratis <ArrowRight size={16} />
             </Link>
-            <Link
-              to="/conto-termico"
-              className="inline-flex items-center justify-center gap-2 font-bold px-8 py-4 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
+            <a
+              href={WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 font-semibold px-8 py-4 rounded-full text-base transition-all hover:bg-white/15 active:scale-[0.97]"
               style={{
-                background: "rgba(255,255,255,0.06)",
+                background: "rgba(255,255,255,0.07)",
                 border: "1px solid rgba(255,255,255,0.15)",
                 color: "rgba(255,255,255,0.85)",
               }}
             >
-              Scopri il Conto Termico <ArrowRight size={16} />
-            </Link>
+              <MessageCircle size={17} /> Contattaci su WhatsApp
+            </a>
           </div>
 
           <p className="text-xs mt-5" style={{ color: "rgba(255,255,255,0.3)" }}>

@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, MessageCircle, LogIn } from "lucide-react";
 import { NAV_LINKS } from "./constants";
+
+const WHATSAPP_URL = "https://wa.me/390398682691?text=Ciao%2C%20vorrei%20sapere%20come%20funziona%20Pratica%20Rapida";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -31,7 +33,7 @@ export default function Navbar() {
           />
         </Link>
 
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-6">
           {NAV_LINKS.map((l) => (
             <Link
               key={l.href}
@@ -45,25 +47,47 @@ export default function Navbar() {
               {l.label}
             </Link>
           ))}
-          <Link
-            to="/auth"
-            className={`text-sm font-medium transition-colors ${
-              scrolled
-                ? "text-muted-foreground hover:text-foreground"
-                : "text-white/70 hover:text-white"
-            }`}
-          >
-            Accedi
-          </Link>
         </div>
 
-        <Link
-          to="/auth"
-          className="hidden md:inline-flex text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all hover:brightness-110"
-          style={{ backgroundColor: "hsl(var(--pr-green))" }}
-        >
-          Attiva Gratis
-        </Link>
+        {/* Right CTA group */}
+        <div className="hidden md:flex items-center gap-2">
+          {/* Contattaci — WhatsApp */}
+          <a
+            href={WHATSAPP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full border transition-all hover:scale-[1.03] active:scale-[0.97] ${
+              scrolled
+                ? "border-border text-foreground hover:bg-muted"
+                : "border-white/25 text-white hover:bg-white/10"
+            }`}
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            Contattaci
+          </a>
+
+          {/* Accedi */}
+          <Link
+            to="/auth"
+            className={`inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full border transition-all hover:scale-[1.03] active:scale-[0.97] ${
+              scrolled
+                ? "border-border text-foreground hover:bg-muted"
+                : "border-white/25 text-white hover:bg-white/10"
+            }`}
+          >
+            <LogIn className="h-3.5 w-3.5" />
+            Accedi
+          </Link>
+
+          {/* Attiva Gratis — primary CTA */}
+          <Link
+            to="/auth"
+            className="inline-flex items-center gap-1.5 text-white text-sm font-bold px-5 py-2.5 rounded-full transition-all hover:brightness-110 active:scale-[0.97]"
+            style={{ backgroundColor: "hsl(var(--pr-green))" }}
+          >
+            Attiva Gratis
+          </Link>
+        </div>
 
         <button
           className={`md:hidden p-2 ${scrolled ? "text-foreground" : "text-white"}`}
@@ -75,32 +99,47 @@ export default function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden bg-white/95 backdrop-blur-xl border-b border-border px-4 pb-4 animate-fade-in">
+        <div className="md:hidden bg-white/95 backdrop-blur-xl border-b border-border px-4 pb-5 pt-1 animate-fade-in">
           {NAV_LINKS.map((l) => (
             <Link
               key={l.href}
               to={l.href}
               onClick={closeMobile}
-              className="block py-3 text-sm font-medium text-muted-foreground"
+              className="block py-3 text-sm font-medium text-muted-foreground border-b border-border/50 last:border-0"
             >
               {l.label}
             </Link>
           ))}
-          <Link
-            to="/auth"
-            onClick={closeMobile}
-            className="block py-3 text-sm font-medium text-muted-foreground"
-          >
-            Accedi
-          </Link>
-          <Link
-            to="/auth"
-            onClick={closeMobile}
-            className="block w-full text-center text-white font-semibold px-6 py-2.5 rounded-full mt-2"
-            style={{ backgroundColor: "hsl(var(--pr-green))" }}
-          >
-            Attiva Gratis
-          </Link>
+
+          {/* Mobile CTAs */}
+          <div className="flex flex-col gap-2 mt-4">
+            <a
+              href={WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={closeMobile}
+              className="flex items-center justify-center gap-2 w-full border border-border text-foreground font-semibold px-6 py-3 rounded-full text-sm"
+            >
+              <MessageCircle className="h-4 w-4 text-green-600" />
+              Contattaci su WhatsApp
+            </a>
+            <Link
+              to="/auth"
+              onClick={closeMobile}
+              className="flex items-center justify-center gap-2 w-full border border-border text-foreground font-semibold px-6 py-3 rounded-full text-sm"
+            >
+              <LogIn className="h-4 w-4" />
+              Accedi
+            </Link>
+            <Link
+              to="/auth"
+              onClick={closeMobile}
+              className="block w-full text-center text-white font-bold px-6 py-3 rounded-full text-sm"
+              style={{ backgroundColor: "hsl(var(--pr-green))" }}
+            >
+              Attiva Gratis
+            </Link>
+          </div>
         </div>
       )}
     </nav>

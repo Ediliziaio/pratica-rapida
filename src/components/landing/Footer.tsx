@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
-import { Phone, Mail, MapPin, Clock } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, MessageCircle } from "lucide-react";
+
+const WHATSAPP_URL = "https://wa.me/390398682691?text=Ciao%2C%20vorrei%20sapere%20come%20funziona%20Pratica%20Rapida";
 
 export default function Footer() {
   return (
@@ -30,11 +32,14 @@ export default function Footer() {
             <a href="#prezzi" className="block text-sm mb-2 hover:text-white transition-colors">Prezzi</a>
             <a href="#testimonianze" className="block text-sm mb-2 hover:text-white transition-colors">Recensioni</a>
             <a href="#faq" className="block text-sm mb-2 hover:text-white transition-colors">FAQ</a>
-            <Link to="/auth" className="block text-sm mb-2 hover:text-white transition-colors">Accedi</Link>
+            <Link to="/auth" className="block text-sm mb-2 hover:text-white transition-colors">Accedi al pannello</Link>
           </div>
 
           <div>
             <h5 className="font-bold text-sm text-white mb-4">Contatti</h5>
+            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm mb-2 hover:text-white transition-colors text-green-400/90">
+              <MessageCircle size={14} className="shrink-0" /> WhatsApp — Scrivici subito
+            </a>
             <a href="tel:+390398682691" className="flex items-center gap-2 text-sm mb-2 hover:text-white transition-colors">
               <Phone size={14} className="shrink-0" /> +39 039 868 2691
             </a>

@@ -41,9 +41,9 @@ export default function WhyUsSection() {
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           className="text-center mb-12"
         >
-          <h2 className="font-bold text-2xl sm:text-3xl lg:text-5xl leading-[1.1] mb-4 text-foreground">
+          <h2 className="font-extrabold text-2xl sm:text-3xl lg:text-5xl leading-[1.1] mb-4 text-foreground">
             Noi vs Fai da te vs{" "}
-            <span style={{ color: "hsl(var(--pr-green))" }}>Commercialista</span>
+            <span className="text-gradient-green">Commercialista</span>
           </h2>
           <p className="text-muted-foreground text-base sm:text-lg">
             Un confronto onesto. Poi decidi tu.
@@ -54,38 +54,40 @@ export default function WhyUsSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.2 }}
-          className="bg-card border border-border rounded-2xl overflow-hidden shadow-lg"
+          className="overflow-x-auto -mx-4 sm:mx-0"
         >
-          {/* Header */}
-          <div className="grid grid-cols-4 gap-0 border-b border-border text-center text-xs sm:text-sm font-bold">
-            <div className="p-3 sm:p-4 text-left text-muted-foreground" />
-            <div className="p-3 sm:p-4 text-white rounded-t-none" style={{ backgroundColor: "hsl(var(--pr-green))" }}>
-              Pratica Rapida
+          <div className="min-w-[480px] mx-4 sm:mx-0 bg-card border border-border rounded-2xl overflow-hidden shadow-lg">
+            {/* Header */}
+            <div className="grid grid-cols-4 gap-0 border-b border-border text-center text-xs sm:text-sm font-bold">
+              <div className="p-3 sm:p-4 text-left text-muted-foreground" />
+              <div className="p-3 sm:p-4 text-white rounded-t-none" style={{ backgroundColor: "hsl(var(--pr-green))" }}>
+                Pratica Rapida
+              </div>
+              <div className="p-3 sm:p-4 text-foreground bg-muted/50">Fai da te</div>
+              <div className="p-3 sm:p-4 text-foreground bg-muted/50">Commercialista</div>
             </div>
-            <div className="p-3 sm:p-4 text-foreground bg-muted/50">Fai da te</div>
-            <div className="p-3 sm:p-4 text-foreground bg-muted/50">Commercialista</div>
-          </div>
 
-          {/* Rows */}
-          {comparisons.map((row, i) => (
-            <div
-              key={i}
-              className={`grid grid-cols-4 gap-0 items-center text-center text-sm ${
-                i < comparisons.length - 1 ? "border-b border-border/50" : ""
-              }`}
-            >
-              <div className="p-3 sm:p-4 text-left text-foreground text-xs sm:text-sm">{row.feature}</div>
-              <div className="p-3 sm:p-4 flex justify-center bg-[hsla(var(--pr-green),0.03)]">
-                {row.us ? <CheckIcon /> : <XIcon />}
+            {/* Rows */}
+            {comparisons.map((row, i) => (
+              <div
+                key={i}
+                className={`grid grid-cols-4 gap-0 items-center text-center text-sm ${
+                  i < comparisons.length - 1 ? "border-b border-border/50" : ""
+                }`}
+              >
+                <div className="p-3 sm:p-4 text-left text-foreground text-xs sm:text-sm">{row.feature}</div>
+                <div className="p-3 sm:p-4 flex justify-center bg-[hsla(var(--pr-green),0.03)]">
+                  {row.us ? <CheckIcon /> : <XIcon />}
+                </div>
+                <div className="p-3 sm:p-4 flex justify-center">
+                  {row.diy ? <CheckIcon /> : <XIcon />}
+                </div>
+                <div className="p-3 sm:p-4 flex justify-center">
+                  {row.accountant ? <CheckIcon /> : <XIcon />}
+                </div>
               </div>
-              <div className="p-3 sm:p-4 flex justify-center">
-                {row.diy ? <CheckIcon /> : <XIcon />}
-              </div>
-              <div className="p-3 sm:p-4 flex justify-center">
-                {row.accountant ? <CheckIcon /> : <XIcon />}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </motion.div>
 
         {/* CTA */}

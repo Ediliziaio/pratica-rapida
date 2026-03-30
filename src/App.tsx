@@ -24,6 +24,7 @@ const CodaPratiche = lazy(() => import("./pages/CodaPratiche"));
 const AdminPratiche = lazy(() => import("./pages/AdminPratiche"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Home = lazy(() => import("./pages/Home"));
+const HomeCT = lazy(() => import("./pages/HomeCT"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
 const Clienti = lazy(() => import("./pages/Clienti"));
@@ -37,6 +38,8 @@ const FormPubblico = lazy(() => import("./pages/FormPubblico"));
 const ModuloClientePage = lazy(() => import("./pages/ModuloClientePage"));
 const KanbanBoard = lazy(() => import("./pages/KanbanBoard"));
 const NuovaPraticaEnea = lazy(() => import("./pages/rivenditore/NuovaPraticaEnea"));
+const HomeMain = lazy(() => import("./pages/HomeMain"));
+const FAQPage = lazy(() => import("./pages/FAQ"));
 const GestionaleAdmin = lazy(() => import("./pages/admin/Gestionale"));
 const Automazioni = lazy(() => import("./pages/admin/Automazioni"));
 const EneaDashboard = lazy(() => import("./pages/EneaDashboard"));
@@ -121,10 +124,13 @@ const App = () => (
           <AuthProvider>
             <Suspense fallback={<PageLoader />}>
               <Routes>
-                <Route path="/offerta" element={<Home />} />
-                <Route path="/home" element={<Home />} />
+                <Route path="/pratica-enea" element={<Home />} />
+                <Route path="/conto-termico" element={<HomeCT />} />
+                <Route path="/offerta" element={<Navigate to="/pratica-enea" replace />} />
+                <Route path="/home" element={<HomeMain />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
+                <Route path="/faq" element={<FAQPage />} />
                 <Route path="/auth" element={<AuthRoute />} />
                 <Route path="/blocked" element={<Blocked />} />
                 <Route path="/form/:token" element={<FormPubblico />} />

@@ -18,14 +18,14 @@ export default function Navbar() {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-background/95 backdrop-blur-xl shadow-lg border-b border-border"
+          ? "bg-white/95 backdrop-blur-xl shadow-sm border-b border-border"
           : "bg-transparent"
       }`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-4 lg:px-8">
         <Link to="/home" className="flex items-center gap-2">
           <img
-            src="/pratica-rapida-logo.png"
+            src={scrolled ? "/pratica-rapida-logo.png" : "/pratica-rapida-logo-white.png"}
             alt="Pratica Rapida"
             className="max-h-10 w-auto object-contain"
           />
@@ -33,17 +33,25 @@ export default function Navbar() {
 
         <div className="hidden md:flex items-center gap-8">
           {NAV_LINKS.map((l) => (
-            <a
+            <Link
               key={l.href}
-              href={l.href}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              to={l.href}
+              className={`text-sm font-medium transition-colors ${
+                scrolled
+                  ? "text-muted-foreground hover:text-foreground"
+                  : "text-white/70 hover:text-white"
+              }`}
             >
               {l.label}
-            </a>
+            </Link>
           ))}
           <Link
             to="/auth"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className={`text-sm font-medium transition-colors ${
+              scrolled
+                ? "text-muted-foreground hover:text-foreground"
+                : "text-white/70 hover:text-white"
+            }`}
           >
             Accedi
           </Link>
@@ -51,14 +59,14 @@ export default function Navbar() {
 
         <Link
           to="/auth"
-          className="hidden md:inline-flex text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all animate-pulse-glow hover:brightness-110"
+          className="hidden md:inline-flex text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all hover:brightness-110"
           style={{ backgroundColor: "hsl(var(--pr-green))" }}
         >
           Attiva Gratis
         </Link>
 
         <button
-          className="md:hidden p-2 text-foreground"
+          className={`md:hidden p-2 ${scrolled ? "text-foreground" : "text-white"}`}
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Menu"
         >
@@ -67,16 +75,16 @@ export default function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden bg-background/95 backdrop-blur-xl border-b border-border px-4 pb-4 animate-fade-in">
+        <div className="md:hidden bg-white/95 backdrop-blur-xl border-b border-border px-4 pb-4 animate-fade-in">
           {NAV_LINKS.map((l) => (
-            <a
+            <Link
               key={l.href}
-              href={l.href}
+              to={l.href}
               onClick={closeMobile}
               className="block py-3 text-sm font-medium text-muted-foreground"
             >
               {l.label}
-            </a>
+            </Link>
           ))}
           <Link
             to="/auth"

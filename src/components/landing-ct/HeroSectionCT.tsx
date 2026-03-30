@@ -22,9 +22,9 @@ function useCounter(target: number, delay: number, duration = 1500) {
 }
 
 const dashboardItems = [
-  { label: "Pratiche completate questo mese", target: 47, suffix: " ✅", delay: 800 },
-  { label: "Tempo medio evasione", target: 48, suffix: "h", delay: 1000 },
-  { label: "Clienti contattati a tuo nome", target: 32, suffix: "", delay: 1200 },
+  { label: "Pratiche CT completate questo mese", target: 23, suffix: " ✅", delay: 800 },
+  { label: "Tempo medio evasione", target: 72, suffix: "h", delay: 1000 },
+  { label: "Tasso accettazione GSE", target: 99, suffix: "%", delay: 1200 },
 ];
 
 function DashboardRows() {
@@ -41,10 +41,7 @@ function DashboardRows() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: item.delay / 1000, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           className="flex items-center justify-between p-3 rounded-xl"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.08)",
-          }}
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
         >
           <span className="text-xs sm:text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>{item.label}</span>
           <span className="font-bold tabular-nums text-white text-sm">{counts[i]}{item.suffix}</span>
@@ -62,12 +59,12 @@ const socialProofAvatars = [
 ];
 
 const checkpoints = [
-  "Raccogliamo i documenti al posto tuo",
-  "Trasmettiamo la pratica in 48h",
-  "Tu ti concentri solo sulle vendite",
+  "Raccogliamo tutta la documentazione tecnica richiesta dal GSE",
+  "Inviamo la pratica entro i 90 giorni dalla fine lavori",
+  "Il tuo cliente riceve il contributo direttamente",
 ];
 
-export default function HeroSection() {
+export default function HeroSectionCT() {
   return (
     <section
       className="relative min-h-[90vh] flex items-center overflow-hidden pt-20 pb-12"
@@ -75,22 +72,18 @@ export default function HeroSection() {
     >
       {/* Background mesh / orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Primary green orb — top right */}
         <div
           className="absolute -top-60 -right-60 w-[700px] h-[700px] rounded-full animate-aurora"
           style={{ background: "radial-gradient(circle, hsla(152,100%,30%,0.28) 0%, transparent 65%)" }}
         />
-        {/* Secondary orb — bottom left */}
         <div
           className="absolute -bottom-60 -left-40 w-[500px] h-[500px] rounded-full animate-aurora-alt"
           style={{ background: "radial-gradient(circle, hsla(152,100%,24%,0.18) 0%, transparent 65%)" }}
         />
-        {/* Tertiary tiny orb — center */}
         <div
           className="absolute top-1/2 left-1/3 w-[300px] h-[300px] rounded-full animate-aurora"
           style={{ background: "radial-gradient(circle, hsla(152,100%,40%,0.08) 0%, transparent 70%)", animationDelay: "6s" }}
         />
-        {/* Dot grid */}
         <div
           className="absolute inset-0"
           style={{
@@ -98,7 +91,6 @@ export default function HeroSection() {
             backgroundSize: "36px 36px",
           }}
         />
-        {/* Subtle horizontal line */}
         <div
           className="absolute bottom-0 left-0 right-0 h-px"
           style={{ background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%)" }}
@@ -108,7 +100,6 @@ export default function HeroSection() {
       <div className="max-w-7xl mx-auto px-4 lg:px-8 grid lg:grid-cols-5 gap-8 lg:gap-12 items-center relative z-10 w-full">
         {/* Copy */}
         <div className="lg:col-span-3 space-y-5">
-          {/* Target badge */}
           <motion.span
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -119,10 +110,9 @@ export default function HeroSection() {
               border: "1px solid hsla(152,100%,45%,0.25)",
             }}
           >
-            PER AZIENDE DI SERRAMENTI, TENDE, FOTOVOLTAICO E CALDAIE
+            PER INSTALLATORI DI CALDAIE, POMPE DI CALORE E SOLARE TERMICO
           </motion.span>
 
-          {/* Social proof - avatar stack */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -141,29 +131,25 @@ export default function HeroSection() {
               ))}
             </div>
             <span className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>
-              120+ aziende ci affidano le pratiche
+              80+ installatori ci affidano le pratiche
             </span>
           </motion.div>
 
-          {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.6 }}
             className="font-extrabold text-3xl sm:text-4xl lg:text-5xl xl:text-[3.6rem] leading-[1.08] text-white"
           >
-            Pratiche ENEA e detrazioni fiscali per i tuoi clienti —{" "}
+            Pratiche Conto Termico per i tuoi clienti —{" "}
             <span
               className="bg-clip-text text-transparent"
-              style={{
-                backgroundImage: "linear-gradient(135deg, hsl(152 100% 68%) 0%, hsl(152 100% 50%) 100%)",
-              }}
+              style={{ backgroundImage: "linear-gradient(135deg, hsl(152 100% 68%) 0%, hsl(152 100% 50%) 100%)" }}
             >
-              le gestiamo noi, a nome tuo, in 48 ore.
+              le gestiamo noi, senza errori, in 72 ore.
             </span>
           </motion.h1>
 
-          {/* Checkpoints */}
           <motion.ul
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -190,7 +176,6 @@ export default function HeroSection() {
             ))}
           </motion.ul>
 
-          {/* CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -222,7 +207,6 @@ export default function HeroSection() {
             </div>
           </motion.div>
 
-          {/* Trustpilot — mobile */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -239,7 +223,7 @@ export default function HeroSection() {
           </motion.div>
         </div>
 
-        {/* Dashboard mockup — glassmorphism */}
+        {/* Dashboard mockup */}
         <motion.div
           initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
@@ -252,32 +236,25 @@ export default function HeroSection() {
               background: "rgba(255,255,255,0.04)",
               border: "1px solid rgba(255,255,255,0.1)",
               backdropFilter: "blur(20px)",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(0,0,0,0.2)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
             }}
           >
-            {/* Window dots */}
             <div className="flex items-center gap-2">
-              {[
-                { color: "rgba(255,80,80,0.8)" },
-                { color: "hsla(152,100%,40%,0.8)" },
-                { color: "rgba(200,200,200,0.2)" },
-              ].map((dot, i) => (
+              {[{ color: "rgba(255,80,80,0.8)" }, { color: "hsla(152,100%,40%,0.8)" }, { color: "rgba(200,200,200,0.2)" }].map((dot, i) => (
                 <motion.div
                   key={i}
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.6 + i * 0.1, duration: 0.3 }}
+                  transition={{ delay: 0.6 + i * 0.1 }}
                   className="w-3 h-3 rounded-full"
                   style={{ background: dot.color }}
                 />
               ))}
               <span className="ml-auto text-xs hidden sm:block" style={{ color: "rgba(255,255,255,0.25)" }}>
-                dashboard.praticarapida.it
+                pannello.praticarapida.it
               </span>
             </div>
-
             <DashboardRows />
-
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -285,15 +262,11 @@ export default function HeroSection() {
               className="flex items-center gap-2 text-xs"
               style={{ color: "rgba(255,255,255,0.4)" }}
             >
-              <span
-                className="w-2 h-2 rounded-full animate-pulse"
-                style={{ background: "hsl(152 100% 50%)" }}
-              />
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "hsl(152 100% 50%)" }} />
               Pannello operativo — aggiornato in tempo reale
             </motion.div>
           </div>
 
-          {/* Trustpilot badge — desktop */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -311,7 +284,6 @@ export default function HeroSection() {
         </motion.div>
       </div>
 
-      {/* Scroll indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -319,10 +291,7 @@ export default function HeroSection() {
         className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden lg:flex flex-col items-center gap-1"
       >
         <span className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>Scopri di più</span>
-        <motion.div
-          animate={{ y: [0, 6, 0] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-        >
+        <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}>
           <ChevronDown className="w-5 h-5" style={{ color: "rgba(255,255,255,0.2)" }} />
         </motion.div>
       </motion.div>

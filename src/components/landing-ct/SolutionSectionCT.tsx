@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { useScrollAnimation } from "./hooks";
-import { ArrowRight, Phone, FileCheck, Send, Sparkles } from "lucide-react";
+import { useScrollAnimation } from "../landing/hooks";
+import { ArrowRight, Sparkles, Phone, FileCheck, Send } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const steps = [
@@ -8,40 +8,35 @@ const steps = [
     icon: Phone,
     step: "01",
     title: "Contattiamo il cliente",
-    desc: "Chiamiamo a nome della tua azienda. Il cliente non sa che siamo noi.",
+    desc: "Chiamiamo a nome della tua azienda e raccogliamo tutte le informazioni sull'impianto installato.",
     color: "hsl(152 100% 35%)",
     glow: "hsla(152,100%,35%,0.3)",
   },
   {
     icon: FileCheck,
     step: "02",
-    title: "Raccogliamo tutto",
-    desc: "Documenti, fatture, verbali di posa. Zero sforzo da parte tua.",
+    title: "Prepariamo il fascicolo GSE",
+    desc: "Schede tecniche, verbali di collaudo, certificazioni energetiche: tutto in regola per il portale GSE.",
     color: "hsl(220 80% 60%)",
     glow: "hsla(220,80%,60%,0.3)",
   },
   {
     icon: Send,
     step: "03",
-    title: "Inviamo in 48h",
-    desc: "Pratica trasmessa entro 48 ore. Tu ed il cliente ricevete l'esito.",
+    title: "Inviamo entro 72 ore",
+    desc: "Pratica trasmessa al GSE entro 72 ore. Il tuo cliente riceve il contributo direttamente dallo Stato.",
     color: "hsl(38 92% 55%)",
     glow: "hsla(38,92%,55%,0.3)",
   },
 ];
 
-export default function SolutionSection() {
+export default function SolutionSectionCT() {
   const { ref, isVisible } = useScrollAnimation();
 
   return (
-    <section
-      ref={ref}
-      id="soluzione"
-      className="py-16 sm:py-20 lg:py-28 bg-background"
-    >
+    <section ref={ref} id="soluzione" className="py-16 sm:py-20 lg:py-28 bg-background">
       <div className="max-w-6xl mx-auto px-4 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Text */}
           <div>
             <motion.span
               initial={{ opacity: 0 }}
@@ -57,8 +52,8 @@ export default function SolutionSection() {
               animate={isVisible ? { opacity: 1, y: 0 } : {}}
               className="font-extrabold text-2xl sm:text-4xl lg:text-5xl leading-[1.1] mb-6 text-foreground"
             >
-              Il tuo ufficio pratiche dedicato —{" "}
-              <span className="text-gradient-green">senza costi fissi, senza assunzioni.</span>
+              Il tuo ufficio pratiche Conto Termico —{" "}
+              <span className="text-gradient-green">senza rischi, senza pensieri.</span>
             </motion.h2>
 
             <motion.div
@@ -68,10 +63,10 @@ export default function SolutionSection() {
               className="space-y-4 text-muted-foreground text-base sm:text-lg leading-relaxed"
             >
               <p>
-                Pratica Rapida gestisce dal 2011 le pratiche per detrazioni fiscali per conto di aziende di serramenti, schermature solari, tende, vetrate, fotovoltaico e caldaie.
+                Pratica Rapida gestisce le pratiche Conto Termico per conto di installatori di caldaie a condensazione, pompe di calore, solare termico e sistemi di climatizzazione.
               </p>
               <p className="font-medium text-foreground">
-                Niente intermediari. Niente stress. Niente pratiche ferme in attesa.
+                Zero pratiche respinte. Zero contributi persi. Zero stress per te.
               </p>
             </motion.div>
 
@@ -91,9 +86,7 @@ export default function SolutionSection() {
             </motion.div>
           </div>
 
-          {/* Process visual */}
           <div className="space-y-4">
-            {/* Header badge */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={isVisible ? { opacity: 1, y: 0 } : {}}
@@ -113,34 +106,21 @@ export default function SolutionSection() {
                 transition={{ delay: 0.2 + i * 0.15, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 className="flex items-start gap-4 p-5 rounded-2xl border border-border bg-card hover:shadow-md transition-all duration-300 group"
               >
-                {/* Icon with glow */}
                 <div
                   className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105"
-                  style={{
-                    background: `${s.glow}`,
-                    border: `1px solid ${s.color}30`,
-                    boxShadow: `0 0 16px ${s.glow}`,
-                  }}
+                  style={{ background: s.glow, border: `1px solid ${s.color}30`, boxShadow: `0 0 16px ${s.glow}` }}
                 >
                   <s.icon size={20} style={{ color: s.color }} />
                 </div>
-
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span
-                      className="text-xs font-bold tabular-nums"
-                      style={{ color: s.color }}
-                    >
-                      {s.step}
-                    </span>
+                    <span className="text-xs font-bold tabular-nums" style={{ color: s.color }}>{s.step}</span>
                     <h3 className="font-bold text-sm sm:text-base text-foreground">{s.title}</h3>
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
                 </div>
               </motion.div>
             ))}
-
-            {/* Connector lines between steps */}
           </div>
         </div>
       </div>

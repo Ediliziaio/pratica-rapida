@@ -17,7 +17,7 @@ const steps = [
     icon: Phone,
     title: "NOI CONTATTIAMO IL CLIENTE A NOME TUO",
     desc: "Il nostro team chiama il tuo cliente presentandosi come parte della tua azienda. Raccogliamo tutti i documenti: dati catastali, fatture, certificazioni.",
-    badge: "White label",
+    badge: "A nome tuo",
     badgeIcon: "🤝",
   },
   {

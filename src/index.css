@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -112,10 +111,19 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', 'DM Sans', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+    font-family: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
+    letter-spacing: -0.025em;
+  }
+  h1 {
+    letter-spacing: -0.035em;
+    font-weight: 800;
+  }
+  h2 {
+    letter-spacing: -0.03em;
+    font-weight: 800;
   }
 }
 
@@ -322,6 +330,38 @@
 }
 .animate-marquee {
   animation: marquee 30s linear infinite;
+}
+
+/* Aurora orb drift — for hero background */
+@keyframes aurora-drift {
+  0%, 100% { transform: scale(1) translate(0px, 0px); }
+  33%       { transform: scale(1.12) translate(24px, -14px); }
+  66%       { transform: scale(0.94) translate(-18px, 18px); }
+}
+@keyframes aurora-drift-alt {
+  0%, 100% { transform: scale(1) translate(0px, 0px); }
+  40%       { transform: scale(1.08) translate(-20px, 12px); }
+  75%       { transform: scale(1.05) translate(16px, -20px); }
+}
+.animate-aurora {
+  animation: aurora-drift 14s ease-in-out infinite;
+}
+.animate-aurora-alt {
+  animation: aurora-drift-alt 18s ease-in-out 2s infinite;
+}
+
+/* Gradient text utilities */
+.text-gradient-green {
+  background: linear-gradient(135deg, hsl(var(--pr-green)) 0%, hsl(152 80% 40%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.text-gradient-green-bright {
+  background: linear-gradient(135deg, hsl(152 100% 68%) 0%, hsl(152 100% 50%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Grow line animation */

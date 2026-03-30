@@ -1,14 +1,22 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
-Allow: /
+Allow: /home
+Allow: /pratica-enea
+Allow: /conto-termico
+Allow: /faq
+Allow: /privacy-policy
+Allow: /cookie-policy
+Disallow: /auth
+Disallow: /pratiche
+Disallow: /admin/
+Disallow: /wallet
+Disallow: /clienti
+Disallow: /aziende
+Disallow: /impostazioni
+Disallow: /assistenza
+Disallow: /onboarding
+Disallow: /blocked
+Disallow: /kanban
+Disallow: /enea/
+Disallow: /coda-pratiche
+
+Sitemap: https://www.praticarapida.it/sitemap.xml

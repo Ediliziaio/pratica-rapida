@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, MessageCircle, LogIn } from "lucide-react";
+import { Menu, X, MessageCircle } from "lucide-react";
 import { NAV_LINKS } from "./constants";
 
 const WHATSAPP_URL = "https://wa.me/390398682691?text=Ciao%2C%20vorrei%20sapere%20come%20funziona%20Pratica%20Rapida";
@@ -66,26 +66,13 @@ export default function Navbar() {
             Contattaci
           </a>
 
-          {/* Accedi */}
-          <Link
-            to="/auth"
-            className={`inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full border transition-all hover:scale-[1.03] active:scale-[0.97] ${
-              scrolled
-                ? "border-border text-foreground hover:bg-muted"
-                : "border-white/25 text-white hover:bg-white/10"
-            }`}
-          >
-            <LogIn className="h-3.5 w-3.5" />
-            Accedi
-          </Link>
-
-          {/* Attiva Gratis — primary CTA */}
+          {/* Accedi — primary CTA */}
           <Link
             to="/auth"
             className="inline-flex items-center gap-1.5 text-white text-sm font-bold px-5 py-2.5 rounded-full transition-all hover:brightness-110 active:scale-[0.97]"
             style={{ backgroundColor: "hsl(var(--pr-green))" }}
           >
-            Attiva Gratis
+            Accedi
           </Link>
         </div>
 
@@ -126,18 +113,10 @@ export default function Navbar() {
             <Link
               to="/auth"
               onClick={closeMobile}
-              className="flex items-center justify-center gap-2 w-full border border-border text-foreground font-semibold px-6 py-3 rounded-full text-sm"
-            >
-              <LogIn className="h-4 w-4" />
-              Accedi
-            </Link>
-            <Link
-              to="/auth"
-              onClick={closeMobile}
               className="block w-full text-center text-white font-bold px-6 py-3 rounded-full text-sm"
               style={{ backgroundColor: "hsl(var(--pr-green))" }}
             >
-              Attiva Gratis
+              Accedi
             </Link>
           </div>
         </div>

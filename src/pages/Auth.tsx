@@ -341,7 +341,7 @@ export default function Auth() {
                 </button>
               </form>
             </>
-          ) : (
+          ) : activeView === "forgot" ? (
             <>
               <button
                 type="button"

@@ -42,7 +42,9 @@ type TriggerEvent =
   | "pratica_status_changed"
   | "onboarding_welcome"
   | "sollecito"
-  | "recensione";
+  | "recensione"
+  | "registrazione_azienda"
+  | "recupera_password";
 
 interface EmailTemplate {
   id: string;
@@ -50,7 +52,7 @@ interface EmailTemplate {
   subject: string;
   html_body: string;
   trigger_event: TriggerEvent;
-  active: boolean;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -70,6 +72,8 @@ const TRIGGER_EVENTS: { value: TriggerEvent; label: string }[] = [
   { value: "onboarding_welcome", label: "Benvenuto onboarding" },
   { value: "sollecito", label: "Sollecito" },
   { value: "recensione", label: "Recensione" },
+  { value: "registrazione_azienda", label: "✅ Registrazione azienda" },
+  { value: "recupera_password", label: "🔑 Recupera password" },
 ];
 
 const EMPTY_FORM: Omit<EmailTemplate, "id" | "created_at"> = {
@@ -77,7 +81,7 @@ const EMPTY_FORM: Omit<EmailTemplate, "id" | "created_at"> = {
   subject: "",
   html_body: "",
   trigger_event: "pratica_created",
-  active: true,
+  is_active: true,
 };
 
 // ─── Status badge helpers ─────────────────────────────────────────────────────
@@ -134,10 +138,10 @@ export default function EmailTemplates() {
   // ── Mutations ──────────────────────────────────────────────────────────────
 
   const toggleActive = useMutation({
-    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
       const { error } = await supabase
         .from("email_templates")
-        .update({ active })
+        .update({ is_active })
         .eq("id", id);
       if (error) throw error;
     },
@@ -180,7 +184,7 @@ export default function EmailTemplates() {
       subject: template.subject,
       html_body: template.html_body,
       trigger_event: template.trigger_event,
-      active: template.active,
+      is_active: template.is_active,
     });
     setEditingTemplate(template);
   }
@@ -257,9 +261,9 @@ export default function EmailTemplates() {
                         </TableCell>
                         <TableCell>
                           <Switch
-                            checked={tpl.active}
+                            checked={tpl.is_active}
                             onCheckedChange={(checked) =>
-                              toggleActive.mutate({ id: tpl.id, active: checked })
+                              toggleActive.mutate({ id: tpl.id, is_active: checked })
                             }
                           />
                         </TableCell>
@@ -409,11 +413,11 @@ export default function EmailTemplates() {
             </div>
             <div className="flex items-center gap-2">
               <Switch
-                id="active"
-                checked={formData.active}
-                onCheckedChange={(checked) => setFormData((f) => ({ ...f, active: checked }))}
+                id="is_active"
+                checked={formData.is_active}
+                onCheckedChange={(checked) => setFormData((f) => ({ ...f, is_active: checked }))}
               />
-              <Label htmlFor="active">Attivo</Label>
+              <Label htmlFor="is_active">Attivo</Label>
             </div>
           </div>
           <DialogFooter>

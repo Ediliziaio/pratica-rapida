@@ -35,7 +35,7 @@ interface PracticeChatProps {
 
 const MAX_MESSAGE_LENGTH = 2000;
 const MIN_SEND_INTERVAL_MS = 1000;
-const INTERNAL_ROLES = ["super_admin", "admin_interno", "operatore"] as const;
+const INTERNAL_ROLES = ["super_admin", "operatore"] as const;
 
 function getInitials(nome?: string, cognome?: string): string {
   return `${(nome?.[0] ?? "").toUpperCase()}${(cognome?.[0] ?? "").toUpperCase()}` || "?";

@@ -125,9 +125,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const isAdminFlag = roles.includes("super_admin");
-  const isOperatoreFlag = roles.some((r) => ["super_admin", "admin_interno", "operatore"].includes(r));
+  const isOperatoreFlag = roles.some((r) => ["super_admin", "operatore"].includes(r));
   const isResellerFlag = roles.includes("rivenditore");
-  const isInternalFlag = roles.some((r) => ["super_admin", "admin_interno", "operatore"].includes(r));
+  const isInternalFlag = roles.some((r) => ["super_admin", "operatore"].includes(r));
 
   return (
     <AuthContext.Provider value={{
@@ -153,7 +153,7 @@ export const useAuth = () => useContext(AuthContext);
 // Role helpers (backward compat)
 export const isSuperAdmin = (roles: AppRole[]) => roles.includes("super_admin");
 export const isInternal = (roles: AppRole[]) =>
-  roles.some((r) => ["super_admin", "admin_interno", "operatore"].includes(r));
+  roles.some((r) => ["super_admin", "operatore"].includes(r));
 export const isAzienda = (roles: AppRole[]) =>
   roles.some((r) => ["azienda_admin", "azienda_user"].includes(r));
 export const isReseller = (roles: AppRole[]) => roles.includes("rivenditore");

@@ -30,13 +30,13 @@ export const DEFAULT_OPERATOR_PERMISSIONS: OperatorPermissions = {
 };
 
 /** Returns the operator_permissions for the currently logged-in user.
- *  Super admin and admin_interno always get full permissions (returns all true).
+ *  Super admin always gets full permissions (returns all true).
  *  Operatore gets their configured settings (falls back to defaults if column missing).
  */
 export function useOperatorPermissions(): OperatorPermissions {
   const { user, roles } = useAuth();
 
-  const isFullAccess = roles.some(r => ["super_admin", "admin_interno"].includes(r));
+  const isFullAccess = roles.includes("super_admin");
 
   const { data } = useQuery({
     queryKey: ["operator-permissions", user?.id],
@@ -53,7 +53,7 @@ export function useOperatorPermissions(): OperatorPermissions {
   });
 
   if (isFullAccess) {
-    // Super admin / admin_interno: full access always
+    // Super admin: full access always
     return {
       see_all_pratiche: true,
       see_pricing: true,

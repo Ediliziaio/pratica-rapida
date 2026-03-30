@@ -62,8 +62,8 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-  if (!password || password.length < 8) {
-    return new Response(JSON.stringify({ error: "Password minimo 8 caratteri" }), {
+  if (!password || password.length < 6) {
+    return new Response(JSON.stringify({ error: "Password minimo 6 caratteri" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

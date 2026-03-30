@@ -847,18 +847,6 @@ export default function Auth() {
                       {showRegPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
-                  {regPassword.length > 0 && (
-                    <p style={{
-                      fontSize: "0.75rem", marginTop: "0.375rem",
-                      color: regPassword.length < 8 ? "#ef4444" : regPassword.length < 12 ? "#f59e0b" : "#16a34a",
-                    }}>
-                      {regPassword.length < 8
-                        ? "Troppo corta (min. 8 caratteri)"
-                        : regPassword.length < 12
-                        ? "Accettabile — più lunga è meglio"
-                        : "Ottima ✓"}
-                    </p>
-                  )}
                 </div>
 
                 {/* Row 5: Indirizzo (full width, optional) */}

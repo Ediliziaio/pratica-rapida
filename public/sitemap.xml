@@ -21,6 +21,41 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.praticarapida.it/blog</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.praticarapida.it/blog/pratica-enea-serramenti-guida-completa</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.praticarapida.it/blog/conto-termico-2024-guida-installatori</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.praticarapida.it/blog/errori-pratiche-enea-da-evitare</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.praticarapida.it/blog/scadenza-90-giorni-pratica-enea</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.praticarapida.it/blog/fotovoltaico-enea-quando-obbligatorio</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.praticarapida.it/blog/outsourcing-pratiche-enea-vantaggi</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.praticarapida.it/privacy-policy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>

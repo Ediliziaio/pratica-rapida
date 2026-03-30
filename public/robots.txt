@@ -3,6 +3,7 @@ Allow: /home
 Allow: /pratica-enea
 Allow: /conto-termico
 Allow: /faq
+Allow: /blog
 Allow: /privacy-policy
 Allow: /cookie-policy
 Disallow: /auth

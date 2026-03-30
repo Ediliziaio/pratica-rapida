@@ -40,6 +40,8 @@ const KanbanBoard = lazy(() => import("./pages/KanbanBoard"));
 const NuovaPraticaEnea = lazy(() => import("./pages/rivenditore/NuovaPraticaEnea"));
 const HomeMain = lazy(() => import("./pages/HomeMain"));
 const FAQPage = lazy(() => import("./pages/FAQ"));
+const BlogPage = lazy(() => import("./pages/Blog"));
+const BlogPostPage = lazy(() => import("./pages/BlogPost"));
 const GestionaleAdmin = lazy(() => import("./pages/admin/Gestionale"));
 const Automazioni = lazy(() => import("./pages/admin/Automazioni"));
 const EneaDashboard = lazy(() => import("./pages/EneaDashboard"));
@@ -131,6 +133,8 @@ const App = () => (
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
                 <Route path="/faq" element={<FAQPage />} />
+                <Route path="/blog" element={<BlogPage />} />
+                <Route path="/blog/:slug" element={<BlogPostPage />} />
                 <Route path="/auth" element={<AuthRoute />} />
                 <Route path="/blocked" element={<Blocked />} />
                 <Route path="/form/:token" element={<FormPubblico />} />

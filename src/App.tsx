@@ -56,18 +56,21 @@ const WhatsappPanel = lazy(() => import("./pages/admin/WhatsappPanel"));
 
 const queryClient = new QueryClient();
 
-function RootRedirect() {
-  const { roles } = useAuth();
-  const isInternal = roles.some(r => ["super_admin", "admin_interno", "operatore"].includes(r));
-  return <Navigate to={isInternal ? "/admin/pratiche" : "/pratiche"} replace />;
+// STAFF = dipendenti interni Pratica Rapida (super_admin + operatore)
+// admin_interno = admin aziendale del cliente → va nell'area /pratiche, NON in /admin/pratiche
+const STAFF_ROLES  = ["super_admin", "operatore"] as const;
+const ADMIN_ROLES  = ["super_admin"] as const;
+const RESELLER_ROLES = ["rivenditore"] as const;
+const ALL_AUTH_ROLES = [...STAFF_ROLES, "admin_interno", "azienda_admin", "azienda_user", ...RESELLER_ROLES] as const;
+
+function isStaff(roles: string[]) {
+  return roles.some(r => STAFF_ROLES.includes(r as (typeof STAFF_ROLES)[number]));
 }
 
-const INTERNAL_ROLES = ["super_admin", "admin_interno", "operatore"] as const;
-const ADMIN_ROLES = ["super_admin"] as const;
-// Staff = internal Pratica Rapida employees only (NOT company admins like admin_interno)
-const STAFF_ROLES = ["super_admin", "operatore"] as const;
-const RESELLER_ROLES = ["rivenditore"] as const;
-const ALL_AUTH_ROLES = [...INTERNAL_ROLES, ...RESELLER_ROLES] as const;
+function RootRedirect() {
+  const { roles } = useAuth();
+  return <Navigate to={isStaff(roles) ? "/admin/pratiche" : "/pratiche"} replace />;
+}
 
 function PageLoader() {
   return (
@@ -109,8 +112,7 @@ function AuthRoute() {
   const { session, loading, roles } = useAuth();
   if (loading) return null;
   if (session) {
-    const isInternal = roles.some(r => ["super_admin", "admin_interno", "operatore"].includes(r));
-    return <Navigate to={isInternal ? "/admin/pratiche" : "/pratiche"} replace />;
+    return <Navigate to={isStaff(roles) ? "/admin/pratiche" : "/pratiche"} replace />;
   }
   return <Auth />;
 }

@@ -178,6 +178,46 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
         `),
       };
 
+    // ── Benvenuto nuova azienda — credenziali di accesso ──────────────────────
+    case "benvenuto_azienda":
+      return {
+        subject: "✅ Benvenuto su Pratica Rapida — Le tue credenziali di accesso",
+        html: base(`
+          <h2 style="margin-top:0;color:#1a1a2e;">Benvenuto su Pratica Rapida! 🎉</h2>
+          <p>Ciao <strong>${r("{{ragione_sociale}}")}</strong>,</p>
+          <p>Il tuo account è stato creato con successo. Puoi accedere al tuo pannello con le seguenti credenziali:</p>
+
+          <table width="100%" cellpadding="0" cellspacing="0"
+            style="border-collapse:collapse;margin:20px 0;background:#f9f9f9;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
+            <tr>
+              <td style="padding:12px 18px;font-weight:bold;color:#555;width:32%;border-bottom:1px solid #eee;">🌐 Pannello</td>
+              <td style="padding:12px 18px;border-bottom:1px solid #eee;">
+                <a href="${r("{{login_url}}")}" style="color:#00843D;font-weight:bold;">pannello.praticarapida.it</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:12px 18px;font-weight:bold;color:#555;border-bottom:1px solid #eee;">📧 Email</td>
+              <td style="padding:12px 18px;border-bottom:1px solid #eee;">${r("{{email}}")}</td>
+            </tr>
+            <tr>
+              <td style="padding:12px 18px;font-weight:bold;color:#555;">🔑 Password</td>
+              <td style="padding:12px 18px;font-family:monospace;font-size:15px;letter-spacing:1px;">${r("{{password}}")}</td>
+            </tr>
+          </table>
+
+          <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:12px 16px;margin:16px 0;font-size:13px;color:#795548;">
+            ⚠️ <strong>Consiglio:</strong> al primo accesso ti suggeriamo di cambiare la password dalle impostazioni del tuo profilo.
+          </div>
+
+          ${cta("Accedi ora →", r("{{login_url}}"))}
+
+          <p style="color:#888;font-size:13px;margin-top:24px;">
+            Per assistenza o domande: <a href="mailto:supporto@praticarapida.it" style="color:#00843D;">supporto@praticarapida.it</a><br>
+            Oppure chiamaci al <a href="tel:+390398682691" style="color:#00843D;">+39 039 868 2691</a> (Lun-Ven 9:00-18:00)
+          </p>
+        `),
+      };
+
     default:
       return { subject: "Notifica da Pratica Rapida", html: base(`<p>${r("{{message}}")}</p>`) };
   }

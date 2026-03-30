@@ -937,8 +937,7 @@ export default function NuovaPratica() {
                   <p className={cn("text-2xl font-bold tabular-nums", usePromoOnSubmit && isPromoApplicable ? "line-through text-muted-foreground text-base" : "")}>
                     € {prezzoNetto.toFixed(2)}
                   </p>
-                  <p className="text-xs text-muted-foreground">+ IVA 22% (€ {prezzoIva.toFixed(2)})</p>
-                  <p className="text-xs font-semibold text-muted-foreground">Totale € {prezzoTotale.toFixed(2)}</p>
+                  <p className="text-xs text-muted-foreground">+ IVA 22%</p>
                   {usePromoOnSubmit && isPromoApplicable && (
                     <p className="text-base font-bold text-green-600 mt-0.5">€ 0,00 🎁</p>
                   )}

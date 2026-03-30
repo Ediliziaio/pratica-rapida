@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Clock, Calendar, AlertTriangle, Lightbulb, Info 
 import { Navbar, Footer } from "@/components/landing";
 import { SEO } from "@/components/SEO";
 import { blogPosts, BLOG_CATEGORIES, type ContentBlock } from "@/data/blog-posts";
+import { BLOG_COVER_MAP } from "@/components/blog/BlogCovers";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" });
@@ -161,16 +162,19 @@ export default function BlogPostPage() {
         className="relative pt-32 pb-16 overflow-hidden"
         style={{ background: "hsl(var(--pr-dark))" }}
       >
-        <div className="absolute inset-0 pointer-events-none">
-          <div
-            className="absolute inset-0 opacity-60"
-            style={{ background: post.coverGradient }}
-          />
-          <div
-            className="absolute inset-0"
-            style={{ backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)", backgroundSize: "32px 32px" }}
-          />
-          <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 60%, hsl(var(--pr-dark)) 100%)" }} />
+        {/* SVG illustration as full background */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {(() => {
+            const Cover = BLOG_COVER_MAP[post.slug];
+            return Cover ? (
+              <div className="absolute inset-0 opacity-40 scale-110">
+                <Cover />
+              </div>
+            ) : (
+              <div className="absolute inset-0 opacity-60" style={{ background: post.coverGradient }} />
+            );
+          })()}
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, hsl(var(--pr-dark)) 85%)" }} />
         </div>
 
         <div className="max-w-3xl mx-auto px-4 relative z-10">
@@ -289,10 +293,12 @@ export default function BlogPostPage() {
                     to={`/blog/${r.slug}`}
                     className="group flex gap-4 p-4 rounded-xl border border-border bg-card hover:border-[hsl(var(--pr-green))/50] transition-all"
                   >
-                    <div
-                      className="w-14 h-14 rounded-lg shrink-0"
-                      style={{ background: r.coverGradient }}
-                    />
+                    <div className="w-14 h-14 rounded-lg shrink-0 overflow-hidden bg-black">
+                      {(() => {
+                        const Cover = BLOG_COVER_MAP[r.slug];
+                        return Cover ? <Cover /> : <div className="w-full h-full" style={{ background: r.coverGradient }} />;
+                      })()}
+                    </div>
                     <div className="min-w-0">
                       <span className="text-xs font-semibold" style={{ color: r.categoryColor }}>
                         {BLOG_CATEGORIES.find(c => c.id === r.category)?.label}

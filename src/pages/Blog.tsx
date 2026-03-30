@@ -5,6 +5,7 @@ import { ArrowRight, Clock, Calendar } from "lucide-react";
 import { Navbar, Footer } from "@/components/landing";
 import { SEO } from "@/components/SEO";
 import { blogPosts, BLOG_CATEGORIES } from "@/data/blog-posts";
+import { BLOG_COVER_MAP } from "@/components/blog/BlogCovers";
 
 const blogJsonLd = {
   "@context": "https://schema.org",
@@ -29,19 +30,13 @@ function ArticleCard({ post, index }: { post: typeof blogPosts[0]; index: number
       className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card hover:border-[hsl(var(--pr-green))/50] transition-all duration-300 hover:shadow-lg hover:shadow-[hsl(152,100%,30%,0.08)]"
     >
       {/* Cover */}
-      <div
-        className="h-44 flex items-end p-5 relative overflow-hidden"
-        style={{ background: post.coverGradient }}
-      >
-        <div className="absolute inset-0 opacity-30"
-          style={{ backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px" }}
-        />
-        <span
-          className="relative z-10 text-xs font-bold px-3 py-1 rounded-full"
-          style={{ background: "rgba(0,0,0,0.35)", color: post.categoryColor, border: `1px solid ${post.categoryColor}40` }}
-        >
-          {BLOG_CATEGORIES.find(c => c.id === post.category)?.label ?? post.category}
-        </span>
+      <div className="h-44 relative overflow-hidden bg-black">
+        {(() => {
+          const Cover = BLOG_COVER_MAP[post.slug];
+          return Cover ? <Cover /> : (
+            <div className="w-full h-full" style={{ background: post.coverGradient }} />
+          );
+        })()}
       </div>
 
       {/* Content */}

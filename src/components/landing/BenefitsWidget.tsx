@@ -21,7 +21,7 @@ const BENEFITS = [
     color: "hsl(210 80% 52%)",
     colorBg: "hsla(210,80%,52%,0.10)",
     title: "La responsabilità è nostra",
-    desc: "Siamo noi a rispondere a ENEA e GSE",
+    desc: "Siamo noi a rispondere a ENEA e Conto Termico",
   },
   {
     icon: HeadphonesIcon,

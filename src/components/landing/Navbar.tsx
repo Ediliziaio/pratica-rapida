@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, MessageCircle } from "lucide-react";
 import { NAV_LINKS } from "./constants";
@@ -6,28 +6,15 @@ import { NAV_LINKS } from "./constants";
 const WHATSAPP_URL = "https://wa.me/390398682691?text=Ciao%2C%20vorrei%20sapere%20come%20funziona%20Pratica%20Rapida";
 
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
-  useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handler, { passive: true });
-    return () => window.removeEventListener("scroll", handler);
-  }, []);
-
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? "bg-white/95 backdrop-blur-xl shadow-sm border-b border-border"
-          : "bg-transparent"
-      }`}
-    >
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl shadow-sm border-b border-border transition-all duration-300">
       <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-4 lg:px-8">
         <Link to="/home" className="flex items-center gap-2">
           <img
-            src={scrolled ? "/pratica-rapida-logo.png" : "/pratica-rapida-logo-white.png"}
+            src="/pratica-rapida-logo.png"
             alt="Pratica Rapida"
             className="max-h-10 w-auto object-contain"
           />
@@ -38,11 +25,7 @@ export default function Navbar() {
             <Link
               key={l.href}
               to={l.href}
-              className={`text-sm font-medium transition-colors ${
-                scrolled
-                  ? "text-muted-foreground hover:text-foreground"
-                  : "text-white/70 hover:text-white"
-              }`}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               {l.label}
             </Link>
@@ -56,11 +39,7 @@ export default function Navbar() {
             href={WHATSAPP_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className={`inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full border transition-all hover:scale-[1.03] active:scale-[0.97] ${
-              scrolled
-                ? "border-border text-foreground hover:bg-muted"
-                : "border-white/25 text-white hover:bg-white/10"
-            }`}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full border border-border text-foreground hover:bg-muted transition-all hover:scale-[1.03] active:scale-[0.97]"
           >
             <MessageCircle className="h-3.5 w-3.5" />
             Contattaci
@@ -77,7 +56,7 @@ export default function Navbar() {
         </div>
 
         <button
-          className={`md:hidden p-2 ${scrolled ? "text-foreground" : "text-white"}`}
+          className="md:hidden p-2 text-foreground"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Menu"
         >
@@ -98,7 +77,6 @@ export default function Navbar() {
             </Link>
           ))}
 
-          {/* Mobile CTAs */}
           <div className="flex flex-col gap-2 mt-4">
             <a
               href={WHATSAPP_URL}

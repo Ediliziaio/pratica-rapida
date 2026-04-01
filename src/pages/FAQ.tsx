@@ -119,16 +119,16 @@ export default function FAQPage() {
       {/* Hero */}
       <section
         className="relative pt-32 pb-20 overflow-hidden"
-        style={{ background: "hsl(var(--pr-dark))" }}
+        style={{ background: "linear-gradient(160deg, #f0fdf4 0%, #ffffff 50%, #f0f9ff 100%)" }}
       >
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div
             className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full"
-            style={{ background: "radial-gradient(ellipse, hsla(152,100%,30%,0.2) 0%, transparent 70%)", filter: "blur(40px)" }}
+            style={{ background: "radial-gradient(ellipse, hsla(152,80%,50%,0.07) 0%, transparent 70%)", filter: "blur(40px)" }}
           />
           <div
             className="absolute inset-0"
-            style={{ backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)", backgroundSize: "32px 32px" }}
+            style={{ backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px)", backgroundSize: "32px 32px" }}
           />
         </div>
         <div className="max-w-3xl mx-auto px-4 text-center relative z-10">
@@ -139,21 +139,21 @@ export default function FAQPage() {
           >
             <span
               className="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-widest mb-6"
-              style={{ background: "hsla(152,100%,45%,0.12)", color: "hsl(152 100% 65%)", border: "1px solid hsla(152,100%,45%,0.25)" }}
+              style={{ background: "hsla(152,70%,40%,0.10)", color: "hsl(152 60% 28%)", border: "1px solid hsla(152,70%,40%,0.22)" }}
             >
               FAQ
             </span>
-            <h1 className="font-extrabold text-4xl sm:text-5xl lg:text-6xl leading-[1.08] text-white mb-5">
+            <h1 className="font-extrabold text-4xl sm:text-5xl lg:text-6xl leading-[1.08] text-foreground mb-5">
               Hai una domanda?
               <br />
               <span
                 className="bg-clip-text text-transparent"
-                style={{ backgroundImage: "linear-gradient(135deg, hsl(152 100% 68%) 0%, hsl(200 100% 62%) 100%)" }}
+                style={{ backgroundImage: "linear-gradient(135deg, hsl(152 70% 30%) 0%, hsl(200 70% 35%) 100%)" }}
               >
                 Abbiamo la risposta.
               </span>
             </h1>
-            <p className="text-base sm:text-lg max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <p className="text-base sm:text-lg max-w-xl mx-auto text-muted-foreground">
               Tutto quello che devi sapere su Pratica Rapida, le pratiche ENEA, il Conto Termico e i prezzi.
             </p>
           </motion.div>

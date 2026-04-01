@@ -6,8 +6,8 @@ import NewsWidget from "./NewsWidget";
 const socialProofAvatars = [
   { initials: "MR", bg: "bg-[hsl(var(--pr-green))]" },
   { initials: "LB", bg: "bg-primary" },
-  { initials: "AG", bg: "bg-[hsl(var(--warning))]" },
-  { initials: "FS", bg: "bg-[hsl(var(--destructive))]" },
+  { initials: "AG", bg: "bg-amber-400" },
+  { initials: "FS", bg: "bg-rose-500" },
 ];
 
 const checkpoints = [
@@ -20,37 +20,28 @@ export default function HeroSection() {
   return (
     <section
       className="relative min-h-[90vh] flex items-center overflow-hidden pt-20 pb-12"
-      style={{ background: "hsl(var(--pr-dark))" }}
+      style={{ background: "linear-gradient(160deg, #f0fdf4 0%, #ffffff 45%, #f0f9ff 100%)" }}
     >
-      {/* Background mesh / orbs */}
+      {/* Soft background orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Primary green orb — top right */}
         <div
           className="absolute -top-60 -right-60 w-[700px] h-[700px] rounded-full animate-aurora"
-          style={{ background: "radial-gradient(circle, hsla(152,100%,30%,0.28) 0%, transparent 65%)" }}
+          style={{ background: "radial-gradient(circle, hsla(152,80%,50%,0.07) 0%, transparent 65%)" }}
         />
-        {/* Secondary orb — bottom left */}
         <div
           className="absolute -bottom-60 -left-40 w-[500px] h-[500px] rounded-full animate-aurora-alt"
-          style={{ background: "radial-gradient(circle, hsla(152,100%,24%,0.18) 0%, transparent 65%)" }}
+          style={{ background: "radial-gradient(circle, hsla(200,80%,60%,0.05) 0%, transparent 65%)" }}
         />
-        {/* Tertiary tiny orb — center */}
-        <div
-          className="absolute top-1/2 left-1/3 w-[300px] h-[300px] rounded-full animate-aurora"
-          style={{ background: "radial-gradient(circle, hsla(152,100%,40%,0.08) 0%, transparent 70%)", animationDelay: "6s" }}
-        />
-        {/* Dot grid */}
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px)",
             backgroundSize: "36px 36px",
           }}
         />
-        {/* Subtle horizontal line */}
         <div
           className="absolute bottom-0 left-0 right-0 h-px"
-          style={{ background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%)" }}
+          style={{ background: "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.07) 50%, transparent 100%)" }}
         />
       </div>
 
@@ -63,15 +54,15 @@ export default function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             className="inline-block px-3 py-1.5 rounded-xl text-[10px] sm:text-xs font-semibold leading-snug"
             style={{
-              background: "hsla(152,100%,45%,0.12)",
-              color: "hsl(152 100% 65%)",
-              border: "1px solid hsla(152,100%,45%,0.25)",
+              background: "hsla(152,70%,40%,0.10)",
+              color: "hsl(152 60% 28%)",
+              border: "1px solid hsla(152,70%,40%,0.22)",
             }}
           >
             PER AZIENDE DI SERRAMENTI, SCHERMATURE SOLARI E FOTOVOLTAICO
           </motion.span>
 
-          {/* Social proof - avatar stack */}
+          {/* Social proof — avatar stack */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -83,13 +74,13 @@ export default function HeroSection() {
                 <div
                   key={i}
                   className={`w-8 h-8 rounded-full ${a.bg} flex items-center justify-center text-[10px] font-bold text-white`}
-                  style={{ border: "2px solid hsl(var(--pr-dark))" }}
+                  style={{ border: "2px solid #ffffff" }}
                 >
                   {a.initials}
                 </div>
               ))}
             </div>
-            <span className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>
+            <span className="text-sm font-medium text-muted-foreground">
               120+ aziende ci affidano le pratiche
             </span>
           </motion.div>
@@ -99,13 +90,13 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.6 }}
-            className="font-extrabold text-3xl sm:text-4xl lg:text-5xl xl:text-[3.6rem] leading-[1.08] text-white"
+            className="font-extrabold text-3xl sm:text-4xl lg:text-5xl xl:text-[3.6rem] leading-[1.08] text-foreground"
           >
             Pratiche ENEA e detrazioni fiscali per i tuoi clienti —{" "}
             <span
               className="bg-clip-text text-transparent"
               style={{
-                backgroundImage: "linear-gradient(135deg, hsl(152 100% 68%) 0%, hsl(152 100% 50%) 100%)",
+                backgroundImage: "linear-gradient(135deg, hsl(152 70% 30%) 0%, hsl(152 80% 25%) 100%)",
               }}
             >
               le gestiamo noi, a nome tuo, in 48 ore.
@@ -125,14 +116,13 @@ export default function HeroSection() {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.55 + i * 0.1 }}
-                className="flex items-center gap-2.5 text-sm sm:text-base"
-                style={{ color: "rgba(255,255,255,0.7)" }}
+                className="flex items-center gap-2.5 text-sm sm:text-base text-muted-foreground"
               >
                 <span
                   className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center"
-                  style={{ background: "hsla(152,100%,45%,0.2)" }}
+                  style={{ background: "hsla(152,80%,45%,0.15)" }}
                 >
-                  <Check className="w-3 h-3" style={{ color: "hsl(152 100% 65%)" }} />
+                  <Check className="w-3 h-3" style={{ color: "hsl(152 70% 35%)" }} />
                 </span>
                 {text}
               </motion.li>
@@ -151,19 +141,19 @@ export default function HeroSection() {
               className="flex sm:inline-flex items-center justify-center gap-2 text-white font-semibold px-8 py-4 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
               style={{
                 background: "hsl(var(--pr-green))",
-                boxShadow: "0 0 40px hsla(152,100%,30%,0.5), 0 4px 20px hsla(152,100%,24%,0.4)",
+                boxShadow: "0 4px 24px hsla(152,80%,35%,0.35)",
               }}
             >
               Inizia Gratis <ArrowRight className="w-4 h-4" />
             </Link>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <p className="text-xs text-muted-foreground/60">
                 Nessun impegno • Zero costi nascosti
               </p>
               <a
                 href="tel:+390398682691"
                 className="inline-flex items-center gap-1.5 text-xs font-medium hover:underline"
-                style={{ color: "hsl(152 100% 65%)" }}
+                style={{ color: "hsl(152 70% 35%)" }}
               >
                 <Phone className="w-3 h-3" />
                 +39 039 868 2691
@@ -176,38 +166,36 @@ export default function HeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.1 }}
-            className="flex items-center gap-2 text-sm pt-1 lg:hidden"
-            style={{ color: "rgba(255,255,255,0.5)" }}
+            className="flex items-center gap-2 text-sm pt-1 lg:hidden text-muted-foreground"
           >
             <div className="flex gap-0.5">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4" style={{ fill: "hsl(152 100% 55%)", color: "hsl(152 100% 55%)" }} />
+                <Star key={i} className="w-4 h-4" style={{ fill: "#f59e0b", color: "#f59e0b" }} />
               ))}
             </div>
             <span>4.9/5 su Trustpilot</span>
           </motion.div>
         </div>
 
-        {/* Dashboard mockup — glassmorphism */}
+        {/* News widget */}
         <motion.div
           initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.6, duration: 0.8 }}
           className="lg:col-span-2"
         >
-          <NewsWidget />
+          <NewsWidget light />
 
           {/* Trustpilot badge — desktop */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.4 }}
-            className="mt-4 flex items-center justify-center gap-2 text-sm"
-            style={{ color: "rgba(255,255,255,0.5)" }}
+            className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground"
           >
             <div className="flex gap-0.5">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4" style={{ fill: "hsl(152 100% 55%)", color: "hsl(152 100% 55%)" }} />
+                <Star key={i} className="w-4 h-4" style={{ fill: "#f59e0b", color: "#f59e0b" }} />
               ))}
             </div>
             <span>4.9/5 su Trustpilot</span>
@@ -222,12 +210,12 @@ export default function HeroSection() {
         transition={{ delay: 1.6 }}
         className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden lg:flex flex-col items-center gap-1"
       >
-        <span className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>Scopri di più</span>
+        <span className="text-xs text-muted-foreground/50">Scopri di più</span>
         <motion.div
           animate={{ y: [0, 6, 0] }}
           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
         >
-          <ChevronDown className="w-5 h-5" style={{ color: "rgba(255,255,255,0.2)" }} />
+          <ChevronDown className="w-5 h-5 text-muted-foreground/30" />
         </motion.div>
       </motion.div>
     </section>

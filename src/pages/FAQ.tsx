@@ -45,8 +45,8 @@ const faqs: { cat: string; q: string; a: string }[] = [
   { cat: "prezzi", q: "Quanto costa la pratica ENEA?", a: "65€ a pratica completata, IVA esclusa. Il pagamento avviene solo quando la pratica è stata effettivamente trasmessa e consegnata. Zero costi se la pratica non va a buon fine per motivi a noi imputabili." },
   { cat: "prezzi", q: "Quanto costa la pratica Conto Termico?", a: "250€ a pratica completata, IVA esclusa. Il costo riflette la complessità maggiore della procedura GSE rispetto a una semplice comunicazione ENEA. Nessun costo di attivazione, nessun canone." },
   { cat: "prezzi", q: "Ci sono canoni mensili o costi fissi?", a: "No. Il modello è completamente a consumo: paghi solo quando una pratica viene completata. Nessun abbonamento, nessun minimo garantito, nessuna penale se non usi il servizio per un mese." },
-  { cat: "prezzi", q: "Come avviene il pagamento?", a: "Tramite carta di credito o bonifico bancario attraverso il portale Pratica Rapida. Ricevi una ricevuta fiscale per ogni pratica completata." },
-  { cat: "prezzi", q: "Posso ricevere fattura?", a: "Sì. Emettiamo regolare fattura elettronica per ogni pratica completata o su base mensile a riepilogo, a seconda delle tue preferenze di fatturazione." },
+  { cat: "prezzi", q: "Come avviene il pagamento?", a: "A fine mese emettiamo un'unica fattura riepilogativa con tutte le pratiche completate nel mese. Paghi solo per quelle effettivamente consegnate, senza nessun anticipo." },
+  { cat: "prezzi", q: "Posso ricevere fattura?", a: "Sì. Emettiamo regolare fattura elettronica a fine mese sul numero di pratiche completate nel periodo." },
   { cat: "prezzi", q: "Esiste un costo di attivazione o una fee di registrazione?", a: "No. La registrazione al portale è completamente gratuita. Non paghiamo mai nulla prima di aver completato il lavoro." },
 ];
 

@@ -18,7 +18,7 @@ export default function PrivacyPolicy() {
           <div className="space-y-8 text-gray-600 leading-relaxed">
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Titolare del trattamento</h2>
-              <p>Il titolare del trattamento dei dati personali è <strong>AEDIX S.r.l.</strong>, con sede legale in Lissone (MB), P.IVA 03937130791. Per qualsiasi comunicazione relativa alla privacy scrivere a: <a href="mailto:privacy@praticarapida.it" className="text-[#00843D] underline">privacy@praticarapida.it</a>.</p>
+              <p>Il titolare del trattamento dei dati personali è <strong>Pratica Rapida S.r.l.s.</strong>, con sede legale in Lissone (MB), P.IVA 03937130791. Per qualsiasi comunicazione relativa alla privacy scrivere a: <a href="mailto:privacy@praticarapida.it" className="text-[#00843D] underline">privacy@praticarapida.it</a>.</p>
             </section>
 
             <section>

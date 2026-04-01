@@ -13,7 +13,7 @@ export default function Footer() {
           <div>
             <img src="/pratica-rapida-logo-white.png" alt="Pratica Rapida" className="h-8 w-auto mb-3" />
             <p className="text-sm italic mb-4">"Le pratiche dei tuoi clienti? Ci pensiamo noi."</p>
-            <p className="text-xs text-white/40">AEDIX S.r.l. — P.IVA 03937130791</p>
+            <p className="text-xs text-white/40">Pratica Rapida S.r.l.s. — P.IVA 03937130791</p>
             <p className="text-xs text-white/40 mt-1">Lissone (MB)</p>
           </div>
 
@@ -65,7 +65,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
-          <p>© {new Date().getFullYear()} Pratica Rapida · AEDIX S.r.l. Tutti i diritti riservati.</p>
+          <p>© {new Date().getFullYear()} Pratica Rapida · Pratica Rapida S.r.l.s. Tutti i diritti riservati.</p>
           <div className="flex gap-4">
             <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link to="/cookie-policy" className="hover:text-white transition-colors">Cookie Policy</Link>

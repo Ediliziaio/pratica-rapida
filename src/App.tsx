@@ -72,6 +72,21 @@ function RootRedirect() {
   return <Navigate to={isStaff(roles) ? "/admin/pratiche" : "/pratiche"} replace />;
 }
 
+// Rileva il sottodominio per distinguere sito marketing da piattaforma:
+// - app.praticarapida.it  → piattaforma (login/dashboard)
+// - www.praticarapida.it  → sito marketing (Home)
+// - localhost             → trattato come sito marketing in dev
+const IS_APP_SUBDOMAIN = window.location.hostname.startsWith("app.");
+
+function RootRoute() {
+  if (IS_APP_SUBDOMAIN) {
+    // Utenti su app.praticarapida.it → redirect diretto al pannello
+    return <AuthRoute />;
+  }
+  // Tutti gli altri (www, praticarapida.it, localhost) → home marketing
+  return <HomeMain />;
+}
+
 function PageLoader() {
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -130,10 +145,12 @@ const App = () => (
           <AuthProvider>
             <Suspense fallback={<PageLoader />}>
               <Routes>
+                {/* ── Sito pubblico (www.praticarapida.it) ───────────────── */}
+                <Route path="/" element={<RootRoute />} />
                 <Route path="/pratica-enea" element={<Home />} />
                 <Route path="/conto-termico" element={<HomeCT />} />
                 <Route path="/offerta" element={<Navigate to="/pratica-enea" replace />} />
-                <Route path="/home" element={<HomeMain />} />
+                <Route path="/home" element={<Navigate to="/" replace />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
                 <Route path="/faq" element={<FAQPage />} />
@@ -146,7 +163,6 @@ const App = () => (
                 <Route path="/modulo-infissi/:token" element={<ModuloClientePage />} />
                 <Route path="/impianto-termico/:token" element={<ModuloClientePage />} />
                 <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/" element={<ProtectedRoute><RootRedirect /></ProtectedRoute>} />
                 <Route path="/pratiche" element={<ProtectedRoute><Pratiche /></ProtectedRoute>} />
                 <Route path="/pratiche/nuova" element={<ProtectedRoute><NuovaPratica /></ProtectedRoute>} />
                 <Route path="/pratiche/:id" element={<ProtectedRoute><PraticaDetail /></ProtectedRoute>} />

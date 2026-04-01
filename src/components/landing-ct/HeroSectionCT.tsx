@@ -22,22 +22,35 @@ export default function HeroSectionCT() {
       className="relative min-h-[90vh] flex items-center overflow-hidden pt-20 pb-12"
       style={{ background: "linear-gradient(160deg, #f0fdf4 0%, #ffffff 45%, #f0f9ff 100%)" }}
     >
-      {/* Soft background orbs */}
+      {/* ── Background photo ─────────────────────────────────────── */}
+      <div
+        className="absolute inset-0 scale-105 pointer-events-none"
+        style={{
+          backgroundImage: "url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1920&q=80')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          filter: "blur(3px) grayscale(30%)",
+          opacity: 0.10,
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "linear-gradient(160deg, rgba(240,253,244,0.94) 0%, rgba(255,255,255,0.88) 45%, rgba(240,249,255,0.90) 100%)" }}
+      />
+
+      {/* Soft orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
           className="absolute -top-60 -right-60 w-[700px] h-[700px] rounded-full animate-aurora"
-          style={{ background: "radial-gradient(circle, hsla(152,80%,50%,0.07) 0%, transparent 65%)" }}
+          style={{ background: "radial-gradient(circle, hsla(152,80%,50%,0.09) 0%, transparent 65%)" }}
         />
         <div
           className="absolute -bottom-60 -left-40 w-[500px] h-[500px] rounded-full animate-aurora-alt"
-          style={{ background: "radial-gradient(circle, hsla(200,80%,60%,0.05) 0%, transparent 65%)" }}
+          style={{ background: "radial-gradient(circle, hsla(200,80%,60%,0.06) 0%, transparent 65%)" }}
         />
         <div
           className="absolute inset-0"
-          style={{
-            backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px)",
-            backgroundSize: "36px 36px",
-          }}
+          style={{ backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.03) 1px, transparent 1px)", backgroundSize: "36px 36px" }}
         />
         <div
           className="absolute bottom-0 left-0 right-0 h-px"

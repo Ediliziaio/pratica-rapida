@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Star, Check, Phone, ChevronDown } from "lucide-react";
-import NewsWidget from "../landing/NewsWidget";
+import BenefitsWidget from "../landing/BenefitsWidget";
 
 const socialProofAvatars = [
   { initials: "MR", bg: "bg-[hsl(var(--pr-green))]" },
@@ -29,13 +29,13 @@ export default function HeroSectionCT() {
           backgroundImage: "url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1920&q=80')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "blur(2px) grayscale(20%)",
-          opacity: 0.22,
+          filter: "blur(2px) grayscale(10%)",
+          opacity: 0.38,
         }}
       />
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: "linear-gradient(160deg, rgba(240,253,244,0.82) 0%, rgba(255,255,255,0.75) 45%, rgba(240,249,255,0.80) 100%)" }}
+        style={{ background: "linear-gradient(160deg, rgba(240,253,244,0.68) 0%, rgba(255,255,255,0.60) 45%, rgba(240,249,255,0.66) 100%)" }}
       />
 
       {/* Soft orbs */}
@@ -189,7 +189,7 @@ export default function HeroSectionCT() {
           transition={{ delay: 0.6, duration: 0.8 }}
           className="lg:col-span-2"
         >
-          <NewsWidget light />
+          <BenefitsWidget light />
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}

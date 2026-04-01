@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Star, ChevronDown } from "lucide-react";
-import NewsWidget from "../landing/NewsWidget";
+import BenefitsWidget from "../landing/BenefitsWidget";
 
 export default function HeroSectionHome() {
   return (
@@ -16,15 +16,15 @@ export default function HeroSectionHome() {
           backgroundImage: "url('https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=1920&q=80')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "blur(2px) grayscale(20%)",
-          opacity: 0.22,
+          filter: "blur(2px) grayscale(10%)",
+          opacity: 0.38,
         }}
       />
       {/* Gradient overlay — tiene il testo leggibile */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: "linear-gradient(160deg, rgba(240,253,244,0.82) 0%, rgba(255,255,255,0.75) 45%, rgba(240,249,255,0.80) 100%)",
+          background: "linear-gradient(160deg, rgba(240,253,244,0.68) 0%, rgba(255,255,255,0.60) 45%, rgba(240,249,255,0.66) 100%)",
         }}
       />
 
@@ -115,7 +115,7 @@ export default function HeroSectionHome() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.5, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
         >
-          <NewsWidget light />
+          <BenefitsWidget light />
         </motion.div>
       </div>
 

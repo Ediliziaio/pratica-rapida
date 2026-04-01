@@ -1,76 +1,83 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { Navbar, Footer } from "@/components/landing";
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-white text-gray-800">
-      <div className="max-w-3xl mx-auto px-6 py-16">
-        <Link to="/pratica-enea" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 mb-8">
-          <ArrowLeft className="w-4 h-4" /> Torna alla Home
-        </Link>
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-white text-gray-800">
+        <div className="max-w-3xl mx-auto px-6 pt-32 pb-20">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 mb-8 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Torna alla Home
+          </Link>
 
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">Privacy Policy</h1>
-        <p className="text-gray-400 text-sm mb-10">Ultimo aggiornamento: 23 febbraio 2026</p>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gray-900">Privacy Policy</h1>
+          <p className="text-gray-400 text-sm mb-10">Ultimo aggiornamento: marzo 2026</p>
 
-        <div className="space-y-8 text-gray-600 leading-relaxed">
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Titolare del trattamento</h2>
-            <p>Il titolare del trattamento dei dati è Pratica Rapida, con sede in Lissone (MB), P.IVA 03937130791. Per qualsiasi comunicazione relativa alla privacy è possibile scrivere a: <a href="mailto:modulistica@praticarapida.it" className="text-[#00843D] underline">modulistica@praticarapida.it</a>.</p>
-          </section>
+          <div className="space-y-8 text-gray-600 leading-relaxed">
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Titolare del trattamento</h2>
+              <p>Il titolare del trattamento dei dati personali è <strong>AEDIX S.r.l.</strong>, con sede legale in Lissone (MB), P.IVA 03937130791. Per qualsiasi comunicazione relativa alla privacy scrivere a: <a href="mailto:privacy@praticarapida.it" className="text-[#00843D] underline">privacy@praticarapida.it</a>.</p>
+            </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">2. Dati raccolti</h2>
-            <p>Raccogliamo i seguenti dati personali forniti volontariamente dall'utente:</p>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li>Nome, cognome, indirizzo email</li>
-              <li>Numero di telefono</li>
-              <li>Ragione sociale e P.IVA (per utenti aziendali)</li>
-              <li>Dati catastali e documentazione tecnica (per le pratiche ENEA)</li>
-            </ul>
-            <p className="mt-3">Raccogliamo inoltre dati di navigazione in forma anonima e aggregata tramite strumenti analitici.</p>
-          </section>
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">2. Dati raccolti e finalità</h2>
+              <p className="mb-3">Raccogliamo i dati personali strettamente necessari a erogare il servizio di gestione pratiche ENEA e Conto Termico:</p>
+              <ul className="list-disc pl-6 mt-2 space-y-2">
+                <li><strong>Dati dell'installatore/rivenditore:</strong> nome, cognome, ragione sociale, P.IVA, email, numero di telefono. Finalità: creazione account, comunicazioni operative, fatturazione.</li>
+                <li><strong>Dati del cliente finale:</strong> nome, cognome, codice fiscale, indirizzo dell'immobile, dati catastali. Finalità: compilazione e trasmissione della pratica all'ente competente (ENEA o Gestore Servizi Energetici).</li>
+                <li><strong>Dati di navigazione:</strong> indirizzo IP, tipo di browser, pagine visitate. Finalità: sicurezza della piattaforma e analisi aggregate anonime.</li>
+              </ul>
+            </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">3. Finalità del trattamento</h2>
-            <p>I dati vengono trattati per le seguenti finalità:</p>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li>Erogazione del servizio di gestione pratiche ENEA</li>
-              <li>Comunicazioni relative al servizio</li>
-              <li>Adempimenti fiscali e contabili</li>
-              <li>Miglioramento del servizio e analisi statistiche anonime</li>
-            </ul>
-          </section>
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">3. Base giuridica del trattamento</h2>
+              <p>Il trattamento è basato su: (a) esecuzione del contratto di servizio (art. 6 par. 1 lett. b GDPR); (b) adempimento di obblighi legali (art. 6 par. 1 lett. c GDPR); (c) legittimo interesse del titolare per la sicurezza e il miglioramento del servizio (art. 6 par. 1 lett. f GDPR).</p>
+            </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">4. Base giuridica</h2>
-            <p>Il trattamento si fonda sull'esecuzione del contratto di servizio, sugli obblighi di legge e, ove applicabile, sul consenso dell'interessato.</p>
-          </section>
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">4. Conservazione dei dati</h2>
+              <p>I dati vengono conservati per il tempo strettamente necessario agli scopi per cui sono stati raccolti, e comunque non oltre 10 anni dalla chiusura del rapporto contrattuale, salvo obblighi di legge che impongano periodi più lunghi (es. normativa fiscale e civilistica vigente).</p>
+            </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Conservazione dei dati</h2>
-            <p>I dati personali vengono conservati per il tempo necessario all'erogazione del servizio e comunque non oltre i termini previsti dalla normativa fiscale e civilistica vigente.</p>
-          </section>
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Condivisione con terzi</h2>
+              <p className="mb-3">I dati personali non vengono venduti né ceduti a terzi per finalità commerciali. Possono essere comunicati a:</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Enti istituzionali (ENEA, GSE) per la trasmissione delle pratiche;</li>
+                <li>Fornitori tecnici (hosting, email transazionale) che agiscono come responsabili del trattamento ai sensi dell'art. 28 GDPR;</li>
+                <li>Autorità competenti qualora richiesto dalla legge.</li>
+              </ul>
+            </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Diritti dell'interessato</h2>
-            <p>Ai sensi degli artt. 15-22 del GDPR (Regolamento UE 2016/679), l'interessato ha il diritto di:</p>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li>Accedere ai propri dati personali</li>
-              <li>Richiederne la rettifica o la cancellazione</li>
-              <li>Limitare o opporsi al trattamento</li>
-              <li>Richiedere la portabilità dei dati</li>
-              <li>Revocare il consenso in qualsiasi momento</li>
-            </ul>
-            <p className="mt-3">Per esercitare tali diritti, scrivere a <a href="mailto:modulistica@praticarapida.it" className="text-[#00843D] underline">modulistica@praticarapida.it</a>.</p>
-          </section>
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Diritti dell'interessato</h2>
+              <p className="mb-3">Ai sensi degli artt. 15–22 del GDPR (Reg. UE 2016/679), hai il diritto di:</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Accedere ai tuoi dati personali;</li>
+                <li>Ottenerne la rettifica o la cancellazione ("diritto all'oblio");</li>
+                <li>Limitare o opporti al trattamento;</li>
+                <li>Ricevere i dati in formato portabile;</li>
+                <li>Revocare il consenso in qualsiasi momento;</li>
+                <li>Proporre reclamo al Garante per la protezione dei dati personali (<a href="https://www.garanteprivacy.it" target="_blank" rel="noopener noreferrer" className="text-[#00843D] underline">www.garanteprivacy.it</a>).</li>
+              </ul>
+              <p className="mt-3">Per esercitare questi diritti scrivi a <a href="mailto:privacy@praticarapida.it" className="text-[#00843D] underline">privacy@praticarapida.it</a>.</p>
+            </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">7. Contatti</h2>
-            <p>Per qualsiasi domanda relativa alla presente Privacy Policy, contattarci a:</p>
-            <p className="mt-2 font-medium">modulistica@praticarapida.it | +39 351 7935227</p>
-          </section>
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">7. Cookie</h2>
+              <p>Per informazioni dettagliate sull'uso dei cookie consulta la nostra <Link to="/cookie-policy" className="text-[#00843D] underline">Cookie Policy</Link>.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">8. Modifiche alla presente informativa</h2>
+              <p>Ci riserviamo di aggiornare questa informativa in qualsiasi momento. La versione aggiornata sarà sempre disponibile su questa pagina con la data di ultima revisione indicata in cima.</p>
+            </section>
+          </div>
         </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 }

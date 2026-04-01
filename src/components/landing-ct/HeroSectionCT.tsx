@@ -29,13 +29,13 @@ export default function HeroSectionCT() {
           backgroundImage: "url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1920&q=80')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "blur(3px) grayscale(30%)",
-          opacity: 0.10,
+          filter: "blur(2px) grayscale(20%)",
+          opacity: 0.22,
         }}
       />
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: "linear-gradient(160deg, rgba(240,253,244,0.94) 0%, rgba(255,255,255,0.88) 45%, rgba(240,249,255,0.90) 100%)" }}
+        style={{ background: "linear-gradient(160deg, rgba(240,253,244,0.82) 0%, rgba(255,255,255,0.75) 45%, rgba(240,249,255,0.80) 100%)" }}
       />
 
       {/* Soft orbs */}

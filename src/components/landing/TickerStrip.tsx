@@ -3,10 +3,12 @@ const items = [
   "122+ recensioni su Trustpilot",
   "14+ anni di esperienza",
   "Consegna in 24h",
-  "65€ a pratica tutto incluso",
   "Zero canoni mensili",
   "\"Servizio impeccabile\" – Marco Barbieri",
-  "Assicurazione RC inclusa",
+  "La responsabilità è nostra",
+  "\"Finalmente qualcuno di affidabile\" – F. Romano",
+  "350+ installatori attivi in tutta Italia",
+  "\"Li userei sempre\" – Termoidraulica Brembati",
 ];
 
 export default function TickerStrip() {

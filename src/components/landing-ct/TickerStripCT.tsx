@@ -1,12 +1,13 @@
 const items = [
   "\"Finalmente qualcuno che gestisce il Conto Termico\" – Rossi Impianti",
-  "250€ a pratica tutto incluso",
   "Zero pratiche respinte dal GSE",
   "Entro i 90 giorni garantito",
   "Documentazione tecnica completa",
   "Contributo diretto per il tuo cliente",
   "\"Servizio preciso e veloce\" – Termoidraulica Bianchi",
-  "Assicurazione RC inclusa",
+  "La responsabilità è nostra",
+  "\"GSE accettato al primo invio\" – Impianti Verde Srl",
+  "14+ anni di esperienza nel settore",
 ];
 
 export default function TickerStripCT() {

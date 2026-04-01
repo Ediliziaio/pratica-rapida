@@ -1,55 +1,7 @@
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Star, Check, Phone, ChevronDown } from "lucide-react";
-
-function useCounter(target: number, delay: number, duration = 1500) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      const start = performance.now();
-      const animate = (now: number) => {
-        const progress = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        setCount(Math.floor(eased * target));
-        if (progress < 1) requestAnimationFrame(animate);
-      };
-      requestAnimationFrame(animate);
-    }, delay);
-    return () => clearTimeout(timeout);
-  }, [target, delay, duration]);
-  return count;
-}
-
-const dashboardItems = [
-  { label: "Pratiche CT completate questo mese", target: 23, suffix: " ✅", delay: 800 },
-  { label: "Tempo medio evasione", target: 72, suffix: "h", delay: 1000 },
-  { label: "Tasso accettazione GSE", target: 99, suffix: "%", delay: 1200 },
-];
-
-function DashboardRows() {
-  const c0 = useCounter(dashboardItems[0].target, dashboardItems[0].delay);
-  const c1 = useCounter(dashboardItems[1].target, dashboardItems[1].delay);
-  const c2 = useCounter(dashboardItems[2].target, dashboardItems[2].delay);
-  const counts = [c0, c1, c2];
-  return (
-    <>
-      {dashboardItems.map((item, i) => (
-        <motion.div
-          key={item.label}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: item.delay / 1000, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="flex items-center justify-between p-3 rounded-xl"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-        >
-          <span className="text-xs sm:text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>{item.label}</span>
-          <span className="font-bold tabular-nums text-white text-sm">{counts[i]}{item.suffix}</span>
-        </motion.div>
-      ))}
-    </>
-  );
-}
+import NewsWidget from "../landing/NewsWidget";
 
 const socialProofAvatars = [
   { initials: "MR", bg: "bg-[hsl(var(--pr-green))]" },
@@ -230,42 +182,7 @@ export default function HeroSectionCT() {
           transition={{ delay: 0.6, duration: 0.8 }}
           className="lg:col-span-2"
         >
-          <div
-            className="rounded-2xl p-5 sm:p-6 space-y-4 animate-float"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              backdropFilter: "blur(20px)",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
-            }}
-          >
-            <div className="flex items-center gap-2">
-              {[{ color: "rgba(255,80,80,0.8)" }, { color: "hsla(152,100%,40%,0.8)" }, { color: "rgba(200,200,200,0.2)" }].map((dot, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.6 + i * 0.1 }}
-                  className="w-3 h-3 rounded-full"
-                  style={{ background: dot.color }}
-                />
-              ))}
-              <span className="ml-auto text-xs hidden sm:block" style={{ color: "rgba(255,255,255,0.25)" }}>
-                pannello.praticarapida.it
-              </span>
-            </div>
-            <DashboardRows />
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.6 }}
-              className="flex items-center gap-2 text-xs"
-              style={{ color: "rgba(255,255,255,0.4)" }}
-            >
-              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "hsl(152 100% 50%)" }} />
-              Pannello operativo — aggiornato in tempo reale
-            </motion.div>
-          </div>
+          <NewsWidget />
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}

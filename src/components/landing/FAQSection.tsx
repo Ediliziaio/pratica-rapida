@@ -14,7 +14,7 @@ const faqs = [
   { q: "Quanto tempo ci vuole per completare una pratica?", a: "Entro 24 ore lavorative dalla raccolta completa dei documenti, la pratica ENEA viene compilata, inviata e consegnata a te e al tuo cliente." },
   { q: "Cosa succede se c'è un errore nella pratica?", a: "Ogni pratica è coperta da assicurazione RC professionale. In caso di errore, lo correggiamo immediatamente e gratuitamente. La responsabilità è nostra." },
   { q: "Devo firmare un contratto vincolante?", a: "No. Puoi attivare e disattivare il servizio quando vuoi. Non c'è nessun minimo di pratiche mensili e nessuna penale di uscita." },
-  { q: "Per quali tipi di intervento posso fare la pratica ENEA?", a: "Serramenti, infissi, tende da sole, pergole, schermature solari, caldaie, pompe di calore, fotovoltaico, vetrate panoramiche. Tutti gli interventi che prevedono la comunicazione ENEA per detrazioni fiscali." },
+  { q: "Per quali tipi di intervento posso fare la pratica ENEA?", a: "Serramenti, infissi, schermature solari, pergole bioclimatiche, pompe di calore, fotovoltaico, vetrate panoramiche. Tutti gli interventi che prevedono la comunicazione ENEA per detrazioni fiscali." },
   { q: "Come ricevo la pratica completata?", a: "Tramite la tua area riservata nel portale Pratica Rapida e via email. Sia tu che il tuo cliente ricevete la pratica in formato digitale." },
   { q: "Posso provare il servizio con una sola pratica?", a: "Assolutamente sì. Non c'è nessun obbligo di volume. Puoi provare con una pratica e decidere se continuare." },
   { q: "Il servizio è disponibile in tutta Italia?", a: "Sì, operiamo su tutto il territorio nazionale. Essendo un servizio digitale, non ci sono limitazioni geografiche." },

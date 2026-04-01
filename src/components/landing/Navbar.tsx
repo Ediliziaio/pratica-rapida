@@ -66,13 +66,13 @@ export default function Navbar() {
             Contattaci
           </a>
 
-          {/* Accedi — primary CTA */}
+          {/* Area Rivenditori — primary CTA */}
           <Link
             to="/auth"
             className="inline-flex items-center gap-1.5 text-white text-sm font-bold px-5 py-2.5 rounded-full transition-all hover:brightness-110 active:scale-[0.97]"
             style={{ backgroundColor: "hsl(var(--pr-green))" }}
           >
-            Accedi
+            Area Rivenditori
           </Link>
         </div>
 
@@ -116,7 +116,7 @@ export default function Navbar() {
               className="block w-full text-center text-white font-bold px-6 py-3 rounded-full text-sm"
               style={{ backgroundColor: "hsl(var(--pr-green))" }}
             >
-              Accedi
+              Area Rivenditori
             </Link>
           </div>
         </div>

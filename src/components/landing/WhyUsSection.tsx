@@ -8,7 +8,7 @@ const comparisons = [
   { feature: "Contatto cliente a nome tuo", us: true, diy: false, accountant: false },
   { feature: "Invio telematico ENEA", us: true, diy: true, accountant: true },
   { feature: "Consegna in 24h", us: true, diy: false, accountant: false },
-  { feature: "Assicurazione RC inclusa", us: true, diy: false, accountant: false },
+  { feature: "La responsabilità è nostra", us: true, diy: false, accountant: false },
   { feature: "Nessun costo fisso", us: true, diy: true, accountant: false },
   { feature: "Supporto dedicato WhatsApp", us: true, diy: false, accountant: false },
   { feature: "Correzioni gratuite illimitate", us: true, diy: false, accountant: false },

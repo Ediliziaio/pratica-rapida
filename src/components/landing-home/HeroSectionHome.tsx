@@ -1,85 +1,7 @@
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Star, ChevronDown } from "lucide-react";
-
-function useCounter(target: number, delay: number, duration = 1500) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      const start = performance.now();
-      const animate = (now: number) => {
-        const progress = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        setCount(Math.floor(eased * target));
-        if (progress < 1) requestAnimationFrame(animate);
-      };
-      requestAnimationFrame(animate);
-    }, delay);
-    return () => clearTimeout(timeout);
-  }, [target, delay, duration]);
-  return count;
-}
-
-function DashboardMockup() {
-  const enea = useCounter(47, 900);
-  const ct = useCounter(23, 1100);
-  const hours = useCounter(48, 1300);
-  return (
-    <div
-      className="rounded-2xl p-5 sm:p-6 space-y-3"
-      style={{
-        background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.1)",
-        backdropFilter: "blur(20px)",
-        boxShadow: "0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
-      }}
-    >
-      <div className="flex items-center gap-2">
-        {[{ c: "rgba(255,80,80,0.8)" }, { c: "hsla(152,100%,40%,0.8)" }, { c: "rgba(200,200,200,0.2)" }].map((d, i) => (
-          <motion.div
-            key={i}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.7 + i * 0.08 }}
-            className="w-3 h-3 rounded-full"
-            style={{ background: d.c }}
-          />
-        ))}
-        <span className="ml-auto text-xs hidden sm:block" style={{ color: "rgba(255,255,255,0.22)" }}>pannello.praticarapida.it</span>
-      </div>
-
-      {[
-        { label: "Pratiche ENEA questo mese", val: enea, suffix: " ✅", delay: 0.9 },
-        { label: "Pratiche Conto Termico", val: ct, suffix: " ✅", delay: 1.1 },
-        { label: "Tempo medio evasione", val: hours, suffix: "h", delay: 1.3 },
-      ].map((row) => (
-        <motion.div
-          key={row.label}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: row.delay, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="flex items-center justify-between p-3 rounded-xl"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}
-        >
-          <span className="text-xs sm:text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>{row.label}</span>
-          <span className="font-bold tabular-nums text-white text-sm">{row.val}{row.suffix}</span>
-        </motion.div>
-      ))}
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.7 }}
-        className="flex items-center gap-2 text-xs pt-1"
-        style={{ color: "rgba(255,255,255,0.35)" }}
-      >
-        <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "hsl(152 100% 50%)" }} />
-        Aggiornato in tempo reale
-      </motion.div>
-    </div>
-  );
-}
+import NewsWidget from "../landing/NewsWidget";
 
 export default function HeroSectionHome() {
   return (
@@ -168,7 +90,7 @@ export default function HeroSectionHome() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.5, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
         >
-          <DashboardMockup />
+          <NewsWidget />
         </motion.div>
       </div>
 

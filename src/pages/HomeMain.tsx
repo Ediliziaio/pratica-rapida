@@ -4,6 +4,7 @@ import ServicesSectionHome from "@/components/landing-home/ServicesSectionHome";
 import HowItWorksSectionHome from "@/components/landing-home/HowItWorksSectionHome";
 import StatsSectionHome from "@/components/landing-home/StatsSectionHome";
 import FinalCTAHome from "@/components/landing-home/FinalCTAHome";
+import NewPortalPopup from "@/components/landing/NewPortalPopup";
 import { SEO } from "@/components/SEO";
 
 const jsonLd = {
@@ -27,6 +28,7 @@ export default function HomeMain() {
         canonical="/"
         jsonLd={jsonLd}
       />
+      <NewPortalPopup />
       <Navbar />
       <HeroSectionHome />
       <TickerStrip />

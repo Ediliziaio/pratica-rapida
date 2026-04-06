@@ -12,7 +12,7 @@ export default function WhatsAppButton() {
       initial={{ opacity: 0, scale: 0.7, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ delay: 1.5, duration: 0.4, type: "spring", stiffness: 260, damping: 20 }}
-      className="fixed bottom-6 left-6 z-50 flex items-center gap-2.5 text-white text-sm font-bold px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-shadow hover:brightness-110 active:scale-[0.97]"
+      className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 text-white text-sm font-bold px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-shadow hover:brightness-110 active:scale-[0.97]"
       style={{ backgroundColor: "#25d366" }}
     >
       {/* WhatsApp SVG icon */}

@@ -39,6 +39,7 @@ const ModuloClientePage = lazy(() => import("./pages/ModuloClientePage"));
 const KanbanBoard = lazy(() => import("./pages/KanbanBoard"));
 const NuovaPraticaEnea = lazy(() => import("./pages/rivenditore/NuovaPraticaEnea"));
 const HomeMain = lazy(() => import("./pages/HomeMain"));
+const AreaRiservataVecchia = lazy(() => import("./pages/AreaRiservataVecchia"));
 const FAQPage = lazy(() => import("./pages/FAQ"));
 const BlogPage = lazy(() => import("./pages/Blog"));
 const BlogPostPage = lazy(() => import("./pages/BlogPost"));
@@ -151,6 +152,7 @@ const App = () => (
                 <Route path="/conto-termico" element={<HomeCT />} />
                 <Route path="/offerta" element={<Navigate to="/pratica-enea" replace />} />
                 <Route path="/home" element={<Navigate to="/" replace />} />
+                <Route path="/area-riservata-vecchia" element={<AreaRiservataVecchia />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
                 <Route path="/faq" element={<FAQPage />} />

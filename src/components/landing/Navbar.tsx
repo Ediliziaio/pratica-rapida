@@ -49,7 +49,7 @@ export default function Navbar() {
           <Link
             to="/area-riservata-vecchia"
             className="inline-flex items-center gap-1.5 text-white text-sm font-bold px-5 py-2.5 rounded-full transition-all hover:brightness-110 active:scale-[0.97]"
-            style={{ backgroundColor: "#f97316" }}
+            style={{ backgroundColor: "hsl(var(--pr-green))" }}
           >
             Area Rivenditori Vecchia
           </Link>
@@ -58,7 +58,7 @@ export default function Navbar() {
           <Link
             to="/auth"
             className="inline-flex items-center gap-1.5 text-white text-sm font-bold px-5 py-2.5 rounded-full transition-all hover:brightness-110 active:scale-[0.97]"
-            style={{ backgroundColor: "hsl(var(--pr-green))" }}
+            style={{ backgroundColor: "#f97316" }}
           >
             Area Rivenditori
           </Link>
@@ -101,7 +101,7 @@ export default function Navbar() {
               to="/area-riservata-vecchia"
               onClick={closeMobile}
               className="block w-full text-center text-white font-bold px-6 py-3 rounded-full text-sm"
-              style={{ backgroundColor: "#f97316" }}
+              style={{ backgroundColor: "hsl(var(--pr-green))" }}
             >
               Area Rivenditori Vecchia
             </Link>
@@ -109,7 +109,7 @@ export default function Navbar() {
               to="/auth"
               onClick={closeMobile}
               className="block w-full text-center text-white font-bold px-6 py-3 rounded-full text-sm"
-              style={{ backgroundColor: "hsl(var(--pr-green))" }}
+              style={{ backgroundColor: "#f97316" }}
             >
               Area Rivenditori
             </Link>

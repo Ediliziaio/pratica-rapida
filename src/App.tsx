@@ -40,6 +40,11 @@ const KanbanBoard = lazy(() => import("./pages/KanbanBoard"));
 const NuovaPraticaEnea = lazy(() => import("./pages/rivenditore/NuovaPraticaEnea"));
 const HomeMain = lazy(() => import("./pages/HomeMain"));
 const AreaRiservataVecchia = lazy(() => import("./pages/AreaRiservataVecchia"));
+const VecchioPraticaEnea = lazy(() => import("./pages/vecchio/PraticaEnea"));
+const VecchioFotovoltaicoOffGrid = lazy(() => import("./pages/vecchio/FotovoltaicoOffGrid"));
+const VecchioVisuraCatastale = lazy(() => import("./pages/vecchio/VisuraCatastale"));
+const VecchioVerificaPrezzi = lazy(() => import("./pages/vecchio/VerificaPrezzi"));
+const VecchioAllaccioFotovoltaico = lazy(() => import("./pages/vecchio/AllaccioFotovoltaico"));
 const FAQPage = lazy(() => import("./pages/FAQ"));
 const BlogPage = lazy(() => import("./pages/Blog"));
 const BlogPostPage = lazy(() => import("./pages/BlogPost"));
@@ -153,6 +158,11 @@ const App = () => (
                 <Route path="/offerta" element={<Navigate to="/pratica-enea" replace />} />
                 <Route path="/home" element={<Navigate to="/" replace />} />
                 <Route path="/area-riservata-vecchia" element={<AreaRiservataVecchia />} />
+                <Route path="/area-riservata-vecchia/pratica-enea" element={<VecchioPraticaEnea />} />
+                <Route path="/area-riservata-vecchia/fotovoltaico-off-grid" element={<VecchioFotovoltaicoOffGrid />} />
+                <Route path="/area-riservata-vecchia/visura-catastale" element={<VecchioVisuraCatastale />} />
+                <Route path="/area-riservata-vecchia/verifica-prezzi" element={<VecchioVerificaPrezzi />} />
+                <Route path="/area-riservata-vecchia/allaccio-fotovoltaico" element={<VecchioAllaccioFotovoltaico />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
                 <Route path="/faq" element={<FAQPage />} />

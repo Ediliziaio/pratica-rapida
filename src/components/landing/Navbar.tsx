@@ -1,9 +1,7 @@
 import { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, MessageCircle } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { NAV_LINKS } from "./constants";
-
-const WHATSAPP_URL = "https://wa.me/390398682691?text=Ciao%2C%20vorrei%20sapere%20come%20funziona%20Pratica%20Rapida";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -34,17 +32,6 @@ export default function Navbar() {
 
         {/* Right CTA group */}
         <div className="hidden md:flex items-center gap-2">
-          {/* Contattaci — WhatsApp */}
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full border border-border text-foreground hover:bg-muted transition-all hover:scale-[1.03] active:scale-[0.97]"
-          >
-            <MessageCircle className="h-3.5 w-3.5" />
-            Contattaci
-          </a>
-
           {/* Area Rivenditori Vecchia — link interno */}
           <Link
             to="/area-riservata-vecchia"
@@ -87,16 +74,6 @@ export default function Navbar() {
           ))}
 
           <div className="flex flex-col gap-2 mt-4">
-            <a
-              href={WHATSAPP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={closeMobile}
-              className="flex items-center justify-center gap-2 w-full border border-border text-foreground font-semibold px-6 py-3 rounded-full text-sm"
-            >
-              <MessageCircle className="h-4 w-4 text-green-600" />
-              Contattaci su WhatsApp
-            </a>
             <Link
               to="/area-riservata-vecchia"
               onClick={closeMobile}

@@ -15,6 +15,7 @@ import {
   FAQSection,
   FinalCTA,
   Footer,
+  WhatsAppButton,
 } from "@/components/landing";
 import { SEO } from "@/components/SEO";
 
@@ -55,6 +56,7 @@ export default function Home() {
       <FAQSection />
       <FinalCTA />
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

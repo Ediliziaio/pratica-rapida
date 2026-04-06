@@ -1,4 +1,4 @@
-import { Navbar, TickerStrip, PartnerSection, ReviewsSection, WhyUsSection, GuaranteeSection, FinalCTA, Footer } from "@/components/landing";
+import { Navbar, TickerStrip, PartnerSection, ReviewsSection, WhyUsSection, GuaranteeSection, FinalCTA, Footer, WhatsAppButton } from "@/components/landing";
 import { SEO } from "@/components/SEO";
 
 const jsonLd = {
@@ -43,6 +43,7 @@ export default function HomeCT() {
       <FAQSectionCT />
       <FinalCTA />
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

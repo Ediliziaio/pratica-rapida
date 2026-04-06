@@ -1,4 +1,4 @@
-import { Navbar, TickerStrip, PartnerSection, ReviewsSection, WhyUsSection, GuaranteeSection, Footer } from "@/components/landing";
+import { Navbar, TickerStrip, PartnerSection, ReviewsSection, WhyUsSection, GuaranteeSection, Footer, WhatsAppButton } from "@/components/landing";
 import HeroSectionHome from "@/components/landing-home/HeroSectionHome";
 import ServicesSectionHome from "@/components/landing-home/ServicesSectionHome";
 import HowItWorksSectionHome from "@/components/landing-home/HowItWorksSectionHome";
@@ -61,6 +61,7 @@ export default function HomeMain() {
       <GuaranteeSection />
       <FinalCTAHome />
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/landing";
+import { SEO } from "@/components/SEO";
 import { Clock } from "lucide-react";
 
 const SERVICES = [
@@ -94,6 +95,12 @@ const SERVICES = [
 export default function AreaRiservataVecchia() {
   return (
     <>
+      <SEO
+        title="Area Riservata Vecchio Portale | Pratica Rapida"
+        description="Accesso ai servizi del vecchio portale Pratica Rapida: pratiche ENEA, Conto Termico, visura catastale e verifica prezzi."
+        canonical="/area-riservata-vecchia"
+        noindex={true}
+      />
       <Navbar />
 
       <main className="min-h-screen bg-white pt-24 pb-20">

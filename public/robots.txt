@@ -1,13 +1,12 @@
+# robots.txt — praticarapida.it
+# Pratica Rapida S.r.l.s. — Lissone (MB)
+
 User-agent: *
-Allow: /home
-Allow: /pratica-enea
-Allow: /conto-termico
-Allow: /faq
-Allow: /blog
-Allow: /privacy-policy
-Allow: /cookie-policy
+Allow: /
+
+# Aree private — non indicizzare
 Disallow: /auth
-Disallow: /pratiche
+Disallow: /pratiche/
 Disallow: /admin/
 Disallow: /wallet
 Disallow: /clienti
@@ -19,5 +18,9 @@ Disallow: /blocked
 Disallow: /kanban
 Disallow: /enea/
 Disallow: /coda-pratiche
+Disallow: /modulo-infissi/
+Disallow: /schermature-solari/
+Disallow: /impianto-termico/
+Disallow: /form/
 
 Sitemap: https://www.praticarapida.it/sitemap.xml

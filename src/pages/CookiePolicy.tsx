@@ -1,10 +1,17 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Navbar, Footer } from "@/components/landing";
+import { SEO } from "@/components/SEO";
 
 export default function CookiePolicy() {
   return (
     <>
+      <SEO
+        title="Cookie Policy | Pratica Rapida"
+        description="Informativa sull'uso dei cookie sul sito Pratica Rapida. Cookie tecnici, analitici e funzionali: cosa sono e come gestirli."
+        canonical="/cookie-policy"
+        noindex={false}
+      />
       <Navbar />
       <div className="min-h-screen bg-white text-gray-800">
         <div className="max-w-3xl mx-auto px-6 pt-32 pb-20">

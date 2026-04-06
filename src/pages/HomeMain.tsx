@@ -7,25 +7,45 @@ import FinalCTAHome from "@/components/landing-home/FinalCTAHome";
 import NewPortalPopup from "@/components/landing/NewPortalPopup";
 import { SEO } from "@/components/SEO";
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "Pratica Rapida",
-  url: "https://www.praticarapida.it",
-  logo: "https://www.praticarapida.it/pratica-rapida-logo.png",
-  description: "Gestione pratiche ENEA e Conto Termico per installatori italiani. Completiamo le pratiche dei tuoi clienti a tuo nome in 48–72 ore.",
-  address: { "@type": "PostalAddress", addressLocality: "Lissone", addressRegion: "MB", addressCountry: "IT" },
-  contactPoint: { "@type": "ContactPoint", telephone: "+39-039-868-2691", contactType: "customer service", availableLanguage: "Italian" },
-  sameAs: ["https://it.trustpilot.com/review/praticarapida.it"],
-};
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Pratica Rapida",
+    legalName: "Pratica Rapida S.r.l.s.",
+    url: "https://www.praticarapida.it",
+    logo: "https://www.praticarapida.it/pratica-rapida-logo.png",
+    description: "Pratica Rapida gestisce le pratiche ENEA e Conto Termico per installatori e rivenditori italiani. Oltre 2.000 pratiche gestite, 350+ installatori attivi in tutta Italia.",
+    address: { "@type": "PostalAddress", addressLocality: "Lissone", addressRegion: "MB", postalCode: "20851", addressCountry: "IT" },
+    contactPoint: { "@type": "ContactPoint", telephone: "+39-039-868-2691", contactType: "customer service", availableLanguage: "Italian" },
+    sameAs: ["https://it.trustpilot.com/review/praticarapida.it"],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: "Gestione Pratiche ENEA e Conto Termico",
+    provider: { "@type": "Organization", name: "Pratica Rapida" },
+    description: "Servizio di outsourcing per la gestione di pratiche ENEA (Ecobonus/Bonus Casa) e Conto Termico GSE per installatori italiani.",
+    areaServed: "IT",
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Servizi Pratica Rapida",
+      itemListElement: [
+        { "@type": "Offer", name: "Pratica ENEA", price: "65", priceCurrency: "EUR" },
+        { "@type": "Offer", name: "Pratica Conto Termico", priceCurrency: "EUR" },
+      ],
+    },
+  },
+];
 
 export default function HomeMain() {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Pratica Rapida — Gestione Pratiche ENEA e Conto Termico per Installatori"
-        description="Gestiamo le pratiche ENEA e Conto Termico dei tuoi clienti a tuo nome in 48–72 ore. Nessun canone fisso, assicurazione RC inclusa. 350+ installatori attivi in tutta Italia."
+        title="Pratiche ENEA e Conto Termico per Installatori | Pratica Rapida"
+        description="Gestiamo pratiche ENEA e Conto Termico a tuo nome in 48 ore. Raccogliamo i documenti, compiliamo e inviamo. Nessun canone fisso. 350+ installatori attivi in tutta Italia."
         canonical="/"
+        keywords="pratica ENEA, conto termico GSE, gestione pratiche installatori, outsourcing pratiche energetiche, ecobonus serramenti, bonus casa infissi"
         jsonLd={jsonLd}
       />
       <NewPortalPopup />

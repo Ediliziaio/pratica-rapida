@@ -78,9 +78,10 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Blog — Guide e Risorse per Installatori"
-        description="Articoli su pratiche ENEA, Conto Termico GSE, normativa energetica e consigli pratici per installatori italiani. Aggiornamenti e guide operative."
+        title="Blog per Installatori — Guide ENEA e Conto Termico | Pratica Rapida"
+        description="Guide pratiche per installatori: ENEA, Conto Termico GSE, normativa energetica e aggiornamenti fiscali 2026. Risorse operative per serramentisti e termoidraulici."
         canonical="/blog"
+        keywords="blog pratica ENEA, guida ecobonus 2026, conto termico guida, normativa energetica installatori, bonus casa serramenti 2026"
         jsonLd={blogJsonLd}
       />
       <Navbar />

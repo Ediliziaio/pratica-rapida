@@ -23,18 +23,20 @@ const jsonLd = {
   "@type": "Service",
   name: "Pratiche ENEA per Installatori",
   provider: { "@type": "Organization", name: "Pratica Rapida", url: "https://www.praticarapida.it" },
-  description: "Gestione completa delle pratiche ENEA per detrazioni fiscali: compilazione, raccolta documenti dal cliente, invio telematico in 48 ore.",
+  description: "Gestione completa delle pratiche ENEA Ecobonus e Bonus Casa per installatori: infissi, serramenti, schermature solari, pompe di calore. Raccolta documenti dal cliente finale, compilazione e invio telematico ENEA entro 48 ore lavorative.",
   areaServed: "IT",
   offers: { "@type": "Offer", price: "65", priceCurrency: "EUR", priceSpecification: { "@type": "UnitPriceSpecification", price: "65", priceCurrency: "EUR", unitText: "pratica" } },
+  audience: { "@type": "BusinessAudience", audienceType: "Installatori, Serramentisti, Rivenditori" },
 };
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Pratiche ENEA per Installatori — Completate in 48 ore a Tuo Nome"
-        description="Gestiamo le pratiche ENEA dei tuoi clienti: raccogliamo i documenti, compiliamo e trasmettiamo in 48 ore. 65€ a pratica, nessun canone. Assicurazione RC inclusa."
+        title="Pratica ENEA Online per Installatori — 48 ore a Tuo Nome | Pratica Rapida"
+        description="Gestiamo le pratiche ENEA dei tuoi clienti per infissi, serramenti e schermature. Raccolta documenti, invio ENEA e ricevuta in 48 ore. Nessun canone fisso."
         canonical="/pratica-enea"
+        keywords="pratica ENEA, comunicazione ENEA, ENEA online, ecobonus infissi, ecobonus serramenti, bonus casa detrazione 50%, schermature solari ENEA, pratica ENEA installatori"
         jsonLd={jsonLd}
       />
       <Navbar />

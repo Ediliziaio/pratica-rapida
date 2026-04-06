@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { CheckCircle2, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/landing";
+import { SEO } from "@/components/SEO";
 
 interface Props {
   title: string;
@@ -35,6 +36,12 @@ export default function OldPortalFormPage({
 
   return (
     <>
+      <SEO
+        title={`${title} | Pratica Rapida`}
+        description={description.slice(0, 155)}
+        canonical={`/area-riservata-vecchia/${formName.toLowerCase().replace(/\s+/g, "-")}`}
+        noindex={true}
+      />
       <Navbar />
       <main className="min-h-screen bg-gray-50 pt-24 pb-20">
         <div className="max-w-3xl mx-auto px-4 lg:px-8">

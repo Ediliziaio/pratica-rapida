@@ -6,9 +6,9 @@ const jsonLd = {
   "@type": "Service",
   name: "Pratiche Conto Termico GSE per Installatori",
   provider: { "@type": "Organization", name: "Pratica Rapida", url: "https://www.praticarapida.it" },
-  description: "Gestione completa delle pratiche Conto Termico GSE per caldaie a condensazione, pompe di calore e solare termico. Invio in 72 ore, zero pratiche respinte.",
+  description: "Gestione completa delle pratiche Conto Termico GSE per pompe di calore, solare termico e schermature solari. Raccolta documenti dal cliente, invio GSE e monitoraggio inclusi.",
   areaServed: "IT",
-  offers: { "@type": "Offer", price: "250", priceCurrency: "EUR", priceSpecification: { "@type": "UnitPriceSpecification", price: "250", priceCurrency: "EUR", unitText: "pratica" } },
+  audience: { "@type": "BusinessAudience", audienceType: "Installatori, Termoidraulici, Rivenditori" },
 };
 import HeroSectionCT from "@/components/landing-ct/HeroSectionCT";
 import TickerStripCT from "@/components/landing-ct/TickerStripCT";
@@ -23,9 +23,10 @@ export default function HomeCT() {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Pratiche Conto Termico GSE — Gestite a Tuo Nome in 72 ore"
-        description="Gestiamo le pratiche Conto Termico GSE per i tuoi clienti: caldaie a condensazione, pompe di calore, solare termico. 250€ a pratica, zero pratiche respinte."
+        title="Pratica Conto Termico GSE per Installatori — A Tuo Nome | Pratica Rapida"
+        description="Gestiamo le pratiche Conto Termico GSE per pompe di calore, solare termico e schermature. Raccolta documenti, invio GSE e monitoraggio inclusi. Nessun canone fisso."
         canonical="/conto-termico"
+        keywords="conto termico GSE, pratica conto termico, pompe di calore incentivi, solare termico detrazione, pratiche GSE installatori, conto termico 3.0"
         jsonLd={jsonLd}
       />
       <Navbar />

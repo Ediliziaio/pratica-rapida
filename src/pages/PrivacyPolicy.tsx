@@ -1,10 +1,17 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Navbar, Footer } from "@/components/landing";
+import { SEO } from "@/components/SEO";
 
 export default function PrivacyPolicy() {
   return (
     <>
+      <SEO
+        title="Privacy Policy | Pratica Rapida"
+        description="Informativa sul trattamento dei dati personali di Pratica Rapida S.r.l.s. ai sensi del GDPR (Reg. UE 2016/679)."
+        canonical="/privacy-policy"
+        noindex={false}
+      />
       <Navbar />
       <div className="min-h-screen bg-white text-gray-800">
         <div className="max-w-3xl mx-auto px-6 pt-32 pb-20">

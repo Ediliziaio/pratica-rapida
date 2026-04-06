@@ -109,9 +109,10 @@ export default function FAQPage() {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Domande Frequenti su Pratiche ENEA e Conto Termico"
-        description="Risposte a tutte le domande su Pratica Rapida: come funziona, pratiche ENEA, Conto Termico GSE, prezzi e pagamenti. Tutto quello che devi sapere."
+        title="FAQ Pratiche ENEA e Conto Termico | Pratica Rapida"
+        description="Risposte complete su Pratica Rapida: come funziona, pratiche ENEA, Conto Termico GSE, prezzi e pagamenti. Tutto quello che serve sapere prima di iniziare."
         canonical="/faq"
+        keywords="FAQ pratica ENEA, domande conto termico, come funziona ENEA, gestione pratiche installatori, ecobonus domande frequenti"
         jsonLd={faqJsonLd}
       />
       <Navbar />

@@ -45,16 +45,14 @@ export default function Navbar() {
             Contattaci
           </a>
 
-          {/* Area Rivenditori Vecchia — link al vecchio portale */}
-          <a
-            href="https://www.praticarapida.com/area-rivenditori/"
-            target="_blank"
-            rel="noopener noreferrer"
+          {/* Area Rivenditori Vecchia — link interno */}
+          <Link
+            to="/area-riservata-vecchia"
             className="inline-flex items-center gap-1.5 text-white text-sm font-bold px-5 py-2.5 rounded-full transition-all hover:brightness-110 active:scale-[0.97]"
             style={{ backgroundColor: "#f97316" }}
           >
             Area Rivenditori Vecchia
-          </a>
+          </Link>
 
           {/* Area Rivenditori — primary CTA */}
           <Link
@@ -99,16 +97,14 @@ export default function Navbar() {
               <MessageCircle className="h-4 w-4 text-green-600" />
               Contattaci su WhatsApp
             </a>
-            <a
-              href="https://www.praticarapida.com/area-rivenditori/"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/area-riservata-vecchia"
               onClick={closeMobile}
               className="block w-full text-center text-white font-bold px-6 py-3 rounded-full text-sm"
               style={{ backgroundColor: "#f97316" }}
             >
               Area Rivenditori Vecchia
-            </a>
+            </Link>
             <Link
               to="/auth"
               onClick={closeMobile}

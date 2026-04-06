@@ -3,11 +3,11 @@ import { useScrollAnimation } from "./hooks";
 import { DoorOpen, Sun, Blinds, Flame, GlassWater } from "lucide-react";
 
 const sectors = [
-  { icon: DoorOpen, label: "Serramenti", img: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=80" },
+  { icon: DoorOpen, label: "Serramenti", img: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=400&q=80" },
   { icon: Sun, label: "Fotovoltaico", img: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=80" },
   { icon: Blinds, label: "Tende da sole e schermature solari", img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" },
-  { icon: Flame, label: "Caldaie e climatizzatori", img: "https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400&q=80" },
-  { icon: GlassWater, label: "Vetrate e infissi", img: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&q=80" },
+  { icon: Flame, label: "Caldaie e climatizzatori", img: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=80" },
+  { icon: GlassWater, label: "Vetrate e infissi", img: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=400&q=80" },
 ];
 
 export default function PartnerSection() {

@@ -32,6 +32,10 @@ export function SEO({
       <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow"} />
       <link rel="canonical" href={fullCanonical} />
 
+      {/* GEO */}
+      <meta name="geo.region" content="IT" />
+      <meta name="geo.placename" content="Lissone, Monza e Brianza, Italia" />
+
       {/* Open Graph */}
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />

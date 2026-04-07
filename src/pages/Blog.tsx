@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Clock, Calendar } from "lucide-react";
-import { Navbar, Footer } from "@/components/landing";
+import { Navbar, Footer, WhatsAppButton } from "@/components/landing";
 import { SEO } from "@/components/SEO";
 import { blogPosts, BLOG_CATEGORIES } from "@/data/blog-posts";
 import { BLOG_COVER_MAP } from "@/components/blog/BlogCovers";
@@ -170,6 +170,7 @@ export default function BlogPage() {
       </section>
 
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

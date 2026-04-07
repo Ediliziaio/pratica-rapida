@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link, useParams, Navigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Clock, Calendar, AlertTriangle, Lightbulb, Info } from "lucide-react";
-import { Navbar, Footer } from "@/components/landing";
+import { Navbar, Footer, WhatsAppButton } from "@/components/landing";
 import { SEO } from "@/components/SEO";
 import { blogPosts, BLOG_CATEGORIES, type ContentBlock } from "@/data/blog-posts";
 import { BLOG_COVER_MAP } from "@/components/blog/BlogCovers";
@@ -272,7 +272,7 @@ export default function BlogPostPage() {
                 to="/conto-termico"
                 className="inline-flex items-center justify-center gap-2 font-semibold text-sm px-6 py-3 rounded-full border border-border text-foreground hover:bg-muted transition-all"
               >
-                Conto Termico — 250€ <ArrowRight size={14} />
+                Conto Termico <ArrowRight size={14} />
               </Link>
             </div>
           </motion.div>
@@ -326,6 +326,7 @@ export default function BlogPostPage() {
       </section>
 
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

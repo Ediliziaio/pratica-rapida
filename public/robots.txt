@@ -22,5 +22,6 @@ Disallow: /modulo-infissi/
 Disallow: /schermature-solari/
 Disallow: /impianto-termico/
 Disallow: /form/
+Disallow: /area-riservata-vecchia
 
 Sitemap: https://www.praticarapida.it/sitemap.xml

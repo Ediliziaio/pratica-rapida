@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { MessageCircle, Phone, ArrowRight, ChevronDown } from "lucide-react";
-import { Navbar, Footer } from "@/components/landing";
+import { Navbar, Footer, WhatsAppButton } from "@/components/landing";
 import { SEO } from "@/components/SEO";
 
 const categories = [
@@ -254,6 +254,7 @@ export default function FAQPage() {
       </section>
 
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

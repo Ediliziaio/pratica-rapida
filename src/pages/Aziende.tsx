@@ -16,8 +16,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Building2, Plus, Search, Receipt, Users, FolderOpen, LogIn,
   ChevronDown, BarChart3, TrendingUp, CircleDollarSign, CalendarDays, CheckCircle2, Clock,
-  ShieldOff, ShieldCheck, LayoutDashboard, Eye, EyeOff,
+  ShieldOff, ShieldCheck, LayoutDashboard, Eye, EyeOff, List, Kanban,
 } from "lucide-react";
+import AziendePipeline from "@/components/aziende/AziendePipeline";
 import { useNavigate } from "react-router-dom";
 import { useCompany } from "@/hooks/useCompany";
 import { isSuperAdmin } from "@/hooks/useAuth";
@@ -49,6 +50,7 @@ export default function Aziende() {
   const [openPanels, setOpenPanels] = useState<Record<string, boolean>>({});
   const [sortBy, setSortBy] = useState<SortOption>("nome");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "suspended">("all");
+  const [viewMode, setViewMode] = useState<"lista" | "pipeline">("lista");
 
   const [form, setForm] = useState({
     ragione_sociale: "", piva: "", codice_fiscale: "", email: "",
@@ -229,10 +231,31 @@ export default function Aziende() {
             <h1 className="font-display text-2xl font-bold tracking-tight">Aziende</h1>
             <p className="text-muted-foreground">Gestisci tutte le aziende registrate</p>
           </div>
+          <div className="flex items-center gap-2">
+            {/* View toggle */}
+            <div className="flex items-center rounded-lg border bg-muted/40 p-0.5 gap-0.5">
+              <Button
+                variant={viewMode === "lista" ? "default" : "ghost"}
+                size="sm"
+                className="h-7 px-2.5 gap-1.5"
+                onClick={() => setViewMode("lista")}
+              >
+                <List className="h-3.5 w-3.5" />Lista
+              </Button>
+              <Button
+                variant={viewMode === "pipeline" ? "default" : "ghost"}
+                size="sm"
+                className="h-7 px-2.5 gap-1.5"
+                onClick={() => setViewMode("pipeline")}
+              >
+                <Kanban className="h-3.5 w-3.5" />Pipeline
+              </Button>
+            </div>
           <Dialog open={showCreate} onOpenChange={setShowCreate}>
             <DialogTrigger asChild>
               <Button><Plus className="mr-2 h-4 w-4" />Nuova Azienda</Button>
             </DialogTrigger>
+
             <DialogContent className="max-w-lg">
               <DialogHeader><DialogTitle>Crea Azienda</DialogTitle></DialogHeader>
               <div className="grid gap-4">
@@ -274,7 +297,14 @@ export default function Aziende() {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
+
+        {/* Pipeline view */}
+        {viewMode === "pipeline" && <AziendePipeline />}
+
+        {/* List view */}
+        {viewMode === "lista" && <>
 
         {/* Summary Bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -473,6 +503,8 @@ export default function Aziende() {
             })}
           </div>
         )}
+
+        </> /* end lista */}
 
         {/* Block account dialog */}
         <Dialog open={!!showBlockDialog} onOpenChange={(o) => !o && setShowBlockDialog(null)}>

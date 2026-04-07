@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -41,8 +41,6 @@ export default function Auth() {
 
   const { isPasswordRecovery, clearPasswordRecovery } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
-
   // Derived active view — recovery takes priority
   const activeView = isPasswordRecovery ? "reset" : view;
 
@@ -59,8 +57,6 @@ export default function Auth() {
         description: "Email o password errati. Riprova.",
         variant: "destructive",
       });
-    } else {
-      navigate("/");
     }
   };
 
@@ -100,7 +96,6 @@ export default function Auth() {
     } else {
       toast({ title: "Password aggiornata ✓", description: "Puoi ora accedere con la nuova password." });
       clearPasswordRecovery();
-      navigate("/");
     }
   };
 
@@ -148,8 +143,6 @@ export default function Auth() {
       if (loginErr) {
         toast({ title: "Registrazione ok", description: "Accedi con le tue credenziali.", variant: "destructive" });
         setView("login");
-      } else {
-        navigate("/");
       }
     } catch (err: unknown) {
       setLoading(false);

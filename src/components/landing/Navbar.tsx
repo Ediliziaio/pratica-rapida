@@ -34,7 +34,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-2">
           {/* Area Rivenditori — primary CTA */}
           <Link
-            to="/auth"
+            to="/area-riservata-vecchia"
             className="inline-flex items-center gap-1.5 text-white text-sm font-bold px-5 py-2.5 rounded-full transition-all hover:brightness-110 active:scale-[0.97]"
             style={{ backgroundColor: "#f97316" }}
           >
@@ -66,7 +66,7 @@ export default function Navbar() {
 
           <div className="flex flex-col gap-2 mt-4">
             <Link
-              to="/auth"
+              to="/area-riservata-vecchia"
               onClick={closeMobile}
               className="block w-full text-center text-white font-bold px-6 py-3 rounded-full text-sm"
               style={{ backgroundColor: "#f97316" }}

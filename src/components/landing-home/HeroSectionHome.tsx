@@ -105,7 +105,7 @@ export default function HeroSectionHome() {
 
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
             className="text-xs text-muted-foreground/50">
-            350+ installatori attivi · Nessun costo fisso · Zero vincoli
+            500+ installatori attivi · Nessun costo fisso · Zero vincoli
           </motion.p>
         </div>
 

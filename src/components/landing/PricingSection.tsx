@@ -8,7 +8,7 @@ const included = [
   "Invio telematico al portale ENEA",
   "Raccolta documenti dal cliente",
   "Contatto cliente a nome tuo",
-  "Assicurazione RC professionale",
+  "La responsabilità è nostra",
   "Consegna in 24 ore",
   "Correzioni gratuite illimitate",
   "Supporto dedicato via WhatsApp",

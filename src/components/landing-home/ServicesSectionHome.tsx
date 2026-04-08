@@ -14,7 +14,7 @@ const services = [
       { icon: FileCheck, text: "Compilazione pratica completa" },
       { icon: Users, text: "Raccolta documenti a nome tuo" },
       { icon: Clock, text: "Evasione in 48 ore" },
-      { icon: Shield, text: "RC professionale inclusa" },
+      { icon: Shield, text: "La responsabilità è nostra" },
     ],
     accent: "hsl(152 100% 42%)",
     border: "hsla(152,100%,42%,0.25)",

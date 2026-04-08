@@ -3,7 +3,7 @@ import { useScrollAnimation } from "./hooks";
 import { Shield, RefreshCw, Headphones, FileCheck } from "lucide-react";
 
 const guarantees = [
-  { icon: Shield, title: "Assicurazione RC Inclusa", desc: "Ogni pratica è coperta da polizza RC professionale. Se sbagliamo, paghiamo noi. Senza discussioni." },
+  { icon: Shield, title: "La Responsabilità è Nostra", desc: "La responsabilità è nostra. Se sbagliamo, paghiamo noi. Senza discussioni." },
   { icon: RefreshCw, title: "Correzione Gratuita Sempre", desc: "Se c'è un errore, lo correggiamo subito e senza costi aggiuntivi. Nessuna eccezione." },
   { icon: Headphones, title: "Supporto Umano Dedicato", desc: "Un numero diretto a cui risponde un essere umano. Nessun bot, nessuna attesa infinita." },
   { icon: FileCheck, title: "Conformità Normativa Garantita", desc: "Ogni documento è compilato secondo le normative vigenti, aggiornate in tempo reale dal nostro team." },

@@ -4,6 +4,7 @@ import ServicesSectionHome from "@/components/landing-home/ServicesSectionHome";
 import HowItWorksSectionHome from "@/components/landing-home/HowItWorksSectionHome";
 import StatsSectionHome from "@/components/landing-home/StatsSectionHome";
 import FinalCTAHome from "@/components/landing-home/FinalCTAHome";
+import NewsSectionHome from "@/components/landing-home/NewsSectionHome";
 import NewPortalPopup from "@/components/landing/NewPortalPopup";
 import { SEO } from "@/components/SEO";
 
@@ -15,7 +16,7 @@ const jsonLd = [
     legalName: "Pratica Rapida S.r.l.s.",
     url: "https://www.praticarapida.it",
     logo: "https://www.praticarapida.it/pratica-rapida-logo.png",
-    description: "Pratica Rapida gestisce le pratiche ENEA e Conto Termico per installatori e rivenditori italiani. Oltre 2.000 pratiche gestite, 350+ installatori attivi in tutta Italia.",
+    description: "Pratica Rapida gestisce le pratiche ENEA e Conto Termico per installatori e rivenditori italiani. Oltre 20.000 pratiche gestite, 500+ installatori attivi in tutta Italia.",
     address: { "@type": "PostalAddress", addressLocality: "Lissone", addressRegion: "MB", postalCode: "20851", addressCountry: "IT" },
     contactPoint: { "@type": "ContactPoint", telephone: "+39-039-868-2691", contactType: "customer service", availableLanguage: "Italian" },
     sameAs: ["https://it.trustpilot.com/review/praticarapida.it"],
@@ -43,7 +44,7 @@ export default function HomeMain() {
     <div className="min-h-screen bg-background">
       <SEO
         title="Pratiche ENEA e Conto Termico per Installatori | Pratica Rapida"
-        description="Gestiamo pratiche ENEA e Conto Termico a tuo nome in 48 ore. Raccogliamo i documenti, compiliamo e inviamo. Nessun canone fisso. 350+ installatori attivi in tutta Italia."
+        description="Gestiamo pratiche ENEA e Conto Termico a tuo nome in 48 ore. Raccogliamo i documenti, compiliamo e inviamo. Nessun canone fisso. 500+ installatori attivi in tutta Italia."
         canonical="/"
         keywords="pratica ENEA, conto termico GSE, gestione pratiche installatori, outsourcing pratiche energetiche, ecobonus serramenti, bonus casa infissi"
         jsonLd={jsonLd}
@@ -56,6 +57,7 @@ export default function HomeMain() {
       <PartnerSection />
       <HowItWorksSectionHome />
       <StatsSectionHome />
+      <NewsSectionHome />
       <ReviewsSection />
       <WhyUsSection />
       <GuaranteeSection />

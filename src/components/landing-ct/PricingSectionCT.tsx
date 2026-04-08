@@ -8,7 +8,7 @@ const included = [
   "Invio sul portale GSE",
   "Raccolta documentazione tecnica dal cliente",
   "Contatto cliente a nome tuo",
-  "Assicurazione RC professionale",
+  "La responsabilità è nostra",
   "Evasione in 72 ore",
   "Correzioni gratuite illimitate",
   "Supporto dedicato via WhatsApp",

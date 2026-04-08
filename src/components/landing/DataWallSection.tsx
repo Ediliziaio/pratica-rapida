@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useScrollAnimation, useCounterAnimation } from "./hooks";
 
 const stats = [
-  { target: 5000, prefix: "", suffix: "+", label: "Pratiche gestite" },
+  { target: 20000, prefix: "", suffix: "+", label: "Pratiche gestite" },
   { target: 500, prefix: "", suffix: "+", label: "Aziende soddisfatte" },
   { target: 14, prefix: "", suffix: "+", label: "Anni di esperienza" },
   { target: 48, prefix: "", suffix: "h", label: "Tempo medio evasione" },
@@ -70,7 +70,7 @@ export default function DataWallSection() {
           className="text-center mb-14 sm:mb-20"
         >
           <h2 className="font-bold text-3xl sm:text-4xl lg:text-5xl xl:text-6xl leading-[1.1] text-white mb-4">
-            Oltre 14 anni. Migliaia di pratiche.
+            Oltre 14 anni. 20.000+ pratiche.
             <br />
             <span
               className="bg-clip-text text-transparent"

@@ -55,6 +55,7 @@ const ComunicazioniLog = lazy(() => import("./pages/ComunicazioniLog"));
 const CalendarioChiamate = lazy(() => import("./pages/CalendarioChiamate"));
 const ImpostazioniCampi = lazy(() => import("./pages/admin/ImpostazioniCampi"));
 const PromoManager = lazy(() => import("./pages/admin/PromoManager"));
+const AdminNews = lazy(() => import("./pages/AdminNews"));
 const ClientiAdmin = lazy(() => import("./pages/admin/ClientiAdmin"));
 const ClienteDettaglio = lazy(() => import("./pages/admin/ClienteDettaglio"));
 const EmailTemplates = lazy(() => import("./pages/admin/EmailTemplates"));
@@ -209,6 +210,7 @@ const App = () => (
                 <Route path="/admin/comunicazioni" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><ComunicazioniLog /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/calendario" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><CalendarioChiamate /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/promo" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><PromoManager /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/news" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><AdminNews /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/clienti" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><ClientiAdmin /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/clienti/:id" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><ClienteDettaglio /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/email" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><EmailTemplates /></RoleGuard></ProtectedRoute>} />

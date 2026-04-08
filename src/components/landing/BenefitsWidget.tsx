@@ -189,7 +189,7 @@ export default function BenefitsWidget({ light = false }: Props) {
           </span>
         </div>
         <span className="text-[11px] font-bold" style={{ color: light ? "hsl(152 55% 30%)" : "hsl(152 100% 70%)" }}>
-          350+ attivi
+          500+ attivi
         </span>
       </motion.div>
     </motion.div>

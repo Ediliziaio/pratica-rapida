@@ -11,7 +11,7 @@ export interface NewsItem {
 // ── Aggiorna qui le news quando vuoi ──────────────────────────
 export const NEWS_ITEMS: NewsItem[] = [
   { date: "Mar 2026", title: "Nuovo portale online — benvenuti!", icon: "🚀", badge: "Novità" },
-  { date: "Feb 2026", title: "2.000+ pratiche gestite con successo", icon: "🏆", badge: "Traguardo" },
+  { date: "Feb 2026", title: "20.000+ pratiche gestite con successo", icon: "🏆", badge: "Traguardo" },
   { date: "Feb 2026", title: "AEDIX Racing Team — gara a Monza 🏎️", icon: "🏎️", badge: "Team" },
   { date: "Gen 2026", title: "Integrazione GSE aggiornata v2.0", icon: "✅", badge: "Update" },
 ];

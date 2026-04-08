@@ -4,7 +4,7 @@ import { Shield, Clock, Lock, Award } from "lucide-react";
 
 const badges = [
   { icon: Award, title: "14+ Anni di Esperienza", desc: "Dal 2010 gestiamo pratiche ENEA per centinaia di aziende in tutta Italia." },
-  { icon: Shield, title: "Assicurazione RC Inclusa", desc: "Ogni pratica è coperta. Se sbagliamo, paghiamo noi. Zero rischi per te." },
+  { icon: Shield, title: "La Responsabilità è Nostra", desc: "La responsabilità è nostra. Se sbagliamo, paghiamo noi. Zero rischi per te." },
   { icon: Lock, title: "GDPR Compliant", desc: "I dati dei tuoi clienti sono protetti con i più alti standard di sicurezza." },
   { icon: Clock, title: "Consegna Garantita 24h", desc: "Dalla raccolta documenti alla pratica completa: massimo 24 ore lavorative." },
 ];

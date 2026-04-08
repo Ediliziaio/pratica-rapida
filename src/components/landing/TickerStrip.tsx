@@ -7,7 +7,7 @@ const items = [
   "\"Servizio impeccabile\" – Marco Barbieri",
   "La responsabilità è nostra",
   "\"Finalmente qualcuno di affidabile\" – F. Romano",
-  "350+ installatori attivi in tutta Italia",
+  "500+ installatori attivi in tutta Italia",
   "\"Li userei sempre\" – Termoidraulica Brembati",
 ];
 

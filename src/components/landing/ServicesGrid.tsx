@@ -7,7 +7,7 @@ const services = [
   { icon: Send, title: "Invio Telematico", desc: "Inviamo la pratica direttamente al portale ENEA. Tu e il cliente ricevete conferma di avvenuta trasmissione." },
   { icon: FolderOpen, title: "Raccolta Documenti", desc: "Raccogliamo noi tutti i documenti necessari: dati catastali, fatture, certificazioni. Il cliente non deve fare nulla." },
   { icon: Phone, title: "Contatto Cliente a Nome Tuo", desc: "Chiamiamo il tuo cliente presentandoci come il tuo ufficio tecnico. Nessuna confusione, massima professionalità." },
-  { icon: Shield, title: "Assicurazione RC Inclusa", desc: "Ogni pratica è coperta da assicurazione RC professionale. Se sbagliamo, paghiamo noi. Sempre." },
+  { icon: Shield, title: "La Responsabilità è Nostra", desc: "La responsabilità è nostra. Se sbagliamo, paghiamo noi. Sempre." },
   { icon: Zap, title: "Consegna in 24h", desc: "Entro 24 ore dalla raccolta documenti, la pratica è completata e consegnata a te e al tuo cliente." },
 ];
 

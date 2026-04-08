@@ -17,6 +17,7 @@ import {
   Footer,
   WhatsAppButton,
 } from "@/components/landing";
+import StatsSectionHome from "@/components/landing-home/StatsSectionHome";
 import { SEO } from "@/components/SEO";
 
 const jsonLd = {
@@ -48,6 +49,7 @@ export default function Home() {
       <BenefitsSection />
       <ProcessSteps />
       <PartnerSection />
+      <StatsSectionHome />
       <DataWallSection />
       <ReviewsSection />
       <WhyUsSection />

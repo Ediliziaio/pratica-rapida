@@ -16,7 +16,6 @@ import ProblemSectionCT from "@/components/landing-ct/ProblemSectionCT";
 import SolutionSectionCT from "@/components/landing-ct/SolutionSectionCT";
 import BenefitsSectionCT from "@/components/landing-ct/BenefitsSectionCT";
 import DataWallSectionCT from "@/components/landing-ct/DataWallSectionCT";
-import PricingSectionCT from "@/components/landing-ct/PricingSectionCT";
 import FAQSectionCT from "@/components/landing-ct/FAQSectionCT";
 
 export default function HomeCT() {
@@ -38,7 +37,6 @@ export default function HomeCT() {
       <DataWallSectionCT />
       <ReviewsSection />
       <WhyUsSection />
-      <PricingSectionCT />
       <GuaranteeSection />
       <FAQSectionCT />
       <FinalCTA />

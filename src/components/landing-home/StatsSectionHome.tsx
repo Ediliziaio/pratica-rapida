@@ -2,9 +2,9 @@ import { motion } from "framer-motion";
 import { useScrollAnimation, useCounterAnimation } from "../landing/hooks";
 
 const stats = [
-  { target: 2000, prefix: "", suffix: "+", label: "Pratiche gestite totali" },
-  { target: 350, prefix: "", suffix: "+", label: "Installatori attivi" },
-  { target: 8, prefix: "", suffix: "+", label: "Anni di esperienza" },
+  { target: 20000, prefix: "", suffix: "+", label: "Pratiche gestite totali" },
+  { target: 500, prefix: "", suffix: "+", label: "Installatori attivi" },
+  { target: 14, prefix: "", suffix: "+", label: "Anni di esperienza" },
   { target: 48, prefix: "", suffix: "h", label: "Tempo medio evasione ENEA" },
   { target: 72, prefix: "", suffix: "h", label: "Tempo medio evasione GSE" },
   { target: 0, prefix: "", suffix: "", label: "Pratiche respinte" },

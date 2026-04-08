@@ -92,15 +92,25 @@ function FAQItem({ faq, index }: { faq: typeof faqs[0]; index: number }) {
   );
 }
 
-const faqJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: faqs.map((f) => ({
-    "@type": "Question",
-    name: f.q,
-    acceptedAnswer: { "@type": "Answer", text: f.a },
-  })),
-};
+const faqJsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.praticarapida.it/" },
+      { "@type": "ListItem", position: 2, name: "FAQ", item: "https://www.praticarapida.it/faq" },
+    ],
+  },
+];
 
 export default function FAQPage() {
   const [activeCategory, setActiveCategory] = useState("generale");

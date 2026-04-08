@@ -7,14 +7,24 @@ import { SEO } from "@/components/SEO";
 import { blogPosts, BLOG_CATEGORIES } from "@/data/blog-posts";
 import { BLOG_COVER_MAP } from "@/components/blog/BlogCovers";
 
-const blogJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Blog",
-  name: "Blog Pratica Rapida",
-  url: "https://www.praticarapida.it/blog",
-  description: "Guide e risorse per installatori su pratiche ENEA, Conto Termico, normativa e burocrazia energetica.",
-  publisher: { "@type": "Organization", name: "Pratica Rapida", url: "https://www.praticarapida.it" },
-};
+const blogJsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "Blog Pratica Rapida",
+    url: "https://www.praticarapida.it/blog",
+    description: "Guide e risorse per installatori su pratiche ENEA, Conto Termico, normativa e burocrazia energetica.",
+    publisher: { "@type": "Organization", name: "Pratica Rapida", url: "https://www.praticarapida.it" },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.praticarapida.it/" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.praticarapida.it/blog" },
+    ],
+  },
+];
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" });

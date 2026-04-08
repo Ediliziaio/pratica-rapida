@@ -136,16 +136,36 @@ export default function BlogPostPage() {
 
   const categoryLabel = BLOG_CATEGORIES.find(c => c.id === post.category)?.label ?? post.category;
 
-  const articleJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: post.excerpt,
-    author: { "@type": "Organization", name: "Pratica Rapida" },
-    publisher: { "@type": "Organization", name: "Pratica Rapida", url: "https://www.praticarapida.it" },
-    datePublished: post.date,
-    url: `https://www.praticarapida.it/blog/${post.slug}`,
-  };
+  const articleJsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: post.title,
+      description: post.excerpt,
+      author: { "@type": "Organization", name: "Pratica Rapida", url: "https://www.praticarapida.it" },
+      publisher: {
+        "@type": "Organization",
+        name: "Pratica Rapida",
+        url: "https://www.praticarapida.it",
+        logo: { "@type": "ImageObject", url: "https://www.praticarapida.it/pratica-rapida-logo.png" },
+      },
+      datePublished: post.date,
+      dateModified: post.date,
+      mainEntityOfPage: { "@type": "WebPage", "@id": `https://www.praticarapida.it/blog/${post.slug}` },
+      url: `https://www.praticarapida.it/blog/${post.slug}`,
+      inLanguage: "it-IT",
+      isPartOf: { "@type": "Blog", name: "Blog Pratica Rapida", url: "https://www.praticarapida.it/blog" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://www.praticarapida.it/" },
+        { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.praticarapida.it/blog" },
+        { "@type": "ListItem", position: 3, name: post.title, item: `https://www.praticarapida.it/blog/${post.slug}` },
+      ],
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -153,6 +173,7 @@ export default function BlogPostPage() {
         title={post.title}
         description={post.excerpt}
         canonical={`/blog/${post.slug}`}
+        ogType="article"
         jsonLd={articleJsonLd}
       />
       <Navbar />

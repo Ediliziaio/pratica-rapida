@@ -20,16 +20,26 @@ import {
 import StatsSectionHome from "@/components/landing-home/StatsSectionHome";
 import { SEO } from "@/components/SEO";
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Service",
-  name: "Pratiche ENEA per Installatori",
-  provider: { "@type": "Organization", name: "Pratica Rapida", url: "https://www.praticarapida.it" },
-  description: "Gestione completa delle pratiche ENEA Ecobonus e Bonus Casa per installatori: infissi, serramenti, schermature solari, pompe di calore. Raccolta documenti dal cliente finale, compilazione e invio telematico ENEA entro 48 ore lavorative.",
-  areaServed: "IT",
-  offers: { "@type": "Offer", price: "65", priceCurrency: "EUR", priceSpecification: { "@type": "UnitPriceSpecification", price: "65", priceCurrency: "EUR", unitText: "pratica" } },
-  audience: { "@type": "BusinessAudience", audienceType: "Installatori, Serramentisti, Rivenditori" },
-};
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: "Pratiche ENEA per Installatori",
+    provider: { "@type": "Organization", name: "Pratica Rapida", url: "https://www.praticarapida.it" },
+    description: "Gestione completa delle pratiche ENEA Ecobonus e Bonus Casa per installatori: infissi, serramenti, schermature solari, pompe di calore. Raccolta documenti dal cliente finale, compilazione e invio telematico ENEA entro 48 ore lavorative.",
+    areaServed: "IT",
+    offers: { "@type": "Offer", price: "65", priceCurrency: "EUR", priceSpecification: { "@type": "UnitPriceSpecification", price: "65", priceCurrency: "EUR", unitText: "pratica" } },
+    audience: { "@type": "BusinessAudience", audienceType: "Installatori, Serramentisti, Rivenditori" },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.praticarapida.it/" },
+      { "@type": "ListItem", position: 2, name: "Pratica ENEA", item: "https://www.praticarapida.it/pratica-enea" },
+    ],
+  },
+];
 
 export default function Home() {
   return (

@@ -6,6 +6,7 @@ interface SEOProps {
   canonical: string;
   keywords?: string;
   ogImage?: string;
+  ogType?: "website" | "article";
   noindex?: boolean;
   jsonLd?: object | object[];
 }
@@ -18,6 +19,7 @@ export function SEO({
   canonical,
   keywords,
   ogImage = DEFAULT_IMAGE,
+  ogType = "website",
   noindex = false,
   jsonLd,
 }: SEOProps) {
@@ -43,7 +45,8 @@ export function SEO({
       <meta property="og:image" content={ogImage} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
-      <meta property="og:type" content="website" />
+      <meta property="og:type" content={ogType} />
+      <meta property="og:site_name" content="Pratica Rapida" />
       <meta property="og:locale" content="it_IT" />
 
       {/* Twitter */}

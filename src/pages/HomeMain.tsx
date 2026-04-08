@@ -16,7 +16,7 @@ const jsonLd = [
     legalName: "Pratica Rapida S.r.l.s.",
     url: "https://www.praticarapida.it",
     logo: "https://www.praticarapida.it/pratica-rapida-logo.png",
-    description: "Pratica Rapida gestisce le pratiche ENEA e Conto Termico per installatori e rivenditori italiani. Oltre 20.000 pratiche gestite, 500+ installatori attivi in tutta Italia.",
+    description: "Pratica Rapida è il servizio specializzato nella gestione di pratiche ENEA e Conto Termico GSE per installatori e rivenditori italiani. Oltre 20.000 pratiche gestite, 500+ installatori attivi in tutta Italia.",
     address: { "@type": "PostalAddress", addressLocality: "Lissone", addressRegion: "MB", postalCode: "20851", addressCountry: "IT" },
     contactPoint: { "@type": "ContactPoint", telephone: "+39-039-868-2691", contactType: "customer service", availableLanguage: "Italian" },
     sameAs: ["https://it.trustpilot.com/review/praticarapida.it"],
@@ -25,7 +25,7 @@ const jsonLd = [
     "@context": "https://schema.org",
     "@type": "Service",
     name: "Gestione Pratiche ENEA e Conto Termico",
-    provider: { "@type": "Organization", name: "Pratica Rapida" },
+    provider: { "@type": "Organization", name: "Pratica Rapida", url: "https://www.praticarapida.it" },
     description: "Servizio di outsourcing per la gestione di pratiche ENEA (Ecobonus/Bonus Casa) e Conto Termico GSE per installatori italiani.",
     areaServed: "IT",
     hasOfferCatalog: {

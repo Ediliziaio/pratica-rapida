@@ -5,6 +5,7 @@ import HowItWorksSectionHome from "@/components/landing-home/HowItWorksSectionHo
 import StatsSectionHome from "@/components/landing-home/StatsSectionHome";
 import FinalCTAHome from "@/components/landing-home/FinalCTAHome";
 import NewsSectionHome from "@/components/landing-home/NewsSectionHome";
+import BlogPreviewHome from "@/components/landing-home/BlogPreviewHome";
 import NewPortalPopup from "@/components/landing/NewPortalPopup";
 import { SEO } from "@/components/SEO";
 
@@ -58,6 +59,7 @@ export default function HomeMain() {
       <HowItWorksSectionHome />
       <StatsSectionHome />
       <NewsSectionHome />
+      <BlogPreviewHome />
       <ReviewsSection />
       <WhyUsSection />
       <GuaranteeSection />

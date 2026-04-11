@@ -72,7 +72,7 @@ export default function HeroSection() {
               border: "1px solid hsla(152,70%,40%,0.22)",
             }}
           >
-            PER AZIENDE DI SERRAMENTI, SCHERMATURE SOLARI E FOTOVOLTAICO
+            PER AZIENDE DI SERRAMENTI, SCHERMATURE SOLARI, TERMOTECNICA E FOTOVOLTAICO
           </motion.span>
 
           {/* Social proof — avatar stack */}

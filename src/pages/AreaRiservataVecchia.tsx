@@ -106,19 +106,6 @@ export default function AreaRiservataVecchia() {
       <main className="min-h-screen bg-white pt-24 pb-20">
         <div className="max-w-4xl mx-auto px-4 lg:px-8">
 
-          {/* Banner avviso */}
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="mb-10 text-center text-sm font-medium bg-orange-50 border border-orange-200 text-orange-700 rounded-xl py-3 px-5"
-          >
-            Stai visualizzando il vecchio portale.{" "}
-            <Link to="/auth" className="font-bold underline hover:text-orange-900 transition-colors">
-              Clicca qui per il nuovo portale →
-            </Link>
-          </motion.div>
-
           {/* Title */}
           <motion.h1
             initial={{ opacity: 0, y: 16 }}

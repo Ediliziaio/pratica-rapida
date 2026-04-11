@@ -46,8 +46,6 @@ export default function NewsSectionHome() {
   const { data: allNews = [] } = useHomepageNews();
   const news = allNews.filter((n) => n.published);
 
-  if (news.length === 0) return null;
-
   return (
     <section ref={ref} className="py-16 sm:py-20 bg-card border-y border-border">
       <div className="max-w-6xl mx-auto px-4 lg:px-8">
@@ -73,6 +71,15 @@ export default function NewsSectionHome() {
           </Link>
         </motion.div>
 
+        {news.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={isVisible ? { opacity: 1 } : {}}
+            className="text-center py-10 text-muted-foreground text-sm"
+          >
+            Nessuna news al momento. Torna presto per aggiornamenti.
+          </motion.div>
+        ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {news.map((item, i) => {
             const colors = BADGE_COLORS[item.badgeColor] ?? BADGE_COLORS.green;
@@ -128,6 +135,7 @@ export default function NewsSectionHome() {
             );
           })}
         </div>
+        )}
 
         <div className="sm:hidden mt-6 text-center">
           <Link

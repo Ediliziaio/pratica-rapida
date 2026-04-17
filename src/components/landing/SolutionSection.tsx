@@ -82,11 +82,11 @@ export default function SolutionSection() {
               className="mt-8"
             >
               <Link
-                to="/auth"
+                to="/area-riservata-vecchia"
                 className="inline-flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-full transition-all hover:brightness-110 active:scale-[0.97] text-white"
                 style={{ backgroundColor: "hsl(var(--pr-green))" }}
               >
-                Provalo gratis — zero impegno <ArrowRight size={16} />
+                Richiedi Ora <ArrowRight size={16} />
               </Link>
             </motion.div>
           </div>

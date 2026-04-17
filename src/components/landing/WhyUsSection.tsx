@@ -98,11 +98,11 @@ export default function WhyUsSection() {
           className="mt-8 text-center"
         >
           <Link
-            to="/auth"
+            to="/area-riservata-vecchia"
             className="inline-flex items-center gap-2 text-white font-semibold px-8 py-3.5 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
             style={{ backgroundColor: "hsl(var(--pr-green))" }}
           >
-            Scegli la via semplice <ArrowRight size={16} />
+            Richiedi Ora <ArrowRight size={16} />
           </Link>
         </motion.div>
       </div>

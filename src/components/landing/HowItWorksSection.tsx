@@ -103,11 +103,11 @@ export default function ProcessSteps() {
           className="mt-12"
         >
           <Link
-            to="/auth"
+            to="/area-riservata-vecchia"
             className="inline-flex items-center gap-2 text-white font-semibold px-8 py-4 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
             style={{ backgroundColor: "hsl(var(--pr-green))" }}
           >
-            Inizia ora — registrati in 2 minuti <ArrowRight size={16} />
+            Richiedi Ora <ArrowRight size={16} />
           </Link>
         </motion.div>
       </div>

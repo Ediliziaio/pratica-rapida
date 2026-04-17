@@ -54,11 +54,11 @@ export default function FinalCTA() {
         >
           {/* Primary: Attiva */}
           <Link
-            to="/auth"
+            to="/area-riservata-vecchia"
             className="inline-flex items-center gap-2 text-white font-bold px-8 py-4 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
             style={{ backgroundColor: "hsl(var(--pr-green))", boxShadow: "0 0 32px hsla(152,100%,30%,0.45)" }}
           >
-            Attiva Gratis →
+            Richiedi Ora →
           </Link>
 
           {/* Secondary: WhatsApp */}

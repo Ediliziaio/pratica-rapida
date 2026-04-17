@@ -150,14 +150,14 @@ export default function HeroSection() {
             className="space-y-3 pt-1"
           >
             <Link
-              to="/auth"
+              to="/area-riservata-vecchia"
               className="flex sm:inline-flex items-center justify-center gap-2 text-white font-semibold px-8 py-4 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
               style={{
                 background: "hsl(var(--pr-green))",
                 boxShadow: "0 4px 24px hsla(152,80%,35%,0.35)",
               }}
             >
-              Inizia Gratis <ArrowRight className="w-4 h-4" />
+              Richiedi Ora <ArrowRight className="w-4 h-4" />
             </Link>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <p className="text-xs text-muted-foreground/60">

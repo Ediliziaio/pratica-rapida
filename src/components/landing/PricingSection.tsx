@@ -98,11 +98,11 @@ export default function PricingSection() {
 
           <div className="mt-8 text-center">
             <Link
-              to="/auth"
+              to="/area-riservata-vecchia"
               className="inline-flex items-center text-white font-bold px-8 py-3.5 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
               style={{ backgroundColor: "hsl(var(--pr-green))" }}
             >
-              Attiva Gratis — Zero Rischi
+              Richiedi Ora
             </Link>
           </div>
         </motion.div>

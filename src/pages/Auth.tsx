@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, FileCheck, Zap, Shield, ArrowLeft, Eye, EyeOff } from "lucide-react";
 
-type View = "login" | "forgot" | "register" | "reset";
+type View = "login" | "forgot" | "reset";
 
 const APP_URL = "https://app.praticarapida.it";
 
@@ -23,19 +22,6 @@ export default function Auth() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-
-  // Register fields
-  const [regNome, setRegNome] = useState("");
-  const [regCognome, setRegCognome] = useState("");
-  const [regRagioneSociale, setRegRagioneSociale] = useState("");
-  const [regEmail, setRegEmail] = useState("");
-  const [regPassword, setRegPassword] = useState("");
-  const [regPiva, setRegPiva] = useState("");
-  const [regTelefono, setRegTelefono] = useState("");
-  const [regIndirizzo, setRegIndirizzo] = useState("");
-  const [regCitta, setRegCitta] = useState("");
-  const [regCap, setRegCap] = useState("");
-  const [showRegPassword, setShowRegPassword] = useState(false);
 
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
@@ -96,57 +82,6 @@ export default function Auth() {
     } else {
       toast({ title: "Password aggiornata ✓", description: "Puoi ora accedere con la nuova password." });
       clearPasswordRecovery();
-    }
-  };
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/register-company`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            nome: regNome,
-            cognome: regCognome,
-            ragione_sociale: regRagioneSociale,
-            email: regEmail,
-            password: regPassword,
-            piva: regPiva,
-            telefono: regTelefono,
-            indirizzo: regIndirizzo,
-            citta: regCitta,
-            cap: regCap,
-            provincia: "",
-            settore: "",
-          }),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok) {
-        toast({ title: "Errore registrazione", description: data.error ?? "Errore sconosciuto.", variant: "destructive" });
-        setLoading(false);
-        return;
-      }
-      toast({ title: "Registrazione completata! Controlla la tua email.", description: "Accesso in corso…" });
-      // Auto-login
-      const { error: loginErr } = await supabase.auth.signInWithPassword({
-        email: regEmail,
-        password: regPassword,
-      });
-      setLoading(false);
-      if (loginErr) {
-        toast({ title: "Registrazione ok", description: "Accedi con le tue credenziali.", variant: "destructive" });
-        setView("login");
-      }
-    } catch (err: unknown) {
-      setLoading(false);
-      toast({ title: "Errore di rete", description: String(err), variant: "destructive" });
     }
   };
 
@@ -216,43 +151,6 @@ export default function Auth() {
     { icon: <FileCheck size={18} />, text: "Gestione documenti centralizzata" },
     { icon: <Shield size={18} />, text: "Dati sicuri e sempre aggiornati" },
   ];
-
-  // ── Tab bar (login / register) ─────────────────────────────────────────────
-
-  const TabBar = () => (
-    <div style={{
-      display: "flex",
-      gap: "0.375rem",
-      background: "#f3f4f6",
-      borderRadius: "0.875rem",
-      padding: "0.25rem",
-      marginBottom: "2rem",
-    }}>
-      {(["login", "register"] as View[]).map((v) => (
-        <button
-          key={v}
-          type="button"
-          onClick={() => setView(v)}
-          style={{
-            flex: 1,
-            padding: "0.625rem 0",
-            border: "none",
-            borderRadius: "0.625rem",
-            fontSize: "0.9rem",
-            fontWeight: 600,
-            cursor: "pointer",
-            fontFamily: "inherit",
-            transition: "all 0.15s",
-            background: view === v ? "#16a34a" : "transparent",
-            color: view === v ? "#ffffff" : "#6b7280",
-            boxShadow: view === v ? "0 2px 8px rgba(22,163,74,0.25)" : "none",
-          }}
-        >
-          {v === "login" ? "Accedi" : "Registrati"}
-        </button>
-      ))}
-    </div>
-  );
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -373,7 +271,7 @@ export default function Auth() {
         style={{
           flex: 1,
           display: "flex",
-          alignItems: activeView === "register" ? "flex-start" : "center",
+          alignItems: "center",
           justifyContent: "center",
           padding: "2rem",
           background: "#ffffff",
@@ -382,13 +280,8 @@ export default function Auth() {
       >
         <div style={{
           width: "100%",
-          maxWidth: activeView === "register" ? "440px" : "400px",
-          paddingTop: activeView === "register" ? "2rem" : 0,
-          paddingBottom: activeView === "register" ? "2rem" : 0,
+          maxWidth: "400px",
         }}>
-
-          {/* ── Tab bar (login + register only) ── */}
-          {(activeView === "login" || activeView === "register") && <TabBar />}
 
           {/* ══════════════════════════════════════════
               LOGIN VIEW
@@ -673,257 +566,6 @@ export default function Auth() {
                     </button>
                   );
                 })()}
-              </form>
-            </>
-          )}
-
-          {/* ══════════════════════════════════════════
-              REGISTER VIEW
-          ══════════════════════════════════════════ */}
-          {activeView === "register" && (
-            <>
-              <div style={{ marginBottom: "2rem" }}>
-                <h2 style={{
-                  fontSize: "1.75rem", fontWeight: 800,
-                  color: "#111827", margin: "0 0 0.375rem",
-                  letterSpacing: "-0.025em",
-                }}>
-                  Crea il tuo account 🏢
-                </h2>
-                <p style={{ color: "#6b7280", fontSize: "0.9375rem", margin: 0 }}>
-                  Inizia gratis. Nessun impegno.
-                </p>
-              </div>
-
-              <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-
-                {/* Row 0: Nome + Cognome */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-                  <div>
-                    <label htmlFor="reg-nome" style={labelStyle}>
-                      Nome <span style={{ color: "#ef4444" }}>*</span>
-                    </label>
-                    <input
-                      id="reg-nome"
-                      type="text"
-                      required
-                      autoComplete="given-name"
-                      value={regNome}
-                      onChange={(e) => setRegNome(e.target.value)}
-                      placeholder="Mario"
-                      onFocus={() => setFocusedField("reg-nome")}
-                      onBlur={() => setFocusedField(null)}
-                      style={inputStyle("reg-nome")}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="reg-cognome" style={labelStyle}>
-                      Cognome <span style={{ color: "#ef4444" }}>*</span>
-                    </label>
-                    <input
-                      id="reg-cognome"
-                      type="text"
-                      required
-                      autoComplete="family-name"
-                      value={regCognome}
-                      onChange={(e) => setRegCognome(e.target.value)}
-                      placeholder="Rossi"
-                      onFocus={() => setFocusedField("reg-cognome")}
-                      onBlur={() => setFocusedField(null)}
-                      style={inputStyle("reg-cognome")}
-                    />
-                  </div>
-                </div>
-
-                {/* Row 1: Ragione Sociale (full width) */}
-                <div>
-                  <label htmlFor="reg-ragione-sociale" style={labelStyle}>
-                    Ragione Sociale <span style={{ color: "#ef4444" }}>*</span>
-                  </label>
-                  <input
-                    id="reg-ragione-sociale"
-                    type="text"
-                    required
-                    autoComplete="organization"
-                    value={regRagioneSociale}
-                    onChange={(e) => setRegRagioneSociale(e.target.value)}
-                    placeholder="Edilizia Rossi S.r.l."
-                    onFocus={() => setFocusedField("reg-ragione-sociale")}
-                    onBlur={() => setFocusedField(null)}
-                    style={inputStyle("reg-ragione-sociale")}
-                  />
-                </div>
-
-                {/* Row 2: P.IVA + Telefono */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-                  <div>
-                    <label htmlFor="reg-piva" style={labelStyle}>
-                      P.IVA <span style={{ color: "#ef4444" }}>*</span>
-                    </label>
-                    <input
-                      id="reg-piva"
-                      type="text"
-                      required
-                      value={regPiva}
-                      onChange={(e) => setRegPiva(e.target.value)}
-                      placeholder="12345678901"
-                      onFocus={() => setFocusedField("reg-piva")}
-                      onBlur={() => setFocusedField(null)}
-                      style={inputStyle("reg-piva")}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="reg-telefono" style={labelStyle}>
-                      Telefono <span style={{ color: "#ef4444" }}>*</span>
-                    </label>
-                    <input
-                      id="reg-telefono"
-                      type="tel"
-                      required
-                      value={regTelefono}
-                      onChange={(e) => setRegTelefono(e.target.value)}
-                      placeholder="+39 02 1234567"
-                      onFocus={() => setFocusedField("reg-telefono")}
-                      onBlur={() => setFocusedField(null)}
-                      style={inputStyle("reg-telefono")}
-                    />
-                  </div>
-                </div>
-
-                {/* Row 3: Email (full width) */}
-                <div>
-                  <label htmlFor="reg-email" style={labelStyle}>
-                    Email <span style={{ color: "#ef4444" }}>*</span>
-                  </label>
-                  <input
-                    id="reg-email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={regEmail}
-                    onChange={(e) => setRegEmail(e.target.value)}
-                    placeholder="mario@azienda.it"
-                    onFocus={() => setFocusedField("reg-email")}
-                    onBlur={() => setFocusedField(null)}
-                    style={inputStyle("reg-email")}
-                  />
-                </div>
-
-                {/* Row 4: Password (full width) */}
-                <div>
-                  <label htmlFor="reg-password" style={labelStyle}>
-                    Password <span style={{ color: "#ef4444" }}>*</span>
-                  </label>
-                  <div style={{ position: "relative" }}>
-                    <input
-                      id="reg-password"
-                      type={showRegPassword ? "text" : "password"}
-                      required
-                      autoComplete="new-password"
-                      value={regPassword}
-                      onChange={(e) => setRegPassword(e.target.value)}
-                      placeholder="Minimo 8 caratteri"
-                      onFocus={() => setFocusedField("reg-password")}
-                      onBlur={() => setFocusedField(null)}
-                      style={inputStyle("reg-password", { paddingRight: "3rem" })}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowRegPassword(!showRegPassword)}
-                      style={{
-                        position: "absolute", right: "0.875rem", top: "50%",
-                        transform: "translateY(-50%)", background: "none", border: "none",
-                        cursor: "pointer", color: "#9ca3af", padding: 0,
-                        display: "flex", alignItems: "center",
-                      }}
-                    >
-                      {showRegPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Row 5: Indirizzo (full width, optional) */}
-                <div>
-                  <label htmlFor="reg-indirizzo" style={labelStyle}>Indirizzo</label>
-                  <input
-                    id="reg-indirizzo"
-                    type="text"
-                    value={regIndirizzo}
-                    onChange={(e) => setRegIndirizzo(e.target.value)}
-                    placeholder="Via Roma 1"
-                    onFocus={() => setFocusedField("reg-indirizzo")}
-                    onBlur={() => setFocusedField(null)}
-                    style={inputStyle("reg-indirizzo")}
-                  />
-                </div>
-
-                {/* Row 6: Città (2/3) + CAP (1/3) */}
-                <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "0.75rem" }}>
-                  <div>
-                    <label htmlFor="reg-citta" style={labelStyle}>Città</label>
-                    <input
-                      id="reg-citta"
-                      type="text"
-                      value={regCitta}
-                      onChange={(e) => setRegCitta(e.target.value)}
-                      placeholder="Milano"
-                      onFocus={() => setFocusedField("reg-citta")}
-                      onBlur={() => setFocusedField(null)}
-                      style={inputStyle("reg-citta")}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="reg-cap" style={labelStyle}>CAP</label>
-                    <input
-                      id="reg-cap"
-                      type="text"
-                      value={regCap}
-                      onChange={(e) => setRegCap(e.target.value)}
-                      placeholder="20121"
-                      onFocus={() => setFocusedField("reg-cap")}
-                      onBlur={() => setFocusedField(null)}
-                      style={inputStyle("reg-cap")}
-                    />
-                  </div>
-                </div>
-
-                {/* Info box */}
-                <div style={{
-                  background: "#eff6ff",
-                  border: "1px solid #bfdbfe",
-                  borderRadius: "0.75rem",
-                  padding: "0.875rem 1rem",
-                  fontSize: "0.8125rem",
-                  color: "#1e40af",
-                  lineHeight: 1.5,
-                }}>
-                  📋 I tuoi dati verranno verificati dal nostro team. Riceverai un'email di conferma.
-                </div>
-
-                {/* Submit */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={btnStyle(loading)}
-                  onMouseEnter={(e) => btnHoverOn(e, loading)}
-                  onMouseLeave={(e) => btnHoverOff(e, loading)}
-                >
-                  {loading
-                    ? <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Creazione account…</>
-                    : "Crea account →"}
-                </button>
-
-                {/* Privacy note */}
-                <p style={{
-                  fontSize: "0.75rem", color: "#9ca3af",
-                  textAlign: "center", margin: "0.25rem 0 0",
-                  lineHeight: 1.5,
-                }}>
-                  Registrandoti accetti i nostri{" "}
-                  <a href="#" style={{ color: "#16a34a", textDecoration: "none" }}>Termini di Servizio</a>
-                  {" "}e la{" "}
-                  <a href="#" style={{ color: "#16a34a", textDecoration: "none" }}>Privacy Policy</a>
-                </p>
               </form>
             </>
           )}

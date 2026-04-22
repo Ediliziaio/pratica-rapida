@@ -11,6 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Download,
   FileText,
   Archive,
@@ -193,6 +200,21 @@ function FattureInsolute({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Per l'operatore interno: seleziona il rivenditore a cui caricare la fattura
+  const [selectedResellerId, setSelectedResellerId] = useState<string>("");
+
+  // Lista rivenditori (solo per operatori interni)
+  const { data: companies = [] } = useQuery<{ id: string; ragione_sociale: string }[]>({
+    queryKey: ["companies-for-fatture"],
+    enabled: isInternal,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("companies")
+        .select("id, ragione_sociale")
+        .order("ragione_sociale");
+      return data ?? [];
+    },
+  });
 
   const { data: fatture = [], isLoading } = useQuery<FatturaInsolutaRow[]>({
     queryKey: ["fatture_insolute", isInternal ? "all" : resellerId],
@@ -212,19 +234,21 @@ function FattureInsolute({
     },
   });
 
+  // Determina il reseller_id effettivo per l'upload
+  const effectiveResellerId = isInternal ? selectedResellerId : (resellerId ?? "");
+
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      if (!resellerId && !isInternal) throw new Error("Reseller ID non disponibile");
-      const targetResellerId = resellerId ?? "interno";
-      const storagePath = `fatture-insolute/${targetResellerId}/${file.name}`;
+      if (!effectiveResellerId) throw new Error("Seleziona prima un rivenditore");
+      const storagePath = `fatture-insolute/${effectiveResellerId}/${crypto.randomUUID()}_${file.name}`;
 
       const { error: uploadError } = await supabase.storage
         .from("enea-documents")
-        .upload(storagePath, file, { upsert: true });
+        .upload(storagePath, file, { upsert: false });
       if (uploadError) throw uploadError;
 
       const { error: insertError } = await supabase.from("fatture_insolute").insert({
-        reseller_id: targetResellerId,
+        reseller_id: effectiveResellerId,
         filename: file.name,
         storage_path: storagePath,
         uploaded_by: user?.id ?? null,
@@ -257,13 +281,26 @@ function FattureInsolute({
           <h2 className="text-lg font-semibold">Fatture Insolute</h2>
         </div>
         {isInternal && (
-          <>
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Seleziona rivenditore prima di caricare */}
+            <Select value={selectedResellerId} onValueChange={setSelectedResellerId}>
+              <SelectTrigger className="h-8 w-48 text-xs">
+                <SelectValue placeholder="Seleziona rivenditore" />
+              </SelectTrigger>
+              <SelectContent>
+                {companies.map((c) => (
+                  <SelectItem key={c.id} value={c.id} className="text-xs">
+                    {c.ragione_sociale}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button
               variant="outline"
               size="sm"
               onClick={() => fileInputRef.current?.click()}
-              disabled={uploadMutation.isPending}
-              className="gap-2"
+              disabled={uploadMutation.isPending || !selectedResellerId}
+              className="gap-2 h-8"
             >
               {uploadMutation.isPending ? (
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -279,7 +316,7 @@ function FattureInsolute({
               hidden
               onChange={handleFileChange}
             />
-          </>
+          </div>
         )}
       </div>
 

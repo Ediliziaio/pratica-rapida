@@ -24,15 +24,15 @@ CREATE POLICY "fatture_insolute_staff_all" ON fatture_insolute
   FOR ALL TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM profiles
-      WHERE id = auth.uid()
+      SELECT 1 FROM user_roles
+      WHERE user_id = auth.uid()
         AND role IN ('super_admin', 'operatore')
     )
   )
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM profiles
-      WHERE id = auth.uid()
+      SELECT 1 FROM user_roles
+      WHERE user_id = auth.uid()
         AND role IN ('super_admin', 'operatore')
     )
   );

@@ -42,7 +42,9 @@ CREATE POLICY "fatture_insolute_reseller_select" ON fatture_insolute
   FOR SELECT TO authenticated
   USING (
     reseller_id = (
-      SELECT company_id FROM profiles WHERE id = auth.uid() LIMIT 1
+      SELECT company_id FROM user_company_assignments
+      WHERE user_id = auth.uid()
+      LIMIT 1
     )
   );
 

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useLocation } from "react-router-dom";
 import {
@@ -89,7 +89,16 @@ import {
   Download,
   Filter,
   FilterX,
+  HelpCircle,
+  FileWarning,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import type { EneaPractice, PipelineStage } from "@/integrations/supabase/types";
@@ -266,7 +275,10 @@ function PracticeDetailSheet({
                 </Badge>
                 {practice.pipeline_stages && (
                   <Badge variant="outline" className="text-xs">
-                    {practice.pipeline_stages.name}
+                    {/* Mostra nome rivenditore se non interno */}
+                    {isInternal
+                      ? practice.pipeline_stages.name
+                      : (practice.pipeline_stages.name_reseller ?? practice.pipeline_stages.name)}
                   </Badge>
                 )}
                 {practice.tipo_servizio === "servizio_completo" ? (
@@ -275,7 +287,13 @@ function PracticeDetailSheet({
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
-                    Self Service
+                    Documenti Forniti
+                  </span>
+                )}
+                {/* Badge CF — solo operatori interni */}
+                {isInternal && practice.tipo_fatturazione === "cliente_finale" && (
+                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
+                    CF
                   </span>
                 )}
                 {practice.archived_at && (
@@ -608,7 +626,7 @@ function PracticeDetailSheet({
                   </section>
                 )}
 
-                {/* Documenti mancanti */}
+                {/* Documenti mancanti (lista chip — visibile a tutti) */}
                 {practice.documenti_mancanti?.length > 0 && (
                   <section>
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
@@ -627,6 +645,27 @@ function PracticeDetailSheet({
                     </ul>
                   </section>
                 )}
+
+                {/* Documenti richiesti — sezione sempre presente, testo visibile solo in stato documenti_mancanti */}
+                <section>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                    Documenti richiesti
+                  </h3>
+                  {practice.pipeline_stages?.stage_type === "documenti_mancanti" && practice.note_documenti_mancanti ? (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900/40 dark:bg-amber-950/20 p-3 flex items-start gap-2">
+                      <FileWarning className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                      <p className="text-sm text-amber-800 dark:text-amber-300 whitespace-pre-wrap">
+                        {practice.note_documenti_mancanti}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">
+                      {practice.pipeline_stages?.stage_type === "documenti_mancanti"
+                        ? "Nessuna nota aggiuntiva."
+                        : "Nessun documento richiesto al momento."}
+                    </p>
+                  )}
+                </section>
 
                 {/* Note */}
                 {practice.note && (
@@ -756,20 +795,28 @@ function PracticeCard({
               : "shadow-sm hover:shadow-md hover:-translate-y-0.5"
           }`}
         >
-          {/* Top: name + brand */}
+          {/* Top: name + brand + CF badge */}
           <div className="flex items-start justify-between gap-2">
             <span className="font-semibold leading-snug truncate text-[13px]">
               {practice.cliente_nome} {practice.cliente_cognome}
             </span>
-            <span
-              className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                practice.brand === "enea"
-                  ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                  : "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300"
-              }`}
-            >
-              {practice.brand === "enea" ? "ENEA" : "CT"}
-            </span>
+            <div className="flex items-center gap-1 shrink-0">
+              {/* CF badge — solo visibile agli operatori interni */}
+              {isInternal && practice.tipo_fatturazione === "cliente_finale" && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                  CF
+                </span>
+              )}
+              <span
+                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                  practice.brand === "enea"
+                    ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                    : "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300"
+                }`}
+              >
+                {practice.brand === "enea" ? "ENEA" : "CT"}
+              </span>
+            </div>
           </div>
 
           {/* Company (internal only) */}
@@ -864,6 +911,15 @@ export default function KanbanBoard() {
     oldStageName: string;
     newStageName: string;
   } | null>(null);
+
+  // Popup obbligatorio quando si sposta una pratica in "Documenti mancanti"
+  const [docMissPopup, setDocMissPopup] = useState<{
+    practiceId: string;
+    newStageId: string;
+    oldStageName: string;
+    newStageName: string;
+  } | null>(null);
+  const [docMissText, setDocMissText] = useState("");
 
   const { data: stages = [] } = usePipelineStages(
     brandFilter !== "all" ? brandFilter : undefined
@@ -1017,28 +1073,75 @@ export default function KanbanBoard() {
     [filteredPractices, sortOption]
   );
 
+  const updatePracticeForDocMiss = useUpdateEneaPractice();
+
   const doMove = ({
     practiceId,
     newStageId,
     oldStageName,
     newStageName,
+    noteDocMancanti,
   }: {
     practiceId: string;
     newStageId: string;
     oldStageName: string;
     newStageName: string;
+    noteDocMancanti?: string;
   }) => {
     const newStage = stages.find((s) => s.id === newStageId);
     moveStage.mutate(
       { practiceId, newStageId, oldStageName, newStageName, userId: user?.id ?? "" },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
           if (newStage?.stage_type === "pronte_da_fare") {
             toast({ title: "Pratica pronta!", description: "Assegna un operatore." });
+          }
+          // Salva nota documenti mancanti se presente
+          if (newStage?.stage_type === "documenti_mancanti" && noteDocMancanti?.trim()) {
+            await updatePracticeForDocMiss.mutateAsync({
+              id: practiceId,
+              updates: { note_documenti_mancanti: noteDocMancanti.trim() },
+            });
+          }
+          // Imposta archivio_path quando la pratica viene inviata al cliente
+          if (newStage?.stage_type === "da_inviare") {
+            const practice = practices.find((p) => p.id === practiceId);
+            if (practice) {
+              const now = new Date();
+              const year = now.getFullYear();
+              const month = String(now.getMonth() + 1).padStart(2, "0");
+              const clientName = `${practice.cliente_nome ?? ""}_${practice.cliente_cognome ?? ""}`.replace(/\s+/g, "_").toLowerCase();
+              const archivioPath = `archivio/${year}/${month}/${clientName}_${practiceId}/`;
+              await updatePracticeForDocMiss.mutateAsync({
+                id: practiceId,
+                updates: { archivio_path: archivioPath },
+              });
+            }
           }
         },
       }
     );
+  };
+
+  const tryMove = (args: {
+    practiceId: string;
+    newStageId: string;
+    oldStageName: string;
+    newStageName: string;
+  }) => {
+    const newStage = stages.find((s) => s.id === args.newStageId);
+    // Intercetta archivio
+    if (newStage?.stage_type === "archiviate") {
+      setArchiveConfirm(args);
+      return;
+    }
+    // Intercetta documenti_mancanti → popup obbligatorio
+    if (newStage?.stage_type === "documenti_mancanti") {
+      setDocMissText("");
+      setDocMissPopup(args);
+      return;
+    }
+    doMove(args);
   };
 
   const handleMoveFromSheet = ({
@@ -1052,12 +1155,7 @@ export default function KanbanBoard() {
     oldStageName: string;
     newStageName: string;
   }) => {
-    const newStage = stages.find((s) => s.id === newStageId);
-    if (newStage?.stage_type === "archiviate") {
-      setArchiveConfirm({ practiceId, newStageId, oldStageName, newStageName });
-      return;
-    }
-    doMove({ practiceId, newStageId, oldStageName, newStageName });
+    tryMove({ practiceId, newStageId, oldStageName, newStageName });
   };
 
   const onDragEnd = (result: DropResult) => {
@@ -1070,17 +1168,7 @@ export default function KanbanBoard() {
     const newStage = stages.find((s) => s.id === newStageId);
     const oldStage = stages.find((s) => s.id === practice.current_stage_id);
 
-    if (newStage?.stage_type === "archiviate") {
-      setArchiveConfirm({
-        practiceId: practice.id,
-        newStageId,
-        oldStageName: oldStage?.name ?? "—",
-        newStageName: newStage?.name ?? "Archiviate",
-      });
-      return;
-    }
-
-    doMove({
+    tryMove({
       practiceId: practice.id,
       newStageId,
       oldStageName: oldStage?.name ?? "—",
@@ -1088,12 +1176,46 @@ export default function KanbanBoard() {
     });
   };
 
-  const deduped =
+  const deduped = (
     brandFilter === "all"
       ? stages.filter(
           (s, i, arr) => arr.findIndex((x) => x.stage_type === s.stage_type) === i
         )
-      : stages;
+      : stages
+  ).filter((s) => isInternal || s.is_visible_reseller !== false);
+
+  // ── Auto-archive: sposta in "archiviate" le pratiche in "da_inviare" da >10 giorni ──
+  useEffect(() => {
+    if (!stages.length || !practices.length) return;
+    const daInviareStage = stages.find((s) => s.stage_type === "da_inviare");
+    const archiviateStage = stages.find((s) => s.stage_type === "archiviate");
+    if (!daInviareStage || !archiviateStage) return;
+
+    const toArchive = practices.filter(
+      (p) =>
+        p.current_stage_id === daInviareStage.id &&
+        !p.archived_at &&
+        daysAgo(p.updated_at) >= 10
+    );
+
+    toArchive.forEach((p) => {
+      moveStage.mutate({
+        practiceId: p.id,
+        newStageId: archiviateStage.id,
+        oldStageName: daInviareStage.name,
+        newStageName: archiviateStage.name,
+        userId: user?.id ?? "",
+      });
+    });
+
+    if (toArchive.length > 0) {
+      toast({
+        title: `${toArchive.length} ${toArchive.length === 1 ? "pratica archiviata" : "pratiche archiviate"} automaticamente`,
+        description: "Pratiche in 'Pratica inviata' da più di 10 giorni.",
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stages, practices]);
 
   const sortLabels: Record<SortOption, string> = {
     recenti: "Più recenti",
@@ -1471,13 +1593,27 @@ export default function KanbanBoard() {
                     style={{ borderTop: `3px solid ${isArchived ? "#9ca3af" : stage.color}` }}
                   >
                     <div className="flex flex-col min-w-0 gap-0.5">
-                      <span
-                        className={`font-semibold text-xs uppercase tracking-wider truncate ${
-                          isArchived ? "text-muted-foreground" : "text-foreground/80"
-                        }`}
-                      >
-                        {stage.name}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <span
+                          className={`font-semibold text-xs uppercase tracking-wider truncate ${
+                            isArchived ? "text-muted-foreground" : "text-foreground/80"
+                          }`}
+                        >
+                          {isInternal ? stage.name : (stage.name_reseller ?? stage.name)}
+                        </span>
+                        {!isInternal && stage.tooltip_text && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="h-3 w-3 text-muted-foreground/50 shrink-0 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom" className="max-w-xs">
+                                <p className="text-xs">{stage.tooltip_text}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                       {isInternal && columnRevenue > 0 && (
                         <span className="text-[10px] text-muted-foreground">
                           € {columnRevenue.toLocaleString("it-IT", { maximumFractionDigits: 0 })}
@@ -1559,6 +1695,40 @@ export default function KanbanBoard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Documenti mancanti — dialog obbligatorio con textarea */}
+      <Dialog open={!!docMissPopup} onOpenChange={(o) => { if (!o) setDocMissPopup(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Documenti mancanti — specifica cosa serve</DialogTitle>
+          </DialogHeader>
+          <div className="py-2">
+            <Textarea
+              value={docMissText}
+              onChange={(e) => setDocMissText(e.target.value)}
+              placeholder="Es. Certificato di trasmittanza, libretto impianto, scheda tecnica prodotto..."
+              rows={4}
+              className="resize-none"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDocMissPopup(null)}>
+              Annulla
+            </Button>
+            <Button
+              disabled={!docMissText.trim()}
+              onClick={() => {
+                if (docMissPopup) {
+                  doMove({ ...docMissPopup, noteDocMancanti: docMissText });
+                  setDocMissPopup(null);
+                }
+              }}
+            >
+              Conferma e sposta
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Practice detail sheet */}
       <PracticeDetailSheet

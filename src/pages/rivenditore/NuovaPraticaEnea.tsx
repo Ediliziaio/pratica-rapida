@@ -1,8 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useDropzone } from "react-dropzone";
+import { useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePipelineStages } from "@/hooks/useEneaPractices";
@@ -10,516 +6,729 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
-  CheckCircle,
-  Upload,
-  X,
-  Loader2,
-  FileText,
-  ChevronRight,
-  ChevronLeft,
-  Save,
-  FolderOpen,
+  CheckCircle, Upload, X, Loader2, FileText,
+  Sun, Home, Maximize2, Thermometer, Sparkles,
+  FolderUp, User, Building2, AlertCircle, ExternalLink,
+  HelpCircle, Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { TipoFatturazione, TipoSoggetto, TipoServizio } from "@/integrations/supabase/types";
 
-const PRODUCTS = [
-  "Caldaia a condensazione",
-  "Pompa di calore",
-  "Pannelli solari termici",
-  "Vepa",
-  "Infissi e serramenti",
-  "Cappotto termico",
-  "Impianto fotovoltaico",
-  "Scaldacqua a pompa di calore",
-  "Altro",
+// ── Costanti ──────────────────────────────────────────────────────────────────
+const ALLOWED_MIME = [
+  "application/pdf", "image/jpeg", "image/png", "image/webp",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "text/plain",
+];
+const MAX_MB = 10;
+const STORAGE_BUCKET = "enea-documents";
+
+// Link moduli raccolta dati
+const MODULI_URL = "https://drive.google.com/file/d/1ZZit5BsW1X0IkQ2_Xit5Jd8YRUuU6jrQ/view?usp=sharing";
+
+type TipoProdotto = "schermature_solari" | "infissi" | "vepa" | "pompe_calore";
+
+interface FileSlot {
+  key: string;
+  label: string;
+  required: boolean;
+  files: File[];
+}
+
+// ── Config prodotti ───────────────────────────────────────────────────────────
+const PRODOTTI: {
+  id: TipoProdotto;
+  label: string;
+  short: string;
+  icon: React.ElementType;
+  color: string;
+}[] = [
+  { id: "schermature_solari", label: "Schermature Solari", short: "Schermature", icon: Sun, color: "text-amber-600 bg-amber-50 border-amber-200" },
+  { id: "infissi", label: "Infissi / Serramenti", short: "Infissi", icon: Home, color: "text-blue-600 bg-blue-50 border-blue-200" },
+  { id: "vepa", label: "VEPA – Vetrate Panoramiche", short: "VEPA", icon: Maximize2, color: "text-purple-600 bg-purple-50 border-purple-200" },
+  { id: "pompe_calore", label: "Pompe di Calore / Climatizzazione", short: "Pompe di calore", icon: Thermometer, color: "text-green-600 bg-green-50 border-green-200" },
 ];
 
-const schema = z.object({
-  cliente_nome: z.string().min(1, "Campo obbligatorio"),
-  cliente_cognome: z.string().min(1, "Campo obbligatorio"),
-  cliente_email: z.string().email("Email non valida").or(z.literal("")),
-  cliente_telefono: z.string().min(6, "Telefono obbligatorio"),
-  brand: z.enum(["enea", "conto_termico"]),
-  prodotto_installato: z.string().min(1, "Campo obbligatorio"),
-  fornitore: z.string().optional(),
-  note: z.string().optional(),
-});
+// ── Dropzone helper ───────────────────────────────────────────────────────────
+function FileDropzone({
+  label, required, files, onAdd, onRemove,
+}: {
+  label: string; required: boolean;
+  files: File[]; onAdd: (f: File[]) => void; onRemove: (i: number) => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  const [drag, setDrag] = useState(false);
+  const { toast } = useToast();
 
-type FormValues = z.infer<typeof schema>;
-type TipoServizio = "pratica_only";
+  const validate = useCallback((raw: File[]) => {
+    const valid: File[] = [];
+    raw.forEach((f) => {
+      if (!ALLOWED_MIME.includes(f.type)) {
+        toast({ variant: "destructive", title: "Formato non supportato", description: f.name });
+      } else if (f.size > MAX_MB * 1024 * 1024) {
+        toast({ variant: "destructive", title: "File troppo grande", description: `${f.name} supera ${MAX_MB}MB` });
+      } else {
+        valid.push(f);
+      }
+    });
+    if (valid.length) onAdd(valid);
+  }, [onAdd, toast]);
 
-// Steps 0-3 = Cliente · Pratica · Documenti · Conferma
-const STEPS = ["Cliente", "Pratica", "Documenti", "Conferma"];
-const STORAGE_KEY = "nuova_pratica_enea_draft";
-
-// localStorage può lanciare in Safari Private Mode — sempre wrappare
-function storageTryGet(key: string): string | null {
-  try { return localStorage.getItem(key); } catch { return null; }
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-1.5">
+        <Label className="text-sm">{label}</Label>
+        {required && <span className="text-destructive text-xs font-bold">*</span>}
+      </div>
+      <div
+        className={cn(
+          "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors",
+          drag ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/20"
+        )}
+        onClick={() => ref.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={(e) => { e.preventDefault(); setDrag(false); validate(Array.from(e.dataTransfer.files)); }}
+        role="button" tabIndex={0}
+        onKeyDown={(e) => e.key === "Enter" && ref.current?.click()}
+      >
+        <Upload className="mx-auto h-5 w-5 text-muted-foreground mb-1.5" />
+        <p className="text-sm text-muted-foreground">
+          Trascina qui o <span className="text-primary font-medium">sfoglia</span>
+        </p>
+        <p className="text-xs text-muted-foreground/60 mt-0.5">PDF, JPG, PNG, DOCX · max {MAX_MB}MB</p>
+        <input ref={ref} type="file" multiple hidden accept={ALLOWED_MIME.join(",")}
+          onChange={(e) => { validate(Array.from(e.target.files ?? [])); e.target.value = ""; }} />
+      </div>
+      {files.length > 0 && (
+        <ul className="space-y-1">
+          {files.map((f, i) => (
+            <li key={`${f.name}-${i}`} className="flex items-center gap-2 rounded-md bg-muted/50 px-2.5 py-1.5 text-sm">
+              <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <span className="flex-1 truncate text-xs">{f.name}</span>
+              <span className="text-[10px] text-muted-foreground shrink-0">
+                {f.size < 1024 * 1024 ? `${(f.size / 1024).toFixed(0)}KB` : `${(f.size / 1024 / 1024).toFixed(1)}MB`}
+              </span>
+              <button type="button" onClick={() => onRemove(i)}
+                className="rounded p-0.5 hover:bg-destructive/10 hover:text-destructive transition-colors">
+                <X className="h-3 w-3" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
-function storageTrySet(key: string, value: string): void {
-  try { localStorage.setItem(key, value); } catch { /* silent — private mode */ }
+
+// ── Sezione con header ─────────────────────────────────────────────────────────
+function Section({ number, title, children }: { number: number; title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border bg-card p-5 space-y-4">
+      <div className="flex items-center gap-3">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
+          {number}
+        </span>
+        <h2 className="font-semibold text-base">{title}</h2>
+      </div>
+      {children}
+    </div>
+  );
 }
-function storageTryRemove(key: string): void {
-  try { localStorage.removeItem(key); } catch { /* silent — private mode */ }
+
+// ── Upload utility ─────────────────────────────────────────────────────────────
+async function uploadFiles(files: File[], practiceId: string, tipo: string): Promise<string[]> {
+  const urls: string[] = [];
+  for (const file of files) {
+    const path = `${practiceId}/${tipo}/${crypto.randomUUID()}.${file.name.split(".").pop() ?? "bin"}`;
+    const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file, { upsert: false });
+    if (!error) urls.push(path);
+  }
+  return urls;
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-
 export default function NuovaPraticaEnea() {
   const { resellerId } = useAuth();
   const { toast } = useToast();
-
-  // step  0 = Cliente
-  // step  1 = Pratica
-  // step  2 = Documenti
-  // step  3 = Conferma
-  const [step, setStep] = useState<number>(0);
-  const tipoServizio: TipoServizio = "pratica_only";
-  const [fatture, setFatture] = useState<File[]>([]);
-  const [docAggiuntivi, setDocAggiuntivi] = useState<File[]>([]);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState<{ id: string; nome: string } | null>(null);
-  const [productInput, setProductInput] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
-
   const { data: stages = [] } = usePipelineStages("enea");
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    getValues,
-    trigger,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      brand: "enea",
-      cliente_email: "",
-      ...(JSON.parse(storageTryGet(STORAGE_KEY) || "null") ?? {}),
-    },
-  });
+  // ── State ─────────────────────────────────────────────────────────────────
+  const [tipoServizio, setTipoServizio] = useState<TipoServizio | null>(null);
+  const [tipoProdotto, setTipoProdotto] = useState<TipoProdotto | null>(null);
+  const [tipoSoggetto, setTipoSoggetto] = useState<TipoSoggetto | null>(null);
+  const [tipoFatturazione, setTipoFatturazione] = useState<TipoFatturazione | null>(null);
 
-  // Autosave ogni 30s
-  useEffect(() => {
-    const t = setInterval(() => {
-      storageTrySet(STORAGE_KEY, JSON.stringify(getValues()));
-    }, 30000);
-    return () => clearInterval(t);
-  }, [getValues]);
+  // Dati cliente
+  const [nome, setNome] = useState("");
+  const [cognome, setCognome] = useState("");
+  const [email, setEmail] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [cf, setCf] = useState("");          // codice fiscale o P.IVA
+  const [indirizzo, setIndirizzo] = useState("");
+  const [note, setNote] = useState("");
 
-  const watchProduct = watch("prodotto_installato");
-  useEffect(() => {
-    setProductInput(watchProduct || "");
-  }, [watchProduct]);
+  // Documenti: fattura sempre presente + slot condizionali
+  const [fatturaFiles, setFatturaFiles] = useState<File[]>([]);
+  const [docExtra1, setDocExtra1] = useState<File[]>([]); // doc condizionale 1
+  const [docExtra2, setDocExtra2] = useState<File[]>([]); // doc condizionale 2 (solo pompe di calore: libretto)
+  const [flagDocCompleto, setFlagDocCompleto] = useState<boolean | null>(null); // risposta al flag
 
-  const onDropFatture = useCallback((accepted: File[]) => {
-    setFatture((prev) => [...prev, ...accepted].slice(0, 5));
-  }, []);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState<{ id: string; nome: string } | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const onDropDocs = useCallback((accepted: File[]) => {
-    setDocAggiuntivi((prev) => [...prev, ...accepted]);
-  }, []);
-
-  const { getRootProps: getFattureProps, getInputProps: getFattureInput, isDragActive: isFattureDrag } =
-    useDropzone({ onDrop: onDropFatture, accept: { "application/pdf": [], "image/*": [] }, maxSize: 10485760 });
-
-  const { getRootProps: getDocsProps, getInputProps: getDocsInput, isDragActive: isDocsDrag } =
-    useDropzone({ onDrop: onDropDocs, accept: { "application/pdf": [], "image/*": [] }, maxSize: 10485760 });
-
-  const uploadFiles = async (files: File[], practiceId: string, folder: string) => {
-    const urls: string[] = [];
-    const failed: string[] = [];
-    for (const file of files) {
-      const path = `${resellerId}/${practiceId}/${folder}/${file.name}`;
-      const { error } = await supabase.storage.from("practice-documents").upload(path, file);
-      if (error) {
-        failed.push(file.name);
-        console.error(`Upload failed for ${file.name}:`, error.message);
-      } else {
-        const { data } = supabase.storage.from("practice-documents").getPublicUrl(path);
-        urls.push(data.publicUrl);
-      }
+  // ── Config documenti per prodotto ─────────────────────────────────────────
+  const getDocConfig = (prodotto: TipoProdotto | null) => {
+    if (!prodotto) return null;
+    switch (prodotto) {
+      case "schermature_solari":
+        return {
+          flagQuestion: "La fattura riporta il valore GTOT e le dimensioni del prodotto?",
+          extraLabel: "Documento con misure e valore GTOT",
+          hasExtra: true,
+          hasLibretto: false,
+        };
+      case "infissi":
+        return {
+          flagQuestion: "La fattura riporta il valore di trasmittanza?",
+          extraLabel: "Certificati di trasmittanza",
+          hasExtra: true,
+          hasLibretto: false,
+        };
+      case "vepa":
+        return {
+          flagQuestion: "La fattura riporta il valore di trasmittanza e le dimensioni?",
+          extraLabel: "Certificati di trasmittanza e misure",
+          hasExtra: true,
+          hasLibretto: false,
+        };
+      case "pompe_calore":
+        return {
+          flagQuestion: null, // nessun flag — libretto obbligatorio
+          extraLabel: null,
+          hasExtra: false,
+          hasLibretto: true,
+        };
     }
-    if (failed.length > 0) {
-      toast({
-        variant: "destructive",
-        title: `${failed.length} file non caricati`,
-        description: `Non è stato possibile caricare: ${failed.join(", ")}`,
-      });
-    }
-    return urls;
   };
 
-  // Campi da validare per ogni step del wizard (step 0→3)
-  const stepFields: (keyof FormValues)[][] = [
-    ["cliente_nome", "cliente_cognome", "cliente_telefono", "cliente_email"],
-    ["brand", "prodotto_installato"],
-    [],
-    [],
-  ];
+  const docConfig = getDocConfig(tipoProdotto);
 
-  const nextStep = async () => {
-    const fieldsToValidate = stepFields[step];
-    const valid = await trigger(fieldsToValidate);
-    if (!valid) return;
-    if (step === 2 && fatture.length === 0) {
-      toast({ variant: "destructive", title: "Fattura obbligatoria", description: "Carica almeno una fattura per procedere." });
+  // ── Validazione ────────────────────────────────────────────────────────────
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!tipoServizio)     e.tipoServizio = "Seleziona il tipo di servizio";
+    if (!tipoProdotto)     e.tipoProdotto = "Seleziona il prodotto";
+    if (!tipoSoggetto)     e.tipoSoggetto = "Seleziona il tipo di soggetto";
+    if (!tipoFatturazione) e.tipoFatturazione = "Seleziona la fatturazione";
+    if (!nome.trim())      e.nome = "Nome obbligatorio";
+    if (!cognome.trim())   e.cognome = "Cognome obbligatorio";
+    if (!telefono.trim())  e.telefono = "Telefono obbligatorio";
+    if (fatturaFiles.length === 0) e.fattura = "La fattura è obbligatoria";
+    // Pompe di calore: libretto obbligatorio
+    if (tipoProdotto === "pompe_calore" && docExtra2.length === 0)
+      e.libretto = "Il libretto dell'impianto è obbligatorio";
+    // Prodotti con flag: se NO → doc extra obbligatorio
+    if (docConfig?.hasExtra && flagDocCompleto === false && docExtra1.length === 0)
+      e.docExtra1 = "Il documento aggiuntivo è obbligatorio";
+    if (docConfig?.hasExtra && flagDocCompleto === null)
+      e.flagDoc = "Rispondi alla domanda sui documenti";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) {
+      // Scroll al primo errore
+      setTimeout(() => document.querySelector("[data-error]")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
       return;
     }
-    setStep((s) => s + 1);
-  };
-
-  const saveDraft = () => {
-    storageTrySet(STORAGE_KEY, JSON.stringify(getValues()));
-    toast({ title: "Bozza salvata" });
-  };
-
-  const onSubmit = async (values: FormValues) => {
-    if (!resellerId) return;
+    if (!resellerId) { toast({ variant: "destructive", title: "Errore autenticazione" }); return; }
     setSubmitting(true);
 
     try {
-      const inviataStage = stages.find((s) => s.stage_type === "inviata");
+      // Trova stage iniziale in base al tipo servizio
+      // servizio_completo → "inviata"; documenti_forniti → "pronte_da_fare"
+      const targetStageType = tipoServizio === "servizio_completo" ? "inviata" : "pronte_da_fare";
+      const initialStage = stages.find((s) => s.stage_type === targetStageType) ?? stages[0];
 
-      const { data: practice, error } = await supabase
+      const prodottoLabel = PRODOTTI.find((p) => p.id === tipoProdotto)?.label ?? tipoProdotto ?? "";
+
+      const { data: practice, error: insertError } = await supabase
         .from("enea_practices")
         .insert({
           reseller_id: resellerId,
-          current_stage_id: inviataStage?.id ?? null,
-          brand: values.brand,
-          cliente_nome: values.cliente_nome,
-          cliente_cognome: values.cliente_cognome,
-          cliente_email: values.cliente_email || null,
-          cliente_telefono: values.cliente_telefono,
-          cliente_indirizzo: null,
-          cliente_cf: null,
-          prodotto_installato: values.prodotto_installato,
-          fornitore: values.fornitore || null,
-          note: values.note || null,
-          tipo_servizio: tipoServizio,
+          brand: "enea",
+          current_stage_id: initialStage?.id ?? null,
+          tipo_servizio: tipoServizio === "documenti_forniti" ? "documenti_forniti" : "servizio_completo",
+          tipo_fatturazione: tipoFatturazione,
+          tipo_soggetto: tipoSoggetto,
+          prodotto_installato: prodottoLabel,
+          cliente_nome: nome.trim(),
+          cliente_cognome: cognome.trim(),
+          cliente_email: email.trim() || null,
+          cliente_telefono: telefono.trim(),
+          cliente_cf: cf.trim() || null,
+          cliente_indirizzo: indirizzo.trim() || null,
+          note: note.trim() || null,
+          fatture_urls: [],
+          documenti_enea_urls: [],
+          documenti_aggiuntivi_urls: [],
+          documenti_mancanti: [],
         })
         .select()
         .single();
 
-      if (error || !practice) throw error;
+      if (insertError || !practice) throw insertError ?? new Error("Insert fallito");
 
-      const [fattureUrls, docUrls] = await Promise.all([
-        uploadFiles(fatture, practice.id, "fatture"),
-        uploadFiles(docAggiuntivi, practice.id, "documenti"),
+      // Upload documenti in parallelo
+      const [fattureUrls, docExtraUrls, docExtra2Urls] = await Promise.all([
+        uploadFiles(fatturaFiles, practice.id, "fattura"),
+        uploadFiles(docExtra1, practice.id, "doc_extra"),
+        uploadFiles(docExtra2, practice.id, "libretto"),
       ]);
 
-      if (fattureUrls.length > 0 || docUrls.length > 0) {
-        const { error: updateError } = await supabase
-          .from("enea_practices")
-          .update({ fatture_urls: fattureUrls, documenti_aggiuntivi_urls: docUrls })
-          .eq("id", practice.id);
-        if (updateError) throw updateError;
+      if (fattureUrls.length || docExtraUrls.length || docExtra2Urls.length) {
+        await supabase.from("enea_practices").update({
+          fatture_urls: fattureUrls,
+          documenti_aggiuntivi_urls: [...docExtraUrls, ...docExtra2Urls],
+        }).eq("id", practice.id);
       }
 
-      storageTryRemove(STORAGE_KEY);
-      setSubmitted({ id: practice.id, nome: `${values.cliente_nome} ${values.cliente_cognome}` });
-    } catch {
-      toast({ variant: "destructive", title: "Errore", description: "Impossibile inviare la pratica." });
+      setSubmitted({ id: practice.id, nome: `${nome.trim()} ${cognome.trim()}` });
+    } catch (err: unknown) {
+      console.error(err);
+      toast({ variant: "destructive", title: "Errore", description: "Impossibile inviare la pratica. Riprova." });
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ── Success screen ──────────────────────────────────────────────────────────
+  const resetForm = () => {
+    setTipoServizio(null); setTipoProdotto(null);
+    setTipoSoggetto(null); setTipoFatturazione(null);
+    setNome(""); setCognome(""); setEmail(""); setTelefono("");
+    setCf(""); setIndirizzo(""); setNote("");
+    setFatturaFiles([]); setDocExtra1([]); setDocExtra2([]);
+    setFlagDocCompleto(null); setErrors({});
+    setSubmitted(null);
+  };
 
+  // ── Success screen ─────────────────────────────────────────────────────────
   if (submitted) {
     return (
-      <div className="max-w-lg mx-auto mt-16 text-center space-y-4 p-6">
+      <div className="max-w-md mx-auto mt-16 text-center space-y-5 p-6">
         <div className="flex justify-center">
           <CheckCircle className="h-16 w-16 text-green-500" />
         </div>
-        <h1 className="text-2xl font-bold">Pratica inviata con successo!</h1>
-        <p className="text-muted-foreground">
-          La pratica per <strong>{submitted.nome}</strong> è stata creata. Riceverai una
-          mail di conferma.
+        <h1 className="text-2xl font-bold">Pratica inviata!</h1>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          La pratica per <strong>{submitted.nome}</strong> è stata creata con successo.
+          {tipoServizio === "servizio_completo"
+            ? " Il nostro team contatterà il cliente a breve."
+            : " La pratica è in lavorazione."}
         </p>
         <div className="flex gap-3 justify-center pt-2">
-          <Button
-            variant="outline"
-            onClick={() => {
-              setSubmitted(null);
-              setStep(0);
-              setFatture([]);
-              setDocAggiuntivi([]);
-            }}
-          >
-            Invia altra pratica
-          </Button>
-          <Button asChild>
-            <a href="/kanban">Vai alla Board</a>
-          </Button>
+          <Button variant="outline" onClick={resetForm}>Nuova pratica</Button>
+          <Button asChild><a href="/kanban">Vai alla Board</a></Button>
         </div>
       </div>
     );
   }
 
-  // ── Wizard steps 0–3 ────────────────────────────────────────────────────────
-
-  const suggestions = PRODUCTS.filter(
-    (p) => p.toLowerCase().includes(productInput.toLowerCase()) && productInput.length > 0
-  );
-
+  // ── Form ───────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Nuova Pratica ENEA / Conto Termico</h1>
-        <Button variant="ghost" size="sm" onClick={saveDraft}>
-          <Save className="h-4 w-4 mr-1" />
-          Salva bozza
-        </Button>
+    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-5 pb-16">
+      <div>
+        <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica ENEA</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Completa tutte le sezioni, poi invia. La pagina si salva automaticamente.
+        </p>
       </div>
 
-      {/* Progress steps */}
-      <div className="flex items-center gap-2">
-        {STEPS.map((s, i) => (
-          <div key={s} className="flex items-center gap-2">
-            <div
+      {/* ── 1. Tipo di Servizio ──────────────────────────────────────────── */}
+      <Section number={1} title="Tipo di servizio">
+        {errors.tipoServizio && (
+          <p className="text-xs text-destructive flex items-center gap-1" data-error>
+            <AlertCircle className="h-3.5 w-3.5" />{errors.tipoServizio}
+          </p>
+        )}
+        <div className="grid sm:grid-cols-2 gap-3">
+          {/* Servizio Completo */}
+          <button
+            type="button"
+            onClick={() => setTipoServizio("servizio_completo")}
+            className={cn(
+              "rounded-xl border-2 p-4 text-left transition-all hover:shadow-sm focus:outline-none",
+              tipoServizio === "servizio_completo"
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/40"
+            )}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className={cn(
+                "flex h-9 w-9 items-center justify-center rounded-lg shrink-0 transition-colors",
+                tipoServizio === "servizio_completo" ? "bg-primary text-white" : "bg-muted text-muted-foreground"
+              )}>
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm leading-tight">Servizio Completo</p>
+                <Badge variant="outline" className="text-[10px] mt-0.5 border-primary/30 text-primary">Consigliato</Badge>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Inserisci solo i dati del cliente e la fattura.
+              <strong className="text-foreground"> Pratica Rapida contatta il cliente</strong>, raccoglie i documenti e gestisce tutto.
+            </p>
+          </button>
+
+          {/* Documenti Forniti */}
+          <button
+            type="button"
+            onClick={() => setTipoServizio("documenti_forniti")}
+            className={cn(
+              "rounded-xl border-2 p-4 text-left transition-all hover:shadow-sm focus:outline-none",
+              tipoServizio === "documenti_forniti"
+                ? "border-foreground/60 bg-muted/30"
+                : "border-border hover:border-foreground/30"
+            )}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className={cn(
+                "flex h-9 w-9 items-center justify-center rounded-lg shrink-0 transition-colors",
+                tipoServizio === "documenti_forniti" ? "bg-foreground text-background" : "bg-muted text-muted-foreground"
+              )}>
+                <FolderUp className="h-5 w-5" />
+              </div>
+              <p className="font-semibold text-sm leading-tight">Documenti Forniti</p>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Fornisci tu <strong className="text-foreground">tutti i documenti</strong>.
+              Pratica Rapida prepara e invia la pratica direttamente.
+            </p>
+          </button>
+        </div>
+      </Section>
+
+      {/* ── 2. Tipo di Prodotto ──────────────────────────────────────────── */}
+      <Section number={2} title="Tipo di prodotto installato">
+        {errors.tipoProdotto && (
+          <p className="text-xs text-destructive flex items-center gap-1" data-error>
+            <AlertCircle className="h-3.5 w-3.5" />{errors.tipoProdotto}
+          </p>
+        )}
+        <div className="grid sm:grid-cols-2 gap-2.5">
+          {PRODOTTI.map((prod) => {
+            const Icon = prod.icon;
+            const selected = tipoProdotto === prod.id;
+            return (
+              <button
+                key={prod.id}
+                type="button"
+                onClick={() => {
+                  setTipoProdotto(prod.id);
+                  setFlagDocCompleto(null);
+                  setDocExtra1([]);
+                  setDocExtra2([]);
+                }}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg border-2 p-3.5 text-left transition-all hover:shadow-sm focus:outline-none",
+                  selected ? `border-current ${prod.color}` : "border-border hover:border-foreground/20"
+                )}
+              >
+                <div className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-md shrink-0",
+                  selected ? prod.color : "bg-muted"
+                )}>
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-medium text-sm leading-tight">{prod.label}</p>
+                </div>
+                {selected && (
+                  <CheckCircle className="h-4 w-4 ml-auto shrink-0 text-current" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </Section>
+
+      {/* ── 3. Tipo di Soggetto ──────────────────────────────────────────── */}
+      <Section number={3} title="Tipo di soggetto">
+        {errors.tipoSoggetto && (
+          <p className="text-xs text-destructive flex items-center gap-1" data-error>
+            <AlertCircle className="h-3.5 w-3.5" />{errors.tipoSoggetto}
+          </p>
+        )}
+        <div className="grid sm:grid-cols-2 gap-3">
+          {[
+            { id: "persona_fisica" as TipoSoggetto, label: "Persona Fisica", desc: "Privato cittadino — Codice Fiscale", Icon: User },
+            { id: "azienda_piva" as TipoSoggetto, label: "Azienda con P.IVA", desc: "Impresa o professionista con P.IVA", Icon: Building2 },
+          ].map(({ id, label, desc, Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setTipoSoggetto(id)}
               className={cn(
-                "flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold",
-                i < step
-                  ? "bg-green-500 text-white"
-                  : i === step
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground"
+                "flex items-center gap-3 rounded-xl border-2 p-4 text-left transition-all hover:shadow-sm focus:outline-none",
+                tipoSoggetto === id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
               )}
             >
-              {i < step ? "✓" : i + 1}
-            </div>
-            <span className={cn("text-sm hidden sm:block", i === step ? "font-medium" : "text-muted-foreground")}>
-              {s}
-            </span>
-            {i < STEPS.length - 1 && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-          </div>
-        ))}
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Step 0 — Cliente */}
-        {step === 0 && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label>Nome *</Label>
-                <Input {...register("cliente_nome")} />
-                {errors.cliente_nome && <p className="text-xs text-destructive">{errors.cliente_nome.message}</p>}
+              <div className={cn(
+                "flex h-9 w-9 items-center justify-center rounded-lg shrink-0 transition-colors",
+                tipoSoggetto === id ? "bg-primary text-white" : "bg-muted text-muted-foreground"
+              )}>
+                <Icon className="h-5 w-5" />
               </div>
-              <div className="space-y-1">
-                <Label>Cognome *</Label>
-                <Input {...register("cliente_cognome")} />
-                {errors.cliente_cognome && <p className="text-xs text-destructive">{errors.cliente_cognome.message}</p>}
-              </div>
-            </div>
-            <div className="space-y-1">
-              <Label>Email</Label>
-              <Input type="email" {...register("cliente_email")} />
-              {errors.cliente_email && <p className="text-xs text-destructive">{errors.cliente_email.message}</p>}
-            </div>
-            <div className="space-y-1">
-              <Label>Telefono *</Label>
-              <Input placeholder="+39 333 1234567" {...register("cliente_telefono")} />
-              {errors.cliente_telefono && <p className="text-xs text-destructive">{errors.cliente_telefono.message}</p>}
-            </div>
-          </div>
-        )}
-
-        {/* Step 1 — Pratica */}
-        {step === 1 && (
-          <div className="space-y-4">
-            <div className="space-y-1">
-              <Label>Brand *</Label>
-              <Select
-                value={watch("brand")}
-                onValueChange={(v) => setValue("brand", v as "enea" | "conto_termico")}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="enea">ENEA</SelectItem>
-                  <SelectItem value="conto_termico">Conto Termico</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1 relative">
-              <Label>Prodotto installato *</Label>
-              <Input
-                value={productInput}
-                onChange={(e) => {
-                  setProductInput(e.target.value);
-                  setValue("prodotto_installato", e.target.value);
-                  setShowSuggestions(true);
-                }}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                placeholder="Es. Caldaia a condensazione"
-              />
-              {showSuggestions && suggestions.length > 0 && (
-                <ul className="absolute z-10 w-full bg-background border rounded-md mt-1 shadow-md">
-                  {suggestions.map((s) => (
-                    <li
-                      key={s}
-                      className="px-3 py-2 text-sm cursor-pointer hover:bg-muted"
-                      onMouseDown={() => {
-                        setValue("prodotto_installato", s);
-                        setProductInput(s);
-                        setShowSuggestions(false);
-                      }}
-                    >
-                      {s}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {errors.prodotto_installato && (
-                <p className="text-xs text-destructive">{errors.prodotto_installato.message}</p>
-              )}
-            </div>
-            <div className="space-y-1">
-              <Label>Fornitore</Label>
-              <Input {...register("fornitore")} />
-            </div>
-            <div className="space-y-1">
-              <Label>Note</Label>
-              <Textarea rows={3} {...register("note")} />
-            </div>
-          </div>
-        )}
-
-        {/* Step 2 — Documenti */}
-        {step === 2 && (
-          <div className="space-y-6">
-            <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800/40 dark:bg-blue-950/20">
-              <FolderOpen className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
-                  Documenti — carica i documenti del cliente
-                </p>
-                <p className="text-xs text-blue-700/80 dark:text-blue-400/80 mt-0.5">
-                  La fattura è obbligatoria. Puoi aggiungere altri documenti utili alla pratica.
-                </p>
+                <p className="font-semibold text-sm">{label}</p>
+                <p className="text-xs text-muted-foreground">{desc}</p>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Fattura * — max 5, PDF/JPG/PNG, max 10MB</Label>
-              <div
-                {...getFattureProps()}
-                className={cn(
-                  "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-                  isFattureDrag ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50"
-                )}
-              >
-                <input {...getFattureInput()} />
-                <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  Trascina qui le fatture o <span className="text-primary">sfoglia</span>
-                </p>
-              </div>
-              {fatture.length > 0 && (
-                <ul className="space-y-1">
-                  {fatture.map((f, i) => (
-                    <li key={f.name} className="flex items-center gap-2 text-sm">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="flex-1 truncate">{f.name}</span>
-                      <button type="button" onClick={() => setFatture((p) => p.filter((_, j) => j !== i))}>
-                        <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Documenti aggiuntivi (opzionale)</Label>
-              <div
-                {...getDocsProps()}
-                className={cn(
-                  "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-                  isDocsDrag ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50"
-                )}
-              >
-                <input {...getDocsInput()} />
-                <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                <p className="text-sm text-muted-foreground">Trascina documenti aggiuntivi</p>
-              </div>
-              {docAggiuntivi.length > 0 && (
-                <ul className="space-y-1">
-                  {docAggiuntivi.map((f, i) => (
-                    <li key={f.name} className="flex items-center gap-2 text-sm">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="flex-1 truncate">{f.name}</span>
-                      <button type="button" onClick={() => setDocAggiuntivi((p) => p.filter((_, j) => j !== i))}>
-                        <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Step 3 — Riepilogo */}
-        {step === 3 && (
-          <div className="space-y-4">
-            <h2 className="font-semibold">Riepilogo pratica</h2>
-            <div className="rounded-lg border divide-y text-sm">
-              {[
-                ["Nome cliente", `${watch("cliente_nome")} ${watch("cliente_cognome")}`],
-                ["Email", watch("cliente_email") || "—"],
-                ["Telefono", watch("cliente_telefono")],
-                ["Brand", watch("brand") === "enea" ? "ENEA" : "Conto Termico"],
-                ["Prodotto", watch("prodotto_installato")],
-                ["Fatture", `${fatture.length} file`],
-              ].map(([label, value]) => (
-                <div key={label} className="flex justify-between px-4 py-2">
-                  <span className="text-muted-foreground">{label}</span>
-                  <span className="font-medium">{value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Navigation */}
-        <div className="flex justify-between pt-2">
-          {step > 0 ? (
-            <Button type="button" variant="outline" onClick={() => setStep((s) => s - 1)}>
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Indietro
-            </Button>
-          ) : (
-            <div />
-          )}
-          {step < STEPS.length - 1 ? (
-            <Button type="button" onClick={nextStep}>
-              Avanti
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          ) : (
-            <Button type="submit" disabled={submitting}>
-              {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Invia pratica
-            </Button>
-          )}
+            </button>
+          ))}
         </div>
-      </form>
-    </div>
+      </Section>
+
+      {/* ── 4. Fatturazione ──────────────────────────────────────────────── */}
+      <Section number={4} title="Fatturazione del servizio">
+        {errors.tipoFatturazione && (
+          <p className="text-xs text-destructive flex items-center gap-1" data-error>
+            <AlertCircle className="h-3.5 w-3.5" />{errors.tipoFatturazione}
+          </p>
+        )}
+        <div className="grid sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setTipoFatturazione("rivenditore")}
+            className={cn(
+              "rounded-xl border-2 p-4 text-left transition-all hover:shadow-sm focus:outline-none",
+              tipoFatturazione === "rivenditore" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+            )}
+          >
+            <p className="font-semibold text-sm">A carico mio (rivenditore)</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              <strong className="text-foreground">€ 65 + IVA 22%</strong> — fatturazione mensile posticipata tramite bonifico
+            </p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setTipoFatturazione("cliente_finale")}
+            className={cn(
+              "rounded-xl border-2 p-4 text-left transition-all hover:shadow-sm focus:outline-none",
+              tipoFatturazione === "cliente_finale" ? "border-amber-400 bg-amber-50" : "border-border hover:border-amber-300"
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <p className="font-semibold text-sm">A carico del cliente finale</p>
+              <Badge className="text-[10px] bg-amber-100 text-amber-700 border-0">CF</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Il costo del servizio è a carico del cliente che beneficia della detrazione
+            </p>
+          </button>
+        </div>
+      </Section>
+
+      {/* ── 5. Dati Cliente Finale ───────────────────────────────────────── */}
+      <Section number={5} title="Dati del cliente finale">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="nome" className="text-sm">Nome *</Label>
+            <Input id="nome" value={nome} onChange={(e) => { setNome(e.target.value); setErrors((p) => ({ ...p, nome: "" })); }}
+              placeholder="Mario" className={errors.nome ? "border-destructive" : ""} />
+            {errors.nome && <p className="text-xs text-destructive" data-error>{errors.nome}</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="cognome" className="text-sm">Cognome *</Label>
+            <Input id="cognome" value={cognome} onChange={(e) => { setCognome(e.target.value); setErrors((p) => ({ ...p, cognome: "" })); }}
+              placeholder="Rossi" className={errors.cognome ? "border-destructive" : ""} />
+            {errors.cognome && <p className="text-xs text-destructive" data-error>{errors.cognome}</p>}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="telefono" className="text-sm">Telefono *</Label>
+            <Input id="telefono" value={telefono} onChange={(e) => { setTelefono(e.target.value); setErrors((p) => ({ ...p, telefono: "" })); }}
+              placeholder="+39 333 1234567" className={errors.telefono ? "border-destructive" : ""} />
+            {errors.telefono && <p className="text-xs text-destructive" data-error>{errors.telefono}</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-sm">Email</Label>
+            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+              placeholder="mario@esempio.it" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="cf" className="text-sm">
+              {tipoSoggetto === "azienda_piva" ? "Partita IVA" : "Codice Fiscale"}
+            </Label>
+            <Input id="cf" value={cf} onChange={(e) => setCf(e.target.value.toUpperCase())}
+              placeholder={tipoSoggetto === "azienda_piva" ? "12345678901" : "RSSMRA80A01H501Z"} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="indirizzo" className="text-sm">Indirizzo immobile</Label>
+            <Input id="indirizzo" value={indirizzo} onChange={(e) => setIndirizzo(e.target.value)}
+              placeholder="Via Roma 1, Milano" />
+          </div>
+        </div>
+      </Section>
+
+      {/* ── 6. Documenti ────────────────────────────────────────────────── */}
+      <Section number={6} title="Documenti da allegare">
+        {/* Link moduli raccolta dati */}
+        <a
+          href={MODULI_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+        >
+          <ExternalLink className="h-4 w-4" />
+          Scarica i moduli di raccolta dati
+        </a>
+
+        {/* Fattura — sempre obbligatoria */}
+        {errors.fattura && (
+          <p className="text-xs text-destructive flex items-center gap-1" data-error>
+            <AlertCircle className="h-3.5 w-3.5" />{errors.fattura}
+          </p>
+        )}
+        <FileDropzone
+          label="Fattura di acquisto/installazione"
+          required
+          files={fatturaFiles}
+          onAdd={(f) => setFatturaFiles((p) => [...p, ...f])}
+          onRemove={(i) => setFatturaFiles((p) => p.filter((_, j) => j !== i))}
+        />
+
+        {/* Logica condizionale per prodotto */}
+        {tipoProdotto && tipoProdotto !== "pompe_calore" && docConfig?.hasExtra && (
+          <div className="space-y-3 rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-900/40 dark:bg-blue-950/20 p-4">
+            <div className="flex items-start gap-2">
+              <HelpCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">{docConfig.flagQuestion}</p>
+            </div>
+            {errors.flagDoc && (
+              <p className="text-xs text-destructive flex items-center gap-1" data-error>
+                <AlertCircle className="h-3.5 w-3.5" />{errors.flagDoc}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setFlagDocCompleto(true); setErrors((p) => ({ ...p, flagDoc: "" })); }}
+                className={cn(
+                  "flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all",
+                  flagDocCompleto === true ? "border-green-500 bg-green-50 text-green-700" : "border-border hover:border-green-400"
+                )}
+              >
+                ✅ Sì
+              </button>
+              <button
+                type="button"
+                onClick={() => { setFlagDocCompleto(false); setErrors((p) => ({ ...p, flagDoc: "" })); }}
+                className={cn(
+                  "flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all",
+                  flagDocCompleto === false ? "border-amber-500 bg-amber-50 text-amber-700" : "border-border hover:border-amber-400"
+                )}
+              >
+                ❌ No
+              </button>
+            </div>
+
+            {/* Se risposta è NO → campo obbligatorio */}
+            {flagDocCompleto === false && (
+              <div className="pt-1">
+                {errors.docExtra1 && (
+                  <p className="text-xs text-destructive flex items-center gap-1 mb-2" data-error>
+                    <AlertCircle className="h-3.5 w-3.5" />{errors.docExtra1}
+                  </p>
+                )}
+                <FileDropzone
+                  label={docConfig.extraLabel!}
+                  required
+                  files={docExtra1}
+                  onAdd={(f) => setDocExtra1((p) => [...p, ...f])}
+                  onRemove={(i) => setDocExtra1((p) => p.filter((_, j) => j !== i))}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Pompe di calore: libretto impianto obbligatorio */}
+        {tipoProdotto === "pompe_calore" && (
+          <div className="space-y-2">
+            {errors.libretto && (
+              <p className="text-xs text-destructive flex items-center gap-1" data-error>
+                <AlertCircle className="h-3.5 w-3.5" />{errors.libretto}
+              </p>
+            )}
+            <FileDropzone
+              label="Libretto dell'impianto (marca e modello)"
+              required
+              files={docExtra2}
+              onAdd={(f) => setDocExtra2((p) => [...p, ...f])}
+              onRemove={(i) => setDocExtra2((p) => p.filter((_, j) => j !== i))}
+            />
+          </div>
+        )}
+
+        {!tipoProdotto && (
+          <div className="flex items-center gap-2 rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+            <Info className="h-4 w-4 shrink-0" />
+            Seleziona il prodotto nella sezione 2 per vedere i documenti richiesti.
+          </div>
+        )}
+      </Section>
+
+      {/* ── 7. Note aggiuntive ───────────────────────────────────────────── */}
+      <Section number={7} title="Note aggiuntive (opzionale)">
+        <Textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Informazioni aggiuntive sulla pratica o sul cliente..."
+          rows={3}
+          maxLength={2000}
+          className="text-sm"
+        />
+        <p className="text-xs text-muted-foreground text-right">{note.length}/2000</p>
+      </Section>
+
+      {/* ── Submit ───────────────────────────────────────────────────────── */}
+      <div className="sticky bottom-4">
+        <div className="rounded-xl border bg-card/95 backdrop-blur p-4 shadow-lg flex items-center justify-between gap-4">
+          <div className="text-sm text-muted-foreground hidden sm:block">
+            {[tipoServizio && (tipoServizio === "servizio_completo" ? "Servizio Completo" : "Documenti Forniti"),
+              PRODOTTI.find((p) => p.id === tipoProdotto)?.short,
+              tipoFatturazione === "cliente_finale" ? "CF" : tipoFatturazione === "rivenditore" ? "€65" : undefined,
+            ].filter(Boolean).join(" · ")}
+          </div>
+          <Button
+            type="submit"
+            disabled={submitting}
+            className="ml-auto"
+            size="lg"
+          >
+            {submitting ? (
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Invio in corso...</>
+            ) : (
+              "Invia Pratica ENEA"
+            )}
+          </Button>
+        </div>
+      </div>
+    </form>
   );
 }

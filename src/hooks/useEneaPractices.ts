@@ -45,7 +45,7 @@ export function useEneaPractices(filters?: {
         .from("enea_practices")
         .select(`
           *,
-          pipeline_stages(id, name, color, stage_type, brand),
+          pipeline_stages(id, name, name_reseller, tooltip_text, is_visible_reseller, color, stage_type, brand),
           companies:reseller_id(id, ragione_sociale)
         `)
         .order("created_at", { ascending: false });

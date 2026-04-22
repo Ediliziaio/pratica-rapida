@@ -1057,10 +1057,18 @@ export type CustomFieldType =
 
 export type CustomFieldEntity = "enea_practice" | "reseller" | "cliente" | "contatto" | "azienda" | "pratica"
 
+export type TipoFatturazione = "rivenditore" | "cliente_finale"
+export type TipoSoggetto = "persona_fisica" | "azienda_piva"
+export type TipoProdotto = "schermature_solari" | "infissi" | "vepa" | "pompe_calore"
+export type TipoServizio = "servizio_completo" | "documenti_forniti"
+
 export interface PipelineStage {
   id: string
   reseller_id: string | null
   name: string
+  name_reseller: string | null        // nome mostrato al rivenditore
+  tooltip_text: string | null         // tooltip "?" lato rivenditore
+  is_visible_reseller: boolean        // se FALSE → invisibile al rivenditore
   stage_type: StageType
   order_index: number
   color: string
@@ -1104,7 +1112,10 @@ export interface EneaPractice {
   recensione_ricevuta_at: string | null
   recensione_testo: string | null
   recensione_stelle: number | null
-  tipo_servizio: "servizio_completo" | "pratica_only" | null
+  tipo_servizio: TipoServizio | "pratica_only" | null  // pratica_only = legacy alias di documenti_forniti
+  tipo_fatturazione: TipoFatturazione | null
+  tipo_soggetto: TipoSoggetto | null
+  archivio_path: string | null
   archived_at: string | null
   created_at: string
   updated_at: string

@@ -1116,9 +1116,20 @@ export interface EneaPractice {
   tipo_fatturazione: TipoFatturazione | null
   tipo_soggetto: TipoSoggetto | null
   archivio_path: string | null
+  pratica_enea_conclusa_urls: string[]   // file pratica conclusa caricati dal superadmin
   archived_at: string | null
   created_at: string
   updated_at: string
+}
+
+export interface FatturaInsoluta {
+  id: string
+  reseller_id: string
+  filename: string
+  storage_path: string
+  note: string | null
+  uploaded_by: string | null
+  uploaded_at: string
 }
 
 export interface CommunicationLog {

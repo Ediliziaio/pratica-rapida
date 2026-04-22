@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useLocation } from "react-router-dom";
 import {
@@ -145,6 +145,40 @@ function getInitials(name: string) {
     .slice(0, 2);
 }
 
+// ── FileDownloadLink ──────────────────────────────────────────────────────────
+
+function FileDownloadLink({ label, path }: { label: string; path: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.storage
+      .from("enea-documents")
+      .createSignedUrl(path, 3600)
+      .then(({ data }) => setUrl(data?.signedUrl ?? null));
+  }, [path]);
+
+  if (!url) {
+    return (
+      <div className="flex items-center gap-2 text-xs text-muted-foreground py-0.5">
+        <Download className="h-3.5 w-3.5 shrink-0 opacity-40" />
+        <span className="truncate">{label}</span>
+      </div>
+    );
+  }
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-2 text-xs text-primary hover:underline py-0.5"
+    >
+      <Download className="h-3.5 w-3.5 shrink-0" />
+      <span className="truncate">{label}</span>
+    </a>
+  );
+}
+
 // ── PracticeDetailSheet ───────────────────────────────────────────────────────
 
 function PracticeDetailSheet({
@@ -177,6 +211,8 @@ function PracticeDetailSheet({
   const [editDocs, setEditDocs] = useState<string[]>([]);
   const [editOperatoreId, setEditOperatoreId] = useState<string>("");
   const [newDoc, setNewDoc] = useState("");
+  const [uploadingConclusa, setUploadingConclusa] = useState(false);
+  const conclusaInputRef = useRef<HTMLInputElement>(null);
 
   const operatorIds = [
     ...new Set(allPractices.map((p) => p.operatore_id).filter(Boolean)),
@@ -247,6 +283,39 @@ function PracticeDetailSheet({
     navigator.clipboard.writeText(url).then(() => {
       toast({ title: "Link copiato!" });
     });
+  }
+
+  async function handleUploadConclusa(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!practice || !e.target.files?.length) return;
+    setUploadingConclusa(true);
+    const newPaths: string[] = [];
+    for (const file of Array.from(e.target.files)) {
+      const ext = file.name.split(".").pop() ?? "bin";
+      const path = `${practice.id}/conclusa/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("enea-documents").upload(path, file, { upsert: false });
+      if (!error) newPaths.push(path);
+    }
+    if (newPaths.length) {
+      const existing = practice.pratica_enea_conclusa_urls ?? [];
+      await updatePractice.mutateAsync({
+        id: practice.id,
+        updates: { pratica_enea_conclusa_urls: [...existing, ...newPaths] },
+      });
+      toast({ title: `${newPaths.length} file caricati correttamente` });
+    }
+    setUploadingConclusa(false);
+    if (conclusaInputRef.current) conclusaInputRef.current.value = "";
+  }
+
+  async function handleDeleteConclusa(path: string) {
+    if (!practice) return;
+    await supabase.storage.from("enea-documents").remove([path]);
+    const updated = (practice.pratica_enea_conclusa_urls ?? []).filter((p) => p !== path);
+    await updatePractice.mutateAsync({
+      id: practice.id,
+      updates: { pratica_enea_conclusa_urls: updated },
+    });
+    toast({ title: "File rimosso" });
   }
 
   return (
@@ -578,10 +647,10 @@ function PracticeDetailSheet({
                   </div>
                 </section>
 
-                {/* Info pratica */}
+                {/* Dati pratica ENEA */}
                 <section>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                    Info pratica
+                    Dati pratica ENEA
                   </h3>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                     <div className="col-span-2">
@@ -597,6 +666,88 @@ function PracticeDetailSheet({
                       <p className="font-medium">{formatDate(practice.data_invio_pratica)}</p>
                     </div>
                   </div>
+                </section>
+
+                {/* Documenti caricati */}
+                {(() => {
+                  const allDocs = [
+                    ...(practice.fatture_urls ?? []).map((p, i) => ({ label: `Fattura ${i + 1}`, path: p })),
+                    ...(practice.documenti_aggiuntivi_urls ?? []).map((p, i) => ({ label: `Doc. aggiuntivo ${i + 1}`, path: p })),
+                    ...(practice.documenti_enea_urls ?? []).map((p, i) => ({ label: `Doc. ENEA ${i + 1}`, path: p })),
+                  ];
+                  return (
+                    <section>
+                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                        Documenti caricati
+                      </h3>
+                      {allDocs.length === 0 ? (
+                        <p className="text-sm text-muted-foreground italic">Nessun documento allegato.</p>
+                      ) : (
+                        <div className="space-y-0.5">
+                          {allDocs.map((d) => (
+                            <FileDownloadLink key={d.path} label={d.label} path={d.path} />
+                          ))}
+                        </div>
+                      )}
+                    </section>
+                  );
+                })()}
+
+                {/* Pratica ENEA conclusa (§4.2) */}
+                <section>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Pratica ENEA conclusa
+                    </h3>
+                    {/* Upload solo per superadmin */}
+                    {isInternal && (
+                      <>
+                        <input
+                          ref={conclusaInputRef}
+                          type="file"
+                          accept=".pdf,.p7m,.zip"
+                          multiple
+                          className="hidden"
+                          onChange={handleUploadConclusa}
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs gap-1"
+                          disabled={uploadingConclusa}
+                          onClick={() => conclusaInputRef.current?.click()}
+                        >
+                          <Plus className="h-3 w-3" />
+                          {uploadingConclusa ? "Caricamento…" : "Carica"}
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                  {(practice.pratica_enea_conclusa_urls ?? []).length === 0 ? (
+                    <p className="text-sm text-muted-foreground italic">
+                      {isInternal ? "Nessun file caricato. Carica la pratica completata." : "Pratica non ancora disponibile."}
+                    </p>
+                  ) : (
+                    <div className="space-y-1">
+                      {(practice.pratica_enea_conclusa_urls ?? []).map((path, i) => (
+                        <div key={path} className="flex items-center gap-1">
+                          <div className="flex-1 min-w-0">
+                            <FileDownloadLink label={`Pratica conclusa ${i + 1}`} path={path} />
+                          </div>
+                          {isInternal && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteConclusa(path)}
+                              className="text-muted-foreground hover:text-destructive transition-colors p-0.5 rounded shrink-0"
+                              title="Rimuovi file"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </section>
 
                 {/* Guadagno (internal only) */}
@@ -689,23 +840,25 @@ function PracticeDetailSheet({
                   </section>
                 )}
 
-                {/* Form status */}
-                <section>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                    Form
-                  </h3>
-                  <p className="text-sm">
-                    {practice.form_compilato_at ? (
-                      <span className="text-green-700 dark:text-green-400">
-                        Compilato il {formatDate(practice.form_compilato_at)}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">Non compilato</span>
-                    )}
-                  </p>
-                </section>
+                {/* Form status — solo interno */}
+                {isInternal && (
+                  <section>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      Form
+                    </h3>
+                    <p className="text-sm">
+                      {practice.form_compilato_at ? (
+                        <span className="text-green-700 dark:text-green-400">
+                          Compilato il {formatDate(practice.form_compilato_at)}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">Non compilato</span>
+                      )}
+                    </p>
+                  </section>
+                )}
 
-                {/* Metadati */}
+                {/* Date */}
                 <section className="border-t pt-4">
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-muted-foreground">
                     <div>

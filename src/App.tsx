@@ -60,6 +60,7 @@ const ClientiAdmin = lazy(() => import("./pages/admin/ClientiAdmin"));
 const ClienteDettaglio = lazy(() => import("./pages/admin/ClienteDettaglio"));
 const EmailTemplates = lazy(() => import("./pages/admin/EmailTemplates"));
 const WhatsappPanel = lazy(() => import("./pages/admin/WhatsappPanel"));
+const ArchivioEnea = lazy(() => import("./pages/rivenditore/ArchivioEnea"));
 
 const queryClient = new QueryClient();
 
@@ -201,10 +202,11 @@ const App = () => (
                 <Route path="/admin/campi" element={<ProtectedRoute><RoleGuard allowed={[...ADMIN_ROLES]}><ImpostazioniCampi /></RoleGuard></ProtectedRoute>} />
 
                 {/* Pratica Rapida v2.0 — ENEA/CT */}
-                {/* /kanban kept for resellers only */}
-                <Route path="/kanban" element={<ProtectedRoute><RoleGuard allowed={[...RESELLER_ROLES]}><KanbanBoard /></RoleGuard></ProtectedRoute>} />
+                {/* /kanban open to staff + resellers */}
+                <Route path="/kanban" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, ...RESELLER_ROLES]}><KanbanBoard /></RoleGuard></ProtectedRoute>} />
                 <Route path="/enea/nuova" element={<ProtectedRoute><RoleGuard allowed={[...RESELLER_ROLES]}><NuovaPraticaEnea /></RoleGuard></ProtectedRoute>} />
                 <Route path="/enea/dashboard" element={<ProtectedRoute><RoleGuard allowed={[...ALL_AUTH_ROLES]}><EneaDashboard /></RoleGuard></ProtectedRoute>} />
+                <Route path="/enea/archivio" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, ...RESELLER_ROLES]}><ArchivioEnea /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/gestionale" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><GestionaleAdmin /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/automazioni" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><Automazioni /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/comunicazioni" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><ComunicazioniLog /></RoleGuard></ProtectedRoute>} />

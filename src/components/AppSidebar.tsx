@@ -19,6 +19,7 @@ import {
   UserSearch,
   ChevronDown,
   Newspaper,
+  Archive,
 } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
@@ -183,6 +184,7 @@ export function AppSidebar() {
         items: [
           { title: "Pratiche", url: "/admin/pratiche", icon: FolderOpen },
           { title: "Gestionale", url: "/admin/gestionale", icon: Table2 },
+          { title: "Pipeline ENEA", url: "/kanban", icon: Kanban },
           { title: "Attività", url: "/coda-pratiche", icon: ListChecks },
           { title: "Automazioni", url: "/admin/automazioni", icon: Zap },
         ],
@@ -218,6 +220,7 @@ export function AppSidebar() {
           { title: "Dashboard ENEA", url: "/enea/dashboard", icon: BarChart3 },
           { title: "Nuova Pratica ENEA", url: "/enea/nuova", icon: PlusCircle },
           { title: "Kanban Board", url: "/kanban", icon: Kanban },
+          { title: "Archivio ENEA", url: "/enea/archivio", icon: Archive },
         ],
       },
     ];

@@ -65,5 +65,20 @@ serve(async (req) => {
     });
   }
 
+  // 3. Email al cliente finale (solo servizio_completo)
+  if (practice.tipo_servizio === "servizio_completo" && practice.cliente_email) {
+    await invoke("send-email", {
+      to: practice.cliente_email,
+      template: "richiesta_form",
+      data: {
+        nome: practice.cliente_nome,
+        reseller: resellerName,
+        prodotto: practice.prodotto_installato ?? "prodotto installato",
+        link: `https://pratica-rapida.it/form/${practice.form_token}`,
+        practice_id,
+      },
+    });
+  }
+
   return Response.json({ ok: true });
 });

@@ -218,6 +218,49 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
         `),
       };
 
+    case "richiesta_form":
+      // Messaggio 1 - initial form request to cliente finale, includes reseller name + prodotto
+      return {
+        subject: r("Compilazione modulo ENEA — {{prodotto}}"),
+        html: base(`
+          <h2>Ciao ${r("{{nome}}")},</h2>
+          <p><strong>${r("{{reseller}}")}</strong> ci ha incaricati di gestire la tua pratica ENEA relativa all'installazione di <strong>${r("{{prodotto}}")}</strong> presso la tua abitazione.</p>
+          <p>Per procedere, ti chiediamo di compilare il modulo di raccolta dati (richiede circa 5 minuti).</p>
+          ${cta("Compila il modulo", r("{{link}}"))}
+          <p style="color:#888;font-size:13px;">
+            Per assistenza scrivi a <a href="mailto:supporto@praticarapida.it" style="color:#888;">supporto@praticarapida.it</a><br>
+            oppure su WhatsApp (solo messaggi, no chiamate vocali).
+          </p>
+        `),
+      };
+
+    case "notifica_docs_mancanti":
+      // Notifica A - email to reseller when practice moved to documenti_mancanti
+      return {
+        subject: r("Documentazione mancante — {{cliente_nome}} {{cliente_cognome}}"),
+        html: base(`
+          <h2>Documenti aggiuntivi richiesti</h2>
+          <p>La pratica ENEA del cliente <strong>${r("{{cliente_nome}}")} ${r("{{cliente_cognome}}")}</strong> richiede documentazione aggiuntiva per poter procedere.</p>
+          <p><strong>Documenti richiesti:</strong></p>
+          <div style="background:#fff8e1;border-left:4px solid #f59e0b;padding:12px 16px;margin:12px 0;border-radius:0 6px 6px 0;white-space:pre-wrap;">${r("{{note}}")}</div>
+          ${data.link ? cta("Apri la pratica nel gestionale", r("{{link}}")) : ""}
+          <p style="color:#888;font-size:13px;">Per assistenza: <a href="mailto:supporto@praticarapida.it" style="color:#888;">supporto@praticarapida.it</a></p>
+        `),
+      };
+
+    case "notifica_pratica_disponibile":
+      // Notifica C - email to reseller when practice moved to da_inviare (available in archivio)
+      return {
+        subject: r("Pratica ENEA completata — {{cliente_nome}} {{cliente_cognome}}"),
+        html: base(`
+          <h2>Pratica completata ✓</h2>
+          <p>La pratica ENEA del cliente <strong>${r("{{cliente_nome}}")} ${r("{{cliente_cognome}}")}</strong> è stata completata e inviata al cliente finale.</p>
+          <p>La pratica è ora disponibile nella tua area riservata del portale PraticaRapida.</p>
+          ${cta("Vai all'area riservata", r("{{app_url}}"))}
+          <p style="color:#888;font-size:13px;">Per assistenza: <a href="mailto:supporto@praticarapida.it" style="color:#888;">supporto@praticarapida.it</a></p>
+        `),
+      };
+
     default:
       return { subject: "Notifica da Pratica Rapida", html: base(`<p>${r("{{message}}")}</p>`) };
   }

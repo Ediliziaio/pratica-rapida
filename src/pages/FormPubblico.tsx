@@ -27,6 +27,7 @@ export default function FormPubblico() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resellerName, setResellerName] = useState("");
   const [form, setForm] = useState<FormData>({
     cliente_nome: "",
     cliente_cognome: "",
@@ -41,7 +42,7 @@ export default function FormPubblico() {
     if (!token) return;
     supabase
       .from("enea_practices")
-      .select("*")
+      .select("*, companies:reseller_id(ragione_sociale)")
       .eq("form_token", token)
       .single()
       .then(({ data, error }) => {
@@ -53,6 +54,7 @@ export default function FormPubblico() {
           setSubmitted(true);
         } else {
           setPractice(data as unknown as EneaPractice);
+          setResellerName((data.companies as { ragione_sociale?: string } | null)?.ragione_sociale ?? "");
           setForm({
             cliente_nome: data.cliente_nome || "",
             cliente_cognome: data.cliente_cognome || "",
@@ -139,6 +141,11 @@ export default function FormPubblico() {
     <div className="min-h-screen bg-background py-10 px-4">
       <div className="max-w-lg mx-auto space-y-6">
         <div className="text-center space-y-1">
+          {resellerName && (
+            <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+              {resellerName} × Pratica Rapida
+            </p>
+          )}
           <h1 className="text-2xl font-bold">Completa la tua pratica</h1>
           <p className="text-muted-foreground text-sm">
             Pratica {practice?.brand === "enea" ? "ENEA" : "Conto Termico"} — Compila i tuoi dati

@@ -179,6 +179,176 @@ function FileDownloadLink({ label, path }: { label: string; path: string }) {
   );
 }
 
+// ── CommLogSection ────────────────────────────────────────────────────────────
+
+type CommLogEntry = {
+  id: string;
+  practice_id: string;
+  channel: string;
+  subject: string | null;
+  body_preview: string | null;
+  sent_at: string;
+  outcome: string | null;
+  notes: string | null;
+};
+
+function CommLogSection({
+  practiceId,
+  isInternal,
+}: {
+  practiceId: string;
+  isInternal: boolean;
+}) {
+  const { toast } = useToast();
+  const [showCallForm, setShowCallForm] = useState(false);
+  const [callOutcome, setCallOutcome] = useState("risposta_ottenuta");
+  const [callNotes, setCallNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const { data: commLog = [], refetch } = useQuery<CommLogEntry[]>({
+    queryKey: ["comm-log", practiceId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("communication_log")
+        .select("*")
+        .eq("practice_id", practiceId)
+        .order("sent_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as CommLogEntry[];
+    },
+  });
+
+  async function submitCallLog() {
+    setSubmitting(true);
+    const { error } = await supabase.from("communication_log").insert({
+      practice_id: practiceId,
+      channel: "phone",
+      subject: callOutcome === "risposta_ottenuta" ? "Risposta ottenuta" : "Non risposto",
+      body_preview: callNotes.trim() || null,
+      sent_at: new Date().toISOString(),
+      outcome: callOutcome,
+      notes: callNotes.trim() || null,
+    });
+    setSubmitting(false);
+    if (error) {
+      toast({ title: "Errore", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Chiamata registrata" });
+      setShowCallForm(false);
+      setCallNotes("");
+      setCallOutcome("risposta_ottenuta");
+      refetch();
+    }
+  }
+
+  function channelIcon(channel: string) {
+    if (channel === "email") return <Mail className="h-3.5 w-3.5 shrink-0 text-blue-500" />;
+    if (channel === "whatsapp") return <MessageCircle className="h-3.5 w-3.5 shrink-0 text-green-500" />;
+    return <Phone className="h-3.5 w-3.5 shrink-0 text-violet-500" />;
+  }
+
+  function channelLabel(channel: string) {
+    if (channel === "email") return "Email";
+    if (channel === "whatsapp") return "WhatsApp";
+    if (channel === "sms") return "SMS";
+    return "Telefono";
+  }
+
+  return (
+    <section className="border-t pt-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          Log comunicazioni
+        </h3>
+        {isInternal && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs gap-1"
+            onClick={() => setShowCallForm((v) => !v)}
+          >
+            <Phone className="h-3 w-3" />
+            Registra chiamata
+          </Button>
+        )}
+      </div>
+
+      {/* Inline call log form */}
+      {showCallForm && (
+        <div className="mb-3 rounded-lg border p-3 space-y-2 bg-muted/30">
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">Esito chiamata</label>
+            <Select value={callOutcome} onValueChange={setCallOutcome}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="risposta_ottenuta">Risposta ottenuta</SelectItem>
+                <SelectItem value="non_risposto">Non risposto</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">Note (opzionale)</label>
+            <Textarea
+              value={callNotes}
+              onChange={(e) => setCallNotes(e.target.value)}
+              rows={2}
+              placeholder="Es: ha detto che invierà i documenti entro venerdì..."
+              className="text-xs"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              className="h-7 text-xs"
+              onClick={submitCallLog}
+              disabled={submitting}
+            >
+              {submitting ? "Salvataggio…" : "Salva"}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs"
+              onClick={() => setShowCallForm(false)}
+            >
+              Annulla
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {commLog.length === 0 ? (
+        <p className="text-sm text-muted-foreground italic">Nessuna comunicazione registrata.</p>
+      ) : (
+        <div className="space-y-2">
+          {commLog.map((entry) => (
+            <div key={entry.id} className="flex items-start gap-2 text-xs">
+              <div className="mt-0.5">{channelIcon(entry.channel)}</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-medium text-foreground">
+                    {entry.subject ?? channelLabel(entry.channel)}
+                  </span>
+                  <span className="text-muted-foreground">·</span>
+                  <span className="text-muted-foreground">{channelLabel(entry.channel)}</span>
+                </div>
+                {entry.body_preview && (
+                  <p className="text-muted-foreground truncate">{entry.body_preview}</p>
+                )}
+                <p className="text-muted-foreground/70 mt-0.5">
+                  {format(new Date(entry.sent_at), "d MMM yyyy, HH:mm", { locale: it })}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 // ── PracticeDetailSheet ───────────────────────────────────────────────────────
 
 function PracticeDetailSheet({
@@ -875,6 +1045,9 @@ function PracticeDetailSheet({
                     </div>
                   </div>
                 </section>
+
+                {/* Log comunicazioni */}
+                <CommLogSection practiceId={practice.id} isInternal={isInternal} />
               </div>
             )}
           </>
@@ -1269,6 +1442,25 @@ export default function KanbanBoard() {
                 id: practiceId,
                 updates: { archivio_path: archivioPath },
               });
+            }
+          }
+          // Fire automation triggers (non-blocking)
+          if (
+            newStage?.stage_type === "documenti_mancanti" ||
+            newStage?.stage_type === "da_inviare" ||
+            newStage?.stage_type === "pronte_da_fare"
+          ) {
+            const practice = practices.find((p) => p.id === practiceId);
+            if (practice?.tipo_servizio === "servizio_completo") {
+              supabase.functions
+                .invoke("on-stage-changed", {
+                  body: {
+                    practice_id: practiceId,
+                    new_stage_type: newStage.stage_type,
+                    note_docs_mancanti: noteDocMancanti ?? null,
+                  },
+                })
+                .catch(console.error);
             }
           }
         },

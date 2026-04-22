@@ -302,6 +302,13 @@ export default function NuovaPraticaEnea() {
         }).eq("id", practice.id);
       }
 
+      // Trigger automations for "servizio_completo"
+      if (tipoServizio === "servizio_completo") {
+        supabase.functions.invoke("on-practice-created", {
+          body: { practice_id: practice.id },
+        }).catch(console.error); // non-blocking
+      }
+
       setSubmitted({ id: practice.id, nome: `${nome.trim()} ${cognome.trim()}` });
     } catch (err: unknown) {
       console.error(err);

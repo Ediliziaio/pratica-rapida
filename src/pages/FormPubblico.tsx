@@ -74,6 +74,26 @@ export default function FormPubblico() {
     if (!practice) return;
     setSubmitting(true);
 
+    // ── Client-side validation ───────────────────────────────────────────────
+    const errors: string[] = [];
+    if (form.cliente_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.cliente_email)) {
+      errors.push("Email non valida");
+    }
+    if (form.cliente_cf && !/^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$/i.test(form.cliente_cf)) {
+      errors.push("Codice fiscale non valido (16 caratteri formato italiano)");
+    }
+    if (form.cliente_telefono) {
+      const digits = form.cliente_telefono.replace(/\D/g, "");
+      if (digits.length < 9 || digits.length > 13) {
+        errors.push("Numero di telefono non valido");
+      }
+    }
+    if (errors.length > 0) {
+      toast({ variant: "destructive", title: "Errore", description: errors.join(" · ") });
+      setSubmitting(false);
+      return;
+    }
+
     // Find the "pronte_da_fare" stage for this practice's brand
     const { data: stage } = await supabase
       .from("pipeline_stages")
@@ -164,7 +184,7 @@ export default function FormPubblico() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label htmlFor="nome">Nome *</Label>
               <Input

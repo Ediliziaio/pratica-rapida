@@ -57,6 +57,18 @@ serve(async () => {
 
   for (const rule of rules) {
     try {
+      const romeHour = parseInt(
+        new Intl.DateTimeFormat("en-US", {
+          timeZone: "Europe/Rome",
+          hour: "numeric",
+          hour12: false,
+        }).format(new Date()),
+        10,
+      );
+      const ruleMin = (rule as { min_hour?: number }).min_hour ?? 9;
+      const ruleMax = (rule as { max_hour?: number }).max_hour ?? 18;
+      if (romeHour < ruleMin || romeHour >= ruleMax) continue; // skip rule outside its window
+
       switch (rule.trigger_event) {
 
         case "days_waiting_7": {

@@ -35,24 +35,41 @@ export function useEneaPractices(filters?: {
   operatoreId?: string;
   search?: string;
   includeArchived?: boolean;
+  archivedOnly?: boolean;
+  limit?: number;
+  offset?: number;
 }) {
   const { resellerId: myResellerId, isInternal } = useAuth();
 
   return useQuery({
     queryKey: ["enea_practices", filters, myResellerId],
     queryFn: async () => {
+      const archivedOnly = !!filters?.archivedOnly;
       let q = supabase
         .from("enea_practices")
         .select(`
           *,
           pipeline_stages(id, name, name_reseller, tooltip_text, is_visible_reseller, color, stage_type, brand),
           companies:reseller_id(id, ragione_sociale)
-        `)
-        .order("created_at", { ascending: false });
+        `);
+
+      // Order: archived-only viste ordinano per archived_at desc (più recenti)
+      if (archivedOnly) {
+        q = q.order("archived_at", { ascending: false });
+      } else {
+        q = q.order("created_at", { ascending: false });
+      }
 
       if (filters?.brand) q = q.eq("brand", filters.brand);
       if (filters?.operatoreId) q = q.eq("operatore_id", filters.operatoreId);
-      if (!filters?.includeArchived) q = q.is("archived_at", null);
+
+      if (archivedOnly) {
+        // Solo archiviate
+        q = q.not("archived_at", "is", null);
+      } else if (!filters?.includeArchived) {
+        // Default: escludi archiviate
+        q = q.is("archived_at", null);
+      }
 
       if (filters?.search) {
         // Rimuove virgole e punti che rompono la sintassi or() di PostgREST
@@ -69,6 +86,14 @@ export function useEneaPractices(filters?: {
         q = q.eq("reseller_id", myResellerId);
       } else if (filters?.resellerId) {
         q = q.eq("reseller_id", filters.resellerId);
+      }
+
+      // Pagination applied only if limit/offset esplicitamente passati.
+      // Default (senza limit): nessun range applicato → Supabase default (1000 righe max).
+      if (filters?.limit != null || filters?.offset != null) {
+        const limit = filters.limit ?? 100;
+        const offset = filters.offset ?? 0;
+        q = q.range(offset, offset + limit - 1);
       }
 
       const { data, error } = await q;
@@ -105,17 +130,13 @@ export function useMoveStage() {
         .eq("id", practiceId);
       if (error) throw error;
 
-      // 2. Log in communication_log (non-bloccante — ignoriamo errori di logging)
-      supabase.from("communication_log").insert({
-        practice_id: practiceId,
-        channel: "system",
-        direction: "outbound",
-        recipient: userId,
-        body_preview: `Stage: "${oldStageName}" → "${newStageName}"`,
-        status: "sent",
-      }).then(({ error }) => {
-        if (error) console.warn("communication_log insert failed:", error.message);
-      });
+      // Audit trail cambio stage — lasciato vuoto per ora.
+      // communication_log è riservato a comunicazioni cliente reali (email/WA/phone),
+      // non per log interni. Per tracking stage history aggiungere una tabella dedicata
+      // stage_history se necessario in futuro.
+      void oldStageName;
+      void newStageName;
+      void userId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["enea_practices"] });

@@ -1,4 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  type DropResult,
+} from "@hello-pangea/dnd";
 import { EmailBuilder } from "@/components/EmailBuilder";
 import type { EmailTmplRow } from "@/components/EmailBuilder";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -42,6 +48,7 @@ import {
   Eye,
   Save,
   Code,
+  GripVertical,
 } from "lucide-react";
 import type { AutomationRule } from "@/integrations/supabase/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -824,19 +831,36 @@ function AutomationCard({
   onEdit,
   onToggle,
   onDuplicate,
+  dragHandleProps,
+  isDragging,
 }: {
   rule: AutomationRule;
   onEdit: () => void;
   onToggle: (enabled: boolean) => void;
   onDuplicate: () => void;
+  dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
+  isDragging?: boolean;
 }) {
   const flow = parseFlow(rule);
   const actionsCount = flow.actions.length;
   const conditionsCount = flow.conditions.length;
 
   return (
-    <div className="group rounded-xl border bg-card hover:shadow-md transition-shadow p-4 space-y-3">
+    <div
+      className={`group rounded-xl border bg-card ${
+        isDragging ? "shadow-lg ring-2 ring-primary/40" : "hover:shadow-md"
+      } transition-shadow p-4 space-y-3`}
+    >
       <div className="flex items-start justify-between gap-2">
+        {dragHandleProps && (
+          <div
+            {...dragHandleProps}
+            className="shrink-0 -ml-1 mt-0.5 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
+            title="Trascina per riordinare"
+          >
+            <GripVertical className="h-4 w-4" />
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <p className="font-semibold truncate">{rule.name}</p>
           {rule.description && (
@@ -912,7 +936,12 @@ export default function Automazioni() {
   const [ruleName, setRuleName] = useState("");
   const [ruleEnabled, setRuleEnabled] = useState(false);
   const [ruleDesc, setRuleDesc] = useState("");
+  const [ruleMinHour, setRuleMinHour] = useState<number>(9);
+  const [ruleMaxHour, setRuleMaxHour] = useState<number>(18);
   const [expandedBlock, setExpandedBlock] = useState<string | null>("trigger");
+
+  // Optimistic local ordering (mirrors query, but allows instant drag feedback)
+  const [localOrder, setLocalOrder] = useState<AutomationRule[] | null>(null);
 
   // ── Queries ──────────────────────────────────────────────────────────────
 
@@ -960,6 +989,8 @@ export default function Automazioni() {
         template_body:
           (flow.actions.find((a) => a.type === "send_email" || a.type === "send_whatsapp")
             ?.config.body as string) ?? null,
+        min_hour: ruleMinHour,
+        max_hour: ruleMaxHour,
       };
 
       if (editingRule) {
@@ -1011,6 +1042,38 @@ export default function Automazioni() {
     },
   });
 
+  const reorderMutation = useMutation({
+    mutationFn: async (updates: { id: string; order_index: number }[]) => {
+      await Promise.all(
+        updates.map((u) =>
+          supabase.from("automation_rules").update({ order_index: u.order_index }).eq("id", u.id),
+        ),
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["automation_rules"] });
+      setLocalOrder(null);
+    },
+    onError: (err) => {
+      setLocalOrder(null);
+      toast({ variant: "destructive", title: "Errore riordino", description: String(err) });
+    },
+  });
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const from = result.source.index;
+    const to = result.destination.index;
+    if (from === to) return;
+    const base = localOrder ?? rules;
+    const next = Array.from(base);
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setLocalOrder(next);
+    const updates = next.map((r, idx) => ({ id: r.id, order_index: idx }));
+    reorderMutation.mutate(updates);
+  };
+
   // ── Builder helpers ───────────────────────────────────────────────────────
 
   const openBuilder = (rule?: AutomationRule) => {
@@ -1020,12 +1083,16 @@ export default function Automazioni() {
       setRuleName(rule.name);
       setRuleEnabled(rule.is_enabled);
       setRuleDesc(rule.description ?? "");
+      setRuleMinHour(rule.min_hour ?? 9);
+      setRuleMaxHour(rule.max_hour ?? 18);
     } else {
       setEditingRule(null);
       setFlow(newFlow());
       setRuleName("Nuova Automazione");
       setRuleEnabled(false);
       setRuleDesc("");
+      setRuleMinHour(9);
+      setRuleMaxHour(18);
     }
     setExpandedBlock("trigger");
     setView("builder");
@@ -1138,6 +1205,48 @@ export default function Automazioni() {
                 placeholder="Descrizione opzionale..."
                 className="text-sm bg-background border-dashed"
               />
+            </div>
+
+            {/* Time window */}
+            <div className="mb-4 rounded-lg border bg-background p-3">
+              <Label className="text-xs font-medium flex items-center gap-1.5 mb-2">
+                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                Finestra oraria di invio (default 9-18)
+              </Label>
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <Label className="text-[10px] uppercase text-muted-foreground">Da (ora)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={23}
+                    value={ruleMinHour}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value || "0", 10);
+                      if (Number.isFinite(v)) setRuleMinHour(Math.max(0, Math.min(23, v)));
+                    }}
+                    className="h-8"
+                  />
+                </div>
+                <span className="text-muted-foreground text-sm mt-4">—</span>
+                <div className="flex-1">
+                  <Label className="text-[10px] uppercase text-muted-foreground">A (ora)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={24}
+                    value={ruleMaxHour}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value || "0", 10);
+                      if (Number.isFinite(v)) setRuleMaxHour(Math.max(0, Math.min(24, v)));
+                    }}
+                    className="h-8"
+                  />
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1.5">
+                Orario Europa/Roma. L'automazione parte solo se l'ora corrente è ≥ Da e &lt; A.
+              </p>
             </div>
 
             {/* Trigger block */}
@@ -1290,18 +1399,42 @@ export default function Automazioni() {
             </span>
           </div>
 
-          {/* Grid */}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {rules.map((rule) => (
-              <AutomationCard
-                key={rule.id}
-                rule={rule}
-                onEdit={() => openBuilder(rule)}
-                onToggle={(enabled) => toggleMutation.mutate({ id: rule.id, is_enabled: enabled })}
-                onDuplicate={() => duplicateMutation.mutate(rule)}
-              />
-            ))}
-          </div>
+          {/* Drag-and-drop list */}
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="automation_rules">
+              {(dropProvided) => (
+                <div
+                  ref={dropProvided.innerRef}
+                  {...dropProvided.droppableProps}
+                  className="flex flex-col gap-3"
+                >
+                  {(localOrder ?? rules).map((rule, i) => (
+                    <Draggable key={rule.id} draggableId={rule.id} index={i}>
+                      {(dragProvided, snapshot) => (
+                        <div
+                          ref={dragProvided.innerRef}
+                          {...dragProvided.draggableProps}
+                          style={dragProvided.draggableProps.style}
+                        >
+                          <AutomationCard
+                            rule={rule}
+                            onEdit={() => openBuilder(rule)}
+                            onToggle={(enabled) =>
+                              toggleMutation.mutate({ id: rule.id, is_enabled: enabled })
+                            }
+                            onDuplicate={() => duplicateMutation.mutate(rule)}
+                            dragHandleProps={dragProvided.dragHandleProps ?? undefined}
+                            isDragging={snapshot.isDragging}
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {dropProvided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
 
           {/* Help text */}
           <div className="rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">

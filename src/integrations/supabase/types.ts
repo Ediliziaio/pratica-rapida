@@ -1162,6 +1162,8 @@ export interface AutomationRule {
   is_enabled: boolean
   order_index: number
   category: string
+  min_hour: number
+  max_hour: number
   created_at: string
   updated_at: string
 }

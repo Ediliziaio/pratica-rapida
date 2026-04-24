@@ -16,12 +16,14 @@ const TIPO_LABEL: Record<string, string> = {
   "schermature-solari": "Schermature Solari",
   "infissi": "Infissi",
   "impianto-termico": "Impianto Termico",
+  "vepa": "VEPA – Vetrate Panoramiche",
 };
 
 const TIPO_PATH: Record<string, string> = {
   "schermature-solari": "schermature-solari",
   "infissi": "modulo-infissi",
   "impianto-termico": "impianto-termico",
+  "vepa": "modulo-vepa",
 };
 
 function applyVars(template: string, vars: Record<string, string>): string {

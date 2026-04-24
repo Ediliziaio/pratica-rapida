@@ -176,6 +176,7 @@ const App = () => (
                 <Route path="/schermature-solari/:token" element={<ModuloClientePage />} />
                 <Route path="/modulo-infissi/:token" element={<ModuloClientePage />} />
                 <Route path="/impianto-termico/:token" element={<ModuloClientePage />} />
+                <Route path="/modulo-vepa/:token" element={<ModuloClientePage />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/pratiche" element={<ProtectedRoute><Pratiche /></ProtectedRoute>} />
                 <Route path="/pratiche/nuova" element={<ProtectedRoute><NuovaPratica /></ProtectedRoute>} />

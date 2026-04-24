@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle2, AlertTriangle, Clock, FileText } from "lucide-react";
 
-type TipoModulo = "schermature-solari" | "infissi" | "impianto-termico";
+type TipoModulo = "schermature-solari" | "infissi" | "impianto-termico" | "vepa";
 
 interface TokenInfo {
   token_id: string;
@@ -690,6 +690,97 @@ function FormImpiantoView({
   );
 }
 
+// ── Form: VEPA (Vetrate Panoramiche) ──────────────────────────────────────────
+// Identical to Infissi form, without "tipologia infisso" and "vetro dell'infisso
+// vecchio" (trasmittanza_vecchio).
+
+interface FormVepa {
+  nome_cliente: string;
+  cognome_cliente: string;
+  indirizzo_intervento: string;
+  materiale: string;
+  numero_infissi: string;
+  larghezza_cm: string;
+  altezza_cm: string;
+  trasmittanza_nuovo: string;
+  note: string;
+}
+
+function FormVepaView({
+  tokenId, praticaId, nomeCliente, onSuccess,
+}: { tokenId: string; praticaId: string; nomeCliente: string; onSuccess: () => void }) {
+  const parts = nomeCliente.split(" ");
+  const [form, setForm] = useState<FormVepa>({
+    nome_cliente: parts[0] ?? "",
+    cognome_cliente: parts.slice(1).join(" "),
+    indirizzo_intervento: "",
+    materiale: "",
+    numero_infissi: "",
+    larghezza_cm: "",
+    altezza_cm: "",
+    trasmittanza_nuovo: "",
+    note: "",
+  });
+
+  const set = (k: keyof FormVepa) => (v: string) => setForm(f => ({ ...f, [k]: v }));
+
+  const submit = useMutation({
+    mutationFn: async () => {
+      const { error: insertError } = await supabase.from("client_form_vepa").insert({
+        token_id: tokenId,
+        pratica_id: praticaId,
+        nome_cliente: form.nome_cliente,
+        cognome_cliente: form.cognome_cliente,
+        indirizzo_intervento: form.indirizzo_intervento || null,
+        materiale: form.materiale || null,
+        numero_infissi: form.numero_infissi ? Number(form.numero_infissi) : null,
+        larghezza_cm: form.larghezza_cm ? Number(form.larghezza_cm) : null,
+        altezza_cm: form.altezza_cm ? Number(form.altezza_cm) : null,
+        trasmittanza_nuovo: form.trasmittanza_nuovo ? Number(form.trasmittanza_nuovo) : null,
+        note: form.note || null,
+      });
+      if (insertError) throw insertError;
+
+      const { error: updateError } = await supabase
+        .from("client_form_tokens")
+        .update({ stato: "compilato", compiled_at: new Date().toISOString() })
+        .eq("id", tokenId);
+      if (updateError) throw updateError;
+
+      // Advance linked enea_practice to "pronte_da_fare" and fire Messaggio 3
+      await advancePracticeToPronteDaFare(praticaId);
+    },
+    onSuccess,
+  });
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); submit.mutate(); }} className="space-y-4">
+      <Section title="Dati personali" />
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Nome" id="nome" value={form.nome_cliente} onChange={set("nome_cliente")} required />
+        <Field label="Cognome" id="cognome" value={form.cognome_cliente} onChange={set("cognome_cliente")} required />
+      </div>
+      <Field label="Indirizzo intervento" id="indirizzo" value={form.indirizzo_intervento} onChange={set("indirizzo_intervento")} placeholder="Via, Città, CAP" />
+
+      <Section title="Dettagli vetrate" />
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Materiale" id="materiale" value={form.materiale} onChange={set("materiale")} placeholder="Es. PVC, Alluminio, Legno..." />
+        <Field label="N° infissi" id="numero" value={form.numero_infissi} onChange={set("numero_infissi")} type="number" placeholder="0" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Larghezza (cm)" id="larghezza" value={form.larghezza_cm} onChange={set("larghezza_cm")} type="number" placeholder="0" />
+        <Field label="Altezza (cm)" id="altezza" value={form.altezza_cm} onChange={set("altezza_cm")} type="number" placeholder="0" />
+      </div>
+
+      <Section title="Dati termici" />
+      <Field label="Trasmittanza nuovo (W/m²K)" id="tn" value={form.trasmittanza_nuovo} onChange={set("trasmittanza_nuovo")} type="number" placeholder="0.00" />
+      <NoteField value={form.note} onChange={set("note")} />
+
+      <SubmitButton isPending={submit.isPending} error={submit.error as Error | null} />
+    </form>
+  );
+}
+
 // ── Submit button ─────────────────────────────────────────────────────────────
 
 function SubmitButton({ isPending, error }: { isPending: boolean; error: Error | null }) {
@@ -719,12 +810,13 @@ const TIPO_LABEL: Record<TipoModulo, string> = {
   "schermature-solari": "Schermature Solari",
   "infissi": "Infissi",
   "impianto-termico": "Impianto Termico",
+  "vepa": "VEPA – Vetrate Panoramiche",
 };
 
 export default function ModuloClientePage() {
   const { token } = useParams<{ token: string }>();
-  // token param works for all three route patterns:
-  // /schermature-solari/:token, /modulo-infissi/:token, /impianto-termico/:token
+  // token param works for all four route patterns:
+  // /schermature-solari/:token, /modulo-infissi/:token, /impianto-termico/:token, /modulo-vepa/:token
   const [submitted, setSubmitted] = useState(false);
 
   const { data: tokenInfo, isLoading, error } = useQuery<TokenInfo | null>({
@@ -836,6 +928,14 @@ export default function ModuloClientePage() {
           )}
           {tokenInfo.tipo_modulo === "impianto-termico" && (
             <FormImpiantoView
+              tokenId={tokenInfo.token_id}
+              praticaId={tokenInfo.pratica_id}
+              nomeCliente={tokenInfo.nome_cliente}
+              onSuccess={() => setSubmitted(true)}
+            />
+          )}
+          {tokenInfo.tipo_modulo === "vepa" && (
+            <FormVepaView
               tokenId={tokenInfo.token_id}
               praticaId={tokenInfo.pratica_id}
               nomeCliente={tokenInfo.nome_cliente}

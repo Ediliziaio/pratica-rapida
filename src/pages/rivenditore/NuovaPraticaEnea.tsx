@@ -581,7 +581,7 @@ export default function NuovaPraticaEnea() {
 
       {/* ── 5. Dati Cliente Finale ───────────────────────────────────────── */}
       <Section number={5} title="Dati del cliente finale">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label htmlFor="nome" className="text-sm">Nome *</Label>
             <Input id="nome" value={nome} onChange={(e) => { setNome(e.target.value); setErrors((p) => ({ ...p, nome: "" })); }}
@@ -596,7 +596,7 @@ export default function NuovaPraticaEnea() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label htmlFor="telefono" className="text-sm">Telefono *</Label>
             <Input id="telefono" value={telefono} onChange={(e) => { setTelefono(e.target.value); setErrors((p) => ({ ...p, telefono: "" })); }}
@@ -610,7 +610,7 @@ export default function NuovaPraticaEnea() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label htmlFor="cf" className="text-sm">
               {tipoSoggetto === "azienda_piva" ? "Partita IVA" : "Codice Fiscale"}

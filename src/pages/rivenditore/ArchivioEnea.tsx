@@ -354,10 +354,12 @@ function FattureInsolute({
 
 export default function ArchivioEnea() {
   const { isInternal, resellerId } = useAuth();
-  const { data: allPractices = [], isLoading } = useEneaPractices({ includeArchived: true });
-
-  // Filter only archived practices
-  const archived = (allPractices as PracticeWithCompany[]).filter((p) => !!p.archived_at);
+  const [limit, setLimit] = useState(100);
+  const { data: archivedRaw = [], isLoading } = useEneaPractices({
+    archivedOnly: true,
+    limit,
+  });
+  const archived = archivedRaw as PracticeWithCompany[];
 
   // Group by year → month
   const byYear = new Map<number, Map<string, PracticeWithCompany[]>>();
@@ -412,6 +414,14 @@ export default function ArchivioEnea() {
               showReseller={isInternal}
             />
           ))}
+
+          {archived.length === limit && (
+            <div className="flex justify-center pt-4">
+              <Button variant="outline" onClick={() => setLimit((l) => l + 100)}>
+                Carica altre 100
+              </Button>
+            </div>
+          )}
         </div>
       )}
 

@@ -22,7 +22,7 @@ export default function Blocked() {
         </div>
         <div className="flex flex-col gap-3">
           <Button variant="outline" asChild>
-            <a href="mailto:supporto@pratica-rapida.it">
+            <a href="mailto:supporto@praticarapida.it">
               Contatta il supporto
             </a>
           </Button>

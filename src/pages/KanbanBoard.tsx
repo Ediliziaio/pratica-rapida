@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   DragDropContext,
   Droppable,
@@ -449,6 +449,31 @@ function PracticeDetailSheet({
     });
   }
 
+  const [resendingLink, setResendingLink] = useState(false);
+  async function resendFormLink() {
+    if (!practice) return;
+    setResendingLink(true);
+    try {
+      const { error } = await supabase.functions.invoke("on-practice-created", {
+        body: { practice_id: practice.id, is_resend: true },
+      });
+      if (error) throw error;
+      toast({
+        title: "Link reinviato",
+        description: "Email e WhatsApp di richiesta form rispediti al cliente.",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Errore invio",
+        description: "Non è stato possibile reinviare il link. Riprova o contatta il supporto.",
+      });
+      console.error("resendFormLink failed:", err);
+    } finally {
+      setResendingLink(false);
+    }
+  }
+
   async function handleUploadConclusa(e: React.ChangeEvent<HTMLInputElement>) {
     if (!practice || !e.target.files?.length) return;
     setUploadingConclusa(true);
@@ -633,6 +658,21 @@ function PracticeDetailSheet({
                   <Link className="h-3.5 w-3.5" />
                   Copia link form
                 </Button>
+
+                {/* Resend form link (internal only, only when form not yet submitted) */}
+                {isInternal && !practice.form_compilato_at && practice.tipo_servizio === "servizio_completo" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs gap-1"
+                    onClick={resendFormLink}
+                    disabled={resendingLink}
+                    title="Reinvia email + WhatsApp con il link del form al cliente"
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                    {resendingLink ? "Invio…" : "Reinvia link"}
+                  </Button>
+                )}
 
                 {/* Archive / Restore */}
                 <Button
@@ -1172,6 +1212,7 @@ export default function KanbanBoard() {
   const { toast } = useToast();
   const moveStage = useMoveStage();
 
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [brandFilter, setBrandFilter] = useState<string>(() => {
     if (!isInternal) return "all";
@@ -1688,6 +1729,18 @@ export default function KanbanBoard() {
 
         {/* Right action buttons */}
         <div className="flex items-center gap-0.5 ml-auto">
+          {isInternal && (
+            <Button
+              variant="default"
+              size="sm"
+              className="h-8 px-2.5 gap-1.5 text-xs mr-1"
+              onClick={() => navigate("/enea/nuova")}
+              title="Crea una nuova pratica (direct-channel)"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Nuova pratica</span>
+            </Button>
+          )}
           <Button
             variant={hasActiveFilters ? "secondary" : "ghost"}
             size="sm"

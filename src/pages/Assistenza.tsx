@@ -19,7 +19,7 @@ import { it } from "date-fns/locale";
 import { ticketSchema } from "@/lib/validation-schemas";
 import type { Tables } from "@/integrations/supabase/types";
 
-const SUPPORT_EMAIL = "supporto@pratica-rapida.it";
+const SUPPORT_EMAIL = "supporto@praticarapida.it";
 
 async function sendTicketEmails({
   userEmail,

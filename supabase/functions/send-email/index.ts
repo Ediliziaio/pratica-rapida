@@ -34,7 +34,7 @@ function base(content: string, logoUrl = "") {
   </td></tr>
   <tr><td style="padding:32px 40px;color:${COLORS.text};line-height:1.6;">${content}</td></tr>
   <tr><td style="background:#f4f4f4;padding:16px;text-align:center;font-size:12px;color:#888;">
-    © ${new Date().getFullYear()} Pratica Rapida · AEDIX · <a href="{{UNSUB_LINK}}" style="color:#888;">Annulla iscrizione</a>
+    © ${new Date().getFullYear()} Pratica Rapida · AEDIX
   </td></tr>
 </table></td></tr></table></body></html>`;
 }
@@ -49,14 +49,14 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
   switch (template) {
     case "pratica_ricevuta":
       return {
-        subject: r("Pratica ricevuta — {{nome}} {{cognome}}"),
+        subject: r("Pratica ricevuta — {{cliente_nome}} {{cliente_cognome}}"),
         html: base(`
           <h2>Pratica ricevuta ✓</h2>
           <p>Ciao <strong>${r("{{nome}}")}</strong>,</p>
           <p>Abbiamo ricevuto la pratica per il cliente <strong>${r("{{cliente_nome}}")} ${r("{{cliente_cognome}}")}</strong>.</p>
           <p>La stiamo elaborando e ti aggiorneremo a breve.</p>
           ${data.link ? cta("Visualizza pratica", r("{{link}}")) : ""}
-          <p>Per assistenza: <a href="mailto:supporto@pratica-rapida.it">supporto@pratica-rapida.it</a></p>
+          <p>Per assistenza: <a href="mailto:supporto@praticarapida.it">supporto@praticarapida.it</a></p>
         `),
       };
 
@@ -148,7 +148,7 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
             </tr>
           </table>
           <p style="color:#666;font-size:13px;margin-top:24px">
-            Per ulteriori informazioni: <a href="mailto:supporto@pratica-rapida.it" style="color:${COLORS.cta}">supporto@pratica-rapida.it</a>
+            Per ulteriori informazioni: <a href="mailto:supporto@praticarapida.it" style="color:${COLORS.cta}">supporto@praticarapida.it</a>
           </p>
         `),
       };

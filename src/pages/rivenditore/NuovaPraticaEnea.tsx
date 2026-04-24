@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePipelineStages } from "@/hooks/useEneaPractices";
@@ -7,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
   CheckCircle, Upload, X, Loader2, FileText,
@@ -156,9 +158,26 @@ async function uploadFiles(
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function NuovaPraticaEnea() {
-  const { resellerId } = useAuth();
+  const { resellerId, isInternal } = useAuth();
   const { toast } = useToast();
   const { data: stages = [] } = usePipelineStages("enea");
+
+  // For staff (super_admin/operatore) who don't have a resellerId, let them pick
+  // the company (reseller) that will own the practice. Direct-channel clients.
+  const [staffSelectedCompanyId, setStaffSelectedCompanyId] = useState<string>("");
+  const { data: allCompanies = [] } = useQuery({
+    queryKey: ["nuova-pratica-companies"],
+    enabled: isInternal,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("companies")
+        .select("id, ragione_sociale")
+        .eq("is_active", true)
+        .order("ragione_sociale");
+      return data ?? [];
+    },
+  });
+  const effectiveResellerId = isInternal ? staffSelectedCompanyId || null : resellerId;
 
   // ── State ─────────────────────────────────────────────────────────────────
   const [tipoServizio, setTipoServizio] = useState<TipoServizio | null>(null);
@@ -253,11 +272,13 @@ export default function NuovaPraticaEnea() {
       setTimeout(() => document.querySelector("[data-error]")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
       return;
     }
-    if (!resellerId) {
+    if (!effectiveResellerId) {
       toast({
         variant: "destructive",
-        title: "Errore autenticazione",
-        description: "Nessun rivenditore associato all'utente. Esci e rientra.",
+        title: isInternal ? "Seleziona un'azienda" : "Errore autenticazione",
+        description: isInternal
+          ? "Scegli l'azienda (rivenditore) a cui assegnare la pratica."
+          : "Nessun rivenditore associato all'utente. Esci e rientra.",
       });
       return;
     }
@@ -282,7 +303,7 @@ export default function NuovaPraticaEnea() {
       const { data: practice, error: insertError } = await supabase
         .from("enea_practices")
         .insert({
-          reseller_id: resellerId,
+          reseller_id: effectiveResellerId,
           brand: "enea",
           current_stage_id: initialStage?.id ?? null,
           tipo_servizio: tipoServizio === "documenti_forniti" ? "documenti_forniti" : "servizio_completo",
@@ -386,6 +407,34 @@ export default function NuovaPraticaEnea() {
           Completa tutte le sezioni, poi invia. La pagina si salva automaticamente.
         </p>
       </div>
+
+      {/* ── Company picker (solo staff interni, per clienti direct-channel) ── */}
+      {isInternal && (
+        <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50/60 p-5 space-y-2">
+          <div className="flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-amber-700" />
+            <h2 className="font-semibold text-sm text-amber-900">
+              Modalità staff — Assegna la pratica a un'azienda
+            </h2>
+          </div>
+          <p className="text-xs text-amber-800/80">
+            Stai creando una pratica come operatore interno. Seleziona il rivenditore/azienda a cui
+            intestare la pratica (es. per clienti direct-channel).
+          </p>
+          <Select value={staffSelectedCompanyId} onValueChange={setStaffSelectedCompanyId}>
+            <SelectTrigger className="bg-white">
+              <SelectValue placeholder="Scegli azienda..." />
+            </SelectTrigger>
+            <SelectContent>
+              {allCompanies.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.ragione_sociale}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* ── 1. Tipo di Servizio ──────────────────────────────────────────── */}
       <Section number={1} title="Tipo di servizio">

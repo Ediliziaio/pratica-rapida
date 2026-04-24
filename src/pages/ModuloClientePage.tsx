@@ -98,6 +98,56 @@ interface FormImpianto {
   note: string;
 }
 
+// ── Shared helper: advance practice to "pronte_da_fare" after form submission ─
+// Mirrors the flow in FormPubblico.tsx: marks form_compilato_at, moves stage,
+// and fires on-stage-changed so Messaggio 3 (email + WA conferma) goes out.
+async function advancePracticeToPronteDaFare(praticaId: string): Promise<void> {
+  // Load practice to discover its brand (needed to find the correct pipeline_stage)
+  const { data: practice, error: praticaError } = await supabase
+    .from("enea_practices")
+    .select("id, brand, current_stage_id")
+    .eq("id", praticaId)
+    .maybeSingle();
+
+  if (praticaError || !practice) {
+    console.error("advancePracticeToPronteDaFare: practice not found", praticaError);
+    return;
+  }
+
+  // Find the system-level "pronte_da_fare" stage for this practice's brand
+  const { data: stage } = await supabase
+    .from("pipeline_stages")
+    .select("id")
+    .is("reseller_id", null)
+    .eq("stage_type", "pronte_da_fare")
+    .eq("brand", practice.brand)
+    .maybeSingle();
+
+  const { error: updateError } = await supabase
+    .from("enea_practices")
+    .update({
+      form_compilato_at: new Date().toISOString(),
+      current_stage_id: stage?.id ?? practice.current_stage_id,
+    })
+    .eq("id", praticaId);
+
+  if (updateError) {
+    console.error("advancePracticeToPronteDaFare: update failed", updateError);
+    return;
+  }
+
+  // Fire Messaggio 3 confirmation (email + WA) via on-stage-changed.
+  // The edge function guards on tipo_servizio === "servizio_completo" and form_compilato_at.
+  supabase.functions
+    .invoke("on-stage-changed", {
+      body: {
+        practice_id: praticaId,
+        new_stage_type: "pronte_da_fare",
+      },
+    })
+    .catch(console.error);
+}
+
 // ── Shared field component ────────────────────────────────────────────────────
 
 function Field({
@@ -259,6 +309,9 @@ function FormSchermatureView({
         .update({ stato: "compilato", compiled_at: new Date().toISOString() })
         .eq("id", tokenId);
       if (updateError) throw updateError;
+
+      // Advance linked enea_practice to "pronte_da_fare" and fire Messaggio 3
+      await advancePracticeToPronteDaFare(praticaId);
     },
     onSuccess,
   });
@@ -523,6 +576,9 @@ function FormInfissiView({
         .update({ stato: "compilato", compiled_at: new Date().toISOString() })
         .eq("id", tokenId);
       if (updateError) throw updateError;
+
+      // Advance linked enea_practice to "pronte_da_fare" and fire Messaggio 3
+      await advancePracticeToPronteDaFare(praticaId);
     },
     onSuccess,
   });
@@ -601,6 +657,9 @@ function FormImpiantoView({
         .update({ stato: "compilato", compiled_at: new Date().toISOString() })
         .eq("id", tokenId);
       if (updateError) throw updateError;
+
+      // Advance linked enea_practice to "pronte_da_fare" and fire Messaggio 3
+      await advancePracticeToPronteDaFare(praticaId);
     },
     onSuccess,
   });

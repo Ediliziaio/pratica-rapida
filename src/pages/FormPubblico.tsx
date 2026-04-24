@@ -98,6 +98,17 @@ export default function FormPubblico() {
       return;
     }
 
+    // Fire Messaggio 3 confirmation (email + WA) to cliente finale via on-stage-changed.
+    // The edge function itself guards on tipo_servizio === "servizio_completo" and form_compilato_at.
+    supabase.functions
+      .invoke("on-stage-changed", {
+        body: {
+          practice_id: practice.id,
+          new_stage_type: "pronte_da_fare",
+        },
+      })
+      .catch(console.error);
+
     setSubmitted(true);
     setSubmitting(false);
   };

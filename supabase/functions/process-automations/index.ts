@@ -5,9 +5,15 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 function isBusinessHour(): boolean {
-  const now = new Date();
-  // Rome timezone offset: CET=+1, CEST=+2; approximate with +1 always (conservative)
-  const romeHour = (now.getUTCHours() + 1) % 24;
+  // Use Intl to correctly handle Rome timezone (CET=+1, CEST=+2 during DST).
+  const romeHour = parseInt(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "Europe/Rome",
+      hour: "numeric",
+      hour12: false,
+    }).format(new Date()),
+    10,
+  );
   return romeHour >= 9 && romeHour < 18;
 }
 

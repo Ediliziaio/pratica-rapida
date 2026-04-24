@@ -223,8 +223,11 @@ function CommLogSection({
     const { error } = await supabase.from("communication_log").insert({
       practice_id: practiceId,
       channel: "phone",
+      direction: "outbound",
+      recipient: "manual",
       subject: callOutcome === "risposta_ottenuta" ? "Risposta ottenuta" : "Non risposto",
       body_preview: callNotes.trim() || null,
+      status: "sent",
       sent_at: new Date().toISOString(),
       outcome: callOutcome,
       notes: callNotes.trim() || null,
@@ -329,12 +332,14 @@ function CommLogSection({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="font-medium text-foreground">
-                    {entry.subject ?? channelLabel(entry.channel)}
+                    {/* Contenuto (subject) visibile solo agli operatori interni (§7.1) */}
+                    {isInternal ? (entry.subject ?? channelLabel(entry.channel)) : channelLabel(entry.channel)}
                   </span>
                   <span className="text-muted-foreground">·</span>
                   <span className="text-muted-foreground">{channelLabel(entry.channel)}</span>
                 </div>
-                {entry.body_preview && (
+                {/* body_preview visibile solo agli operatori interni (§7.1) */}
+                {isInternal && entry.body_preview && (
                   <p className="text-muted-foreground truncate">{entry.body_preview}</p>
                 )}
                 <p className="text-muted-foreground/70 mt-0.5">
@@ -520,14 +525,17 @@ function PracticeDetailSheet({
                       : (practice.pipeline_stages.name_reseller ?? practice.pipeline_stages.name)}
                   </Badge>
                 )}
-                {practice.tipo_servizio === "servizio_completo" ? (
-                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300">
-                    ✦ Servizio Completo
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
-                    Documenti Forniti
-                  </span>
+                {/* tipo_servizio — classificazione interna, visibile solo ai superadmin/operatori (§3.3) */}
+                {isInternal && (
+                  practice.tipo_servizio === "servizio_completo" ? (
+                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300">
+                      ✦ Servizio Completo
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
+                      Documenti Forniti
+                    </span>
+                  )
                 )}
                 {/* Badge CF — solo operatori interni */}
                 {isInternal && practice.tipo_fatturazione === "cliente_finale" && (
@@ -1418,6 +1426,13 @@ export default function KanbanBoard() {
     moveStage.mutate(
       { practiceId, newStageId, oldStageName, newStageName, userId: user?.id ?? "" },
       {
+        onError: (err: Error) => {
+          toast({
+            variant: "destructive",
+            title: "Errore spostamento",
+            description: err.message || "Impossibile spostare la pratica. Riprova.",
+          });
+        },
         onSuccess: async () => {
           if (newStage?.stage_type === "pronte_da_fare") {
             toast({ title: "Pratica pronta!", description: "Assegna un operatore." });
@@ -1444,7 +1459,7 @@ export default function KanbanBoard() {
               });
             }
           }
-          // Fire automation triggers (non-blocking)
+          // Fire automation triggers (non-blocking, but surface failures to user)
           if (
             newStage?.stage_type === "documenti_mancanti" ||
             newStage?.stage_type === "da_inviare" ||
@@ -1460,7 +1475,15 @@ export default function KanbanBoard() {
                     note_docs_mancanti: noteDocMancanti ?? null,
                   },
                 })
-                .catch(console.error);
+                .catch((err) => {
+                  console.error("on-stage-changed invoke failed:", err);
+                  toast({
+                    variant: "destructive",
+                    title: "Automazione non eseguita",
+                    description:
+                      "Lo spostamento è stato salvato, ma l'invio di email/WhatsApp al cliente non è riuscito. Contatta il supporto.",
+                  });
+                });
             }
           }
         },
@@ -1530,6 +1553,8 @@ export default function KanbanBoard() {
   ).filter((s) => isInternal || s.is_visible_reseller !== false);
 
   // ── Auto-archive: sposta in "archiviate" le pratiche in "da_inviare" da >10 giorni ──
+  // Ref to prevent firing mutations multiple times for the same practice before the DB propagates.
+  const autoArchivedRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     if (!stages.length || !practices.length) return;
     const daInviareStage = stages.find((s) => s.stage_type === "da_inviare");
@@ -1540,10 +1565,12 @@ export default function KanbanBoard() {
       (p) =>
         p.current_stage_id === daInviareStage.id &&
         !p.archived_at &&
-        daysAgo(p.updated_at) >= 10
+        daysAgo(p.updated_at) >= 10 &&
+        !autoArchivedRef.current.has(p.id)
     );
 
     toArchive.forEach((p) => {
+      autoArchivedRef.current.add(p.id);
       moveStage.mutate({
         practiceId: p.id,
         newStageId: archiviateStage.id,

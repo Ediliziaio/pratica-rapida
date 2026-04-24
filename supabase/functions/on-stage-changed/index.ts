@@ -10,15 +10,24 @@ function normalizePhone(phone: string): string {
 }
 
 async function invoke(fnName: string, body: unknown) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/${fnName}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  return res.json();
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/${fnName}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error(`invoke(${fnName}) failed: ${res.status} ${errText}`);
+    }
+    return res.ok;
+  } catch (err) {
+    console.error(`invoke(${fnName}) threw:`, err);
+    return false;
+  }
 }
 
 serve(async (req) => {

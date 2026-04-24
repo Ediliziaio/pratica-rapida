@@ -141,14 +141,24 @@ function Section({ number, title, children }: { number: number; title: string; c
 }
 
 // ── Upload utility ─────────────────────────────────────────────────────────────
-async function uploadFiles(files: File[], practiceId: string, tipo: string): Promise<string[]> {
+async function uploadFiles(
+  files: File[],
+  practiceId: string,
+  tipo: string,
+): Promise<{ urls: string[]; failed: string[] }> {
   const urls: string[] = [];
+  const failed: string[] = [];
   for (const file of files) {
     const path = `${practiceId}/${tipo}/${crypto.randomUUID()}.${file.name.split(".").pop() ?? "bin"}`;
     const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file, { upsert: false });
-    if (!error) urls.push(path);
+    if (error) {
+      console.error(`Upload failed for ${file.name}:`, error);
+      failed.push(file.name);
+    } else {
+      urls.push(path);
+    }
   }
-  return urls;
+  return { urls, failed };
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -250,7 +260,22 @@ export default function NuovaPraticaEnea() {
       setTimeout(() => document.querySelector("[data-error]")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
       return;
     }
-    if (!resellerId) { toast({ variant: "destructive", title: "Errore autenticazione" }); return; }
+    if (!resellerId) {
+      toast({
+        variant: "destructive",
+        title: "Errore autenticazione",
+        description: "Nessun rivenditore associato all'utente. Esci e rientra.",
+      });
+      return;
+    }
+    if (!stages.length) {
+      toast({
+        variant: "destructive",
+        title: "Pipeline non configurata",
+        description: "Nessuno stage disponibile. Contatta il supporto.",
+      });
+      return;
+    }
     setSubmitting(true);
 
     try {
@@ -289,16 +314,25 @@ export default function NuovaPraticaEnea() {
       if (insertError || !practice) throw insertError ?? new Error("Insert fallito");
 
       // Upload documenti in parallelo
-      const [fattureUrls, docExtraUrls, docExtra2Urls] = await Promise.all([
+      const [fatture, docExtra, docExtra2Res] = await Promise.all([
         uploadFiles(fatturaFiles, practice.id, "fattura"),
         uploadFiles(docExtra1, practice.id, "doc_extra"),
         uploadFiles(docExtra2, practice.id, "libretto"),
       ]);
 
-      if (fattureUrls.length || docExtraUrls.length || docExtra2Urls.length) {
+      const allFailed = [...fatture.failed, ...docExtra.failed, ...docExtra2Res.failed];
+      if (allFailed.length > 0) {
+        toast({
+          variant: "destructive",
+          title: "Alcuni file non sono stati caricati",
+          description: `Riprova dal dettaglio pratica per: ${allFailed.join(", ")}`,
+        });
+      }
+
+      if (fatture.urls.length || docExtra.urls.length || docExtra2Res.urls.length) {
         await supabase.from("enea_practices").update({
-          fatture_urls: fattureUrls,
-          documenti_aggiuntivi_urls: [...docExtraUrls, ...docExtra2Urls],
+          fatture_urls: fatture.urls,
+          documenti_aggiuntivi_urls: [...docExtra.urls, ...docExtra2Res.urls],
         }).eq("id", practice.id);
       }
 

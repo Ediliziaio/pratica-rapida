@@ -1118,6 +1118,9 @@ export interface EneaPractice {
   archivio_path: string | null
   pratica_enea_conclusa_urls: string[]   // file pratica conclusa caricati dal superadmin
   archived_at: string | null
+  prezzo: number | null
+  pagamento_stato: "non_pagata" | "pagata" | "in_verifica" | "rimborsata" | null
+  data_incasso: string | null
   created_at: string
   updated_at: string
 }

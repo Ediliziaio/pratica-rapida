@@ -1090,6 +1090,54 @@ function StatPill({
   );
 }
 
+// ── KpiCard ───────────────────────────────────────────────────────────────────
+
+function KpiCard({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string;
+  color?: "green" | "amber";
+}) {
+  const colorClasses =
+    color === "green"
+      ? "text-green-700 dark:text-green-400"
+      : color === "amber"
+        ? "text-amber-700 dark:text-amber-400"
+        : "text-foreground";
+  return (
+    <div className="rounded-lg border bg-card p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className={`text-lg font-bold ${colorClasses}`}>{value}</p>
+    </div>
+  );
+}
+
+// ── Pagamento helpers ─────────────────────────────────────────────────────────
+
+const PAGAMENTO_LABELS: Record<string, string> = {
+  non_pagata: "Non pagata",
+  pagata: "Pagata",
+  in_verifica: "In verifica",
+  rimborsata: "Rimborsata",
+};
+
+function pagamentoBadgeClass(stato: string | null | undefined) {
+  switch (stato) {
+    case "pagata":
+      return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-900";
+    case "in_verifica":
+      return "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-900";
+    case "rimborsata":
+      return "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-900";
+    case "non_pagata":
+    default:
+      return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-900";
+  }
+}
+
 // ── PracticeCard ──────────────────────────────────────────────────────────────
 
 function PracticeCard({
@@ -1477,6 +1525,48 @@ export default function KanbanBoard() {
   ].filter(Boolean).length;
   const hasActiveFilters = activeFilterCount > 0;
 
+  // KPI aggregates (staff only)
+  const kpis = useMemo(() => {
+    if (!isInternal) return null;
+    const active = filteredPractices.filter((p) => !p.archived_at);
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const sum = (arr: typeof active) =>
+      arr.reduce((s, p) => s + Number(p.prezzo ?? 0), 0);
+    return {
+      fatturato: sum(active),
+      incassato: sum(active.filter((p) => p.pagamento_stato === "pagata")),
+      daIncassare: sum(active.filter((p) => p.pagamento_stato === "non_pagata")),
+      mese: sum(active.filter((p) => p.created_at?.startsWith(currentMonth))),
+    };
+  }, [filteredPractices, isInternal]);
+
+  // Inline pagamento_stato update (staff only)
+  const updatePagamentoMutation = useMutation({
+    mutationFn: async (args: { id: string; pagamento_stato: string }) => {
+      const { error } = await (supabase as any)
+        .from("enea_practices")
+        .update({
+          pagamento_stato: args.pagamento_stato,
+          data_incasso:
+            args.pagamento_stato === "pagata" ? new Date().toISOString() : null,
+        })
+        .eq("id", args.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["enea_practices"] });
+      toast({ title: "Stato pagamento aggiornato" });
+    },
+    onError: (err: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Errore aggiornamento pagamento",
+        description: err.message || "Impossibile aggiornare lo stato pagamento.",
+      });
+    },
+  });
+
   // Export to CSV
   const exportCSV = () => {
     const headers = [
@@ -1517,6 +1607,32 @@ export default function KanbanBoard() {
     a.click();
     URL.revokeObjectURL(url);
     toast({ title: `Esportate ${filteredPractices.length} pratiche` });
+  };
+
+  // Export to XLSX
+  const exportXLSX = async () => {
+    const XLSX = await import("xlsx");
+    const rows = filteredPractices.map((p) => ({
+      Nome: p.cliente_nome ?? "",
+      Cognome: p.cliente_cognome ?? "",
+      Email: p.cliente_email ?? "",
+      Telefono: p.cliente_telefono ?? "",
+      "Codice Fiscale": p.cliente_cf ?? "",
+      Brand: p.brand === "enea" ? "ENEA" : "Conto Termico",
+      Azienda: p.companies?.ragione_sociale ?? "",
+      Stage: p.pipeline_stages?.name ?? "",
+      Prodotto: p.prodotto_installato ?? "",
+      Importo: Number(p.prezzo ?? 0),
+      Pagamento: p.pagamento_stato ?? "",
+      "Data incasso": p.data_incasso ?? "",
+      "Creata il": format(new Date(p.created_at), "dd/MM/yyyy"),
+      Archiviata: p.archived_at ? "Sì" : "No",
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Pratiche");
+    XLSX.writeFile(wb, `pratiche-${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+    toast({ title: `Esportate ${rows.length} pratiche (xlsx)` });
   };
 
   const clearFilters = () => {
@@ -1869,15 +1985,23 @@ export default function KanbanBoard() {
               </span>
             )}
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 px-2.5 gap-1.5 text-xs"
-            onClick={exportCSV}
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Esporta</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2.5 gap-1.5 text-xs"
+              >
+                <Download className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Esporta</span>
+                <ChevronDown className="h-3 w-3 ml-0.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={exportCSV}>CSV (.csv)</DropdownMenuItem>
+              <DropdownMenuItem onClick={exportXLSX}>Excel (.xlsx)</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             variant="ghost"
             size="icon"
@@ -1972,6 +2096,24 @@ export default function KanbanBoard() {
           </DropdownMenu>
         </div>
       </div>
+
+      {/* ── KPI cards (staff only) ────────────────────────────────────────── */}
+      {isInternal && kpis && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 px-4 pt-3 shrink-0">
+          <KpiCard label="Fatturato" value={`€ ${kpis.fatturato.toFixed(2)}`} />
+          <KpiCard
+            label="Incassato"
+            value={`€ ${kpis.incassato.toFixed(2)}`}
+            color="green"
+          />
+          <KpiCard
+            label="Da incassare"
+            value={`€ ${kpis.daIncassare.toFixed(2)}`}
+            color="amber"
+          />
+          <KpiCard label="Mese corrente" value={`€ ${kpis.mese.toFixed(2)}`} />
+        </div>
+      )}
 
       {/* ── Stats bar ─────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-2 px-4 py-2 bg-background/80 border-b shrink-0 overflow-x-auto">
@@ -2213,6 +2355,9 @@ export default function KanbanBoard() {
             stages={stages}
             onRowClick={setSelectedPractice}
             isInternal={isInternal}
+            onUpdatePagamento={(id, stato) =>
+              updatePagamentoMutation.mutate({ id, pagamento_stato: stato })
+            }
           />
         </div>
       ) : (
@@ -2469,11 +2614,13 @@ function PracticeTable({
   stages,
   onRowClick,
   isInternal,
+  onUpdatePagamento,
 }: {
   practices: PracticeWithRelations[];
   stages: PipelineStage[];
   onRowClick: (p: PracticeWithRelations) => void;
   isInternal: boolean;
+  onUpdatePagamento?: (id: string, pagamento_stato: string) => void;
 }) {
   const stageMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -2481,7 +2628,7 @@ function PracticeTable({
     return m;
   }, [stages, isInternal]);
 
-  const colSpan = isInternal ? 7 : 5;
+  const colSpan = isInternal ? 9 : 5;
 
   return (
     <div className="rounded-lg border bg-card overflow-x-auto">
@@ -2493,6 +2640,8 @@ function PracticeTable({
             <th className="text-left px-3 py-2">Brand</th>
             <th className="text-left px-3 py-2">Stage</th>
             <th className="text-left px-3 py-2">Prodotto</th>
+            {isInternal && <th className="text-left px-3 py-2">Importo</th>}
+            {isInternal && <th className="text-left px-3 py-2">Pagamento</th>}
             <th className="text-left px-3 py-2">Creata</th>
             {isInternal && <th className="text-left px-3 py-2">Operatore</th>}
           </tr>
@@ -2523,6 +2672,47 @@ function PracticeTable({
               <td className="px-3 py-2 text-xs text-muted-foreground">
                 {p.prodotto_installato ?? "—"}
               </td>
+              {isInternal && (
+                <td className="px-3 py-2 text-xs whitespace-nowrap">
+                  {p.prezzo != null ? `€ ${Number(p.prezzo).toFixed(2)}` : "—"}
+                </td>
+              )}
+              {isInternal && (
+                <td
+                  className="px-3 py-2 text-xs"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap ${pagamentoBadgeClass(
+                        p.pagamento_stato
+                      )}`}
+                    >
+                      {PAGAMENTO_LABELS[p.pagamento_stato ?? "non_pagata"] ?? "—"}
+                    </span>
+                    {onUpdatePagamento && (
+                      <Select
+                        value={p.pagamento_stato ?? "non_pagata"}
+                        onValueChange={(val) => onUpdatePagamento(p.id, val)}
+                      >
+                        <SelectTrigger
+                          className="h-7 w-[130px] text-xs"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(PAGAMENTO_LABELS).map(([key, label]) => (
+                            <SelectItem key={key} value={key} className="text-xs">
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                </td>
+              )}
               <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">
                 {format(new Date(p.created_at), "dd MMM yyyy", { locale: it })}
               </td>

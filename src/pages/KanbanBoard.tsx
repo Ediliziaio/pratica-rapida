@@ -1393,9 +1393,41 @@ export default function KanbanBoard() {
     setStageFilter("all");
   };
 
+  // Map each stage.id → the "virtual column id" it belongs to.
+  // For internal users this is the identity mapping.
+  // For resellers, stages sharing the same `name_reseller` collapse into a single
+  // virtual column whose id is the first (by order_index) stage of the group.
+  const stageToColumn = useMemo(() => {
+    const map = new Map<string, string>();
+    if (isInternal) {
+      for (const s of stages) map.set(s.id, s.id);
+      return map;
+    }
+    const groups = new Map<string, string>(); // name_reseller key → virtual column id
+    for (const s of stages) {
+      if (s.is_visible_reseller === false) continue;
+      const key = s.name_reseller ?? s.name;
+      if (!groups.has(key)) groups.set(key, s.id);
+      map.set(s.id, groups.get(key)!);
+    }
+    return map;
+  }, [stages, isInternal]);
+
   const byStage = useCallback(
     (stageId: string) => {
-      let cards = filteredPractices.filter((p) => p.current_stage_id === stageId);
+      let cards: typeof filteredPractices;
+      if (isInternal) {
+        cards = filteredPractices.filter((p) => p.current_stage_id === stageId);
+      } else {
+        // For resellers, include all practices whose current stage maps to the
+        // same virtual column as `stageId`.
+        const targetColumn = stageToColumn.get(stageId);
+        cards = filteredPractices.filter((p) => {
+          if (!p.current_stage_id) return false;
+          const pColumn = stageToColumn.get(p.current_stage_id);
+          return pColumn !== undefined && pColumn === targetColumn;
+        });
+      }
       if (sortOption === "recenti") {
         cards = cards.slice().sort(
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -1411,7 +1443,7 @@ export default function KanbanBoard() {
       }
       return cards;
     },
-    [filteredPractices, sortOption]
+    [filteredPractices, sortOption, isInternal, stageToColumn]
   );
 
   const updatePracticeForDocMiss = useUpdateEneaPractice();
@@ -1534,6 +1566,8 @@ export default function KanbanBoard() {
   };
 
   const onDragEnd = (result: DropResult) => {
+    // Resellers see a read-only board — they cannot reassign pipeline stages.
+    if (!isInternal) return;
     if (!result.destination) return;
     const { draggableId, destination } = result;
     const newStageId = destination.droppableId;
@@ -1551,13 +1585,28 @@ export default function KanbanBoard() {
     });
   };
 
-  const deduped = (
-    brandFilter === "all"
-      ? stages.filter(
-          (s, i, arr) => arr.findIndex((x) => x.stage_type === s.stage_type) === i
-        )
-      : stages
-  ).filter((s) => isInternal || s.is_visible_reseller !== false);
+  const deduped = useMemo(() => {
+    const filtered = (
+      brandFilter === "all"
+        ? stages.filter(
+            (s, i, arr) => arr.findIndex((x) => x.stage_type === s.stage_type) === i
+          )
+        : stages
+    ).filter((s) => isInternal || s.is_visible_reseller !== false);
+
+    if (isInternal) return filtered;
+
+    // For resellers, collapse stages sharing the same `name_reseller` into a
+    // single column (keep the first occurrence — stages are ordered by
+    // order_index from the query).
+    const seen = new Set<string>();
+    return filtered.filter((s) => {
+      const key = s.name_reseller ?? s.name;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [stages, brandFilter, isInternal]);
 
   // ── Auto-archive: sposta in "archiviate" le pratiche in "da_inviare" da >10 giorni ──
   // Ref to prevent firing mutations multiple times for the same practice before the DB propagates.

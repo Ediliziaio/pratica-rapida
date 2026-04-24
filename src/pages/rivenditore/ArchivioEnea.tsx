@@ -56,9 +56,9 @@ async function createSignedUrl(path: string): Promise<string | null> {
   return data.signedUrl;
 }
 
-async function downloadPath(path: string, filename: string) {
+async function downloadPath(path: string, filename: string): Promise<boolean> {
   const url = await createSignedUrl(path);
-  if (!url) return;
+  if (!url) return false;
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
@@ -67,6 +67,7 @@ async function downloadPath(path: string, filename: string) {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+  return true;
 }
 
 function filenameFromPath(path: string): string {
@@ -76,13 +77,21 @@ function filenameFromPath(path: string): string {
 // ── Download button for a single storage path ─────────────────────────────────
 
 function DownloadButton({ path }: { path: string }) {
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const filename = filenameFromPath(path);
 
   const handleClick = async () => {
     setLoading(true);
-    await downloadPath(path, filename);
+    const ok = await downloadPath(path, filename);
     setLoading(false);
+    if (!ok) {
+      toast({
+        variant: "destructive",
+        title: "Impossibile scaricare il file",
+        description: "Il file potrebbe essere stato rimosso o non hai i permessi. Contatta il supporto.",
+      });
+    }
   };
 
   return (
@@ -216,7 +225,7 @@ function FattureInsolute({
     },
   });
 
-  const { data: fatture = [], isLoading } = useQuery<FatturaInsolutaRow[]>({
+  const { data: fatture = [], isLoading, isError: fattureError } = useQuery<FatturaInsolutaRow[]>({
     queryKey: ["fatture_insolute", isInternal ? "all" : resellerId],
     queryFn: async () => {
       let q = supabase
@@ -254,7 +263,13 @@ function FattureInsolute({
         uploaded_by: user?.id ?? null,
         note: null,
       });
-      if (insertError) throw insertError;
+      if (insertError) {
+        // Rollback: rimuovi il file orfano dallo storage
+        await supabase.storage.from("enea-documents").remove([storagePath]).catch(() => {
+          // best-effort cleanup; file resterà orfano ma il DB non ha riferimenti
+        });
+        throw insertError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fatture_insolute"] });
@@ -325,6 +340,10 @@ function FattureInsolute({
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-12 w-full" />
         </div>
+      ) : fattureError ? (
+        <p className="text-sm text-destructive">
+          Errore nel caricamento delle fatture. Ricarica la pagina o contatta il supporto.
+        </p>
       ) : fatture.length === 0 ? (
         <p className="text-sm text-muted-foreground italic">Nessuna fattura insoluta.</p>
       ) : (
@@ -355,7 +374,7 @@ function FattureInsolute({
 export default function ArchivioEnea() {
   const { isInternal, resellerId } = useAuth();
   const [limit, setLimit] = useState(100);
-  const { data: archivedRaw = [], isLoading } = useEneaPractices({
+  const { data: archivedRaw = [], isLoading, isError } = useEneaPractices({
     archivedOnly: true,
     limit,
   });
@@ -397,6 +416,14 @@ export default function ArchivioEnea() {
             ))}
           </div>
         </div>
+      ) : isError ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <AlertTriangle className="mx-auto h-10 w-10 text-destructive/60 mb-3" />
+            <p className="text-sm font-medium mb-1">Impossibile caricare le pratiche archiviate</p>
+            <p className="text-xs text-muted-foreground">Ricarica la pagina o riprova più tardi.</p>
+          </CardContent>
+        </Card>
       ) : archived.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">

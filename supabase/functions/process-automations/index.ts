@@ -161,6 +161,17 @@ serve(async () => {
             .lt("recensione_richiesta_at", sevenDaysAgo);
 
           for (const p of practices ?? []) {
+            // Skip if we already sent a review follow-up (prevents re-sending every cron tick)
+            const { data: alreadySent } = await supabase
+              .from("communication_log")
+              .select("id")
+              .eq("practice_id", p.id)
+              .in("channel", ["email", "whatsapp"])
+              .or("subject.ilike.%recensione%,body_preview.ilike.%sollecito_recensione%")
+              .limit(1)
+              .maybeSingle();
+            if (alreadySent) continue;
+
             if (p.cliente_email) {
               await invoke(supabase, "send-email", {
                 to: p.cliente_email,

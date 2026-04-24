@@ -52,7 +52,16 @@ import {
 } from "lucide-react";
 import type { AutomationRule } from "@/integrations/supabase/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -831,6 +840,7 @@ function AutomationCard({
   onEdit,
   onToggle,
   onDuplicate,
+  onDelete,
   dragHandleProps,
   isDragging,
 }: {
@@ -838,6 +848,7 @@ function AutomationCard({
   onEdit: () => void;
   onToggle: (enabled: boolean) => void;
   onDuplicate: () => void;
+  onDelete: () => void;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
   isDragging?: boolean;
 }) {
@@ -913,8 +924,19 @@ function AutomationCard({
           className="gap-1.5 text-muted-foreground"
           onClick={onDuplicate}
           title="Duplica"
+          aria-label="Duplica automazione"
         >
           <Copy className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="gap-1.5 text-muted-foreground hover:text-destructive"
+          onClick={onDelete}
+          title="Elimina"
+          aria-label="Elimina automazione"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </div>
     </div>
@@ -1053,12 +1075,29 @@ export default function Automazioni() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["automation_rules"] });
       setLocalOrder(null);
+      toast({ title: "Ordine aggiornato" });
     },
     onError: (err) => {
       setLocalOrder(null);
       toast({ variant: "destructive", title: "Errore riordino", description: String(err) });
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("automation_rules").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["automation_rules"] });
+      toast({ title: "Automazione eliminata" });
+    },
+    onError: (err) => {
+      toast({ variant: "destructive", title: "Errore", description: String(err) });
+    },
+  });
+
+  const [ruleToDelete, setRuleToDelete] = useState<AutomationRule | null>(null);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -1423,6 +1462,7 @@ export default function Automazioni() {
                               toggleMutation.mutate({ id: rule.id, is_enabled: enabled })
                             }
                             onDuplicate={() => duplicateMutation.mutate(rule)}
+                            onDelete={() => setRuleToDelete(rule)}
                             dragHandleProps={dragProvided.dragHandleProps ?? undefined}
                             isDragging={snapshot.isDragging}
                           />
@@ -1459,6 +1499,35 @@ export default function Automazioni() {
           </div>
         </>
       )}
+
+      {/* Confirm delete automation */}
+      <AlertDialog
+        open={!!ruleToDelete}
+        onOpenChange={(o) => !o && setRuleToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminare l'automazione?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {ruleToDelete
+                ? `"${ruleToDelete.name}" verrà eliminata definitivamente. L'operazione non può essere annullata.`
+                : "L'automazione verrà eliminata definitivamente."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (ruleToDelete) deleteMutation.mutate(ruleToDelete.id);
+                setRuleToDelete(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Elimina
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

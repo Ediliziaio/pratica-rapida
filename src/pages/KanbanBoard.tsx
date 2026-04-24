@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useLocation, useSearchParams } from "react-router-dom";
 import {
@@ -205,7 +205,7 @@ function CommLogSection({
   const [callNotes, setCallNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const { data: commLog = [], refetch } = useQuery<CommLogEntry[]>({
+  const { data: commLog = [], refetch, isError: commLogError } = useQuery<CommLogEntry[]>({
     queryKey: ["comm-log", practiceId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -322,7 +322,11 @@ function CommLogSection({
         </div>
       )}
 
-      {commLog.length === 0 ? (
+      {commLogError ? (
+        <p className="text-sm text-destructive">
+          Errore nel caricamento del log. <button onClick={() => refetch()} className="underline hover:no-underline">Riprova</button>
+        </p>
+      ) : commLog.length === 0 ? (
         <p className="text-sm text-muted-foreground italic">Nessuna comunicazione registrata.</p>
       ) : (
         <div className="space-y-2">
@@ -387,11 +391,16 @@ function PracticeDetailSheet({
   const [editOperatoreId, setEditOperatoreId] = useState<string>("");
   const [newDoc, setNewDoc] = useState("");
   const [uploadingConclusa, setUploadingConclusa] = useState(false);
+  const [deleteConclusaPath, setDeleteConclusaPath] = useState<string | null>(null);
   const conclusaInputRef = useRef<HTMLInputElement>(null);
 
-  const operatorIds = [
-    ...new Set(allPractices.map((p) => p.operatore_id).filter(Boolean)),
-  ] as string[];
+  // Memoize operatorIds: without useMemo the spread produces a new array every
+  // render, invalidating the react-query cache key and refetching on each render.
+  const operatorIds = useMemo(
+    () =>
+      [...new Set(allPractices.map((p) => p.operatore_id).filter(Boolean))] as string[],
+    [allPractices],
+  );
 
   const { data: allOperators = [] } = useQuery({
     queryKey: ["sheet-operators", operatorIds],
@@ -722,6 +731,8 @@ function PracticeDetailSheet({
                           type="button"
                           onClick={() => setEditDocs(editDocs.filter((_, j) => j !== i))}
                           className="hover:text-red-600"
+                          aria-label={`Rimuovi ${doc}`}
+                          title={`Rimuovi ${doc}`}
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -915,9 +926,10 @@ function PracticeDetailSheet({
                           {isInternal && (
                             <button
                               type="button"
-                              onClick={() => handleDeleteConclusa(path)}
+                              onClick={() => setDeleteConclusaPath(path)}
                               className="text-muted-foreground hover:text-destructive transition-colors p-0.5 rounded shrink-0"
                               title="Rimuovi file"
+                              aria-label="Rimuovi file"
                             >
                               <X className="h-3.5 w-3.5" />
                             </button>
@@ -1061,6 +1073,32 @@ function PracticeDetailSheet({
           </>
         )}
       </SheetContent>
+
+      {/* Confirm delete "pratica conclusa" file */}
+      <AlertDialog
+        open={!!deleteConclusaPath}
+        onOpenChange={(o) => !o && setDeleteConclusaPath(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Rimuovere il file?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Il file verrà eliminato definitivamente dall'archivio. L'operazione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteConclusaPath) handleDeleteConclusa(deleteConclusaPath);
+                setDeleteConclusaPath(null);
+              }}
+            >
+              Elimina
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 }
@@ -1293,16 +1331,19 @@ export default function KanbanBoard() {
     brandFilter !== "all" ? brandFilter : undefined
   );
 
-  const { data: practices = [], isLoading } = useEneaPractices({
+  const { data: practices = [], isLoading, isError: practicesError } = useEneaPractices({
     brand: brandFilter !== "all" ? brandFilter : undefined,
     search: search.length > 1 ? search : undefined,
     includeArchived: showArchived,
   });
 
-  // Operator map for cards and sheet
-  const operatorIds = [
-    ...new Set(practices.map((p) => p.operatore_id).filter(Boolean)),
-  ] as string[];
+  // Operator map for cards and sheet. Memoized to avoid creating a new array
+  // reference per render (which would invalidate the query cache key).
+  const operatorIds = useMemo(
+    () =>
+      [...new Set(practices.map((p) => p.operatore_id).filter(Boolean))] as string[],
+    [practices],
+  );
 
   const { data: operators = [] } = useQuery({
     queryKey: ["kanban-operators", operatorIds],
@@ -1676,6 +1717,8 @@ export default function KanbanBoard() {
             <button
               onClick={() => setSearch("")}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Cancella ricerca"
+              title="Cancella ricerca"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -1713,6 +1756,7 @@ export default function KanbanBoard() {
             className="h-8 w-8"
             onClick={() => setSettingsOpen(true)}
             title="Impostazioni pipeline"
+            aria-label="Impostazioni pipeline"
           >
             <SlidersHorizontal className="h-3.5 w-3.5" />
           </Button>
@@ -1967,6 +2011,21 @@ export default function KanbanBoard() {
       {isLoading ? (
         <div className="flex flex-1 items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      ) : practicesError ? (
+        <div className="flex flex-1 min-h-0 flex-col items-center justify-center gap-4 text-center p-8">
+          <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center">
+            <AlertTriangle className="h-8 w-8 text-destructive" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-lg">Errore di caricamento</h3>
+            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+              Non è stato possibile caricare le pratiche. Controlla la connessione e riprova.
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            Ricarica pagina
+          </Button>
         </div>
       ) : deduped.length === 0 ? (
         <div className="flex flex-1 min-h-0 flex-col items-center justify-center gap-4 text-center p-8">

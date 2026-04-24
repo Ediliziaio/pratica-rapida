@@ -94,14 +94,15 @@ export default function FormPubblico() {
       return;
     }
 
-    // Find the "pronte_da_fare" stage for this practice's brand
+    // Find the "pronte_da_fare" stage for this practice's brand.
+    // maybeSingle() evita il throw se la riga non esiste — fallback sullo stage corrente.
     const { data: stage } = await supabase
       .from("pipeline_stages")
       .select("id")
       .is("reseller_id", null)
       .eq("stage_type", "pronte_da_fare")
       .eq("brand", practice.brand)
-      .single();
+      .maybeSingle();
 
     const { error } = await supabase
       .from("enea_practices")

@@ -809,40 +809,35 @@ function PracticeDetailSheet({
               </div>
             ) : (
               <div className="space-y-5">
-                {/* Dati cliente */}
+                {/* 1. Dati cliente UNIFICATO */}
                 <section>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                     Dati cliente
                   </h3>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 text-sm">
                     <div>
-                      <p className="text-xs text-muted-foreground">Codice fiscale</p>
-                      <p className="font-medium">{practice.cliente_cf || "—"}</p>
+                      <p className="text-xs text-muted-foreground">Nome</p>
+                      <p className="font-medium">
+                        {[practice.cliente_nome, practice.cliente_cognome].filter(Boolean).join(" ") || "—"}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Telefono</p>
                       <p className="font-medium">{practice.cliente_telefono || "—"}</p>
                     </div>
-                    <div className="col-span-2">
+                    <div>
                       <p className="text-xs text-muted-foreground">Email</p>
-                      <p className="font-medium">{practice.cliente_email || "—"}</p>
+                      <p className="font-medium break-all">{practice.cliente_email || "—"}</p>
                     </div>
-                    {practice.cliente_indirizzo && (
-                      <div className="col-span-2">
-                        <p className="text-xs text-muted-foreground">Indirizzo</p>
-                        <p className="font-medium">{practice.cliente_indirizzo}</p>
-                      </div>
-                    )}
-                  </div>
-                </section>
-
-                {/* Dati pratica ENEA */}
-                <section>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                    Dati pratica ENEA
-                  </h3>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                    <div className="col-span-2">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Codice fiscale</p>
+                      <p className="font-medium">{practice.cliente_cf || "—"}</p>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <p className="text-xs text-muted-foreground">Indirizzo</p>
+                      <p className="font-medium">{practice.cliente_indirizzo || "—"}</p>
+                    </div>
+                    <div>
                       <p className="text-xs text-muted-foreground">Prodotto installato</p>
                       <p className="font-medium">{practice.prodotto_installato || "—"}</p>
                     </div>
@@ -850,45 +845,50 @@ function PracticeDetailSheet({
                       <p className="text-xs text-muted-foreground">Fornitore</p>
                       <p className="font-medium">{practice.fornitore || "—"}</p>
                     </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Data invio pratica</p>
-                      <p className="font-medium">{formatDate(practice.data_invio_pratica)}</p>
-                    </div>
                   </div>
+                  {practice.note && (
+                    <div className="mt-3 pt-3 border-t">
+                      <p className="text-xs text-muted-foreground mb-1">Note</p>
+                      <p className="text-sm whitespace-pre-wrap">{practice.note}</p>
+                    </div>
+                  )}
                 </section>
 
-                {/* Documenti caricati */}
-                {(() => {
-                  const allDocs = [
-                    ...(practice.fatture_urls ?? []).map((p, i) => ({ label: `Fattura ${i + 1}`, path: p })),
-                    ...(practice.documenti_aggiuntivi_urls ?? []).map((p, i) => ({ label: `Doc. aggiuntivo ${i + 1}`, path: p })),
-                    ...(practice.documenti_enea_urls ?? []).map((p, i) => ({ label: `Doc. ENEA ${i + 1}`, path: p })),
-                  ];
-                  return (
-                    <section>
-                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                        Documenti caricati
-                      </h3>
-                      {allDocs.length === 0 ? (
-                        <p className="text-sm text-muted-foreground italic">Nessun documento allegato.</p>
-                      ) : (
-                        <div className="space-y-0.5">
-                          {allDocs.map((d) => (
-                            <FileDownloadLink key={d.path} label={d.label} path={d.path} />
-                          ))}
-                        </div>
-                      )}
-                    </section>
-                  );
-                })()}
+                {/* 2. Note interne (solo isInternal) */}
+                {isInternal && (
+                  <section>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      Note interne
+                    </h3>
+                    {practice.note_interne ? (
+                      <p className="text-sm whitespace-pre-wrap">{practice.note_interne}</p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">Nessuna nota interna.</p>
+                    )}
+                  </section>
+                )}
 
-                {/* Pratica ENEA conclusa (§4.2) */}
+                {/* 3. Documenti richiesti (amber box) — solo se stage === documenti_mancanti con nota */}
+                {practice.pipeline_stages?.stage_type === "documenti_mancanti" && practice.note_documenti_mancanti && (
+                  <section>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      Documenti richiesti
+                    </h3>
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900/40 dark:bg-amber-950/20 p-3 flex items-start gap-2">
+                      <FileWarning className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                      <p className="text-sm text-amber-800 dark:text-amber-300 whitespace-pre-wrap">
+                        {practice.note_documenti_mancanti}
+                      </p>
+                    </div>
+                  </section>
+                )}
+
+                {/* 4. Zona documenti UNIFICATA */}
                 <section>
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Pratica ENEA conclusa
+                      Documenti
                     </h3>
-                    {/* Upload solo per superadmin */}
                     {isInternal && (
                       <>
                         <input
@@ -907,167 +907,99 @@ function PracticeDetailSheet({
                           onClick={() => conclusaInputRef.current?.click()}
                         >
                           <Plus className="h-3 w-3" />
-                          {uploadingConclusa ? "Caricamento…" : "Carica"}
+                          {uploadingConclusa ? "Caricamento…" : "Carica pratica conclusa"}
                         </Button>
                       </>
                     )}
                   </div>
-                  {(practice.pratica_enea_conclusa_urls ?? []).length === 0 ? (
-                    <p className="text-sm text-muted-foreground italic">
-                      {isInternal ? "Nessun file caricato. Carica la pratica completata." : "Pratica non ancora disponibile."}
-                    </p>
-                  ) : (
-                    <div className="space-y-1">
-                      {(practice.pratica_enea_conclusa_urls ?? []).map((path, i) => (
-                        <div key={path} className="flex items-center gap-1">
-                          <div className="flex-1 min-w-0">
-                            <FileDownloadLink label={`Pratica conclusa ${i + 1}`} path={path} />
-                          </div>
-                          {isInternal && (
-                            <button
-                              type="button"
-                              onClick={() => setDeleteConclusaPath(path)}
-                              className="text-muted-foreground hover:text-destructive transition-colors p-0.5 rounded shrink-0"
-                              title="Rimuovi file"
-                              aria-label="Rimuovi file"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {(() => {
+                    const groups: { title: string; files: { label: string; path: string; canDelete: boolean }[] }[] = [
+                      {
+                        title: "Fatture",
+                        files: (practice.fatture_urls ?? []).map((p, i) => ({
+                          label: `Fattura ${i + 1}`,
+                          path: p,
+                          canDelete: false,
+                        })),
+                      },
+                      {
+                        title: "Documenti aggiuntivi",
+                        files: (practice.documenti_aggiuntivi_urls ?? []).map((p, i) => ({
+                          label: `Doc. aggiuntivo ${i + 1}`,
+                          path: p,
+                          canDelete: false,
+                        })),
+                      },
+                      {
+                        title: "Documenti ENEA",
+                        files: (practice.documenti_enea_urls ?? []).map((p, i) => ({
+                          label: `Doc. ENEA ${i + 1}`,
+                          path: p,
+                          canDelete: false,
+                        })),
+                      },
+                      {
+                        title: "Pratica ENEA conclusa",
+                        files: (practice.pratica_enea_conclusa_urls ?? []).map((p, i) => ({
+                          label: `Pratica conclusa ${i + 1}`,
+                          path: p,
+                          canDelete: true,
+                        })),
+                      },
+                    ];
+                    const totalFiles = groups.reduce((sum, g) => sum + g.files.length, 0);
+                    if (totalFiles === 0) {
+                      return (
+                        <p className="text-sm text-muted-foreground italic">
+                          Nessun documento disponibile.
+                        </p>
+                      );
+                    }
+                    return (
+                      <div className="space-y-3">
+                        {groups.map((g) =>
+                          g.files.length === 0 ? null : (
+                            <div key={g.title}>
+                              <p className="text-[11px] font-medium text-muted-foreground mb-1">
+                                {g.title}
+                              </p>
+                              <div className="space-y-1">
+                                {g.files.map((f) => (
+                                  <div key={f.path} className="flex items-center gap-1">
+                                    <div className="flex-1 min-w-0">
+                                      <FileDownloadLink label={f.label} path={f.path} />
+                                    </div>
+                                    {isInternal && f.canDelete && (
+                                      <button
+                                        type="button"
+                                        onClick={() => setDeleteConclusaPath(f.path)}
+                                        className="text-muted-foreground hover:text-destructive transition-colors p-0.5 rounded shrink-0"
+                                        title="Rimuovi file"
+                                        aria-label="Rimuovi file"
+                                      >
+                                        <X className="h-3.5 w-3.5" />
+                                      </button>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    );
+                  })()}
                 </section>
 
-                {/* Guadagno (internal only) */}
-                {isInternal && (practice.guadagno_lordo != null || practice.guadagno_netto != null) && (
-                  <section>
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                      Guadagno
-                    </h3>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Lordo</p>
-                        <p className="font-medium">
-                          {practice.guadagno_lordo != null
-                            ? `€ ${Number(practice.guadagno_lordo).toLocaleString("it-IT", { minimumFractionDigits: 2 })}`
-                            : "—"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Netto</p>
-                        <p className="font-medium">
-                          {practice.guadagno_netto != null
-                            ? `€ ${Number(practice.guadagno_netto).toLocaleString("it-IT", { minimumFractionDigits: 2 })}`
-                            : "—"}
-                        </p>
-                      </div>
-                    </div>
-                  </section>
-                )}
-
-                {/* Documenti mancanti (lista chip — visibile a tutti) */}
-                {practice.documenti_mancanti?.length > 0 && (
-                  <section>
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                      Documenti mancanti
-                    </h3>
-                    <ul className="space-y-1">
-                      {practice.documenti_mancanti.map((doc: string) => (
-                        <li
-                          key={doc}
-                          className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400"
-                        >
-                          <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
-                          {doc}
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                )}
-
-                {/* Documenti richiesti — sezione sempre presente, testo visibile solo in stato documenti_mancanti */}
-                <section>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                    Documenti richiesti
-                  </h3>
-                  {practice.pipeline_stages?.stage_type === "documenti_mancanti" && practice.note_documenti_mancanti ? (
-                    <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900/40 dark:bg-amber-950/20 p-3 flex items-start gap-2">
-                      <FileWarning className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                      <p className="text-sm text-amber-800 dark:text-amber-300 whitespace-pre-wrap">
-                        {practice.note_documenti_mancanti}
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground italic">
-                      {practice.pipeline_stages?.stage_type === "documenti_mancanti"
-                        ? "Nessuna nota aggiuntiva."
-                        : "Nessun documento richiesto al momento."}
-                    </p>
-                  )}
-                </section>
-
-                {/* Note */}
-                {practice.note && (
-                  <section>
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                      Note
-                    </h3>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{practice.note}</p>
-                  </section>
-                )}
-
-                {/* Note interne (internal only) */}
-                {isInternal && practice.note_interne && (
-                  <section>
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                      Note interne
-                    </h3>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                      {practice.note_interne}
-                    </p>
-                  </section>
-                )}
-
-                {/* Form status — solo interno */}
-                {isInternal && (
-                  <section>
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                      Form
-                    </h3>
-                    <p className="text-sm">
-                      {practice.form_compilato_at ? (
-                        <span className="text-green-700 dark:text-green-400">
-                          Compilato il {formatDate(practice.form_compilato_at)}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">Non compilato</span>
-                      )}
-                    </p>
-                  </section>
-                )}
-
-                {/* Date */}
-                <section className="border-t pt-4">
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                    <div>
-                      <p>Solleciti inviati</p>
-                      <p className="font-medium text-foreground">{practice.conteggio_solleciti ?? 0}</p>
-                    </div>
-                    <div>
-                      <p>Creata il</p>
-                      <p className="font-medium text-foreground">{formatDateTime(practice.created_at)}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p>Ultimo aggiornamento</p>
-                      <p className="font-medium text-foreground">{formatDateTime(practice.updated_at)}</p>
-                    </div>
+                {/* 5. Log comunicazioni — collapsed by default */}
+                <details className="group">
+                  <summary className="cursor-pointer text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-primary">
+                    Log comunicazioni
+                  </summary>
+                  <div className="mt-3">
+                    <CommLogSection practiceId={practice.id} isInternal={isInternal} />
                   </div>
-                </section>
-
-                {/* Log comunicazioni */}
-                <CommLogSection practiceId={practice.id} isInternal={isInternal} />
+                </details>
               </div>
             )}
           </>

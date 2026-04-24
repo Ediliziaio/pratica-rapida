@@ -1,8 +1,5 @@
 project_id = "xmkjrhwmmuzaqjqlvzxm"
 
-[functions.register-company]
-verify_jwt = false
-
 [functions.create-company-user]
 verify_jwt = false
 

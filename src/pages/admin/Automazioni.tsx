@@ -46,6 +46,7 @@ import {
   Pencil,
   Copy,
   GripVertical,
+  PlayCircle,
 } from "lucide-react";
 import type { AutomationRule } from "@/integrations/supabase/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,6 +60,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -835,6 +844,7 @@ function AutomationCard({
   onToggle,
   onDuplicate,
   onDelete,
+  onTest,
   dragHandleProps,
   isDragging,
 }: {
@@ -843,6 +853,7 @@ function AutomationCard({
   onToggle: (enabled: boolean) => void;
   onDuplicate: () => void;
   onDelete: () => void;
+  onTest?: () => void;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
   isDragging?: boolean;
 }) {
@@ -912,6 +923,18 @@ function AutomationCard({
           <Pencil className="h-3.5 w-3.5" />
           Modifica
         </Button>
+        {onTest && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="gap-1.5 text-muted-foreground hover:text-primary"
+            onClick={onTest}
+            title="Test"
+            aria-label="Test automazione"
+          >
+            <PlayCircle className="h-3.5 w-3.5" />
+          </Button>
+        )}
         <Button
           size="sm"
           variant="ghost"
@@ -1092,6 +1115,67 @@ export default function Automazioni() {
   });
 
   const [ruleToDelete, setRuleToDelete] = useState<AutomationRule | null>(null);
+
+  // Test automation state
+  const [testTarget, setTestTarget] = useState<AutomationRule | null>(null);
+  const [testPracticeId, setTestPracticeId] = useState<string>("");
+
+  const { data: testPractices = [] } = useQuery({
+    queryKey: ["test-practices-for-automation"],
+    enabled: !!testTarget,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("enea_practices_public")
+        .select("id, cliente_nome, cliente_cognome, cliente_email, cliente_telefono, brand")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      return data ?? [];
+    },
+  });
+
+  const testMutation = useMutation({
+    mutationFn: async ({ rule, practiceId }: { rule: AutomationRule; practiceId: string }) => {
+      if (rule.trigger_event === "practice_created") {
+        return await supabase.functions.invoke("on-practice-created", {
+          body: { practice_id: practiceId },
+        });
+      }
+      if (["stage_changed", "form_compiled"].includes(rule.trigger_event)) {
+        const stageMap: Record<string, string> = {
+          form_compiled: "pronte_da_fare",
+          stage_changed: "da_inviare",
+        };
+        return await supabase.functions.invoke("on-stage-changed", {
+          body: {
+            practice_id: practiceId,
+            new_stage_type: stageMap[rule.trigger_event] ?? "da_inviare",
+          },
+        });
+      }
+      if (
+        rule.trigger_event.startsWith("days_waiting") ||
+        rule.trigger_event === "recensione_7d_followup"
+      ) {
+        return await supabase.functions.invoke("process-automations", { body: {} });
+      }
+      throw new Error(`Test non supportato per trigger: ${rule.trigger_event}`);
+    },
+    onSuccess: (_data, vars) => {
+      toast({
+        title: "Test inviato",
+        description: `Automazione "${vars.rule.name}" eseguita. Controlla email/WA del cliente.`,
+      });
+      setTestTarget(null);
+      setTestPracticeId("");
+    },
+    onError: (err: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Errore test",
+        description: err.message,
+      });
+    },
+  });
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -1457,6 +1541,7 @@ export default function Automazioni() {
                             }
                             onDuplicate={() => duplicateMutation.mutate(rule)}
                             onDelete={() => setRuleToDelete(rule)}
+                            onTest={() => setTestTarget(rule)}
                             dragHandleProps={dragProvided.dragHandleProps ?? undefined}
                             isDragging={snapshot.isDragging}
                           />
@@ -1522,6 +1607,59 @@ export default function Automazioni() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Test automation dialog */}
+      <Dialog
+        open={!!testTarget}
+        onOpenChange={(o) => {
+          if (!o) {
+            setTestTarget(null);
+            setTestPracticeId("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Test automazione</DialogTitle>
+            <DialogDescription>
+              Invia l'automazione "{testTarget?.name}" su una pratica reale per verificare il template.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label>Pratica di test</Label>
+              <Select value={testPracticeId} onValueChange={setTestPracticeId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleziona pratica" />
+                </SelectTrigger>
+                <SelectContent>
+                  {testPractices.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.cliente_nome} {p.cliente_cognome} · {p.brand}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+              Attenzione: il test invia email/WhatsApp reali al cliente della pratica scelta. Usa una pratica di test se possibile.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTestTarget(null)}>
+              Annulla
+            </Button>
+            <Button
+              onClick={() =>
+                testMutation.mutate({ rule: testTarget!, practiceId: testPracticeId })
+              }
+              disabled={!testPracticeId || testMutation.isPending}
+            >
+              {testMutation.isPending ? "Invio..." : "Invia test"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

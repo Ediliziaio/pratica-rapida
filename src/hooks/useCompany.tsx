@@ -41,14 +41,42 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     enabled: !!user,
   });
 
+  // Audit-log helper (non blocking — se fallisce l'operazione continua)
+  const logImpersonationEvent = async (
+    action: "impersonation_start" | "impersonation_end",
+    targetCompanyId: string | null,
+    targetCompanyName: string | null
+  ) => {
+    if (!user) return;
+    try {
+      await supabase.from("audit_log").insert({
+        user_id: user.id,
+        azione: action,
+        dettagli: {
+          target_company_id: targetCompanyId,
+          target_company_name: targetCompanyName,
+          actor_email: user.email,
+        },
+      });
+    } catch (err) {
+      console.warn("audit_log insert failed for impersonation event:", err);
+    }
+  };
+
   const setImpersonatedCompany = (id: string, name: string) => {
     setOverrideCompanyId(id);
     setOverrideCompanyName(name);
+    void logImpersonationEvent("impersonation_start", id, name);
   };
 
   const clearImpersonation = () => {
+    const prevId = overrideCompanyId;
+    const prevName = overrideCompanyName;
     setOverrideCompanyId(null);
     setOverrideCompanyName(null);
+    if (prevId) {
+      void logImpersonationEvent("impersonation_end", prevId, prevName);
+    }
   };
 
   return (

@@ -7,7 +7,7 @@ import {
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import {
   usePipelineStages,
@@ -53,6 +53,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -91,6 +92,7 @@ import {
   FilterX,
   HelpCircle,
   FileWarning,
+  CheckSquare,
 } from "lucide-react";
 import {
   Tooltip,
@@ -866,12 +868,16 @@ function PracticeDetailSheet({
                       <p className="font-medium">{practice.fornitore || "—"}</p>
                     </div>
                   </div>
-                  {practice.note && (
-                    <div className="mt-3 pt-3 border-t">
-                      <p className="text-xs text-muted-foreground mb-1">Note</p>
+                  <div className="mt-3 pt-3 border-t">
+                    <p className="text-xs text-muted-foreground mb-1">Note</p>
+                    {practice.note ? (
                       <p className="text-sm whitespace-pre-wrap">{practice.note}</p>
-                    </div>
-                  )}
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">
+                        Nessuna nota. Clicca <span className="font-medium">Modifica</span> per aggiungerne una.
+                      </p>
+                    )}
+                  </div>
                 </section>
 
                 {/* 2. Note interne (solo isInternal) */}
@@ -1090,12 +1096,18 @@ function PracticeCard({
   isInternal,
   operatorMap,
   onOpen,
+  selectable = false,
+  isSelected = false,
+  onToggleSelect,
 }: {
   practice: PracticeWithRelations;
   index: number;
   isInternal: boolean;
   operatorMap: Record<string, string>;
   onOpen: (p: PracticeWithRelations) => void;
+  selectable?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }) {
   const days = daysAgo(practice.updated_at);
   const hasMissingDocs = practice.documenti_mancanti?.length > 0;
@@ -1106,24 +1118,54 @@ function PracticeCard({
     days > 7 ? "text-destructive" : days >= 4 ? "text-amber-500" : "text-muted-foreground";
 
   return (
-    <Draggable draggableId={practice.id} index={index}>
+    <Draggable draggableId={practice.id} index={index} isDragDisabled={selectable}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          onClick={() => !snapshot.isDragging && onOpen(practice)}
-          className={`group rounded-lg bg-background border p-3 space-y-2 text-sm cursor-grab active:cursor-grabbing transition-all duration-150 ${
+          onClick={(e) => {
+            if (snapshot.isDragging) return;
+            if (selectable) {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleSelect?.(practice.id);
+              return;
+            }
+            onOpen(practice);
+          }}
+          className={`group relative rounded-lg bg-background border p-3 space-y-2 text-sm transition-all duration-150 ${
+            selectable ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
+          } ${
             snapshot.isDragging
               ? "shadow-xl ring-2 ring-primary/30 rotate-1"
+              : isSelected
+              ? "shadow-md ring-2 ring-primary border-primary"
               : "shadow-sm hover:shadow-md hover:-translate-y-0.5"
           }`}
         >
           {/* Top: name + brand + CF badge */}
           <div className="flex items-start justify-between gap-2">
-            <span className="font-semibold leading-snug truncate text-[13px]">
-              {practice.cliente_nome} {practice.cliente_cognome}
-            </span>
+            <div className="flex items-start gap-2 min-w-0 flex-1">
+              {selectable && (
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleSelect?.(practice.id);
+                  }}
+                  className="shrink-0 mt-0.5"
+                >
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => onToggleSelect?.(practice.id)}
+                    aria-label={`Seleziona pratica di ${practice.cliente_nome} ${practice.cliente_cognome}`}
+                  />
+                </div>
+              )}
+              <span className="font-semibold leading-snug truncate text-[13px]">
+                {practice.cliente_nome} {practice.cliente_cognome}
+              </span>
+            </div>
             <div className="flex items-center gap-1 shrink-0">
               {/* CF badge — solo visibile agli operatori interni */}
               {isInternal && practice.tipo_fatturazione === "cliente_finale" && (
@@ -1211,6 +1253,73 @@ export default function KanbanBoard() {
   const { user, isInternal } = useAuth();
   const { toast } = useToast();
   const moveStage = useMoveStage();
+  const queryClient = useQueryClient();
+
+  // Bulk selection state (internal users only)
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkMoveStageId, setBulkMoveStageId] = useState<string>("");
+  const [bulkArchiveConfirm, setBulkArchiveConfirm] = useState(false);
+
+  // Clear selection when leaving select mode
+  useEffect(() => {
+    if (!selectMode) setSelectedIds(new Set());
+  }, [selectMode]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const bulkMoveMutation = useMutation({
+    mutationFn: async (args: { ids: string[]; stageId: string }) => {
+      const { error } = await (supabase as any)
+        .from("enea_practices")
+        .update({ current_stage_id: args.stageId })
+        .in("id", args.ids);
+      if (error) throw error;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["enea_practices"] });
+      setSelectedIds(new Set());
+      setBulkMoveStageId("");
+      toast({ title: `${variables.ids.length} pratiche spostate` });
+    },
+    onError: (err: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Errore spostamento",
+        description: err.message || "Impossibile spostare le pratiche.",
+      });
+    },
+  });
+
+  const bulkArchiveMutation = useMutation({
+    mutationFn: async (args: { ids: string[] }) => {
+      const { error } = await (supabase as any)
+        .from("enea_practices")
+        .update({ archived_at: new Date().toISOString() })
+        .in("id", args.ids);
+      if (error) throw error;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["enea_practices"] });
+      setSelectedIds(new Set());
+      setBulkArchiveConfirm(false);
+      toast({ title: `${variables.ids.length} pratiche archiviate` });
+    },
+    onError: (err: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Errore archiviazione",
+        description: err.message || "Impossibile archiviare le pratiche.",
+      });
+    },
+  });
 
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -1798,6 +1907,20 @@ export default function KanbanBoard() {
         )}
 
         <div className="ml-auto flex items-center gap-3">
+          {isInternal && (
+            <button
+              onClick={() => setSelectMode((v) => !v)}
+              className={`flex items-center gap-1 text-xs transition-colors ${
+                selectMode
+                  ? "text-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              title="Attiva/disattiva modalità selezione multipla"
+            >
+              <CheckSquare className="h-3.5 w-3.5" />
+              {selectMode ? "Esci selezione" : "Selezione multipla"}
+            </button>
+          )}
           <button
             onClick={() => setShowArchived((v) => !v)}
             className={`text-xs transition-colors ${
@@ -2143,6 +2266,9 @@ export default function KanbanBoard() {
                               isInternal={isInternal}
                               operatorMap={operatorMap}
                               onOpen={setSelectedPractice}
+                              selectable={isInternal && selectMode}
+                              isSelected={selectedIds.has(practice.id)}
+                              onToggleSelect={toggleSelect}
                             />
                           ))
                         )}
@@ -2225,6 +2351,78 @@ export default function KanbanBoard() {
       />
 
       <PipelineSettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+
+      {/* Floating bulk-action bar */}
+      {isInternal && selectMode && selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-lg border bg-background shadow-lg px-4 py-3">
+          <span className="text-sm font-medium">
+            {selectedIds.size} {selectedIds.size === 1 ? "selezionata" : "selezionate"}
+          </span>
+          <Separator orientation="vertical" className="h-6" />
+          <Select
+            value={bulkMoveStageId}
+            onValueChange={(stageId) => {
+              setBulkMoveStageId(stageId);
+              bulkMoveMutation.mutate({ ids: Array.from(selectedIds), stageId });
+            }}
+          >
+            <SelectTrigger className="h-8 w-[180px] text-xs">
+              <SelectValue placeholder="Sposta in..." />
+            </SelectTrigger>
+            <SelectContent>
+              {stages.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5"
+            onClick={() => setBulkArchiveConfirm(true)}
+            disabled={bulkArchiveMutation.isPending}
+          >
+            <Archive className="h-3.5 w-3.5" />
+            Archivia
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1.5"
+            onClick={() => setSelectedIds(new Set())}
+          >
+            <X className="h-3.5 w-3.5" />
+            Annulla selezione
+          </Button>
+        </div>
+      )}
+
+      {/* Bulk archive confirm dialog */}
+      <AlertDialog open={bulkArchiveConfirm} onOpenChange={setBulkArchiveConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Archiviare {selectedIds.size} {selectedIds.size === 1 ? "pratica" : "pratiche"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Le pratiche selezionate verranno spostate in archivio. Puoi sempre ripristinarle in seguito.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                bulkArchiveMutation.mutate({ ids: Array.from(selectedIds) });
+              }}
+              disabled={bulkArchiveMutation.isPending}
+            >
+              Archivia
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

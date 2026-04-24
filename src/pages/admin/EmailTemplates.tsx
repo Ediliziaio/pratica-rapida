@@ -220,6 +220,17 @@ export default function EmailTemplates() {
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-bold">Email Templates</h1>
 
+      {/* Banner informativo — chiarisce che i template hardcoded NON sono modificabili qui */}
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
+        <p className="font-semibold text-amber-900 mb-1">⚠️ Ambito di questa pagina</p>
+        <p className="text-amber-800">
+          I template qui configurati sono usati <strong>solo</strong> dall'edge function <code className="font-mono text-xs bg-amber-100 px-1 py-0.5 rounded">notify-cliente</code> per i moduli cliente (Schermature, Infissi, Pompe di calore, VEPA).
+        </p>
+        <p className="text-amber-800 mt-2">
+          Le email del flusso ENEA (<em>Messaggio 1-5</em>, <em>Notifica A/B/C</em>, <em>conferme pratica</em>, <em>ticket</em>, <em>benvenuto azienda</em>) sono <strong>hardcoded</strong> nell'edge function <code className="font-mono text-xs bg-amber-100 px-1 py-0.5 rounded">send-email</code> e non si modificano da qui. Per cambiarle, modificare <code className="font-mono text-xs bg-amber-100 px-1 py-0.5 rounded">supabase/functions/send-email/index.ts</code> e redeploy.
+        </p>
+      </div>
+
       <Tabs defaultValue="templates">
         <TabsList>
           <TabsTrigger value="templates">Template</TabsTrigger>

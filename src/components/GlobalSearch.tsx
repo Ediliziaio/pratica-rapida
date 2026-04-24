@@ -53,6 +53,7 @@ export function GlobalSearch() {
         const all: SearchResult[] = [];
         const pattern = `%${q}%`;
 
+        // Legacy pratiche (staff + tenant views collegate a /pratiche)
         let praticheQuery = supabase
           .from("pratiche")
           .select("id, titolo, stato, categoria")
@@ -70,6 +71,24 @@ export function GlobalSearch() {
               sublabel: `${p.categoria} · ${p.stato}`,
               type: "pratica",
               url: `/pratiche/${p.id}`,
+            })
+          );
+        }
+
+        // Nuove pratiche ENEA (view masked — RLS filtra per tenant)
+        const { data: eneaPractices } = await supabase
+          .from("enea_practices_public")
+          .select("id, cliente_nome, cliente_cognome, cliente_email, cliente_cf, brand")
+          .or(`cliente_nome.ilike.${pattern},cliente_cognome.ilike.${pattern},cliente_email.ilike.${pattern},cliente_cf.ilike.${pattern}`)
+          .limit(5);
+        if (eneaPractices) {
+          eneaPractices.forEach((p) =>
+            all.push({
+              id: p.id,
+              label: `${p.cliente_nome ?? ""} ${p.cliente_cognome ?? ""}`.trim() || "(senza nome)",
+              sublabel: `${p.brand === "enea" ? "ENEA" : "Conto Termico"}${p.cliente_email ? " · " + p.cliente_email : ""}`,
+              type: "pratica",
+              url: `/kanban`,
             })
           );
         }

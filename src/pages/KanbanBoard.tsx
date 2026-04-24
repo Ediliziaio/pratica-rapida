@@ -93,6 +93,8 @@ import {
   HelpCircle,
   FileWarning,
   CheckSquare,
+  Columns3,
+  List,
 } from "lucide-react";
 import {
   Tooltip,
@@ -1255,6 +1257,9 @@ export default function KanbanBoard() {
   const moveStage = useMoveStage();
   const queryClient = useQueryClient();
 
+  // View mode (staff only): pipeline (kanban) vs tabella (flat table)
+  const [viewMode, setViewMode] = useState<"pipeline" | "tabella">("pipeline");
+
   // Bulk selection state (internal users only)
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -1886,7 +1891,7 @@ export default function KanbanBoard() {
         </div>
       </div>
 
-      {/* ── Toolbar row 2: brand segment · archive · sort ────────────────── */}
+      {/* ── Toolbar row 2: brand segment · view toggle · archive · sort ─────── */}
       <div className="flex items-center gap-3 px-4 py-1.5 border-b bg-background shrink-0">
         {isInternal && (
           <div className="inline-flex items-center gap-0.5 bg-muted rounded-md p-0.5">
@@ -1903,6 +1908,27 @@ export default function KanbanBoard() {
                 {b === "all" ? "Tutti" : b === "enea" ? "ENEA" : "Conto Termico"}
               </button>
             ))}
+          </div>
+        )}
+
+        {isInternal && (
+          <div className="flex gap-1 border rounded-md p-0.5">
+            <Button
+              variant={viewMode === "pipeline" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("pipeline")}
+              className="h-7 px-2 gap-1 text-xs"
+            >
+              <Columns3 className="h-3.5 w-3.5" /> Pipeline
+            </Button>
+            <Button
+              variant={viewMode === "tabella" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("tabella")}
+              className="h-7 px-2 gap-1 text-xs"
+            >
+              <List className="h-3.5 w-3.5" /> Tabella
+            </Button>
           </div>
         )}
 
@@ -2180,6 +2206,15 @@ export default function KanbanBoard() {
             Configura pipeline
           </Button>
         </div>
+      ) : viewMode === "tabella" && isInternal ? (
+        <div className="flex-1 min-h-0 overflow-auto p-4">
+          <PracticeTable
+            practices={filteredPractices}
+            stages={stages}
+            onRowClick={setSelectedPractice}
+            isInternal={isInternal}
+          />
+        </div>
       ) : (
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="flex flex-1 min-h-0 gap-3 overflow-x-auto p-4 pb-6">
@@ -2423,6 +2458,90 @@ export default function KanbanBoard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+// ── PracticeTable (flat table view) ──────────────────────────────────────────
+
+function PracticeTable({
+  practices,
+  stages,
+  onRowClick,
+  isInternal,
+}: {
+  practices: PracticeWithRelations[];
+  stages: PipelineStage[];
+  onRowClick: (p: PracticeWithRelations) => void;
+  isInternal: boolean;
+}) {
+  const stageMap = useMemo(() => {
+    const m = new Map<string, string>();
+    stages.forEach((s) => m.set(s.id, isInternal ? s.name : (s.name_reseller ?? s.name)));
+    return m;
+  }, [stages, isInternal]);
+
+  const colSpan = isInternal ? 7 : 5;
+
+  return (
+    <div className="rounded-lg border bg-card overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead className="bg-muted/40 border-b text-xs text-muted-foreground">
+          <tr>
+            <th className="text-left px-3 py-2">Cliente</th>
+            {isInternal && <th className="text-left px-3 py-2">Azienda</th>}
+            <th className="text-left px-3 py-2">Brand</th>
+            <th className="text-left px-3 py-2">Stage</th>
+            <th className="text-left px-3 py-2">Prodotto</th>
+            <th className="text-left px-3 py-2">Creata</th>
+            {isInternal && <th className="text-left px-3 py-2">Operatore</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {practices.map((p) => (
+            <tr
+              key={p.id}
+              onClick={() => onRowClick(p)}
+              className="border-b hover:bg-muted/30 cursor-pointer transition-colors"
+            >
+              <td className="px-3 py-2 font-medium">
+                {[p.cliente_nome, p.cliente_cognome].filter(Boolean).join(" ") || "—"}
+              </td>
+              {isInternal && (
+                <td className="px-3 py-2 text-muted-foreground">
+                  {p.companies?.ragione_sociale ?? "—"}
+                </td>
+              )}
+              <td className="px-3 py-2">
+                <Badge variant="outline" className="text-[10px]">
+                  {p.brand === "enea" ? "ENEA" : "Conto Termico"}
+                </Badge>
+              </td>
+              <td className="px-3 py-2 text-xs">
+                {p.current_stage_id ? stageMap.get(p.current_stage_id) ?? "—" : "—"}
+              </td>
+              <td className="px-3 py-2 text-xs text-muted-foreground">
+                {p.prodotto_installato ?? "—"}
+              </td>
+              <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">
+                {format(new Date(p.created_at), "dd MMM yyyy", { locale: it })}
+              </td>
+              {isInternal && (
+                <td className="px-3 py-2 text-xs text-muted-foreground">
+                  {p.operatore_id ? "assegnato" : "—"}
+                </td>
+              )}
+            </tr>
+          ))}
+          {practices.length === 0 && (
+            <tr>
+              <td colSpan={colSpan} className="text-center py-12 text-muted-foreground text-sm">
+                Nessuna pratica
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }

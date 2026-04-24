@@ -48,7 +48,6 @@ const VecchioAllaccioFotovoltaico = lazy(() => import("./pages/vecchio/AllaccioF
 const FAQPage = lazy(() => import("./pages/FAQ"));
 const BlogPage = lazy(() => import("./pages/Blog"));
 const BlogPostPage = lazy(() => import("./pages/BlogPost"));
-const GestionaleAdmin = lazy(() => import("./pages/admin/Gestionale"));
 const Automazioni = lazy(() => import("./pages/admin/Automazioni"));
 const EneaDashboard = lazy(() => import("./pages/EneaDashboard"));
 const ComunicazioniLog = lazy(() => import("./pages/ComunicazioniLog"));
@@ -81,13 +80,13 @@ function isResellerRole(roles: string[]) {
 
 function RootRedirect() {
   const { roles } = useAuth();
-  if (isStaff(roles)) return <Navigate to="/admin/pratiche" replace />;
+  // Tutti i ruoli operativi ora atterrano su /kanban (pagina unificata Pipeline/Tabella)
+  if (isStaff(roles)) return <Navigate to="/kanban" replace />;
   if (isResellerRole(roles)) return <Navigate to="/kanban" replace />;
-  // admin_interno / azienda_admin / azienda_user → Kanban ENEA (coerente con nuovo flusso)
   if (roles.some(r => ["admin_interno", "azienda_admin", "azienda_user"].includes(r))) {
     return <Navigate to="/kanban" replace />;
   }
-  // Fallback estremo: utente senza ruoli noti → Auth
+  // Fallback: utente senza ruoli noti → Auth
   return <Navigate to="/auth" replace />;
 }
 
@@ -148,9 +147,9 @@ function AuthRoute() {
   // If user landed via a password-reset link, always show the Auth page (reset view)
   if (isPasswordRecovery) return <Auth />;
   if (session) {
-    if (isStaff(roles)) return <Navigate to="/admin/pratiche" replace />;
+    // Tutti i ruoli operativi atterrano su /kanban (pagina unificata Pipeline/Tabella)
+    if (isStaff(roles)) return <Navigate to="/kanban" replace />;
     if (isResellerRole(roles)) return <Navigate to="/kanban" replace />;
-    // admin_interno / azienda_admin / azienda_user → Kanban ENEA
     if (roles.some(r => ["admin_interno", "azienda_admin", "azienda_user"].includes(r))) {
       return <Navigate to="/kanban" replace />;
     }
@@ -226,7 +225,7 @@ const App = () => (
                 <Route path="/enea/nuova" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, ...RESELLER_ROLES, "admin_interno", "azienda_admin", "azienda_user"]}><NuovaPraticaEnea /></RoleGuard></ProtectedRoute>} />
                 <Route path="/enea/dashboard" element={<ProtectedRoute><RoleGuard allowed={[...ALL_AUTH_ROLES]}><EneaDashboard /></RoleGuard></ProtectedRoute>} />
                 <Route path="/enea/archivio" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, ...RESELLER_ROLES, "admin_interno", "azienda_admin", "azienda_user"]}><ArchivioEnea /></RoleGuard></ProtectedRoute>} />
-                <Route path="/admin/gestionale" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><GestionaleAdmin /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/gestionale" element={<Navigate to="/kanban" replace />} />
                 <Route path="/admin/automazioni" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><Automazioni /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/comunicazioni" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><ComunicazioniLog /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/calendario" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><CalendarioChiamate /></RoleGuard></ProtectedRoute>} />

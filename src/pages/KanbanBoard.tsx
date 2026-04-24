@@ -373,6 +373,8 @@ function PracticeDetailSheet({
   const [editNoteInterne, setEditNoteInterne] = useState("");
   const [editDocs, setEditDocs] = useState<string[]>([]);
   const [editOperatoreId, setEditOperatoreId] = useState<string>("");
+  const [editPrezzo, setEditPrezzo] = useState<string>("");
+  const [editPagamentoStato, setEditPagamentoStato] = useState<string>("non_pagata");
   const [newDoc, setNewDoc] = useState("");
   const [uploadingConclusa, setUploadingConclusa] = useState(false);
   const [deleteConclusaPath, setDeleteConclusaPath] = useState<string | null>(null);
@@ -405,6 +407,8 @@ function PracticeDetailSheet({
     setEditNoteInterne(practice.note_interne ?? "");
     setEditDocs([...(practice.documenti_mancanti ?? [])]);
     setEditOperatoreId(practice.operatore_id ?? "");
+    setEditPrezzo(practice.prezzo != null ? String(practice.prezzo) : "");
+    setEditPagamentoStato(practice.pagamento_stato ?? "non_pagata");
     setEditMode(true);
   }
 
@@ -415,6 +419,26 @@ function PracticeDetailSheet({
 
   async function handleSave() {
     if (!practice) return;
+    // Financial fields (staff only): set data_incasso automatically when
+    // flipping to "pagata", clear it otherwise — mirrors the inline-select
+    // behavior in PracticeTable so the two code paths stay in sync.
+    let financialUpdates: Partial<EneaPractice> = {};
+    if (isInternal) {
+      const parsedPrezzo =
+        editPrezzo.trim() === "" ? null : Number(editPrezzo.replace(",", "."));
+      const prezzoChanged =
+        (practice.prezzo ?? null) !== (parsedPrezzo ?? null);
+      const statoChanged =
+        (practice.pagamento_stato ?? "non_pagata") !== editPagamentoStato;
+      if (prezzoChanged && !Number.isNaN(parsedPrezzo as number)) {
+        financialUpdates.prezzo = parsedPrezzo;
+      }
+      if (statoChanged) {
+        financialUpdates.pagamento_stato = editPagamentoStato as EneaPractice["pagamento_stato"];
+        financialUpdates.data_incasso =
+          editPagamentoStato === "pagata" ? new Date().toISOString() : null;
+      }
+    }
     await updatePractice.mutateAsync({
       id: practice.id,
       updates: {
@@ -422,6 +446,7 @@ function PracticeDetailSheet({
         note_interne: isInternal ? editNoteInterne || null : undefined,
         documenti_mancanti: editDocs,
         operatore_id: isInternal ? editOperatoreId || null : undefined,
+        ...financialUpdates,
       },
     });
     toast({ title: "Pratica aggiornata" });
@@ -817,6 +842,44 @@ function PracticeDetailSheet({
                   </div>
                 )}
 
+                {/* Financial fields — staff only */}
+                {isInternal && (
+                  <div className="grid grid-cols-2 gap-3 pt-2 border-t">
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
+                        Importo (€)
+                      </label>
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        step="0.01"
+                        min="0"
+                        value={editPrezzo}
+                        onChange={(e) => setEditPrezzo(e.target.value)}
+                        placeholder="0.00"
+                        className="text-sm h-9"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
+                        Pagamento
+                      </label>
+                      <Select value={editPagamentoStato} onValueChange={setEditPagamentoStato}>
+                        <SelectTrigger className="text-sm h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(PAGAMENTO_LABELS).map(([key, label]) => (
+                            <SelectItem key={key} value={key} className="text-sm">
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex gap-2 pt-2">
                   <Button
                     onClick={handleSave}
@@ -881,6 +944,43 @@ function PracticeDetailSheet({
                     )}
                   </div>
                 </section>
+
+                {/* 1b. Finanziario (solo isInternal) */}
+                {isInternal && (
+                  <section>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      Finanziario
+                    </h3>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Importo</p>
+                        <p className="font-medium">
+                          {practice.prezzo != null
+                            ? `€ ${Number(practice.prezzo).toFixed(2)}`
+                            : "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Pagamento</p>
+                        <span
+                          className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium mt-0.5 ${pagamentoBadgeClass(
+                            practice.pagamento_stato,
+                          )}`}
+                        >
+                          {PAGAMENTO_LABELS[practice.pagamento_stato ?? "non_pagata"] ?? "—"}
+                        </span>
+                      </div>
+                      {practice.data_incasso && (
+                        <div className="col-span-2">
+                          <p className="text-xs text-muted-foreground">Data incasso</p>
+                          <p className="font-medium">
+                            {format(new Date(practice.data_incasso), "dd/MM/yyyy")}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                )}
 
                 {/* 2. Note interne (solo isInternal) */}
                 {isInternal && (
@@ -1624,7 +1724,14 @@ export default function KanbanBoard() {
       Prodotto: p.prodotto_installato ?? "",
       Importo: Number(p.prezzo ?? 0),
       Pagamento: p.pagamento_stato ?? "",
-      "Data incasso": p.data_incasso ?? "",
+      "Data incasso": p.data_incasso
+        ? format(new Date(p.data_incasso), "dd/MM/yyyy")
+        : "",
+      Note: (p.note ?? "").replace(/[\r\n]+/g, " "),
+      "Form compilato": p.form_compilato_at
+        ? format(new Date(p.form_compilato_at), "dd/MM/yyyy")
+        : "",
+      Solleciti: p.conteggio_solleciti ?? 0,
       "Creata il": format(new Date(p.created_at), "dd/MM/yyyy"),
       Archiviata: p.archived_at ? "Sì" : "No",
     }));

@@ -159,7 +159,7 @@ const PERM_MATRIX: PermRow[] = [
   { label: "Pratiche (admin view)",                               perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: false, azienda_user: false, rivenditore: false } },
   { label: "Le mie Pratiche",                                     perms: { super_admin: false, admin_interno: false, operatore: false, azienda_admin: true,  azienda_user: true,  rivenditore: false } },
   { label: "Attività (coda)",                                     perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: false, azienda_user: false, rivenditore: false } },
-  { label: "Gestionale",              category: "CRM",            perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: false, azienda_user: false, rivenditore: false } },
+  { label: "Pratiche (Kanban+Tabella)", category: "CRM",            perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: true,  azienda_user: true,  rivenditore: true  } },
   { label: "Automazioni",                                         perms: { super_admin: true,  admin_interno: true,  operatore: false, azienda_admin: false, azienda_user: false, rivenditore: false } },
   { label: "Email/WhatsApp",                                      perms: { super_admin: true,  admin_interno: true,  operatore: false, azienda_admin: false, azienda_user: false, rivenditore: false } },
   { label: "Calendari",                                           perms: { super_admin: true,  admin_interno: true,  operatore: true,  azienda_admin: false, azienda_user: false, rivenditore: false } },

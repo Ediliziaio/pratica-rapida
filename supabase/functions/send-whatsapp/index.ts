@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { reportError } from "../_shared/error.ts";
 
 const REQUIRED_ENV = [
   "SUPABASE_URL",
@@ -63,6 +64,8 @@ serve(async (req) => {
     });
   }
 
+  try {
+
   const phone = normalizePhone(to);
 
   const response = await fetch(
@@ -90,6 +93,16 @@ serve(async (req) => {
   const wa_message_id = result.messages?.[0]?.id;
   const error_message = result.error?.message;
   const success = !!wa_message_id;
+
+  if (!success) {
+    await reportError(new Error(`WhatsApp API failed: ${error_message ?? "no message id"}`), {
+      fn: "send-whatsapp",
+      template_name,
+      practice_id,
+      status: response.status,
+      response: result,
+    });
+  }
 
   if (practice_id) {
     await supabase.from("communication_log").insert({
@@ -120,4 +133,11 @@ serve(async (req) => {
     status: 200,
     headers: { ...CORS, "Content-Type": "application/json" },
   });
+  } catch (err) {
+    await reportError(err, { fn: "send-whatsapp", template_name, practice_id });
+    return new Response(JSON.stringify({ success: false, error: "Internal error" }), {
+      status: 500,
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
 });

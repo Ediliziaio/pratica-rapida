@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useRef, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { setUser as sentrySetUser } from "@/lib/sentry";
 
 export type AppRole =
   | "super_admin"
@@ -141,6 +142,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Sync the authenticated user into Sentry so errors carry identity.
+  // No-op when Sentry is not configured (see src/lib/sentry.ts).
+  useEffect(() => {
+    if (user) {
+      sentrySetUser({ id: user.id, email: user.email });
+    } else {
+      sentrySetUser(null);
+    }
+  }, [user]);
 
   const signOut = async () => {
     await supabase.auth.signOut();

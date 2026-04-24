@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { reportError } from "../_shared/error.ts";
 
 // Env var startup check
 const REQUIRED_ENV = [
@@ -90,6 +91,10 @@ serve(async (req) => {
     const signatureOk = await verifyMetaSignature(rawBody, signature);
     if (!signatureOk) {
       console.error("[whatsapp-webhook] invalid or missing signature");
+      await reportError(new Error("whatsapp-webhook invalid/missing signature"), {
+        fn: "whatsapp-webhook",
+        has_signature: !!signature,
+      });
       return new Response("Invalid signature", { status: 401 });
     }
 
@@ -99,6 +104,8 @@ serve(async (req) => {
     } catch {
       return new Response("Bad JSON", { status: 400 });
     }
+
+    try {
 
     const entry = (body as { entry?: Array<{ changes?: Array<{ value?: unknown }> }> }).entry?.[0];
     const changes = entry?.changes?.[0]?.value as {
@@ -153,6 +160,13 @@ serve(async (req) => {
     }
 
     return Response.json({ ok: true });
+    } catch (err) {
+      await reportError(err, { fn: "whatsapp-webhook" });
+      return new Response(JSON.stringify({ ok: false, error: "Internal error" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
   }
 
   return new Response("Method not allowed", { status: 405 });

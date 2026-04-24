@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { reportError } from "../_shared/error.ts";
 
 const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 for (const k of REQUIRED_ENV) {
@@ -28,10 +29,17 @@ async function invoke(fnName: string, body: unknown) {
     if (!res.ok) {
       const errText = await res.text();
       console.error(`invoke(${fnName}) failed: ${res.status} ${errText}`);
+      await reportError(new Error(`invoke(${fnName}) failed: ${res.status}`), {
+        fn: "on-practice-created",
+        invoked: fnName,
+        status: res.status,
+        body: errText,
+      });
     }
     return res.ok;
   } catch (err) {
     console.error(`invoke(${fnName}) threw:`, err);
+    await reportError(err, { fn: "on-practice-created", invoked: fnName });
     return false;
   }
 }
@@ -64,6 +72,8 @@ serve(async (req) => {
       status: 400, headers: { ...CORS, "Content-Type": "application/json" },
     });
   }
+
+  try {
 
   if (!practice_id) {
     return new Response(JSON.stringify({ ok: false, error: "Missing practice_id" }), {
@@ -149,4 +159,10 @@ serve(async (req) => {
   return new Response(JSON.stringify({ ok: allOk, steps }), {
     status: 200, headers: { ...CORS, "Content-Type": "application/json" },
   });
+  } catch (err) {
+    await reportError(err, { fn: "on-practice-created", practice_id });
+    return new Response(JSON.stringify({ ok: false, error: "Internal error" }), {
+      status: 500, headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
 });

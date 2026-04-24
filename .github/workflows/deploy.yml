@@ -1,58 +1,156 @@
 name: Deploy to Cloudflare Pages + Supabase Functions
 
+# Required GitHub Secrets:
+#   - VITE_SUPABASE_URL              : Supabase project URL (frontend build)
+#   - VITE_SUPABASE_PUBLISHABLE_KEY  : Supabase anon key (frontend build)
+#   - CLOUDFLARE_API_TOKEN           : Cloudflare API token with Pages:Edit
+#   - SUPABASE_ACCESS_TOKEN          : Supabase personal access token (CLI auth)
+#   - SUPABASE_PROJECT_REF           : Supabase project ref (optional, default xmkjrhwmmuzaqjqlvzxm)
+#   - SUPABASE_DB_PASSWORD           : Supabase DB password (required per db-migrate job)
+#
+# Optional (Sentry — gracefully disabled when missing):
+#   - VITE_SENTRY_DSN                : Frontend Sentry DSN
+#
+# Tolleranza di fallimento:
+#   - typecheck: BLOCCANTE (se TS errors, deploy stop)
+#   - lint:      NON bloccante (99 errori pregressi, da ripulire gradualmente)
+#   - test:      NON bloccante (solo test dummy oggi)
+#   - db-migrate: NON bloccante (se SUPABASE_DB_PASSWORD non settato, skip)
+
 on:
   push:
     branches:
       - main
 
 jobs:
-  deploy:
-    name: Build & Deploy
+  typecheck:
+    name: Typecheck (blocking)
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+      - run: bun install
+      - run: bunx tsc --noEmit
 
-      - name: Install dependencies
-        run: bun install
+  lint:
+    name: Lint (advisory — non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun run lint
 
+  test:
+    name: Test (advisory — non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun run test --run
+
+  db-migrate:
+    name: Apply DB migrations (best-effort)
+    runs-on: ubuntu-latest
+    needs: [typecheck]
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Skip if no DB_PASSWORD
+        run: |
+          if [ -z "${{ secrets.SUPABASE_DB_PASSWORD }}" ]; then
+            echo "SUPABASE_DB_PASSWORD not set — skipping db push"
+            exit 0
+          fi
+      - name: Link + Push migrations
+        if: ${{ secrets.SUPABASE_DB_PASSWORD != '' }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          PROJECT_REF="${SUPABASE_PROJECT_REF:-xmkjrhwmmuzaqjqlvzxm}"
+          supabase link --project-ref "$PROJECT_REF"
+          supabase db push --linked
+
+  deploy-functions:
+    name: Deploy Supabase Edge Functions
+    runs-on: ubuntu-latest
+    needs: [typecheck]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Deploy all edge functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          PROJECT_REF="${SUPABASE_PROJECT_REF:-xmkjrhwmmuzaqjqlvzxm}"
+          FAILED=()
+          for dir in supabase/functions/*/; do
+            fn=$(basename "$dir")
+            if [ "$fn" = "_shared" ] || [ "$fn" = "register-company" ]; then
+              echo "Skipping $fn"
+              continue
+            fi
+            if [ ! -f "$dir/index.ts" ]; then
+              echo "Skipping $fn (no index.ts)"
+              continue
+            fi
+            echo "Deploying $fn..."
+            if supabase functions deploy "$fn" \
+                --project-ref "$PROJECT_REF" \
+                --no-verify-jwt; then
+              echo "  -> $fn deployed"
+            else
+              echo "  -> $fn FAILED"
+              FAILED+=("$fn")
+            fi
+          done
+          if [ ${#FAILED[@]} -ne 0 ]; then
+            echo "::warning::The following functions failed to deploy: ${FAILED[*]}"
+            # Non-fatal — frontend deploy continues
+          fi
+
+  deploy-frontend:
+    name: Build & Deploy Frontend (Cloudflare Pages)
+    runs-on: ubuntu-latest
+    needs: [typecheck]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
       - name: Build
         run: bun run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
       - name: Install Wrangler
         run: npm install -g wrangler
-
       - name: Create Pages project if not exists
         run: wrangler pages project create pratica-rapida --production-branch=main || true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: "b3423ec9073bbd86dcc206273d7e093c"
-
       - name: Deploy to Cloudflare Pages
         run: wrangler pages deploy dist --project-name=pratica-rapida --branch=main --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: "b3423ec9073bbd86dcc206273d7e093c"
-
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
-      - name: Deploy Edge Functions
-        continue-on-error: true
-        run: |
-          supabase functions deploy create-company-user \
-            --project-ref xmkjrhwmmuzaqjqlvzxm \
-            --no-verify-jwt
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

@@ -4,6 +4,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+function isBusinessHour(): boolean {
+  const now = new Date();
+  // Rome timezone offset: CET=+1, CEST=+2; approximate with +1 always (conservative)
+  const romeHour = (now.getUTCHours() + 1) % 24;
+  return romeHour >= 9 && romeHour < 18;
+}
+
 function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
 }
@@ -25,6 +32,10 @@ async function invoke(supabase: ReturnType<typeof createClient>, fnName: string,
 }
 
 serve(async () => {
+  if (!isBusinessHour()) {
+    return Response.json({ processed: 0, reason: "outside_business_hours" });
+  }
+
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
   const { data: rules } = await supabase
@@ -46,6 +57,7 @@ serve(async () => {
           const { data: practices } = await supabase
             .from("enea_practices")
             .select("*, companies:reseller_id(ragione_sociale)")
+            .eq("tipo_servizio", "servizio_completo")
             .is("archived_at", null)
             .is("form_compilato_at", null)
             .or(`ultimo_sollecito_privato.is.null,ultimo_sollecito_privato.lt.${sevenDaysAgo}`);
@@ -97,6 +109,7 @@ serve(async () => {
             .from("enea_practices")
             .select("*, companies:reseller_id(ragione_sociale, email)")
             .is("archived_at", null)
+            .is("form_compilato_at", null)
             .lt("created_at", cutoff)
             .gt("created_at", nextDay);
 
@@ -140,6 +153,17 @@ serve(async () => {
                   base_url: "https://pratica-rapida.it",
                   practice_id: p.id,
                 },
+              });
+            }
+            if (p.cliente_telefono) {
+              await invoke(supabase, "send-whatsapp", {
+                to: normalizePhone(p.cliente_telefono),
+                template_name: "sollecito_recensione",
+                components: [{
+                  type: "body",
+                  parameters: [{ type: "text", text: p.cliente_nome }],
+                }],
+                practice_id: p.id,
               });
             }
           }

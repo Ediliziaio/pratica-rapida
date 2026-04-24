@@ -2042,7 +2042,7 @@ export default function KanbanBoard() {
       </AlertDialog>
 
       {/* Documenti mancanti — dialog obbligatorio con textarea */}
-      <Dialog open={!!docMissPopup} onOpenChange={(o) => { if (!o) setDocMissPopup(null); }}>
+      <Dialog open={!!docMissPopup} onOpenChange={(o) => { if (!o && !docMissText.trim()) return; if (!o) setDocMissPopup(null); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Documenti mancanti — specifica cosa serve</DialogTitle>
@@ -2057,9 +2057,6 @@ export default function KanbanBoard() {
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDocMissPopup(null)}>
-              Annulla
-            </Button>
             <Button
               disabled={!docMissText.trim()}
               onClick={() => {

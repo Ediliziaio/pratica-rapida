@@ -230,6 +230,28 @@ export default function FormPubblico() {
             Invia dati
           </Button>
         </form>
+
+        <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm space-y-1">
+          <p className="font-semibold text-foreground">Hai bisogno di aiuto?</p>
+          <p className="text-muted-foreground">
+            Scrivi a{" "}
+            <a href="mailto:supporto@praticarapida.it" className="text-primary underline">
+              supporto@praticarapida.it
+            </a>
+          </p>
+          <p className="text-muted-foreground">
+            Oppure su{" "}
+            <a
+              href="https://wa.me/390398682691"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline"
+            >
+              WhatsApp
+            </a>{" "}
+            <span className="text-xs">(solo messaggi, non rispondiamo a chiamate vocali)</span>
+          </p>
+        </div>
       </div>
     </div>
   );

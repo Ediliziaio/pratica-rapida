@@ -48,21 +48,23 @@ serve(async (req) => {
   }
 
   // 2. Primo contatto WA al cliente privato
-  if (practice.cliente_telefono) {
-    const phone = practice.cliente_telefono.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
-    await invoke("send-whatsapp", {
-      to: phone,
-      template_name: "contatta_cliente",
-      components: [{
-        type: "body",
-        parameters: [
-          { type: "text", text: practice.cliente_nome },
-          { type: "text", text: resellerName },
-          { type: "text", text: `https://pratica-rapida.it/form/${practice.form_token}` },
-        ],
-      }],
-      practice_id,
-    });
+  if (practice.tipo_servizio === "servizio_completo") {
+    if (practice.cliente_telefono) {
+      const phone = practice.cliente_telefono.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
+      await invoke("send-whatsapp", {
+        to: phone,
+        template_name: "contatta_cliente",
+        components: [{
+          type: "body",
+          parameters: [
+            { type: "text", text: practice.cliente_nome },
+            { type: "text", text: resellerName },
+            { type: "text", text: `https://pratica-rapida.it/form/${practice.form_token}` },
+          ],
+        }],
+        practice_id,
+      });
+    }
   }
 
   // 3. Email al cliente finale (solo servizio_completo)

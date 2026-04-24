@@ -209,7 +209,7 @@ function CommLogSection({
     queryKey: ["comm-log", practiceId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("communication_log")
+        .from("communication_log_public")
         .select("*")
         .eq("practice_id", practiceId)
         .order("sent_at", { ascending: false });

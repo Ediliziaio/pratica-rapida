@@ -40,29 +40,29 @@ export default function FormPubblico() {
 
   useEffect(() => {
     if (!token) return;
+    // Usa RPC SECURITY DEFINER (accesso anon controllato via form_token).
+    // La tabella enea_practices non ha policy anon → SELECT diretto restituisce [].
     supabase
-      .from("enea_practices")
-      .select("*, companies:reseller_id(ragione_sociale)")
-      .eq("form_token", token)
-      .single()
+      .rpc("get_practice_by_form_token", { p_token: token })
       .then(({ data, error }) => {
-        if (error || !data) {
+        const row = Array.isArray(data) ? data[0] : null;
+        if (error || !row) {
           setError("Pratica non trovata o link non valido.");
-        } else if (data.archived_at) {
+        } else if (row.archived_at) {
           setError("Questa pratica è stata archiviata.");
-        } else if (data.form_compilato_at) {
+        } else if (row.form_compilato_at) {
           setSubmitted(true);
         } else {
-          setPractice(data as unknown as EneaPractice);
-          setResellerName((data.companies as { ragione_sociale?: string } | null)?.ragione_sociale ?? "");
+          setPractice(row as unknown as EneaPractice);
+          setResellerName(row.reseller_name ?? "");
           setForm({
-            cliente_nome: data.cliente_nome || "",
-            cliente_cognome: data.cliente_cognome || "",
-            cliente_email: data.cliente_email || "",
-            cliente_telefono: data.cliente_telefono || "",
-            cliente_indirizzo: data.cliente_indirizzo || "",
-            cliente_cf: data.cliente_cf || "",
-            note: data.note || "",
+            cliente_nome: row.cliente_nome || "",
+            cliente_cognome: row.cliente_cognome || "",
+            cliente_email: row.cliente_email || "",
+            cliente_telefono: row.cliente_telefono || "",
+            cliente_indirizzo: row.cliente_indirizzo || "",
+            cliente_cf: row.cliente_cf || "",
+            note: row.note || "",
           });
         }
         setLoading(false);
@@ -94,24 +94,21 @@ export default function FormPubblico() {
       return;
     }
 
-    // Find the "pronte_da_fare" stage for this practice's brand.
-    // maybeSingle() evita il throw se la riga non esiste — fallback sullo stage corrente.
-    const { data: stage } = await supabase
-      .from("pipeline_stages")
-      .select("id")
-      .is("reseller_id", null)
-      .eq("stage_type", "pronte_da_fare")
-      .eq("brand", practice.brand)
-      .maybeSingle();
-
-    const { error } = await supabase
-      .from("enea_practices")
-      .update({
-        ...form,
-        form_compilato_at: new Date().toISOString(),
-        current_stage_id: stage?.id ?? practice.current_stage_id,
-      })
-      .eq("id", practice.id);
+    // Submit via RPC SECURITY DEFINER — l'unica via per anon di scrivere
+    // controllata dal form_token. La funzione DB gestisce:
+    //   · validazione (non archiviata, non già compilata)
+    //   · spostamento a stage pronte_da_fare (per brand)
+    //   · aggiornamento dati cliente
+    const { error } = await supabase.rpc("submit_form_by_token", {
+      p_token: token!,
+      p_cliente_nome: form.cliente_nome,
+      p_cliente_cognome: form.cliente_cognome,
+      p_cliente_email: form.cliente_email,
+      p_cliente_telefono: form.cliente_telefono,
+      p_cliente_indirizzo: form.cliente_indirizzo,
+      p_cliente_cf: form.cliente_cf,
+      p_note: form.note,
+    });
 
     if (error) {
       toast({ variant: "destructive", title: "Errore", description: "Impossibile salvare. Riprova." });

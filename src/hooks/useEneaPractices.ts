@@ -46,7 +46,7 @@ export function useEneaPractices(filters?: {
     queryFn: async () => {
       const archivedOnly = !!filters?.archivedOnly;
       let q = supabase
-        .from("enea_practices")
+        .from("enea_practices_public")
         .select(`
           *,
           pipeline_stages(id, name, name_reseller, tooltip_text, is_visible_reseller, color, stage_type, brand),

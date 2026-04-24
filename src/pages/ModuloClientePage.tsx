@@ -102,9 +102,11 @@ interface FormImpianto {
 // Mirrors the flow in FormPubblico.tsx: marks form_compilato_at, moves stage,
 // and fires on-stage-changed so Messaggio 3 (email + WA conferma) goes out.
 async function advancePracticeToPronteDaFare(praticaId: string): Promise<void> {
-  // Load practice to discover its brand (needed to find the correct pipeline_stage)
+  // Load practice to discover its brand (needed to find the correct pipeline_stage).
+  // Read via enea_practices_public (view with column masking); id/brand/current_stage_id
+  // sono esposti dalla view per tutti gli autenticati (row-level via RLS).
   const { data: practice, error: praticaError } = await supabase
-    .from("enea_practices")
+    .from("enea_practices_public")
     .select("id, brand, current_stage_id")
     .eq("id", praticaId)
     .maybeSingle();

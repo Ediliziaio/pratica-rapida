@@ -90,7 +90,7 @@ export default function ComunicazioniLog() {
     queryKey: ["communication_log_full"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("communication_log")
+        .from("communication_log_public")
         .select("*")
         .order("sent_at", { ascending: false })
         .limit(500);

@@ -36,6 +36,22 @@ async function invoke(fnName: string, body: unknown) {
   }
 }
 
+async function isRuleEnabled(
+  supabase: any,
+  triggerEvent: string,
+  channel: "email" | "whatsapp",
+): Promise<boolean> {
+  const { data } = await supabase
+    .from("automation_rules")
+    .select("is_enabled")
+    .eq("trigger_event", triggerEvent)
+    .eq("channel", channel)
+    .maybeSingle();
+  // If no matching rule exists, default to enabled (hardcoded flow is the source of truth)
+  if (!data) return true;
+  return data.is_enabled !== false;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
@@ -77,8 +93,12 @@ serve(async (req) => {
   // Track per-step success so the caller can detect partial failure
   const steps: Record<string, boolean> = {};
 
-  // 1. Email di conferma al rivenditore
-  if (resellerEmail) {
+  // Pre-compute rule gates once per request
+  const emailEnabled = await isRuleEnabled(supabase, "practice_created", "email");
+  const whatsappEnabled = await isRuleEnabled(supabase, "practice_created", "whatsapp");
+
+  // 1. Email di conferma al rivenditore (gated by practice_created/email)
+  if (emailEnabled && resellerEmail) {
     steps.reseller_email = await invoke("send-email", {
       to: resellerEmail,
       template: "pratica_ricevuta",
@@ -92,8 +112,8 @@ serve(async (req) => {
     });
   }
 
-  // 2. Primo contatto WA al cliente privato
-  if (practice.tipo_servizio === "servizio_completo" && practice.cliente_telefono) {
+  // 2. Primo contatto WA al cliente privato (gated by practice_created/whatsapp)
+  if (whatsappEnabled && practice.tipo_servizio === "servizio_completo" && practice.cliente_telefono) {
     const phone = practice.cliente_telefono.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
     steps.client_wa = await invoke("send-whatsapp", {
       to: phone,
@@ -110,8 +130,8 @@ serve(async (req) => {
     });
   }
 
-  // 3. Email al cliente finale (solo servizio_completo)
-  if (practice.tipo_servizio === "servizio_completo" && practice.cliente_email) {
+  // 3. Email al cliente finale (solo servizio_completo, gated by practice_created/email)
+  if (emailEnabled && practice.tipo_servizio === "servizio_completo" && practice.cliente_email) {
     steps.client_email = await invoke("send-email", {
       to: practice.cliente_email,
       template: "richiesta_form",

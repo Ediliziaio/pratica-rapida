@@ -41,6 +41,22 @@ async function invoke(fnName: string, body: unknown) {
   }
 }
 
+async function isRuleEnabled(
+  supabase: any,
+  triggerEvent: string,
+  channel: "email" | "whatsapp",
+): Promise<boolean> {
+  const { data } = await supabase
+    .from("automation_rules")
+    .select("is_enabled")
+    .eq("trigger_event", triggerEvent)
+    .eq("channel", channel)
+    .maybeSingle();
+  // If no matching rule exists, default to enabled (hardcoded flow is the source of truth)
+  if (!data) return true;
+  return data.is_enabled !== false;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
@@ -103,8 +119,11 @@ serve(async (req) => {
 
     // Messaggio 4 + Notifica C — pratica inviata → email+WA al cliente + email al rivenditore
     case "da_inviare": {
-      // Email al cliente finale
-      if (practice.cliente_email) {
+      const stageEmailEnabled = await isRuleEnabled(supabase, "stage_changed", "email");
+      const stageWhatsappEnabled = await isRuleEnabled(supabase, "stage_changed", "whatsapp");
+
+      // Email al cliente finale (gated by stage_changed/email; no such rule in DB → defaults to enabled)
+      if (stageEmailEnabled && practice.cliente_email) {
         await invoke("send-email", {
           to: practice.cliente_email,
           template: "pratica_inviata",
@@ -119,8 +138,8 @@ serve(async (req) => {
         });
       }
 
-      // WA al cliente finale
-      if (practice.cliente_telefono) {
+      // WA al cliente finale (gated by stage_changed/whatsapp — recensione rule)
+      if (stageWhatsappEnabled && practice.cliente_telefono) {
         await invoke("send-whatsapp", {
           to: normalizePhone(practice.cliente_telefono),
           template_name: "pratica_completata",
@@ -134,7 +153,7 @@ serve(async (req) => {
         });
       }
 
-      // Notifica C — email al rivenditore
+      // Notifica C — email al rivenditore (always-on, no DB rule)
       if (resellerEmail) {
         await invoke("send-email", {
           to: resellerEmail,
@@ -159,7 +178,10 @@ serve(async (req) => {
     // Messaggio 3 — form compilato, pronte da fare → email+WA conferma al cliente
     case "pronte_da_fare": {
       if (practice.tipo_servizio === "servizio_completo" && practice.form_compilato_at) {
-        if (practice.cliente_email) {
+        const formEmailEnabled = await isRuleEnabled(supabase, "form_compiled", "email");
+
+        // Email al cliente (gated by form_compiled/email)
+        if (formEmailEnabled && practice.cliente_email) {
           await invoke("send-email", {
             to: practice.cliente_email,
             template: "form_compilato",
@@ -170,6 +192,7 @@ serve(async (req) => {
             },
           });
         }
+        // WA al cliente (always-on, no DB rule for form_compiled/whatsapp)
         if (practice.cliente_telefono) {
           await invoke("send-whatsapp", {
             to: normalizePhone(practice.cliente_telefono),

@@ -94,7 +94,7 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
     queryKey: ["enea_practices_dashboard", brand],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("enea_practices")
+        .from("enea_practices_public")
         .select(
           "*, pipeline_stage:pipeline_stages(*), reseller_company:companies!reseller_id(ragione_sociale)"
         )
@@ -426,7 +426,7 @@ function useCombinedSummary() {
     queryKey: ["enea_practices_all_summary"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("enea_practices")
+        .from("enea_practices_public")
         .select("*, pipeline_stage:pipeline_stages(*)")
         .order("created_at", { ascending: false });
       if (error) throw error;

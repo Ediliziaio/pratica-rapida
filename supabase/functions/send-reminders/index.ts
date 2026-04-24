@@ -1,5 +1,10 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
+const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
+for (const k of REQUIRED_ENV) {
+  if (!Deno.env.get(k)) console.error(`[send-reminders] Missing env: ${k}`);
+}
 
 // This function is called daily at 09:00 via Supabase Cron (pg_cron)
 // It sends reminders to clients who have pending/sent tokens older than 3 days

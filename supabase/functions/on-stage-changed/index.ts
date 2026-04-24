@@ -1,9 +1,20 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
+const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
+for (const k of REQUIRED_ENV) {
+  if (!Deno.env.get(k)) console.error(`[on-stage-changed] Missing env: ${k}`);
+}
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const APP_URL = Deno.env.get("APP_URL") ?? "https://app.praticarapida.it";
+
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
 function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
@@ -31,11 +42,26 @@ async function invoke(fnName: string, body: unknown) {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: { "Access-Control-Allow-Origin": "*" } });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
-  const { practice_id, new_stage_type, note_docs_mancanti } = await req.json();
+  let practice_id: string | undefined;
+  let new_stage_type: string | undefined;
+  let note_docs_mancanti: string | undefined;
+  try {
+    const body = await req.json();
+    practice_id = body.practice_id;
+    new_stage_type = body.new_stage_type;
+    note_docs_mancanti = body.note_docs_mancanti;
+  } catch {
+    return new Response(JSON.stringify({ ok: false, error: "Bad JSON" }), {
+      status: 400, headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
+
   if (!practice_id || !new_stage_type) {
-    return Response.json({ ok: false, error: "Missing required fields" });
+    return new Response(JSON.stringify({ ok: false, error: "Missing required fields" }), {
+      status: 400, headers: { ...CORS, "Content-Type": "application/json" },
+    });
   }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
@@ -47,7 +73,11 @@ serve(async (req) => {
     .eq("id", practice_id)
     .single();
 
-  if (!practice) return Response.json({ ok: false, error: "Practice not found" });
+  if (!practice) {
+    return new Response(JSON.stringify({ ok: false, error: "Practice not found" }), {
+      status: 404, headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
 
   const resellerEmail = (practice.companies as { email?: string })?.email;
   const resellerName = (practice.companies as { ragione_sociale?: string })?.ragione_sociale ?? "";
@@ -156,5 +186,7 @@ serve(async (req) => {
     }
   }
 
-  return Response.json({ ok: true, stage: new_stage_type });
+  return new Response(JSON.stringify({ ok: true, stage: new_stage_type }), {
+    status: 200, headers: { ...CORS, "Content-Type": "application/json" },
+  });
 });

@@ -1,5 +1,10 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
+const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
+for (const k of REQUIRED_ENV) {
+  if (!Deno.env.get(k)) console.error(`[process-automations] Missing env: ${k}`);
+}
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -121,15 +126,16 @@ serve(async () => {
         case "days_waiting_fornitore_90": {
           const days = parseInt(rule.trigger_event.split("_").pop() ?? "30");
           const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-          const nextDay = new Date(Date.now() - (days - 1) * 24 * 60 * 60 * 1000).toISOString();
-
+          // Idempotency: require that either no fornitore sollecito has ever been sent,
+          // OR the last one is older than `days` — so a second cron tick in the same
+          // hour/day won't re-send for practices that already received a reminder.
           const { data: practices } = await supabase
             .from("enea_practices")
             .select("*, companies:reseller_id(ragione_sociale, email)")
             .is("archived_at", null)
             .is("form_compilato_at", null)
             .lt("created_at", cutoff)
-            .gt("created_at", nextDay);
+            .or(`ultimo_sollecito_fornitore.is.null,ultimo_sollecito_fornitore.lt.${cutoff}`);
 
           for (const p of practices ?? []) {
             const resellerEmail = (p.companies as { email?: string })?.email;
@@ -146,6 +152,11 @@ serve(async () => {
                   practice_id: p.id,
                 },
               });
+              // Mark to prevent duplicate sends on subsequent cron ticks
+              await supabase
+                .from("enea_practices")
+                .update({ ultimo_sollecito_fornitore: new Date().toISOString() })
+                .eq("id", p.id);
             }
           }
           processed++;

@@ -1,8 +1,21 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
+const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "RESEND_API_KEY"];
+for (const k of REQUIRED_ENV) {
+  if (!Deno.env.get(k)) console.error(`[send-email] Missing env: ${k}`);
+}
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const FROM_EMAIL = `Pratica Rapida <noreply@${Deno.env.get("EMAIL_FROM_DOMAIN") ?? "praticarapida.it"}>`;
+
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const COLORS = {
   bg_header: "#1a1a2e",
@@ -267,14 +280,42 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: { "Access-Control-Allow-Origin": "*" } });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-  const { to, template, data } = await req.json();
+  let payload: { to?: string | string[]; template?: string; data?: Record<string, string> };
+  try {
+    payload = await req.json();
+  } catch {
+    return new Response(JSON.stringify({ success: false, error: "Bad JSON" }), {
+      status: 400,
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
+
+  const { to, template, data } = payload;
+
+  // Validate 'to' — allow string or array, each must be a well-formed email
+  const toList = Array.isArray(to) ? to : [to];
+  const invalid = toList.some((addr) => typeof addr !== "string" || !EMAIL_RE.test(addr.trim()));
+  if (!to || invalid) {
+    return new Response(JSON.stringify({ success: false, error: "Invalid 'to' email" }), {
+      status: 400,
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
+
+  if (typeof template !== "string" || !template) {
+    return new Response(JSON.stringify({ success: false, error: "Missing template" }), {
+      status: 400,
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
+
   const { subject, html } = renderTemplate(template, data ?? {});
 
   const res = await fetch("https://api.resend.com/emails", {
@@ -286,12 +327,14 @@ serve(async (req) => {
   const emailData = await res.json();
   const success = res.ok;
 
+  const recipient = Array.isArray(to) ? to.join(",") : to;
+
   if (data?.practice_id) {
     await supabase.from("communication_log").insert({
       practice_id: data.practice_id,
       channel: "email",
       direction: "outbound",
-      recipient: to,
+      recipient,
       subject,
       body_preview: html.slice(0, 200),
       status: success ? "sent" : "failed",
@@ -305,11 +348,14 @@ serve(async (req) => {
     client_id: data?.client_id ?? null,
     pratica_id: data?.practice_id ?? null,
     template_id: data?.template_id ?? null,
-    to_email: to,
+    to_email: recipient,
     subject,
     status: success ? "sent" : "failed",
     resend_id: emailData?.id ?? null,
   });
 
-  return Response.json({ success, id: emailData?.id });
+  return new Response(JSON.stringify({ success, id: emailData?.id }), {
+    status: 200,
+    headers: { ...CORS, "Content-Type": "application/json" },
+  });
 });

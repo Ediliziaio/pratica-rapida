@@ -229,9 +229,21 @@ export default function Pratiche() {
   // ── Guards ────────────────────────────────────────────────────────────────
   if (!companyId) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="flex flex-col items-center justify-center py-20 text-center max-w-md mx-auto px-4">
         <FolderOpen className="mb-4 h-12 w-12 text-muted-foreground/40" />
         <h2 className="font-display text-lg font-semibold">Nessuna azienda associata</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Il tuo account non è collegato a nessuna azienda. Se sei uno staff
+          Praticarapida, vai al pannello amministrazione.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-2 justify-center">
+          <Button onClick={() => navigate("/admin/pratiche")} variant="default">
+            Pannello admin
+          </Button>
+          <Button onClick={() => navigate("/kanban")} variant="outline">
+            Pipeline ENEA
+          </Button>
+        </div>
       </div>
     );
   }

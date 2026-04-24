@@ -83,7 +83,12 @@ function RootRedirect() {
   const { roles } = useAuth();
   if (isStaff(roles)) return <Navigate to="/admin/pratiche" replace />;
   if (isResellerRole(roles)) return <Navigate to="/kanban" replace />;
-  return <Navigate to="/pratiche" replace />;
+  // admin_interno / azienda_admin / azienda_user → Kanban ENEA (coerente con nuovo flusso)
+  if (roles.some(r => ["admin_interno", "azienda_admin", "azienda_user"].includes(r))) {
+    return <Navigate to="/kanban" replace />;
+  }
+  // Fallback estremo: utente senza ruoli noti → Auth
+  return <Navigate to="/auth" replace />;
 }
 
 // Rileva il sottodominio per distinguere sito marketing da piattaforma:
@@ -145,7 +150,11 @@ function AuthRoute() {
   if (session) {
     if (isStaff(roles)) return <Navigate to="/admin/pratiche" replace />;
     if (isResellerRole(roles)) return <Navigate to="/kanban" replace />;
-    return <Navigate to="/pratiche" replace />;
+    // admin_interno / azienda_admin / azienda_user → Kanban ENEA
+    if (roles.some(r => ["admin_interno", "azienda_admin", "azienda_user"].includes(r))) {
+      return <Navigate to="/kanban" replace />;
+    }
+    return <Navigate to="/auth" replace />;
   }
   return <Auth />;
 }
@@ -186,6 +195,8 @@ const App = () => (
                 <Route path="/impianto-termico/:token" element={<ModuloClientePage />} />
                 <Route path="/modulo-vepa/:token" element={<ModuloClientePage />} />
                 <Route path="/onboarding" element={<Onboarding />} />
+                {/* /admin (senza sottopath) → redirect al pannello appropriato */}
+                <Route path="/admin" element={<ProtectedRoute><RootRedirect /></ProtectedRoute>} />
                 <Route path="/pratiche" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, "admin_interno", "azienda_admin", "azienda_user"]} fallback="/kanban"><Pratiche /></RoleGuard></ProtectedRoute>} />
                 <Route path="/pratiche/nuova" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, "admin_interno"]} fallback="/enea/nuova"><NuovaPratica /></RoleGuard></ProtectedRoute>} />
                 <Route path="/pratiche/:id" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, "admin_interno", "azienda_admin", "azienda_user"]} fallback="/kanban"><PraticaDetail /></RoleGuard></ProtectedRoute>} />

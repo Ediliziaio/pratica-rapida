@@ -63,24 +63,21 @@ jobs:
     runs-on: ubuntu-latest
     needs: [typecheck]
     continue-on-error: true
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
     steps:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
           version: latest
-      - name: Skip if no DB_PASSWORD
+      - name: Link + Push migrations (skip if no DB_PASSWORD)
         run: |
-          if [ -z "${{ secrets.SUPABASE_DB_PASSWORD }}" ]; then
+          if [ -z "$SUPABASE_DB_PASSWORD" ]; then
             echo "SUPABASE_DB_PASSWORD not set — skipping db push"
             exit 0
           fi
-      - name: Link + Push migrations
-        if: ${{ secrets.SUPABASE_DB_PASSWORD != '' }}
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-        run: |
           PROJECT_REF="${SUPABASE_PROJECT_REF:-xmkjrhwmmuzaqjqlvzxm}"
           supabase link --project-ref "$PROJECT_REF"
           supabase db push --linked

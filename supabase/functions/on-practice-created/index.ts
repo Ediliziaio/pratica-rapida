@@ -95,8 +95,14 @@ serve(async (req) => {
     });
   }
 
-  const resellerEmail = (practice.companies as { email?: string })?.email;
   const resellerName = (practice.companies as { ragione_sociale?: string })?.ragione_sociale ?? "";
+
+  // Risolve email rivenditore: companies.email se valorizzata, altrimenti
+  // email del primo azienda_admin/rivenditore della company
+  const { data: emailResolved } = await supabase.rpc("get_reseller_contact_email", {
+    p_company_id: practice.reseller_id,
+  });
+  const resellerEmail: string | null = emailResolved ?? null;
 
   const brandLabel = practice.brand === "enea" ? "ENEA" : "Conto Termico";
 

@@ -105,8 +105,13 @@ serve(async (req) => {
     });
   }
 
-  const resellerEmail = (practice.companies as { email?: string })?.email;
   const resellerName = (practice.companies as { ragione_sociale?: string })?.ragione_sociale ?? "";
+
+  // Risolve email rivenditore con fallback: companies.email → azienda_admin/rivenditore email
+  const { data: emailResolved } = await supabase.rpc("get_reseller_contact_email", {
+    p_company_id: practice.reseller_id,
+  });
+  const resellerEmail: string | null = emailResolved ?? null;
 
   switch (new_stage_type) {
     // Notifica A — documenti mancanti → email al rivenditore

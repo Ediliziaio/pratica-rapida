@@ -28,7 +28,7 @@ function normalizePhone(phone: string): string {
 }
 
 function buildFormLink(token: string): string {
-  return `https://pratica-rapida.it/form/${token}`;
+  return `https://app.praticarapida.it/form/${token}`;
 }
 
 async function invoke(supabase: ReturnType<typeof createClient>, fnName: string, body: unknown) {
@@ -191,7 +191,7 @@ serve(async () => {
                 data: {
                   nome: p.cliente_nome,
                   token: p.form_token,
-                  base_url: "https://pratica-rapida.it",
+                  base_url: "https://app.praticarapida.it",
                   practice_id: p.id,
                 },
               });

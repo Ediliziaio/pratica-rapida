@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Building2, ArrowLeft, FolderOpen, Receipt, Users, FileText, TrendingUp,
-  Mail, Phone, MapPin, CreditCard, Clock, Download, Tag, RotateCcw, Check, Gift,
+  Mail, Phone, MapPin, Download, Tag, RotateCcw, Check, Gift,
 } from "lucide-react";
 import { CompanyPromoManager } from "@/pages/admin/CompanyPromoManager";
 import { exportToCSV } from "@/lib/csv-export";

@@ -11,8 +11,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ArrowLeft, Mail, Phone, Building2, MapPin, Calendar, Clock, FileText, Gift, MessageCircle } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
-import { PAGAMENTO_BADGE } from "@/lib/pratiche-config";
-
 const STATO_BADGE: Record<string, string> = {
   bozza: "bg-gray-100 text-gray-600",
   inviata: "bg-blue-100 text-blue-700",

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -346,7 +346,7 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-sm">Ultime 10 pratiche</CardTitle>
           <button
-            onClick={() => navigate(brand === "enea" ? "/enea" : "/conto-termico")}
+            onClick={() => navigate(`/kanban?brand=${brand}`)}
             className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-0.5 transition-colors"
           >
             Vedi tutte <ChevronRight className="h-3 w-3" />
@@ -372,7 +372,7 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
                   <TableRow
                     key={p.id}
                     className="cursor-pointer hover:bg-muted/30 transition-colors"
-                    onClick={() => navigate(`/enea/${p.id}`)}
+                    onClick={() => navigate(`/kanban?brand=${p.brand ?? "enea"}`)}
                   >
                     <TableCell className="font-medium">
                       {p.cliente_nome} {p.cliente_cognome}

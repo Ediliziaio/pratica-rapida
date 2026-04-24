@@ -15,7 +15,7 @@ interface ModuloClienteProps {
   praticaId: string;
 }
 
-type TipoModulo = "schermature-solari" | "infissi" | "impianto-termico";
+type TipoModulo = "schermature-solari" | "infissi" | "impianto-termico" | "vepa";
 type StatoToken = "pending" | "inviato" | "compilato" | "scaduto";
 
 interface Token {
@@ -36,12 +36,14 @@ const TIPO_LABEL: Record<TipoModulo, string> = {
   "schermature-solari": "Schermature Solari",
   "infissi": "Infissi",
   "impianto-termico": "Impianto Termico",
+  "vepa": "VEPA",
 };
 
 const TIPO_PATH: Record<TipoModulo, string> = {
   "schermature-solari": "schermature-solari",
   "infissi": "modulo-infissi",
   "impianto-termico": "impianto-termico",
+  "vepa": "modulo-vepa",
 };
 
 const STATO_BADGE: Record<StatoToken, { label: string; className: string }> = {

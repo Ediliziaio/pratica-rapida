@@ -69,18 +69,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRoles(roleData.map((r) => r.role as AppRole));
     }
 
-    const isRivenditore = roleData?.some((r) => r.role === "rivenditore");
-    if (isRivenditore) {
+    // resellerId resolves via user_company_assignments for ANY role that owns
+    // practices in the new enea_practices table. Historically only "rivenditore"
+    // needed it, but azienda_admin / azienda_user now also create practices via
+    // /enea/nuova, and enea_practices RLS checks user_company_assignments via
+    // get_reseller_company_id() regardless of role. Widen it here so the form
+    // can submit and the kanban/archive queries resolve the right company.
+    const ownsPracticesViaAssignment = roleData?.some((r) =>
+      ["rivenditore", "azienda_admin", "azienda_user"].includes(r.role),
+    );
+    if (ownsPracticesViaAssignment) {
       const { data: assignment } = await supabase
         .from("user_company_assignments")
         .select("company_id, companies(is_active, blocked_at)")
         .eq("user_id", userId)
-        .single();
+        .limit(1)
+        .maybeSingle();
 
       if (assignment) {
         setResellerId(assignment.company_id);
         const company = assignment.companies as { is_active: boolean; blocked_at: string | null } | null;
         setIsBlocked(!company?.is_active || !!company?.blocked_at);
+      } else {
+        setResellerId(null);
+        setIsBlocked(false);
       }
     } else {
       setResellerId(null);

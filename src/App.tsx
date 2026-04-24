@@ -187,7 +187,7 @@ const App = () => (
                 <Route path="/modulo-vepa/:token" element={<ModuloClientePage />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/pratiche" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, "admin_interno", "azienda_admin", "azienda_user"]} fallback="/kanban"><Pratiche /></RoleGuard></ProtectedRoute>} />
-                <Route path="/pratiche/nuova" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, "admin_interno", "azienda_admin", "azienda_user"]} fallback="/kanban"><NuovaPratica /></RoleGuard></ProtectedRoute>} />
+                <Route path="/pratiche/nuova" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, "admin_interno"]} fallback="/enea/nuova"><NuovaPratica /></RoleGuard></ProtectedRoute>} />
                 <Route path="/pratiche/:id" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, "admin_interno", "azienda_admin", "azienda_user"]} fallback="/kanban"><PraticaDetail /></RoleGuard></ProtectedRoute>} />
                 <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
                 <Route path="/impostazioni" element={<ProtectedRoute><ImpostazioniAzienda /></ProtectedRoute>} />
@@ -201,7 +201,6 @@ const App = () => (
                 <Route path="/utenti" element={<Navigate to="/admin/impostazioni" replace />} />
                 <Route path="/listino" element={<Navigate to="/admin/impostazioni" replace />} />
                 <Route path="/admin/audit-log" element={<Navigate to="/admin/impostazioni" replace />} />
-                <Route path="/analytics" element={<Navigate to="/" replace />} />
                 <Route path="/coda-pratiche" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><CodaPratiche /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/pratiche" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><AdminPratiche /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/ticket" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><AdminTicket /></RoleGuard></ProtectedRoute>} />
@@ -212,8 +211,8 @@ const App = () => (
 
                 {/* Pratica Rapida v2.0 — ENEA/CT */}
                 {/* /kanban open to staff + resellers */}
-                <Route path="/kanban" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, ...RESELLER_ROLES]}><KanbanBoard /></RoleGuard></ProtectedRoute>} />
-                <Route path="/enea/nuova" element={<ProtectedRoute><RoleGuard allowed={[...RESELLER_ROLES]}><NuovaPraticaEnea /></RoleGuard></ProtectedRoute>} />
+                <Route path="/kanban" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, ...RESELLER_ROLES, "azienda_admin", "azienda_user"]}><KanbanBoard /></RoleGuard></ProtectedRoute>} />
+                <Route path="/enea/nuova" element={<ProtectedRoute><RoleGuard allowed={[...RESELLER_ROLES, "azienda_admin", "azienda_user"]}><NuovaPraticaEnea /></RoleGuard></ProtectedRoute>} />
                 <Route path="/enea/dashboard" element={<ProtectedRoute><RoleGuard allowed={[...ALL_AUTH_ROLES]}><EneaDashboard /></RoleGuard></ProtectedRoute>} />
                 <Route path="/enea/archivio" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, ...RESELLER_ROLES]}><ArchivioEnea /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/gestionale" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><GestionaleAdmin /></RoleGuard></ProtectedRoute>} />

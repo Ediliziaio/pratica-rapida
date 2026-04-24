@@ -133,7 +133,7 @@ serve(async (req) => {
         parameters: [
           { type: "text", text: practice.cliente_nome },
           { type: "text", text: resellerName },
-          { type: "text", text: `https://pratica-rapida.it/form/${practice.form_token}` },
+          { type: "text", text: `https://app.praticarapida.it/form/${practice.form_token}` },
         ],
       }],
       practice_id,
@@ -149,7 +149,7 @@ serve(async (req) => {
         nome: practice.cliente_nome,
         reseller: resellerName,
         prodotto: practice.prodotto_installato ?? "prodotto installato",
-        link: `https://pratica-rapida.it/form/${practice.form_token}`,
+        link: `https://app.praticarapida.it/form/${practice.form_token}`,
         practice_id,
       },
     });

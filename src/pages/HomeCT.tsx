@@ -1,4 +1,4 @@
-import { Navbar, TickerStrip, PartnerSection, ReviewsSection, WhyUsSection, GuaranteeSection, FinalCTA, Footer, WhatsAppButton } from "@/components/landing";
+import { Navbar, ReviewsSection, WhyUsSection, GuaranteeSection, FinalCTA, Footer, WhatsAppButton } from "@/components/landing";
 import { SEO } from "@/components/SEO";
 
 const jsonLd = [

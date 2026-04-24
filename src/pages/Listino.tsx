@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Settings, Plus, Search, Euro, Clock, Package } from "lucide-react";
+import { Plus, Search, Euro, Clock, Package } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
 import { serviceSchema } from "@/lib/validation-schemas";
 import type { Database } from "@/integrations/supabase/types";

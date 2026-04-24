@@ -32,13 +32,6 @@ const MODULI_URL = "https://drive.google.com/file/d/1ZZit5BsW1X0IkQ2_Xit5Jd8YRUu
 
 type TipoProdotto = "schermature_solari" | "infissi" | "vepa" | "pompe_calore";
 
-interface FileSlot {
-  key: string;
-  label: string;
-  required: boolean;
-  files: File[];
-}
-
 // ── Config prodotti ───────────────────────────────────────────────────────────
 const PRODOTTI: {
   id: TipoProdotto;

@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import {
   ArrowLeft, Send, ExternalLink, FileDown, Copy, Check,
   CalendarDays, User, Tag, CreditCard, Clock, Hash,
-  CopyPlus, CheckCircle2, CircleDot, Circle, XCircle, AlertCircle,
+  CopyPlus, CircleDot, Circle, XCircle, AlertCircle,
 } from "lucide-react";
 import { PracticeChat } from "@/components/PracticeChat";
 import { DocumentUpload } from "@/components/DocumentUpload";

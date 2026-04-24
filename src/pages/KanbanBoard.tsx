@@ -113,24 +113,6 @@ type SortOption = "recenti" | "vecchie" | "stage";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function formatDate(val: string | null | undefined) {
-  if (!val) return "—";
-  try {
-    return format(new Date(val), "d MMMM yyyy", { locale: it });
-  } catch {
-    return val;
-  }
-}
-
-function formatDateTime(val: string | null | undefined) {
-  if (!val) return "—";
-  try {
-    return format(new Date(val), "d MMM yyyy, HH:mm", { locale: it });
-  } catch {
-    return val;
-  }
-}
-
 function daysAgo(val: string | null | undefined) {
   if (!val) return 0;
   return Math.floor((Date.now() - new Date(val).getTime()) / 86400000);
@@ -364,7 +346,6 @@ function PracticeDetailSheet({
   practice,
   isInternal,
   stages,
-  operatorMap,
   allPractices,
   onClose,
   onMove,
@@ -372,7 +353,6 @@ function PracticeDetailSheet({
   practice: PracticeWithRelations | null;
   isInternal: boolean;
   stages: PipelineStage[];
-  operatorMap: Record<string, string>;
   allPractices: PracticeWithRelations[];
   onClose: () => void;
   onMove: (args: {
@@ -2186,7 +2166,6 @@ export default function KanbanBoard() {
         practice={selectedPractice}
         isInternal={isInternal}
         stages={stages}
-        operatorMap={operatorMap}
         allPractices={practices}
         onClose={() => setSelectedPractice(null)}
         onMove={handleMoveFromSheet}

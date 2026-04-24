@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import {
   DragDropContext,
   Droppable,
@@ -45,9 +45,6 @@ import {
   CheckCircle2,
   Pencil,
   Copy,
-  Eye,
-  Save,
-  Code,
   GripVertical,
 } from "lucide-react";
 import type { AutomationRule } from "@/integrations/supabase/types";
@@ -362,9 +359,6 @@ function newFlow(): AutomationFlow {
 
 function triggerLabel(type: string) {
   return TRIGGER_TYPES.find((t) => t.value === type)?.label ?? type;
-}
-function actionLabel(type: string) {
-  return ACTION_TYPES.find((a) => a.value === type)?.label ?? type;
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────

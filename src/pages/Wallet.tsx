@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/hooks/useCompany";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Receipt, CheckCircle2, Clock, FileText, TrendingUp,
   ChevronDown, ChevronRight, AlertCircle, Building2, Gift,

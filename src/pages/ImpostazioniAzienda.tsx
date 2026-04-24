@@ -442,8 +442,6 @@ export default function ImpostazioniAzienda() {
   const { user } = useAuth();
   const [section, setSection] = useState<Section>("azienda");
 
-  const activeSection = SECTIONS.find(s => s.id === section)!;
-
   return (
     <div className="space-y-6">
       {/* Page header */}

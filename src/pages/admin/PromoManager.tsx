@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePromoTypes, useClientPromos, type PromoType } from "@/hooks/usePromo";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Gift, Users, BarChart3, Trash2, Edit2 } from "lucide-react";
+import { Plus, Gift, Users, BarChart3, Edit2 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 

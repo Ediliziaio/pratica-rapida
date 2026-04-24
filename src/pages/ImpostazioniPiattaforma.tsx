@@ -35,7 +35,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Settings, Clock, Building2, Users, FolderOpen, Save, Plus, Pencil, Trash2, GripVertical, X, Mail, MessageCircle, Puzzle, Eye, EyeOff, CheckCircle, XCircle, Layers, Shield, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
 import type { CustomField, CustomFieldType, CustomFieldEntity } from "@/integrations/supabase/types";
 import UtentiPage from "./Utenti";
 import ListinoPage from "./Listino";
@@ -786,7 +785,6 @@ export default function ImpostazioniPiattaforma() {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<SettingsSection>("sla");
 
   const { data: slaRow } = useQuery({

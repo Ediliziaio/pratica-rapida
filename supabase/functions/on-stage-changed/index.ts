@@ -141,7 +141,7 @@ serve(async (req) => {
             nome: practice.cliente_nome,
             cognome: practice.cliente_cognome,
             brand: practice.brand === "enea" ? "ENEA" : "Conto Termico",
-            base_url: "https://pratica-rapida.it",
+            base_url: "https://app.praticarapida.it",
             token: practice.form_token,
             practice_id,
           },

@@ -184,7 +184,8 @@ export function AppSidebar() {
         items: [
           { title: "Pratiche", url: "/admin/pratiche", icon: FolderOpen },
           { title: "Gestionale", url: "/admin/gestionale", icon: Table2 },
-          { title: "Pipeline ENEA", url: "/kanban", icon: Kanban },
+          { title: "Pipeline ENEA", url: "/kanban?brand=enea", icon: Kanban },
+          { title: "Pipeline Conto Termico", url: "/kanban?brand=conto_termico", icon: Kanban },
           { title: "Attività", url: "/coda-pratiche", icon: ListChecks },
           { title: "Automazioni", url: "/admin/automazioni", icon: Zap },
         ],

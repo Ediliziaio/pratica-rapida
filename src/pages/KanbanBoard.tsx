@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import {
   DragDropContext,
   Droppable,
@@ -1222,7 +1222,13 @@ export default function KanbanBoard() {
   const { toast } = useToast();
   const moveStage = useMoveStage();
 
-  const [brandFilter, setBrandFilter] = useState<string>("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [brandFilter, setBrandFilter] = useState<string>(() => {
+    if (!isInternal) return "all";
+    const urlBrand = searchParams.get("brand");
+    if (urlBrand && ["enea", "conto_termico", "all"].includes(urlBrand)) return urlBrand;
+    return "all";
+  });
   const [search, setSearch] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -1254,6 +1260,34 @@ export default function KanbanBoard() {
     newStageName: string;
   } | null>(null);
   const [docMissText, setDocMissText] = useState("");
+
+  // Sync URL when brandFilter changes (staff only — reseller stays at /kanban)
+  useEffect(() => {
+    if (isInternal) {
+      if (brandFilter === "all") {
+        if (searchParams.has("brand")) {
+          searchParams.delete("brand");
+          setSearchParams(searchParams, { replace: true });
+        }
+      } else {
+        if (searchParams.get("brand") !== brandFilter) {
+          searchParams.set("brand", brandFilter);
+          setSearchParams(searchParams, { replace: true });
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brandFilter, isInternal]);
+
+  // Sync state when user navigates via sidebar (URL → brandFilter)
+  useEffect(() => {
+    if (!isInternal) return;
+    const urlBrand = searchParams.get("brand");
+    const expected =
+      urlBrand && ["enea", "conto_termico"].includes(urlBrand) ? urlBrand : "all";
+    if (expected !== brandFilter) setBrandFilter(expected);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, isInternal]);
 
   const { data: stages = [] } = usePipelineStages(
     brandFilter !== "all" ? brandFilter : undefined
@@ -1604,7 +1638,13 @@ export default function KanbanBoard() {
       <div className="flex items-center gap-2 px-4 py-2.5 border-b bg-background shrink-0">
         {/* Title + count */}
         <div className="flex items-center gap-2 shrink-0">
-          <span className="font-semibold text-sm tracking-tight">Pipeline</span>
+          <span className="font-semibold text-sm tracking-tight">
+            {isInternal && brandFilter === "enea"
+              ? "Pipeline ENEA"
+              : isInternal && brandFilter === "conto_termico"
+              ? "Pipeline Conto Termico"
+              : "Pipeline"}
+          </span>
           <span className="inline-flex h-5 min-w-[1.25rem] px-1.5 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground">
             {filteredPractices.length}
           </span>
@@ -1681,21 +1721,23 @@ export default function KanbanBoard() {
 
       {/* ── Toolbar row 2: brand segment · archive · sort ────────────────── */}
       <div className="flex items-center gap-3 px-4 py-1.5 border-b bg-background shrink-0">
-        <div className="inline-flex items-center gap-0.5 bg-muted rounded-md p-0.5">
-          {(["all", "enea", "conto_termico"] as const).map((b) => (
-            <button
-              key={b}
-              onClick={() => setBrandFilter(b)}
-              className={`px-2.5 py-1 rounded text-xs font-medium transition-all duration-150 ${
-                brandFilter === b
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {b === "all" ? "Tutti" : b === "enea" ? "ENEA" : "Conto Termico"}
-            </button>
-          ))}
-        </div>
+        {isInternal && (
+          <div className="inline-flex items-center gap-0.5 bg-muted rounded-md p-0.5">
+            {(["all", "enea", "conto_termico"] as const).map((b) => (
+              <button
+                key={b}
+                onClick={() => setBrandFilter(b)}
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-all duration-150 ${
+                  brandFilter === b
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {b === "all" ? "Tutti" : b === "enea" ? "ENEA" : "Conto Termico"}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="ml-auto flex items-center gap-3">
           <button

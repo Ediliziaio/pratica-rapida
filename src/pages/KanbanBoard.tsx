@@ -9,6 +9,7 @@ import {
 } from "@hello-pangea/dnd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useCompany } from "@/hooks/useCompany";
 import {
   usePipelineStages,
   useEneaPractices,
@@ -606,33 +607,35 @@ function PracticeDetailSheet({
             {/* Action buttons row */}
             {!editMode && (
               <div className="flex flex-wrap gap-2 mb-5 pb-4 border-b">
-                {/* Stage select */}
-                <Select
-                  value={practice.current_stage_id ?? ""}
-                  onValueChange={(newStageId) => {
-                    if (!newStageId || newStageId === practice.current_stage_id) return;
-                    const newStage = stages.find((s) => s.id === newStageId);
-                    const oldStage = stages.find((s) => s.id === practice.current_stage_id);
-                    onMove({
-                      practiceId: practice.id,
-                      newStageId,
-                      oldStageName: oldStage?.name ?? "—",
-                      newStageName: newStage?.name ?? "—",
-                    });
-                  }}
-                >
-                  <SelectTrigger className="h-8 text-xs w-auto gap-1 pr-2">
-                    <MoveHorizontal className="h-3.5 w-3.5 mr-1" />
-                    <SelectValue placeholder="Sposta stage" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {stages.map((s) => (
-                      <SelectItem key={s.id} value={s.id} className="text-xs">
-                        {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {/* Stage select — solo staff. Aziende e rivenditori sono read-only sullo stage. */}
+                {isInternal && (
+                  <Select
+                    value={practice.current_stage_id ?? ""}
+                    onValueChange={(newStageId) => {
+                      if (!newStageId || newStageId === practice.current_stage_id) return;
+                      const newStage = stages.find((s) => s.id === newStageId);
+                      const oldStage = stages.find((s) => s.id === practice.current_stage_id);
+                      onMove({
+                        practiceId: practice.id,
+                        newStageId,
+                        oldStageName: oldStage?.name ?? "—",
+                        newStageName: newStage?.name ?? "—",
+                      });
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs w-auto gap-1 pr-2">
+                      <MoveHorizontal className="h-3.5 w-3.5 mr-1" />
+                      <SelectValue placeholder="Sposta stage" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stages.map((s) => (
+                        <SelectItem key={s.id} value={s.id} className="text-xs">
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
 
                 {/* Email */}
                 {practice.cliente_email ? (
@@ -1280,8 +1283,13 @@ function PracticeCard({
   const agingIntent =
     days > 7 ? "text-destructive" : days >= 4 ? "text-amber-500" : "text-muted-foreground";
 
+  // DnD attivo SOLO per staff (super_admin/operatore senza impersonation).
+  // Aziende e rivenditori vedono read-only — possono cliccare per aprire detail
+  // ma NON spostare le card tra fasi.
+  const dragDisabled = selectable || !isInternal;
+
   return (
-    <Draggable draggableId={practice.id} index={index} isDragDisabled={selectable}>
+    <Draggable draggableId={practice.id} index={index} isDragDisabled={dragDisabled}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
@@ -1413,7 +1421,12 @@ function PracticeCard({
 // ── KanbanBoard ───────────────────────────────────────────────────────────────
 
 export default function KanbanBoard() {
-  const { user, isInternal } = useAuth();
+  const { user, isInternal: realIsInternal } = useAuth();
+  const { isImpersonating } = useCompany();
+  // Quando super_admin impersona un'azienda, l'UI deve comportarsi COME SE fosse
+  // l'azienda (vista semplificata, no drag, no admin actions, nomi reseller).
+  // Lato DB l'utente resta super_admin (RLS filtra via useEneaPractices).
+  const isInternal = realIsInternal && !isImpersonating;
   const { toast } = useToast();
   const moveStage = useMoveStage();
   const queryClient = useQueryClient();

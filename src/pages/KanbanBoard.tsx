@@ -682,18 +682,21 @@ function PracticeDetailSheet({
                 )}
 
                 {/* Apri scheda completa (PraticaDetail legacy con upload+timeline+messaggi) */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 text-xs gap-1"
-                  onClick={() => window.open(`/pratiche/${practice.id}`, "_blank")}
-                  title="Apri scheda completa con upload documenti, timeline e messaggi"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  Scheda completa
-                </Button>
+                {/* Scheda completa — solo staff (legacy /pratiche/:id route) */}
+                {isInternal && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs gap-1"
+                    onClick={() => window.open(`/pratiche/${practice.id}`, "_blank")}
+                    title="Apri scheda completa con upload documenti, timeline e messaggi"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Scheda completa
+                  </Button>
+                )}
 
-                {/* Copy form link */}
+                {/* Copy form link — utile a tutti (anche azienda lo passa al cliente) */}
                 <Button
                   variant="outline"
                   size="sm"
@@ -704,7 +707,7 @@ function PracticeDetailSheet({
                   Copia link form
                 </Button>
 
-                {/* Resend form link (internal only, only when form not yet submitted) */}
+                {/* Resend form link — solo staff (azione che invia email+WA reali) */}
                 {isInternal && !practice.form_compilato_at && practice.tipo_servizio === "servizio_completo" && (
                   <Button
                     variant="outline"
@@ -719,36 +722,40 @@ function PracticeDetailSheet({
                   </Button>
                 )}
 
-                {/* Archive / Restore */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 text-xs gap-1"
-                  onClick={handleArchive}
-                >
-                  {practice.archived_at ? (
-                    <>
-                      <RotateCcw className="h-3.5 w-3.5" />
-                      Ripristina
-                    </>
-                  ) : (
-                    <>
-                      <Archive className="h-3.5 w-3.5" />
-                      Archivia
-                    </>
-                  )}
-                </Button>
+                {/* Archivia/Ripristina — solo staff. Azienda è read-only. */}
+                {isInternal && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs gap-1"
+                    onClick={handleArchive}
+                  >
+                    {practice.archived_at ? (
+                      <>
+                        <RotateCcw className="h-3.5 w-3.5" />
+                        Ripristina
+                      </>
+                    ) : (
+                      <>
+                        <Archive className="h-3.5 w-3.5" />
+                        Archivia
+                      </>
+                    )}
+                  </Button>
+                )}
 
-                {/* Edit */}
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="h-8 text-xs gap-1"
-                  onClick={enterEditMode}
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                  Modifica
-                </Button>
+                {/* Modifica — solo staff. Azienda non può editare nulla. */}
+                {isInternal && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="h-8 text-xs gap-1"
+                    onClick={enterEditMode}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                    Modifica
+                  </Button>
+                )}
               </div>
             )}
 
@@ -949,16 +956,19 @@ function PracticeDetailSheet({
                       <p className="font-medium">{practice.fornitore || "—"}</p>
                     </div>
                   </div>
-                  <div className="mt-3 pt-3 border-t">
-                    <p className="text-xs text-muted-foreground mb-1">Note</p>
-                    {practice.note ? (
-                      <p className="text-sm whitespace-pre-wrap">{practice.note}</p>
-                    ) : (
-                      <p className="text-sm text-muted-foreground italic">
-                        Nessuna nota. Clicca <span className="font-medium">Modifica</span> per aggiungerne una.
-                      </p>
-                    )}
-                  </div>
+                  {/* Note — sempre visibili se presenti; placeholder modifica solo per staff */}
+                  {(practice.note || isInternal) && (
+                    <div className="mt-3 pt-3 border-t">
+                      <p className="text-xs text-muted-foreground mb-1">Note</p>
+                      {practice.note ? (
+                        <p className="text-sm whitespace-pre-wrap">{practice.note}</p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic">
+                          Nessuna nota. Clicca <span className="font-medium">Modifica</span> per aggiungerne una.
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </section>
 
                 {/* 1b. Finanziario (solo isInternal) */}

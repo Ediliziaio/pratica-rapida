@@ -95,6 +95,7 @@ import {
   CheckSquare,
   Columns3,
   List,
+  ExternalLink,
 } from "lucide-react";
 import {
   Tooltip,
@@ -676,6 +677,18 @@ function PracticeDetailSheet({
                     WhatsApp
                   </Button>
                 )}
+
+                {/* Apri scheda completa (PraticaDetail legacy con upload+timeline+messaggi) */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs gap-1"
+                  onClick={() => window.open(`/pratiche/${practice.id}`, "_blank")}
+                  title="Apri scheda completa con upload documenti, timeline e messaggi"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Scheda completa
+                </Button>
 
                 {/* Copy form link */}
                 <Button

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useCompany } from "./useCompany";
 import type { EneaPractice, PipelineStage } from "@/integrations/supabase/types";
 
 export function usePipelineStages(brand?: string) {
@@ -40,9 +41,15 @@ export function useEneaPractices(filters?: {
   offset?: number;
 }) {
   const { resellerId: myResellerId, isInternal } = useAuth();
+  // Quando un super_admin impersona un'azienda (CompanyContext.companyId override),
+  // il JWT resta del super_admin (RLS bypassa filter tenant) — DEVE filtrare client-side
+  const { companyId: impersonatedCompanyId, isImpersonating } = useCompany();
+  const effectiveResellerScope = isImpersonating
+    ? impersonatedCompanyId
+    : (!isInternal ? myResellerId : null);
 
   return useQuery({
-    queryKey: ["enea_practices", filters, myResellerId],
+    queryKey: ["enea_practices", filters, effectiveResellerScope],
     queryFn: async () => {
       const archivedOnly = !!filters?.archivedOnly;
       let q = supabase
@@ -81,9 +88,12 @@ export function useEneaPractices(filters?: {
         }
       }
 
-      // Rivenditore vede solo le proprie
-      if (!isInternal && myResellerId) {
-        q = q.eq("reseller_id", myResellerId);
+      // Tenant scoping (in ordine di priorità):
+      //   1) impersonation attiva (super_admin che agisce come azienda)
+      //   2) reseller naturale (azienda_admin/rivenditore non-staff)
+      //   3) filtro esplicito (es. operatore vuole vedere solo una company)
+      if (effectiveResellerScope) {
+        q = q.eq("reseller_id", effectiveResellerScope);
       } else if (filters?.resellerId) {
         q = q.eq("reseller_id", filters.resellerId);
       }

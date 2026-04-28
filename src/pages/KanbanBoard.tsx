@@ -508,21 +508,51 @@ function PracticeDetailSheet({
   async function handleUploadConclusa(e: React.ChangeEvent<HTMLInputElement>) {
     if (!practice || !e.target.files?.length) return;
     setUploadingConclusa(true);
+    const files = Array.from(e.target.files);
     const newPaths: string[] = [];
-    for (const file of Array.from(e.target.files)) {
+    const failed: { name: string; reason: string }[] = [];
+
+    for (const file of files) {
       const ext = file.name.split(".").pop() ?? "bin";
       const path = `${practice.id}/conclusa/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage.from("enea-documents").upload(path, file, { upsert: false });
-      if (!error) newPaths.push(path);
+      if (error) {
+        console.error(`Upload failed for ${file.name}:`, error);
+        failed.push({ name: file.name, reason: error.message });
+      } else {
+        newPaths.push(path);
+      }
     }
+
     if (newPaths.length) {
       const existing = practice.pratica_enea_conclusa_urls ?? [];
-      await updatePractice.mutateAsync({
-        id: practice.id,
-        updates: { pratica_enea_conclusa_urls: [...existing, ...newPaths] },
-      });
-      toast({ title: `${newPaths.length} file caricati correttamente` });
+      try {
+        await updatePractice.mutateAsync({
+          id: practice.id,
+          updates: { pratica_enea_conclusa_urls: [...existing, ...newPaths] },
+        });
+        toast({
+          title: `${newPaths.length} file caricati`,
+          description: failed.length > 0 ? `${failed.length} file non caricati (vedi console)` : undefined,
+        });
+      } catch (err) {
+        console.error("DB update failed:", err);
+        toast({
+          variant: "destructive",
+          title: "File caricati ma DB non aggiornato",
+          description: "I file sono nel bucket ma l'associazione alla pratica è fallita. Ricarica la pagina.",
+        });
+      }
     }
+
+    if (failed.length > 0 && newPaths.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Upload fallito",
+        description: `Nessun file caricato. Errore: ${failed[0].reason}`,
+      });
+    }
+
     setUploadingConclusa(false);
     if (conclusaInputRef.current) conclusaInputRef.current.value = "";
   }
@@ -2663,9 +2693,14 @@ export default function KanbanBoard() {
         </DialogContent>
       </Dialog>
 
-      {/* Practice detail sheet */}
+      {/* Practice detail sheet — sempre risolto via lookup live in `practices` per
+          evitare snapshot stale dopo upload/edit. selectedPractice tiene SOLO l'id. */}
       <PracticeDetailSheet
-        practice={selectedPractice}
+        practice={
+          selectedPractice
+            ? (practices.find((p) => p.id === selectedPractice.id) ?? selectedPractice)
+            : null
+        }
         isInternal={isInternal}
         stages={stages}
         allPractices={practices}

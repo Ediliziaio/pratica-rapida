@@ -196,9 +196,13 @@ const App = () => (
                 <Route path="/onboarding" element={<Onboarding />} />
                 {/* /admin (senza sottopath) → redirect al pannello appropriato */}
                 <Route path="/admin" element={<ProtectedRoute><RootRedirect /></ProtectedRoute>} />
-                <Route path="/pratiche" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, "admin_interno", "azienda_admin", "azienda_user"]} fallback="/kanban"><Pratiche /></RoleGuard></ProtectedRoute>} />
+                {/* /pratiche legacy — solo staff può ancora accedere (per gestionale finanziario);
+                    aziende e rivenditori vengono dirottati su /kanban (vista unificata) */}
+                <Route path="/pratiche" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]} fallback="/kanban"><Pratiche /></RoleGuard></ProtectedRoute>} />
                 <Route path="/pratiche/nuova" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, "admin_interno"]} fallback="/enea/nuova"><NuovaPratica /></RoleGuard></ProtectedRoute>} />
-                <Route path="/pratiche/:id" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, "admin_interno", "azienda_admin", "azienda_user"]} fallback="/kanban"><PraticaDetail /></RoleGuard></ProtectedRoute>} />
+                {/* /pratiche/:id legacy — solo staff (ha sezioni Assegnatario/Attività non per aziende).
+                    Aziende vedono il detail tramite Sheet del /kanban (read-only). */}
+                <Route path="/pratiche/:id" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]} fallback="/kanban"><PraticaDetail /></RoleGuard></ProtectedRoute>} />
                 <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
                 <Route path="/impostazioni" element={<ProtectedRoute><ImpostazioniAzienda /></ProtectedRoute>} />
                 <Route path="/assistenza" element={<ProtectedRoute><Assistenza /></ProtectedRoute>} />

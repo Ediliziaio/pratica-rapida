@@ -1156,6 +1156,7 @@ export interface EneaPractice {
   prezzo: number | null
   pagamento_stato: "non_pagata" | "pagata" | "in_verifica" | "rimborsata" | null
   data_incasso: string | null
+  dati_form: Record<string, unknown> | null  // dati estesi compilati dal cliente nel form pubblico
   created_at: string
   updated_at: string
 }

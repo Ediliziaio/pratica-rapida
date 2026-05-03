@@ -1001,6 +1001,11 @@ function PracticeDetailSheet({
                   )}
                 </section>
 
+                {/* 1.5 — Dati completi form cliente (collapsible, sempre visibili se compilati) */}
+                {practice.dati_form && Object.keys(practice.dati_form as Record<string, unknown>).length > 0 && (
+                  <FormDataDetails dati={practice.dati_form as Record<string, unknown>} />
+                )}
+
                 {/* 1b. Finanziario (solo isInternal) */}
                 {isInternal && (
                   <section>
@@ -1243,6 +1248,197 @@ function StatPill({
       <span className="font-normal opacity-70">{label}</span>
       <span className="font-semibold">{value}</span>
     </div>
+  );
+}
+
+// ── FormDataDetails ───────────────────────────────────────────────────────────
+// Mostra dati_form jsonb in modo leggibile. Collapsible per non saturare la card.
+
+function Field({ label, value }: { label: string; value: unknown }) {
+  if (value === null || value === undefined || value === "") return null;
+  let display: string;
+  if (typeof value === "boolean") display = value ? "Sì" : "No";
+  else if (typeof value === "number") display = String(value);
+  else display = String(value);
+  return (
+    <div>
+      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-sm font-medium">{display}</p>
+    </div>
+  );
+}
+
+function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
+  const richiedente = (dati.richiedente as Record<string, unknown>) || {};
+  const residenza = (dati.residenza as Record<string, unknown>) || {};
+  const apparlavori = (dati.appartamento_lavori as Record<string, unknown>) || {};
+  const cointest = (dati.cointestazione as Record<string, unknown>) || {};
+  const catastali = (dati.catastali as Record<string, unknown>) || {};
+  const edificio = (dati.edificio as Record<string, unknown>) || {};
+  const impianto = (dati.impianto as Record<string, unknown>) || {};
+  const prodotto = (dati.prodotto as Record<string, unknown>) || {};
+
+  const hasApparLavori = residenza.stesso_indirizzo_lavori === false && Object.keys(apparlavori).length > 0;
+  const hasCointest = cointest.presente === true;
+  const hasRecuperoCatastale = catastali.recupero_richiesto === true;
+
+  const prodottoTipo = prodotto.tipo as string | undefined;
+
+  return (
+    <details className="rounded-lg border bg-card group">
+      <summary className="cursor-pointer list-none flex items-center justify-between px-4 py-3 hover:bg-muted/40">
+        <h3 className="text-sm font-semibold">Dati form cliente</h3>
+        <span className="text-xs text-muted-foreground group-open:rotate-180 transition-transform">▾</span>
+      </summary>
+      <div className="px-4 pb-4 space-y-5">
+        {/* Richiedente */}
+        {Object.keys(richiedente).length > 0 && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Richiedente</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+              <Field label="Nome" value={richiedente.nome} />
+              <Field label="Cognome" value={richiedente.cognome} />
+              <Field label="Comune nascita" value={richiedente.comune_nascita} />
+              <Field label="Provincia nascita" value={richiedente.provincia_nascita} />
+              <Field label="Data nascita" value={richiedente.data_nascita} />
+              <Field label="Codice fiscale" value={richiedente.cf} />
+              <Field label="Email" value={richiedente.email} />
+              <Field label="Telefono" value={richiedente.telefono} />
+              <Field label="Abitazione principale" value={richiedente.abitazione_principale} />
+            </div>
+          </section>
+        )}
+
+        {/* Residenza */}
+        {Object.keys(residenza).length > 0 && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Residenza</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+              <Field label="Comune" value={residenza.comune} />
+              <Field label="Provincia" value={residenza.provincia} />
+              <Field label="Indirizzo" value={residenza.indirizzo} />
+              <Field label="Civico" value={residenza.civico} />
+              <Field label="CAP" value={residenza.cap} />
+              <Field label="Stesso indirizzo dei lavori" value={residenza.stesso_indirizzo_lavori} />
+            </div>
+          </section>
+        )}
+
+        {/* Appartamento lavori (se diverso) */}
+        {hasApparLavori && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Appartamento dei lavori</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+              <Field label="Comune" value={apparlavori.comune} />
+              <Field label="Provincia" value={apparlavori.provincia} />
+              <Field label="Indirizzo" value={apparlavori.indirizzo} />
+              <Field label="Numero" value={apparlavori.numero} />
+              <Field label="CAP" value={apparlavori.cap} />
+            </div>
+          </section>
+        )}
+
+        {/* Cointestazione */}
+        {hasCointest && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Cointestatario</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+              <Field label="Nome" value={cointest.nome} />
+              <Field label="Cognome" value={cointest.cognome} />
+              <Field label="Codice fiscale" value={cointest.cf} />
+            </div>
+          </section>
+        )}
+
+        {/* Catastali */}
+        {Object.keys(catastali).length > 0 && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Dati catastali</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-2">
+              <Field label="Foglio" value={catastali.foglio} />
+              <Field label="Mappale" value={catastali.mappale} />
+              <Field label="Subalterno" value={catastali.subalterno} />
+            </div>
+            {hasRecuperoCatastale && (
+              <div className="mt-3 rounded bg-amber-50 dark:bg-amber-950/20 px-3 py-2 text-xs">
+                <p className="font-semibold text-amber-800 dark:text-amber-300 mb-1">⚠️ Cliente ha richiesto recupero catastale (+€10)</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 mt-1">
+                  <Field label="Proprietario nome" value={catastali.proprietario_nome} />
+                  <Field label="Proprietario cognome" value={catastali.proprietario_cognome} />
+                  <Field label="Proprietario CF" value={catastali.proprietario_cf} />
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Edificio */}
+        {Object.keys(edificio).length > 0 && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Edificio</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+              <Field label="Anno costruzione" value={edificio.anno_costruzione} />
+              <Field label="Superficie (mq)" value={edificio.superficie_mq} />
+              <Field label="N. appartamenti edificio" value={edificio.numero_appartamenti} />
+              <Field label="Titolo richiedente" value={edificio.titolo_richiedente} />
+              <Field label="Tipologia" value={edificio.tipologia} />
+            </div>
+          </section>
+        )}
+
+        {/* Impianto */}
+        {Object.keys(impianto).length > 0 && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Impianto termico</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+              <Field label="Tipo impianto" value={impianto.tipo} />
+              <Field label="Terminali" value={impianto.terminali} />
+              <Field label="Combustibile" value={impianto.combustibile} />
+              <Field label="Tipo caldaia" value={impianto.tipo_caldaia} />
+              <Field label="Aria condizionata" value={impianto.aria_condizionata} />
+            </div>
+          </section>
+        )}
+
+        {/* Variante prodotto */}
+        {prodottoTipo && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+              Dati prodotto · {prodottoTipo === "infissi" ? "Infissi" : prodottoTipo === "schermature" ? "Schermature solari" : "Impianto termico"}
+            </p>
+            {prodottoTipo === "infissi" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                <Field label="Materiale vecchi" value={prodotto.materiale_vecchi} />
+                <Field label="Vetro vecchi" value={prodotto.vetro_vecchi} />
+                <Field label="Materiale nuovi" value={prodotto.materiale_nuovi} />
+                <Field label="Vetro nuovi" value={prodotto.vetro_nuovi} />
+                <Field label="Zanzariere/tapparelle/persiane" value={prodotto.zanzariere_tapparelle_persiane} />
+              </div>
+            )}
+            {prodottoTipo === "schermature" && Array.isArray(prodotto.schermature) && (
+              <div className="space-y-2">
+                {(prodotto.schermature as Array<Record<string, string>>).map((s, i) => (
+                  <div key={i} className="rounded border bg-muted/30 px-3 py-2 grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1">
+                    <p className="text-xs text-muted-foreground sm:col-span-3 font-medium">Schermatura #{i + 1}</p>
+                    <Field label="Tipo" value={s.tipo_prodotto} />
+                    <Field label="Direzione" value={s.direzione} />
+                  </div>
+                ))}
+              </div>
+            )}
+            {prodottoTipo === "impianto_termico" && (
+              <div>
+                {prodotto.libretto_url ? (
+                  <FileDownloadLink label="📄 Libretto impianto" path={prodotto.libretto_url as string} />
+                ) : (
+                  <p className="text-xs text-muted-foreground italic">Libretto non caricato dal cliente.</p>
+                )}
+              </div>
+            )}
+          </section>
+        )}
+      </div>
+    </details>
   );
 }
 

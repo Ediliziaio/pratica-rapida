@@ -109,7 +109,7 @@ export default function HeroSectionHome() {
           </motion.p>
         </div>
 
-        {/* Right: News Widget */}
+        {/* Right: Widget Notizie */}
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}

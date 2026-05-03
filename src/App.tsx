@@ -186,7 +186,7 @@ const App = () => (
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/blog" element={<BlogPage />} />
                 <Route path="/blog/:slug" element={<BlogPostPage />} />
-                {/* /news alias → /blog (unified content section, "News" in UI) */}
+                {/* /news alias → /blog (unified content section, "Notizie" in UI) */}
                 <Route path="/news" element={<Navigate to="/blog" replace />} />
                 <Route path="/news/:slug" element={<BlogPostPage />} />
                 <Route path="/auth" element={<AuthRoute />} />

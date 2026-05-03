@@ -97,7 +97,7 @@ export default function AdminNews() {
     mutate.mutate(updated, {
       onSuccess: () => {
         setShowDialog(false);
-        toast({ title: editing ? "News aggiornata" : "News aggiunta" });
+        toast({ title: editing ? "Notizia aggiornata" : "Notizia aggiunta" });
       },
     });
   };
@@ -114,11 +114,11 @@ export default function AdminNews() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight">News Homepage</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Notizie Homepage</h1>
           <p className="text-muted-foreground">Gestisci le notizie visibili nella home page del sito</p>
         </div>
         <Button onClick={openNew}>
-          <Plus className="mr-2 h-4 w-4" />Nuova News
+          <Plus className="mr-2 h-4 w-4" />Nuova Notizia
         </Button>
       </div>
 
@@ -126,9 +126,9 @@ export default function AdminNews() {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center py-14 text-center">
             <Newspaper className="mb-4 h-12 w-12 text-muted-foreground/40" />
-            <h3 className="font-semibold text-lg mb-1">Nessuna news</h3>
-            <p className="text-sm text-muted-foreground mb-4">Aggiungi la prima news per farla apparire in homepage</p>
-            <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Aggiungi News</Button>
+            <h3 className="font-semibold text-lg mb-1">Nessuna notizia</h3>
+            <p className="text-sm text-muted-foreground mb-4">Aggiungi la prima notizia per farla apparire in homepage</p>
+            <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Aggiungi Notizia</Button>
           </CardContent>
         </Card>
       ) : (
@@ -191,7 +191,7 @@ export default function AdminNews() {
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editing ? "Modifica News" : "Nuova News"}</DialogTitle>
+            <DialogTitle>{editing ? "Modifica Notizia" : "Nuova Notizia"}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4">
             <div>
@@ -268,7 +268,7 @@ export default function AdminNews() {
               onClick={save}
               disabled={!form.title.trim() || mutate.isPending}
             >
-              {mutate.isPending ? "Salvataggio..." : editing ? "Salva Modifiche" : "Aggiungi News"}
+              {mutate.isPending ? "Salvataggio..." : editing ? "Salva Modifiche" : "Aggiungi Notizia"}
             </Button>
           </div>
         </DialogContent>

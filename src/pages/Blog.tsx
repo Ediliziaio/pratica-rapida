@@ -11,7 +11,7 @@ const blogJsonLd = [
   {
     "@context": "https://schema.org",
     "@type": "Blog",
-    name: "News Pratica Rapida",
+    name: "Notizie Pratica Rapida",
     url: "https://www.praticarapida.it/blog",
     description: "Guide e risorse per installatori su pratiche ENEA, Conto Termico, normativa e burocrazia energetica.",
     publisher: { "@type": "Organization", name: "Pratica Rapida", url: "https://www.praticarapida.it" },
@@ -21,7 +21,7 @@ const blogJsonLd = [
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://www.praticarapida.it/" },
-      { "@type": "ListItem", position: 2, name: "News", item: "https://www.praticarapida.it/blog" },
+      { "@type": "ListItem", position: 2, name: "Notizie", item: "https://www.praticarapida.it/blog" },
     ],
   },
 ];
@@ -88,8 +88,8 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="News per Installatori — Guide ENEA e Conto Termico | Pratica Rapida"
-        description="News e guide pratiche per installatori: ENEA, Conto Termico GSE, normativa energetica e aggiornamenti fiscali 2026. Risorse operative per serramentisti e termoidraulici."
+        title="Notizie per Installatori — Guide ENEA e Conto Termico | Pratica Rapida"
+        description="Notizie e guide pratiche per installatori: ENEA, Conto Termico GSE, normativa energetica e aggiornamenti fiscali 2026. Risorse operative per serramentisti e termoidraulici."
         canonical="/blog"
         keywords="news pratica ENEA, guida ecobonus 2026, conto termico guida, normativa energetica installatori, bonus casa serramenti 2026"
         jsonLd={blogJsonLd}
@@ -121,7 +121,7 @@ export default function BlogPage() {
               className="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-widest mb-6"
               style={{ background: "hsla(152,100%,45%,0.12)", color: "hsl(152 100% 65%)", border: "1px solid hsla(152,100%,45%,0.25)" }}
             >
-              NEWS
+              NOTIZIE
             </span>
             <h1 className="font-extrabold text-4xl sm:text-5xl lg:text-6xl leading-[1.08] text-white mb-5">
               Risorse per{" "}

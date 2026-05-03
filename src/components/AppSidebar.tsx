@@ -205,7 +205,7 @@ export function AppSidebar() {
           { title: "Aziende", url: "/aziende", icon: Building2 },
           { title: "Clienti", url: "/admin/clienti", icon: UserSearch },
           { title: "Promo", url: "/admin/promo", icon: Gift },
-          { title: "News Sito", url: "/admin/news", icon: Newspaper },
+          { title: "Notizie Sito", url: "/admin/news", icon: Newspaper },
           { title: "Ticket", url: "/admin/ticket", icon: LifeBuoy },
         ],
       },

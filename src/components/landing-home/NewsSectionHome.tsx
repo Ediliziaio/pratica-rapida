@@ -77,7 +77,7 @@ export default function NewsSectionHome() {
             animate={isVisible ? { opacity: 1 } : {}}
             className="text-center py-10 text-muted-foreground text-sm"
           >
-            Nessuna news al momento. Torna presto per aggiornamenti.
+            Nessuna notizia al momento. Torna presto per aggiornamenti.
           </motion.div>
         ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

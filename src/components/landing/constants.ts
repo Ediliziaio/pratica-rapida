@@ -5,5 +5,5 @@ export const NAV_LINKS = [
   { href: "/pratica-enea", label: "Pratiche ENEA" },
   { href: "/conto-termico", label: "Conto Termico" },
   { href: "/faq", label: "FAQ" },
-  { href: "/blog", label: "Blog" },
+  { href: "/blog", label: "Notizie" },
 ];

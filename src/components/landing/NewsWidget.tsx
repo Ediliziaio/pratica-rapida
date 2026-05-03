@@ -8,7 +8,7 @@ export interface NewsItem {
   badge?: string;
 }
 
-// ── Aggiorna qui le news quando vuoi ──────────────────────────
+// ── Aggiorna qui le notizie quando vuoi ──────────────────────────
 export const NEWS_ITEMS: NewsItem[] = [
   { date: "Mar 2026", title: "Nuovo portale online — benvenuti!", icon: "🚀", badge: "Novità" },
   { date: "Feb 2026", title: "20.000+ pratiche gestite con successo", icon: "🏆", badge: "Traguardo" },
@@ -71,7 +71,7 @@ export default function NewsWidget({ light = false }: Props) {
         </div>
       </div>
 
-      {/* News list */}
+      {/* Lista notizie */}
       {NEWS_ITEMS.map((item, i) => (
         <motion.div
           key={i}

@@ -153,6 +153,40 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
         `),
       };
 
+    // ── Support ticket: risposta staff → cliente ────────────────────────────
+    case "ticket_risposta_staff":
+      return {
+        subject: r("{{subject}}"),
+        html: base(`
+          <h2 style="margin-top:0">Nuova risposta al tuo ticket</h2>
+          <p>Ciao <strong>${r("{{nome}}")}</strong>,</p>
+          <p>Hai ricevuto una nuova risposta dal team di supporto sul ticket:</p>
+          <p style="background:#f4f4f4;padding:12px 16px;border-left:3px solid ${COLORS.cta};margin:16px 0;font-weight:bold;">
+            ${r("{{oggetto}}")}
+          </p>
+          <div style="background:#fff;border:1px solid #e5e5e5;border-radius:6px;padding:16px;margin:16px 0;white-space:pre-wrap;">${r("{{messaggio}}")}</div>
+          ${cta("Apri il ticket", r("{{ticket_link}}"))}
+          <p style="color:#666;font-size:13px;margin-top:24px">
+            Puoi rispondere direttamente da qui per continuare la conversazione.
+          </p>
+        `),
+      };
+
+    // ── Support ticket: cliente ribatte → notifica staff ─────────────────────
+    case "ticket_replica_cliente":
+      return {
+        subject: r("{{subject}}"),
+        html: base(`
+          <h2 style="margin-top:0">Replica cliente sul ticket</h2>
+          <p>Il cliente <strong>${r("{{company}}")}</strong> ha aggiunto un messaggio al ticket:</p>
+          <p style="background:#f4f4f4;padding:12px 16px;border-left:3px solid ${COLORS.cta};margin:16px 0;font-weight:bold;">
+            ${r("{{oggetto}}")}
+          </p>
+          <div style="background:#fff;border:1px solid #e5e5e5;border-radius:6px;padding:16px;margin:16px 0;white-space:pre-wrap;">${r("{{messaggio}}")}</div>
+          ${cta("Apri il ticket", r("{{ticket_link}}"))}
+        `),
+      };
+
     // ── Support ticket: notifica al team interno ────────────────────────────
     case "ticket_nuovo":
       return {

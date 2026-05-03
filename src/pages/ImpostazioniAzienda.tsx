@@ -15,12 +15,10 @@ import {
   User,
   Bell,
   Lock,
-  CreditCard,
   Save,
   Check,
   Eye,
   EyeOff,
-  ChevronRight,
 } from "lucide-react";
 
 // ── Schemas ────────────────────────────────────────────────────────────────────
@@ -51,14 +49,13 @@ const passwordSchema = z.object({
 
 // ── Section navigation ─────────────────────────────────────────────────────────
 
-type Section = "azienda" | "account" | "notifiche" | "sicurezza" | "abbonamento";
+type Section = "azienda" | "account" | "notifiche" | "sicurezza";
 
 const SECTIONS: { id: Section; label: string; icon: React.ComponentType<{ className?: string }>; description: string }[] = [
   { id: "azienda", label: "Dati Azienda", icon: Building2, description: "Ragione sociale, P.IVA, indirizzo" },
   { id: "account", label: "Account Personale", icon: User, description: "Nome, cognome, contatti" },
   { id: "notifiche", label: "Notifiche", icon: Bell, description: "Preferenze di comunicazione" },
   { id: "sicurezza", label: "Sicurezza", icon: Lock, description: "Password e accesso" },
-  { id: "abbonamento", label: "Abbonamento", icon: CreditCard, description: "Piano e pagamenti" },
 ];
 
 // ── Field helpers ──────────────────────────────────────────────────────────────
@@ -402,39 +399,6 @@ function SezioneSicurezza() {
   );
 }
 
-// ── Sezione: Abbonamento ──────────────────────────────────────────────────────
-
-function SezioneAbbonamento() {
-  return (
-    <div className="space-y-6">
-      <SectionHeader title="Abbonamento" description="Dettagli del tuo piano e storico pagamenti" />
-      <div className="rounded-xl border-2 border-primary/20 bg-primary/5 px-6 py-5">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-primary">Piano attivo</p>
-            <p className="text-xl font-bold mt-1">Standard</p>
-            <p className="text-sm text-muted-foreground mt-1">Accesso completo alla piattaforma</p>
-          </div>
-          <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">Attivo</Badge>
-        </div>
-      </div>
-
-      <div className="rounded-lg border px-4 py-4 flex items-center justify-between group cursor-pointer hover:bg-muted/40 transition-colors" onClick={() => window.location.href = "/wallet"}>
-        <div className="flex items-center gap-3">
-          <CreditCard className="h-5 w-5 text-muted-foreground" />
-          <div>
-            <p className="text-sm font-medium">Estratto Conto</p>
-            <p className="text-xs text-muted-foreground">Visualizza transazioni e ricariche wallet</p>
-          </div>
-        </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
-      </div>
-
-      <p className="text-xs text-muted-foreground">Per modificare il piano o richiedere informazioni, contatta il supporto tramite la sezione <strong>Assistenza</strong>.</p>
-    </div>
-  );
-}
-
 // ── Main page ──────────────────────────────────────────────────────────────────
 
 export default function ImpostazioniAzienda() {
@@ -494,7 +458,6 @@ export default function ImpostazioniAzienda() {
             )}
             {section === "notifiche" && <SezioneNotifiche />}
             {section === "sicurezza" && <SezioneSicurezza />}
-            {section === "abbonamento" && <SezioneAbbonamento />}
           </div>
         </div>
       </div>

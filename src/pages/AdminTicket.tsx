@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { LifeBuoy, Clock, Search, AlertTriangle, Building2, ChevronDown, ChevronUp } from "lucide-react";
+import { LifeBuoy, Clock, Search, AlertTriangle, Building2, ChevronDown, ChevronUp, User, Headphones } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import type { Tables } from "@/integrations/supabase/types";
@@ -17,6 +18,15 @@ type TicketStato = "aperto" | "in_lavorazione" | "risolto" | "chiuso";
 
 type TicketWithCompany = Tables<"support_tickets"> & {
   companies: { ragione_sociale: string } | null;
+};
+
+type ThreadMessage = {
+  id: string;
+  author_user_id: string;
+  author_role: "client" | "staff";
+  body: string;
+  created_at: string;
+  profiles: { nome: string | null; cognome: string | null; email: string | null } | null;
 };
 
 const STATO_COLORS: Record<TicketStato, string> = {
@@ -47,10 +57,83 @@ const STATUS_TABS: Array<{ key: TicketStato | "tutti"; label: string }> = [
   { key: "chiuso", label: "Chiusi" },
 ];
 
+function authorLabel(m: ThreadMessage) {
+  const p = m.profiles;
+  if (p && (p.nome || p.cognome)) return `${p.nome ?? ""} ${p.cognome ?? ""}`.trim();
+  if (p?.email) return p.email;
+  return m.author_role === "staff" ? "Staff" : "Cliente";
+}
+
+function TicketThread({ ticketId }: { ticketId: string }) {
+  const { data: messages = [], isLoading } = useQuery({
+    queryKey: ["ticket-messages", ticketId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("support_ticket_messages")
+        .select("id, author_user_id, author_role, body, created_at, profiles:author_user_id(nome, cognome, email)")
+        .eq("ticket_id", ticketId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as unknown as ThreadMessage[];
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-6">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (messages.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed py-6 text-center text-xs text-muted-foreground">
+        Nessun messaggio nel thread.
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-h-96 space-y-3 overflow-y-auto rounded-lg border bg-muted/20 p-3">
+      {messages.map((m) => {
+        const isStaff = m.author_role === "staff";
+        return (
+          <div key={m.id} className={`flex gap-2 ${isStaff ? "justify-end" : "justify-start"}`}>
+            {!isStaff && (
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                <User className="h-3.5 w-3.5" />
+              </div>
+            )}
+            <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm shadow-sm ${
+              isStaff ? "bg-primary text-primary-foreground" : "bg-background border"
+            }`}>
+              <div className={`mb-1 flex items-center gap-2 text-[11px] ${
+                isStaff ? "text-primary-foreground/80" : "text-muted-foreground"
+              }`}>
+                <span className="font-medium">{authorLabel(m)}</span>
+                <span>·</span>
+                <span>{format(new Date(m.created_at), "dd MMM HH:mm", { locale: it })}</span>
+              </div>
+              <p className="whitespace-pre-wrap break-words">{m.body}</p>
+            </div>
+            {isStaff && (
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Headphones className="h-3.5 w-3.5" />
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function AdminTicket() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [risposta, setRisposta] = useState("");
+  const [reply, setReply] = useState("");
   const [stato, setStato] = useState<TicketStato>("aperto");
   const [search, setSearch] = useState("");
   const [filterStato, setFilterStato] = useState<TicketStato | "tutti">("tutti");
@@ -68,19 +151,38 @@ export default function AdminTicket() {
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: { stato: TicketStato; risposta: string } }) => {
-      const { error } = await supabase.from("support_tickets").update(updates).eq("id", id);
+  const updateStatoMutation = useMutation({
+    mutationFn: async ({ id, newStato }: { id: string; newStato: TicketStato }) => {
+      const { error } = await supabase.from("support_tickets").update({ stato: newStato }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-tickets"] });
-      toast({ title: "Ticket aggiornato" });
-      setExpandedId(null);
-      setRisposta("");
+      toast({ title: "Stato aggiornato" });
     },
     onError: () => {
-      toast({ title: "Errore", description: "Impossibile aggiornare il ticket.", variant: "destructive" });
+      toast({ title: "Errore", description: "Impossibile aggiornare lo stato.", variant: "destructive" });
+    },
+  });
+
+  const sendReplyMutation = useMutation({
+    mutationFn: async ({ ticketId, body }: { ticketId: string; body: string }) => {
+      const { error } = await supabase.from("support_ticket_messages").insert({
+        ticket_id: ticketId,
+        author_user_id: user!.id,
+        author_role: "staff",
+        body,
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["ticket-messages", vars.ticketId] });
+      queryClient.invalidateQueries({ queryKey: ["admin-tickets"] });
+      setReply("");
+      toast({ title: "Risposta inviata", description: "Email automatica al cliente in corso." });
+    },
+    onError: () => {
+      toast({ title: "Errore", description: "Impossibile inviare la risposta.", variant: "destructive" });
     },
   });
 
@@ -90,7 +192,7 @@ export default function AdminTicket() {
       return;
     }
     setExpandedId(ticket.id);
-    setRisposta(ticket.risposta || "");
+    setReply("");
     setStato(ticket.stato as TicketStato);
   };
 
@@ -219,12 +321,6 @@ export default function AdminTicket() {
                           <Building2 className="h-3 w-3" />
                           {t.companies?.ragione_sociale || "—"}
                         </span>
-                        {t.risposta && (
-                          <>
-                            <span>·</span>
-                            <span className="text-success">✓ Risposto</span>
-                          </>
-                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -241,48 +337,65 @@ export default function AdminTicket() {
                   {isExpanded && (
                     <div className="mt-4 space-y-4 border-t pt-4" onClick={(e) => e.stopPropagation()}>
                       <div className="rounded-lg bg-muted/40 p-3">
-                        <p className="text-xs font-medium text-muted-foreground mb-1">Messaggio del cliente</p>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Messaggio iniziale del cliente</p>
                         <p className="whitespace-pre-wrap text-sm">{t.descrizione}</p>
                       </div>
 
+                      {/* Thread */}
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Conversazione</p>
+                        <TicketThread ticketId={t.id} />
+                      </div>
+
+                      {/* Stato */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <p className="text-xs font-medium text-muted-foreground">Aggiorna stato</p>
-                          <Select value={stato} onValueChange={(v) => setStato(v as TicketStato)}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="aperto">Aperto</SelectItem>
-                              <SelectItem value="in_lavorazione">In Lavorazione</SelectItem>
-                              <SelectItem value="risolto">Risolto</SelectItem>
-                              <SelectItem value="chiuso">Chiuso</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="flex gap-2">
+                            <Select
+                              value={stato}
+                              onValueChange={(v) => setStato(v as TicketStato)}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="aperto">Aperto</SelectItem>
+                                <SelectItem value="in_lavorazione">In Lavorazione</SelectItem>
+                                <SelectItem value="risolto">Risolto</SelectItem>
+                                <SelectItem value="chiuso">Chiuso</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={updateStatoMutation.isPending || stato === t.stato}
+                              onClick={() => updateStatoMutation.mutate({ id: t.id, newStato: stato })}
+                            >
+                              {updateStatoMutation.isPending ? "..." : "Salva"}
+                            </Button>
+                          </div>
                         </div>
                       </div>
 
+                      {/* Reply */}
                       <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground">Risposta interna</p>
+                        <p className="text-xs font-medium text-muted-foreground">Nuova risposta al cliente</p>
                         <Textarea
-                          value={risposta}
-                          onChange={(e) => setRisposta(e.target.value)}
+                          value={reply}
+                          onChange={(e) => setReply(e.target.value)}
                           rows={4}
                           placeholder="Scrivi una risposta al cliente..."
                           maxLength={5000}
                         />
-                        <p className="text-xs text-muted-foreground text-right">{risposta.length}/5000</p>
-                      </div>
-
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => setExpandedId(null)}>
-                          Annulla
-                        </Button>
-                        <Button
-                          size="sm"
-                          disabled={updateMutation.isPending}
-                          onClick={() => updateMutation.mutate({ id: t.id, updates: { stato, risposta } })}
-                        >
-                          {updateMutation.isPending ? "Salvataggio..." : "Salva risposta"}
-                        </Button>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs text-muted-foreground">{reply.length}/5000 — il cliente riceverà l'email automaticamente</p>
+                          <Button
+                            size="sm"
+                            disabled={sendReplyMutation.isPending || !reply.trim()}
+                            onClick={() => sendReplyMutation.mutate({ ticketId: t.id, body: reply.trim() })}
+                          >
+                            {sendReplyMutation.isPending ? "Invio..." : "Invia risposta"}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   )}

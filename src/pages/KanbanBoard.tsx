@@ -2175,16 +2175,18 @@ export default function KanbanBoard() {
               <DropdownMenuItem onClick={exportXLSX}>Excel (.xlsx)</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => setSettingsOpen(true)}
-            title="Impostazioni pipeline"
-            aria-label="Impostazioni pipeline"
-          >
-            <SlidersHorizontal className="h-3.5 w-3.5" />
-          </Button>
+          {isInternal && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setSettingsOpen(true)}
+              title="Impostazioni pipeline"
+              aria-label="Impostazioni pipeline"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
       </div>
 
@@ -2516,10 +2518,12 @@ export default function KanbanBoard() {
               Configura gli stage della pipeline per iniziare a gestire le pratiche nel Kanban.
             </p>
           </div>
-          <Button variant="outline" onClick={() => setSettingsOpen(true)}>
-            <SlidersHorizontal className="mr-2 h-4 w-4" />
-            Configura pipeline
-          </Button>
+          {isInternal && (
+            <Button variant="outline" onClick={() => setSettingsOpen(true)}>
+              <SlidersHorizontal className="mr-2 h-4 w-4" />
+              Configura pipeline
+            </Button>
+          )}
         </div>
       ) : viewMode === "tabella" && isInternal ? (
         <div className="flex-1 min-h-0 overflow-auto p-4">

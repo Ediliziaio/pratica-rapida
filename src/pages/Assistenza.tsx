@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { LifeBuoy, Plus, Clock, MessageSquare, Mail } from "lucide-react";
+import { LifeBuoy, Plus, Clock, Mail, User, Headphones } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { ticketSchema } from "@/lib/validation-schemas";
@@ -83,6 +83,15 @@ async function sendTicketEmails({
 
 type TicketStato = "aperto" | "in_lavorazione" | "risolto" | "chiuso";
 
+type ThreadMessage = {
+  id: string;
+  author_user_id: string;
+  author_role: "client" | "staff";
+  body: string;
+  created_at: string;
+  profiles: { nome: string | null; cognome: string | null; email: string | null } | null;
+};
+
 const STATO_COLORS: Record<TicketStato, string> = {
   aperto: "bg-blue-100 text-blue-800",
   in_lavorazione: "bg-yellow-100 text-yellow-800",
@@ -103,6 +112,79 @@ const PRIORITA_LABELS: Record<string, string> = {
   alta: "Alta",
 };
 
+function authorLabel(m: ThreadMessage) {
+  const p = m.profiles;
+  if (p && (p.nome || p.cognome)) return `${p.nome ?? ""} ${p.cognome ?? ""}`.trim();
+  if (p?.email) return p.email;
+  return m.author_role === "staff" ? "Staff supporto" : "Tu";
+}
+
+function ClientTicketThread({ ticketId, currentUserId }: { ticketId: string; currentUserId: string | undefined }) {
+  const { data: messages = [], isLoading } = useQuery({
+    queryKey: ["client-ticket-messages", ticketId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("support_ticket_messages")
+        .select("id, author_user_id, author_role, body, created_at, profiles:author_user_id(nome, cognome, email)")
+        .eq("ticket_id", ticketId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as unknown as ThreadMessage[];
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-6">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (messages.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed py-6 text-center text-xs text-muted-foreground">
+        Nessuna risposta ancora. Il team ti risponderà al più presto.
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-h-96 space-y-3 overflow-y-auto rounded-lg border bg-muted/20 p-3">
+      {messages.map((m) => {
+        const isMine = m.author_user_id === currentUserId || m.author_role === "client";
+        const isStaff = m.author_role === "staff";
+        return (
+          <div key={m.id} className={`flex gap-2 ${isMine ? "justify-end" : "justify-start"}`}>
+            {!isMine && (
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Headphones className="h-3.5 w-3.5" />
+              </div>
+            )}
+            <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm shadow-sm ${
+              isMine ? "bg-primary text-primary-foreground" : "bg-background border"
+            }`}>
+              <div className={`mb-1 flex items-center gap-2 text-[11px] ${
+                isMine ? "text-primary-foreground/80" : "text-muted-foreground"
+              }`}>
+                <span className="font-medium">{isStaff ? "Staff supporto" : authorLabel(m)}</span>
+                <span>·</span>
+                <span>{format(new Date(m.created_at), "dd MMM HH:mm", { locale: it })}</span>
+              </div>
+              <p className="whitespace-pre-wrap break-words">{m.body}</p>
+            </div>
+            {isMine && (
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                <User className="h-3.5 w-3.5" />
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function Assistenza() {
   const { companyId } = useCompany();
   const { user } = useAuth();
@@ -112,6 +194,7 @@ export default function Assistenza() {
   const [form, setForm] = useState({ oggetto: "", descrizione: "", priorita: "normale" as "bassa" | "normale" | "alta" });
   const [notificaEmail, setNotificaEmail] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [reply, setReply] = useState("");
 
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["support-tickets", companyId],
@@ -204,7 +287,26 @@ export default function Assistenza() {
     },
   });
 
-  const isTicketClosed = (stato: string) => stato === "risolto" || stato === "chiuso";
+  const sendReplyMutation = useMutation({
+    mutationFn: async ({ ticketId, body }: { ticketId: string; body: string }) => {
+      const { error } = await supabase.from("support_ticket_messages").insert({
+        ticket_id: ticketId,
+        author_user_id: user!.id,
+        author_role: "client",
+        body,
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["client-ticket-messages", vars.ticketId] });
+      queryClient.invalidateQueries({ queryKey: ["support-tickets", companyId] });
+      setReply("");
+      toast({ title: "Messaggio inviato", description: "Il team riceverà la tua risposta via email." });
+    },
+    onError: () => {
+      toast({ title: "Errore", description: "Impossibile inviare il messaggio.", variant: "destructive" });
+    },
+  });
 
   if (isLoading) {
     return (
@@ -314,50 +416,70 @@ export default function Assistenza() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {tickets.map((t) => (
-            <Card
-              key={t.id}
-              className="cursor-pointer transition-shadow hover:shadow-md"
-              onClick={() => setSelectedTicket(selectedTicket?.id === t.id ? null : t)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium">{t.oggetto}</p>
-                    <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      {format(new Date(t.created_at), "dd MMM yyyy HH:mm", { locale: it })}
-                      <span>·</span>
-                      <span>Priorità: {PRIORITA_LABELS[t.priorita] || t.priorita}</span>
-                      {isTicketClosed(t.stato) && (
-                        <span className="text-muted-foreground/60">· Chiuso</span>
-                      )}
-                    </div>
-                  </div>
-                  <Badge className={STATO_COLORS[t.stato as TicketStato] || ""}>
-                    {STATO_LABELS[t.stato as TicketStato] || t.stato}
-                  </Badge>
-                </div>
-                {selectedTicket?.id === t.id && (
-                  <div className="mt-4 space-y-3 border-t pt-3">
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground">Descrizione</p>
-                      <p className="mt-1 whitespace-pre-wrap text-sm">{t.descrizione}</p>
-                    </div>
-                    {t.risposta && (
-                      <div className="rounded-md bg-muted p-3">
-                        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                          <MessageSquare className="h-3 w-3" />
-                          Risposta del team
-                        </div>
-                        <p className="mt-1 whitespace-pre-wrap text-sm">{t.risposta}</p>
+          {tickets.map((t) => {
+            const isSelected = selectedTicket?.id === t.id;
+            return (
+              <Card
+                key={t.id}
+                className={`cursor-pointer transition-shadow hover:shadow-md ${isSelected ? "ring-2 ring-primary/30" : ""}`}
+                onClick={() => {
+                  setSelectedTicket(isSelected ? null : t);
+                  setReply("");
+                }}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{t.oggetto}</p>
+                      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {format(new Date(t.created_at), "dd MMM yyyy HH:mm", { locale: it })}
+                        <span>·</span>
+                        <span>Priorità: {PRIORITA_LABELS[t.priorita] || t.priorita}</span>
                       </div>
-                    )}
+                    </div>
+                    <Badge className={STATO_COLORS[t.stato as TicketStato] || ""}>
+                      {STATO_LABELS[t.stato as TicketStato] || t.stato}
+                    </Badge>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+                  {isSelected && (
+                    <div className="mt-4 space-y-4 border-t pt-4" onClick={(e) => e.stopPropagation()}>
+                      <div className="rounded-lg bg-muted/40 p-3">
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Messaggio iniziale</p>
+                        <p className="whitespace-pre-wrap text-sm">{t.descrizione}</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Conversazione</p>
+                        <ClientTicketThread ticketId={t.id} currentUserId={user?.id} />
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Rispondi</p>
+                        <Textarea
+                          value={reply}
+                          onChange={(e) => setReply(e.target.value)}
+                          rows={3}
+                          placeholder="Scrivi un messaggio al team di supporto..."
+                          maxLength={5000}
+                        />
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs text-muted-foreground">{reply.length}/5000</p>
+                          <Button
+                            size="sm"
+                            disabled={sendReplyMutation.isPending || !reply.trim()}
+                            onClick={() => sendReplyMutation.mutate({ ticketId: t.id, body: reply.trim() })}
+                          >
+                            {sendReplyMutation.isPending ? "Invio..." : "Rispondi"}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

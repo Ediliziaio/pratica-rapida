@@ -154,14 +154,14 @@ export default function BlogPostPage() {
       mainEntityOfPage: { "@type": "WebPage", "@id": `https://www.praticarapida.it/blog/${post.slug}` },
       url: `https://www.praticarapida.it/blog/${post.slug}`,
       inLanguage: "it-IT",
-      isPartOf: { "@type": "Blog", name: "Blog Pratica Rapida", url: "https://www.praticarapida.it/blog" },
+      isPartOf: { "@type": "Blog", name: "News Pratica Rapida", url: "https://www.praticarapida.it/blog" },
     },
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Home", item: "https://www.praticarapida.it/" },
-        { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.praticarapida.it/blog" },
+        { "@type": "ListItem", position: 2, name: "News", item: "https://www.praticarapida.it/blog" },
         { "@type": "ListItem", position: 3, name: post.title, item: `https://www.praticarapida.it/blog/${post.slug}` },
       ],
     },
@@ -207,7 +207,7 @@ export default function BlogPostPage() {
             style={{ color: "rgba(255,255,255,0.4)" }}
           >
             <Link to="/blog" className="hover:text-white transition-colors flex items-center gap-1">
-              <ArrowLeft size={13} /> Blog
+              <ArrowLeft size={13} /> News
             </Link>
             <span>/</span>
             <span style={{ color: post.categoryColor }}>{categoryLabel}</span>

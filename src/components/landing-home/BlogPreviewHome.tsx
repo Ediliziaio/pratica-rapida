@@ -33,10 +33,10 @@ export default function BlogPreviewHome() {
               className="inline-block px-3 py-1 rounded-full text-[11px] font-bold tracking-widest mb-3"
               style={{ background: "hsla(152,70%,40%,0.10)", color: "hsl(152 60% 28%)", border: "1px solid hsla(152,70%,40%,0.22)" }}
             >
-              DAL BLOG
+              NEWS
             </span>
             <h2 className="font-extrabold text-2xl sm:text-3xl text-foreground leading-tight">
-              Aggiornamenti e Guide per Installatori
+              News e Guide per Installatori
             </h2>
             <p className="text-muted-foreground text-sm mt-1.5">
               Normative, incentivi e risorse operative — sempre aggiornate
@@ -47,7 +47,7 @@ export default function BlogPreviewHome() {
             className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold shrink-0 transition-colors hover:underline"
             style={{ color: "hsl(var(--pr-green))" }}
           >
-            Tutti gli articoli <ArrowRight size={14} />
+            Tutte le news <ArrowRight size={14} />
           </Link>
         </motion.div>
 
@@ -134,7 +134,7 @@ export default function BlogPreviewHome() {
             className="inline-flex items-center gap-1.5 text-sm font-semibold"
             style={{ color: "hsl(var(--pr-green))" }}
           >
-            Tutti gli articoli <ArrowRight size={14} />
+            Tutte le news <ArrowRight size={14} />
           </Link>
         </div>
 

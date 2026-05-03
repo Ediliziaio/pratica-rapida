@@ -628,6 +628,41 @@ export type Database = {
         }
         Relationships: []
       }
+      support_ticket_messages: {
+        Row: {
+          author_role: "client" | "staff"
+          author_user_id: string
+          body: string
+          created_at: string
+          id: string
+          ticket_id: string
+        }
+        Insert: {
+          author_role: "client" | "staff"
+          author_user_id: string
+          body: string
+          created_at?: string
+          id?: string
+          ticket_id: string
+        }
+        Update: {
+          author_role?: "client" | "staff"
+          author_user_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_tickets: {
         Row: {
           company_id: string
@@ -1216,4 +1251,13 @@ export interface CustomFieldValue {
   value_json: unknown | null
   created_at: string
   updated_at: string
+}
+
+export interface SupportTicketMessage {
+  id: string
+  ticket_id: string
+  author_user_id: string
+  author_role: "client" | "staff"
+  body: string
+  created_at: string
 }

@@ -31,7 +31,7 @@ export default function Footer() {
             <h5 className="font-bold text-sm text-white mb-4">Azienda</h5>
             <Link to="/" className="block text-sm mb-2 hover:text-white transition-colors">Home</Link>
             <Link to="/faq" className="block text-sm mb-2 hover:text-white transition-colors">FAQ</Link>
-            <Link to="/blog" className="block text-sm mb-2 hover:text-white transition-colors">Blog</Link>
+            <Link to="/blog" className="block text-sm mb-2 hover:text-white transition-colors">News</Link>
             <Link to="/auth" className="block text-sm mb-2 hover:text-white transition-colors">Accedi al portale</Link>
             <a
               href="https://www.praticarapida.com/area-rivenditori/"

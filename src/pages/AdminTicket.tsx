@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { LifeBuoy, Clock, Search, AlertTriangle, Building2, ChevronDown, ChevronUp, User, Headphones } from "lucide-react";
+import { LifeBuoy, Clock, Search, AlertTriangle, Building2, ChevronDown, ChevronUp, User, Headphones, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import type { Tables } from "@/integrations/supabase/types";
@@ -138,7 +138,7 @@ export default function AdminTicket() {
   const [search, setSearch] = useState("");
   const [filterStato, setFilterStato] = useState<TicketStato | "tutti">("tutti");
 
-  const { data: tickets = [], isLoading } = useQuery({
+  const { data: tickets = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["admin-tickets"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -210,6 +210,21 @@ export default function AdminTicket() {
       <div className="flex items-center justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+          <AlertCircle className="h-10 w-10 text-destructive/60" />
+          <div>
+            <p className="font-semibold">Impossibile caricare i ticket</p>
+            <p className="text-sm text-muted-foreground mt-1">Controlla la connessione o riprova.</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>Riprova</Button>
+        </CardContent>
+      </Card>
     );
   }
 

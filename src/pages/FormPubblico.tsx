@@ -39,12 +39,18 @@ export default function FormPubblico() {
   });
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setError("Link non valido.");
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
     // Usa RPC SECURITY DEFINER (accesso anon controllato via form_token).
     // La tabella enea_practices non ha policy anon → SELECT diretto restituisce [].
     supabase
       .rpc("get_practice_by_form_token", { p_token: token })
       .then(({ data, error }) => {
+        if (cancelled) return;
         const row = Array.isArray(data) ? data[0] : null;
         if (error || !row) {
           setError("Pratica non trovata o link non valido.");
@@ -66,7 +72,16 @@ export default function FormPubblico() {
           });
         }
         setLoading(false);
+      }, (err) => {
+        // Promise rejection handler — senza questo lo spinner resta infinito su network error.
+        if (cancelled) return;
+        console.error("get_practice_by_form_token failed:", err);
+        setError("Impossibile caricare la pratica. Controlla la connessione e riprova.");
+        setLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
   }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {

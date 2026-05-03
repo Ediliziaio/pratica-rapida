@@ -2036,6 +2036,9 @@ export default function KanbanBoard() {
   // Ref to prevent firing mutations multiple times for the same practice before the DB propagates.
   const autoArchivedRef = useRef<Set<string>>(new Set());
   useEffect(() => {
+    // Solo staff può eseguire UPDATE su enea_practices via RLS — per rivenditori/azienda
+    // questo effect produrrebbe mutation fallite silenti + toast fuorviante.
+    if (!isInternal) return;
     if (!stages.length || !practices.length) return;
     const daInviareStage = stages.find((s) => s.stage_type === "da_inviare");
     const archiviateStage = stages.find((s) => s.stage_type === "archiviate");

@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Building2, Plus, Search, Receipt, Users, FolderOpen, LogIn,
   ChevronDown, BarChart3, TrendingUp, CircleDollarSign, CalendarDays, CheckCircle2, Clock,
-  ShieldOff, ShieldCheck, LayoutDashboard, Eye, EyeOff, List, Kanban,
+  ShieldOff, ShieldCheck, LayoutDashboard, Eye, EyeOff, List, Kanban, AlertCircle,
 } from "lucide-react";
 import AziendePipeline from "@/components/aziende/AziendePipeline";
 import { useNavigate } from "react-router-dom";
@@ -59,7 +59,7 @@ export default function Aziende() {
   });
   const [showPassword, setShowPassword] = useState(false);
 
-  const { data: companies = [], isLoading } = useQuery({
+  const { data: companies = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["admin-companies"],
     queryFn: async () => {
       const { data, error } = await supabase.from("companies").select("*").order("ragione_sociale");
@@ -226,12 +226,12 @@ export default function Aziende() {
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="font-display text-2xl font-bold tracking-tight">Aziende</h1>
             <p className="text-muted-foreground">Gestisci tutte le aziende registrate</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {/* View toggle */}
             <div className="flex items-center rounded-lg border bg-muted/40 p-0.5 gap-0.5">
               <Button
@@ -259,7 +259,7 @@ export default function Aziende() {
             <DialogContent className="max-w-lg">
               <DialogHeader><DialogTitle>Crea Azienda</DialogTitle></DialogHeader>
               <div className="grid gap-4">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div><Label>Ragione Sociale *</Label><Input value={form.ragione_sociale} onChange={e => setForm(f => ({ ...f, ragione_sociale: e.target.value }))} /></div>
                   <div><Label>P.IVA</Label><Input value={form.piva} onChange={e => setForm(f => ({ ...f, piva: e.target.value }))} /></div>
                   <div><Label>Codice Fiscale</Label><Input value={form.codice_fiscale} onChange={e => setForm(f => ({ ...f, codice_fiscale: e.target.value }))} /></div>
@@ -351,11 +351,29 @@ export default function Aziende() {
 
         {isLoading ? (
           <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+        ) : isError ? (
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
+              <AlertCircle className="h-12 w-12 text-destructive/60" />
+              <div>
+                <h3 className="font-display text-lg font-semibold">Impossibile caricare le aziende</h3>
+                <p className="text-sm text-muted-foreground mt-1">Controlla la connessione o riprova.</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => refetch()}>Riprova</Button>
+            </CardContent>
+          </Card>
         ) : filtered.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center py-12 text-center">
               <Building2 className="mb-4 h-12 w-12 text-muted-foreground/40" />
-              <h3 className="font-display text-lg font-semibold">Nessuna azienda</h3>
+              <h3 className="font-display text-lg font-semibold">
+                {companies.length === 0 ? "Nessuna azienda registrata" : "Nessuna azienda"}
+              </h3>
+              {companies.length === 0 ? (
+                <p className="text-sm text-muted-foreground mt-1">Crea la prima azienda con il pulsante "Nuova Azienda".</p>
+              ) : (
+                <p className="text-sm text-muted-foreground mt-1">Nessuna azienda corrisponde ai filtri selezionati.</p>
+              )}
             </CardContent>
           </Card>
         ) : (

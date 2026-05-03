@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { LifeBuoy, Plus, Clock, Mail, User, Headphones } from "lucide-react";
+import { LifeBuoy, Plus, Clock, Mail, User, Headphones, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { ticketSchema } from "@/lib/validation-schemas";
@@ -196,7 +196,7 @@ export default function Assistenza() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [reply, setReply] = useState("");
 
-  const { data: tickets = [], isLoading } = useQuery({
+  const { data: tickets = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["support-tickets", companyId],
     queryFn: async () => {
       if (!companyId) return [];
@@ -316,6 +316,27 @@ export default function Assistenza() {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="space-y-6 p-4 md:p-6">
+        <div className="flex items-center gap-3">
+          <LifeBuoy className="h-6 w-6 text-primary" />
+          <h1 className="text-2xl font-bold">Assistenza</h1>
+        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+            <AlertCircle className="h-10 w-10 text-destructive/60" />
+            <div>
+              <p className="font-semibold">Impossibile caricare i ticket</p>
+              <p className="text-sm text-muted-foreground mt-1">Controlla la connessione o riprova.</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>Riprova</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div className="flex items-center justify-between">
@@ -409,9 +430,15 @@ export default function Assistenza() {
 
       {tickets.length === 0 ? (
         <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
-            <LifeBuoy className="h-10 w-10" />
-            <p>Nessun ticket di assistenza. Apri un nuovo ticket se hai bisogno di aiuto.</p>
+          <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
+            <LifeBuoy className="h-10 w-10 text-muted-foreground/50" />
+            <div>
+              <p className="font-semibold">Nessun ticket di assistenza</p>
+              <p className="text-sm text-muted-foreground mt-1">Apri un nuovo ticket se hai bisogno di aiuto dal team di supporto.</p>
+            </div>
+            <Button onClick={() => setOpen(true)} className="mt-2">
+              <Plus className="mr-2 h-4 w-4" />Apri il primo ticket
+            </Button>
           </CardContent>
         </Card>
       ) : (

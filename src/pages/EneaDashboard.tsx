@@ -90,7 +90,7 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
   const { isInternal } = useAuth();
   const navigate = useNavigate();
 
-  const { data: practices = [], isLoading } = useQuery<PracticeWithStage[]>({
+  const { data: practices = [], isLoading, isError, refetch } = useQuery<PracticeWithStage[]>({
     queryKey: ["enea_practices_dashboard", brand],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -207,6 +207,21 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
           <Skeleton className="h-72 rounded-lg" />
         </div>
       </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+          <AlertTriangle className="h-10 w-10 text-destructive/60" />
+          <div>
+            <p className="font-semibold">Impossibile caricare la dashboard</p>
+            <p className="text-sm text-muted-foreground mt-1">Controlla la connessione o riprova.</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>Riprova</Button>
+        </CardContent>
+      </Card>
     );
   }
 

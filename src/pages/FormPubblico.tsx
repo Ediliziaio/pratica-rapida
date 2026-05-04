@@ -27,10 +27,17 @@ import {
   StepRichiedente,
 } from "@/components/form-cliente/Steps";
 import { StepRecap } from "@/components/form-cliente/StepRecap";
+import { DynamicSteps } from "@/components/form-cliente/DynamicSteps";
+import {
+  getVisibleSteps,
+  validateAllDynamicSteps,
+  validateDynamicStep,
+} from "@/components/form-cliente/dynamicValidation";
+import { useFormModuleByProdotto } from "@/hooks/useFormSchema";
 
-// TODO: integrate useFormModuleByProdotto in next iteration — leggi schema da
-// `form_modules` (CMS in /admin/moduli) con fallback al codice TS hardcoded
-// di `STEPS` qui sotto. Refactor non-breaking, da valutare in step successivo.
+// Refactor DB-first: se `useFormModuleByProdotto` matcha un modulo (CMS in
+// /admin/moduli), il form usa il renderer DINAMICO. Altrimenti fallback
+// non-breaking sullo schema TS hardcoded (`STEPS`).
 
 // ── Helper: pre-popolazione bozza esistente ───────────────────────────────────
 // Il dati_form salvato in DB potrebbe essere parziale (bozza salvata a metà
@@ -123,6 +130,17 @@ export default function FormPubblico() {
   const [formData, setFormData] = useState<FormClienteData>(emptyFormData());
   const [uploading, setUploading] = useState(false);
 
+  // ── Dynamic-path state ──────────────────────────────────────────────────────
+  // Quando `dbModule` è risolto, usiamo `dynamicData` (shape libera dallo
+  // schema DB) invece dei tipi hardcoded.
+  const [dynamicData, setDynamicData] = useState<Record<string, Record<string, unknown>>>({});
+
+  // Fetch del modulo DB. È abilitato solo se conosciamo `prodotto_installato`.
+  const { data: dbModule, isLoading: dbModuleLoading } = useFormModuleByProdotto(
+    practice?.prodotto_installato,
+  );
+  const useDynamic = !!dbModule;
+
   // ── Initial load ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!token) {
@@ -158,6 +176,13 @@ export default function FormPubblico() {
           initial = seedFromPractice(initial, row);
           initial = initProdottoForVariant(initial, tipo);
           setFormData(initial);
+
+          // Pre-popolazione del path dinamico: se il dati_form è già nello shape
+          // {sezione: {field: value}} lo usiamo as-is (può contenere campi non
+          // presenti in FormClienteData se il super_admin ha esteso lo schema).
+          if (row.dati_form && typeof row.dati_form === "object" && !Array.isArray(row.dati_form)) {
+            setDynamicData(row.dati_form as Record<string, Record<string, unknown>>);
+          }
         }
         setLoading(false);
       }, (err) => {
@@ -172,6 +197,15 @@ export default function FormPubblico() {
     };
   }, [token]);
 
+  // Se il numero di step "visibili" si riduce sotto stepIndex (perché un
+  // visible_if step-level è stato disattivato dal cambio di un campo),
+  // riportiamo l'indice all'ultimo step disponibile.
+  useEffect(() => {
+    if (totalSteps > 0 && stepIndex >= totalSteps) {
+      setStepIndex(totalSteps - 1);
+    }
+  }, [totalSteps, stepIndex]);
+
   // ── Patch helper per le sezioni del form ────────────────────────────────────
   const patchSection = useMemo(() => {
     return <S extends keyof FormClienteData>(
@@ -185,21 +219,41 @@ export default function FormPubblico() {
     };
   }, []);
 
+  // ── Step list (dynamic vs hardcoded) ────────────────────────────────────────
+  // Lista di step "visibili" in base allo stato corrente. Per il path dinamico
+  // applichiamo `visible_if` step-level; per il path hardcoded usiamo STEPS.
+  const visibleDynamicSteps = useMemo(() => {
+    if (!useDynamic || !dbModule) return [];
+    return getVisibleSteps(dbModule.schema, dynamicData);
+  }, [useDynamic, dbModule, dynamicData]);
+
+  const totalSteps = useDynamic ? visibleDynamicSteps.length : STEPS.length;
+  const safeStepIndex = totalSteps > 0 ? Math.min(stepIndex, totalSteps - 1) : 0;
+
   // ── Validazione step corrente ───────────────────────────────────────────────
-  const currentStep = STEPS[stepIndex];
-  const stepErrors = useMemo(
-    () => validateStep(currentStep.id, formData, prodottoTipo),
-    [currentStep.id, formData, prodottoTipo],
+  // Path hardcoded
+  const hardcodedStep = STEPS[safeStepIndex] ?? STEPS[0];
+  const hardcodedErrors = useMemo(
+    () => (useDynamic ? {} : validateStep(hardcodedStep.id, formData, prodottoTipo)),
+    [useDynamic, hardcodedStep.id, formData, prodottoTipo],
   );
+  // Path dinamico
+  const dynamicStep = visibleDynamicSteps[safeStepIndex];
+  const dynamicErrors = useMemo(
+    () => (useDynamic && dynamicStep ? validateDynamicStep(dynamicStep, dynamicData) : {}),
+    [useDynamic, dynamicStep, dynamicData],
+  );
+
+  const stepErrors = useDynamic ? dynamicErrors : hardcodedErrors;
   const canProceed = Object.keys(stepErrors).length === 0;
 
   // ── Autosave bozza ──────────────────────────────────────────────────────────
-  const saveDraft = async (data: FormClienteData) => {
+  const saveDraft = async (payload: Record<string, unknown>) => {
     if (!token) return;
     try {
       await supabase.rpc("save_form_draft_by_token", {
         p_token: token,
-        p_dati_form: data as unknown as Record<string, unknown>,
+        p_dati_form: payload,
       });
     } catch (err) {
       // Non bloccare il flusso: la bozza è un nice-to-have.
@@ -207,18 +261,40 @@ export default function FormPubblico() {
     }
   };
 
+  // ── Dynamic onChange: aggiorna lo stato e (lazy) autosave ───────────────────
+  const updateDynamicField = (
+    stepKey: string,
+    fieldKey: string,
+    value: unknown,
+  ) => {
+    setDynamicData((prev) => ({
+      ...prev,
+      [stepKey]: { ...(prev[stepKey] ?? {}), [fieldKey]: value },
+    }));
+    // L'autosave a ogni keystroke sarebbe troppo aggressivo; manteniamo il
+    // comportamento esistente: salviamo a Avanti/Indietro.
+  };
+
   // ── Navigation ──────────────────────────────────────────────────────────────
   const goNext = async () => {
     if (!canProceed) return;
-    await saveDraft(formData);
-    setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
+    if (useDynamic) {
+      await saveDraft(dynamicData);
+    } else {
+      await saveDraft(formData as unknown as Record<string, unknown>);
+    }
+    setStepIndex((i) => Math.min(i + 1, totalSteps - 1));
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const goBack = async () => {
-    if (stepIndex === 0) return;
+    if (safeStepIndex === 0) return;
     // Salviamo anche al "Indietro" come da specifica
-    await saveDraft(formData);
+    if (useDynamic) {
+      await saveDraft(dynamicData);
+    } else {
+      await saveDraft(formData as unknown as Record<string, unknown>);
+    }
     setStepIndex((i) => Math.max(i - 1, 0));
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -226,6 +302,65 @@ export default function FormPubblico() {
   // ── Submit finale ───────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!practice || !token) return;
+
+    if (useDynamic && dbModule) {
+      // Validazione completa su tutti gli step visibili
+      const allErrors = validateAllDynamicSteps(dbModule.schema, dynamicData);
+      if (Object.keys(allErrors).length > 0) {
+        toast({
+          variant: "destructive",
+          title: "Compila tutti i campi obbligatori",
+          description: Object.values(allErrors).slice(0, 3).join(" · "),
+        });
+        return;
+      }
+
+      setSubmitting(true);
+
+      // Estrai dati cliente dal dynamicData con un best-effort lookup. Lo schema
+      // DB definisce typicamente uno step "richiedente" con field nome/cognome/
+      // email/telefono/cf, ma siamo permissivi: accettiamo qualunque key che
+      // contenga i nomi standard. Fallback ai dati base della pratica.
+      const r = extractRichiedente(dynamicData) ?? {
+        nome: practice.cliente_nome ?? "",
+        cognome: practice.cliente_cognome ?? "",
+        email: practice.cliente_email ?? "",
+        telefono: practice.cliente_telefono ?? "",
+        cf: practice.cliente_cf ?? "",
+      };
+      const indirizzo = extractIndirizzo(dynamicData);
+
+      const { error: submitError } = await supabase.rpc("submit_form_by_token", {
+        p_token: token,
+        p_cliente_nome: r.nome,
+        p_cliente_cognome: r.cognome,
+        p_cliente_email: r.email,
+        p_cliente_telefono: r.telefono,
+        p_cliente_indirizzo: indirizzo,
+        p_cliente_cf: r.cf,
+        p_note: "",
+        p_dati_form: dynamicData,
+      });
+
+      if (submitError) {
+        console.error("submit_form_by_token failed:", submitError);
+        toast({ variant: "destructive", title: "Errore", description: "Impossibile salvare. Riprova." });
+        setSubmitting(false);
+        return;
+      }
+
+      supabase.functions
+        .invoke("on-stage-changed", {
+          body: { practice_id: practice.id, new_stage_type: "pronte_da_fare" },
+        })
+        .catch(console.error);
+
+      setSubmitted(true);
+      setSubmitting(false);
+      return;
+    }
+
+    // ── Path hardcoded (fallback) ─────────────────────────────────────────────
     const allErrors = validateStep("recap", formData, prodottoTipo);
     if (Object.keys(allErrors).length > 0) {
       toast({
@@ -278,7 +413,9 @@ export default function FormPubblico() {
   };
 
   // ── Render: stati globali ───────────────────────────────────────────────────
-  if (loading) {
+  // Attendiamo anche il dbModule prima di renderizzare il wizard, per evitare
+  // un flash dello schema hardcoded mentre la query DB è in volo.
+  if (loading || (practice && dbModuleLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -314,9 +451,14 @@ export default function FormPubblico() {
   }
 
   // ── Render: wizard ──────────────────────────────────────────────────────────
-  const progressPct = ((stepIndex + 1) / STEPS.length) * 100;
-  const isLast = currentStep.id === "recap";
-  const isFirst = stepIndex === 0;
+  const stepLabel = useDynamic
+    ? dynamicStep?.label ?? ""
+    : hardcodedStep.label;
+  const progressPct = totalSteps > 0 ? ((safeStepIndex + 1) / totalSteps) * 100 : 0;
+  const isLast = useDynamic
+    ? safeStepIndex === totalSteps - 1
+    : hardcodedStep.id === "recap";
+  const isFirst = safeStepIndex === 0;
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
@@ -338,27 +480,38 @@ export default function FormPubblico() {
         <div className="space-y-2">
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>
-              Passo {stepIndex + 1} di {STEPS.length}
+              Passo {safeStepIndex + 1} di {totalSteps}
             </span>
-            <span className="font-medium">{currentStep.label}</span>
+            <span className="font-medium">{stepLabel}</span>
           </div>
           <Progress value={progressPct} />
         </div>
 
         {/* Step content */}
         <div className="rounded-lg border bg-card p-4 sm:p-6">
-          <h2 className="text-lg font-semibold mb-4">{currentStep.label}</h2>
-          <StepBody
-            step={currentStep.id}
-            data={formData}
-            errors={stepErrors}
-            patchSection={patchSection}
-            prodottoTipo={prodottoTipo}
-            practiceId={practice?.id ?? ""}
-            uploading={uploading}
-            onUploadStart={() => setUploading(true)}
-            onUploadEnd={() => setUploading(false)}
-          />
+          <h2 className="text-lg font-semibold mb-4">{stepLabel}</h2>
+          {useDynamic && dbModule ? (
+            <DynamicSteps
+              schema={dbModule.schema}
+              currentStepIndex={safeStepIndex}
+              formData={dynamicData}
+              onChange={updateDynamicField}
+              errors={stepErrors}
+              practiceId={practice?.id ?? ""}
+            />
+          ) : (
+            <StepBody
+              step={hardcodedStep.id}
+              data={formData}
+              errors={stepErrors}
+              patchSection={patchSection}
+              prodottoTipo={prodottoTipo}
+              practiceId={practice?.id ?? ""}
+              uploading={uploading}
+              onUploadStart={() => setUploading(true)}
+              onUploadEnd={() => setUploading(false)}
+            />
+          )}
         </div>
 
         {/* Navigation */}
@@ -474,4 +627,61 @@ function StepBody(props: StepBodyProps) {
     default:
       return null;
   }
+}
+
+// ── Helper: best-effort extraction dati cliente dal dynamicData ───────────────
+// Lo schema DB può variare: cerchiamo la sezione e i field con i nomi standard.
+// Se non troviamo nulla restituiamo null e il chiamante usa il fallback dalla
+// pratica.
+function pickStringField(
+  bag: Record<string, unknown> | undefined,
+  keys: string[],
+): string {
+  if (!bag) return "";
+  for (const k of keys) {
+    const v = bag[k];
+    if (typeof v === "string" && v.trim() !== "") return v.trim();
+  }
+  return "";
+}
+
+function findSection(
+  data: Record<string, Record<string, unknown>>,
+  sectionKeys: string[],
+): Record<string, unknown> | undefined {
+  for (const k of sectionKeys) {
+    const s = data[k];
+    if (s && typeof s === "object") return s;
+  }
+  // Fallback: prendiamo la prima sezione che contiene un field "email" o "nome".
+  for (const v of Object.values(data)) {
+    if (v && typeof v === "object" && ("email" in v || "nome" in v)) {
+      return v as Record<string, unknown>;
+    }
+  }
+  return undefined;
+}
+
+function extractRichiedente(data: Record<string, Record<string, unknown>>) {
+  const sec = findSection(data, ["richiedente", "anagrafica", "cliente", "intestatario"]);
+  if (!sec) return null;
+  return {
+    nome: pickStringField(sec, ["nome", "first_name", "name"]),
+    cognome: pickStringField(sec, ["cognome", "last_name", "surname"]),
+    email: pickStringField(sec, ["email", "mail"]),
+    telefono: pickStringField(sec, ["telefono", "phone", "cellulare", "mobile"]),
+    cf: pickStringField(sec, ["cf", "codice_fiscale", "codiceFiscale"]).toUpperCase(),
+  };
+}
+
+function extractIndirizzo(data: Record<string, Record<string, unknown>>): string {
+  const sec = findSection(data, ["indirizzo", "residenza", "address"]);
+  if (!sec) return "";
+  const via = pickStringField(sec, ["indirizzo", "via", "street"]);
+  const civ = pickStringField(sec, ["civico", "numero", "number"]);
+  const com = pickStringField(sec, ["comune", "citta", "city", "municipality"]);
+  const parts: string[] = [];
+  if (via) parts.push(civ ? `${via} ${civ}` : via);
+  if (com) parts.push(com);
+  return parts.join(", ");
 }

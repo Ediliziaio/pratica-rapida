@@ -197,15 +197,6 @@ export default function FormPubblico() {
     };
   }, [token]);
 
-  // Se il numero di step "visibili" si riduce sotto stepIndex (perché un
-  // visible_if step-level è stato disattivato dal cambio di un campo),
-  // riportiamo l'indice all'ultimo step disponibile.
-  useEffect(() => {
-    if (totalSteps > 0 && stepIndex >= totalSteps) {
-      setStepIndex(totalSteps - 1);
-    }
-  }, [totalSteps, stepIndex]);
-
   // ── Patch helper per le sezioni del form ────────────────────────────────────
   const patchSection = useMemo(() => {
     return <S extends keyof FormClienteData>(
@@ -229,6 +220,17 @@ export default function FormPubblico() {
 
   const totalSteps = useDynamic ? visibleDynamicSteps.length : STEPS.length;
   const safeStepIndex = totalSteps > 0 ? Math.min(stepIndex, totalSteps - 1) : 0;
+
+  // Se il numero di step "visibili" si riduce sotto stepIndex (perché un
+  // visible_if step-level è stato disattivato dal cambio di un campo),
+  // riportiamo l'indice all'ultimo step disponibile.
+  // NB: deve essere DOPO la dichiarazione di `totalSteps` per evitare TDZ
+  // ("Cannot access 'totalSteps' before initialization" in build minificata).
+  useEffect(() => {
+    if (totalSteps > 0 && stepIndex >= totalSteps) {
+      setStepIndex(totalSteps - 1);
+    }
+  }, [totalSteps, stepIndex]);
 
   // ── Validazione step corrente ───────────────────────────────────────────────
   // Path hardcoded

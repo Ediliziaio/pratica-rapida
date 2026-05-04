@@ -372,7 +372,8 @@ serve(async (req) => {
   let subject: string;
   let html: string;
   if (dbTemplate) {
-    const r = (s: string) => s.replace(/\{\{(\w+)\}\}/g, (_, k) => String((data ?? {} as Record<string, string>)[k] ?? ""));
+    const safeData: Record<string, string> = data ?? {};
+    const r = (s: string) => s.replace(/\{\{(\w+)\}\}/g, (_, k) => String(safeData[k] ?? ""));
     subject = r(dbTemplate.subject);
     html = r(dbTemplate.html_body);
   } else {

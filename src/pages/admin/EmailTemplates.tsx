@@ -79,6 +79,8 @@ interface EmailTemplate {
   is_active: boolean;
   created_at: string;
   updated_at?: string | null;
+  // design_json salvato dal builder visivo (nullable: i template seedati non lo hanno)
+  design_json?: Record<string, unknown> | null;
 }
 
 interface EmailLog {
@@ -324,7 +326,8 @@ export default function EmailTemplates() {
       name: template.name,
       subject: template.subject,
       html_body: template.html_body,
-      trigger_event: template.trigger_event,
+      // template duplicati hanno trigger_event null per evitare conflitto UNIQUE → forza un default
+      trigger_event: template.trigger_event ?? "richiesta_form",
       is_active: template.is_active,
     });
     setEditingTemplate(template);
@@ -361,14 +364,14 @@ export default function EmailTemplates() {
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-bold">Email Templates</h1>
 
-      {/* Banner informativo — chiarisce che i template hardcoded NON sono modificabili qui */}
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
-        <p className="font-semibold text-amber-900 mb-1">⚠️ Ambito di questa pagina</p>
-        <p className="text-amber-800">
-          I template qui configurati sono usati <strong>solo</strong> dall'edge function <code className="font-mono text-xs bg-amber-100 px-1 py-0.5 rounded">notify-cliente</code> per i moduli cliente (Schermature, Infissi, Pompe di calore, VEPA).
+      {/* Banner informativo — DB-first: send-email legge da qui, fallback hardcoded se template inattivo o mancante */}
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm">
+        <p className="font-semibold text-emerald-900 mb-1">✅ Ambito di questa pagina</p>
+        <p className="text-emerald-800">
+          Tutte le email transazionali (flusso ENEA <em>M1-M5</em>, <em>Notifica A/B/C</em>, <em>ticket</em>, <em>benvenuto azienda</em>, moduli cliente) sono lette da qui dall'edge function <code className="font-mono text-xs bg-emerald-100 px-1 py-0.5 rounded">send-email</code>. Modifica oggetto/HTML e attiva/disattiva il template per applicare subito le variazioni.
         </p>
-        <p className="text-amber-800 mt-2">
-          Le email del flusso ENEA (<em>Messaggio 1-5</em>, <em>Notifica A/B/C</em>, <em>conferme pratica</em>, <em>ticket</em>, <em>benvenuto azienda</em>) sono <strong>hardcoded</strong> nell'edge function <code className="font-mono text-xs bg-amber-100 px-1 py-0.5 rounded">send-email</code> e non si modificano da qui. Per cambiarle, modificare <code className="font-mono text-xs bg-amber-100 px-1 py-0.5 rounded">supabase/functions/send-email/index.ts</code> e redeploy.
+        <p className="text-emerald-800 mt-2">
+          Se un template è <strong>disattivato</strong> o <strong>mancante</strong>, l'edge function ricade automaticamente sulla versione hardcoded di sicurezza presente in <code className="font-mono text-xs bg-emerald-100 px-1 py-0.5 rounded">supabase/functions/send-email/index.ts</code>.
         </p>
       </div>
 
@@ -768,7 +771,8 @@ export default function EmailTemplates() {
               name: builderTpl.name,
               subject: builderTpl.subject,
               html_body: builderTpl.html_body,
-              design_json: null,
+              // passa il design_json salvato per non perdere l'impaginazione precedente
+              design_json: (builderTpl.design_json ?? null) as EmailTmplRow["design_json"],
               is_active: builderTpl.is_active,
               trigger_event: builderTpl.trigger_event,
             } as EmailTmplRow

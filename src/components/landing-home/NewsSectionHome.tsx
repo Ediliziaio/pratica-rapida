@@ -121,17 +121,23 @@ export default function NewsSectionHome() {
               </motion.div>
             );
 
-            return item.link ? (
+            if (!item.link) {
+              return <div key={item.id}>{CardContent}</div>;
+            }
+            const isExternal = item.link.startsWith("http");
+            return isExternal ? (
               <a
                 key={item.id}
                 href={item.link}
-                target={item.link.startsWith("http") ? "_blank" : undefined}
-                rel={item.link.startsWith("http") ? "noopener noreferrer" : undefined}
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 {CardContent}
               </a>
             ) : (
-              <div key={item.id}>{CardContent}</div>
+              <Link key={item.id} to={item.link}>
+                {CardContent}
+              </Link>
             );
           })}
         </div>

@@ -839,9 +839,13 @@ function StepEditor({
 
   function addFieldWithType(type: FormFieldType) {
     setFields((arr) => {
+      // Trova il primo `field_N` libero (evita collisioni dopo delete in mezzo).
+      const used = new Set(arr.map((f) => f.key));
+      let n = arr.length + 1;
+      while (used.has(`field_${n}`)) n++;
       const base: FormField = {
-        key: `field_${arr.length + 1}`,
-        label: `Nuovo campo ${arr.length + 1}`,
+        key: `field_${n}`,
+        label: `Nuovo campo ${n}`,
         type,
       };
       if (type === "select" || type === "radio" || type === "multi_select") {
@@ -1141,7 +1145,29 @@ function FieldRow({
               <Label className="text-xs">Tipo</Label>
               <Select
                 value={field.type}
-                onValueChange={(v) => onChange({ type: v as FormFieldType })}
+                onValueChange={(v) => {
+                  const newType = v as FormFieldType;
+                  // Quando cambiamo tipo, resettiamo i settings type-specific
+                  // del tipo precedente per evitare dati orfani salvati su DB.
+                  const patch: Partial<FormField> = { type: newType };
+                  const wantsOptions =
+                    newType === "select" || newType === "radio" || newType === "multi_select";
+                  const wantsUpload = newType === "upload";
+                  const wantsArray = newType === "array";
+                  const wantsNumber = newType === "number";
+                  if (!wantsOptions && field.options !== undefined) patch.options = undefined;
+                  if (!wantsUpload && field.accept !== undefined) patch.accept = undefined;
+                  if (!wantsUpload && field.max_size_mb !== undefined) patch.max_size_mb = undefined;
+                  if (!wantsArray && field.item_template !== undefined) patch.item_template = undefined;
+                  if (!wantsNumber && field.min !== undefined) patch.min = undefined;
+                  if (!wantsNumber && field.max !== undefined) patch.max = undefined;
+                  // Inizializza i nuovi settings di default
+                  if (wantsOptions && !field.options) patch.options = [];
+                  if (wantsUpload && field.accept === undefined) patch.accept = ["pdf"];
+                  if (wantsUpload && field.max_size_mb === undefined) patch.max_size_mb = 20;
+                  if (wantsArray && !field.item_template) patch.item_template = { fields: [] };
+                  onChange(patch);
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -1414,8 +1440,8 @@ function ItemTemplateEditor({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {FIELD_TYPES.filter((t) => t.value !== "array").map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
+                  {FIELD_TYPE_CATALOG.filter((t) => t.type !== "array").map((t) => (
+                    <SelectItem key={t.type} value={t.type}>
                       {t.label}
                     </SelectItem>
                   ))}

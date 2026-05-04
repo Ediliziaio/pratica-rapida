@@ -39,7 +39,7 @@ async function sendTicketEmails({
   notificaUtente: boolean;
 }) {
   const prioritaLabel = { bassa: "Bassa", normale: "Normale", alta: "Alta" }[priorita] ?? priorita;
-  const adminUrl = `${window.location.origin}/admin/assistenza`;
+  const adminUrl = `${window.location.origin}/admin/ticket`;
 
   // 1. Notifica al team interno — sempre
   supabase.functions

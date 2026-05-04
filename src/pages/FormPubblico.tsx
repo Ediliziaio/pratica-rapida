@@ -28,6 +28,10 @@ import {
 } from "@/components/form-cliente/Steps";
 import { StepRecap } from "@/components/form-cliente/StepRecap";
 
+// TODO: integrate useFormModuleByProdotto in next iteration — leggi schema da
+// `form_modules` (CMS in /admin/moduli) con fallback al codice TS hardcoded
+// di `STEPS` qui sotto. Refactor non-breaking, da valutare in step successivo.
+
 // ── Helper: pre-popolazione bozza esistente ───────────────────────────────────
 // Il dati_form salvato in DB potrebbe essere parziale (bozza salvata a metà
 // compilazione). Mergiamo sul default per garantire la shape completa.

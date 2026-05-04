@@ -19,6 +19,7 @@ import {
   ChevronDown,
   Newspaper,
   Archive,
+  FormInput,
 } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
@@ -210,6 +211,17 @@ export function AppSidebar() {
         ],
       },
     ];
+    // Configurazione — solo super_admin
+    if (superAdmin) {
+      groups.push({
+        label: "Configurazione",
+        collapsible: true,
+        defaultOpen: false,
+        items: [
+          { title: "Moduli Form", url: "/admin/moduli", icon: FormInput },
+        ],
+      });
+    }
   } else if (rivenditore) {
     groups = [
       {

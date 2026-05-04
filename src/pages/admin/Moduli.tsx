@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   DragDropContext,
   Droppable,
@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -127,7 +126,7 @@ function ModuliList({ onEdit }: { onEdit: (id: string) => void }) {
   const { toast } = useToast();
   const qc = useQueryClient();
 
-  const { data: modules = [], isLoading } = useQuery<FormModule[]>({
+  const { data: modules = [], isLoading, error: loadError } = useQuery<FormModule[]>({
     queryKey: ["form-modules"],
     queryFn: async () => {
       const { data, error } = await table()
@@ -197,7 +196,13 @@ function ModuliList({ onEdit }: { onEdit: (id: string) => void }) {
 
   const duplicateMut = useMutation({
     mutationFn: async (m: FormModule) => {
-      const newSlug = `${m.slug}-copia`;
+      // Find a slug that doesn't collide: "<slug>-copia", "<slug>-copia-2", ...
+      const existing = new Set(modules.map((x) => x.slug));
+      let newSlug = `${m.slug}-copia`;
+      let i = 2;
+      while (existing.has(newSlug)) {
+        newSlug = `${m.slug}-copia-${i++}`;
+      }
       const maxOrder =
         modules.length > 0
           ? Math.max(...modules.map((x) => x.order_index)) + 100
@@ -269,6 +274,17 @@ function ModuliList({ onEdit }: { onEdit: (id: string) => void }) {
         <div className="text-center py-12 text-muted-foreground">
           Caricamento moduli…
         </div>
+      ) : loadError ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-destructive font-medium">
+              Impossibile caricare i moduli.
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              {String((loadError as Error)?.message ?? loadError)}
+            </p>
+          </CardContent>
+        </Card>
       ) : modules.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
@@ -484,13 +500,20 @@ function ModuloEditor({
   const [draft, setDraft] = useState<FormModule | null>(null);
   const [selectedStepIdx, setSelectedStepIdx] = useState(0);
 
-  // Sync once when original loads
-  if (original && !draft) {
-    setDraft({
-      ...original,
-      schema: original.schema ?? emptySchema(),
-    });
-  }
+  // Sync once when original loads (or whenever the underlying module id changes).
+  // Effect (not render-time setState) avoids React state-update-during-render warnings.
+  useEffect(() => {
+    if (original) {
+      setDraft({
+        ...original,
+        schema: original.schema ?? emptySchema(),
+      });
+      setSelectedStepIdx(0);
+    }
+    // We intentionally watch the id only: re-syncing on every `original` object
+    // identity change would clobber the user's in-progress edits after refetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [original?.id]);
 
   const updateMut = useMutation({
     mutationFn: async (m: FormModule) => {
@@ -532,17 +555,21 @@ function ModuloEditor({
   }
 
   function addStep() {
-    setSchema((s) => ({
-      steps: [
-        ...s.steps,
-        {
-          key: `step_${s.steps.length + 1}`,
-          label: `Nuovo step ${s.steps.length + 1}`,
-          fields: [],
-        },
-      ],
-    }));
-    setSelectedStepIdx(draft.schema.steps.length); // nuovo indice
+    let newIdx = 0;
+    setSchema((s) => {
+      newIdx = s.steps.length;
+      return {
+        steps: [
+          ...s.steps,
+          {
+            key: `step_${s.steps.length + 1}`,
+            label: `Nuovo step ${s.steps.length + 1}`,
+            fields: [],
+          },
+        ],
+      };
+    });
+    setSelectedStepIdx(newIdx);
   }
 
   function deleteStep(idx: number) {
@@ -1460,6 +1487,3 @@ function ChipInput({
   );
 }
 
-// Esporto Textarea per evitare l'import inutilizzato (lasciato pronto per type=textarea preview futura)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _TextareaPlaceholder = Textarea;

@@ -353,7 +353,32 @@ serve(async (req) => {
 
   try {
 
-  const { subject, html } = renderTemplate(template, data ?? {});
+  // ── 1) DB-first: prova a caricare il template da public.email_templates ─────
+  let dbTemplate: { subject: string; html_body: string } | null = null;
+  try {
+    const { data: row } = await supabase
+      .from("email_templates")
+      .select("subject, html_body")
+      .eq("trigger_event", template)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (row?.html_body && row?.subject) {
+      dbTemplate = { subject: row.subject, html_body: row.html_body };
+    }
+  } catch {
+    // se il DB non risponde, fallback a renderTemplate hardcoded sotto
+  }
+
+  let subject: string;
+  let html: string;
+  if (dbTemplate) {
+    const r = (s: string) => s.replace(/\{\{(\w+)\}\}/g, (_, k) => String((data ?? {} as Record<string, string>)[k] ?? ""));
+    subject = r(dbTemplate.subject);
+    html = r(dbTemplate.html_body);
+  } else {
+    // ── 2) Fallback: rendering hardcoded (utile in caso di DB offline / template non seedato)
+    ({ subject, html } = renderTemplate(template, data ?? {}));
+  }
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",

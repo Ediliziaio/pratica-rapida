@@ -29,22 +29,46 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { EmailBuilder, type EmailTmplRow } from "@/components/EmailBuilder";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type TriggerEvent =
+  // Cliente finale
+  | "richiesta_form"
+  | "sollecito_privato"
+  | "form_compilato"
+  | "pratica_inviata"
+  | "recensione"
+  // Rivenditore
+  | "pratica_ricevuta"
+  | "sollecito_fornitore"
+  | "notifica_docs_mancanti"
+  | "notifica_pratica_disponibile"
+  // Ticket
+  | "ticket_conferma"
+  | "ticket_risposta_staff"
+  | "ticket_replica_cliente"
+  | "ticket_nuovo"
+  // Onboarding/Auth
+  | "benvenuto_azienda"
+  | "registrazione_azienda"
+  | "recupera_password"
+  | "onboarding_welcome"
+  // Modulo cliente prodotto
+  | "modulo_cliente_invio"
+  | "modulo_cliente_reminder"
+  // Pratica generica
   | "pratica_created"
   | "pratica_status_changed"
-  | "onboarding_welcome"
-  | "sollecito"
-  | "recensione"
-  | "registrazione_azienda"
-  | "recupera_password";
+  | "sollecito";
 
 interface EmailTemplate {
   id: string;
@@ -54,6 +78,7 @@ interface EmailTemplate {
   trigger_event: TriggerEvent;
   is_active: boolean;
   created_at: string;
+  updated_at?: string | null;
 }
 
 interface EmailLog {
@@ -66,22 +91,87 @@ interface EmailLog {
 
 type LogStatus = EmailLog["status"] | "all";
 
-const TRIGGER_EVENTS: { value: TriggerEvent; label: string }[] = [
-  { value: "pratica_created", label: "Pratica creata" },
-  { value: "pratica_status_changed", label: "Stato pratica cambiato" },
-  { value: "onboarding_welcome", label: "Benvenuto onboarding" },
-  { value: "sollecito", label: "Sollecito" },
-  { value: "recensione", label: "Recensione" },
-  { value: "registrazione_azienda", label: "✅ Registrazione azienda" },
-  { value: "recupera_password", label: "🔑 Recupera password" },
+const TRIGGER_EVENTS: { value: TriggerEvent; label: string; group: string }[] = [
+  // Cliente finale
+  { value: "richiesta_form", label: "📨 Richiesta compilazione form (M1)", group: "Cliente finale" },
+  { value: "sollecito_privato", label: "🔁 Sollecito cliente (M2 — 7gg)", group: "Cliente finale" },
+  { value: "form_compilato", label: "✅ Conferma form ricevuto (M3)", group: "Cliente finale" },
+  { value: "pratica_inviata", label: "🎉 Pratica completata + recensione (M4)", group: "Cliente finale" },
+  { value: "recensione", label: "⭐ Sollecito recensione (M5)", group: "Cliente finale" },
+  // Rivenditore
+  { value: "pratica_ricevuta", label: "📋 Pratica ricevuta", group: "Rivenditore" },
+  { value: "sollecito_fornitore", label: "⏰ Notifica B (30/60/90gg)", group: "Rivenditore" },
+  { value: "notifica_docs_mancanti", label: "📄 Notifica A documenti mancanti", group: "Rivenditore" },
+  { value: "notifica_pratica_disponibile", label: "📂 Notifica C archivio disponibile", group: "Rivenditore" },
+  // Ticket
+  { value: "ticket_conferma", label: "🎫 Ticket aperto (al cliente)", group: "Ticket" },
+  { value: "ticket_risposta_staff", label: "💬 Risposta staff → cliente", group: "Ticket" },
+  { value: "ticket_replica_cliente", label: "💬 Cliente ribatte → staff", group: "Ticket" },
+  { value: "ticket_nuovo", label: "🆕 Nuovo ticket (al team)", group: "Ticket" },
+  // Onboarding
+  { value: "benvenuto_azienda", label: "👋 Benvenuto nuova azienda", group: "Onboarding" },
+  { value: "registrazione_azienda", label: "✅ Registrazione completata", group: "Onboarding" },
+  { value: "recupera_password", label: "🔑 Recupera password", group: "Onboarding" },
+  { value: "onboarding_welcome", label: "🚀 Welcome onboarding", group: "Onboarding" },
+  // Modulo cliente
+  { value: "modulo_cliente_invio", label: "📝 Modulo cliente — primo invio", group: "Modulo cliente" },
+  { value: "modulo_cliente_reminder", label: "📝 Modulo cliente — reminder", group: "Modulo cliente" },
+  // Pratica generica (legacy)
+  { value: "pratica_created", label: "Pratica creata", group: "Pratica generica" },
+  { value: "pratica_status_changed", label: "Stato pratica cambiato", group: "Pratica generica" },
+  { value: "sollecito", label: "Sollecito generico", group: "Pratica generica" },
 ];
 
-const EMPTY_FORM: Omit<EmailTemplate, "id" | "created_at"> = {
+// Ordine di visualizzazione dei gruppi
+const TRIGGER_GROUPS = [
+  "Cliente finale",
+  "Rivenditore",
+  "Ticket",
+  "Onboarding",
+  "Modulo cliente",
+  "Pratica generica",
+];
+
+const EMPTY_FORM: Omit<EmailTemplate, "id" | "created_at" | "updated_at"> = {
   name: "",
   subject: "",
   html_body: "",
-  trigger_event: "pratica_created",
+  trigger_event: "richiesta_form",
   is_active: true,
+};
+
+// Dati di esempio usati quando si invia una test email — coprono le variabili
+// presenti in tutti i template seedati.
+const SAMPLE_TEST_DATA: Record<string, string> = {
+  nome: "Mario",
+  cognome: "Rossi",
+  cliente_nome: "Anna",
+  cliente_cognome: "Bianchi",
+  ragione_sociale: "Acme Costruzioni Srl",
+  email: "test@example.com",
+  password: "Esempio2026!",
+  brand: "ENEA",
+  prodotto: "Schermature solari",
+  reseller: "Bricoman SpA",
+  oggetto: "Esempio oggetto ticket",
+  subject: "Risposta al tuo ticket",
+  messaggio: "Questo è un messaggio di esempio per la test email.",
+  descrizione: "Descrizione di esempio del problema riportato.",
+  priorita: "normale",
+  priorita_upper: "NORMALE",
+  company: "Cliente Test Srl",
+  giorni: "30",
+  stato: "In lavorazione",
+  tentativi: "2",
+  note: "Manca la planimetria firmata e la copia documento installatore.",
+  tipo_modulo: "Schermature",
+  link: "https://app.praticarapida.it/test-link",
+  ticket_link: "https://app.praticarapida.it/ticket/test",
+  login_url: "https://pannello.praticarapida.it",
+  app_url: "https://app.praticarapida.it",
+  base_url: "https://app.praticarapida.it",
+  token: "TEST-TOKEN-1234",
+  message: "Messaggio generico di esempio.",
 };
 
 // ─── Status badge helpers ─────────────────────────────────────────────────────
@@ -176,6 +266,57 @@ export default function EmailTemplates() {
     },
   });
 
+  // Duplica un template esistente — apre il dialog su un nuovo record "copia"
+  const duplicateTemplate = useMutation({
+    mutationFn: async (tpl: EmailTemplate) => {
+      const { data, error } = await supabase
+        .from("email_templates")
+        .insert({
+          name: `${tpl.name} (copia)`,
+          subject: tpl.subject,
+          html_body: tpl.html_body,
+          trigger_event: null, // clear trigger to evitare conflitto UNIQUE
+          is_active: false,
+        })
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data as EmailTemplate;
+    },
+    onSuccess: (newTpl) => {
+      queryClient.invalidateQueries({ queryKey: ["email_templates"] });
+      toast({ title: "Duplicato", description: "Template duplicato. Configuralo e attivalo quando pronto." });
+      // apri il dialog edit sul nuovo template
+      openEdit(newTpl);
+    },
+    onError: () => {
+      toast({ title: "Errore", description: "Impossibile duplicare il template.", variant: "destructive" });
+    },
+  });
+
+  // ── Send test email ────────────────────────────────────────────────────────
+  const [testDialog, setTestDialog] = useState<{ open: boolean; trigger: string; defaultEmail: string } | null>(null);
+  const [testEmail, setTestEmail] = useState("");
+
+  // ── Visual builder (full-screen) — opzionale per power-users ───────────────
+  const [builderTpl, setBuilderTpl] = useState<EmailTemplate | null>(null);
+
+  const sendTest = useMutation({
+    mutationFn: async ({ trigger, to }: { trigger: string; to: string }) => {
+      const { error } = await supabase.functions.invoke("send-email", {
+        body: { to, template: trigger, data: SAMPLE_TEST_DATA },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "Email di test inviata ✓", description: `Inviata a ${testEmail}` });
+      setTestDialog(null);
+    },
+    onError: (e: Error) => {
+      toast({ title: "Errore invio test", description: e.message, variant: "destructive" });
+    },
+  });
+
   // ── Handlers ───────────────────────────────────────────────────────────────
 
   function openEdit(template: EmailTemplate) {
@@ -237,59 +378,167 @@ export default function EmailTemplates() {
           <TabsTrigger value="logs">Log Invii</TabsTrigger>
         </TabsList>
 
-        {/* ── Tab Template ──────────────────────────────────────────────────── */}
+        {/* ── Tab Template — raggruppata per gruppo ──────────────────────── */}
         <TabsContent value="templates">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Template Email</CardTitle>
               <Button onClick={openCreate}>+ Nuovo template</Button>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
               {loadingTemplates ? (
                 <p className="text-sm text-muted-foreground">Caricamento...</p>
               ) : templates.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Nessun template trovato.</p>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Oggetto</TableHead>
-                      <TableHead>Evento</TableHead>
-                      <TableHead>Attivo</TableHead>
-                      <TableHead className="text-right">Azioni</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {templates.map((tpl) => (
-                      <TableRow key={tpl.id}>
-                        <TableCell className="font-medium">{tpl.name}</TableCell>
-                        <TableCell className="text-muted-foreground">{tpl.subject}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {TRIGGER_EVENTS.find((e) => e.value === tpl.trigger_event)?.label ?? tpl.trigger_event}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Switch
-                            checked={tpl.is_active}
-                            onCheckedChange={(checked) =>
-                              toggleActive.mutate({ id: tpl.id, is_active: checked })
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="text-right space-x-2">
-                          <Button variant="outline" size="sm" onClick={() => setPreviewTemplate(tpl)}>
-                            Anteprima
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => openEdit(tpl)}>
-                            Modifica
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <>
+                  {TRIGGER_GROUPS.map((group) => {
+                    const groupEvents = TRIGGER_EVENTS.filter((e) => e.group === group).map((e) => e.value);
+                    const groupTemplates = templates.filter((t) => groupEvents.includes(t.trigger_event));
+                    if (groupTemplates.length === 0) return null;
+
+                    return (
+                      <section key={group}>
+                        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                          {group}
+                        </h3>
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                          {groupTemplates.map((tpl) => {
+                            const triggerLabel =
+                              TRIGGER_EVENTS.find((e) => e.value === tpl.trigger_event)?.label ?? tpl.trigger_event;
+                            const lastEdit = tpl.updated_at ?? tpl.created_at;
+                            return (
+                              <div
+                                key={tpl.id}
+                                className="rounded-lg border bg-card p-4 hover:shadow-md transition-shadow flex flex-col gap-3"
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-semibold text-sm truncate" title={tpl.name}>
+                                      {tpl.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground truncate mt-0.5" title={tpl.subject}>
+                                      {tpl.subject}
+                                    </p>
+                                  </div>
+                                  <Badge
+                                    variant={tpl.is_active ? "default" : "outline"}
+                                    className={tpl.is_active ? "bg-green-100 text-green-800 hover:bg-green-100 border-green-200" : ""}
+                                  >
+                                    {tpl.is_active ? "Attivo" : "Inattivo"}
+                                  </Badge>
+                                </div>
+
+                                <Badge variant="outline" className="text-[10px] w-fit">
+                                  {triggerLabel}
+                                </Badge>
+
+                                {lastEdit && (
+                                  <p className="text-[10px] text-muted-foreground">
+                                    Ultima modifica: {format(new Date(lastEdit), "dd MMM yyyy HH:mm", { locale: it })}
+                                  </p>
+                                )}
+
+                                <div className="flex items-center justify-between pt-2 border-t">
+                                  <div className="flex items-center gap-1.5">
+                                    <Switch
+                                      checked={tpl.is_active}
+                                      onCheckedChange={(checked) =>
+                                        toggleActive.mutate({ id: tpl.id, is_active: checked })
+                                      }
+                                    />
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {tpl.is_active ? "Attivo" : "Off"}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 px-2 text-xs"
+                                      onClick={() => setPreviewTemplate(tpl)}
+                                      title="Anteprima"
+                                    >
+                                      👁
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 px-2 text-xs"
+                                      onClick={() => {
+                                        setTestEmail("");
+                                        setTestDialog({ open: true, trigger: tpl.trigger_event, defaultEmail: "" });
+                                      }}
+                                      title="Invia test"
+                                    >
+                                      ✉
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 px-2 text-xs"
+                                      onClick={() => duplicateTemplate.mutate(tpl)}
+                                      title="Duplica"
+                                    >
+                                      ⎘
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 px-2 text-xs"
+                                      onClick={() => openEdit(tpl)}
+                                    >
+                                      Modifica
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    );
+                  })}
+
+                  {/* Template senza gruppo riconosciuto (legacy / custom) */}
+                  {(() => {
+                    const known = new Set(TRIGGER_EVENTS.map((e) => e.value));
+                    const orphan = templates.filter((t) => !known.has(t.trigger_event));
+                    if (orphan.length === 0) return null;
+                    return (
+                      <section>
+                        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                          Altri / personalizzati
+                        </h3>
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                          {orphan.map((tpl) => (
+                            <div key={tpl.id} className="rounded-lg border bg-card p-4 flex flex-col gap-2">
+                              <p className="font-semibold text-sm">{tpl.name}</p>
+                              <p className="text-xs text-muted-foreground">{tpl.subject}</p>
+                              <Badge variant="outline" className="w-fit text-[10px]">
+                                {tpl.trigger_event ?? "—"}
+                              </Badge>
+                              <div className="flex gap-2 pt-2">
+                                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => openEdit(tpl)}>
+                                  Modifica
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 text-xs"
+                                  onClick={() => duplicateTemplate.mutate(tpl)}
+                                >
+                                  Duplica
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    );
+                  })()}
+                </>
               )}
             </CardContent>
           </Card>
@@ -403,11 +652,22 @@ export default function EmailTemplates() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {TRIGGER_EVENTS.map((e) => (
-                    <SelectItem key={e.value} value={e.value}>
-                      {e.label}
-                    </SelectItem>
-                  ))}
+                  {TRIGGER_GROUPS.map((group) => {
+                    const items = TRIGGER_EVENTS.filter((e) => e.group === group);
+                    if (items.length === 0) return null;
+                    return (
+                      <SelectGroup key={group}>
+                        <SelectLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+                          {group}
+                        </SelectLabel>
+                        {items.map((e) => (
+                          <SelectItem key={e.value} value={e.value}>
+                            {e.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -431,19 +691,35 @@ export default function EmailTemplates() {
               <Label htmlFor="is_active">Attivo</Label>
             </div>
           </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setEditingTemplate(null);
-                setIsCreating(false);
-              }}
-            >
-              Annulla
-            </Button>
-            <Button onClick={handleSave} disabled={saveTemplate.isPending}>
-              {saveTemplate.isPending ? "Salvataggio..." : "Salva"}
-            </Button>
+          <DialogFooter className="gap-2 sm:flex-row sm:justify-between sm:items-center">
+            <div>
+              {editingTemplate && (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setBuilderTpl(editingTemplate);
+                    setEditingTemplate(null);
+                  }}
+                  title="Modifica con il builder visivo a blocchi"
+                >
+                  🎨 Apri builder visivo
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setEditingTemplate(null);
+                  setIsCreating(false);
+                }}
+              >
+                Annulla
+              </Button>
+              <Button onClick={handleSave} disabled={saveTemplate.isPending}>
+                {saveTemplate.isPending ? "Salvataggio..." : "Salva"}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -464,9 +740,88 @@ export default function EmailTemplates() {
               />
             )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
+            {previewTemplate && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setTestEmail("");
+                  setTestDialog({ open: true, trigger: previewTemplate.trigger_event, defaultEmail: "" });
+                }}
+              >
+                ✉ Invia test
+              </Button>
+            )}
             <Button variant="outline" onClick={() => setPreviewTemplate(null)}>
               Chiudi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Visual EmailBuilder (full-screen) ──────────────────────────────── */}
+      {builderTpl && (
+        <EmailBuilder
+          tmpl={
+            {
+              id: builderTpl.id,
+              name: builderTpl.name,
+              subject: builderTpl.subject,
+              html_body: builderTpl.html_body,
+              design_json: null,
+              is_active: builderTpl.is_active,
+              trigger_event: builderTpl.trigger_event,
+            } as EmailTmplRow
+          }
+          onClose={() => setBuilderTpl(null)}
+          onSaved={() => {
+            queryClient.invalidateQueries({ queryKey: ["email_templates"] });
+          }}
+        />
+      )}
+
+      {/* ── Send test email Dialog ─────────────────────────────────────────── */}
+      <Dialog
+        open={!!testDialog?.open}
+        onOpenChange={(open) => {
+          if (!open) setTestDialog(null);
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Invia email di test</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Invia un'anteprima reale del template <code className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{testDialog?.trigger}</code> a un indirizzo a tua scelta. Le variabili saranno popolate con dati di esempio.
+            </p>
+            <div className="space-y-1.5">
+              <Label htmlFor="test_email">Indirizzo destinatario</Label>
+              <Input
+                id="test_email"
+                type="email"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+                placeholder="tu@esempio.it"
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTestDialog(null)}>
+              Annulla
+            </Button>
+            <Button
+              onClick={() => {
+                if (!testEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testEmail)) {
+                  toast({ title: "Email non valida", variant: "destructive" });
+                  return;
+                }
+                if (testDialog) sendTest.mutate({ trigger: testDialog.trigger, to: testEmail });
+              }}
+              disabled={sendTest.isPending || !testEmail}
+            >
+              {sendTest.isPending ? "Invio..." : "Invia test"}
             </Button>
           </DialogFooter>
         </DialogContent>

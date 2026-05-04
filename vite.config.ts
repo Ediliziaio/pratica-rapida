@@ -7,7 +7,10 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 8080,
+    // Port resolved in this order:
+    //  1) PORT env var (used by harness to assign a free port)
+    //  2) fallback to 8080 for local dev convenience
+    port: process.env.PORT ? Number(process.env.PORT) : 8080,
     hmr: {
       overlay: false,
     },

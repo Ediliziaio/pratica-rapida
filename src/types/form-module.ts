@@ -9,16 +9,20 @@
 // ============================================================
 
 export type FormFieldType =
-  | "text"
-  | "number"
-  | "date"
-  | "email"
-  | "phone"
-  | "boolean"
-  | "select"
-  | "textarea"
-  | "upload"
-  | "array";
+  | "text"          // breve riga di testo
+  | "textarea"      // testo lungo multilinea
+  | "number"        // numero intero/decimale
+  | "date"          // data (DD/MM/YYYY)
+  | "time"          // ora (HH:MM)
+  | "email"         // email con validazione
+  | "phone"         // telefono
+  | "url"           // URL con validazione
+  | "boolean"       // sì/no toggle
+  | "select"        // scelta singola da dropdown
+  | "radio"         // scelta singola con opzioni visibili (radio buttons)
+  | "multi_select"  // scelta multipla (checkbox group, più valori)
+  | "upload"        // caricamento file
+  | "array";        // gruppo dinamico di sub-fields ripetibile
 
 export interface FormFieldOption {
   value: string;

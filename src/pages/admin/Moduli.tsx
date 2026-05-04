@@ -15,7 +15,9 @@ import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -53,6 +55,20 @@ import {
   FileText,
   Eye,
   EyeOff,
+  Type,
+  AlignLeft,
+  Mail,
+  Phone,
+  Link,
+  ChevronDown,
+  CircleDot,
+  ListChecks,
+  ToggleLeft,
+  Hash,
+  Calendar,
+  Clock,
+  Upload,
+  type LucideIcon,
 } from "lucide-react";
 import type {
   FormField,
@@ -66,18 +82,39 @@ import type {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-const FIELD_TYPES: { value: FormFieldType; label: string }[] = [
-  { value: "text", label: "Testo" },
-  { value: "number", label: "Numero" },
-  { value: "date", label: "Data" },
-  { value: "email", label: "Email" },
-  { value: "phone", label: "Telefono" },
-  { value: "boolean", label: "Sì/No" },
-  { value: "select", label: "Tendina (select)" },
-  { value: "textarea", label: "Testo lungo" },
-  { value: "upload", label: "Upload file" },
-  { value: "array", label: "Lista (array)" },
+const FIELD_TYPE_CATALOG: Array<{
+  type: FormFieldType;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+  category: "Testo" | "Scelta" | "Numerico" | "Data e ora" | "Avanzato";
+}> = [
+  // Testo
+  { type: "text", label: "Testo breve", description: "Una riga, max ~100 caratteri", icon: Type, category: "Testo" },
+  { type: "textarea", label: "Testo lungo", description: "Più righe, fino a paragrafi", icon: AlignLeft, category: "Testo" },
+  { type: "email", label: "Email", description: "Validazione formato email", icon: Mail, category: "Testo" },
+  { type: "phone", label: "Telefono", description: "Numero di telefono", icon: Phone, category: "Testo" },
+  { type: "url", label: "URL", description: "Link validato (https://...)", icon: Link, category: "Testo" },
+
+  // Scelta
+  { type: "select", label: "Scelta singola (dropdown)", description: "Menu a tendina, 1 valore", icon: ChevronDown, category: "Scelta" },
+  { type: "radio", label: "Scelta singola (radio)", description: "Opzioni visibili, 1 valore", icon: CircleDot, category: "Scelta" },
+  { type: "multi_select", label: "Scelta multipla", description: "Più valori selezionabili (checkbox)", icon: ListChecks, category: "Scelta" },
+  { type: "boolean", label: "Sì/No", description: "Toggle vero/falso", icon: ToggleLeft, category: "Scelta" },
+
+  // Numerico
+  { type: "number", label: "Numero", description: "Intero o decimale, con min/max", icon: Hash, category: "Numerico" },
+
+  // Data e ora
+  { type: "date", label: "Data", description: "Selezione di una data", icon: Calendar, category: "Data e ora" },
+  { type: "time", label: "Ora", description: "Selezione di un orario", icon: Clock, category: "Data e ora" },
+
+  // Avanzato
+  { type: "upload", label: "Caricamento file", description: "PDF, immagini, max 20MB", icon: Upload, category: "Avanzato" },
+  { type: "array", label: "Lista dinamica", description: "Sotto-form ripetibile (es. + Aggiungi)", icon: Plus, category: "Avanzato" },
 ];
+
+const FIELD_TYPE_CATEGORIES = ["Testo", "Scelta", "Numerico", "Data e ora", "Avanzato"] as const;
 
 function emptySchema(): FormSchema {
   return { steps: [] };
@@ -794,20 +831,29 @@ function StepEditor({
   onDelete: () => void;
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showTypePicker, setShowTypePicker] = useState(false);
 
   function setFields(updater: (arr: FormField[]) => FormField[]) {
     onChange({ fields: updater(step.fields) });
   }
 
-  function addField() {
-    setFields((arr) => [
-      ...arr,
-      {
+  function addFieldWithType(type: FormFieldType) {
+    setFields((arr) => {
+      const base: FormField = {
         key: `field_${arr.length + 1}`,
         label: `Nuovo campo ${arr.length + 1}`,
-        type: "text",
-      },
-    ]);
+        type,
+      };
+      if (type === "select" || type === "radio" || type === "multi_select") {
+        base.options = [];
+      } else if (type === "upload") {
+        base.accept = ["pdf"];
+        base.max_size_mb = 20;
+      } else if (type === "array") {
+        base.item_template = { fields: [] };
+      }
+      return [...arr, base];
+    });
   }
 
   function updateField(idx: number, patch: Partial<FormField>) {
@@ -878,7 +924,7 @@ function StepEditor({
             <CardTitle className="text-base">
               Campi ({step.fields.length})
             </CardTitle>
-            <Button size="sm" onClick={addField} className="gap-2">
+            <Button size="sm" onClick={() => setShowTypePicker(true)} className="gap-2">
               <Plus className="h-4 w-4" /> Aggiungi campo
             </Button>
           </div>
@@ -947,7 +993,74 @@ function StepEditor({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <FieldTypePicker
+        open={showTypePicker}
+        onOpenChange={setShowTypePicker}
+        onSelect={addFieldWithType}
+      />
     </div>
+  );
+}
+
+// ─── Field type picker (Dialog visivo a tile) ──────────────────────────────
+
+function FieldTypePicker({
+  open,
+  onOpenChange,
+  onSelect,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onSelect: (type: FormFieldType) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Scegli il tipo di campo</DialogTitle>
+          <DialogDescription>
+            Seleziona il tipo che meglio rappresenta il dato che vuoi raccogliere
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-5 py-2">
+          {FIELD_TYPE_CATEGORIES.map((cat) => (
+            <div key={cat}>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                {cat}
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {FIELD_TYPE_CATALOG.filter((t) => t.category === cat).map((t) => {
+                  const Icon = t.icon;
+                  return (
+                    <button
+                      key={t.type}
+                      onClick={() => {
+                        onSelect(t.type);
+                        onOpenChange(false);
+                      }}
+                      className="text-left rounded-lg border bg-card hover:border-primary hover:shadow-sm transition-all p-3 group"
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className="rounded-md bg-primary/10 group-hover:bg-primary/20 p-2 shrink-0 transition-colors">
+                          <Icon className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold leading-tight">{t.label}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                            {t.description}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -1034,10 +1147,15 @@ function FieldRow({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {FIELD_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
+                  {FIELD_TYPE_CATEGORIES.map((cat) => (
+                    <SelectGroup key={cat}>
+                      <SelectLabel>{cat}</SelectLabel>
+                      {FIELD_TYPE_CATALOG.filter((t) => t.category === cat).map((t) => (
+                        <SelectItem key={t.type} value={t.type}>
+                          {t.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   ))}
                 </SelectContent>
               </Select>
@@ -1140,7 +1258,9 @@ function FieldRow({
             </div>
           )}
 
-          {field.type === "select" && (
+          {(field.type === "select" ||
+            field.type === "radio" ||
+            field.type === "multi_select") && (
             <OptionsEditor
               value={field.options ?? []}
               onChange={(opts) => onChange({ options: opts })}

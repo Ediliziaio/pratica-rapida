@@ -139,6 +139,61 @@ function parseTableRow(line: string): string[] {
 }
 
 /**
+ * Inline markdown — bold, italic, links, code — converted to HTML.
+ * Order matters: handle links/code/bold before italic so * doesn't grab ** twice.
+ */
+function inlineToHtml(text: string): string {
+  return text
+    // escape HTML
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    // images: ![alt](src)
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" />')
+    // links: [text](url)
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    // inline code
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    // bold then italic (bold first to avoid ** ambiguity)
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "<em>$1</em>");
+}
+
+/**
+ * Convert the news markdown subset to HTML — used to seed the TipTap editor
+ * for legacy articles that only have body_md. Output uses the same callout
+ * data attributes the WYSIWYG editor produces, so a round-trip is stable.
+ */
+export function markdownToHtml(md: string): string {
+  if (!md.trim()) return "";
+  const blocks = parseMarkdown(md);
+  return blocks
+    .map((b) => {
+      switch (b.type) {
+        case "h1": return `<h1>${inlineToHtml(b.text)}</h1>`;
+        case "h2": return `<h2>${inlineToHtml(b.text)}</h2>`;
+        case "h3": return `<h3>${inlineToHtml(b.text)}</h3>`;
+        case "p":  return `<p>${inlineToHtml(b.text)}</p>`;
+        case "ul": return `<ul>${b.items.map((i) => `<li>${inlineToHtml(i)}</li>`).join("")}</ul>`;
+        case "ol": return `<ol>${b.items.map((i) => `<li>${inlineToHtml(i)}</li>`).join("")}</ol>`;
+        case "callout":
+          return `<blockquote data-callout="${b.variant}"><p>${inlineToHtml(b.text)}</p></blockquote>`;
+        case "table": {
+          const head = `<thead><tr>${b.headers.map((h) => `<th>${inlineToHtml(h)}</th>`).join("")}</tr></thead>`;
+          const body = `<tbody>${b.rows
+            .map((r) => `<tr>${r.map((c) => `<td>${inlineToHtml(c)}</td>`).join("")}</tr>`)
+            .join("")}</tbody>`;
+          return `<table>${head}${body}</table>`;
+        }
+        case "image": return `<figure><img src="${b.src}" alt="${b.alt}" />${b.alt ? `<figcaption>${b.alt}</figcaption>` : ""}</figure>`;
+        default: return "";
+      }
+    })
+    .join("");
+}
+
+/**
  * Serialize a ContentBlock array back into the markdown subset we use.
  * Used by the editor when migrating legacy structured content.
  */

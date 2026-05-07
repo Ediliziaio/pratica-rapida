@@ -16,7 +16,7 @@
  *  - Reading-time auto-calcolato dal body
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,17 +40,24 @@ import {
   Newspaper, ExternalLink, ImageIcon, FileText, Settings, Upload,
   Loader2, Calculator, CircleAlert, CircleCheck, CircleDot, Save, Sparkles,
 } from "lucide-react";
+// htmlToText: estimate word count + reading time from rendered HTML
+function htmlToPlainText(html: string): string {
+  if (typeof document === "undefined") return html.replace(/<[^>]+>/g, " ");
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return (div.textContent || div.innerText || "").trim();
+}
 import {
   type NewsArticle, useAdminNews, NEWS_CATEGORIES, categoryLabel,
-  slugify, estimateReadingTime, findSlugCollision,
+  slugify, findSlugCollision,
 } from "@/lib/news";
-import { parseMarkdown } from "@/lib/markdown";
-import MarkdownToolbar from "@/components/admin/news/MarkdownToolbar";
+import { markdownToHtml } from "@/lib/markdown";
 import CoverImageUploader from "@/components/admin/news/CoverImageUploader";
 import SlugInput from "@/components/admin/news/SlugInput";
 import TagInput from "@/components/admin/news/TagInput";
 import CharacterCounter from "@/components/admin/news/CharacterCounter";
 import PublishChecklist, { type PublishCheck } from "@/components/admin/news/PublishChecklist";
+import WysiwygEditor from "@/components/admin/news/wysiwyg/WysiwygEditor";
 
 type EditorState = Partial<NewsArticle> & { id?: string };
 
@@ -59,6 +66,7 @@ const emptyEditor = (): EditorState => ({
   title: "",
   excerpt: "",
   body_md: "",
+  body_html: "",
   category: "guide",
   tags: [],
   author_name: "Pratica Rapida",
@@ -126,7 +134,9 @@ export default function AdminNews() {
   };
 
   const openEdit = (it: NewsArticle) => {
-    setEditor({ ...it });
+    // Seed editor with HTML; for legacy articles only md exists, convert on open
+    const seedHtml = it.body_html || (it.body_md ? markdownToHtml(it.body_md) : "");
+    setEditor({ ...it, body_html: seedHtml });
     setSlugManuallyEdited(true); // preserve existing slug — SEO matters
     setTab("content");
     setEditorOpen(true);
@@ -143,7 +153,7 @@ export default function AdminNews() {
   // Pre-publish validation rules
   const checks = useMemo<PublishCheck[]>(() => {
     const titleLen = editor.title?.trim().length ?? 0;
-    const bodyLen = (editor.body_md ?? "").trim().length;
+    const bodyLen = htmlToPlainText(editor.body_html ?? "").length;
     const excerptLen = editor.excerpt?.trim().length ?? 0;
     const metaDescLen = editor.meta_description?.trim().length ?? 0;
     const slugOk = !!editor.slug?.trim() && editor.slug.trim() === slugify(editor.slug);
@@ -157,7 +167,7 @@ export default function AdminNews() {
       { id: "excerpt",  severity: "warning", passed: hasMetaDescOrExcerpt, label: "Estratto o meta description (≥ 50 caratteri)", hint: "Senza, Google sceglie automaticamente un brano del testo" },
       { id: "cover",    severity: "warning", passed: hasCover,       label: "Cover image impostata", hint: "Le cover migliorano CTR su social/SERP" },
     ];
-  }, [editor.title, editor.slug, editor.body_md, editor.excerpt, editor.meta_description, editor.cover_image_url]);
+  }, [editor.title, editor.slug, editor.body_html, editor.excerpt, editor.meta_description, editor.cover_image_url]);
 
   const blockingErrors = checks.filter((c) => !c.passed && c.severity === "error");
   const canPublish = blockingErrors.length === 0;
@@ -182,6 +192,7 @@ export default function AdminNews() {
         title: e.title.trim(),
         excerpt: e.excerpt?.trim() || null,
         body_md: e.body_md ?? null,
+        body_html: e.body_html?.trim() || null,
         cover_image_url: e.cover_image_url?.trim() || null,
         category: e.category || "guide",
         tags: e.tags ?? [],
@@ -555,7 +566,11 @@ export default function AdminNews() {
                       <button
                         type="button"
                         className="text-[11px] font-medium text-primary hover:underline inline-flex items-center gap-1"
-                        onClick={() => setEditor((s) => ({ ...s, read_time_minutes: estimateReadingTime(s.body_md ?? "") }))}
+                        onClick={() => {
+                          const plain = htmlToPlainText(editor.body_html ?? "");
+                          const wc = plain ? plain.split(/\s+/).filter(Boolean).length : 0;
+                          setEditor((s) => ({ ...s, read_time_minutes: Math.max(1, Math.ceil(wc / 200)) }));
+                        }}
                       >
                         <Calculator className="h-3 w-3" />Auto-calcola
                       </button>
@@ -599,8 +614,8 @@ export default function AdminNews() {
                 </div>
 
                 <BodyEditor
-                  value={editor.body_md ?? ""}
-                  onChange={(v) => setEditor((s) => ({ ...s, body_md: v }))}
+                  value={editor.body_html ?? ""}
+                  onChange={(v) => setEditor((s) => ({ ...s, body_html: v }))}
                 />
               </TabsContent>
 
@@ -896,112 +911,39 @@ function SeoPreviewCard({ title, description, slug }: { title: string; descripti
   );
 }
 
+/**
+ * Body editor — WYSIWYG TipTap surface that produces sanitized HTML.
+ *
+ * Word count + reading time are derived from the rendered plain text so the
+ * stats reflect what the reader will actually see (no markdown markers).
+ */
 function BodyEditor({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [showPreview, setShowPreview] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const readingTime = useMemo(() => estimateReadingTime(value), [value]);
-  const wordCount = useMemo(() => {
-    const stripped = value.replace(/[#>*_\-|]/g, " ").replace(/\s+/g, " ").trim();
-    return stripped ? stripped.split(/\s+/).length : 0;
-  }, [value]);
+  const plain = useMemo(() => htmlToPlainText(value), [value]);
+  const wordCount = useMemo(
+    () => (plain ? plain.split(/\s+/).filter(Boolean).length : 0),
+    [plain],
+  );
+  const readingTime = useMemo(() => Math.max(1, Math.ceil(wordCount / 200)), [wordCount]);
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-1">
-        <Label>Contenuto (Markdown)</Label>
-        <div className="flex items-center gap-3">
-          <span className="text-[11px] text-muted-foreground">
-            {wordCount} parole · ~{readingTime} min
-          </span>
-          <button
-            type="button"
-            onClick={() => setShowPreview((p) => !p)}
-            className="text-xs font-medium text-primary hover:underline"
-          >
-            {showPreview ? "← Editor" : "Anteprima →"}
-          </button>
-        </div>
+      <div className="flex items-center justify-between mb-1.5">
+        <Label>Contenuto</Label>
+        <span className="text-[11px] text-muted-foreground">
+          {wordCount} parole · ~{readingTime} min di lettura
+        </span>
       </div>
-
-      {showPreview ? (
-        <div className="rounded-md border bg-muted/30 p-4 max-h-[420px] overflow-y-auto prose prose-sm max-w-none">
-          <MarkdownPreview md={value} />
-        </div>
-      ) : (
-        <>
-          <MarkdownToolbar textareaRef={textareaRef} onChange={onChange} />
-          <Textarea
-            ref={textareaRef}
-            rows={20}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="font-mono text-sm leading-relaxed rounded-t-none"
-            placeholder={MARKDOWN_HINT}
-          />
-        </>
-      )}
-
+      <WysiwygEditor
+        value={value}
+        onChange={onChange}
+        placeholder="Inizia a scrivere il tuo articolo… Usa la barra in alto per titoli, grassetto, liste, immagini, riquadri evidenziati, tabelle."
+      />
       <p className="text-[11px] text-muted-foreground mt-1">
-        Sintassi: <code>## titolo</code>, <code>**grassetto**</code>, <code>- lista</code>, <code>1. numerata</code>,{" "}
-        <code>&gt; ⚠️ **WARNING**</code>, tabelle <code>|colonna|...</code>
+        Suggerimento: seleziona del testo per far comparire il menu rapido.
       </p>
     </div>
   );
 }
-
-function MarkdownPreview({ md }: { md: string }) {
-  const blocks = useMemo(() => parseMarkdown(md), [md]);
-  if (!md.trim()) return <p className="text-muted-foreground italic">Nessun contenuto</p>;
-  return (
-    <>
-      {blocks.map((b, i) => {
-        switch (b.type) {
-          case "h1": return <h1 key={i}>{b.text}</h1>;
-          case "h2": return <h2 key={i}>{b.text}</h2>;
-          case "h3": return <h3 key={i}>{b.text}</h3>;
-          case "p":  return <p key={i}>{b.text}</p>;
-          case "ul": return <ul key={i}>{b.items.map((it, j) => <li key={j}>{it}</li>)}</ul>;
-          case "ol": return <ol key={i}>{b.items.map((it, j) => <li key={j}>{it}</li>)}</ol>;
-          case "callout": return (
-            <blockquote
-              key={i}
-              className={`border-l-4 ${b.variant === "warning" ? "border-orange-500" : b.variant === "tip" ? "border-emerald-500" : "border-blue-500"}`}
-            >
-              <strong>{b.variant.toUpperCase()}:</strong> {b.text}
-            </blockquote>
-          );
-          case "table": return (
-            <table key={i}>
-              <thead><tr>{b.headers.map((h, j) => <th key={j}>{h}</th>)}</tr></thead>
-              <tbody>{b.rows.map((r, j) => <tr key={j}>{r.map((c, k) => <td key={k}>{c}</td>)}</tr>)}</tbody>
-            </table>
-          );
-          case "image": return <img key={i} src={b.src} alt={b.alt} />;
-          default: return null;
-        }
-      })}
-    </>
-  );
-}
-
-const MARKDOWN_HINT = `## Sezione
-
-Paragrafo con **grassetto** e [link](https://example.com).
-
-- Punto elenco uno
-- Punto elenco due
-
-1. Numerato uno
-2. Numerato due
-
-> ⚠️ **WARNING**
->
-> Testo del callout di attenzione.
-
-| Colonna A | Colonna B |
-| --- | --- |
-| valore 1 | valore 2 |
-`;
 
 function toLocalInput(iso: string): string {
   const d = new Date(iso);

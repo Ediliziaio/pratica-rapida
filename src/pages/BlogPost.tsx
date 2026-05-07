@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link, useParams, Navigate } from "react-router-dom";
+import DOMPurify from "dompurify";
 import { ArrowLeft, ArrowRight, Clock, Calendar, AlertTriangle, Lightbulb, Info, Loader2 } from "lucide-react";
 import { Navbar, Footer, WhatsAppButton } from "@/components/landing";
 import { SEO } from "@/components/SEO";
@@ -14,6 +15,35 @@ import {
   absoluteUrl,
 } from "@/lib/news";
 import { parseMarkdown, type ContentBlock } from "@/lib/markdown";
+
+/**
+ * Sanitize WYSIWYG-produced HTML before injecting into the page.
+ * Strict allowlist of tags + attributes the editor can produce. Blocks
+ * scripts, event handlers, javascript:/data: URIs.
+ */
+function sanitizeArticleHtml(html: string): string {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      "p", "br", "hr", "div", "span", "section", "article",
+      "h1", "h2", "h3", "h4", "h5", "h6",
+      "strong", "b", "em", "i", "u", "s", "del", "code", "pre", "kbd", "mark",
+      "ul", "ol", "li",
+      "a",
+      "blockquote",
+      "img", "figure", "figcaption",
+      "table", "thead", "tbody", "tr", "th", "td",
+      "small", "sub", "sup",
+    ],
+    ALLOWED_ATTR: [
+      "href", "target", "rel",
+      "src", "alt", "title", "width", "height",
+      "class", "data-callout", "data-align", "style",
+      "colspan", "rowspan",
+    ],
+    ALLOW_DATA_ATTR: true,
+    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|#|\/)/i,
+  });
+}
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return "";
@@ -205,7 +235,18 @@ export default function BlogPostPage() {
     if (post?.slug) incrementNewsView(post.slug);
   }, [post?.slug]);
 
-  const blocks = useMemo(() => post?.body_md ? parseMarkdown(post.body_md) : [], [post?.body_md]);
+  // Body rendering: prefer body_html (WYSIWYG output from admin), fall back
+  // to legacy body_md for older articles. body_html is sanitized via DOMPurify
+  // before insertion.
+  const sanitizedHtml = useMemo(() => {
+    if (!post?.body_html) return null;
+    return sanitizeArticleHtml(post.body_html);
+  }, [post?.body_html]);
+
+  const blocks = useMemo(
+    () => (post?.body_html ? [] : post?.body_md ? parseMarkdown(post.body_md) : []),
+    [post?.body_html, post?.body_md],
+  );
 
   const related = useMemo(() => {
     if (!post) return [];
@@ -375,9 +416,18 @@ export default function BlogPostPage() {
             )}
 
             {/* Content */}
-            <div>
-              {blocks.map((block, i) => renderBlock(block, i))}
-            </div>
+            {sanitizedHtml ? (
+              <div
+                className="article-body"
+                // sanitizedHtml is run through DOMPurify with a strict allowlist
+                // before insertion — see sanitizeArticleHtml() above.
+                dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+              />
+            ) : (
+              <div>
+                {blocks.map((block, i) => renderBlock(block, i))}
+              </div>
+            )}
           </motion.div>
 
           {/* CTA Card */}

@@ -384,3 +384,179 @@
   }
 }
 
+
+
+/* ============================================================
+ * Article body — shared styles between WYSIWYG editor (admin)
+ * and the public BlogPost rendering. Keeps the editor "what you
+ * see is what you get" by reusing the same selectors.
+ * ============================================================ */
+.article-body,
+.wysiwyg-content {
+  font-size: 15px;
+  line-height: 1.8;
+  color: hsl(var(--foreground) / 0.78);
+}
+
+.article-body h1, .wysiwyg-content h1 {
+  font-size: 1.875rem; font-weight: 800; line-height: 1.2;
+  color: hsl(var(--foreground)); margin: 2.5rem 0 1.25rem;
+}
+.article-body h2, .wysiwyg-content h2 {
+  font-size: 1.5rem; font-weight: 700; line-height: 1.3;
+  color: hsl(var(--foreground)); margin: 2.25rem 0 1rem;
+}
+.article-body h3, .wysiwyg-content h3 {
+  font-size: 1.125rem; font-weight: 600; line-height: 1.4;
+  color: hsl(var(--foreground)); margin: 1.75rem 0 0.75rem;
+}
+.article-body p, .wysiwyg-content p {
+  margin: 0 0 1rem;
+}
+.article-body strong, .wysiwyg-content strong { font-weight: 600; color: hsl(var(--foreground)); }
+.article-body a, .wysiwyg-content a {
+  color: hsl(var(--pr-green));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.article-body a:hover, .wysiwyg-content a:hover { filter: brightness(1.1); }
+
+.article-body ul, .wysiwyg-content ul,
+.article-body ol, .wysiwyg-content ol {
+  margin: 0 0 1.25rem; padding-left: 1.5rem;
+}
+.article-body ul, .wysiwyg-content ul { list-style: disc; }
+.article-body ol, .wysiwyg-content ol { list-style: decimal; }
+.article-body li, .wysiwyg-content li { margin-bottom: 0.4rem; }
+.article-body li::marker, .wysiwyg-content li::marker { color: hsl(var(--pr-green)); }
+
+.article-body img, .wysiwyg-content img {
+  max-width: 100%; height: auto;
+  border-radius: 0.75rem;
+  margin: 1.5rem auto; display: block;
+}
+.article-body figure, .wysiwyg-content figure {
+  margin: 1.5rem 0;
+}
+.article-body figcaption, .wysiwyg-content figcaption {
+  font-size: 0.75rem; color: hsl(var(--muted-foreground));
+  text-align: center; margin-top: 0.5rem;
+}
+
+.article-body hr, .wysiwyg-content hr {
+  border: 0; height: 1px;
+  background: hsl(var(--border));
+  margin: 2rem 0;
+}
+
+.article-body code, .wysiwyg-content code {
+  background: hsl(var(--muted));
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.article-body pre, .wysiwyg-content pre {
+  background: hsl(var(--muted));
+  padding: 1rem; border-radius: 0.5rem;
+  overflow-x: auto; margin: 1.5rem 0;
+}
+.article-body pre code, .wysiwyg-content pre code {
+  background: transparent; padding: 0;
+}
+
+/* Tables */
+.article-body table, .wysiwyg-content table {
+  width: 100%; border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+  border-radius: 0.75rem; overflow: hidden;
+  border: 1px solid hsl(var(--border));
+}
+.article-body th, .wysiwyg-content th,
+.article-body td, .wysiwyg-content td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.article-body th, .wysiwyg-content th {
+  background: hsl(var(--card));
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+.article-body tr:last-child td, .wysiwyg-content tr:last-child td { border-bottom: 0; }
+.article-body tr:hover, .wysiwyg-content tr:hover { background: hsl(var(--muted) / 0.3); }
+
+/* Callouts — info / warning / tip */
+.article-body blockquote[data-callout],
+.wysiwyg-content blockquote[data-callout] {
+  border-left: 3px solid;
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  position: relative;
+}
+.article-body blockquote[data-callout="info"],
+.wysiwyg-content blockquote[data-callout="info"] {
+  border-color: hsl(200 100% 55%);
+  background: hsl(200 100% 55% / 0.06);
+}
+.article-body blockquote[data-callout="warning"],
+.wysiwyg-content blockquote[data-callout="warning"] {
+  border-color: hsl(25 100% 55%);
+  background: hsl(25 100% 55% / 0.06);
+}
+.article-body blockquote[data-callout="tip"],
+.wysiwyg-content blockquote[data-callout="tip"] {
+  border-color: hsl(152 100% 35%);
+  background: hsl(152 100% 35% / 0.06);
+}
+.article-body blockquote[data-callout]::before,
+.wysiwyg-content blockquote[data-callout]::before {
+  display: block;
+  font-size: 0.6875rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+.article-body blockquote[data-callout="info"]::before,
+.wysiwyg-content blockquote[data-callout="info"]::before {
+  content: "ℹ Info"; color: hsl(200 100% 45%);
+}
+.article-body blockquote[data-callout="warning"]::before,
+.wysiwyg-content blockquote[data-callout="warning"]::before {
+  content: "⚠ Attenzione"; color: hsl(25 100% 45%);
+}
+.article-body blockquote[data-callout="tip"]::before,
+.wysiwyg-content blockquote[data-callout="tip"]::before {
+  content: "💡 Consiglio"; color: hsl(152 80% 32%);
+}
+.article-body blockquote[data-callout] p:last-child,
+.wysiwyg-content blockquote[data-callout] p:last-child { margin-bottom: 0; }
+
+/* Plain blockquote (without callout marker) */
+.article-body blockquote:not([data-callout]),
+.wysiwyg-content blockquote:not([data-callout]) {
+  border-left: 3px solid hsl(var(--pr-green));
+  padding-left: 1.25rem;
+  font-style: italic;
+  color: hsl(var(--foreground) / 0.7);
+  margin: 1.5rem 0;
+}
+
+/* Editor-only — placeholder for empty surface */
+.wysiwyg-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  height: 0;
+  float: left;
+}
+
+/* Editor-only — table cell selection visible */
+.wysiwyg-content .ProseMirror-selectednode {
+  outline: 2px solid hsl(var(--pr-green));
+  outline-offset: 2px;
+}
+.wysiwyg-content table .selectedCell {
+  background: hsl(var(--pr-green) / 0.1);
+}

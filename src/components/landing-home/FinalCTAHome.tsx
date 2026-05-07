@@ -1,12 +1,14 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useScrollAnimation } from "../landing/hooks";
-import { Link } from "react-router-dom";
 import { ArrowRight, MessageCircle } from "lucide-react";
+import LeadRequestModal from "../landing/LeadRequestModal";
 
-const WHATSAPP_URL = "https://wa.me/390398682691?text=Ciao%2C%20vorrei%20sapere%20come%20funziona%20Pratica%20Rapida";
+const WHATSAPP_URL = "https://wa.me/390398682691?text=Voglio%20avere%20maggiori%20informazioni%20sui%20vostri%20servizi";
 
 export default function FinalCTAHome() {
   const { ref, isVisible } = useScrollAnimation();
+  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <section
@@ -41,20 +43,21 @@ export default function FinalCTAHome() {
             </span>
           </h2>
           <p className="text-base sm:text-lg mb-8 max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.55)" }}>
-            Scegli il servizio che ti interessa. Nessun vincolo, nessun costo di attivazione.
+            Lascia i tuoi contatti, ti richiamiamo per spiegarti come funziona. Nessun vincolo, nessun costo di attivazione.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
-            <Link
-              to="/auth"
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
               className="inline-flex items-center justify-center gap-2 text-white font-bold px-8 py-4 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
               style={{
                 background: "hsl(var(--pr-green))",
                 boxShadow: "0 0 40px hsla(152,100%,30%,0.5), 0 4px 20px hsla(152,100%,24%,0.4)",
               }}
             >
-              Attiva Gratis <ArrowRight size={16} />
-            </Link>
+              Richiedi informazioni <ArrowRight size={16} />
+            </button>
             <a
               href={WHATSAPP_URL}
               target="_blank"
@@ -71,10 +74,17 @@ export default function FinalCTAHome() {
           </div>
 
           <p className="text-xs mt-5" style={{ color: "rgba(255,255,255,0.3)" }}>
-            Registrazione gratuita · Nessun impegno · Zero costi nascosti
+            Risposta entro 24 ore · Nessun impegno · Zero costi nascosti
           </p>
         </motion.div>
       </div>
+
+      <LeadRequestModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        title="Pronto a delegare la burocrazia?"
+        description="Lascia i tuoi contatti, ti richiamiamo entro 24 ore lavorative per spiegarti come funziona."
+      />
     </section>
   );
 }

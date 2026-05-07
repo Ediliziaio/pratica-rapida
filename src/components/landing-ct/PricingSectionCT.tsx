@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useScrollAnimation } from "../landing/hooks";
 import { Check, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import LeadRequestModal from "../landing/LeadRequestModal";
 
 const included = [
   "Compilazione pratica Conto Termico completa",
@@ -22,6 +23,7 @@ const notIncluded = [
 ];
 
 export default function PricingSectionCT() {
+  const [modalOpen, setModalOpen] = useState(false);
   const { ref, isVisible } = useScrollAnimation();
 
   return (
@@ -95,16 +97,24 @@ export default function PricingSectionCT() {
           </div>
 
           <div className="mt-8 text-center">
-            <Link
-              to="/auth"
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
               className="inline-flex items-center text-white font-bold px-8 py-3.5 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
               style={{ backgroundColor: "hsl(var(--pr-green))" }}
             >
-              Attiva Gratis — Zero Rischi
-            </Link>
+              Richiedi informazioni — Zero Rischi
+            </button>
           </div>
         </motion.div>
       </div>
+
+      <LeadRequestModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        title="Richiedi informazioni"
+        description="Ti spieghiamo come funziona il pagamento per pratica completata. Lascia i tuoi contatti, ti richiamiamo entro 24 ore."
+      />
     </section>
   );
 }

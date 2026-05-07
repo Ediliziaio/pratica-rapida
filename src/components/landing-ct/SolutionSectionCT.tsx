@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useScrollAnimation } from "../landing/hooks";
 import { ArrowRight, Sparkles, Phone, FileCheck, Send } from "lucide-react";
-import { Link } from "react-router-dom";
+import LeadRequestModal from "../landing/LeadRequestModal";
 
 const steps = [
   {
@@ -31,6 +32,7 @@ const steps = [
 ];
 
 export default function SolutionSectionCT() {
+  const [modalOpen, setModalOpen] = useState(false);
   const { ref, isVisible } = useScrollAnimation();
 
   return (
@@ -76,13 +78,14 @@ export default function SolutionSectionCT() {
               transition={{ delay: 0.5 }}
               className="mt-8"
             >
-              <Link
-                to="/auth"
+              <button
+                type="button"
+                onClick={() => setModalOpen(true)}
                 className="inline-flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-full transition-all hover:brightness-110 active:scale-[0.97] text-white"
                 style={{ backgroundColor: "hsl(var(--pr-green))" }}
               >
-                Provalo gratis — zero impegno <ArrowRight size={16} />
-              </Link>
+                Richiedi informazioni — zero impegno <ArrowRight size={16} />
+              </button>
             </motion.div>
           </div>
 
@@ -124,6 +127,13 @@ export default function SolutionSectionCT() {
           </div>
         </div>
       </div>
+
+      <LeadRequestModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        title="Richiedi informazioni Conto Termico"
+        description="Lascia i tuoi contatti, ti richiamiamo entro 24 ore per spiegarti come ti supportiamo nelle pratiche GSE."
+      />
     </section>
   );
 }

@@ -15,3 +15,4 @@ export { default as FAQSection } from "./FAQSection";
 export { default as FinalCTA } from "./CTASection";
 export { default as Footer } from "./Footer";
 export { default as WhatsAppButton } from "./WhatsAppButton";
+export { default as LeadRequestModal } from "./LeadRequestModal";

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Clock, MessageCircle } from "lucide-react";
 
-const WHATSAPP_URL = "https://wa.me/390398682691?text=Ciao%2C%20vorrei%20sapere%20come%20funziona%20Pratica%20Rapida";
+const WHATSAPP_URL = "https://wa.me/390398682691?text=Voglio%20avere%20maggiori%20informazioni%20sui%20vostri%20servizi";
 
 export default function Footer() {
   return (

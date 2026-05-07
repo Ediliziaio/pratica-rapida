@@ -10,11 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
-  Plus, Settings, Building2, User, Phone, Mail,
-  ChevronRight, Pencil, Trash2, X, MoreHorizontal,
+  Plus, Settings, Building2, User, Phone, Mail, MapPin, Globe, PhoneCall,
+  ChevronRight, Pencil, Trash2, X, MoreHorizontal, Sparkles, CheckCircle2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
@@ -31,12 +31,19 @@ interface CrmStage {
 interface CrmLead {
   id: string;
   nome: string;
-  cognome: string;
-  email: string;
-  telefono: string;
+  cognome: string | null;
+  email: string | null;
+  telefono: string | null;
+  citta: string | null;
+  note: string | null;
+  source: string;          // 'public_form' | 'manual' | 'whatsapp' | 'import'
+  page_url: string | null;
   stage_id: string;
-  note: string;
+  contacted_at: string | null;
+  contacted_by: string | null;
+  archived_at: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 interface Company {
@@ -62,7 +69,13 @@ const DEFAULT_STAGES: CrmStage[] = [
 
 const KEY_STAGES      = "crm_pipeline_stages";
 const KEY_ASSIGNMENTS = "crm_company_stages";
-const KEY_LEADS       = "crm_leads";
+
+const SOURCE_BADGE: Record<string, { label: string; bg: string; color: string }> = {
+  public_form: { label: "Modulo web", bg: "hsla(152,80%,40%,0.12)", color: "hsl(152 80% 30%)" },
+  whatsapp:    { label: "WhatsApp",   bg: "hsla(122,80%,40%,0.12)", color: "hsl(122 80% 30%)" },
+  import:      { label: "Import",     bg: "hsla(220,80%,55%,0.12)", color: "hsl(220 80% 35%)" },
+  manual:      { label: "Aggiunto",   bg: "hsla(0,0%,50%,0.12)",    color: "hsl(0 0% 35%)" },
+};
 
 // ── Helper ───────────────────────────────────────────────────────────────────
 
@@ -84,7 +97,7 @@ export default function AziendePipeline() {
   const [editingStage, setEditingStage]         = useState<CrmStage | null>(null);
   const [newStage, setNewStage]                 = useState({ name: "", color: "#6366f1" });
   const [leadForm, setLeadForm]                 = useState({
-    nome: "", cognome: "", email: "", telefono: "", note: "",
+    nome: "", cognome: "", email: "", telefono: "", citta: "", note: "",
   });
 
   // ── Queries ──────────────────────────────────────────────────────────────
@@ -110,9 +123,13 @@ export default function AziendePipeline() {
   const { data: leads = [] } = useQuery<CrmLead[]>({
     queryKey: ["crm_leads"],
     queryFn: async () => {
-      const { data } = await supabase.from("platform_settings")
-        .select("value").eq("key", KEY_LEADS).single();
-      return (data?.value as CrmLead[]) ?? [];
+      const { data, error } = await supabase
+        .from("leads")
+        .select("*")
+        .is("archived_at", null)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as CrmLead[];
     },
   });
 
@@ -139,7 +156,8 @@ export default function AziendePipeline() {
 
   const moveLead = useMutation({
     mutationFn: async ({ leadId, stageId }: { leadId: string; stageId: string }) => {
-      await upsertSetting(KEY_LEADS, leads.map(l => l.id === leadId ? { ...l, stage_id: stageId } : l));
+      const { error } = await supabase.from("leads").update({ stage_id: stageId }).eq("id", leadId);
+      if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["crm_leads"] }),
     onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
@@ -147,18 +165,25 @@ export default function AziendePipeline() {
 
   const addLead = useMutation({
     mutationFn: async () => {
-      const newLead: CrmLead = {
-        id: crypto.randomUUID(),
-        ...leadForm,
+      if (!leadForm.nome.trim()) throw new Error("Il nome è obbligatorio");
+      if (!leadForm.email.trim() && !leadForm.telefono.trim())
+        throw new Error("Inserisci almeno email o telefono");
+      const { error } = await supabase.from("leads").insert({
+        nome: leadForm.nome.trim(),
+        cognome: leadForm.cognome.trim() || null,
+        email: leadForm.email.trim() || null,
+        telefono: leadForm.telefono.trim() || null,
+        citta: leadForm.citta.trim() || null,
+        note: leadForm.note.trim() || null,
+        source: "manual",
         stage_id: sortedStages[0]?.id ?? "lead",
-        created_at: new Date().toISOString(),
-      };
-      await upsertSetting(KEY_LEADS, [...leads, newLead]);
+      });
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["crm_leads"] });
       setShowAddLead(false);
-      setLeadForm({ nome: "", cognome: "", email: "", telefono: "", note: "" });
+      setLeadForm({ nome: "", cognome: "", email: "", telefono: "", citta: "", note: "" });
       toast({ title: "Lead aggiunto" });
     },
     onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
@@ -166,9 +191,44 @@ export default function AziendePipeline() {
 
   const deleteLead = useMutation({
     mutationFn: async (leadId: string) => {
-      await upsertSetting(KEY_LEADS, leads.filter(l => l.id !== leadId));
+      const { error } = await supabase.from("leads").delete().eq("id", leadId);
+      if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["crm_leads"] }),
+    onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  /** Mark a lead as contacted (set contacted_at = now). */
+  const markContactedMut = useMutation({
+    mutationFn: async (leadId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase
+        .from("leads")
+        .update({ contacted_at: new Date().toISOString(), contacted_by: user?.id ?? null })
+        .eq("id", leadId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crm_leads"] });
+      toast({ title: "Lead segnato come contattato" });
+    },
+    onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  /** Soft-archive a lead (hides from board but preserves the record). */
+  const archiveLeadMut = useMutation({
+    mutationFn: async (leadId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase
+        .from("leads")
+        .update({ archived_at: new Date().toISOString(), archived_by: user?.id ?? null })
+        .eq("id", leadId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crm_leads"] });
+      toast({ title: "Lead archiviato" });
+    },
     onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
 
@@ -259,80 +319,135 @@ export default function AziendePipeline() {
               </div>
 
               {/* Lead cards */}
-              {stageLeads.map(lead => (
-                <Card
-                  key={lead.id}
-                  className="border-l-[3px] hover:shadow-sm transition-shadow"
-                  style={{ borderLeftColor: stage.color }}
-                >
-                  <CardContent className="p-3 space-y-2">
-                    <div className="flex items-start justify-between gap-1">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                          <User className="h-3.5 w-3.5 text-muted-foreground" />
-                        </div>
-                        <p className="font-medium text-sm truncate">
-                          {lead.nome} {lead.cognome}
-                        </p>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0 -mr-1">
-                            <MoreHorizontal className="h-3.5 w-3.5" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {sortedStages.filter(s => s.id !== stage.id).map(s => (
-                            <DropdownMenuItem
-                              key={s.id}
-                              onClick={() => moveLead.mutate({ leadId: lead.id, stageId: s.id })}
-                            >
-                              <ChevronRight className="h-3.5 w-3.5 mr-1.5" />
-                              {s.name}
-                            </DropdownMenuItem>
-                          ))}
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => deleteLead.mutate(lead.id)}
+              {stageLeads.map(lead => {
+                const sb = SOURCE_BADGE[lead.source] ?? SOURCE_BADGE.manual;
+                const isNew = lead.source === "public_form" && !lead.contacted_at;
+                return (
+                  <Card
+                    key={lead.id}
+                    className={`border-l-[3px] hover:shadow-sm transition-shadow ${
+                      isNew ? "ring-1 ring-emerald-500/40 shadow-emerald-100" : ""
+                    }`}
+                    style={{ borderLeftColor: stage.color }}
+                  >
+                    <CardContent className="p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-1">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <div
+                            className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
+                              isNew ? "bg-emerald-100 text-emerald-600" : "bg-muted text-muted-foreground"
+                            }`}
                           >
-                            <Trash2 className="h-3.5 w-3.5 mr-1.5" />Elimina
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                            {isNew ? <Sparkles className="h-3.5 w-3.5" /> : <User className="h-3.5 w-3.5" />}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-sm truncate">
+                              {lead.nome} {lead.cognome ?? ""}
+                            </p>
+                            {lead.citta && (
+                              <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                                <MapPin className="h-2.5 w-2.5 shrink-0" />{lead.citta}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0 -mr-1">
+                              <MoreHorizontal className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="min-w-[200px]">
+                            {!lead.contacted_at && (
+                              <>
+                                <DropdownMenuItem onClick={() => markContactedMut.mutate(lead.id)}>
+                                  <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />Segna come contattato
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
+                            {sortedStages.filter(s => s.id !== stage.id).map(s => (
+                              <DropdownMenuItem
+                                key={s.id}
+                                onClick={() => moveLead.mutate({ leadId: lead.id, stageId: s.id })}
+                              >
+                                <ChevronRight className="h-3.5 w-3.5 mr-1.5" />Sposta in: {s.name}
+                              </DropdownMenuItem>
+                            ))}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => archiveLeadMut.mutate(lead.id)}>
+                              <X className="h-3.5 w-3.5 mr-1.5" />Archivia
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => deleteLead.mutate(lead.id)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 mr-1.5" />Elimina definitivamente
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
 
-                    {lead.email && (
-                      <a
-                        href={`mailto:${lead.email}`}
-                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        onClick={e => e.stopPropagation()}
-                      >
-                        <Mail className="h-3 w-3 shrink-0" />
-                        <span className="truncate">{lead.email}</span>
-                      </a>
-                    )}
-                    {lead.telefono && (
-                      <a
-                        href={`tel:${lead.telefono}`}
-                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        onClick={e => e.stopPropagation()}
-                      >
-                        <Phone className="h-3 w-3 shrink-0" />{lead.telefono}
-                      </a>
-                    )}
-                    {lead.note && (
-                      <p className="text-xs text-muted-foreground line-clamp-2">{lead.note}</p>
-                    )}
+                      {/* Quick actions for calling — prominent so staff can call/email in 1 click */}
+                      <div className="flex items-center gap-1.5">
+                        {lead.telefono && (
+                          <a
+                            href={`tel:${lead.telefono}`}
+                            className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium px-2 py-1.5 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                            onClick={e => e.stopPropagation()}
+                          >
+                            <PhoneCall className="h-3 w-3" />
+                            <span className="truncate">{lead.telefono}</span>
+                          </a>
+                        )}
+                        {lead.email && (
+                          <a
+                            href={`mailto:${lead.email}`}
+                            className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium px-2 py-1.5 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors min-w-0"
+                            onClick={e => e.stopPropagation()}
+                            title={lead.email}
+                          >
+                            <Mail className="h-3 w-3 shrink-0" />
+                            <span className="truncate">Email</span>
+                          </a>
+                        )}
+                      </div>
 
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" className="text-[10px] px-1.5">Lead</Badge>
-                      <span className="text-[10px] text-muted-foreground">
-                        {format(new Date(lead.created_at), "d MMM", { locale: it })}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      {lead.note && (
+                        <p className="text-xs text-muted-foreground line-clamp-2 italic border-l-2 border-border pl-2">
+                          “{lead.note}”
+                        </p>
+                      )}
+
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span
+                          className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide"
+                          style={{ backgroundColor: sb.bg, color: sb.color }}
+                        >
+                          {sb.label}
+                        </span>
+                        {lead.contacted_at ? (
+                          <span className="text-[10px] text-emerald-700 flex items-center gap-1">
+                            <CheckCircle2 className="h-2.5 w-2.5" />
+                            Contattato {format(new Date(lead.contacted_at), "d MMM", { locale: it })}
+                          </span>
+                        ) : isNew ? (
+                          <span className="text-[10px] font-bold text-emerald-700">DA CHIAMARE</span>
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground">
+                            {format(new Date(lead.created_at), "d MMM", { locale: it })}
+                          </span>
+                        )}
+                      </div>
+                      {lead.page_url && (
+                        <p className="text-[9px] text-muted-foreground/60 flex items-center gap-1 truncate">
+                          <Globe className="h-2.5 w-2.5 shrink-0" />Da: {lead.page_url.replace(/^https?:\/\//, "")}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
 
               {/* Company cards */}
               {stageCompanies.map(company => (
@@ -492,7 +607,7 @@ export default function AziendePipeline() {
           <div className="grid gap-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Nome</Label>
+                <Label>Nome *</Label>
                 <Input value={leadForm.nome} onChange={e => setLeadForm(f => ({ ...f, nome: e.target.value }))} />
               </div>
               <div>
@@ -504,9 +619,15 @@ export default function AziendePipeline() {
               <Label>Email</Label>
               <Input type="email" value={leadForm.email} onChange={e => setLeadForm(f => ({ ...f, email: e.target.value }))} />
             </div>
-            <div>
-              <Label>Telefono</Label>
-              <Input value={leadForm.telefono} onChange={e => setLeadForm(f => ({ ...f, telefono: e.target.value }))} />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Telefono</Label>
+                <Input value={leadForm.telefono} onChange={e => setLeadForm(f => ({ ...f, telefono: e.target.value }))} />
+              </div>
+              <div>
+                <Label>Città</Label>
+                <Input value={leadForm.citta} onChange={e => setLeadForm(f => ({ ...f, citta: e.target.value }))} placeholder="Milano" />
+              </div>
             </div>
             <div>
               <Label>Note</Label>
@@ -517,9 +638,12 @@ export default function AziendePipeline() {
                 placeholder="Provenienza, interesse, dettagli..."
               />
             </div>
+            <p className="text-[11px] text-muted-foreground">
+              Almeno email o telefono richiesti per ricontattare il lead.
+            </p>
             <Button
               onClick={() => addLead.mutate()}
-              disabled={!leadForm.nome.trim() || addLead.isPending}
+              disabled={!leadForm.nome.trim() || (!leadForm.email.trim() && !leadForm.telefono.trim()) || addLead.isPending}
             >
               {addLead.isPending ? "Aggiunta..." : "Aggiungi Lead"}
             </Button>

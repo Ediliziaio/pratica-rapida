@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 import { ArrowRight, Star, Check, Phone, ChevronDown } from "lucide-react";
 import BenefitsWidget from "../landing/BenefitsWidget";
+import LeadRequestModal from "../landing/LeadRequestModal";
 
 const socialProofAvatars = [
   { initials: "MR", bg: "bg-[hsl(var(--pr-green))]" },
@@ -17,6 +18,7 @@ const checkpoints = [
 ];
 
 export default function HeroSectionCT() {
+  const [modalOpen, setModalOpen] = useState(false);
   return (
     <section
       className="relative min-h-[90vh] flex items-center overflow-hidden pt-20 pb-12"
@@ -142,16 +144,17 @@ export default function HeroSectionCT() {
             transition={{ delay: 0.85 }}
             className="space-y-3 pt-1"
           >
-            <Link
-              to="/auth"
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
               className="flex sm:inline-flex items-center justify-center gap-2 text-white font-semibold px-8 py-4 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
               style={{
                 background: "hsl(var(--pr-green))",
                 boxShadow: "0 4px 24px hsla(152,80%,35%,0.35)",
               }}
             >
-              Inizia Gratis <ArrowRight className="w-4 h-4" />
-            </Link>
+              Richiedi informazioni <ArrowRight className="w-4 h-4" />
+            </button>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <p className="text-xs text-muted-foreground/60">
                 Nessun impegno • Zero costi nascosti
@@ -218,6 +221,13 @@ export default function HeroSectionCT() {
           <ChevronDown className="w-5 h-5 text-muted-foreground/30" />
         </motion.div>
       </motion.div>
+
+      <LeadRequestModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        title="Richiedi informazioni Conto Termico"
+        description="Ti aiutiamo a capire se i tuoi clienti possono accedere al Conto Termico GSE. Lascia i tuoi contatti, ti richiamiamo entro 24 ore."
+      />
     </section>
   );
 }

@@ -157,3 +157,53 @@ export function slugify(title: string): string {
     .replace(/^-|-$/g, "")
     .slice(0, 80);
 }
+
+/**
+ * Estimate reading time in minutes from a markdown body.
+ * Italian average reading speed ≈ 200 words/min.
+ * Strips markdown syntax before counting words.
+ */
+export function estimateReadingTime(md: string): number {
+  if (!md) return 1;
+  const stripped = md
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`[^`]+`/g, " ")
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[#>*_\-|]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const words = stripped ? stripped.split(/\s+/).length : 0;
+  return Math.max(1, Math.ceil(words / 200));
+}
+
+/**
+ * Make an image URL absolute using the production origin.
+ * Required for OG / JSON-LD image fields — Google requires absolute URLs.
+ */
+export function absoluteUrl(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  if (/^https?:\/\//i.test(url)) return url;
+  const base = "https://www.praticarapida.it";
+  return `${base}${url.startsWith("/") ? "" : "/"}${url}`;
+}
+
+/**
+ * Check whether a slug is already taken by a *different* article.
+ * Returns the colliding article id or null.
+ */
+export async function findSlugCollision(
+  slug: string,
+  excludeId?: string,
+): Promise<string | null> {
+  const trimmed = slug.trim();
+  if (!trimmed) return null;
+  const { data, error } = await supabase
+    .from("news_articles")
+    .select("id")
+    .eq("slug", trimmed)
+    .maybeSingle();
+  if (error || !data) return null;
+  if (excludeId && data.id === excludeId) return null;
+  return data.id;
+}

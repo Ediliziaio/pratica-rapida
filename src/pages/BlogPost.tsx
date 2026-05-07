@@ -11,6 +11,7 @@ import {
   incrementNewsView,
   categoryLabel,
   categoryColor,
+  absoluteUrl,
 } from "@/lib/news";
 import { parseMarkdown, type ContentBlock } from "@/lib/markdown";
 
@@ -231,8 +232,12 @@ export default function BlogPostPage() {
 
   const articleTitle = post.meta_title || post.title;
   const articleDesc = post.meta_description || post.excerpt || "";
-  const articleCanonical = post.canonical_url || `/blog/${post.slug}`;
-  const articleImage = post.og_image_url || post.cover_image_url || undefined;
+  // canonical_url is stored as full URL; SEO component prepends origin only for
+  // path-style canonicals — pass absolute as-is by stripping the origin if needed
+  const articleCanonical = post.canonical_url
+    ? post.canonical_url.replace(/^https?:\/\/(www\.)?praticarapida\.it/i, "")
+    : `/blog/${post.slug}`;
+  const articleImage = absoluteUrl(post.og_image_url || post.cover_image_url);
 
   const articleJsonLd = [
     {

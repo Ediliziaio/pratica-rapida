@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Star, ChevronDown } from "lucide-react";
 import BenefitsWidget from "../landing/BenefitsWidget";
+import HeroNewsWidget from "../landing/HeroNewsWidget";
 
 export default function HeroSectionHome() {
   return (
@@ -109,13 +110,14 @@ export default function HeroSectionHome() {
           </motion.p>
         </div>
 
-        {/* Right: Widget Notizie */}
+        {/* Right: "Cosa ottieni" + Widget Notizie */}
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.5, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
         >
           <BenefitsWidget light />
+          <HeroNewsWidget light />
         </motion.div>
       </div>
 

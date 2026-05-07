@@ -4,9 +4,7 @@ import ServicesSectionHome from "@/components/landing-home/ServicesSectionHome";
 import HowItWorksSectionHome from "@/components/landing-home/HowItWorksSectionHome";
 import StatsSectionHome from "@/components/landing-home/StatsSectionHome";
 import FinalCTAHome from "@/components/landing-home/FinalCTAHome";
-import NewsSectionHome from "@/components/landing-home/NewsSectionHome";
 import BlogPreviewHome from "@/components/landing-home/BlogPreviewHome";
-import NewPortalPopup from "@/components/landing/NewPortalPopup";
 import { SEO } from "@/components/SEO";
 
 const jsonLd = [
@@ -50,7 +48,6 @@ export default function HomeMain() {
         keywords="pratica ENEA, conto termico GSE, gestione pratiche installatori, outsourcing pratiche energetiche, ecobonus serramenti, bonus casa infissi"
         jsonLd={jsonLd}
       />
-      <NewPortalPopup />
       <Navbar />
       <HeroSectionHome />
       <TickerStrip />
@@ -58,7 +55,6 @@ export default function HomeMain() {
       <PartnerSection />
       <HowItWorksSectionHome />
       <StatsSectionHome />
-      <NewsSectionHome />
       <BlogPreviewHome />
       <ReviewsSection />
       <WhyUsSection />

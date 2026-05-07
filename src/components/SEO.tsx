@@ -7,7 +7,12 @@ interface SEOProps {
   keywords?: string;
   ogImage?: string;
   ogType?: "website" | "article";
+  /** legacy single-flag (backwards compat). Equivalent to `noIndex && noFollow`. */
   noindex?: boolean;
+  /** Excludes the page from the search index. */
+  noIndex?: boolean;
+  /** Tells crawlers not to follow links on the page. */
+  noFollow?: boolean;
   jsonLd?: object | object[];
 }
 
@@ -21,17 +26,22 @@ export function SEO({
   ogImage = DEFAULT_IMAGE,
   ogType = "website",
   noindex = false,
+  noIndex,
+  noFollow,
   jsonLd,
 }: SEOProps) {
   const fullTitle = title.includes("Pratica Rapida") ? title : `${title} | Pratica Rapida`;
   const fullCanonical = `https://www.praticarapida.it${canonical}`;
+  const robotsIndex  = (noIndex ?? noindex) ? "noindex" : "index";
+  const robotsFollow = (noFollow ?? noindex) ? "nofollow" : "follow";
+  const robots = `${robotsIndex}, ${robotsFollow}`;
 
   return (
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
       {keywords && <meta name="keywords" content={keywords} />}
-      <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow"} />
+      <meta name="robots" content={robots} />
       <link rel="canonical" href={fullCanonical} />
 
       {/* GEO */}

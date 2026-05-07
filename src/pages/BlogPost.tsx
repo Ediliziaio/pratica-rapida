@@ -1,13 +1,21 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link, useParams, Navigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Clock, Calendar, AlertTriangle, Lightbulb, Info } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock, Calendar, AlertTriangle, Lightbulb, Info, Loader2 } from "lucide-react";
 import { Navbar, Footer, WhatsAppButton } from "@/components/landing";
 import { SEO } from "@/components/SEO";
-import { blogPosts, BLOG_CATEGORIES, type ContentBlock } from "@/data/blog-posts";
 import { BLOG_COVER_MAP } from "@/components/blog/BlogCovers";
+import {
+  useNewsArticle,
+  usePublishedNews,
+  incrementNewsView,
+  categoryLabel,
+  categoryColor,
+} from "@/lib/news";
+import { parseMarkdown, type ContentBlock } from "@/lib/markdown";
 
-function formatDate(dateStr: string) {
+function formatDate(dateStr: string | null) {
+  if (!dateStr) return "";
   return new Date(dateStr).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" });
 }
 
@@ -50,21 +58,79 @@ function Callout({ variant, text }: { variant: "info" | "warning" | "tip"; text:
   );
 }
 
+/**
+ * Inline markdown formatting renderer — handles **bold**, *italic*, [link](url), `code`.
+ * Used for paragraph and list-item text. Returns array of React nodes.
+ */
+function renderInline(text: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  let i = 0;
+  let key = 0;
+  // Walk char-by-char, picking up the longest match first
+  while (i < text.length) {
+    // Link [text](url)
+    const linkM = text.slice(i).match(/^\[([^\]]+)\]\(([^)]+)\)/);
+    if (linkM) {
+      nodes.push(
+        <a key={key++} href={linkM[2]} target="_blank" rel="noopener noreferrer" className="underline hover:text-[hsl(var(--pr-green))]">
+          {linkM[1]}
+        </a>
+      );
+      i += linkM[0].length;
+      continue;
+    }
+    // Bold **text**
+    const boldM = text.slice(i).match(/^\*\*([^*]+)\*\*/);
+    if (boldM) {
+      nodes.push(<strong key={key++} className="font-semibold text-foreground">{boldM[1]}</strong>);
+      i += boldM[0].length;
+      continue;
+    }
+    // Italic *text* (avoid matching ** which was handled above)
+    const italM = text.slice(i).match(/^\*([^*]+)\*/);
+    if (italM) {
+      nodes.push(<em key={key++}>{italM[1]}</em>);
+      i += italM[0].length;
+      continue;
+    }
+    // Inline code `code`
+    const codeM = text.slice(i).match(/^`([^`]+)`/);
+    if (codeM) {
+      nodes.push(
+        <code key={key++} className="px-1.5 py-0.5 rounded bg-muted text-foreground text-[13px] font-mono">
+          {codeM[1]}
+        </code>
+      );
+      i += codeM[0].length;
+      continue;
+    }
+    // Plain char — accumulate until next special
+    let j = i;
+    while (j < text.length && !"*[`".includes(text[j])) j++;
+    if (j === i) j = i + 1; // safety: never zero-advance
+    nodes.push(text.slice(i, j));
+    i = j;
+  }
+  return nodes;
+}
+
 function renderBlock(block: ContentBlock, i: number) {
   switch (block.type) {
+    case "h1":
+      return <h2 key={i} className="font-bold text-2xl sm:text-3xl text-foreground mt-12 mb-5 leading-snug">{block.text}</h2>;
     case "h2":
       return <h2 key={i} className="font-bold text-xl sm:text-2xl text-foreground mt-10 mb-4 leading-snug">{block.text}</h2>;
     case "h3":
       return <h3 key={i} className="font-semibold text-lg text-foreground mt-8 mb-3 leading-snug">{block.text}</h3>;
     case "p":
-      return <p key={i} className="text-[15px] leading-[1.8] text-foreground/75 mb-4">{block.text}</p>;
+      return <p key={i} className="text-[15px] leading-[1.8] text-foreground/75 mb-4">{renderInline(block.text)}</p>;
     case "ul":
       return (
         <ul key={i} className="mb-5 space-y-2">
           {block.items.map((item, j) => (
             <li key={j} className="flex gap-2.5 text-[15px] text-foreground/75 leading-relaxed">
               <span className="shrink-0 w-1.5 h-1.5 rounded-full mt-2.5" style={{ background: "hsl(var(--pr-green))" }} />
-              {item}
+              <span>{renderInline(item)}</span>
             </li>
           ))}
         </ul>
@@ -80,7 +146,7 @@ function renderBlock(block: ContentBlock, i: number) {
               >
                 {j + 1}
               </span>
-              {item}
+              <span>{renderInline(item)}</span>
             </li>
           ))}
         </ol>
@@ -116,6 +182,13 @@ function renderBlock(block: ContentBlock, i: number) {
           </div>
         </div>
       );
+    case "image":
+      return (
+        <figure key={i} className="my-6">
+          <img src={block.src} alt={block.alt} className="rounded-xl w-full h-auto" />
+          {block.alt && <figcaption className="text-xs text-muted-foreground text-center mt-2">{block.alt}</figcaption>}
+        </figure>
+      );
     default:
       return null;
   }
@@ -123,38 +196,65 @@ function renderBlock(block: ContentBlock, i: number) {
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
-  const post = blogPosts.find(p => p.slug === slug);
+  const { data: post, isLoading, isError } = useNewsArticle(slug);
+  const { data: allPosts = [] } = usePublishedNews();
+
+  // Fire-and-forget view counter (only after we know the article exists)
+  useEffect(() => {
+    if (post?.slug) incrementNewsView(post.slug);
+  }, [post?.slug]);
+
+  const blocks = useMemo(() => post?.body_md ? parseMarkdown(post.body_md) : [], [post?.body_md]);
 
   const related = useMemo(() => {
     if (!post) return [];
-    return blogPosts
-      .filter(p => p.slug !== post.slug && (p.category === post.category || Math.random() > 0.5))
+    return allPosts
+      .filter((p) => p.id !== post.id && p.category === post.category)
       .slice(0, 2);
-  }, [post]);
+  }, [post, allPosts]);
 
-  if (!post) return <Navigate to="/blog" replace />;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
-  const categoryLabel = BLOG_CATEGORIES.find(c => c.id === post.category)?.label ?? post.category;
+  if (isError || !post) {
+    return <Navigate to="/blog" replace />;
+  }
+
+  const catLabel = categoryLabel(post.category);
+  const catColor = categoryColor(post.category);
+  const Cover = BLOG_COVER_MAP[post.slug];
+
+  const articleTitle = post.meta_title || post.title;
+  const articleDesc = post.meta_description || post.excerpt || "";
+  const articleCanonical = post.canonical_url || `/blog/${post.slug}`;
+  const articleImage = post.og_image_url || post.cover_image_url || undefined;
 
   const articleJsonLd = [
     {
       "@context": "https://schema.org",
-      "@type": "BlogPosting",
+      "@type": post.json_ld_type || "BlogPosting",
       headline: post.title,
       description: post.excerpt,
-      author: { "@type": "Organization", name: "Pratica Rapida", url: "https://www.praticarapida.it" },
+      author: { "@type": "Organization", name: post.author_name || "Pratica Rapida", url: "https://www.praticarapida.it" },
       publisher: {
         "@type": "Organization",
         name: "Pratica Rapida",
         url: "https://www.praticarapida.it",
         logo: { "@type": "ImageObject", url: "https://www.praticarapida.it/pratica-rapida-logo.png" },
       },
-      datePublished: post.date,
-      dateModified: post.date,
+      datePublished: post.published_at,
+      dateModified: post.updated_at,
       mainEntityOfPage: { "@type": "WebPage", "@id": `https://www.praticarapida.it/blog/${post.slug}` },
       url: `https://www.praticarapida.it/blog/${post.slug}`,
       inLanguage: "it-IT",
+      ...(articleImage ? { image: articleImage } : {}),
       isPartOf: { "@type": "Blog", name: "Notizie Pratica Rapida", url: "https://www.praticarapida.it/blog" },
+      keywords: (post.meta_keywords || post.tags).join(", "),
     },
     {
       "@context": "https://schema.org",
@@ -170,10 +270,14 @@ export default function BlogPostPage() {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title={post.title}
-        description={post.excerpt}
-        canonical={`/blog/${post.slug}`}
+        title={articleTitle}
+        description={articleDesc}
+        canonical={articleCanonical}
         ogType="article"
+        ogImage={articleImage}
+        keywords={(post.meta_keywords ?? post.tags).join(", ") || undefined}
+        noIndex={post.no_index}
+        noFollow={post.no_follow}
         jsonLd={articleJsonLd}
       />
       <Navbar />
@@ -183,18 +287,22 @@ export default function BlogPostPage() {
         className="relative pt-32 pb-16 overflow-hidden"
         style={{ background: "hsl(var(--pr-dark))" }}
       >
-        {/* SVG illustration as full background */}
+        {/* Cover background */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {(() => {
-            const Cover = BLOG_COVER_MAP[post.slug];
-            return Cover ? (
-              <div className="absolute inset-0 opacity-40 scale-110">
-                <Cover />
-              </div>
-            ) : (
-              <div className="absolute inset-0 opacity-60" style={{ background: post.coverGradient }} />
-            );
-          })()}
+          {post.cover_image_url ? (
+            <div className="absolute inset-0 opacity-30">
+              <img src={post.cover_image_url} alt="" className="w-full h-full object-cover" />
+            </div>
+          ) : Cover ? (
+            <div className="absolute inset-0 opacity-40 scale-110">
+              <Cover />
+            </div>
+          ) : (
+            <div
+              className="absolute inset-0 opacity-50"
+              style={{ background: `linear-gradient(135deg, ${catColor}40 0%, ${catColor}10 100%)` }}
+            />
+          )}
           <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, hsl(var(--pr-dark)) 85%)" }} />
         </div>
 
@@ -210,16 +318,16 @@ export default function BlogPostPage() {
               <ArrowLeft size={13} /> Notizie
             </Link>
             <span>/</span>
-            <span style={{ color: post.categoryColor }}>{categoryLabel}</span>
+            <span style={{ color: catColor }}>{catLabel}</span>
           </motion.nav>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             {/* Category badge */}
             <span
               className="inline-block px-3 py-1 rounded-full text-xs font-bold mb-5"
-              style={{ background: `${post.categoryColor}18`, color: post.categoryColor, border: `1px solid ${post.categoryColor}35` }}
+              style={{ background: `${catColor}18`, color: catColor, border: `1px solid ${catColor}35` }}
             >
-              {categoryLabel}
+              {catLabel}
             </span>
 
             <h1 className="font-extrabold text-3xl sm:text-4xl lg:text-5xl leading-[1.1] text-white mb-6">
@@ -228,15 +336,19 @@ export default function BlogPostPage() {
 
             {/* Meta */}
             <div className="flex flex-wrap items-center gap-4 text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
+              {post.published_at && (
+                <>
+                  <span className="flex items-center gap-1.5">
+                    <Calendar size={13} />{formatDate(post.published_at)}
+                  </span>
+                  <span className="w-1 h-1 rounded-full bg-white/20" />
+                </>
+              )}
               <span className="flex items-center gap-1.5">
-                <Calendar size={13} />{formatDate(post.date)}
+                <Clock size={13} />{post.read_time_minutes} min di lettura
               </span>
               <span className="w-1 h-1 rounded-full bg-white/20" />
-              <span className="flex items-center gap-1.5">
-                <Clock size={13} />{post.readTime} min di lettura
-              </span>
-              <span className="w-1 h-1 rounded-full bg-white/20" />
-              <span>{post.author} · {post.authorRole}</span>
+              <span>{post.author_name}</span>
             </div>
           </motion.div>
         </div>
@@ -251,13 +363,15 @@ export default function BlogPostPage() {
             transition={{ delay: 0.2 }}
           >
             {/* Excerpt */}
-            <p className="text-lg leading-relaxed font-medium text-foreground/80 border-l-2 pl-5 mb-8" style={{ borderColor: "hsl(var(--pr-green))" }}>
-              {post.excerpt}
-            </p>
+            {post.excerpt && (
+              <p className="text-lg leading-relaxed font-medium text-foreground/80 border-l-2 pl-5 mb-8" style={{ borderColor: "hsl(var(--pr-green))" }}>
+                {post.excerpt}
+              </p>
+            )}
 
             {/* Content */}
             <div>
-              {post.content.map((block, i) => renderBlock(block, i))}
+              {blocks.map((block, i) => renderBlock(block, i))}
             </div>
           </motion.div>
 
@@ -308,28 +422,37 @@ export default function BlogPostPage() {
             >
               <h3 className="font-bold text-lg text-foreground mb-6">Potrebbe interessarti anche</h3>
               <div className="grid sm:grid-cols-2 gap-4">
-                {related.map((r) => (
-                  <Link
-                    key={r.slug}
-                    to={`/blog/${r.slug}`}
-                    className="group flex gap-4 p-4 rounded-xl border border-border bg-card hover:border-[hsl(var(--pr-green))/50] transition-all"
-                  >
-                    <div className="w-14 h-14 rounded-lg shrink-0 overflow-hidden bg-black">
-                      {(() => {
-                        const Cover = BLOG_COVER_MAP[r.slug];
-                        return Cover ? <Cover /> : <div className="w-full h-full" style={{ background: r.coverGradient }} />;
-                      })()}
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-xs font-semibold" style={{ color: r.categoryColor }}>
-                        {BLOG_CATEGORIES.find(c => c.id === r.category)?.label}
-                      </span>
-                      <p className="text-sm font-semibold text-foreground leading-snug mt-0.5 group-hover:text-[hsl(var(--pr-green))] transition-colors line-clamp-2">
-                        {r.title}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
+                {related.map((r) => {
+                  const RCover = BLOG_COVER_MAP[r.slug];
+                  return (
+                    <Link
+                      key={r.id}
+                      to={`/blog/${r.slug}`}
+                      className="group flex gap-4 p-4 rounded-xl border border-border bg-card hover:border-[hsl(var(--pr-green))/50] transition-all"
+                    >
+                      <div className="w-14 h-14 rounded-lg shrink-0 overflow-hidden bg-black">
+                        {r.cover_image_url ? (
+                          <img src={r.cover_image_url} alt="" className="w-full h-full object-cover" />
+                        ) : RCover ? (
+                          <RCover />
+                        ) : (
+                          <div
+                            className="w-full h-full"
+                            style={{ background: `linear-gradient(135deg, ${categoryColor(r.category)}40 0%, ${categoryColor(r.category)}10 100%)` }}
+                          />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-xs font-semibold" style={{ color: categoryColor(r.category) }}>
+                          {categoryLabel(r.category)}
+                        </span>
+                        <p className="text-sm font-semibold text-foreground leading-snug mt-0.5 group-hover:text-[hsl(var(--pr-green))] transition-colors line-clamp-2">
+                          {r.title}
+                        </p>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
 
               <div className="mt-8 text-center">

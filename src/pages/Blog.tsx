@@ -1,11 +1,17 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, Clock, Calendar } from "lucide-react";
+import { ArrowRight, Clock, Calendar, Loader2 } from "lucide-react";
 import { Navbar, Footer, WhatsAppButton } from "@/components/landing";
 import { SEO } from "@/components/SEO";
-import { blogPosts, BLOG_CATEGORIES } from "@/data/blog-posts";
 import { BLOG_COVER_MAP } from "@/components/blog/BlogCovers";
+import {
+  type NewsArticle,
+  usePublishedNews,
+  NEWS_CATEGORIES,
+  categoryLabel,
+  categoryColor,
+} from "@/lib/news";
 
 const blogJsonLd = [
   {
@@ -26,11 +32,15 @@ const blogJsonLd = [
   },
 ];
 
-function formatDate(dateStr: string) {
+function formatDate(dateStr: string | null) {
+  if (!dateStr) return "";
   return new Date(dateStr).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" });
 }
 
-function ArticleCard({ post, index }: { post: typeof blogPosts[0]; index: number }) {
+function ArticleCard({ post, index }: { post: NewsArticle; index: number }) {
+  const Cover = BLOG_COVER_MAP[post.slug];
+  const color = categoryColor(post.category);
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 24 }}
@@ -41,29 +51,42 @@ function ArticleCard({ post, index }: { post: typeof blogPosts[0]; index: number
     >
       {/* Cover */}
       <div className="h-44 relative overflow-hidden bg-black">
-        {(() => {
-          const Cover = BLOG_COVER_MAP[post.slug];
-          return Cover ? <Cover /> : (
-            <div className="w-full h-full" style={{ background: post.coverGradient }} />
-          );
-        })()}
+        {post.cover_image_url ? (
+          <img src={post.cover_image_url} alt="" className="w-full h-full object-cover" />
+        ) : Cover ? (
+          <Cover />
+        ) : (
+          <div
+            className="w-full h-full"
+            style={{ background: `linear-gradient(135deg, ${color}40 0%, ${color}10 100%)` }}
+          />
+        )}
+        {post.pinned && (
+          <div className="absolute top-3 right-3">
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-orange-500 text-white">
+              IN EVIDENZA
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Content */}
       <div className="flex flex-col flex-1 p-6 gap-4">
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1"><Calendar size={11} />{formatDate(post.date)}</span>
+          <span className="flex items-center gap-1"><Calendar size={11} />{formatDate(post.published_at)}</span>
           <span className="w-1 h-1 rounded-full bg-border" />
-          <span className="flex items-center gap-1"><Clock size={11} />{post.readTime} min</span>
+          <span className="flex items-center gap-1"><Clock size={11} />{post.read_time_minutes} min</span>
         </div>
 
         <div className="flex-1">
           <h2 className="font-bold text-base sm:text-lg leading-snug text-foreground mb-2 group-hover:text-[hsl(var(--pr-green))] transition-colors line-clamp-3">
             {post.title}
           </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
-            {post.excerpt}
-          </p>
+          {post.excerpt && (
+            <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+              {post.excerpt}
+            </p>
+          )}
         </div>
 
         <Link
@@ -80,10 +103,11 @@ function ArticleCard({ post, index }: { post: typeof blogPosts[0]; index: number
 
 export default function BlogPage() {
   const [activeCategory, setActiveCategory] = useState("tutti");
+  const { data: posts = [], isLoading } = usePublishedNews();
 
   const filtered = activeCategory === "tutti"
-    ? blogPosts
-    : blogPosts.filter(p => p.category === activeCategory);
+    ? posts
+    : posts.filter((p) => p.category === activeCategory);
 
   return (
     <div className="min-h-screen bg-background">
@@ -150,7 +174,7 @@ export default function BlogPage() {
             transition={{ delay: 0.15 }}
             className="flex flex-wrap gap-2 mb-10"
           >
-            {BLOG_CATEGORIES.map((cat) => (
+            {NEWS_CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
@@ -166,15 +190,28 @@ export default function BlogPage() {
             ))}
           </motion.div>
 
-          {/* Grid */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((post, i) => (
-              <ArticleCard key={post.slug} post={post} index={i} />
-            ))}
-          </div>
+          {/* Loading state */}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-24">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <p className="text-center text-muted-foreground py-16">
+              {posts.length === 0 ? "Nessun articolo pubblicato al momento." : "Nessun articolo in questa categoria."}
+            </p>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filtered.map((post, i) => (
+                <ArticleCard key={post.id} post={post} index={i} />
+              ))}
+            </div>
+          )}
 
-          {filtered.length === 0 && (
-            <p className="text-center text-muted-foreground py-16">Nessun articolo in questa categoria.</p>
+          {/* Category label tooltip — visual hint of category color (non-interactive) */}
+          {filtered.length > 0 && (
+            <p className="text-xs text-muted-foreground mt-10 text-center">
+              {filtered.length} articol{filtered.length === 1 ? "o" : "i"} in &laquo;{categoryLabel(activeCategory)}&raquo;
+            </p>
           )}
         </div>
       </section>

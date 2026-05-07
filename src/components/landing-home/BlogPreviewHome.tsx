@@ -1,21 +1,23 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Clock, Calendar } from "lucide-react";
-import { blogPosts, BLOG_CATEGORIES } from "@/data/blog-posts";
 import { BLOG_COVER_MAP } from "@/components/blog/BlogCovers";
 import { useScrollAnimation } from "../landing/hooks";
+import { usePublishedNews, categoryLabel, categoryColor } from "@/lib/news";
 
-function formatDate(dateStr: string) {
+function formatDate(dateStr: string | null) {
+  if (!dateStr) return "";
   return new Date(dateStr).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" });
 }
 
-// Mostra sempre i 3 articoli più recenti
-const latestPosts = [...blogPosts]
-  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  .slice(0, 3);
-
 export default function BlogPreviewHome() {
   const { ref, isVisible } = useScrollAnimation();
+  const { data: posts = [] } = usePublishedNews();
+
+  // Top 3 by pinned + published_at desc (already sorted by usePublishedNews)
+  const latestPosts = posts.slice(0, 3);
+
+  if (latestPosts.length === 0) return null;
 
   return (
     <section ref={ref} className="py-16 sm:py-24 bg-background">
@@ -55,11 +57,12 @@ export default function BlogPreviewHome() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {latestPosts.map((post, i) => {
             const Cover = BLOG_COVER_MAP[post.slug];
-            const categoryLabel = BLOG_CATEGORIES.find(c => c.id === post.category)?.label ?? post.category;
+            const catColor = categoryColor(post.category);
+            const catLabel = categoryLabel(post.category);
 
             return (
               <motion.article
-                key={post.slug}
+                key={post.id}
                 initial={{ opacity: 0, y: 24 }}
                 animate={isVisible ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.1 + i * 0.1, duration: 0.45 }}
@@ -70,24 +73,36 @@ export default function BlogPreviewHome() {
                 >
                   {/* Cover */}
                   <div className="h-40 relative overflow-hidden bg-black shrink-0">
-                    {Cover ? (
+                    {post.cover_image_url ? (
+                      <img src={post.cover_image_url} alt="" className="w-full h-full object-cover" />
+                    ) : Cover ? (
                       <Cover />
                     ) : (
-                      <div className="w-full h-full" style={{ background: post.coverGradient }} />
+                      <div
+                        className="w-full h-full"
+                        style={{ background: `linear-gradient(135deg, ${catColor}40 0%, ${catColor}10 100%)` }}
+                      />
                     )}
                     {/* Category badge overlay */}
                     <div className="absolute top-3 left-3">
                       <span
                         className="text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-sm"
                         style={{
-                          background: `${post.categoryColor}22`,
-                          color: post.categoryColor,
-                          border: `1px solid ${post.categoryColor}40`,
+                          background: `${catColor}22`,
+                          color: catColor,
+                          border: `1px solid ${catColor}40`,
                         }}
                       >
-                        {categoryLabel}
+                        {catLabel}
                       </span>
                     </div>
+                    {post.pinned && (
+                      <div className="absolute top-3 right-3">
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-orange-500 text-white">
+                          IN EVIDENZA
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Content */}
@@ -95,11 +110,11 @@ export default function BlogPreviewHome() {
                     {/* Meta */}
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
-                        <Calendar size={11} />{formatDate(post.date)}
+                        <Calendar size={11} />{formatDate(post.published_at)}
                       </span>
                       <span className="w-1 h-1 rounded-full bg-border" />
                       <span className="flex items-center gap-1">
-                        <Clock size={11} />{post.readTime} min
+                        <Clock size={11} />{post.read_time_minutes} min
                       </span>
                     </div>
 
@@ -109,9 +124,11 @@ export default function BlogPreviewHome() {
                     </h3>
 
                     {/* Excerpt */}
-                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 flex-1">
-                      {post.excerpt}
-                    </p>
+                    {post.excerpt && (
+                      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 flex-1">
+                        {post.excerpt}
+                      </p>
+                    )}
 
                     {/* CTA */}
                     <div

@@ -13,6 +13,7 @@ import {
   categoryLabel,
   categoryColor,
   absoluteUrl,
+  isHtmlEmpty,
 } from "@/lib/news";
 import { parseMarkdown, type ContentBlock } from "@/lib/markdown";
 
@@ -237,15 +238,17 @@ export default function BlogPostPage() {
 
   // Body rendering: prefer body_html (WYSIWYG output from admin), fall back
   // to legacy body_md for older articles. body_html is sanitized via DOMPurify
-  // before insertion.
+  // before insertion. `isHtmlEmpty` correctly recognizes "<p></p>" as empty
+  // (TipTap's idle state) and triggers the markdown fallback in that case.
+  const hasHtml = !isHtmlEmpty(post?.body_html);
   const sanitizedHtml = useMemo(() => {
-    if (!post?.body_html) return null;
+    if (!hasHtml || !post?.body_html) return null;
     return sanitizeArticleHtml(post.body_html);
-  }, [post?.body_html]);
+  }, [post?.body_html, hasHtml]);
 
   const blocks = useMemo(
-    () => (post?.body_html ? [] : post?.body_md ? parseMarkdown(post.body_md) : []),
-    [post?.body_html, post?.body_md],
+    () => (hasHtml ? [] : post?.body_md ? parseMarkdown(post.body_md) : []),
+    [hasHtml, post?.body_md],
   );
 
   const related = useMemo(() => {

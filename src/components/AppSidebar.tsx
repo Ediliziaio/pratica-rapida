@@ -24,8 +24,10 @@ import {
 import type React from "react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth, isSuperAdmin, isInternal, isReseller } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
   SidebarContent,
@@ -41,6 +43,8 @@ type NavItem = {
   url: string;
   icon: React.ComponentType<{ className?: string }>;
   end?: boolean;
+  /** Optional numeric badge (e.g., uncontacted leads count). Hidden if 0. */
+  badge?: number;
 };
 
 type NavGroup = {
@@ -60,6 +64,8 @@ function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
     ? pathname === item.url
     : pathname === item.url || pathname.startsWith(item.url + "/");
 
+  const showBadge = !!item.badge && item.badge > 0;
+
   const link = (
     <Link
       to={item.url}
@@ -69,7 +75,21 @@ function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
       ].join(" ").trim()}
     >
       <item.icon className="h-[1.05rem] w-[1.05rem] shrink-0 transition-all duration-200 group-hover:scale-110" />
-      {!collapsed && <span className="truncate">{item.title}</span>}
+      {!collapsed && <span className="truncate flex-1">{item.title}</span>}
+      {showBadge && !collapsed && (
+        <span
+          className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-emerald-500 text-white text-[10px] font-bold tabular-nums"
+          aria-label={`${item.badge} elementi nuovi`}
+        >
+          {item.badge! > 99 ? "99+" : item.badge}
+        </span>
+      )}
+      {showBadge && collapsed && (
+        <span
+          className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500"
+          aria-label="Nuovi elementi"
+        />
+      )}
     </Link>
   );
 
@@ -165,6 +185,24 @@ export function AppSidebar() {
   const internal = roles.some(r => ["super_admin", "operatore"].includes(r));
   const rivenditore = isReseller(roles);
 
+  // Count uncontacted leads from the public form so staff sees a "X new" badge
+  // on the Aziende link. Only fetched for internal staff who can see the leads.
+  const { data: uncontactedLeads = 0 } = useQuery({
+    queryKey: ["uncontacted-public-leads"],
+    enabled: internal,
+    refetchInterval: 60_000, // refresh every 60s so badge stays current
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("leads")
+        .select("id", { count: "exact", head: true })
+        .eq("source", "public_form")
+        .is("contacted_at", null)
+        .is("archived_at", null);
+      if (error) return 0;
+      return count ?? 0;
+    },
+  });
+
   // Initials for avatar
   const initials = user?.email?.slice(0, 2).toUpperCase() ?? "PR";
 
@@ -203,7 +241,7 @@ export function AppSidebar() {
         collapsible: true,
         defaultOpen: false,
         items: [
-          { title: "Aziende", url: "/aziende", icon: Building2 },
+          { title: "Aziende", url: "/aziende", icon: Building2, badge: uncontactedLeads },
           { title: "Clienti", url: "/admin/clienti", icon: UserSearch },
           { title: "Promo", url: "/admin/promo", icon: Gift },
           { title: "Notizie Sito", url: "/admin/news", icon: Newspaper },

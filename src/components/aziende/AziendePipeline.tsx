@@ -13,6 +13,10 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Plus, Settings, Building2, User, Phone, Mail, MapPin, Globe, PhoneCall,
   ChevronRight, Pencil, Trash2, X, MoreHorizontal, Sparkles, CheckCircle2,
 } from "lucide-react";
@@ -99,6 +103,8 @@ export default function AziendePipeline() {
   const [leadForm, setLeadForm]                 = useState({
     nome: "", cognome: "", email: "", telefono: "", citta: "", note: "",
   });
+  const [editingLead, setEditingLead]           = useState<CrmLead | null>(null);
+  const [confirmDeleteLead, setConfirmDeleteLead] = useState<CrmLead | null>(null);
 
   // ── Queries ──────────────────────────────────────────────────────────────
 
@@ -211,6 +217,30 @@ export default function AziendePipeline() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["crm_leads"] });
       toast({ title: "Lead segnato come contattato" });
+    },
+    onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  /** Update an existing lead — used by the edit dialog. */
+  const updateLeadMut = useMutation({
+    mutationFn: async (lead: CrmLead) => {
+      if (!lead.nome.trim()) throw new Error("Il nome è obbligatorio");
+      if (!lead.email?.trim() && !lead.telefono?.trim())
+        throw new Error("Inserisci almeno email o telefono");
+      const { error } = await supabase.from("leads").update({
+        nome: lead.nome.trim(),
+        cognome: lead.cognome?.trim() || null,
+        email: lead.email?.trim() || null,
+        telefono: lead.telefono?.trim() || null,
+        citta: lead.citta?.trim() || null,
+        note: lead.note?.trim() || null,
+      }).eq("id", lead.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crm_leads"] });
+      setEditingLead(null);
+      toast({ title: "Lead aggiornato" });
     },
     onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
@@ -358,14 +388,15 @@ export default function AziendePipeline() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="min-w-[200px]">
+                            <DropdownMenuItem onClick={() => setEditingLead(lead)}>
+                              <Pencil className="h-3.5 w-3.5 mr-1.5" />Modifica dettagli
+                            </DropdownMenuItem>
                             {!lead.contacted_at && (
-                              <>
-                                <DropdownMenuItem onClick={() => markContactedMut.mutate(lead.id)}>
-                                  <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />Segna come contattato
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                              </>
+                              <DropdownMenuItem onClick={() => markContactedMut.mutate(lead.id)}>
+                                <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />Segna come contattato
+                              </DropdownMenuItem>
                             )}
+                            <DropdownMenuSeparator />
                             {sortedStages.filter(s => s.id !== stage.id).map(s => (
                               <DropdownMenuItem
                                 key={s.id}
@@ -380,7 +411,7 @@ export default function AziendePipeline() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive"
-                              onClick={() => deleteLead.mutate(lead.id)}
+                              onClick={() => setConfirmDeleteLead(lead)}
                             >
                               <Trash2 className="h-3.5 w-3.5 mr-1.5" />Elimina definitivamente
                             </DropdownMenuItem>
@@ -650,6 +681,111 @@ export default function AziendePipeline() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Edit lead dialog */}
+      <Dialog open={!!editingLead} onOpenChange={(o) => !o && setEditingLead(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Modifica Lead</DialogTitle>
+          </DialogHeader>
+          {editingLead && (
+            <div className="grid gap-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Nome *</Label>
+                  <Input
+                    value={editingLead.nome}
+                    onChange={(e) => setEditingLead({ ...editingLead, nome: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Cognome</Label>
+                  <Input
+                    value={editingLead.cognome ?? ""}
+                    onChange={(e) => setEditingLead({ ...editingLead, cognome: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={editingLead.email ?? ""}
+                  onChange={(e) => setEditingLead({ ...editingLead, email: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Telefono</Label>
+                  <Input
+                    value={editingLead.telefono ?? ""}
+                    onChange={(e) => setEditingLead({ ...editingLead, telefono: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Città</Label>
+                  <Input
+                    value={editingLead.citta ?? ""}
+                    onChange={(e) => setEditingLead({ ...editingLead, citta: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Note</Label>
+                <Textarea
+                  rows={3}
+                  value={editingLead.note ?? ""}
+                  onChange={(e) => setEditingLead({ ...editingLead, note: e.target.value })}
+                />
+              </div>
+              {editingLead.page_url && (
+                <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                  <Globe className="h-3 w-3" />Provenienza: {editingLead.page_url}
+                </p>
+              )}
+              <div className="flex items-center justify-end gap-2">
+                <Button variant="outline" onClick={() => setEditingLead(null)}>Annulla</Button>
+                <Button
+                  onClick={() => editingLead && updateLeadMut.mutate(editingLead)}
+                  disabled={!editingLead.nome.trim() || (!editingLead.email?.trim() && !editingLead.telefono?.trim()) || updateLeadMut.isPending}
+                >
+                  {updateLeadMut.isPending ? "Salvataggio..." : "Salva"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!confirmDeleteLead} onOpenChange={(o) => !o && setConfirmDeleteLead(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminare lead?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Stai per eliminare definitivamente <strong>{confirmDeleteLead?.nome} {confirmDeleteLead?.cognome ?? ""}</strong>.
+              Questa azione non è reversibile e perderai tutti i dati di contatto e cronologia.
+              <span className="block mt-2 text-amber-700">
+                💡 Considera di archiviare il lead invece di eliminarlo: rimane recuperabile.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (confirmDeleteLead) {
+                  deleteLead.mutate(confirmDeleteLead.id);
+                  setConfirmDeleteLead(null);
+                }
+              }}
+            >
+              Elimina definitivamente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

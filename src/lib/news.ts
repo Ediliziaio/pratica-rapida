@@ -178,6 +178,24 @@ export function estimateReadingTime(md: string): number {
 }
 
 /**
+ * True if a TipTap-produced HTML string has no rendered content. The editor
+ * emits `<p></p>` (or just whitespace) when the user clears the body, so a
+ * naïve `if (!html)` check would still treat that as content.
+ *
+ * Used by BlogPost to decide whether to fall back to body_md.
+ */
+export function isHtmlEmpty(html: string | null | undefined): boolean {
+  if (!html) return true;
+  const stripped = html
+    .replace(/<br\s*\/?>/gi, "")
+    .replace(/<p[^>]*>\s*<\/p>/gi, "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;|\u00A0/g, "")
+    .trim();
+  return stripped.length === 0;
+}
+
+/**
  * Make an image URL absolute using the production origin.
  * Required for OG / JSON-LD image fields — Google requires absolute URLs.
  */

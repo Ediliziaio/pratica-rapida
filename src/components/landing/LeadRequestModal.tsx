@@ -8,7 +8,7 @@
  * Visibile a tutto il personale Pratica Rapida nella pagina /aziende > Pipeline.
  */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -41,11 +42,19 @@ interface FormState {
   telefono: string;
   citta: string;
   note: string;
+  /** Honeypot field — bots fill it, humans don't. Submission is silently dropped if non-empty. */
+  website: string;
+  /** Required GDPR consent. */
+  privacyAccepted: boolean;
 }
 
 const emptyForm: FormState = {
   nome: "", cognome: "", email: "", telefono: "", citta: "", note: "",
+  website: "", privacyAccepted: false,
 };
+
+/** Minimum time (ms) the form must be visible before a submission is plausibly human. */
+const MIN_INTERACTION_MS = 1500;
 
 export default function LeadRequestModal({
   open, onOpenChange, title, description,
@@ -56,15 +65,17 @@ export default function LeadRequestModal({
   const [form, setForm] = useState<FormState>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const openedAt = useRef<number | null>(null);
 
-  // Reset state when the modal closes
-  const handleOpenChange = (next: boolean) => {
-    onOpenChange(next);
-    if (!next) {
-      // Defer reset so the close animation completes first
-      setTimeout(() => { setForm(emptyForm); setSubmitted(false); }, 300);
+  // Reset state on open (so reopen is always fresh, no flicker from delayed reset on close)
+  useEffect(() => {
+    if (open) {
+      setForm(emptyForm);
+      setSubmitted(false);
+      setSubmitting(false);
+      openedAt.current = Date.now();
     }
-  };
+  }, [open]);
 
   const validate = (): string | null => {
     if (!form.nome.trim()) return "Inserisci il tuo nome";
@@ -74,11 +85,28 @@ export default function LeadRequestModal({
       return "L'indirizzo email non sembra valido";
     if (form.telefono && form.telefono.trim().replace(/\D/g, "").length < 7)
       return "Il numero di telefono sembra troppo corto";
+    if (!form.privacyAccepted)
+      return "Accetta l'informativa sulla privacy per continuare";
     return null;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Anti-spam: honeypot field filled → silently fake-success without writing.
+    // Bots usually auto-fill every input; humans never see this hidden field.
+    if (form.website.trim()) {
+      console.warn("[lead-form] honeypot triggered, submission dropped");
+      setSubmitted(true);
+      return;
+    }
+    // Anti-spam: ultra-fast submission (< 1.5s after open) is almost certainly a bot.
+    if (openedAt.current && Date.now() - openedAt.current < MIN_INTERACTION_MS) {
+      console.warn("[lead-form] too-fast submission dropped");
+      setSubmitted(true);
+      return;
+    }
+
     const err = validate();
     if (err) {
       toast({ title: "Controlla i dati", description: err, variant: "destructive" });
@@ -112,10 +140,10 @@ export default function LeadRequestModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         {submitted ? (
-          <SuccessState onClose={() => handleOpenChange(false)} />
+          <SuccessState onClose={() => onOpenChange(false)} />
         ) : (
           <>
             <DialogHeader>
@@ -128,7 +156,20 @@ export default function LeadRequestModal({
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="space-y-3 mt-2">
-              <div className="grid grid-cols-2 gap-3">
+              {/* Honeypot — hidden from users, filled by bots */}
+              <div aria-hidden="true" className="hidden" tabIndex={-1}>
+                <Label htmlFor="lead-website">Sito web (lascia vuoto)</Label>
+                <Input
+                  id="lead-website"
+                  type="text"
+                  autoComplete="off"
+                  tabIndex={-1}
+                  value={form.website}
+                  onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="lead-nome">Nome *</Label>
                   <Input
@@ -139,6 +180,7 @@ export default function LeadRequestModal({
                     onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
                     placeholder="Mario"
                     required
+                    maxLength={100}
                   />
                 </div>
                 <div>
@@ -149,6 +191,7 @@ export default function LeadRequestModal({
                     value={form.cognome}
                     onChange={(e) => setForm((f) => ({ ...f, cognome: e.target.value }))}
                     placeholder="Rossi"
+                    maxLength={100}
                   />
                 </div>
               </div>
@@ -162,10 +205,11 @@ export default function LeadRequestModal({
                   value={form.email}
                   onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                   placeholder="mario.rossi@azienda.it"
+                  maxLength={200}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="lead-telefono">Telefono</Label>
                   <Input
@@ -175,6 +219,7 @@ export default function LeadRequestModal({
                     value={form.telefono}
                     onChange={(e) => setForm((f) => ({ ...f, telefono: e.target.value }))}
                     placeholder="+39 333 123 4567"
+                    maxLength={50}
                   />
                 </div>
                 <div>
@@ -185,6 +230,7 @@ export default function LeadRequestModal({
                     value={form.citta}
                     onChange={(e) => setForm((f) => ({ ...f, citta: e.target.value }))}
                     placeholder="Milano"
+                    maxLength={100}
                   />
                 </div>
               </div>
@@ -203,14 +249,33 @@ export default function LeadRequestModal({
                 />
               </div>
 
-              <p className="text-[11px] text-muted-foreground">
-                Inviando il modulo accetti il trattamento dei dati per essere ricontattato.
-                Inserisci almeno email o telefono per permetterci di rispondere.
-              </p>
+              {/* GDPR consent */}
+              <label className="flex items-start gap-2 cursor-pointer p-2 -mx-2 rounded hover:bg-muted/50 transition-colors">
+                <Checkbox
+                  id="lead-privacy"
+                  checked={form.privacyAccepted}
+                  onCheckedChange={(checked) =>
+                    setForm((f) => ({ ...f, privacyAccepted: checked === true }))
+                  }
+                  className="mt-0.5"
+                />
+                <span className="text-[11px] text-muted-foreground leading-relaxed">
+                  Acconsento al trattamento dei miei dati personali per essere ricontattato/a
+                  da Pratica Rapida ai sensi del{" "}
+                  <a
+                    href="https://www.praticarapida.it/privacy-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-foreground"
+                  >
+                    GDPR e dell'informativa privacy
+                  </a>.
+                </span>
+              </label>
 
               <Button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || !form.privacyAccepted || !form.nome.trim()}
                 className="w-full font-bold"
                 style={{ background: "hsl(var(--pr-green))" }}
               >

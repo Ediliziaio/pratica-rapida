@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -160,6 +161,7 @@ async function uploadFiles(
 export default function NuovaPraticaEnea() {
   const { resellerId, isInternal } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { data: stages = [] } = usePipelineStages("enea");
 
   // For staff (super_admin/operatore) who don't have a resellerId, let them pick
@@ -293,9 +295,12 @@ export default function NuovaPraticaEnea() {
     setSubmitting(true);
 
     try {
-      // Trova stage iniziale in base al tipo servizio
-      // servizio_completo → "inviata"; documenti_forniti → "pronte_da_fare"
-      const targetStageType = tipoServizio === "servizio_completo" ? "inviata" : "pronte_da_fare";
+      // Trova stage iniziale in base al tipo servizio:
+      // - servizio_completo → "inviata" (in attesa che il cliente compili il modulo)
+      // - documenti_forniti → "attesa_compilazione" (il rivenditore deve completare lui
+      //   il modulo cliente; dopo il submit del form la pratica viene promossa a
+      //   "pronte_da_fare" via submit_form_by_token RPC + on-stage-changed)
+      const targetStageType = tipoServizio === "servizio_completo" ? "inviata" : "attesa_compilazione";
       const initialStage = stages.find((s) => s.stage_type === targetStageType) ?? stages[0];
 
       const prodottoLabel = PRODOTTI.find((p) => p.id === tipoProdotto)?.label ?? tipoProdotto ?? "";
@@ -355,6 +360,20 @@ export default function NuovaPraticaEnea() {
         supabase.functions.invoke("on-practice-created", {
           body: { practice_id: practice.id },
         }).catch(console.error); // non-blocking
+      }
+
+      // Per "documenti_forniti" il rivenditore DEVE compilare il modulo cliente
+      // completo (dati anagrafici, dichiarazioni, fatture) come se fosse il cliente
+      // finale. La pratica creata sopra è la "shell"; ora reindirizziamo al
+      // FormPubblico col form_token così può finire la compilazione.
+      // Toast + navigate, niente schermata di "submitted" intermedia.
+      if (tipoServizio === "documenti_forniti" && practice.form_token) {
+        toast({
+          title: "Pratica creata",
+          description: "Ora compila il modulo cliente con tutti i dettagli per inviarcela.",
+        });
+        navigate(`/form/${practice.form_token}`);
+        return;
       }
 
       setSubmitted({ id: practice.id, nome: `${nome.trim()} ${cognome.trim()}` });

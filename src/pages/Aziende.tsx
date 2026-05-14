@@ -467,16 +467,6 @@ export default function Aziende() {
                             )
                           )}
 
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-2 gap-1 text-xs text-muted-foreground hover:text-primary"
-                            title="Vedi pratiche"
-                            onClick={() => navigate("/admin/pratiche")}
-                          >
-                            <LayoutDashboard className="h-3.5 w-3.5" />
-                            Pipeline
-                          </Button>
                           <CollapsibleTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                               <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />

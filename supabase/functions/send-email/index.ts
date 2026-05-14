@@ -10,6 +10,30 @@ for (const k of REQUIRED_ENV) {
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const FROM_EMAIL = `Pratica Rapida <noreply@${Deno.env.get("EMAIL_FROM_DOMAIN") ?? "praticarapida.it"}>`;
 
+// Numero telefonico per ruolo destinatario (#3 della checklist utente)
+// Rivenditori → centralino interno 0398682691
+// Clienti finali/privati → numero modulistica 0398682692
+const PHONE_RESELLER  = "039 868 2691";
+const PHONE_CLIENT    = "039 868 2692";
+const SUPPORT_EMAIL   = "modulistica@praticarapida.it";
+
+type RecipientType = "reseller" | "client";
+
+/** Footer comune con email modulistica + telefono per ruolo. */
+function footer(recipientType: RecipientType = "client"): string {
+  const phone = recipientType === "reseller" ? PHONE_RESELLER : PHONE_CLIENT;
+  return `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:32px;border-top:1px solid #e5e7eb;padding-top:16px">
+      <tr><td style="color:#6b7280;font-size:13px;line-height:1.6;">
+        <strong style="color:#374151;">Servizio clienti Pratica Rapida</strong><br>
+        <a href="mailto:${SUPPORT_EMAIL}" style="color:#1f4f8b;text-decoration:none;">${SUPPORT_EMAIL}</a><br>
+        LUN – VEN 9.00 – 18.00<br>
+        <a href="tel:+39${phone.replace(/\s/g, '')}" style="color:#1f4f8b;text-decoration:none;">${phone}</a>
+      </td></tr>
+    </table>
+  `;
+}
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -56,7 +80,7 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
           <p>Abbiamo ricevuto la pratica per il cliente <strong>${r("{{cliente_nome}}")} ${r("{{cliente_cognome}}")}</strong>.</p>
           <p>La stiamo elaborando e ti aggiorneremo a breve.</p>
           ${data.link ? cta("Visualizza pratica", r("{{link}}")) : ""}
-          <p>Per assistenza: <a href="mailto:supporto@praticarapida.it">supporto@praticarapida.it</a></p>
+          <p>Per assistenza: <a href="mailto:modulistica@praticarapida.it">modulistica@praticarapida.it</a></p>
         `),
       };
 
@@ -99,10 +123,17 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
       return {
         subject: r("La tua pratica {{brand}} è stata completata"),
         html: base(`
-          <h2>Pratica completata! 🎉</h2>
-          <p>Gentile <strong>${r("{{nome}}")} ${r("{{cognome}}")}</strong>,</p>
-          <p>La tua pratica <strong>${r("{{brand}}")}</strong> è stata completata con successo.</p>
-          <p>I documenti sono stati inviati via email.</p>
+          <h2>Pratica completata ✓</h2>
+          <p>Buongiorno <strong>${r("{{nome}}")} ${r("{{cognome}}")}</strong>,</p>
+          <p>In allegato troverà la <strong>Pratica chiusa ed accettata</strong>.</p>
+          <p>Tutti gli allegati sono da stampare, firmare nel riquadro dedicato al cliente
+          (mentre il riquadro riguardante l'asseverazione tecnica <strong>NON</strong> è da firmare)
+          e sono pronti da esibire in fase di dichiarazione dei redditi.</p>
+          <p>Rimaniamo ovviamente disponibili in caso di ulteriori delucidazioni
+          ricordando che in caso di smarrimento tutta la documentazione è comunque
+          conservata nei nostri server e disponibile.</p>
+          <p>Grazie e buona giornata.</p>
+          ${footer("client")}
         `),
       };
 
@@ -148,7 +179,7 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
             </tr>
           </table>
           <p style="color:#666;font-size:13px;margin-top:24px">
-            Per ulteriori informazioni: <a href="mailto:supporto@praticarapida.it" style="color:${COLORS.cta}">supporto@praticarapida.it</a>
+            Per ulteriori informazioni: <a href="mailto:modulistica@praticarapida.it" style="color:${COLORS.cta}">modulistica@praticarapida.it</a>
           </p>
         `),
       };
@@ -260,7 +291,7 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
           ${cta("Accedi ora →", r("{{login_url}}"))}
 
           <p style="color:#888;font-size:13px;margin-top:24px;">
-            Per assistenza o domande: <a href="mailto:supporto@praticarapida.it" style="color:#00843D;">supporto@praticarapida.it</a><br>
+            Per assistenza o domande: <a href="mailto:modulistica@praticarapida.it" style="color:#00843D;">modulistica@praticarapida.it</a><br>
             Oppure chiamaci al <a href="tel:+390398682691" style="color:#00843D;">+39 039 868 2691</a> (Lun-Ven 9:00-18:00)
           </p>
         `),
@@ -276,7 +307,7 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
           <p>Per procedere, ti chiediamo di compilare il modulo di raccolta dati (richiede circa 5 minuti).</p>
           ${cta("Compila il modulo", r("{{link}}"))}
           <p style="color:#888;font-size:13px;">
-            Per assistenza scrivi a <a href="mailto:supporto@praticarapida.it" style="color:#888;">supporto@praticarapida.it</a><br>
+            Per assistenza scrivi a <a href="mailto:modulistica@praticarapida.it" style="color:#888;">modulistica@praticarapida.it</a><br>
             oppure su WhatsApp (solo messaggi, no chiamate vocali).
           </p>
         `),
@@ -292,7 +323,7 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
           <p><strong>Documenti richiesti:</strong></p>
           <div style="background:#fff8e1;border-left:4px solid #f59e0b;padding:12px 16px;margin:12px 0;border-radius:0 6px 6px 0;white-space:pre-wrap;">${r("{{note}}")}</div>
           ${data.link ? cta("Apri la pratica nel gestionale", r("{{link}}")) : ""}
-          <p style="color:#888;font-size:13px;">Per assistenza: <a href="mailto:supporto@praticarapida.it" style="color:#888;">supporto@praticarapida.it</a></p>
+          <p style="color:#888;font-size:13px;">Per assistenza: <a href="mailto:modulistica@praticarapida.it" style="color:#888;">modulistica@praticarapida.it</a></p>
         `),
       };
 
@@ -302,10 +333,12 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
         subject: r("Pratica ENEA completata — {{cliente_nome}} {{cliente_cognome}}"),
         html: base(`
           <h2>Pratica completata ✓</h2>
-          <p>La pratica ENEA del cliente <strong>${r("{{cliente_nome}}")} ${r("{{cliente_cognome}}")}</strong> è stata completata e inviata al cliente finale.</p>
-          <p>La pratica è ora disponibile nella tua area riservata del portale PraticaRapida.</p>
+          <p>Buongiorno,</p>
+          <p>ti comunichiamo che la pratica del cliente <strong>${r("{{cliente_nome}}")} ${r("{{cliente_cognome}}")}</strong> è conclusa e già inviatagli.</p>
+          <p>Nella tua area riservata troverai: pratica ENEA e certificazioni relative all'intervento.</p>
+          <p>Grazie.</p>
           ${cta("Vai all'area riservata", r("{{app_url}}"))}
-          <p style="color:#888;font-size:13px;">Per assistenza: <a href="mailto:supporto@praticarapida.it" style="color:#888;">supporto@praticarapida.it</a></p>
+          ${footer("reseller")}
         `),
       };
 
@@ -322,7 +355,14 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-  let payload: { to?: string | string[]; template?: string; data?: Record<string, string> };
+  let payload: {
+    to?: string | string[];
+    template?: string;
+    data?: Record<string, string>;
+    /** Optional attachments — passed straight to Resend `attachments[]`.
+     *  content: base64 (string) or remote URL (string). */
+    attachments?: Array<{ filename: string; content?: string; path?: string; content_type?: string }>;
+  };
   try {
     payload = await req.json();
   } catch {
@@ -332,7 +372,7 @@ serve(async (req) => {
     });
   }
 
-  const { to, template, data } = payload;
+  const { to, template, data, attachments } = payload;
 
   // Validate 'to' — allow string or array, each must be a well-formed email
   const toList = Array.isArray(to) ? to : [to];
@@ -381,10 +421,20 @@ serve(async (req) => {
     ({ subject, html } = renderTemplate(template, data ?? {}));
   }
 
+  const resendBody: Record<string, unknown> = { from: FROM_EMAIL, to, subject, html };
+  if (attachments && attachments.length > 0) {
+    resendBody.attachments = attachments.map((a) => ({
+      filename: a.filename,
+      ...(a.content ? { content: a.content } : {}),
+      ...(a.path ? { path: a.path } : {}),
+      ...(a.content_type ? { content_type: a.content_type } : {}),
+    }));
+  }
+
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: FROM_EMAIL, to, subject, html }),
+    body: JSON.stringify(resendBody),
   });
 
   const emailData = await res.json();

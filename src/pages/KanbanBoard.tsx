@@ -104,7 +104,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import type { EneaPractice, PipelineStage } from "@/integrations/supabase/types";
@@ -2865,11 +2865,18 @@ export default function KanbanBoard() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Documenti mancanti — dialog obbligatorio con textarea */}
-      <Dialog open={!!docMissPopup} onOpenChange={(o) => { if (!o && !docMissText.trim()) return; if (!o) setDocMissPopup(null); }}>
+      {/* Documenti mancanti — dialog con textarea. Chiusura (X/ESC/backdrop) =
+          annulla lo spostamento (doMove non viene chiamato, la pratica resta
+          nella colonna originale al re-render). */}
+      <Dialog open={!!docMissPopup} onOpenChange={(o) => { if (!o) setDocMissPopup(null); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Documenti mancanti — specifica cosa serve</DialogTitle>
+            <DialogDescription>
+              Descrivi quali documenti servono per completare la pratica. Verranno mostrati
+              al cliente nella sua area riservata. Chiudi questo popup per annullare lo
+              spostamento e tenere la pratica nella colonna attuale.
+            </DialogDescription>
           </DialogHeader>
           <div className="py-2">
             <Textarea
@@ -2880,7 +2887,13 @@ export default function KanbanBoard() {
               className="resize-none"
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setDocMissPopup(null)}
+            >
+              Annulla
+            </Button>
             <Button
               disabled={!docMissText.trim()}
               onClick={() => {

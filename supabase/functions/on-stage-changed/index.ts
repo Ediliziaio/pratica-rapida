@@ -49,6 +49,67 @@ async function invoke(fnName: string, body: unknown) {
   }
 }
 
+/**
+ * Recupera i documenti collegati a una pratica e li converte in attachments
+ * Resend (base64). Filtra automaticamente quelli oltre 35MB cumulativi per
+ * non sforare il limite Resend (40MB totale, lasciamo margine per body).
+ *
+ * Schema documenti: id, pratica_id, nome_file, mime_type, storage_path, tipo.
+ * Bucket: documenti / enea-documents (entrambi privati con service role access).
+ */
+async function collectPracticeAttachments(
+  supabase: ReturnType<typeof createClient>,
+  practiceId: string,
+): Promise<Array<{ filename: string; content: string; content_type?: string }>> {
+  try {
+    const { data: docs, error } = await supabase
+      .from("documenti")
+      .select("nome_file, mime_type, storage_path, size_bytes")
+      .eq("pratica_id", practiceId)
+      .order("created_at", { ascending: true });
+    if (error || !docs) return [];
+
+    const MAX_TOTAL_BYTES = 35 * 1024 * 1024;
+    let total = 0;
+    const out: Array<{ filename: string; content: string; content_type?: string }> = [];
+
+    for (const d of docs) {
+      const size = Number(d.size_bytes ?? 0);
+      if (total + size > MAX_TOTAL_BYTES) {
+        console.warn(`[on-stage-changed] Skipping ${d.nome_file}: would exceed 35MB email budget`);
+        continue;
+      }
+      // Tentiamo entrambi i bucket noti (lo schema non distingue univocamente)
+      let blob: Blob | null = null;
+      for (const bucket of ["documenti", "enea-documents"]) {
+        const { data: file } = await supabase.storage.from(bucket).download(d.storage_path);
+        if (file) { blob = file; break; }
+      }
+      if (!blob) continue;
+
+      const buf = await blob.arrayBuffer();
+      // Encode base64 manually (Deno doesn't have btoa for arbitrary bytes)
+      const bytes = new Uint8Array(buf);
+      let binary = "";
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+      }
+      const base64 = btoa(binary);
+      out.push({
+        filename: d.nome_file,
+        content: base64,
+        ...(d.mime_type ? { content_type: d.mime_type } : {}),
+      });
+      total += size;
+    }
+    return out;
+  } catch (err) {
+    console.error("[on-stage-changed] collectPracticeAttachments failed:", err);
+    return [];
+  }
+}
+
 async function isRuleEnabled(
   supabase: any,
   triggerEvent: string,
@@ -137,8 +198,11 @@ serve(async (req) => {
       const stageEmailEnabled = await isRuleEnabled(supabase, "stage_changed", "email");
       const stageWhatsappEnabled = await isRuleEnabled(supabase, "stage_changed", "whatsapp");
 
-      // Email al cliente finale (gated by stage_changed/email; no such rule in DB → defaults to enabled)
+      // Email al cliente finale (gated by stage_changed/email; no such rule in DB → defaults to enabled).
+      // CON ALLEGATI: recupera tutti i documenti della pratica e li allega base64.
+      // Resend limita gli allegati totali a 40MB.
       if (stageEmailEnabled && practice.cliente_email) {
+        const attachments = await collectPracticeAttachments(supabase, practice_id);
         await invoke("send-email", {
           to: practice.cliente_email,
           template: "pratica_inviata",
@@ -150,6 +214,7 @@ serve(async (req) => {
             token: practice.form_token,
             practice_id,
           },
+          ...(attachments.length > 0 ? { attachments } : {}),
         });
       }
 

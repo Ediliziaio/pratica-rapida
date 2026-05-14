@@ -33,7 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Clock, Building2, Users, FolderOpen, Save, Plus, Pencil, Trash2, GripVertical, X, Mail, MessageCircle, Puzzle, Eye, EyeOff, CheckCircle, XCircle, Layers, Shield, BookOpen } from "lucide-react";
+import { Settings, Clock, Building2, Users, FolderOpen, Save, Plus, Pencil, Trash2, GripVertical, X, Mail, MessageCircle, Puzzle, Eye, EyeOff, Layers, Shield, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { CustomField, CustomFieldType, CustomFieldEntity } from "@/integrations/supabase/types";
 import UtentiPage from "./Utenti";
@@ -66,7 +66,6 @@ function IntegrationSection({
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
   const [form, setForm] = useState<Record<string, string>>({});
   const [dirty, setDirty] = useState(false);
-  const [testStatus, setTestStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
 
   const { data: row } = useQuery({
     queryKey: ["platform-settings", settingKey],
@@ -162,16 +161,6 @@ function IntegrationSection({
             <Save className="h-4 w-4" />
             {saveMutation.isPending ? "Salvataggio..." : dirty ? "Salva modifiche" : "Salvato"}
           </Button>
-          {testStatus === "ok" && (
-            <span className="flex items-center gap-1 text-sm text-emerald-600">
-              <CheckCircle className="h-4 w-4" />Connessione OK
-            </span>
-          )}
-          {testStatus === "error" && (
-            <span className="flex items-center gap-1 text-sm text-destructive">
-              <XCircle className="h-4 w-4" />Connessione fallita
-            </span>
-          )}
         </div>
       </CardContent>
     </Card>

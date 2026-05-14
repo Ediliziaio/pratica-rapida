@@ -93,6 +93,7 @@ import {
   FilterX,
   HelpCircle,
   FileWarning,
+  FileText,
   CheckSquare,
   Columns3,
   List,
@@ -107,6 +108,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
+import DichiarazioneTecnicaDialog from "@/components/documenti/DichiarazioneTecnicaDialog";
 import type { EneaPractice, PipelineStage } from "@/integrations/supabase/types";
 import { PipelineSettingsDrawer } from "@/components/pratiche/PipelineSettingsDrawer";
 
@@ -380,6 +382,7 @@ function PracticeDetailSheet({
   const [newDoc, setNewDoc] = useState("");
   const [uploadingConclusa, setUploadingConclusa] = useState(false);
   const [deleteConclusaPath, setDeleteConclusaPath] = useState<string | null>(null);
+  const [showDichiarazione, setShowDichiarazione] = useState(false);
   const conclusaInputRef = useRef<HTMLInputElement>(null);
 
   // Memoize operatorIds: without useMemo the spread produces a new array every
@@ -771,6 +774,20 @@ function PracticeDetailSheet({
                         Archivia
                       </>
                     )}
+                  </Button>
+                )}
+
+                {/* Dichiarazione tecnica precompilata — solo staff */}
+                {isInternal && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs gap-1"
+                    onClick={() => setShowDichiarazione(true)}
+                    title="Genera Dichiarazione Requisiti Tecnici precompilata"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    Doc. tecnico
                   </Button>
                 )}
 
@@ -1220,6 +1237,13 @@ function PracticeDetailSheet({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dichiarazione Requisiti Tecnici — documento precompilato per ENEA */}
+      <DichiarazioneTecnicaDialog
+        open={showDichiarazione}
+        onOpenChange={setShowDichiarazione}
+        practice={practice}
+      />
     </Sheet>
   );
 }

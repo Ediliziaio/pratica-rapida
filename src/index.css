@@ -560,3 +560,23 @@
 .wysiwyg-content table .selectedCell {
   background: hsl(var(--pr-green) / 0.1);
 }
+
+/* ============================================================
+ * Print-friendly documents — nascondiamo tutto durante la stampa
+ * tranne `.printable-area`. Attivato via classe `.printing-document`
+ * applicata a <body> dal componente che chiama window.print().
+ * ============================================================ */
+@media print {
+  body.printing-document * { visibility: hidden; }
+  body.printing-document .printable-area,
+  body.printing-document .printable-area * { visibility: visible; }
+  body.printing-document .printable-area {
+    position: absolute;
+    left: 0; top: 0; width: 100%;
+    padding: 0; margin: 0;
+    background: white;
+  }
+  body.printing-document {
+    background: white;
+  }
+}

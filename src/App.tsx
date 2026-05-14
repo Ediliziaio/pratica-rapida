@@ -37,6 +37,7 @@ const Blocked = lazy(() => import("./pages/Blocked"));
 const FormPubblico = lazy(() => import("./pages/FormPubblico"));
 const ModuloClientePage = lazy(() => import("./pages/ModuloClientePage"));
 const KanbanBoard = lazy(() => import("./pages/KanbanBoard"));
+const DocumentiUtili = lazy(() => import("./pages/DocumentiUtili"));
 const NuovaPraticaEnea = lazy(() => import("./pages/rivenditore/NuovaPraticaEnea"));
 const HomeMain = lazy(() => import("./pages/HomeMain"));
 const AreaRiservataVecchia = lazy(() => import("./pages/AreaRiservataVecchia"));
@@ -234,6 +235,7 @@ const App = () => (
                 <Route path="/enea/nuova" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, ...RESELLER_ROLES, "admin_interno", "azienda_admin", "azienda_user"]}><NuovaPraticaEnea /></RoleGuard></ProtectedRoute>} />
                 <Route path="/enea/dashboard" element={<ProtectedRoute><RoleGuard allowed={[...ALL_AUTH_ROLES]}><EneaDashboard /></RoleGuard></ProtectedRoute>} />
                 <Route path="/enea/archivio" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, ...RESELLER_ROLES, "admin_interno", "azienda_admin", "azienda_user"]}><ArchivioEnea /></RoleGuard></ProtectedRoute>} />
+                <Route path="/documenti-utili" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, ...RESELLER_ROLES, "admin_interno", "azienda_admin", "azienda_user"]}><DocumentiUtili /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/gestionale" element={<Navigate to="/kanban" replace />} />
                 <Route path="/admin/automazioni" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><Automazioni /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/comunicazioni" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><ComunicazioniLog /></RoleGuard></ProtectedRoute>} />

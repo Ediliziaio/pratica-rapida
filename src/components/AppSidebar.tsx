@@ -20,6 +20,7 @@ import {
   Newspaper,
   Archive,
   FormInput,
+  Download,
 } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
@@ -248,6 +249,14 @@ export function AppSidebar() {
           { title: "Ticket", url: "/admin/ticket", icon: LifeBuoy },
         ],
       },
+      {
+        label: "Risorse",
+        collapsible: true,
+        defaultOpen: false,
+        items: [
+          { title: "Documenti utili", url: "/documenti-utili", icon: Download },
+        ],
+      },
     ];
     // Configurazione — solo super_admin
     if (superAdmin) {
@@ -268,6 +277,7 @@ export function AppSidebar() {
           { title: "Nuova Pratica ENEA", url: "/enea/nuova", icon: PlusCircle },
           { title: "Kanban Board", url: "/kanban", icon: Kanban },
           { title: "Archivio ENEA", url: "/enea/archivio", icon: Archive },
+          { title: "Documenti utili", url: "/documenti-utili", icon: Download },
         ],
       },
     ];
@@ -279,6 +289,7 @@ export function AppSidebar() {
         items: [
           { title: "Le mie Pratiche", url: "/kanban", icon: FolderOpen },
           { title: "Nuova Pratica ENEA", url: "/enea/nuova", icon: FilePlus, end: true },
+          { title: "Documenti utili", url: "/documenti-utili", icon: Download },
           { title: "Assistenza", url: "/assistenza", icon: LifeBuoy },
         ],
       },

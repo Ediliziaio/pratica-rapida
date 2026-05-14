@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Building2, Plus, Search, Receipt, Users, FolderOpen, LogIn,
   ChevronDown, BarChart3, TrendingUp, CircleDollarSign, CalendarDays, CheckCircle2, Clock,
-  ShieldOff, ShieldCheck, LayoutDashboard, Eye, EyeOff, List, Kanban, AlertCircle,
+  ShieldOff, ShieldCheck, Eye, EyeOff, List, Kanban, AlertCircle,
 } from "lucide-react";
 import AziendePipeline from "@/components/aziende/AziendePipeline";
 import { useNavigate } from "react-router-dom";

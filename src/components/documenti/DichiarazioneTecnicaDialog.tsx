@@ -71,7 +71,10 @@ function inferTipoIntervento(prodotto: string | null | undefined): "infissi" | "
 export default function DichiarazioneTecnicaDialog({ open, onOpenChange, practice }: Props) {
   const [tab, setTab] = useState<"dati" | "anteprima">("dati");
 
-  // Fetch dati azienda completi (P.IVA, indirizzo legale) dal DB
+  // Fetch dati azienda fornitrice — colonne reali della tabella `companies`:
+  // `ragione_sociale`, `piva`, `indirizzo`, `citta`, `provincia`, `cap`.
+  // (NON `indirizzo_sede` / `comune_sede` / `provincia_sede` — quelle colonne
+  // non esistono nello schema.)
   const { data: company } = useQuery({
     queryKey: ["dichiarazione-company", practice?.reseller_id],
     enabled: !!practice?.reseller_id && open,
@@ -79,39 +82,75 @@ export default function DichiarazioneTecnicaDialog({ open, onOpenChange, practic
       if (!practice?.reseller_id) return null;
       const { data } = await supabase
         .from("companies")
-        .select("ragione_sociale, piva, indirizzo_sede, comune_sede, provincia_sede")
+        .select("ragione_sociale, piva, indirizzo, citta, provincia, cap")
         .eq("id", practice.reseller_id)
         .maybeSingle();
       return data;
     },
   });
 
-  // Seed iniziale: deriva tutto dai dati pratica + company
+  // Fetch dati_form della pratica — i dati immobile + residenza cliente sono
+  // campi personalizzati salvati nel JSONB `enea_practices.dati_form` (popolato
+  // quando il cliente compila il FormPubblico). Struttura:
+  //   dati_form.richiedente.{nome,cognome,cf,...}
+  //   dati_form.residenza.{comune,provincia,indirizzo,civico,cap}
+  //   dati_form.appartamento_lavori.{comune,provincia,indirizzo,numero,cap}
+  const { data: praticaDataForm } = useQuery({
+    queryKey: ["dichiarazione-praticaform", practice?.id],
+    enabled: !!practice?.id && open,
+    queryFn: async () => {
+      if (!practice?.id) return null;
+      const { data } = await supabase
+        .from("enea_practices")
+        .select("dati_form")
+        .eq("id", practice.id)
+        .maybeSingle();
+      return (data?.dati_form ?? null) as Record<string, unknown> | null;
+    },
+  });
+
+  // Seed iniziale: derivato in priorità dai campi personalizzati salvati in
+  // `dati_form` (più ricchi e separati per sezione); fallback al parsing
+  // dell'indirizzo aggregato in `cliente_indirizzo` se il form non è ancora
+  // stato compilato.
   const seedData = useMemo<DichiarazioneTecnicaData>(() => {
-    const indirizzoAzienda = splitIndirizzo(company?.indirizzo_sede);
-    const indirizzoCliente = splitIndirizzo(practice?.cliente_indirizzo);
+    const indirizzoAzienda = splitIndirizzo(company?.indirizzo);
+
+    // Sezioni `dati_form` (struttura definita in src/types/form-cliente.ts)
+    const df = praticaDataForm ?? {};
+    const residenza = (df.residenza ?? {}) as Record<string, string | undefined>;
+    const appartamento = (df.appartamento_lavori ?? {}) as Record<string, string | undefined>;
+    const richiedente = (df.richiedente ?? {}) as Record<string, string | undefined>;
+
+    // Fallback parsing dell'indirizzo aggregato della pratica
+    const fallbackAddr = splitIndirizzo(practice?.cliente_indirizzo);
+
     const tipoIntervento = inferTipoIntervento(practice?.prodotto_installato);
 
     return {
+      // Azienda fornitrice — dalla tabella companies (colonne reali)
       azienda_nome: company?.ragione_sociale ?? "",
-      azienda_citta: company?.comune_sede ?? indirizzoAzienda.citta,
-      azienda_provincia: company?.provincia_sede ?? "",
+      azienda_citta: company?.citta ?? indirizzoAzienda.citta,
+      azienda_provincia: company?.provincia ?? "",
       azienda_via: indirizzoAzienda.via,
       azienda_civico: indirizzoAzienda.civico,
       azienda_piva: company?.piva ?? "",
 
-      immobile_citta: indirizzoCliente.citta,
-      immobile_provincia: "",
-      immobile_cap: "",
-      immobile_via: indirizzoCliente.via,
-      immobile_civico: indirizzoCliente.civico,
+      // Immobile oggetto intervento — preferisci dati_form.appartamento_lavori
+      // (esplicito: l'utente compila comune/provincia/cap separati nel form)
+      immobile_citta:     appartamento.comune    || fallbackAddr.citta,
+      immobile_provincia: appartamento.provincia || "",
+      immobile_cap:       appartamento.cap       || "",
+      immobile_via:       appartamento.indirizzo || fallbackAddr.via,
+      immobile_civico:    appartamento.numero    || fallbackAddr.civico,
 
-      cliente_nome: practice?.cliente_nome ?? "",
-      cliente_cognome: practice?.cliente_cognome ?? "",
-      cliente_citta: indirizzoCliente.citta,
-      cliente_via: indirizzoCliente.via,
-      cliente_civico: indirizzoCliente.civico,
-      cliente_cf: practice?.cliente_cf ?? "",
+      // Cliente finale — anagrafica dal practice, residenza da dati_form.residenza
+      cliente_nome:    practice?.cliente_nome    ?? richiedente.nome    ?? "",
+      cliente_cognome: practice?.cliente_cognome ?? richiedente.cognome ?? "",
+      cliente_citta:   residenza.comune    || fallbackAddr.citta,
+      cliente_via:     residenza.indirizzo || fallbackAddr.via,
+      cliente_civico:  residenza.civico    || fallbackAddr.civico,
+      cliente_cf:      practice?.cliente_cf ?? richiedente.cf ?? "",
 
       caratteristiche_infissi: { rispetta_trasmittanza: true },
       caratteristiche_schermature: {
@@ -126,7 +165,7 @@ export default function DichiarazioneTecnicaDialog({ open, onOpenChange, practic
       lavori_ultimati: true,
       tipo_intervento: tipoIntervento,
     };
-  }, [practice, company]);
+  }, [practice, company, praticaDataForm]);
 
   const [data, setData] = useState<DichiarazioneTecnicaData>(seedData);
   useEffect(() => { if (open) setData(seedData); }, [open, seedData]);

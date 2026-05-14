@@ -74,6 +74,7 @@ import {
   MessageCircle,
   Mail,
   AlertTriangle,
+  Loader2,
   SlidersHorizontal,
   Columns,
   Tag,
@@ -140,18 +141,50 @@ function getInitials(name: string) {
 
 function FileDownloadLink({ label, path }: { label: string; path: string }) {
   const [url, setUrl] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    supabase.storage
-      .from("enea-documents")
-      .createSignedUrl(path, 3600)
-      .then(({ data }) => setUrl(data?.signedUrl ?? null));
+    let cancelled = false;
+    setUrl(null);
+    setFailed(false);
+
+    // Tentativi sui bucket noti per i documenti pratiche.
+    // `documenti` ospita dichiarazioni tecniche generate, fatture, identità.
+    // `enea-documents` ospita gli output ENEA legacy e i documenti aggiuntivi
+    // caricati dal rivenditore dal form nuova-pratica.
+    const tryBuckets = async () => {
+      for (const bucket of ["documenti", "enea-documents"]) {
+        const { data } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
+        if (data?.signedUrl) {
+          if (!cancelled) setUrl(data.signedUrl);
+          return;
+        }
+      }
+      if (!cancelled) setFailed(true);
+    };
+    tryBuckets().catch((err) => {
+      if (!cancelled) {
+        console.warn("[FileDownloadLink] signed URL failed:", err);
+        setFailed(true);
+      }
+    });
+
+    return () => { cancelled = true; };
   }, [path]);
+
+  if (failed) {
+    return (
+      <div className="flex items-center gap-2 text-xs text-amber-700 py-0.5">
+        <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+        <span className="truncate" title="File non trovato nel storage">{label} — non disponibile</span>
+      </div>
+    );
+  }
 
   if (!url) {
     return (
       <div className="flex items-center gap-2 text-xs text-muted-foreground py-0.5">
-        <Download className="h-3.5 w-3.5 shrink-0 opacity-40" />
+        <Loader2 className="h-3.5 w-3.5 shrink-0 opacity-40 animate-spin" />
         <span className="truncate">{label}</span>
       </div>
     );

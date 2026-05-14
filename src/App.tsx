@@ -123,8 +123,27 @@ function useOnboardingCheck() {
 
   useEffect(() => {
     if (!user || !isAzienda) { setNeedsOnboarding(false); return; }
+    // Cancellation guard per evitare setState dopo unmount (es. logout veloce)
+    let cancelled = false;
     supabase.from("profiles").select("onboarding_completed").eq("id", user.id).single()
-      .then(({ data }) => setNeedsOnboarding(data?.onboarding_completed === false));
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          // Fail-safe: in caso di network error / RLS deny / profilo mancante,
+          // NON blocchiamo l'utente in loading infinito → assumiamo onboarding
+          // completato. Sentry/Sentry capture omessi qui per non spammare.
+          console.warn("[useOnboardingCheck] profile lookup failed:", error.message);
+          setNeedsOnboarding(false);
+          return;
+        }
+        setNeedsOnboarding(data?.onboarding_completed === false);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.warn("[useOnboardingCheck] threw:", err);
+        setNeedsOnboarding(false);
+      });
+    return () => { cancelled = true; };
   }, [user, isAzienda]);
 
   return needsOnboarding;

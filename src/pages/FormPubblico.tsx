@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
-import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, Loader2, Send } from "lucide-react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, Loader2, Send, Briefcase, LayoutDashboard } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import type { EneaPractice } from "@/integrations/supabase/types";
 
 import {
@@ -115,6 +116,13 @@ function initProdottoForVariant(data: FormClienteData, tipo: ProdottoTipo): Form
 export default function FormPubblico() {
   const { token } = useParams<{ token: string }>();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { session, isInternal, isReseller } = useAuth();
+  // Modalità "compilato dal fornitore/staff per conto del cliente": utile
+  // quando il cliente è anziano o non riesce a usare il portale. Il
+  // rivenditore ha cliccato "Documenti Forniti" in /enea/nuova ed è stato
+  // reindirizzato qui col form_token della pratica appena creata.
+  const isProxyCompiler = !!session && (isInternal || isReseller);
 
   // ── Initial fetch state ─────────────────────────────────────────────────────
   const [practice, setPractice] = useState<EneaPractice | null>(null);
@@ -438,6 +446,33 @@ export default function FormPubblico() {
   }
 
   if (submitted) {
+    // Branch dedicato al rivenditore/staff che ha compilato il modulo per
+    // conto del cliente: testo + CTA "Torna al kanban" invece del messaggio
+    // standard pensato per il cliente finale.
+    if (isProxyCompiler) {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <div className="text-center space-y-5 max-w-md">
+            <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
+            <h1 className="text-2xl font-bold">Pratica inviata ✓</h1>
+            <p className="text-muted-foreground">
+              I dati sono stati registrati. La pratica è ora visibile a Pratica Rapida
+              nella colonna <strong>“Pronte da fare”</strong> e sarà gestita dal team
+              entro le tempistiche standard.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
+              <Button onClick={() => navigate("/kanban")}>
+                <LayoutDashboard className="h-4 w-4 mr-1.5" />Torna al kanban
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/enea/nuova")}>
+                Nuova pratica
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    // Cliente finale: messaggio originale
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center space-y-4 max-w-md">
@@ -462,19 +497,51 @@ export default function FormPubblico() {
     : hardcodedStep.id === "recap";
   const isFirst = safeStepIndex === 0;
 
+  const clienteNomeCompleto = [practice?.cliente_nome, practice?.cliente_cognome]
+    .filter(Boolean).join(" ") || "il cliente";
+
   return (
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header brand */}
+        {/* Banner "modalità rivenditore" — visibile solo se l'utente è loggato
+            come staff/rivenditore e sta compilando per conto del cliente */}
+        {isProxyCompiler && (
+          <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <Briefcase className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm text-amber-900">
+                  Stai compilando per conto del cliente
+                </p>
+                <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                  Inserisci i dati di <strong>{clienteNomeCompleto}</strong> come se fossi tu il cliente
+                  finale. Allega fatture e documenti tecnici. Al termine la pratica
+                  apparirà a Pratica Rapida in <strong>“Pronte da fare”</strong>.
+                </p>
+              </div>
+              <Link
+                to="/kanban"
+                className="shrink-0 text-xs text-amber-900 underline hover:no-underline whitespace-nowrap"
+              >
+                ← Torna al kanban
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Header brand — adattato per ruolo */}
         <div className="text-center space-y-1">
           {resellerName && (
             <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
               {resellerName} × Pratica Rapida
             </p>
           )}
-          <h1 className="text-2xl font-bold">Completa la tua pratica</h1>
+          <h1 className="text-2xl font-bold">
+            {isProxyCompiler ? "Compilazione per conto del cliente" : "Completa la tua pratica"}
+          </h1>
           <p className="text-muted-foreground text-sm">
-            Pratica {practice?.brand === "enea" ? "ENEA" : "Conto Termico"} — Compila i tuoi dati
+            Pratica {practice?.brand === "enea" ? "ENEA" : "Conto Termico"} —{" "}
+            {isProxyCompiler ? `Dati di ${clienteNomeCompleto}` : "Compila i tuoi dati"}
           </p>
         </div>
 

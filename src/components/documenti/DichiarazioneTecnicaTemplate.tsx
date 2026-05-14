@@ -50,11 +50,24 @@ export interface DichiarazioneTecnicaData {
   importo_congruo: boolean;
   lavori_ultimati: boolean;
 
+  // Importo fattura inserito a mano dal superadmin prima della conferma
+  importo_fattura?: number | null;
+
   // Tipo intervento
   tipo_intervento: "infissi" | "schermature" | "entrambi";
 
   // Generata il
   data_documento?: string;
+}
+
+/** Format Euro per il documento. */
+export function formatEuro(n: number | null | undefined): string {
+  if (n == null || isNaN(n)) return "_______________";
+  return new Intl.NumberFormat("it-IT", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 2,
+  }).format(n);
 }
 
 interface Props {
@@ -156,6 +169,11 @@ export default function DichiarazioneTecnicaTemplate({ data }: Props) {
         checked={data.importo_congruo}
         label="L'importo riportato in fattura rispetta i massimali indicati in tabella e risulta congruo e detraibile, tenendo conto che la normativa consente di aggiungere all'importo relativo ai massimali detraibili i costi che riguardano le opere relative all'installazione e la manodopera, le prestazioni professionali e la quota IVA."
       />
+
+      {/* Importo fattura — inserito a mano dal superadmin prima della conferma */}
+      <p className="my-3 pl-6">
+        L'importo totale della fattura è di <strong>{formatEuro(data.importo_fattura)}</strong>.
+      </p>
 
       <Checkbox checked={data.lavori_ultimati} label="I lavori sono stati regolarmente eseguiti ed ultimati." />
 

@@ -14,8 +14,9 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
@@ -27,10 +28,11 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Printer, Eye, FileText } from "lucide-react";
+import { Printer, Eye, FileText, CheckCircle2, Loader2, Save } from "lucide-react";
 import DichiarazioneTecnicaTemplate, {
   type DichiarazioneTecnicaData,
 } from "./DichiarazioneTecnicaTemplate";
+import { renderDichiarazioneHtml } from "./renderDichiarazioneHtml";
 
 interface Props {
   open: boolean;
@@ -70,6 +72,8 @@ function inferTipoIntervento(prodotto: string | null | undefined): "infissi" | "
 
 export default function DichiarazioneTecnicaDialog({ open, onOpenChange, practice }: Props) {
   const [tab, setTab] = useState<"dati" | "anteprima">("dati");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch dati azienda fornitrice — colonne reali della tabella `companies`:
   // `ragione_sociale`, `piva`, `indirizzo`, `citta`, `provincia`, `cap`.
@@ -163,12 +167,111 @@ export default function DichiarazioneTecnicaDialog({ open, onOpenChange, practic
       },
       importo_congruo: true,
       lavori_ultimati: true,
+      importo_fattura: null,
       tipo_intervento: tipoIntervento,
     };
   }, [practice, company, praticaDataForm]);
 
   const [data, setData] = useState<DichiarazioneTecnicaData>(seedData);
   useEffect(() => { if (open) setData(seedData); }, [open, seedData]);
+
+  // Mutation: conferma e salva il documento come allegato della pratica.
+  // Pipeline:
+  //  1. genera HTML standalone dal template + dati attuali
+  //  2. upload come blob HTML al bucket Storage `documenti`
+  //  3. insert riga in tabella `documenti` con tipo=dichiarazione_tecnica,
+  //     visibilita=azienda_interno (così il rivenditore lo vede via RLS)
+  //  4. invalidate query → il documento appare immediatamente nella card pratica
+  const confirmAndSaveMut = useMutation({
+    mutationFn: async () => {
+      if (!practice?.id || !practice?.reseller_id) {
+        throw new Error("Pratica o azienda non identificata");
+      }
+      if (!data.importo_fattura || data.importo_fattura <= 0) {
+        throw new Error("Inserisci l'importo della fattura prima di confermare");
+      }
+      if (!data.azienda_nome.trim()) {
+        throw new Error("Manca il nome dell'azienda fornitrice");
+      }
+      if (!data.cliente_nome.trim() || !data.cliente_cognome.trim()) {
+        throw new Error("Manca nome o cognome del cliente");
+      }
+
+      const html = renderDichiarazioneHtml(data);
+      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+      const timestamp = Date.now();
+      const filename = `dichiarazione_tecnica_${timestamp}.html`;
+      const storagePath = `${practice.reseller_id}/${practice.id}/${filename}`;
+
+      // 1. Upload al bucket Storage
+      const { error: uploadErr } = await supabase.storage
+        .from("documenti")
+        .upload(storagePath, blob, { cacheControl: "3600", upsert: false });
+      if (uploadErr) throw new Error(`Upload fallito: ${uploadErr.message}`);
+
+      // 2. Risolvi caricato_da (auth user corrente)
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // 3. Insert riga in documenti — visibilita=azienda_interno permette al
+      //    rivenditore (membro della company) di vedere il documento
+      const { error: insertErr } = await supabase.from("documenti").insert({
+        company_id: practice.reseller_id,
+        pratica_id: practice.id,
+        nome_file: `Dichiarazione Requisiti Tecnici — ${data.cliente_nome} ${data.cliente_cognome}.html`,
+        tipo: "dichiarazione_tecnica",
+        mime_type: "text/html",
+        size_bytes: blob.size,
+        storage_path: storagePath,
+        caricato_da: user?.id ?? null,
+        visibilita: "azienda_interno",
+      });
+      if (insertErr) {
+        // Rollback: rimuovi il file appena caricato per evitare orfani
+        await supabase.storage.from("documenti").remove([storagePath]).catch(() => null);
+        throw new Error(`Salvataggio metadata fallito: ${insertErr.message}`);
+      }
+
+      // 4. Append allo storage_path a `enea_practices.documenti_aggiuntivi_urls`
+      //    così il documento appare immediatamente nel gruppo "Documenti
+      //    aggiuntivi" del PracticeDetailSheet (kanban) senza richiedere una
+      //    query separata sulla tabella documenti. Non-blocking: se fallisce,
+      //    il documento è comunque salvato (visibile via tabella documenti).
+      try {
+        const { data: prac } = await supabase
+          .from("enea_practices")
+          .select("documenti_aggiuntivi_urls")
+          .eq("id", practice.id)
+          .single();
+        const current = (prac?.documenti_aggiuntivi_urls ?? []) as string[];
+        await supabase
+          .from("enea_practices")
+          .update({ documenti_aggiuntivi_urls: [...current, storagePath] })
+          .eq("id", practice.id);
+      } catch (err) {
+        console.warn("[DichiarazioneTecnica] append documenti_aggiuntivi_urls failed:", err);
+      }
+    },
+    onSuccess: () => {
+      // Invalida cache della lista documenti della pratica + pratiche kanban
+      // così la card mostra immediatamente il nuovo documento aggiuntivo
+      queryClient.invalidateQueries({ queryKey: ["documenti"] });
+      queryClient.invalidateQueries({ queryKey: ["practice-documenti", practice?.id] });
+      queryClient.invalidateQueries({ queryKey: ["enea-practices"] });
+      queryClient.invalidateQueries({ queryKey: ["enea_practices"] });
+      toast({
+        title: "Documento confermato ✓",
+        description: "La dichiarazione è ora visibile nella card della pratica, anche al rivenditore.",
+      });
+      onOpenChange(false);
+    },
+    onError: (err: Error) => {
+      toast({
+        title: "Impossibile salvare il documento",
+        description: err.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   const handlePrint = () => {
     document.body.classList.add("printing-document");
@@ -289,6 +392,29 @@ export default function DichiarazioneTecnicaDialog({ open, onOpenChange, practic
               </section>
             )}
 
+            <section className="border-2 border-primary/30 rounded-lg p-3 bg-primary/5">
+              <h4 className="font-semibold text-sm mb-2 flex items-center gap-1.5">
+                <span className="text-primary">€</span> Importo fattura
+                <span className="text-destructive">*</span>
+              </h4>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Inserisci a mano il totale della fattura (€). Verrà stampato nel
+                documento sotto la dichiarazione di congruità.
+              </p>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                value={data.importo_fattura ?? ""}
+                onChange={(e) => update(
+                  "importo_fattura",
+                  e.target.value === "" ? null : Number(e.target.value),
+                )}
+                placeholder="0,00"
+                className="font-mono text-right h-9"
+              />
+            </section>
+
             <section className="border rounded-lg p-3 bg-muted/20">
               <h4 className="font-semibold text-sm mb-2">Dichiarazioni aggiuntive</h4>
               <div className="grid gap-1">
@@ -324,13 +450,37 @@ export default function DichiarazioneTecnicaDialog({ open, onOpenChange, practic
           </TabsContent>
         </Tabs>
 
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Chiudi</Button>
+        <DialogFooter className="gap-2 flex-wrap sm:flex-nowrap">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={confirmAndSaveMut.isPending}>
+            Chiudi
+          </Button>
           {tab === "anteprima" && (
-            <Button onClick={handlePrint} className="gap-1.5">
-              <Printer className="h-4 w-4" />Stampa / Scarica PDF
+            <Button variant="outline" onClick={handlePrint} disabled={confirmAndSaveMut.isPending} className="gap-1.5">
+              <Printer className="h-4 w-4" />Stampa
             </Button>
           )}
+          <Button
+            onClick={() => confirmAndSaveMut.mutate()}
+            disabled={
+              confirmAndSaveMut.isPending
+              || !data.importo_fattura
+              || data.importo_fattura <= 0
+              || !data.azienda_nome.trim()
+              || !data.cliente_nome.trim()
+            }
+            className="gap-1.5"
+            title={
+              !data.importo_fattura
+                ? "Inserisci l'importo della fattura per confermare"
+                : "Conferma il documento e rendilo disponibile nella card pratica"
+            }
+          >
+            {confirmAndSaveMut.isPending ? (
+              <><Loader2 className="h-4 w-4 animate-spin" />Salvataggio…</>
+            ) : (
+              <><CheckCircle2 className="h-4 w-4" />Conferma e salva nella card</>
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -19,6 +19,40 @@ const SUPPORT_EMAIL   = "modulistica@praticarapida.it";
 
 type RecipientType = "reseller" | "client";
 
+/**
+ * Mapping template trigger → destinatario, usato per scegliere il telefono
+ * giusto nel footer auto-iniettato.
+ *
+ * - "client" → privati / clienti finali → 039 868 2692
+ * - "reseller" → aziende rivenditrici → 039 868 2691
+ * - "internal" → email staff interno (no footer pubblico)
+ */
+const TEMPLATE_RECIPIENT: Record<string, RecipientType | "internal"> = {
+  // Cliente finale
+  form_compilato:          "client",
+  modulo_cliente_invio:    "client",
+  modulo_cliente_reminder: "client",
+  pratica_inviata:         "client",
+  recensione:              "client",
+  richiesta_form:          "client",
+  sollecito_privato:       "client",
+
+  // Rivenditore / azienda
+  benvenuto_azienda:           "reseller",
+  notifica_docs_mancanti:      "reseller",
+  notifica_pratica_disponibile:"reseller",
+  pratica_ricevuta:            "reseller",
+  registrazione_azienda:       "reseller",
+  sollecito_fornitore:         "reseller",
+  recupera_password:           "reseller", // account portale = rivenditore in maggioranza
+
+  // Ticket → rispondiamo sempre con footer "client" (più frequente)
+  ticket_conferma:        "client",
+  ticket_risposta_staff:  "client",
+  ticket_replica_cliente: "internal", // notifica al team interno, no footer
+  ticket_nuovo:           "internal", // notifica al team interno, no footer
+};
+
 /** Footer comune con email modulistica + telefono per ruolo. */
 function footer(recipientType: RecipientType = "client"): string {
   const phone = recipientType === "reseller" ? PHONE_RESELLER : PHONE_CLIENT;
@@ -32,6 +66,42 @@ function footer(recipientType: RecipientType = "client"): string {
       </td></tr>
     </table>
   `;
+}
+
+/**
+ * Inietta il footer (telefono per ruolo + email modulistica@) nell'HTML del
+ * template, se non già presente. Idempotente: se l'HTML contiene già
+ * "039 868" non duplica nulla.
+ *
+ * Strategia: cerca il footer copy "© ... Pratica Rapida · AEDIX" presente in
+ * tutti i template e inserisce il blocco contatti PRIMA. Se non trova quel
+ * marker, fallback: prepend prima della closing `</body>` finale.
+ */
+function injectFooter(html: string, template: string): string {
+  const recipientType = TEMPLATE_RECIPIENT[template];
+  // Skip template interni (notifiche staff) o template sconosciuti
+  if (!recipientType || recipientType === "internal") return html;
+  // Skip se l'HTML ha già un telefono — l'admin lo ha messo nel DB direttamente
+  if (/039\s*868\s*269[12]/.test(html)) return html;
+
+  const footerBlock = footer(recipientType);
+  // Pattern 1: copyright row in fondo (standard di tutti i template DB)
+  const copyMatch = html.match(/<tr><td[^>]*>\s*©[^<]*Pratica Rapida/i);
+  if (copyMatch && copyMatch.index !== undefined) {
+    // Trova la riga <tr> che apre il copyright e iniettiamo PRIMA
+    const trStart = html.lastIndexOf("<tr>", copyMatch.index);
+    if (trStart !== -1) {
+      // Inserisco il footer come riga separata della stessa table
+      const footerRow = `<tr><td style="padding:0 40px 24px;">${footerBlock}</td></tr>`;
+      return html.slice(0, trStart) + footerRow + html.slice(trStart);
+    }
+  }
+  // Fallback: prepend prima della closing </body>
+  if (html.includes("</body>")) {
+    return html.replace("</body>", `${footerBlock}</body>`);
+  }
+  // Last resort: append in fondo
+  return html + footerBlock;
 }
 
 const CORS = {
@@ -420,6 +490,11 @@ serve(async (req) => {
     // ── 2) Fallback: rendering hardcoded (utile in caso di DB offline / template non seedato)
     ({ subject, html } = renderTemplate(template, data ?? {}));
   }
+
+  // ── 3) Inietta il footer "Servizio clienti Pratica Rapida" con il telefono
+  //      per ruolo (rivenditori 039 868 2691, clienti 039 868 2692) e l'email
+  //      modulistica@. Idempotente: skip se già presente nel template DB.
+  html = injectFooter(html, template);
 
   const resendBody: Record<string, unknown> = { from: FROM_EMAIL, to, subject, html };
   if (attachments && attachments.length > 0) {

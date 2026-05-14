@@ -15,9 +15,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Building2, ArrowLeft, FolderOpen, Receipt, Users, FileText, TrendingUp,
-  Mail, Phone, MapPin, Download, Tag, RotateCcw, Check, Gift,
+  Mail, Phone, MapPin, Download, Tag, RotateCcw, Check, Gift, KeyRound,
 } from "lucide-react";
 import { CompanyPromoManager } from "@/pages/admin/CompanyPromoManager";
+import ChangeCompanyPasswordDialog from "@/components/aziende/ChangeCompanyPasswordDialog";
 import { exportToCSV } from "@/lib/csv-export";
 import { STATO_CONFIG, PAGAMENTO_BADGE } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
@@ -200,6 +201,7 @@ export default function AziendaDetail() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isAdmin = isSuperAdmin(roles);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 
   const { data: company, isLoading } = useQuery({
     queryKey: ["company-detail", id],
@@ -474,7 +476,7 @@ export default function AziendaDetail() {
           </TabsList>
 
           {/* Anagrafica */}
-          <TabsContent value="info">
+          <TabsContent value="info" className="space-y-4">
             <Card>
               <CardContent className="pt-6">
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -487,6 +489,37 @@ export default function AziendaDetail() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Sicurezza — solo super_admin */}
+            {isAdmin && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <KeyRound className="h-4 w-4" />Sicurezza
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">Password account azienda</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                        Imposta manualmente una password temporanea. Al primo accesso
+                        l'azienda dovrà obbligatoriamente cambiarla.
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowPasswordDialog(true)}
+                      className="shrink-0"
+                    >
+                      <KeyRound className="mr-1.5 h-3.5 w-3.5" />
+                      Cambia password
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Pratiche */}
@@ -748,6 +781,15 @@ export default function AziendaDetail() {
             </TabsContent>
           )}
         </Tabs>
+
+        {/* Dialog cambio password — solo super_admin */}
+        {isAdmin && (
+          <ChangeCompanyPasswordDialog
+            open={showPasswordDialog}
+            onOpenChange={setShowPasswordDialog}
+            company={{ id: company.id, ragione_sociale: company.ragione_sociale, email: company.email }}
+          />
+        )}
       </div>
     </TooltipProvider>
   );

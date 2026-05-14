@@ -26,6 +26,12 @@ interface AuthContextType {
   isBlocked: boolean;
   /** True when the user landed via a password-reset link (PASSWORD_RECOVERY event) */
   isPasswordRecovery: boolean;
+  /** True quando un super_admin ha forzato una password temporanea — l'utente
+   *  deve cambiarla prima di poter usare l'app (ProtectedRoute lo reindirizza
+   *  a /cambia-password). Aggiornato da `profiles.must_change_password`. */
+  mustChangePassword: boolean;
+  /** Resetta il flag dopo che l'utente ha cambiato password con successo. */
+  clearMustChangePassword: () => void;
   clearPasswordRecovery: () => void;
   signOut: () => Promise<void>;
 }
@@ -42,6 +48,8 @@ const AuthContext = createContext<AuthContextType>({
   resellerId: null,
   isBlocked: false,
   isPasswordRecovery: false,
+  mustChangePassword: false,
+  clearMustChangePassword: () => {},
   clearPasswordRecovery: () => {},
   signOut: async () => {},
 });
@@ -54,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isBlocked, setIsBlocked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
   // Guard against concurrent fetches for the same userId
   const fetchingForRef = useRef<string | null>(null);
 
@@ -98,6 +107,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setResellerId(null);
       setIsBlocked(false);
     }
+
+    // Read profile flag for forced password change (set by super_admin via
+    // set-company-password edge function).
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("must_change_password")
+      .eq("id", userId)
+      .maybeSingle();
+    setMustChangePassword(!!profile?.must_change_password);
+
     fetchingForRef.current = null;
   };
 
@@ -115,6 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (event === "SIGNED_OUT") {
           setIsPasswordRecovery(false);
+          setMustChangePassword(false);
           fetchingForRef.current = null;
           setSession(null);
           setUser(null);
@@ -168,12 +188,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setIsPasswordRecovery(false);
+    setMustChangePassword(false);
     setRoles([]);
     setResellerId(null);
     setIsBlocked(false);
   };
 
   const clearPasswordRecovery = () => setIsPasswordRecovery(false);
+  const clearMustChangePassword = () => setMustChangePassword(false);
 
   const isAdminFlag = roles.includes("super_admin");
   const isOperatoreFlag = roles.some((r) => ["super_admin", "operatore"].includes(r));
@@ -193,6 +215,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       resellerId,
       isBlocked,
       isPasswordRecovery,
+      mustChangePassword,
+      clearMustChangePassword,
       clearPasswordRecovery,
       signOut,
     }}>

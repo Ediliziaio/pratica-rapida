@@ -15,6 +15,7 @@ import { ThemeProvider } from "next-themes";
 // Lazy-loaded pages
 const Auth = lazy(() => import("./pages/Auth"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
+const CambiaPassword = lazy(() => import("./pages/CambiaPassword"));
 const NuovaPratica = lazy(() => import("./pages/NuovaPratica"));
 const Pratiche = lazy(() => import("./pages/Pratiche"));
 const WalletPage = lazy(() => import("./pages/Wallet"));
@@ -130,17 +131,33 @@ function useOnboardingCheck() {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, loading } = useAuth();
+  const { session, loading, mustChangePassword } = useAuth();
   const needsOnboarding = useOnboardingCheck();
 
   if (loading || needsOnboarding === null) return <PageLoader />;
   if (!session) return <Navigate to="/auth" replace />;
+  // Forced password change takes priority: must clear before doing anything else
+  if (mustChangePassword) return <Navigate to="/cambia-password" replace />;
   if (needsOnboarding) return <Navigate to="/onboarding" replace />;
   return (
     <CompanyProvider>
       <AppLayout>{children}</AppLayout>
     </CompanyProvider>
   );
+}
+
+/**
+ * ForcedPasswordChangeRoute — accessibile solo a utenti autenticati.
+ * Non passa per ProtectedRoute (che farebbe loop), ma fa il check inline.
+ * Quando l'utente cambia la password con successo, mustChangePassword diventa
+ * false e accedere a questa route reindirizza alla home.
+ */
+function ForcedPasswordChangeRoute() {
+  const { session, loading, mustChangePassword } = useAuth();
+  if (loading) return <PageLoader />;
+  if (!session) return <Navigate to="/auth" replace />;
+  if (!mustChangePassword) return <Navigate to="/" replace />;
+  return <CambiaPassword />;
 }
 
 function AuthRoute() {
@@ -199,6 +216,10 @@ const App = () => (
                 <Route path="/impianto-termico/:token" element={<ModuloClientePage />} />
                 <Route path="/modulo-vepa/:token" element={<ModuloClientePage />} />
                 <Route path="/onboarding" element={<Onboarding />} />
+                {/* /cambia-password — accessibile solo se autenticati; NON usa ProtectedRoute
+                    perché ProtectedRoute reindirizza qui quando mustChangePassword=true,
+                    creando un loop. Auth check inline. */}
+                <Route path="/cambia-password" element={<ForcedPasswordChangeRoute />} />
                 {/* /admin (senza sottopath) → redirect al pannello appropriato */}
                 <Route path="/admin" element={<ProtectedRoute><RootRedirect /></ProtectedRoute>} />
                 {/* /pratiche legacy — solo staff può ancora accedere (per gestionale finanziario);

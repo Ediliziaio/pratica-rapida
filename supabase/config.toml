@@ -3,6 +3,9 @@ project_id = "xmkjrhwmmuzaqjqlvzxm"
 [functions.create-company-user]
 verify_jwt = false
 
+[functions.set-company-password]
+verify_jwt = false
+
 [functions.create-user]
 verify_jwt = false
 

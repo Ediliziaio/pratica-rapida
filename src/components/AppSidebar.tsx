@@ -26,7 +26,7 @@ import type React from "react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth, isSuperAdmin, isInternal, isReseller } from "@/hooks/useAuth";
+import { useAuth, isSuperAdmin, isReseller } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
 import { supabase } from "@/integrations/supabase/client";
 import {

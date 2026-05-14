@@ -428,7 +428,7 @@ function PracticeDetailSheet({
     // Financial fields (staff only): set data_incasso automatically when
     // flipping to "pagata", clear it otherwise — mirrors the inline-select
     // behavior in PracticeTable so the two code paths stay in sync.
-    let financialUpdates: Partial<EneaPractice> = {};
+    const financialUpdates: Partial<EneaPractice> = {};
     if (isInternal) {
       const parsedPrezzo =
         editPrezzo.trim() === "" ? null : Number(editPrezzo.replace(",", "."));

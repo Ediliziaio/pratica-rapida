@@ -135,7 +135,7 @@ function slugify(input: string): string {
 
 // `from("form_modules")` — la tabella non è (ancora) nei types generati.
 // Cast a `any` localmente per evitare narrow typing su una tabella nuova.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 function table() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return supabase.from("form_modules" as any);

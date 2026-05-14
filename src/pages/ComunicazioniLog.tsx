@@ -34,7 +34,9 @@ import {
   TrendingUp,
   CheckCircle2,
 } from "lucide-react";
-import * as XLSX from "xlsx";
+// `xlsx` viene importato dinamicamente nell'handler di export per evitare
+// di caricarlo nel chunk principale (libreria ~420 KB minified). Vedi
+// handleExportCSV più sotto.
 import type { CommunicationLog, CommChannel, CommStatus } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -168,7 +170,7 @@ export default function ComunicazioniLog() {
     return true;
   }), [logs, channelFilter, statusFilter, searchRecipient]);
 
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     const rows = filtered.map((l) => ({
       ID: l.id,
       Canale: l.channel,
@@ -179,6 +181,9 @@ export default function ComunicazioniLog() {
       "Data invio": new Date(l.sent_at).toLocaleString("it-IT"),
       "Data lettura": l.read_at ? new Date(l.read_at).toLocaleString("it-IT") : "",
     }));
+    // Dynamic import: la libreria xlsx (~420 KB) viene scaricata solo al primo
+    // export, non al primo render della pagina.
+    const XLSX = await import("xlsx");
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "ComunicazioniLog");

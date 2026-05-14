@@ -64,7 +64,42 @@ const WhatsappPanel = lazy(() => import("./pages/admin/WhatsappPanel"));
 const Moduli = lazy(() => import("./pages/admin/Moduli"));
 const ArchivioEnea = lazy(() => import("./pages/rivenditore/ArchivioEnea"));
 
-const queryClient = new QueryClient();
+/**
+ * QueryClient con default sensibili per ridurre carico backend e migliorare
+ * la fluidità percepita:
+ *
+ * - `staleTime: 30s` — i dati sono considerati freschi per 30 secondi.
+ *   Le query.invalidateQueries esplicite (dopo mutation) continuano a
+ *   funzionare normalmente. Cambio rotta non triggera refetch immediato.
+ *
+ * - `gcTime: 5min` — i dati restano in cache 5 minuti dopo l'ultima
+ *   subscription. Tornare a una pagina visitata recentemente è istantaneo.
+ *
+ * - `refetchOnWindowFocus: false` — l'utente che cambia tab/finestra non
+ *   vede l'app "lampeggiare" con loading spinner ogni rientro. Le query
+ *   sensibili (es. badge lead non contattati, notifiche) hanno
+ *   `refetchInterval` esplicito che continua a funzionare.
+ *
+ * - `retry: 1` — su errore network/transient, 1 retry. Il default 3 era
+ *   troppo aggressivo: in caso di outage Supabase, l'utente aspettava
+ *   ~15 secondi prima di vedere il messaggio di errore.
+ *
+ * Override per-query restano possibili (es. `staleTime: Infinity` per
+ *   dati immutabili come tipi/enum, o `refetchInterval` per polling).
+ */
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+    mutations: {
+      retry: 0, // niente retry automatici sulle mutation — l'utente deve riprovare manualmente
+    },
+  },
+});
 
 // STAFF = dipendenti interni Pratica Rapida (super_admin + operatore)
 // admin_interno = admin aziendale del cliente → va nell'area /pratiche, NON in /admin/pratiche

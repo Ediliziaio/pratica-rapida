@@ -106,6 +106,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { createPortal } from "react-dom";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import DichiarazioneTecnicaDialog from "@/components/documenti/DichiarazioneTecnicaDialog";
@@ -1550,31 +1551,49 @@ function PracticeCard({
 
   return (
     <Draggable draggableId={practice.id} index={index} isDragDisabled={dragDisabled}>
-      {(provided, snapshot) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-          onClick={(e) => {
-            if (snapshot.isDragging) return;
-            if (selectable) {
-              e.preventDefault();
-              e.stopPropagation();
-              onToggleSelect?.(practice.id);
-              return;
-            }
-            onOpen(practice);
-          }}
-          className={`group relative rounded-lg bg-background border p-3 space-y-2 text-sm transition-all duration-150 ${
-            selectable ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
-          } ${
-            snapshot.isDragging
-              ? "shadow-xl ring-2 ring-primary/30 rotate-1"
-              : isSelected
-              ? "shadow-md ring-2 ring-primary border-primary"
-              : "shadow-sm hover:shadow-md hover:-translate-y-0.5"
-          }`}
-        >
+      {(provided, snapshot) => {
+        // Quando la card è in drag, la rendiamo via React Portal su <body>
+        // per sfuggire a qualsiasi ancestor con `transform`/`filter`/`will-change`
+        // che creerebbe un containing block per `position: fixed` (default di
+        // @hello-pangea/dnd). Senza Portal, l'offset del cursore vs. la card
+        // si scombina e la card "scivola" rispetto al puntatore.
+        // Inoltre disabilitiamo la transition `transition-all` durante il drag
+        // — qualunque transition CSS sulla `transform` interferisce con quella
+        // inline applicata dal library.
+        const inDrag = snapshot.isDragging;
+        const card = (
+          <div
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            onClick={(e) => {
+              if (inDrag) return;
+              if (selectable) {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleSelect?.(practice.id);
+                return;
+              }
+              onOpen(practice);
+            }}
+            style={{
+              ...provided.draggableProps.style,
+              // Durante il drag rimuovi qualsiasi transition CSS che potrebbe
+              // animare `transform` / `top` / `left` in conflitto col library.
+              transition: inDrag ? "none" : provided.draggableProps.style?.transition,
+            }}
+            className={`group relative rounded-lg bg-background border p-3 space-y-2 text-sm ${
+              inDrag ? "" : "transition-all duration-150"
+            } ${
+              selectable ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
+            } ${
+              inDrag
+                ? "shadow-xl ring-2 ring-primary/30"
+                : isSelected
+                ? "shadow-md ring-2 ring-primary border-primary"
+                : "shadow-sm hover:shadow-md hover:-translate-y-0.5"
+            }`}
+          >
           {/* Top: name + brand + CF badge */}
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-2 min-w-0 flex-1">
@@ -1673,7 +1692,13 @@ function PracticeCard({
             </div>
           </div>
         </div>
-      )}
+        );
+        // Durante il drag, rendiamo via Portal su <body> per sfuggire al
+        // containing block creato dagli ancestor con transform (page-enter
+        // animation, sidebar transform, ecc.). Solo così il cursore segue
+        // esattamente la card senza offset orizzontale.
+        return inDrag ? createPortal(card, document.body) : card;
+      }}
     </Draggable>
   );
 }

@@ -102,6 +102,49 @@ serve(async (req) => {
       status: response.status,
       response: result,
     });
+
+    // Detect configuration errors (token scaduto / invalido) e crea una
+    // notifica per i super_admin così se ne accorgono subito invece di
+    // scoprire i WA falliti scorrendo i log.
+    // Pattern Meta: "Invalid OAuth access token - Cannot parse access token"
+    //               "Error validating access token: Session has expired"
+    //               "Access token has expired"
+    const isTokenError = !!error_message && /oauth|access[_ ]?token|expired|session has expired/i.test(error_message);
+    if (isTokenError) {
+      try {
+        // Throttle: massimo 1 alert ogni 6 ore per non spammare
+        const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+        const { data: recent } = await supabase
+          .from("notifications")
+          .select("id")
+          .eq("tipo", "integration_error")
+          .ilike("titolo", "%WhatsApp%")
+          .gte("created_at", sixHoursAgo)
+          .limit(1)
+          .maybeSingle();
+        if (!recent) {
+          // Insert una notifica per ogni super_admin
+          const { data: admins } = await supabase
+            .from("user_roles")
+            .select("user_id")
+            .eq("role", "super_admin");
+          if (admins && admins.length > 0) {
+            await supabase.from("notifications").insert(
+              admins.map((a) => ({
+                user_id: a.user_id,
+                tipo: "integration_error",
+                titolo: "⚠️ WhatsApp non funziona",
+                messaggio: `Token WhatsApp Business API scaduto/invalido. Errore: ${error_message?.slice(0, 200) ?? ""}. Aggiorna WA_ACCESS_TOKEN nei secrets Supabase Edge Functions.`,
+                link: "/admin/impostazioni",
+              })),
+            );
+          }
+        }
+      } catch (alertErr) {
+        // non-blocking — il logging primario è già stato fatto
+        console.warn("[send-whatsapp] notification insert failed:", alertErr);
+      }
+    }
   }
 
   if (practice_id) {

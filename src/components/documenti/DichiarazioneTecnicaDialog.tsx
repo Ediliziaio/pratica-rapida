@@ -231,36 +231,21 @@ export default function DichiarazioneTecnicaDialog({ open, onOpenChange, practic
         throw new Error(`Salvataggio metadata fallito: ${insertErr.message}`);
       }
 
-      // 4. Append allo storage_path a `enea_practices.documenti_aggiuntivi_urls`
-      //    così il documento appare immediatamente nel gruppo "Documenti
-      //    aggiuntivi" del PracticeDetailSheet (kanban) senza richiedere una
-      //    query separata sulla tabella documenti. Non-blocking: se fallisce,
-      //    il documento è comunque salvato (visibile via tabella documenti).
-      try {
-        const { data: prac } = await supabase
-          .from("enea_practices")
-          .select("documenti_aggiuntivi_urls")
-          .eq("id", practice.id)
-          .single();
-        const current = (prac?.documenti_aggiuntivi_urls ?? []) as string[];
-        await supabase
-          .from("enea_practices")
-          .update({ documenti_aggiuntivi_urls: [...current, storagePath] })
-          .eq("id", practice.id);
-      } catch (err) {
-        console.warn("[DichiarazioneTecnica] append documenti_aggiuntivi_urls failed:", err);
-      }
+      // Nota: il documento appare automaticamente nel gruppo "Documenti
+      //       precompilati" del PracticeDetailSheet (kanban), che è una
+      //       useQuery separata sulla tabella `documenti` filtrata per
+      //       tipo='dichiarazione_tecnica' + pratica_id. Niente bisogno di
+      //       appendere a documenti_aggiuntivi_urls — anzi, evita duplicati.
     },
     onSuccess: () => {
-      // Invalida cache della lista documenti della pratica + pratiche kanban
-      // così la card mostra immediatamente il nuovo documento aggiuntivo
+      // Invalida cache della lista documenti precompilati nel sheet kanban
+      queryClient.invalidateQueries({ queryKey: ["practice-precompiled-docs", practice?.id] });
       queryClient.invalidateQueries({ queryKey: ["documenti"] });
-      queryClient.invalidateQueries({ queryKey: ["practice-documenti", practice?.id] });
       queryClient.invalidateQueries({ queryKey: ["enea-practices"] });
       queryClient.invalidateQueries({ queryKey: ["enea_practices"] });
       toast({
         title: "Documento confermato ✓",
-        description: "La dichiarazione è ora visibile nella card della pratica, anche al rivenditore.",
+        description: "La dichiarazione è ora visibile nel gruppo \"Documenti precompilati\" della pratica.",
       });
       onOpenChange(false);
     },

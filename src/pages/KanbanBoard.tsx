@@ -440,6 +440,24 @@ function PracticeDetailSheet({
     enabled: operatorIds.length > 0,
   });
 
+  // Documenti precompilati (Dichiarazione Requisiti Tecnici) generati e
+  // confermati dal super_admin via "Doc. tecnico". Visibili sia allo staff
+  // sia al rivenditore (RLS controlla company_id + visibilita).
+  const { data: precompiledDocs = [] } = useQuery<Array<{ id: string; nome_file: string; storage_path: string }>>({
+    queryKey: ["practice-precompiled-docs", practice?.id],
+    enabled: !!practice?.id,
+    queryFn: async () => {
+      if (!practice?.id) return [];
+      const { data } = await supabase
+        .from("documenti")
+        .select("id, nome_file, storage_path")
+        .eq("pratica_id", practice.id)
+        .eq("tipo", "dichiarazione_tecnica")
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
   function enterEditMode() {
     if (!practice) return;
     setEditNote(practice.note ?? "");
@@ -478,18 +496,34 @@ function PracticeDetailSheet({
           editPagamentoStato === "pagata" ? new Date().toISOString() : null;
       }
     }
-    await updatePractice.mutateAsync({
-      id: practice.id,
-      updates: {
-        note: editNote || null,
-        note_interne: isInternal ? editNoteInterne || null : undefined,
-        documenti_mancanti: editDocs,
-        operatore_id: isInternal ? editOperatoreId || null : undefined,
-        ...financialUpdates,
-      },
-    });
-    toast({ title: "Pratica aggiornata" });
-    setEditMode(false);
+    try {
+      await updatePractice.mutateAsync({
+        id: practice.id,
+        updates: {
+          note: editNote || null,
+          note_interne: isInternal ? editNoteInterne || null : undefined,
+          documenti_mancanti: editDocs,
+          // operatore_id: invia solo se realmente cambiato, e mai stringa vuota
+          // (gli uuid in postgres rigettano '' → "invalid input syntax for type uuid")
+          operatore_id: isInternal
+            ? (editOperatoreId.trim() === "" ? null : editOperatoreId) !== (practice.operatore_id ?? null)
+              ? (editOperatoreId.trim() === "" ? null : editOperatoreId)
+              : undefined
+            : undefined,
+          ...financialUpdates,
+        },
+      });
+      toast({ title: "Pratica aggiornata" });
+      setEditMode(false);
+    } catch (err) {
+      const msg = (err as { message?: string })?.message ?? "Errore sconosciuto durante il salvataggio";
+      toast({
+        title: "Salvataggio fallito",
+        description: msg,
+        variant: "destructive",
+      });
+      console.error("[KanbanBoard handleSave]", err);
+    }
   }
 
   async function handleArchive() {
@@ -1175,6 +1209,14 @@ function PracticeDetailSheet({
                         files: (practice.documenti_enea_urls ?? []).map((p, i) => ({
                           label: `Doc. ENEA ${i + 1}`,
                           path: p,
+                          canDelete: false,
+                        })),
+                      },
+                      {
+                        title: "Documenti precompilati",
+                        files: precompiledDocs.map((d) => ({
+                          label: d.nome_file.replace(/\.html$/i, ""),
+                          path: d.storage_path,
                           canDelete: false,
                         })),
                       },

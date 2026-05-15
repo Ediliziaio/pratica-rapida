@@ -154,7 +154,10 @@ export default function CambiaPassword() {
 
             <button
               type="button"
-              onClick={async () => { await signOut(); navigate("/auth", { replace: true }); }}
+              onClick={async () => {
+                try { await signOut(); } catch (err) { console.warn("signOut failed:", err); }
+                navigate("/auth", { replace: true });
+              }}
               className="block w-full text-center text-xs text-muted-foreground hover:text-foreground"
             >
               Esci e rientra in seguito

@@ -528,18 +528,21 @@ function PracticeDetailSheet({
 
   async function handleArchive() {
     if (!practice) return;
-    if (practice.archived_at) {
+    const restoring = !!practice.archived_at;
+    try {
       await updatePractice.mutateAsync({
         id: practice.id,
-        updates: { archived_at: null },
+        updates: { archived_at: restoring ? null : new Date().toISOString() },
       });
-      toast({ title: "Pratica ripristinata" });
-    } else {
-      await updatePractice.mutateAsync({
-        id: practice.id,
-        updates: { archived_at: new Date().toISOString() },
+      toast({ title: restoring ? "Pratica ripristinata" : "Pratica archiviata" });
+    } catch (err) {
+      const msg = (err as { message?: string })?.message ?? "Errore imprevisto";
+      toast({
+        title: restoring ? "Ripristino fallito" : "Archiviazione fallita",
+        description: msg,
+        variant: "destructive",
       });
-      toast({ title: "Pratica archiviata" });
+      console.error("[KanbanBoard handleArchive]", err);
     }
   }
 
@@ -630,13 +633,27 @@ function PracticeDetailSheet({
 
   async function handleDeleteConclusa(path: string) {
     if (!practice) return;
-    await supabase.storage.from("enea-documents").remove([path]);
-    const updated = (practice.pratica_enea_conclusa_urls ?? []).filter((p) => p !== path);
-    await updatePractice.mutateAsync({
-      id: practice.id,
-      updates: { pratica_enea_conclusa_urls: updated },
-    });
-    toast({ title: "File rimosso" });
+    try {
+      const { error: storageErr } = await supabase.storage
+        .from("enea-documents").remove([path]);
+      // storageErr non blocca: il file potrebbe già essere stato rimosso —
+      // l'importante è aggiornare il riferimento nella pratica.
+      if (storageErr) console.warn("[handleDeleteConclusa] storage remove warning:", storageErr.message);
+      const updated = (practice.pratica_enea_conclusa_urls ?? []).filter((p) => p !== path);
+      await updatePractice.mutateAsync({
+        id: practice.id,
+        updates: { pratica_enea_conclusa_urls: updated },
+      });
+      toast({ title: "File rimosso" });
+    } catch (err) {
+      const msg = (err as { message?: string })?.message ?? "Errore imprevisto";
+      toast({
+        title: "Rimozione fallita",
+        description: msg,
+        variant: "destructive",
+      });
+      console.error("[KanbanBoard handleDeleteConclusa]", err);
+    }
   }
 
   return (

@@ -50,62 +50,120 @@ async function invoke(fnName: string, body: unknown) {
 }
 
 /**
- * Recupera i documenti collegati a una pratica e li converte in attachments
- * Resend (base64). Filtra automaticamente quelli oltre 35MB cumulativi per
- * non sforare il limite Resend (40MB totale, lasciamo margine per body).
+ * Recupera tutti i file collegati a una pratica e li converte in attachments
+ * Resend (base64). Limit Resend 40 MB totali — limitiamo a 35 MB con margine
+ * per il body HTML dell'email.
  *
- * Schema documenti: id, pratica_id, nome_file, mime_type, storage_path, tipo.
- * Bucket: documenti / enea-documents (entrambi privati con service role access).
+ * I file della pratica vivono in DUE posti:
+ *
+ *  A. `enea_practices.pratica_enea_conclusa_urls[]` — array di storage_path
+ *     in bucket `enea-documents`. È QUI che vanno i PDF finali della pratica
+ *     chiusa caricati dallo staff con "Carica pratica conclusa".
+ *  B. tabella `public.documenti` con riga per file, bucket dipende dal `tipo`:
+ *     - `dichiarazione_tecnica` → bucket `documenti`
+ *     - altri tipi → bucket `documenti`
+ *
+ * La query precedente leggeva SOLO da (B), missing tutti i file di (A) —
+ * quindi le email "pratica completata" arrivavano senza allegati per la
+ * maggior parte delle pratiche.
+ *
+ * Ordine di priorità: prima i file della pratica conclusa (A), poi gli
+ * altri documenti rilevanti (B filtrati su tipi pubblici/per-cliente).
  */
 async function collectPracticeAttachments(
   supabase: ReturnType<typeof createClient>,
   practiceId: string,
 ): Promise<Array<{ filename: string; content: string; content_type?: string }>> {
   try {
-    const { data: docs, error } = await supabase
-      .from("documenti")
-      .select("nome_file, mime_type, storage_path, size_bytes")
-      .eq("pratica_id", practiceId)
-      .order("created_at", { ascending: true });
-    if (error || !docs) return [];
-
     const MAX_TOTAL_BYTES = 35 * 1024 * 1024;
     let total = 0;
     const out: Array<{ filename: string; content: string; content_type?: string }> = [];
 
-    for (const d of docs) {
-      const size = Number(d.size_bytes ?? 0);
-      if (total + size > MAX_TOTAL_BYTES) {
-        console.warn(`[on-stage-changed] Skipping ${d.nome_file}: would exceed 35MB email budget`);
+    // Helper: download blob da bucket + encode base64
+    async function downloadAndEncode(
+      bucket: string,
+      storagePath: string,
+      filename: string,
+    ): Promise<{ filename: string; content: string; size: number } | null> {
+      try {
+        const { data: file, error } = await supabase.storage.from(bucket).download(storagePath);
+        if (error || !file) return null;
+        const buf = await file.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let binary = "";
+        const chunkSize = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+        }
+        return { filename, content: btoa(binary), size: bytes.length };
+      } catch (e) {
+        console.warn(`[collectPracticeAttachments] download ${bucket}/${storagePath} failed:`, e);
+        return null;
+      }
+    }
+
+    // ── A. File della pratica conclusa (bucket enea-documents) ───────────────
+    // Source: enea_practices.pratica_enea_conclusa_urls[] (text[])
+    const { data: practiceRow } = await supabase
+      .from("enea_practices")
+      .select("pratica_enea_conclusa_urls, cliente_nome, cliente_cognome")
+      .eq("id", practiceId)
+      .maybeSingle();
+
+    const conclusaPaths = (practiceRow?.pratica_enea_conclusa_urls as string[] | null) ?? [];
+    const clienteSlug = `${practiceRow?.cliente_nome ?? ""}_${practiceRow?.cliente_cognome ?? ""}`
+      .trim().replace(/\s+/g, "_").toLowerCase() || "pratica";
+
+    let counter = 1;
+    for (const path of conclusaPaths) {
+      // Filename "pulito" per il cliente: derivato dal nome cliente + n. progressivo
+      const ext = path.split(".").pop()?.toLowerCase() ?? "pdf";
+      const filename = `pratica_chiusa_${clienteSlug}_${counter}.${ext}`;
+      const encoded = await downloadAndEncode("enea-documents", path, filename);
+      if (!encoded) continue;
+      if (total + encoded.size > MAX_TOTAL_BYTES) {
+        console.warn(`[collectPracticeAttachments] Skip ${filename}: oltre budget 35MB`);
         continue;
       }
-      // Tentiamo entrambi i bucket noti (lo schema non distingue univocamente)
-      let blob: Blob | null = null;
-      for (const bucket of ["documenti", "enea-documents"]) {
-        const { data: file } = await supabase.storage.from(bucket).download(d.storage_path);
-        if (file) { blob = file; break; }
-      }
-      if (!blob) continue;
+      const mime = ext === "pdf" ? "application/pdf" : ext === "p7m" ? "application/pkcs7-mime" : "application/octet-stream";
+      out.push({ filename: encoded.filename, content: encoded.content, content_type: mime });
+      total += encoded.size;
+      counter++;
+    }
 
-      const buf = await blob.arrayBuffer();
-      // Encode base64 manually (Deno doesn't have btoa for arbitrary bytes)
-      const bytes = new Uint8Array(buf);
-      let binary = "";
-      const chunkSize = 0x8000;
-      for (let i = 0; i < bytes.length; i += chunkSize) {
-        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    // ── B. Documenti dalla tabella documenti — dichiarazione tecnica ─────────
+    // Solo i tipi rilevanti per il cliente. Altri tipi (identità, fatture)
+    // restano in bucket privati staff-only.
+    const { data: docs } = await supabase
+      .from("documenti")
+      .select("nome_file, mime_type, storage_path, size_bytes, tipo")
+      .eq("pratica_id", practiceId)
+      .in("tipo", ["dichiarazione_tecnica"])
+      .order("created_at", { ascending: true });
+
+    for (const d of (docs ?? [])) {
+      const size = Number(d.size_bytes ?? 0);
+      if (total + size > MAX_TOTAL_BYTES) {
+        console.warn(`[collectPracticeAttachments] Skip ${d.nome_file}: oltre budget 35MB`);
+        continue;
       }
-      const base64 = btoa(binary);
+      // Tipologie note vivono in bucket `documenti`
+      const encoded = await downloadAndEncode("documenti", d.storage_path, d.nome_file);
+      if (!encoded) continue;
       out.push({
-        filename: d.nome_file,
-        content: base64,
+        filename: encoded.filename,
+        content: encoded.content,
         ...(d.mime_type ? { content_type: d.mime_type } : {}),
       });
-      total += size;
+      total += encoded.size;
+    }
+
+    if (out.length === 0) {
+      console.warn(`[collectPracticeAttachments] practice ${practiceId}: NESSUN allegato trovato (conclusaPaths=${conclusaPaths.length}, docs=${docs?.length ?? 0})`);
     }
     return out;
   } catch (err) {
-    console.error("[on-stage-changed] collectPracticeAttachments failed:", err);
+    console.error("[collectPracticeAttachments] failed:", err);
     return [];
   }
 }

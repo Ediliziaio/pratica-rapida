@@ -82,28 +82,30 @@ export default function Integrazioni() {
     queryKey: ["admin-integrations-health"],
     queryFn: async (): Promise<IntegrationHealth[]> => {
       // === 1. EMAIL ===
+      // NB: email_logs ha colonna `sent_at` (non created_at) — vedi migration
+      // 20260327000001_megaprompt_phase1_tables.sql.
       const { data: emailSuccess } = await supabase
         .from("email_logs")
-        .select("created_at")
+        .select("sent_at")
         .eq("status", "sent")
-        .order("created_at", { ascending: false })
+        .order("sent_at", { ascending: false })
         .limit(1)
         .maybeSingle();
       const { data: emailFailed } = await supabase
         .from("email_logs")
-        .select("created_at")
+        .select("sent_at")
         .eq("status", "failed")
-        .order("created_at", { ascending: false })
+        .order("sent_at", { ascending: false })
         .limit(1)
         .maybeSingle();
       const { count: emailFailedCount } = await supabase
         .from("email_logs")
         .select("id", { count: "exact", head: true })
         .eq("status", "failed")
-        .gte("created_at", new Date(Date.now() - 7 * 24 * 3_600_000).toISOString());
+        .gte("sent_at", new Date(Date.now() - 7 * 24 * 3_600_000).toISOString());
 
-      const emailLastSuccess = emailSuccess?.created_at ? new Date(emailSuccess.created_at) : null;
-      const emailLastFailed = emailFailed?.created_at ? new Date(emailFailed.created_at) : null;
+      const emailLastSuccess = emailSuccess?.sent_at ? new Date(emailSuccess.sent_at) : null;
+      const emailLastFailed = emailFailed?.sent_at ? new Date(emailFailed.sent_at) : null;
 
       // === 2. WHATSAPP ===
       const { data: waSuccess } = await supabase
@@ -134,14 +136,17 @@ export default function Integrazioni() {
       const waErrorMessage = waFailed?.error_message ?? null;
 
       // === 3. CRON: process-automations-daily + send-reminders-daily ===
-      // pg_cron è in schema separato, query via PostgREST può non funzionare.
-      // Fallback: leggi un proxy table o segnala come unknown.
+      // pg_cron è in schema separato non esposto via PostgREST → leggi tramite
+      // RPC wrapper SECURITY DEFINER `public.get_cron_health` (vedi migration
+      // 20260518000001_get_cron_health_rpc.sql).
       let cronData: Array<{ jobname: string; status: string; start_time: string }> = [];
+      let cronError: string | null = null;
       try {
-        const { data: crons } = await supabase.rpc("get_cron_health" as never);
-        if (Array.isArray(crons)) cronData = crons as typeof cronData;
-      } catch {
-        // RPC non esiste; lascia vuoto
+        const { data: crons, error } = await supabase.rpc("get_cron_health" as never);
+        if (error) cronError = error.message;
+        else if (Array.isArray(crons)) cronData = crons as typeof cronData;
+      } catch (e) {
+        cronError = e instanceof Error ? e.message : "RPC failed";
       }
 
       const out: IntegrationHealth[] = [
@@ -195,12 +200,18 @@ export default function Integrazioni() {
               : "down"
             : "unknown",
           lastSuccess: lastWasSuccess ? lastDate : null,
-          lastError: !lastWasSuccess && lastDate ? { message: last?.status ?? "unknown", at: lastDate } : null,
+          lastError: !lastWasSuccess && lastDate
+            ? { message: last?.status ?? "unknown", at: lastDate }
+            : cronError
+              ? { message: cronError, at: new Date() }
+              : null,
           details: lastDate
             ? `Ultimo run: ${format(lastDate, "d MMM HH:mm", { locale: it })}`
-            : "Stato cron non disponibile (RPC get_cron_health mancante)",
-          recoveryHint: !lastDate
-            ? "Crea RPC get_cron_health() o consulta cron.job_run_details in DB."
+            : cronError
+              ? "RPC get_cron_health() ha restituito errore"
+              : "Stato cron non disponibile",
+          recoveryHint: !lastDate && cronError
+            ? "Applica migration 20260518000001_get_cron_health_rpc.sql o verifica permessi (richiesto super_admin)."
             : undefined,
         });
       }

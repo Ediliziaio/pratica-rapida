@@ -21,6 +21,7 @@ import {
   Archive,
   FormInput,
   Download,
+  Activity,
 } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
@@ -266,6 +267,7 @@ export function AppSidebar() {
         defaultOpen: false,
         items: [
           { title: "Moduli Form", url: "/admin/moduli", icon: FormInput },
+          { title: "Integrazioni (Health)", url: "/admin/integrazioni", icon: Activity },
         ],
       });
     }

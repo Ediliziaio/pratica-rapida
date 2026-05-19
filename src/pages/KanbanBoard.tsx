@@ -2155,16 +2155,42 @@ export default function KanbanBoard() {
   };
 
   // Map each stage.id → the "virtual column id" it belongs to.
-  // For internal users this is the identity mapping.
-  // For resellers, stages sharing the same `name_reseller` collapse into a single
-  // virtual column whose id is the first (by order_index) stage of the group.
+  //
+  // - Reseller: stages sharing the same `name_reseller` collapse into one
+  //   virtual column (first occurrence by order_index wins).
+  //
+  // - Staff con filtro brand specifico (enea o conto_termico): identity
+  //   mapping — il deduped contiene tutti gli stage del brand, ognuno è una
+  //   colonna a sé.
+  //
+  // - Staff con filtro "all": gli stage in DB sono duplicati (uno per brand)
+  //   ma `deduped` ne mostra UNO per stage_type. Le pratiche dell'altro brand
+  //   hanno `current_stage_id` puntato all'altro record → senza mappatura
+  //   per `stage_type`, sparirebbero dal kanban. Quindi raggruppiamo per
+  //   stage_type: tutti gli stage con lo stesso `stage_type` puntano alla
+  //   stessa colonna virtuale (lo stage con order_index minore vince).
   const stageToColumn = useMemo(() => {
     const map = new Map<string, string>();
-    if (isInternal) {
+
+    if (isInternal && brandFilter !== "all") {
+      // Brand specifico: identity mapping
       for (const s of stages) map.set(s.id, s.id);
       return map;
     }
-    const groups = new Map<string, string>(); // name_reseller key → virtual column id
+
+    if (isInternal && brandFilter === "all") {
+      // Raggruppa per stage_type (entrambi i brand confluiscono nella stessa colonna)
+      const groups = new Map<string, string>();
+      const sorted = [...stages].sort((a, b) => a.order_index - b.order_index);
+      for (const s of sorted) {
+        if (!groups.has(s.stage_type)) groups.set(s.stage_type, s.id);
+        map.set(s.id, groups.get(s.stage_type)!);
+      }
+      return map;
+    }
+
+    // Reseller: raggruppa per name_reseller
+    const groups = new Map<string, string>();
     for (const s of stages) {
       if (s.is_visible_reseller === false) continue;
       const key = s.name_reseller ?? s.name;
@@ -2172,23 +2198,22 @@ export default function KanbanBoard() {
       map.set(s.id, groups.get(key)!);
     }
     return map;
-  }, [stages, isInternal]);
+  }, [stages, isInternal, brandFilter]);
 
   const byStage = useCallback(
     (stageId: string) => {
-      let cards: typeof filteredPractices;
-      if (isInternal) {
-        cards = filteredPractices.filter((p) => p.current_stage_id === stageId);
-      } else {
-        // For resellers, include all practices whose current stage maps to the
-        // same virtual column as `stageId`.
-        const targetColumn = stageToColumn.get(stageId);
-        cards = filteredPractices.filter((p) => {
-          if (!p.current_stage_id) return false;
-          const pColumn = stageToColumn.get(p.current_stage_id);
-          return pColumn !== undefined && pColumn === targetColumn;
-        });
-      }
+      // Tutti i casi usano ora la stessa logica: map current_stage_id alla
+      // sua colonna virtuale e confronta con la colonna richiesta.
+      // - Staff brand specifico: identity mapping → match diretto
+      // - Staff brand="all": pratiche di entrambi i brand confluiscono nella
+      //   colonna del loro stage_type
+      // - Reseller: pratiche con stesso name_reseller confluiscono insieme
+      const targetColumn = stageToColumn.get(stageId);
+      let cards = filteredPractices.filter((p) => {
+        if (!p.current_stage_id) return false;
+        const pColumn = stageToColumn.get(p.current_stage_id);
+        return pColumn !== undefined && pColumn === targetColumn;
+      });
       if (sortOption === "recenti") {
         cards = cards.slice().sort(
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()

@@ -196,6 +196,12 @@ export function useCompanyPraticheKpi(companyId: string | null) {
           .gte("updated_at", startOfMonth.toISOString()),
       ]);
 
+      // Se una delle count query fallisce (RLS / network / column non esiste)
+      // dobbiamo far surface l'errore: altrimenti il dashboard mostra "0" e
+      // l'utente pensa di non avere pratiche, mentre invece la query è rotta.
+      const firstError = [tot, lav, att, comp].find((r) => r.error)?.error;
+      if (firstError) throw firstError;
+
       return {
         totale:        tot.count  ?? 0,
         inLavorazione: lav.count  ?? 0,

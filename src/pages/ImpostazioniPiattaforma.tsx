@@ -806,6 +806,10 @@ export default function ImpostazioniPiattaforma() {
         supabase.from("pratiche").select("id", { count: "exact", head: true }),
         supabase.from("profiles").select("id", { count: "exact", head: true }),
       ]);
+      // Surface errori: senza questo controllo se una delle count query fallisce
+      // mostriamo "0" e l'admin non se ne accorge.
+      const firstError = [companies, pratiche, profiles].find((r) => r.error)?.error;
+      if (firstError) throw firstError;
       return {
         aziende: companies.count || 0,
         pratiche: pratiche.count || 0,

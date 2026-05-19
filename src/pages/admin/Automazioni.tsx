@@ -1083,11 +1083,18 @@ export default function Automazioni() {
 
   const reorderMutation = useMutation({
     mutationFn: async (updates: { id: string; order_index: number }[]) => {
-      await Promise.all(
+      // Critico: il vecchio codice ignorava gli errori sulle singole update,
+      // quindi il toast diceva "Ordine aggiornato" anche se solo metà delle
+      // update aveva avuto successo. In caso di failure parziale l'ordering
+      // mostrato al prossimo refresh è inconsistente. Ora rileviamo qualsiasi
+      // errore e lo propaghiamo a onError → toast "Errore riordino".
+      const results = await Promise.all(
         updates.map((u) =>
           supabase.from("automation_rules").update({ order_index: u.order_index }).eq("id", u.id),
         ),
       );
+      const firstError = results.find((r) => r.error)?.error;
+      if (firstError) throw firstError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["automation_rules"] });

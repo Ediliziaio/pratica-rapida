@@ -268,6 +268,7 @@ export function AppSidebar() {
         items: [
           { title: "Moduli Form", url: "/admin/moduli", icon: FormInput },
           { title: "Integrazioni (Health)", url: "/admin/integrazioni", icon: Activity },
+          { title: "WhatsApp Setup", url: "/admin/whatsapp-config", icon: MessageCircle },
         ],
       });
     }

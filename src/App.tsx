@@ -58,6 +58,7 @@ const ImpostazioniCampi = lazy(() => import("./pages/admin/ImpostazioniCampi"));
 const PromoManager = lazy(() => import("./pages/admin/PromoManager"));
 const AdminNews = lazy(() => import("./pages/AdminNews"));
 const Integrazioni = lazy(() => import("./pages/admin/Integrazioni"));
+const WhatsappConfig = lazy(() => import("./pages/admin/WhatsappConfig"));
 const ClientiAdmin = lazy(() => import("./pages/admin/ClientiAdmin"));
 const ClienteDettaglio = lazy(() => import("./pages/admin/ClienteDettaglio"));
 const EmailTemplates = lazy(() => import("./pages/admin/EmailTemplates"));
@@ -323,6 +324,7 @@ const App = () => (
                 <Route path="/admin/email" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><EmailTemplates /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/whatsapp" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><WhatsappPanel /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/integrazioni" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><Integrazioni /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/whatsapp-config" element={<ProtectedRoute><RoleGuard allowed={["super_admin"]}><WhatsappConfig /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/calendario-eventi" element={<Navigate to="/admin/calendario" replace />} />
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

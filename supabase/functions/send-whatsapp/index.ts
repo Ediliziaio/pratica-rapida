@@ -25,6 +25,48 @@ function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
 }
 
+/**
+ * Chiama Meta Graph API con retry esponenziale su errori transient.
+ * Meta documenta 429 (rate limit) + 5xx come retry-safe. 4xx (es. token
+ * invalid, recipient invalid) non sono retry-safe — fallisce subito.
+ *
+ * Backoff: 500ms, 1500ms, 3500ms (max 5.5s totali, ben sotto i 60s di
+ * timeout edge function).
+ */
+async function callMetaWithRetry(
+  url: string,
+  init: RequestInit,
+  maxRetries = 3,
+): Promise<{ response: Response; result: Record<string, unknown>; attempts: number }> {
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, init);
+      const result = (await response.json()) as Record<string, unknown>;
+      // Success
+      if (response.ok) return { response, result, attempts: attempt };
+      // Retry su 429 (rate limit) o 5xx (server transient)
+      const retriable = response.status === 429 || response.status >= 500;
+      if (!retriable || attempt === maxRetries) {
+        return { response, result, attempts: attempt };
+      }
+      // Backoff esponenziale: 500, 1500, 3500 ms
+      const delay = 500 * (2 ** (attempt - 1)) + Math.random() * 200;
+      console.warn(`[send-whatsapp] retry ${attempt}/${maxRetries} after ${Math.round(delay)}ms (status=${response.status})`);
+      await new Promise((r) => setTimeout(r, delay));
+    } catch (err) {
+      // Network error: retry
+      lastError = err;
+      if (attempt === maxRetries) throw err;
+      const delay = 500 * (2 ** (attempt - 1));
+      console.warn(`[send-whatsapp] network retry ${attempt}/${maxRetries} after ${delay}ms:`, err);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  // Unreachable: il loop sopra ritorna o throwa sempre
+  throw lastError ?? new Error("retry loop exhausted");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
@@ -68,7 +110,18 @@ serve(async (req) => {
 
   const phone = normalizePhone(to);
 
-  const response = await fetch(
+  const templatePayload = {
+    messaging_product: "whatsapp",
+    to: phone,
+    type: "template",
+    template: {
+      name: template_name,
+      language: { code: language ?? "it" },
+      components: components ?? [],
+    },
+  };
+
+  const { response, result, attempts } = await callMetaWithRetry(
     `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
     {
       method: "POST",
@@ -76,30 +129,40 @@ serve(async (req) => {
         Authorization: `Bearer ${ACCESS_TOKEN}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        to: phone,
-        type: "template",
-        template: {
-          name: template_name,
-          language: { code: language ?? "it" },
-          components: components ?? [],
-        },
-      }),
-    }
+      body: JSON.stringify(templatePayload),
+    },
   );
 
-  const result = await response.json();
-  const wa_message_id = result.messages?.[0]?.id;
-  const error_message = result.error?.message;
+  const wa_message_id = (result.messages as Array<{ id?: string }> | undefined)?.[0]?.id;
+  const error_message = (result.error as { message?: string } | undefined)?.message;
   const success = !!wa_message_id;
 
+  // Costruisce una preview leggibile del body (per audit/contestazione):
+  // serializza i parameters del primo body component, troncata a 500 char.
+  // whatsapp_logs.body era sempre NULL prima — perdevamo il content esatto.
+  let bodyPreview: string | null = null;
+  try {
+    const comps = (components as Array<{ type: string; parameters?: Array<{ type: string; text?: string }> }> | undefined) ?? [];
+    const bodyComp = comps.find((c) => c.type === "body");
+    if (bodyComp?.parameters) {
+      bodyPreview = `[${template_name}] ` + bodyComp.parameters
+        .map((p) => p.text ?? `<${p.type}>`)
+        .join(" | ")
+        .slice(0, 480);
+    } else {
+      bodyPreview = `[${template_name}]`;
+    }
+  } catch {
+    bodyPreview = `[${template_name}]`;
+  }
+
   if (!success) {
-    await reportError(new Error(`WhatsApp API failed: ${error_message ?? "no message id"}`), {
+    await reportError(new Error(`WhatsApp API failed after ${attempts} attempts: ${error_message ?? "no message id"}`), {
       fn: "send-whatsapp",
       template_name,
       practice_id,
       status: response.status,
+      attempts,
       response: result,
     });
 
@@ -153,14 +216,16 @@ serve(async (req) => {
       channel: "whatsapp",
       direction: "outbound",
       recipient: phone,
-      body_preview: `Template: ${template_name}`,
+      body_preview: bodyPreview ?? `Template: ${template_name}`,
       status: success ? "sent" : "failed",
       wa_message_id: wa_message_id ?? null,
       error_message: error_message ?? null,
     });
   }
 
-  // Log su whatsapp_logs (pannello admin)
+  // Log su whatsapp_logs (pannello admin) — popoliamo `body` con la preview
+  // ricostruita dai parameters così l'audit ha visibilità sul content reale,
+  // non solo sul nome del template.
   await supabase.from("whatsapp_logs").insert({
     client_id: null,
     pratica_id: practice_id ?? null,
@@ -168,6 +233,7 @@ serve(async (req) => {
     phone,
     message_type: "template",
     template_name,
+    body: bodyPreview,
     status: success ? "sent" : "failed",
     wa_message_id: wa_message_id ?? null,
   });

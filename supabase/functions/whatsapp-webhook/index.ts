@@ -129,7 +129,7 @@ serve(async (req) => {
     // Incoming messages
     const messages = changes?.messages ?? [];
     for (const msg of messages) {
-      const from = msg.from;
+      const from = msg.from; // Meta invia "393331234567" (E.164 senza +)
       const text = msg.text?.body ?? "";
 
       // STOP opt-out
@@ -139,12 +139,34 @@ serve(async (req) => {
         continue;
       }
 
-      // Find practice by phone
-      const { data: practice } = await supabase
-        .from("enea_practices")
-        .select("id")
-        .eq("cliente_telefono", `+${from}`)
-        .maybeSingle();
+      // Find practice by phone — il vecchio codice cercava match esatto su
+      // `+${from}` ma il DB può avere "+39 333 123 4567", "0039333...",
+      // "333 123 4567" (senza prefisso), ecc. → match silenziosamente
+      // fallito → messaggio inbound non collegato alla pratica.
+      //
+      // Strategia: normalizzo il numero in DB ai soli digit e confronto
+      // sugli ultimi 10 (numero italiano senza prefisso 39). Uso ilike con
+      // wildcard sui digit per matchare formati eterogenei.
+      const digits = from.replace(/\D/g, "");
+      const last10 = digits.slice(-10); // "3331234567" — copre IT senza prefisso
+      let practice: { id: string } | null = null;
+      if (last10.length === 10) {
+        // Match formati: "333 123 4567", "+39 333 123 4567", "0039 333...",
+        // "333-123-4567", "3331234567". Inseriamo wildcard tra i digit.
+        const pattern = `%${last10.slice(0, 3)}%${last10.slice(3, 6)}%${last10.slice(6)}%`;
+        const { data: matches } = await supabase
+          .from("enea_practices")
+          .select("id")
+          .ilike("cliente_telefono", pattern)
+          .limit(2);
+        if (matches && matches.length === 1) {
+          practice = matches[0];
+        } else if (matches && matches.length > 1) {
+          // Più match possibili (numero ambiguo): logghiamo per diagnosi
+          // ma non collegamo per evitare di attribuire al cliente sbagliato.
+          console.warn(`[whatsapp-webhook] ambiguous phone ${from} → ${matches.length} matches, skipping link`);
+        }
+      }
 
       if (practice) {
         await supabase.from("communication_log").insert({
@@ -156,6 +178,10 @@ serve(async (req) => {
           status: "read",
           wa_message_id: msg.id,
         });
+      } else {
+        // Inbound non collegato — log per diagnosi (es. numero non in DB,
+        // o cliente che scrive da numero diverso da quello salvato).
+        console.warn(`[whatsapp-webhook] inbound from ${from} not linked to any practice`);
       }
     }
 

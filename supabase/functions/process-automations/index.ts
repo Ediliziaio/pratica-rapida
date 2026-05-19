@@ -31,7 +31,20 @@ function buildFormLink(token: string): string {
   return `https://app.praticarapida.it/form/${token}`;
 }
 
-async function invoke(supabase: ReturnType<typeof createClient>, fnName: string, body: unknown) {
+/**
+ * Invoca una edge function interna. Controlla che la risposta sia 2xx,
+ * altrimenti throw — così il chiamante può decidere se ritentare o
+ * lasciare la pratica "non claimed" per il prossimo cron tick.
+ *
+ * Prima del fix: questa funzione faceva fire-and-forget — un 4xx/5xx
+ * dell'edge function veniva ignorato e il flow continuava marcando
+ * `ultimo_sollecito_*` come se fosse partito (perdita di sollecito).
+ */
+async function invoke(
+  supabase: ReturnType<typeof createClient>,
+  fnName: string,
+  body: unknown,
+): Promise<Record<string, unknown>> {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/${fnName}`, {
     method: "POST",
     headers: {
@@ -40,7 +53,16 @@ async function invoke(supabase: ReturnType<typeof createClient>, fnName: string,
     },
     body: JSON.stringify(body),
   });
-  return res.json();
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(`invoke ${fnName} failed: HTTP ${res.status} — ${JSON.stringify(json)}`);
+  }
+  // Anche con 2xx, l'edge function può ritornare { success: false } nel body
+  // (es. send-whatsapp con token scaduto risponde 200 + success:false).
+  if (json && typeof json === "object" && "success" in json && json.success === false) {
+    throw new Error(`invoke ${fnName} returned success:false — ${JSON.stringify(json)}`);
+  }
+  return json as Record<string, unknown>;
 }
 
 serve(async () => {
@@ -87,36 +109,54 @@ serve(async () => {
             .or(`ultimo_sollecito_privato.is.null,ultimo_sollecito_privato.lt.${sevenDaysAgo}`);
 
           for (const p of practices ?? []) {
-            if (rule.channel === "email" && p.cliente_email) {
-              await invoke(supabase, "send-email", {
-                to: p.cliente_email,
-                template: "sollecito_privato",
-                data: {
-                  nome: p.cliente_nome,
-                  link: buildFormLink(p.form_token),
+            // Per-practice try/catch: se un invio fallisce vogliamo loggare
+            // e continuare con le altre, non bloccare l'intero loop. La
+            // pratica fallita verrà riprovata al prossimo cron tick perché
+            // `ultimo_sollecito_privato` non viene aggiornato.
+            try {
+              if (rule.channel === "email" && p.cliente_email) {
+                await invoke(supabase, "send-email", {
+                  to: p.cliente_email,
+                  template: "sollecito_privato",
+                  data: {
+                    nome: p.cliente_nome,
+                    link: buildFormLink(p.form_token),
+                    practice_id: p.id,
+                  },
+                });
+              }
+              if (rule.channel === "whatsapp" && p.cliente_telefono) {
+                await invoke(supabase, "send-whatsapp", {
+                  to: normalizePhone(p.cliente_telefono),
+                  template_name: "sollecito_compilazione",
+                  components: [{
+                    type: "body",
+                    parameters: [
+                      { type: "text", text: p.cliente_nome },
+                      { type: "text", text: buildFormLink(p.form_token) },
+                      { type: "text", text: "30 giorni" },
+                    ],
+                  }],
                   practice_id: p.id,
-                },
-              });
-            }
-            if (rule.channel === "whatsapp" && p.cliente_telefono) {
-              await invoke(supabase, "send-whatsapp", {
-                to: normalizePhone(p.cliente_telefono),
-                template_name: "sollecito_compilazione",
-                components: [{
-                  type: "body",
-                  parameters: [
-                    { type: "text", text: p.cliente_nome },
-                    { type: "text", text: buildFormLink(p.form_token) },
-                    { type: "text", text: "30 giorni" },
-                  ],
-                }],
+                });
+              }
+              // Solo se l'invio è andato a buon fine aggiorniamo il marker
+              // di idempotency. Altrimenti la pratica resta "eligible" per
+              // il prossimo cron tick.
+              await supabase.from("enea_practices").update({
+                ultimo_sollecito_privato: new Date().toISOString(),
+                conteggio_solleciti: (p.conteggio_solleciti ?? 0) + 1,
+              }).eq("id", p.id);
+            } catch (sendErr) {
+              console.error(`[days_waiting_7] practice ${p.id} send failed:`, sendErr);
+              await reportError(sendErr, {
+                fn: "process-automations",
+                rule_name: rule.name,
+                trigger_event: rule.trigger_event,
                 practice_id: p.id,
+                channel: rule.channel,
               });
             }
-            await supabase.from("enea_practices").update({
-              ultimo_sollecito_privato: new Date().toISOString(),
-              conteggio_solleciti: (p.conteggio_solleciti ?? 0) + 1,
-            }).eq("id", p.id);
           }
           processed++;
           break;
@@ -140,7 +180,8 @@ serve(async () => {
 
           for (const p of practices ?? []) {
             const resellerEmail = (p.companies as { email?: string })?.email;
-            if (resellerEmail) {
+            if (!resellerEmail) continue;
+            try {
               await invoke(supabase, "send-email", {
                 to: resellerEmail,
                 template: "sollecito_fornitore",
@@ -158,6 +199,14 @@ serve(async () => {
                 .from("enea_practices")
                 .update({ ultimo_sollecito_fornitore: new Date().toISOString() })
                 .eq("id", p.id);
+            } catch (sendErr) {
+              console.error(`[days_waiting_fornitore_${days}] practice ${p.id} failed:`, sendErr);
+              await reportError(sendErr, {
+                fn: "process-automations",
+                rule_name: rule.name,
+                trigger_event: rule.trigger_event,
+                practice_id: p.id,
+              });
             }
           }
           processed++;
@@ -173,37 +222,50 @@ serve(async () => {
             .lt("recensione_richiesta_at", sevenDaysAgo);
 
           for (const p of practices ?? []) {
-            // Skip if we already sent a review follow-up (prevents re-sending every cron tick)
-            const { data: alreadySent } = await supabase
-              .from("communication_log")
-              .select("id")
-              .eq("practice_id", p.id)
-              .in("channel", ["email", "whatsapp"])
-              .or("subject.ilike.%recensione%,body_preview.ilike.%sollecito_recensione%")
-              .limit(1)
-              .maybeSingle();
-            if (alreadySent) continue;
+            try {
+              // Skip if we already sent a review follow-up (prevents re-sending every cron tick).
+              // NB: matchamo solo entry con status='sent' — se l'ultimo tentativo è
+              // failed vogliamo riprovare al prossimo tick.
+              const { data: alreadySent } = await supabase
+                .from("communication_log")
+                .select("id")
+                .eq("practice_id", p.id)
+                .in("channel", ["email", "whatsapp"])
+                .eq("status", "sent")
+                .or("subject.ilike.%recensione%,body_preview.ilike.%sollecito_recensione%")
+                .limit(1)
+                .maybeSingle();
+              if (alreadySent) continue;
 
-            if (p.cliente_email) {
-              await invoke(supabase, "send-email", {
-                to: p.cliente_email,
-                template: "recensione",
-                data: {
-                  nome: p.cliente_nome,
-                  token: p.form_token,
-                  base_url: "https://app.praticarapida.it",
+              if (p.cliente_email) {
+                await invoke(supabase, "send-email", {
+                  to: p.cliente_email,
+                  template: "recensione",
+                  data: {
+                    nome: p.cliente_nome,
+                    token: p.form_token,
+                    base_url: "https://app.praticarapida.it",
+                    practice_id: p.id,
+                  },
+                });
+              }
+              if (p.cliente_telefono) {
+                await invoke(supabase, "send-whatsapp", {
+                  to: normalizePhone(p.cliente_telefono),
+                  template_name: "sollecito_recensione",
+                  components: [{
+                    type: "body",
+                    parameters: [{ type: "text", text: p.cliente_nome }],
+                  }],
                   practice_id: p.id,
-                },
-              });
-            }
-            if (p.cliente_telefono) {
-              await invoke(supabase, "send-whatsapp", {
-                to: normalizePhone(p.cliente_telefono),
-                template_name: "sollecito_recensione",
-                components: [{
-                  type: "body",
-                  parameters: [{ type: "text", text: p.cliente_nome }],
-                }],
+                });
+              }
+            } catch (sendErr) {
+              console.error(`[recensione_7d_followup] practice ${p.id} failed:`, sendErr);
+              await reportError(sendErr, {
+                fn: "process-automations",
+                rule_name: rule.name,
+                trigger_event: rule.trigger_event,
                 practice_id: p.id,
               });
             }

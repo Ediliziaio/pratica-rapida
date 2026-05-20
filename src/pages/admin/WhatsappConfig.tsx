@@ -1264,6 +1264,9 @@ function EditTemplateDialog({ template, onClose }: { template: WhatsappTemplate;
 function TestSendDialog({ template, onClose }: { template: WhatsappTemplate; onClose: () => void }) {
   const [phone, setPhone] = useState("");
   const [params, setParams] = useState<string>("");
+  // Salviamo l'INTERA response edge function per mostrare debug payload + meta_response
+  // direttamente nel dialog, senza richiedere all'utente di aprire la console.
+  const [lastResponse, setLastResponse] = useState<Record<string, unknown> | null>(null);
 
   const sendMutation = useMutation({
     mutationFn: async () => {
@@ -1284,6 +1287,10 @@ function TestSendDialog({ template, onClose }: { template: WhatsappTemplate; onC
         },
       });
       if (error) throw error;
+      // Salviamo la response COMPLETA, sia success sia failure. Il dialog
+      // mostrerà il banner debug indipendentemente dall'esito così l'utente
+      // vede ESATTAMENTE: phone normalizzato, payload, response Meta verbatim.
+      setLastResponse(data as Record<string, unknown>);
       const result = data as { success?: boolean; error?: string; wa_message_id?: string };
       if (!result.success) {
         throw new Error(result.error ?? "Invio fallito");
@@ -1292,10 +1299,11 @@ function TestSendDialog({ template, onClose }: { template: WhatsappTemplate; onC
     },
     onSuccess: (res) => {
       toast({
-        title: "Messaggio inviato",
+        title: "Messaggio inviato ✅",
         description: res.wa_message_id ? `Meta ID: ${res.wa_message_id}` : undefined,
       });
-      onClose();
+      // NON chiudiamo il dialog su success: l'utente può voler vedere comunque
+      // il debug per audit. Si chiude solo manualmente o cliccando "Chiudi".
     },
     onError: (err: Error) => {
       toast({ variant: "destructive", title: "Invio fallito", description: err.message });
@@ -1348,13 +1356,75 @@ function TestSendDialog({ template, onClose }: { template: WhatsappTemplate; onC
             <p className="font-medium mb-1">Preview body:</p>
             <pre className="whitespace-pre-wrap break-words text-[11px]">{template.body_text}</pre>
           </div>
+
+          {/* Banner debug — mostra dettagli completi della response edge
+              function. Visibile sia su success sia su failure così l'utente
+              ha sempre evidenza di cosa è stato inviato e cosa Meta ha
+              risposto. Risolve il problema "il toast dice solo Invio fallito
+              ma non so perché". */}
+          {lastResponse && (() => {
+            const dbg = (lastResponse as { debug?: Record<string, unknown> }).debug ?? {};
+            const meta = (lastResponse as { meta_response?: { error?: { code?: number; message?: string; error_subcode?: number; error_data?: { details?: string } }; messages?: Array<{ id?: string }> } }).meta_response;
+            const payload = (lastResponse as { meta_request_payload?: Record<string, unknown> }).meta_request_payload;
+            const success = (lastResponse as { success?: boolean }).success === true;
+            return (
+              <div className={`rounded-md border-2 p-3 text-[11px] space-y-1.5 ${success ? "border-emerald-300 bg-emerald-50" : "border-red-300 bg-red-50"}`}>
+                <div className={`font-bold ${success ? "text-emerald-900" : "text-red-900"}`}>
+                  {success ? "✅ Inviato (debug)" : "🔍 Dettagli errore"}
+                </div>
+                <div className="grid grid-cols-[140px_1fr] gap-1 font-mono">
+                  <span className="opacity-70">phone in input:</span>
+                  <span className="font-semibold">{String(dbg.phone_received ?? "—")}</span>
+                  <span className="opacity-70">phone → Meta:</span>
+                  <span className={`font-semibold ${String(dbg.phone_sent_to_meta ?? "").startsWith("39") ? "text-emerald-700" : "text-red-900"}`}>
+                    {String(dbg.phone_sent_to_meta ?? "—")}
+                    {!String(dbg.phone_sent_to_meta ?? "").startsWith("39") && dbg.phone_sent_to_meta && " ⚠️ manca 39"}
+                  </span>
+                  <span className="opacity-70">phone_number_id:</span>
+                  <span>{String(dbg.phone_number_id ?? "—")}</span>
+                  <span className="opacity-70">template:</span>
+                  <span>{String(dbg.template_name_sent ?? "—")}</span>
+                  {!success && (
+                    <>
+                      <span className="opacity-70">Meta code:</span>
+                      <span className="font-bold">#{meta?.error?.code ?? "—"} (sub: {meta?.error?.error_subcode ?? "—"})</span>
+                      <span className="opacity-70">Meta msg:</span>
+                      <span>{meta?.error?.message ?? "—"}</span>
+                      {meta?.error?.error_data?.details && (
+                        <>
+                          <span className="opacity-70">Meta details:</span>
+                          <span>{meta.error.error_data.details}</span>
+                        </>
+                      )}
+                    </>
+                  )}
+                  {success && meta?.messages?.[0]?.id && (
+                    <>
+                      <span className="opacity-70">wa_message_id:</span>
+                      <span className="font-bold">{meta.messages[0].id}</span>
+                    </>
+                  )}
+                </div>
+                <details className="mt-2">
+                  <summary className="cursor-pointer opacity-70 font-semibold">Payload + response Meta (raw JSON)</summary>
+                  <pre className="mt-2 p-2 bg-white rounded overflow-x-auto text-[10px] max-h-60">
+{`REQUEST a Meta:
+${JSON.stringify(payload, null, 2)}
+
+RESPONSE da Meta:
+${JSON.stringify(meta, null, 2)}`}
+                  </pre>
+                </details>
+              </div>
+            );
+          })()}
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Annulla</Button>
+          <Button variant="outline" onClick={onClose}>{lastResponse ? "Chiudi" : "Annulla"}</Button>
           <Button onClick={() => sendMutation.mutate()} disabled={sendMutation.isPending || !phone}>
             {sendMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-            Invia
+            {lastResponse ? "Reinvia" : "Invia"}
           </Button>
         </DialogFooter>
       </DialogContent>

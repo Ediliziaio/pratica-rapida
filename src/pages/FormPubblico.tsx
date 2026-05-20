@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, Loader2, Send, Briefcase, LayoutDashboard } from "lucide-react";
 
@@ -257,17 +257,49 @@ export default function FormPubblico() {
   const stepErrors = useDynamic ? dynamicErrors : hardcodedErrors;
   const canProceed = Object.keys(stepErrors).length === 0;
 
-  // ── Autosave bozza ──────────────────────────────────────────────────────────
-  const saveDraft = async (payload: Record<string, unknown>) => {
-    if (!token) return;
+  // ── Navigation lock: previene click doppio durante saveDraft async ─────────
+  // Prima del fix: se la rete era lenta, l'utente poteva cliccare "Avanti" 2
+  // volte → 2 RPC saveDraft in parallelo → race condition + bozza duplicata.
+  // Ora: useRef perché non triggera re-render (più reattivo del setState).
+  const [navigating, setNavigating] = useState(false);
+  const inFlightSaveRef = useRef<Promise<void> | null>(null);
+
+  // ── Autosave bozza con feedback errore ──────────────────────────────────────
+  // Prima del fix: errore loggato solo in console → utente perdeva i dati
+  // senza saperlo. Ora: toast destructive con istruzione "riprova".
+  // Serializzato: se c'è già un save in volo, aspetta che finisca prima di
+  // partirne un altro (evita race condition).
+  const saveDraft = async (payload: Record<string, unknown>): Promise<boolean> => {
+    if (!token) return true;
+    if (inFlightSaveRef.current) {
+      // Aspetta che il save precedente termini prima di partire col nuovo
+      await inFlightSaveRef.current;
+    }
+    const promise = (async () => {
+      try {
+        const { error } = await supabase.rpc("save_form_draft_by_token", {
+          p_token: token,
+          p_dati_form: payload,
+        });
+        if (error) throw error;
+      } catch (err) {
+        console.error("save_form_draft_by_token failed:", err);
+        toast({
+          variant: "destructive",
+          title: "Salvataggio bozza fallito",
+          description: "Le risposte sono salvate localmente, ma non sul server. Verifica la connessione e riprova.",
+        });
+        throw err;
+      }
+    })();
+    inFlightSaveRef.current = promise;
     try {
-      await supabase.rpc("save_form_draft_by_token", {
-        p_token: token,
-        p_dati_form: payload,
-      });
-    } catch (err) {
-      // Non bloccare il flusso: la bozza è un nice-to-have.
-      console.error("save_form_draft_by_token failed:", err);
+      await promise;
+      return true;
+    } catch {
+      return false;
+    } finally {
+      inFlightSaveRef.current = null;
     }
   };
 
@@ -285,28 +317,70 @@ export default function FormPubblico() {
     // comportamento esistente: salviamo a Avanti/Indietro.
   };
 
+  // ── Helper: scroll smooth + focus primo campo con errore ───────────────────
+  // Quando l'utente preme "Avanti" ma ci sono errori validazione, scrolliamo
+  // al primo campo invalido e mostriamo toast informativo. Senza questo, su
+  // mobile l'errore poteva essere fuori viewport (utente bloccato senza
+  // capire perché il bottone è disabled).
+  const scrollToFirstError = (errors: Record<string, string>) => {
+    const firstKey = Object.keys(errors)[0];
+    if (!firstKey) return;
+    // Cerca per id, name, o data-field
+    const el = document.getElementById(firstKey)
+      || document.querySelector(`[name="${firstKey}"]`)
+      || document.querySelector(`[data-field="${firstKey}"]`);
+    if (el && el instanceof HTMLElement) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Focus dopo l'animazione di scroll
+      setTimeout(() => {
+        if (typeof el.focus === "function") el.focus();
+      }, 400);
+    }
+  };
+
   // ── Navigation ──────────────────────────────────────────────────────────────
   const goNext = async () => {
-    if (!canProceed) return;
-    if (useDynamic) {
-      await saveDraft(dynamicData);
-    } else {
-      await saveDraft(formData as unknown as Record<string, unknown>);
+    if (navigating) return; // Mutex: previene click doppio
+    if (!canProceed) {
+      scrollToFirstError(stepErrors);
+      toast({
+        variant: "destructive",
+        title: "Compila i campi evidenziati",
+        description: "Alcuni campi obbligatori non sono validi.",
+      });
+      return;
     }
-    setStepIndex((i) => Math.min(i + 1, totalSteps - 1));
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+    setNavigating(true);
+    try {
+      const ok = await saveDraft(
+        useDynamic ? dynamicData : (formData as unknown as Record<string, unknown>),
+      );
+      // Procediamo anche se il save fallisce — il toast è già stato mostrato.
+      // L'utente può sempre tornare indietro e riprovare. Lo stato locale è
+      // preservato.
+      void ok; // (variabile esistenziale per documentazione)
+      setStepIndex((i) => Math.min(i + 1, totalSteps - 1));
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    } finally {
+      setNavigating(false);
+    }
   };
 
   const goBack = async () => {
+    if (navigating) return;
     if (safeStepIndex === 0) return;
-    // Salviamo anche al "Indietro" come da specifica
-    if (useDynamic) {
-      await saveDraft(dynamicData);
-    } else {
-      await saveDraft(formData as unknown as Record<string, unknown>);
+    setNavigating(true);
+    try {
+      await saveDraft(useDynamic ? dynamicData : (formData as unknown as Record<string, unknown>));
+      setStepIndex((i) => Math.max(i - 1, 0));
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    } finally {
+      setNavigating(false);
     }
-    setStepIndex((i) => Math.max(i - 1, 0));
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // ── Submit finale ───────────────────────────────────────────────────────────
@@ -583,15 +657,24 @@ export default function FormPubblico() {
           )}
         </div>
 
-        {/* Navigation */}
-        <div className="flex justify-between gap-3">
+        {/* Navigation — sticky in basso su mobile per non essere coperta da
+            keyboard/safe-area. Su desktop resta in linea col contenuto.
+            pb safe-area-inset-bottom per iPhone/notch. */}
+        <div
+          className="sticky bottom-0 -mx-4 sm:mx-0 sm:static z-10 bg-white/95 backdrop-blur sm:bg-transparent border-t sm:border-t-0 px-4 sm:px-0 py-3 sm:py-0 flex justify-between gap-3"
+          style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+        >
           <Button
             type="button"
             variant="outline"
             onClick={goBack}
-            disabled={isFirst || submitting}
+            disabled={isFirst || submitting || navigating}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            {navigating && !isLast ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <ArrowLeft className="h-4 w-4 mr-2" />
+            )}
             Indietro
           </Button>
 
@@ -599,7 +682,7 @@ export default function FormPubblico() {
             <Button
               type="button"
               onClick={handleSubmit}
-              disabled={!canProceed || submitting || uploading}
+              disabled={submitting || uploading || navigating}
             >
               {submitting ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -612,10 +695,19 @@ export default function FormPubblico() {
             <Button
               type="button"
               onClick={goNext}
-              disabled={!canProceed || submitting || uploading}
+              disabled={submitting || uploading || navigating}
             >
-              Avanti
-              <ArrowRight className="h-4 w-4 ml-2" />
+              {navigating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Salvataggio…
+                </>
+              ) : (
+                <>
+                  Avanti
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </>
+              )}
             </Button>
           )}
         </div>

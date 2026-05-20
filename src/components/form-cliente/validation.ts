@@ -3,13 +3,19 @@
 // Lo step "Avanti" è disabilitato finché Object.keys(errors).length > 0.
 
 import {
-  CF_RE,
   EMAIL_RE,
   FormClienteData,
   isValidPhone,
   ProdottoTipo,
   StepId,
 } from "@/types/form-cliente";
+import {
+  isValidCodiceFiscale,
+  isValidAnnoCostruzione,
+  isValidDataNascita,
+  isPositiveNumber,
+  isPositiveInteger,
+} from "./validation-utils";
 
 export type ErrorMap = Record<string, string>;
 
@@ -20,11 +26,15 @@ export function validateRichiedente(d: FormClienteData): ErrorMap {
   if (!r.cognome.trim()) e["richiedente.cognome"] = "Cognome obbligatorio";
   if (!r.comune_nascita.trim()) e["richiedente.comune_nascita"] = "Comune di nascita obbligatorio";
   if (!r.provincia_nascita.trim()) e["richiedente.provincia_nascita"] = "Provincia obbligatoria";
-  if (!r.data_nascita) e["richiedente.data_nascita"] = "Data di nascita obbligatoria";
+  if (!r.data_nascita) {
+    e["richiedente.data_nascita"] = "Data di nascita obbligatoria";
+  } else if (!isValidDataNascita(r.data_nascita)) {
+    e["richiedente.data_nascita"] = "Data di nascita non valida (non può essere futura)";
+  }
   if (!r.cf.trim()) {
     e["richiedente.cf"] = "Codice fiscale obbligatorio";
-  } else if (!CF_RE.test(r.cf)) {
-    e["richiedente.cf"] = "Codice fiscale non valido (16 caratteri formato italiano)";
+  } else if (!isValidCodiceFiscale(r.cf)) {
+    e["richiedente.cf"] = "Codice fiscale non valido (controlla il carattere di controllo)";
   }
   if (!r.email.trim()) {
     e["richiedente.email"] = "Email obbligatoria";
@@ -76,8 +86,8 @@ export function validateCointestazione(d: FormClienteData): ErrorMap {
     if (!c.cognome.trim()) e["cointestazione.cognome"] = "Cognome cointestatario obbligatorio";
     if (!c.cf.trim()) {
       e["cointestazione.cf"] = "CF cointestatario obbligatorio";
-    } else if (!CF_RE.test(c.cf)) {
-      e["cointestazione.cf"] = "Codice fiscale non valido";
+    } else if (!isValidCodiceFiscale(c.cf)) {
+      e["cointestazione.cf"] = "Codice fiscale non valido (controlla il carattere di controllo)";
     }
   }
   return e;
@@ -95,8 +105,8 @@ export function validateCatastali(d: FormClienteData): ErrorMap {
     if (!c.proprietario_cognome.trim()) e["catastali.proprietario_cognome"] = "Cognome proprietario obbligatorio";
     if (!c.proprietario_cf.trim()) {
       e["catastali.proprietario_cf"] = "CF proprietario obbligatorio";
-    } else if (!CF_RE.test(c.proprietario_cf)) {
-      e["catastali.proprietario_cf"] = "Codice fiscale non valido";
+    } else if (!isValidCodiceFiscale(c.proprietario_cf)) {
+      e["catastali.proprietario_cf"] = "Codice fiscale non valido (controlla il carattere di controllo)";
     }
   }
   return e;
@@ -107,21 +117,18 @@ export function validateEdificio(d: FormClienteData): ErrorMap {
   const ed = d.edificio;
   if (!ed.anno_costruzione.trim()) {
     e["edificio.anno_costruzione"] = "Anno di costruzione obbligatorio";
-  } else {
-    const n = Number(ed.anno_costruzione);
-    if (!Number.isFinite(n) || n < 1800 || n > 2100) {
-      e["edificio.anno_costruzione"] = "Anno non valido";
-    }
+  } else if (!isValidAnnoCostruzione(ed.anno_costruzione)) {
+    e["edificio.anno_costruzione"] = `Anno non valido (deve essere tra 1800 e ${new Date().getFullYear()})`;
   }
   if (!ed.superficie_mq.trim()) {
     e["edificio.superficie_mq"] = "Superficie obbligatoria";
-  } else if (Number(ed.superficie_mq) <= 0) {
-    e["edificio.superficie_mq"] = "Superficie non valida";
+  } else if (!isPositiveNumber(ed.superficie_mq)) {
+    e["edificio.superficie_mq"] = "Superficie deve essere un numero positivo";
   }
   if (!ed.numero_appartamenti.trim()) {
     e["edificio.numero_appartamenti"] = "Numero appartamenti obbligatorio";
-  } else if (Number(ed.numero_appartamenti) <= 0) {
-    e["edificio.numero_appartamenti"] = "Numero non valido";
+  } else if (!isPositiveInteger(ed.numero_appartamenti)) {
+    e["edificio.numero_appartamenti"] = "Deve essere un numero intero positivo";
   }
   if (!ed.titolo_richiedente) e["edificio.titolo_richiedente"] = "Titolo obbligatorio";
   if (!ed.tipologia) e["edificio.tipologia"] = "Tipologia obbligatoria";

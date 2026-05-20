@@ -682,28 +682,111 @@ async function handleDebugTemplateAccess(): Promise<Record<string, unknown>> {
     diagnosis.test_6_phone_belongs_to_waba = { skipped: "WA_PHONE_NUMBER_ID non settato" };
   }
 
-  // Conclusione automatica — ordine di priorità: messaging > templates > scopes
+  // Test 7: GET /{WABA_ID}/subscribed_apps — verifica se la App che ha
+  // generato il token è iscritta agli eventi del WABA. Senza subscription
+  // l'App può LEGGERE ma non sempre INVIARE messaggi (Meta restituisce
+  // #200 in send anche con token corretto se l'app non è subscribed).
+  // È la causa più subdola di #200 quando tutti gli altri test passano.
+  try {
+    const subRes = await fetch(
+      `https://graph.facebook.com/v18.0/${WABA_ID}/subscribed_apps`,
+      { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } },
+    );
+    const subData = await subRes.json();
+    const subArr = (subData as { data?: Array<{ whatsapp_business_api_data?: { id?: string; name?: string } }> }).data;
+    diagnosis.test_7_app_subscribed = {
+      url: `https://graph.facebook.com/v18.0/${WABA_ID}/subscribed_apps`,
+      status: subRes.status,
+      ok: subRes.ok,
+      apps_count: Array.isArray(subArr) ? subArr.length : 0,
+      apps: subArr?.map((a) => a.whatsapp_business_api_data) ?? subData,
+    };
+  } catch (err) {
+    diagnosis.test_7_app_subscribed = { error: String(err) };
+  }
+
+  // Test 8: POST /{PHONE_NUMBER_ID}/messages con payload INVALIDO ma
+  // ben-formato. Forza Meta a fare il check permessi PRIMA della validazione
+  // del payload. Se torna #200 → permission issue. Se torna #100 (param
+  // validation) → permessi OK ma payload sbagliato. Questo discrimina
+  // permessi vs payload nei send reali falliti.
+  if (PHONE_NUMBER_ID) {
+    try {
+      const dryRes = await fetch(
+        `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${ACCESS_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          // Payload volutamente malformato: numero impossibile + messaging_product mancante.
+          // Meta valida nell'ordine: 1) auth, 2) entity permissions, 3) payload.
+          // Se torna #200 qui → permessi rotti. Se torna altro → permessi OK.
+          body: JSON.stringify({
+            to: "0000000000",
+            type: "text",
+            text: { body: "diagnostic-probe-do-not-send" },
+          }),
+        },
+      );
+      const dryData = await dryRes.json();
+      const errCode = (dryData as { error?: { code?: number; message?: string; error_subcode?: number; error_user_msg?: string } }).error?.code;
+      const errMsg = (dryData as { error?: { message?: string } }).error?.message;
+      diagnosis.test_8_send_permission_probe = {
+        status: dryRes.status,
+        meta_error_code: errCode,
+        meta_error_message: errMsg,
+        meta_error_subcode: (dryData as { error?: { error_subcode?: number } }).error?.error_subcode,
+        // Interpretazione del codice di errore:
+        // - 100 = "Invalid parameter" → permessi OK, è il payload (atteso qui)
+        // - 200 = "Permissions error" → permessi NON OK, è il problema reale
+        // - 131009 / 131030 / 131047 → numero non valido (permessi OK)
+        interpretation:
+          errCode === 200
+            ? "❌ #200 anche con payload dummy → permessi send NON OK"
+            : errCode === 100 || (errCode && errCode >= 131000 && errCode < 132000)
+              ? "✅ permessi send OK (#" + errCode + " è errore di payload/numero, atteso)"
+              : `❓ codice inatteso #${errCode}: ${errMsg}`,
+      };
+    } catch (err) {
+      diagnosis.test_8_send_permission_probe = { error: String(err) };
+    }
+  } else {
+    diagnosis.test_8_send_permission_probe = { skipped: "WA_PHONE_NUMBER_ID non settato" };
+  }
+
+  // Conclusione automatica — ordine di priorità: scope > messaging probe > subscription > read access
   const t3 = diagnosis.test_3_list_templates as { ok?: boolean; response?: { error?: { message?: string; code?: number } } };
   const t4 = diagnosis.test_4_token_scopes as { response?: { scopes?: string[] } };
   const t5 = diagnosis.test_5_phone_number_access as { ok?: boolean; response?: { error?: { message?: string; code?: number } } };
   const t6 = diagnosis.test_6_phone_belongs_to_waba as { ok?: boolean; phone_belongs_to_waba?: boolean };
+  const t7 = diagnosis.test_7_app_subscribed as { ok?: boolean; apps_count?: number };
+  const t8 = diagnosis.test_8_send_permission_probe as { meta_error_code?: number; meta_error_message?: string };
 
   const scopes = t4?.response?.scopes ?? [];
   const hasManagement = scopes.includes("whatsapp_business_management");
   const hasMessaging = scopes.includes("whatsapp_business_messaging");
+  const sendProbeOk = t8?.meta_error_code !== 200 && t8?.meta_error_code !== undefined;
+  const sendProbe200 = t8?.meta_error_code === 200;
 
   if (!hasMessaging && scopes.length > 0) {
     diagnosis.conclusion = "❌ Il token NON ha lo scope `whatsapp_business_messaging` — è questa la causa dell'errore #200 in invio. Rigenera il Permanent Token su Business Manager → System Users assegnando ENTRAMBI i permessi: `whatsapp_business_messaging` E `whatsapp_business_management`.";
   } else if (!hasManagement && scopes.length > 0) {
     diagnosis.conclusion = "❌ Il token NON ha lo scope `whatsapp_business_management` — i template non sono leggibili/scrivibili. Rigenera il Permanent Token con entrambi gli scope.";
+  } else if (sendProbe200) {
+    // Send probe ha confermato #200: dobbiamo capire SE è subscription o policy.
+    if (t7 && t7.ok && (t7.apps_count ?? 0) === 0) {
+      diagnosis.conclusion = "❌ Meta error #200 in invio + NESSUNA app subscribed al WABA. Devi iscrivere l'app: in Meta for Developers → la tua App → WhatsApp → Configuration → 'Webhooks' → clicca 'Subscribe' (oltre a settare l'URL). Senza subscription, l'app può leggere ma non sempre inviare.";
+    } else {
+      diagnosis.conclusion = "❌ Meta error #200 confermato anche con probe dummy. Cause residue: (1) App ancora in 'Development' mode → vai su Meta for Developers → App Settings → App Mode → switch a 'Live' (richiede privacy policy URL); (2) numero destinatario non whitelistato come Recipient se sei in Dev; (3) System User non ha 'Manage WhatsApp Accounts' sul WABA in Business Settings.";
+    }
   } else if (t6 && t6.ok && t6.phone_belongs_to_waba === false) {
     diagnosis.conclusion = "❌ Il `WA_PHONE_NUMBER_ID` NON appartiene al `WA_BUSINESS_ACCOUNT_ID` configurato. Controlla che PHONE_NUMBER_ID e WABA siano coerenti (vai su Business Manager → WhatsApp Accounts → seleziona il WABA → Phone numbers e copia l'ID corretto).";
-  } else if (t5 && !t5.ok && t5.response?.error?.code === 200) {
-    diagnosis.conclusion = "❌ Meta error #200 sul Phone Number → il System User non ha permessi di messaging su questo numero. In Business Settings → System Users → seleziona l'utente → Add Assets → WhatsApp Accounts → seleziona il WABA → spunta 'Manage WhatsApp accounts' E assicurati che la app collegata sia tra le assigned apps.";
   } else if (t5 && !t5.ok) {
     diagnosis.conclusion = `❌ Phone Number non accessibile: ${t5.response?.error?.message ?? JSON.stringify(t5.response)}`;
-  } else if (t3?.ok && t5?.ok) {
-    diagnosis.conclusion = "✅ Token OK su template E su phone number. Se l'invio fallisce ancora, è probabile la 24h window o un template non approvato.";
+  } else if (t3?.ok && t5?.ok && sendProbeOk) {
+    diagnosis.conclusion = `✅ Tutti i test passano (incluso send permission probe — Meta torna #${t8?.meta_error_code} sul payload dummy, che è il comportamento atteso). Se l'invio di un template specifico fallisce ancora, è un problema del singolo template (status REJECTED/PAUSED/IN_APPEAL) o del numero destinatario non opt-in. Controlla i dettagli del template fallito in /admin/whatsapp-config tab Template.`;
   } else if (t3?.response?.error?.message) {
     diagnosis.conclusion = `❌ Meta error su list_templates: ${t3.response.error.message}`;
   } else {

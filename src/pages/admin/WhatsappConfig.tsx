@@ -30,7 +30,7 @@ import { toast } from "@/hooks/use-toast";
 import {
   CheckCircle2, XCircle, AlertTriangle, Copy, RefreshCw, MessageCircle,
   ExternalLink, KeyRound, Webhook, Send, Pencil, Loader2, Plus, Sparkles,
-  Trash2,
+  Trash2, Phone,
 } from "lucide-react";
 
 // ============================================================
@@ -318,6 +318,9 @@ function SetupTab() {
         </CardContent>
       </Card>
 
+      {/* Phone numbers management */}
+      <PhoneNumbersCard />
+
       {/* Link utili */}
       <Card>
         <CardContent className="py-4">
@@ -335,6 +338,283 @@ function SetupTab() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// ============================================================
+// Card: gestione numeri di telefono (lista + verifica OTP)
+// ============================================================
+
+interface PhoneNumber {
+  id: string;
+  display_phone_number: string;
+  verified_name?: string;
+  quality_rating?: string;
+  code_verification_status?: string;
+  name_status?: string;
+}
+
+function PhoneNumbersCard() {
+  const [verifyTarget, setVerifyTarget] = useState<PhoneNumber | null>(null);
+
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["whatsapp-phone-numbers"],
+    queryFn: async (): Promise<{ phone_numbers: PhoneNumber[]; current_phone_id: string }> => {
+      const { data, error } = await supabase.functions.invoke("whatsapp-meta-sync", {
+        body: { action: "list_phone_numbers" },
+      });
+      if (error) throw error;
+      const res = data as { success?: boolean; error?: string; phone_numbers?: PhoneNumber[]; current_phone_id?: string };
+      if (!res.success) throw new Error(res.error ?? "Lista numeri non disponibile");
+      return { phone_numbers: res.phone_numbers ?? [], current_phone_id: res.current_phone_id ?? "" };
+    },
+  });
+
+  return (
+    <>
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Phone className="h-5 w-5" />
+                Numeri di telefono
+              </CardTitle>
+              <CardDescription>
+                Test Number + numeri registrati. Per aggiungere un numero italiano usa Meta Business Manager, poi verifica l'OTP qui.
+              </CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading} className="gap-2">
+              <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
+              Aggiorna
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading && (
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <Loader2 className="h-4 w-4 animate-spin" /> Caricamento…
+            </div>
+          )}
+          {data && data.phone_numbers.length === 0 && (
+            <p className="text-sm text-muted-foreground">Nessun numero trovato.</p>
+          )}
+          {data && data.phone_numbers.length > 0 && (
+            <div className="space-y-2">
+              {data.phone_numbers.map((pn) => {
+                const isCurrent = pn.id === data.current_phone_id;
+                const isVerified = pn.code_verification_status === "VERIFIED";
+                return (
+                  <div key={pn.id} className="border rounded-lg p-3 flex items-start justify-between gap-3 flex-wrap">
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-sm font-semibold">{pn.display_phone_number}</span>
+                        {pn.verified_name && (
+                          <Badge variant="outline" className="text-[10px]">{pn.verified_name}</Badge>
+                        )}
+                        {isCurrent && (
+                          <Badge className="text-[10px] bg-emerald-600">IN USO</Badge>
+                        )}
+                        {pn.quality_rating && (
+                          <Badge variant="outline" className={`text-[10px] ${
+                            pn.quality_rating === "GREEN" ? "border-emerald-500 text-emerald-700" :
+                            pn.quality_rating === "YELLOW" ? "border-amber-500 text-amber-700" :
+                            "border-red-500 text-red-700"
+                          }`}>
+                            Quality: {pn.quality_rating}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                        <code>ID: {pn.id}</code>
+                        {pn.code_verification_status && (
+                          <Badge variant={isVerified ? "outline" : "secondary"} className="text-[10px]">
+                            {isVerified ? "✓ Verificato" : "Da verificare"}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {!isVerified && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setVerifyTarget(pn)}
+                          className="gap-1.5"
+                        >
+                          Verifica OTP
+                        </Button>
+                      )}
+                      {!isCurrent && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(pn.id);
+                            toast({
+                              title: "ID numero copiato",
+                              description: "Aggiorna WA_PHONE_NUMBER_ID nei secrets Supabase con questo valore.",
+                            });
+                          }}
+                          className="gap-1.5"
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                          Copia ID
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="mt-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-xs space-y-1">
+            <p className="font-medium text-blue-900">Come aggiungere un nuovo numero italiano</p>
+            <ol className="list-decimal list-inside text-blue-800 leading-relaxed">
+              <li>Vai su <a href={`https://business.facebook.com/wa/manage/phone-numbers/?waba_id=${data?.current_phone_id ? "" : ""}`} target="_blank" rel="noopener noreferrer" className="underline">Meta Business Manager → Numeri di telefono</a></li>
+              <li>Clicca "Aggiungi numero" → inserisci il numero italiano</li>
+              <li>Conferma con OTP via SMS o chiamata (puoi farlo da qui col bottone "Verifica OTP")</li>
+              <li>Una volta verificato, clicca "Copia ID" e aggiorna <code>WA_PHONE_NUMBER_ID</code> nei secret Supabase</li>
+              <li>Forza un cold start delle edge functions (curl alla function): vedi guida nel tab Setup</li>
+            </ol>
+          </div>
+        </CardContent>
+      </Card>
+
+      {verifyTarget && (
+        <VerifyOtpDialog
+          phoneNumber={verifyTarget}
+          onClose={() => setVerifyTarget(null)}
+        />
+      )}
+    </>
+  );
+}
+
+function VerifyOtpDialog({ phoneNumber, onClose }: { phoneNumber: PhoneNumber; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [step, setStep] = useState<"request" | "verify">("request");
+  const [method, setMethod] = useState<"SMS" | "VOICE">("SMS");
+  const [code, setCode] = useState("");
+
+  const requestMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("whatsapp-meta-sync", {
+        body: {
+          action: "request_phone_verification",
+          phone_number_id: phoneNumber.id,
+          code_method: method,
+          language: "it",
+        },
+      });
+      if (error) throw error;
+      const res = data as { success?: boolean; error?: string };
+      if (!res.success) throw new Error(res.error ?? "Richiesta fallita");
+    },
+    onSuccess: () => {
+      toast({
+        title: `Codice inviato via ${method === "SMS" ? "SMS" : "chiamata"}`,
+        description: "Inserisci il codice ricevuto qui sotto.",
+      });
+      setStep("verify");
+    },
+    onError: (err: Error) => {
+      toast({ variant: "destructive", title: "Errore richiesta", description: err.message });
+    },
+  });
+
+  const verifyMutation = useMutation({
+    mutationFn: async () => {
+      if (!code.trim()) throw new Error("Inserisci il codice");
+      const { data, error } = await supabase.functions.invoke("whatsapp-meta-sync", {
+        body: {
+          action: "verify_phone_otp",
+          phone_number_id: phoneNumber.id,
+          code: code.trim(),
+        },
+      });
+      if (error) throw error;
+      const res = data as { success?: boolean; error?: string };
+      if (!res.success) throw new Error(res.error ?? "Verifica fallita");
+    },
+    onSuccess: () => {
+      toast({
+        title: "Numero verificato",
+        description: `${phoneNumber.display_phone_number} è ora attivo. Aggiorna WA_PHONE_NUMBER_ID per usarlo.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-phone-numbers"] });
+      onClose();
+    },
+    onError: (err: Error) => {
+      toast({ variant: "destructive", title: "Codice non valido", description: err.message });
+    },
+  });
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Verifica numero</DialogTitle>
+          <DialogDescription>
+            <code>{phoneNumber.display_phone_number}</code>
+          </DialogDescription>
+        </DialogHeader>
+
+        {step === "request" ? (
+          <div className="space-y-4 py-2">
+            <p className="text-sm">Come vuoi ricevere il codice?</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant={method === "SMS" ? "default" : "outline"}
+                onClick={() => setMethod("SMS")}
+                className="gap-2"
+              >
+                SMS
+              </Button>
+              <Button
+                variant={method === "VOICE" ? "default" : "outline"}
+                onClick={() => setMethod("VOICE")}
+                className="gap-2"
+              >
+                Chiamata vocale
+              </Button>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={onClose}>Annulla</Button>
+              <Button onClick={() => requestMutation.mutate()} disabled={requestMutation.isPending} className="gap-2">
+                {requestMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                Invia codice
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : (
+          <div className="space-y-4 py-2">
+            <div>
+              <Label htmlFor="otp_code">Codice ricevuto</Label>
+              <Input
+                id="otp_code"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="123456"
+                className="font-mono text-lg text-center tracking-widest"
+                maxLength={6}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Codice a 6 cifre ricevuto via {method === "SMS" ? "SMS" : "chiamata"}.
+              </p>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setStep("request")}>Indietro</Button>
+              <Button onClick={() => verifyMutation.mutate()} disabled={code.length !== 6 || verifyMutation.isPending} className="gap-2">
+                {verifyMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                Verifica
+              </Button>
+            </DialogFooter>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 

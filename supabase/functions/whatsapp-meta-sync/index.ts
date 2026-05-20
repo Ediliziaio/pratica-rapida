@@ -497,6 +497,96 @@ async function handleDeleteTemplate(
 }
 
 /**
+ * Action "list_phone_numbers": ritorna i numeri di telefono associati al
+ * WABA. Permette all'admin di vedere Test Number + numeri di produzione
+ * registrati, con quality rating e verification status.
+ */
+async function handleListPhoneNumbers(): Promise<Record<string, unknown>> {
+  const WABA_ID = Deno.env.get("WA_BUSINESS_ACCOUNT_ID");
+  const ACCESS_TOKEN = Deno.env.get("WA_ACCESS_TOKEN");
+  if (!WABA_ID || !ACCESS_TOKEN) return { success: false, error: "Secrets mancanti" };
+
+  const res = await fetch(
+    `https://graph.facebook.com/v18.0/${WABA_ID}/phone_numbers?fields=id,display_phone_number,verified_name,quality_rating,code_verification_status,name_status,is_pin_enabled`,
+    { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } },
+  );
+  const data = await res.json();
+  if (!res.ok) return { success: false, error: data?.error?.message ?? `HTTP ${res.status}` };
+
+  return {
+    success: true,
+    phone_numbers: data.data ?? [],
+    current_phone_id: Deno.env.get("WA_PHONE_NUMBER_ID"),
+  };
+}
+
+/**
+ * Action "request_phone_verification": invia un OTP via SMS o voice al
+ * numero per la verifica iniziale (necessaria prima dell'attivazione su
+ * WhatsApp Business). Richiede che il numero sia già stato aggiunto al
+ * WABA da Meta Business Manager (non possiamo aggiungerlo via API:
+ * richiede UI Meta).
+ *
+ * Payload: { phone_number_id, code_method: "SMS" | "VOICE", language: "it" }
+ */
+async function handleRequestPhoneVerification(
+  payload: { phone_number_id?: string; code_method?: string; language?: string },
+): Promise<Record<string, unknown>> {
+  const ACCESS_TOKEN = Deno.env.get("WA_ACCESS_TOKEN");
+  if (!ACCESS_TOKEN) return { success: false, error: "WA_ACCESS_TOKEN non configurato" };
+  if (!payload.phone_number_id) return { success: false, error: "Manca phone_number_id" };
+
+  const res = await fetch(
+    `https://graph.facebook.com/v18.0/${payload.phone_number_id}/request_code`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        code_method: payload.code_method ?? "SMS",
+        language: payload.language ?? "it",
+      }),
+    },
+  );
+  const data = await res.json();
+  if (!res.ok) return { success: false, error: data?.error?.message ?? `HTTP ${res.status}` };
+
+  return { success: true, ...data };
+}
+
+/**
+ * Action "verify_phone_otp": verifica il codice OTP ricevuto dal numero
+ * (registra il numero su WhatsApp Business e lo rende usabile).
+ *
+ * Payload: { phone_number_id, code: "123456" }
+ */
+async function handleVerifyPhoneOtp(
+  payload: { phone_number_id?: string; code?: string },
+): Promise<Record<string, unknown>> {
+  const ACCESS_TOKEN = Deno.env.get("WA_ACCESS_TOKEN");
+  if (!ACCESS_TOKEN) return { success: false, error: "WA_ACCESS_TOKEN non configurato" };
+  if (!payload.phone_number_id || !payload.code) return { success: false, error: "Mancano phone_number_id o code" };
+
+  const res = await fetch(
+    `https://graph.facebook.com/v18.0/${payload.phone_number_id}/verify_code`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ code: payload.code }),
+    },
+  );
+  const data = await res.json();
+  if (!res.ok) return { success: false, error: data?.error?.message ?? `HTTP ${res.status}` };
+
+  return { success: true, ...data };
+}
+
+/**
  * Action "test_send": invia un template via la edge function send-whatsapp.
  * Sicuro per il super_admin (verificato sopra) — riusa il flow standard.
  */
@@ -550,6 +640,12 @@ serve(async (req) => {
         return json(await handleSeedDefaultTemplates(supabase));
       case "delete_template":
         return json(await handleDeleteTemplate(supabase, payload as { name?: string; language?: string }));
+      case "list_phone_numbers":
+        return json(await handleListPhoneNumbers());
+      case "request_phone_verification":
+        return json(await handleRequestPhoneVerification(payload as { phone_number_id?: string; code_method?: string; language?: string }));
+      case "verify_phone_otp":
+        return json(await handleVerifyPhoneOtp(payload as { phone_number_id?: string; code?: string }));
       case "test_send":
         return json(await handleTestSend(payload as { to?: string; template_name?: string; language?: string; components?: unknown }));
       default:

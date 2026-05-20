@@ -803,6 +803,90 @@ async function handleDebugTemplateAccess(): Promise<Record<string, unknown>> {
     diagnosis.test_9_failing_template_exists = { error: String(err) };
   }
 
+  // Test 10: GET /{WABA_ID}?fields=owner_business_info,account_review_status,
+  //                                business_verification_status,messaging_limit_tier,
+  //                                primary_funding_id,name,timezone_id
+  // Mostra lo stato del Business Verification (causa NON OVVIA di #200:
+  // se Business non verificato, anche con App Live + token full perms,
+  // Meta blocca send a numeri non test). Mostra anche messaging_limit_tier
+  // (TIER_NOT_SET = problema, TIER_50/250/1K/10K/100K/UNLIMITED = OK).
+  try {
+    const wabaDetailsRes = await fetch(
+      `https://graph.facebook.com/v18.0/${WABA_ID}?fields=owner_business_info,account_review_status,business_verification_status,messaging_limit_tier,name,timezone_id`,
+      { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } },
+    );
+    const wabaDetails = await wabaDetailsRes.json();
+    diagnosis.test_10_waba_status = {
+      status: wabaDetailsRes.status,
+      ok: wabaDetailsRes.ok,
+      response: wabaDetails,
+      // Interpretazione campi chiave:
+      // - account_review_status: APPROVED / PENDING / REJECTED
+      //   PENDING/REJECTED → Meta blocca send con #200 anche con permessi OK
+      // - business_verification_status: verified / unverified / pending
+      //   unverified + App Live → può inviare solo a recipients limitati,
+      //   tutti gli altri tornano #200
+      // - messaging_limit_tier: TIER_50 / TIER_250 / etc.
+      //   TIER_NOT_SET o tier basso superato → #200
+      interpretation: (() => {
+        const d = wabaDetails as { account_review_status?: string; business_verification_status?: string; messaging_limit_tier?: string };
+        if (d.account_review_status && d.account_review_status !== "APPROVED") {
+          return `❌ account_review_status=${d.account_review_status} → causa #200 sul send (WABA in review/rejected da Meta)`;
+        }
+        if (d.business_verification_status && d.business_verification_status !== "verified") {
+          return `❌ business_verification_status=${d.business_verification_status} → in Business Manager devi completare la verifica del Business (non solo App). Senza verifica, send fallisce con #200 anche se App è Live.`;
+        }
+        if (!d.messaging_limit_tier || d.messaging_limit_tier === "TIER_NOT_SET") {
+          return `⚠️ messaging_limit_tier=${d.messaging_limit_tier ?? "missing"} → tier non assegnato, può causare #200`;
+        }
+        return `✅ WABA status OK: review=${d.account_review_status}, business=${d.business_verification_status}, tier=${d.messaging_limit_tier}`;
+      })(),
+    };
+  } catch (err) {
+    diagnosis.test_10_waba_status = { error: String(err) };
+  }
+
+  // Test 11: GET /{PHONE_NUMBER_ID}?fields=name_status,certificate,
+  //                                       account_mode,quality_rating,throughput
+  // Mostra lo stato del PHONE NUMBER specifico. Campi critici:
+  // - account_mode: LIVE / SANDBOX → SANDBOX blocca invii a non-test
+  // - throughput.level: BASIC / STANDARD / HIGH → BASIC=non setupped properly
+  // - quality_rating: GREEN/YELLOW/RED → RED blocca temporaneamente
+  if (PHONE_NUMBER_ID) {
+    try {
+      const phoneDetailsRes = await fetch(
+        `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}?fields=display_phone_number,verified_name,account_mode,quality_rating,name_status,code_verification_status,throughput,messaging_limit`,
+        { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } },
+      );
+      const phoneDetails = await phoneDetailsRes.json();
+      diagnosis.test_11_phone_status = {
+        status: phoneDetailsRes.status,
+        ok: phoneDetailsRes.ok,
+        response: phoneDetails,
+        interpretation: (() => {
+          const d = phoneDetails as { account_mode?: string; quality_rating?: string; code_verification_status?: string; name_status?: string };
+          if (d.account_mode === "SANDBOX") {
+            return `❌ account_mode=SANDBOX → causa #200! Il numero è in modalità sandbox, può inviare solo a recipients di test. Vai su Meta for Developers → App → WhatsApp → API Setup → richiedi la modalità LIVE per questo numero.`;
+          }
+          if (d.code_verification_status && d.code_verification_status !== "VERIFIED") {
+            return `❌ code_verification_status=${d.code_verification_status} → il numero non è verificato. Vai su WhatsApp Manager → Phone Numbers → Verify.`;
+          }
+          if (d.quality_rating === "RED") {
+            return `❌ quality_rating=RED → Meta ha messo il numero in restrizione per bassa qualità. Send bloccato finché non torna GREEN/YELLOW.`;
+          }
+          if (d.name_status && d.name_status !== "APPROVED") {
+            return `⚠️ name_status=${d.name_status} → display name del business non ancora approvato da Meta`;
+          }
+          return `✅ Phone status OK: mode=${d.account_mode}, quality=${d.quality_rating}, code=${d.code_verification_status}`;
+        })(),
+      };
+    } catch (err) {
+      diagnosis.test_11_phone_status = { error: String(err) };
+    }
+  } else {
+    diagnosis.test_11_phone_status = { skipped: "WA_PHONE_NUMBER_ID non settato" };
+  }
+
   // Conclusione automatica — ordine di priorità:
   // scopes → probe template send #200 → subscription → template esistenza → read access
   const t3 = diagnosis.test_3_list_templates as { ok?: boolean; response?: { error?: { message?: string; code?: number } } };
@@ -812,16 +896,35 @@ async function handleDebugTemplateAccess(): Promise<Record<string, unknown>> {
   const t7 = diagnosis.test_7_app_subscribed as { ok?: boolean; apps_count?: number };
   const t8 = diagnosis.test_8_send_permission_probe as { meta_error_code?: number; meta_error_message?: string; ok?: boolean };
   const t9 = diagnosis.test_9_failing_template_exists as { found_on_waba?: boolean; template_details?: Array<{ status?: string }> };
+  const t10 = diagnosis.test_10_waba_status as { ok?: boolean; response?: { account_review_status?: string; business_verification_status?: string; messaging_limit_tier?: string }; interpretation?: string };
+  const t11 = diagnosis.test_11_phone_status as { ok?: boolean; response?: { account_mode?: string; code_verification_status?: string; quality_rating?: string }; interpretation?: string };
 
   const scopes = t4?.response?.scopes ?? [];
   const hasManagement = scopes.includes("whatsapp_business_management");
   const hasMessaging = scopes.includes("whatsapp_business_messaging");
   const sendProbe200 = t8?.meta_error_code === 200;
 
+  // Priorità conclusion: scope > status WABA > status phone > probe send > template
+  const wabaResp = t10?.response;
+  const phoneResp = t11?.response;
+  const wabaBlocked = wabaResp && (
+    (wabaResp.account_review_status && wabaResp.account_review_status !== "APPROVED") ||
+    (wabaResp.business_verification_status && wabaResp.business_verification_status !== "verified")
+  );
+  const phoneBlocked = phoneResp && (
+    phoneResp.account_mode === "SANDBOX" ||
+    (phoneResp.code_verification_status && phoneResp.code_verification_status !== "VERIFIED") ||
+    phoneResp.quality_rating === "RED"
+  );
+
   if (!hasMessaging && scopes.length > 0) {
     diagnosis.conclusion = "❌ Il token NON ha lo scope `whatsapp_business_messaging` — è questa la causa dell'errore #200 in invio. Rigenera il Permanent Token su Business Manager → System Users assegnando ENTRAMBI i permessi: `whatsapp_business_messaging` E `whatsapp_business_management`.";
   } else if (!hasManagement && scopes.length > 0) {
     diagnosis.conclusion = "❌ Il token NON ha lo scope `whatsapp_business_management` — i template non sono leggibili/scrivibili. Rigenera il Permanent Token con entrambi gli scope.";
+  } else if (wabaBlocked) {
+    diagnosis.conclusion = `❌ WABA blocked: ${t10?.interpretation ?? JSON.stringify(wabaResp)}. Questa è la causa più probabile del #200 OAuthException: il Business sottostante non è verified, o il WABA è in account review status non-APPROVED.`;
+  } else if (phoneBlocked) {
+    diagnosis.conclusion = `❌ Phone Number blocked: ${t11?.interpretation ?? JSON.stringify(phoneResp)}`;
   } else if (sendProbe200) {
     // Send probe ha confermato #200 anche con un template valido + numero E.164.
     // È la causa esatta del fallimento del send reale dell'utente.

@@ -85,6 +85,11 @@ serve(async (req) => {
     text_body?: string;
     // User che ha inviato (per audit chat)
     sent_by_user_id?: string;
+    // Per outbound media: tipo + URL (signed Supabase Storage) + caption opzionale
+    media_type?: "image" | "document" | "audio" | "video";
+    media_url?: string;
+    media_caption?: string;
+    media_filename?: string; // solo per document
   };
   try {
     payload = await req.json();
@@ -95,7 +100,11 @@ serve(async (req) => {
     });
   }
 
-  const { to, template_name, language, components, practice_id, text_body, sent_by_user_id } = payload;
+  const {
+    to, template_name, language, components, practice_id,
+    text_body, sent_by_user_id,
+    media_type, media_url, media_caption, media_filename,
+  } = payload;
 
   if (!to || typeof to !== "string") {
     return new Response(JSON.stringify({ success: false, error: "Missing 'to'" }), {
@@ -103,11 +112,16 @@ serve(async (req) => {
       headers: { ...CORS, "Content-Type": "application/json" },
     });
   }
-  // Modalità: template (default per qualsiasi invio) OR text (solo dentro
-  // customer service window di 24h dall'ultimo inbound del cliente).
-  const isTextMode = !!text_body && !template_name;
-  if (!isTextMode && (!template_name || typeof template_name !== "string")) {
-    return new Response(JSON.stringify({ success: false, error: "Missing template_name (or text_body for text mode)" }), {
+  // 3 modalità di invio (richiedono tutte la customer service window 24h
+  // tranne template):
+  //  - template: tradizionale, richiede `template_name`
+  //  - text: testo libero, richiede `text_body`
+  //  - media: allegato, richiede `media_type` + `media_url`
+  const isMediaMode = !!media_url && !!media_type && !template_name;
+  const isTextMode = !!text_body && !template_name && !isMediaMode;
+  const isTemplateMode = !isTextMode && !isMediaMode;
+  if (isTemplateMode && (!template_name || typeof template_name !== "string")) {
+    return new Response(JSON.stringify({ success: false, error: "Missing template_name (or text_body / media_url)" }), {
       status: 400,
       headers: { ...CORS, "Content-Type": "application/json" },
     });
@@ -117,25 +131,44 @@ serve(async (req) => {
 
   const phone = normalizePhone(to);
 
-  // Costruisce payload Meta in base alla modalità (template default, text se
-  // sviluppatore ha passato `text_body` esplicito senza template_name).
-  const templatePayload = isTextMode
-    ? {
-        messaging_product: "whatsapp",
-        to: phone,
-        type: "text",
-        text: { body: text_body },
-      }
-    : {
-        messaging_product: "whatsapp",
-        to: phone,
-        type: "template",
-        template: {
-          name: template_name,
-          language: { code: language ?? "it" },
-          components: components ?? [],
-        },
-      };
+  // Costruisce payload Meta in base alla modalità.
+  let templatePayload: Record<string, unknown>;
+  if (isMediaMode) {
+    // Media payload: Meta accetta `link` (URL pubblico/signed) o `id`
+    // (dopo upload diretto). Usiamo link → Meta scarica al volo dal
+    // signed URL Supabase Storage.
+    const mediaObj: Record<string, unknown> = { link: media_url };
+    if (media_caption && (media_type === "image" || media_type === "video" || media_type === "document")) {
+      mediaObj.caption = media_caption;
+    }
+    if (media_filename && media_type === "document") {
+      mediaObj.filename = media_filename;
+    }
+    templatePayload = {
+      messaging_product: "whatsapp",
+      to: phone,
+      type: media_type,
+      [media_type as string]: mediaObj,
+    };
+  } else if (isTextMode) {
+    templatePayload = {
+      messaging_product: "whatsapp",
+      to: phone,
+      type: "text",
+      text: { body: text_body },
+    };
+  } else {
+    templatePayload = {
+      messaging_product: "whatsapp",
+      to: phone,
+      type: "template",
+      template: {
+        name: template_name,
+        language: { code: language ?? "it" },
+        components: components ?? [],
+      },
+    };
+  }
 
   const { response, result, attempts } = await callMetaWithRetry(
     `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
@@ -157,7 +190,11 @@ serve(async (req) => {
   // serializza i parameters del primo body component, troncata a 500 char.
   // whatsapp_logs.body era sempre NULL prima — perdevamo il content esatto.
   let bodyPreview: string | null = null;
-  if (isTextMode) {
+  if (isMediaMode) {
+    const captionPart = media_caption ? ` — ${media_caption}` : "";
+    const filenamePart = media_filename ? ` (${media_filename})` : "";
+    bodyPreview = `[${media_type}${filenamePart}]${captionPart}`.slice(0, 480);
+  } else if (isTextMode) {
     bodyPreview = (text_body ?? "").slice(0, 480);
   } else {
     try {
@@ -246,13 +283,14 @@ serve(async (req) => {
   // Log su whatsapp_logs (pannello admin legacy) — popoliamo `body` con la
   // preview ricostruita dai parameters così l'audit ha visibilità sul content
   // reale, non solo sul nome del template.
+  const resolvedMsgType = isMediaMode ? (media_type as string) : isTextMode ? "text" : "template";
   await supabase.from("whatsapp_logs").insert({
     client_id: null,
     pratica_id: practice_id ?? null,
     direction: "outbound",
     phone,
-    message_type: isTextMode ? "text" : "template",
-    template_name: isTextMode ? null : template_name,
+    message_type: resolvedMsgType,
+    template_name: isTemplateMode ? template_name : null,
     body: bodyPreview,
     status: success ? "sent" : "failed",
     wa_message_id: wa_message_id ?? null,
@@ -276,10 +314,14 @@ serve(async (req) => {
       await supabase.from("whatsapp_messages").insert({
         conversation_id: conv.id,
         direction: "outbound",
-        message_type: isTextMode ? "text" : "template",
-        body: bodyPreview,
-        template_name: isTextMode ? null : template_name,
-        template_components: isTextMode ? null : (components ?? null),
+        message_type: resolvedMsgType,
+        body: isMediaMode ? (media_caption ?? null) : bodyPreview,
+        template_name: isTemplateMode ? template_name : null,
+        template_components: isTemplateMode ? (components ?? null) : null,
+        media_url: isMediaMode ? media_url : null,
+        media_mime_type: isMediaMode
+          ? (media_type === "image" ? "image/*" : media_type === "document" ? "application/pdf" : media_type === "audio" ? "audio/*" : "video/*")
+          : null,
         wa_message_id: wa_message_id ?? null,
         status: success ? "sent" : "failed",
         error_message: error_message ?? null,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -327,12 +327,36 @@ export default function PraticaDetail() {
         .from("pratiche")
         .select("*, clienti_finali(nome, cognome, email, codice_fiscale, telefono, indirizzo), service_catalog(nome)")
         .eq("id", id!)
-        .single();
+        .maybeSingle(); // maybeSingle invece di single: NULL invece di error se non trova
       if (error) throw error;
       return data;
     },
     enabled: !!id,
   });
+
+  // Smart redirect: se l'ID non è in `pratiche`, controlla se è in
+  // `enea_practices` (tabella separata gestita dal Kanban). In quel caso
+  // redirect al Kanban con auto-open della sheet della pratica. Prima del
+  // fix: il bottone "Scheda completa" del Kanban portava sempre qui →
+  // "Pratica non trovata" perché PraticaDetail legge da `pratiche`, non
+  // da `enea_practices`.
+  useEffect(() => {
+    if (!id || isLoading) return;
+    if (pratica) return; // trovata in `pratiche` → tutto ok
+    // Fallback: prova `enea_practices`
+    (async () => {
+      const { data: enea } = await supabase
+        .from("enea_practices")
+        .select("id")
+        .eq("id", id)
+        .maybeSingle();
+      if (enea) {
+        // È una pratica ENEA → vai al Kanban e apri la sheet
+        navigate(`/kanban?practice=${id}`, { replace: true });
+      }
+      // Se non trova in nessuna delle 2 tabelle, lascia il "Pratica non trovata"
+    })();
+  }, [id, isLoading, pratica, navigate]);
 
   // Fetch assignee profile when present
   const { data: assigneeProfile } = useQuery({

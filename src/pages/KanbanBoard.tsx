@@ -800,20 +800,15 @@ function PracticeDetailSheet({
                   </Button>
                 )}
 
-                {/* Apri scheda completa (PraticaDetail legacy con upload+timeline+messaggi) */}
-                {/* Scheda completa — solo staff (legacy /pratiche/:id route) */}
-                {isInternal && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-xs gap-1"
-                    onClick={() => window.open(`/pratiche/${practice.id}`, "_blank")}
-                    title="Apri scheda completa con upload documenti, timeline e messaggi"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    Scheda completa
-                  </Button>
-                )}
+                {/* Bottone "Scheda completa" rimosso: linkava a /pratiche/:id
+                    (PraticaDetail) che legge dalla tabella `pratiche` legacy,
+                    mentre le pratiche del Kanban sono tutte in `enea_practices`
+                    (schema diverso). Risultato: 100% delle click portavano a
+                    "Pratica non trovata". La sheet di dettaglio aperta a destra
+                    (PracticeDetailSheet) fornisce già tutte le info necessarie:
+                    dati cliente, doc tecnico, log comunicazioni, modifica. Se
+                    serve una vista full-width in futuro, va creata una nuova
+                    pagina dedicata a enea_practices, non riusare la legacy. */}
 
                 {/* Copy form link — utile a tutti (anche azienda lo passa al cliente) */}
                 <Button
@@ -1820,6 +1815,9 @@ export default function KanbanBoard() {
   // Bulk send (WhatsApp / Email) — apre dialog con selettore template
   const [bulkSendChannel, setBulkSendChannel] = useState<"whatsapp" | "email" | null>(null);
 
+  // (Deep-link auto-open practice sheet via ?practice=<id> — useEffect
+  //  spostato sotto la dichiarazione di `practices` per evitare TDZ.)
+
   // Clear selection when leaving select mode
   useEffect(() => {
     if (!selectMode) setSelectedIds(new Set());
@@ -1957,6 +1955,24 @@ export default function KanbanBoard() {
     search: search.length > 1 ? search : undefined,
     includeArchived: showArchived,
   });
+
+  // Deep-link auto-open: se l'URL ha `?practice=<id>` apri la sheet di
+  // dettaglio della pratica corrispondente. Usato dal redirect smart in
+  // PraticaDetail quando l'utente arriva su /pratiche/:id con un id che
+  // appartiene a enea_practices (non a pratiche legacy).
+  useEffect(() => {
+    const target = searchParams.get("practice");
+    if (!target || selectedPractice?.id === target) return;
+    const found = practices.find((p) => p.id === target);
+    if (found) {
+      setSelectedPractice(found);
+      // One-shot: rimuovo il query param così se l'utente refresha non
+      // riapre la sheet (sarebbe fastidioso).
+      const next = new URLSearchParams(searchParams);
+      next.delete("practice");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, practices, selectedPractice?.id, setSearchParams]);
 
   // Operator map for cards and sheet. Memoized to avoid creating a new array
   // reference per render (which would invalidate the query cache key).

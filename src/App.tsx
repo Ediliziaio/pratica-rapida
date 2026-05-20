@@ -28,6 +28,7 @@ const Home = lazy(() => import("./pages/Home"));
 const HomeCT = lazy(() => import("./pages/HomeCT"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
+const TerminiServizio = lazy(() => import("./pages/TerminiServizio"));
 const Clienti = lazy(() => import("./pages/Clienti"));
 const AziendaDetail = lazy(() => import("./pages/AziendaDetail"));
 const ImpostazioniPiattaforma = lazy(() => import("./pages/ImpostazioniPiattaforma"));
@@ -258,7 +259,13 @@ const App = () => (
                 <Route path="/area-riservata-vecchia/verifica-prezzi" element={<VecchioVerificaPrezzi />} />
                 <Route path="/area-riservata-vecchia/allaccio-fotovoltaico" element={<VecchioAllaccioFotovoltaico />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
+                <Route path="/cookie" element={<CookiePolicy />} />
+                <Route path="/termini" element={<TerminiServizio />} />
+                <Route path="/termini-condizioni" element={<TerminiServizio />} />
+                <Route path="/termini-di-servizio" element={<TerminiServizio />} />
+                <Route path="/terms" element={<TerminiServizio />} />
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/blog" element={<BlogPage />} />
                 <Route path="/blog/:slug" element={<BlogPostPage />} />

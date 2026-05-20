@@ -33,8 +33,12 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   MessageCircle, Search, Send, Archive, ArchiveRestore, Clock,
   CheckCheck, Check, AlertTriangle, FileText, Phone, Loader2,
-  ChevronLeft,
+  ChevronLeft, Paperclip, X, Image as ImageIcon, File as FileIcon,
+  Zap, UserCheck,
 } from "lucide-react";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
 import { format, formatDistanceToNow, isToday, isYesterday } from "date-fns";
 import { it } from "date-fns/locale";
 
@@ -53,8 +57,16 @@ interface Conversation {
   unread_count: number;
   last_inbound_at: string | null;
   is_archived: boolean;
+  assigned_to: string | null;
   created_at: string;
   updated_at: string;
+}
+
+interface ChatAssignee {
+  user_id: string;
+  email: string;
+  full_name: string | null;
+  role: string;
 }
 
 interface Message {
@@ -64,6 +76,8 @@ interface Message {
   message_type: string;
   body: string | null;
   template_name: string | null;
+  media_url: string | null;
+  media_mime_type: string | null;
   status: "pending" | "sent" | "delivered" | "read" | "failed";
   error_message: string | null;
   sent_by_user_id: string | null;
@@ -89,6 +103,7 @@ export default function WhatsappChat() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showArchived, setShowArchived] = useState(false);
+  const [filter, setFilter] = useState<"all" | "mine" | "unassigned">("all");
 
   return (
     <div className="space-y-4">
@@ -109,6 +124,8 @@ export default function WhatsappChat() {
             onSearchChange={setSearchQuery}
             showArchived={showArchived}
             onToggleArchived={() => setShowArchived(!showArchived)}
+            filter={filter}
+            onFilterChange={setFilter}
           />
 
           {/* Thread principale */}
@@ -131,6 +148,7 @@ export default function WhatsappChat() {
 
 function ConversationsList({
   selectedId, onSelect, searchQuery, onSearchChange, showArchived, onToggleArchived,
+  filter, onFilterChange,
 }: {
   selectedId: string | null;
   onSelect: (id: string) => void;
@@ -138,23 +156,35 @@ function ConversationsList({
   onSearchChange: (v: string) => void;
   showArchived: boolean;
   onToggleArchived: () => void;
+  filter: "all" | "mine" | "unassigned";
+  onFilterChange: (f: "all" | "mine" | "unassigned") => void;
 }) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: conversations, isLoading } = useQuery({
-    queryKey: ["whatsapp-conversations", showArchived],
+    queryKey: ["whatsapp-conversations", showArchived, filter, user?.id],
     queryFn: async (): Promise<Conversation[]> => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("whatsapp_conversations")
         .select("*")
         .eq("is_archived", showArchived)
         .order("last_message_at", { ascending: false, nullsFirst: false });
+      if (filter === "mine" && user?.id) {
+        q = q.eq("assigned_to", user.id);
+      } else if (filter === "unassigned") {
+        q = q.is("assigned_to", null);
+      }
+      const { data, error } = await q;
       if (error) throw error;
       return (data as Conversation[]) ?? [];
     },
   });
 
-  // Realtime: aggiorna la lista quando arrivano nuovi messaggi o nuove conv
+  // Realtime: aggiorna la lista quando arrivano nuovi messaggi o nuove conv.
+  // L'invalidate è "broad" — invalida tutte le varianti di filtro
+  // (whatsapp-conversations) così non perdiamo aggiornamenti quando l'utente
+  // cambia filtro.
   useEffect(() => {
     const channel = supabase
       .channel("whatsapp-conversations-list")
@@ -191,6 +221,33 @@ function ConversationsList({
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-8 h-9"
           />
+        </div>
+        {/* Filtro assignment: Tutte / Le mie / Non assegnate */}
+        <div className="flex gap-1 bg-slate-100 p-0.5 rounded-md text-xs">
+          <button
+            onClick={() => onFilterChange("all")}
+            className={`flex-1 px-2 py-1 rounded font-medium transition-colors ${
+              filter === "all" ? "bg-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Tutte
+          </button>
+          <button
+            onClick={() => onFilterChange("mine")}
+            className={`flex-1 px-2 py-1 rounded font-medium transition-colors ${
+              filter === "mine" ? "bg-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Le mie
+          </button>
+          <button
+            onClick={() => onFilterChange("unassigned")}
+            className={`flex-1 px-2 py-1 rounded font-medium transition-colors ${
+              filter === "unassigned" ? "bg-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Da assegnare
+          </button>
         </div>
         <Button
           variant="ghost"
@@ -273,11 +330,18 @@ function ConversationRow({ conv, selected, onClick }: {
           <p className="truncate">{conv.last_message_preview}</p>
         </div>
       )}
-      {conv.practice_id && (
-        <Badge variant="outline" className="mt-1 text-[10px] gap-1">
-          <FileText className="h-2.5 w-2.5" /> Pratica collegata
-        </Badge>
-      )}
+      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+        {conv.practice_id && (
+          <Badge variant="outline" className="text-[10px] gap-1">
+            <FileText className="h-2.5 w-2.5" /> Pratica
+          </Badge>
+        )}
+        {conv.assigned_to && (
+          <Badge variant="outline" className="text-[10px] gap-1 border-emerald-300 text-emerald-700">
+            <UserCheck className="h-2.5 w-2.5" /> Assegnata
+          </Badge>
+        )}
+      </div>
     </button>
   );
 }
@@ -408,11 +472,19 @@ function ChatThread({ conversationId, onBack }: { conversationId: string; onBack
             )}
           </div>
         </div>
+
+        {/* Assignment dropdown */}
+        <AssignmentPicker
+          conversationId={conversationId}
+          assignedTo={conv.assigned_to}
+        />
+
         <Button
           variant="ghost"
           size="sm"
           onClick={() => archiveMutation.mutate(!conv.is_archived)}
           disabled={archiveMutation.isPending}
+          title={conv.is_archived ? "Riattiva" : "Archivia"}
         >
           {conv.is_archived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
         </Button>
@@ -473,11 +545,23 @@ function MessageBubble({ msg, showDate }: { msg: Message; showDate: boolean }) {
               Template: {msg.template_name}
             </p>
           )}
-          {msg.body ? (
-            <p className="text-sm whitespace-pre-wrap break-words">{msg.body}</p>
-          ) : (
-            <p className="text-xs text-muted-foreground italic">[{msg.message_type}]</p>
+          {/* Media (outbound): mostriamo preview inline per immagini, link
+              per documenti/altro. Per inbound i media URL Meta scadono in
+              5 min, quindi mostriamo solo il tipo. */}
+          {msg.media_url && msg.direction === "outbound" && (
+            <MediaPreview url={msg.media_url} mimeType={msg.media_mime_type} type={msg.message_type} />
           )}
+          {!msg.media_url && msg.message_type !== "text" && msg.message_type !== "template" && msg.direction === "inbound" && (
+            <div className="flex items-center gap-2 p-2 bg-slate-100 rounded text-xs">
+              <FileIcon className="h-4 w-4 text-slate-500 shrink-0" />
+              <span className="text-slate-700">Allegato: {msg.message_type}</span>
+            </div>
+          )}
+          {msg.body ? (
+            <p className="text-sm whitespace-pre-wrap break-words mt-1">{msg.body}</p>
+          ) : !msg.media_url && msg.direction === "outbound" ? (
+            <p className="text-xs text-muted-foreground italic">[{msg.message_type}]</p>
+          ) : null}
           {msg.error_message && (
             <p className="text-[10px] text-red-700 mt-1 flex items-center gap-1">
               <AlertTriangle className="h-3 w-3" /> {msg.error_message}
@@ -492,6 +576,33 @@ function MessageBubble({ msg, showDate }: { msg: Message; showDate: boolean }) {
         </div>
       </div>
     </>
+  );
+}
+
+function MediaPreview({ url, mimeType, type }: { url: string; mimeType: string | null; type: string }) {
+  const isImage = mimeType?.startsWith("image/") || type === "image";
+  if (isImage) {
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer" className="block max-w-xs">
+        <img
+          src={url}
+          alt="Allegato"
+          className="rounded-md max-h-64 w-auto object-cover"
+          loading="lazy"
+        />
+      </a>
+    );
+  }
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-2 p-2 bg-white/50 rounded text-xs hover:bg-white/80 transition-colors"
+    >
+      <FileIcon className="h-4 w-4 text-slate-600 shrink-0" />
+      <span className="text-slate-700 underline">Apri allegato ({type})</span>
+    </a>
   );
 }
 
@@ -529,6 +640,8 @@ function MessageComposer({
   const queryClient = useQueryClient();
   const [text, setText] = useState("");
   const [templatePicker, setTemplatePicker] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sendTextMutation = useMutation({
     mutationFn: async () => {
@@ -554,12 +667,86 @@ function MessageComposer({
     },
   });
 
+  // Upload media a Supabase Storage + invio a Meta via send-whatsapp.
+  // Flow: file → storage (path unico) → signed URL 24h → send-whatsapp con
+  // media_url. Meta scarica e re-uploada lato suo.
+  const sendMediaMutation = useMutation({
+    mutationFn: async () => {
+      if (!pendingFile) throw new Error("Nessun file");
+      const file = pendingFile;
+
+      // 1. Determina media_type Meta da MIME
+      const mime = file.type;
+      let mediaType: "image" | "document" | "video" | "audio";
+      if (mime.startsWith("image/")) mediaType = "image";
+      else if (mime.startsWith("video/")) mediaType = "video";
+      else if (mime.startsWith("audio/")) mediaType = "audio";
+      else mediaType = "document";
+
+      // 2. Validation: 16MB images, 100MB video (Meta limits)
+      const limits: Record<typeof mediaType, number> = {
+        image: 5 * 1024 * 1024,
+        video: 16 * 1024 * 1024,
+        audio: 16 * 1024 * 1024,
+        document: 100 * 1024 * 1024,
+      };
+      if (file.size > limits[mediaType]) {
+        throw new Error(`File troppo grande (max ${Math.round(limits[mediaType] / 1024 / 1024)}MB per ${mediaType})`);
+      }
+
+      // 3. Upload a Supabase Storage. Path: convId/timestamp_filename
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `${conversationId}/${Date.now()}_${safeName}`;
+      const { error: uploadErr } = await supabase.storage
+        .from("whatsapp-media")
+        .upload(path, file, { contentType: mime, upsert: false });
+      if (uploadErr) throw new Error(`Upload fallito: ${uploadErr.message}`);
+
+      // 4. Signed URL (24h TTL — Meta scarica subito quindi basta)
+      const { data: signed, error: signErr } = await supabase.storage
+        .from("whatsapp-media")
+        .createSignedUrl(path, 24 * 3600);
+      if (signErr || !signed?.signedUrl) throw new Error("Impossibile generare signed URL");
+
+      // 5. Invia a Meta via send-whatsapp
+      const { data, error } = await supabase.functions.invoke("send-whatsapp", {
+        body: {
+          to: phone,
+          media_type: mediaType,
+          media_url: signed.signedUrl,
+          media_caption: text.trim() || undefined,
+          media_filename: mediaType === "document" ? file.name : undefined,
+          practice_id: practiceId ?? undefined,
+          sent_by_user_id: userId ?? undefined,
+        },
+      });
+      if (error) throw error;
+      const res = data as { success?: boolean; error?: string };
+      if (!res.success) throw new Error(res.error ?? "Invio fallito");
+    },
+    onSuccess: () => {
+      setPendingFile(null);
+      setText("");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-messages", conversationId] });
+      toast({ title: "Allegato inviato" });
+    },
+    onError: (err: Error) => {
+      toast({ variant: "destructive", title: "Invio allegato fallito", description: err.message });
+    },
+  });
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (canSendFreeText && text.trim()) sendTextMutation.mutate();
+      if (pendingFile) sendMediaMutation.mutate();
+      else if (canSendFreeText && text.trim()) sendTextMutation.mutate();
     }
   };
+
+  const isUploading = sendMediaMutation.isPending;
+  const isSendingText = sendTextMutation.isPending;
+  const isBusy = isUploading || isSendingText;
 
   return (
     <div className="border-t p-3 bg-white space-y-2">
@@ -577,35 +764,102 @@ function MessageComposer({
         </div>
       )}
 
+      {/* File preview prima dell'invio */}
+      {pendingFile && (
+        <div className="rounded-md border bg-slate-50 p-2 flex items-center gap-2">
+          {pendingFile.type.startsWith("image/") ? (
+            <ImageIcon className="h-4 w-4 text-emerald-600 shrink-0" />
+          ) : (
+            <FileIcon className="h-4 w-4 text-blue-600 shrink-0" />
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium truncate">{pendingFile.name}</p>
+            <p className="text-[10px] text-muted-foreground">
+              {(pendingFile.size / 1024).toFixed(1)} KB · {pendingFile.type || "tipo sconosciuto"}
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setPendingFile(null);
+              if (fileInputRef.current) fileInputRef.current.value = "";
+            }}
+            disabled={isBusy}
+            className="h-7 w-7 p-0"
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      )}
+
       <div className="flex items-end gap-2">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,application/pdf,audio/mpeg,audio/ogg,video/mp4"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) setPendingFile(f);
+          }}
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={!canSendFreeText || isBusy}
+          title="Allega file"
+          className="gap-1.5 h-9"
+        >
+          <Paperclip className="h-3.5 w-3.5" />
+        </Button>
         <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={canSendFreeText ? "Scrivi un messaggio…" : "Apri prima la chat con un template ↗"}
-          disabled={!canSendFreeText || sendTextMutation.isPending}
+          placeholder={
+            pendingFile
+              ? "Caption opzionale per l'allegato…"
+              : canSendFreeText
+                ? "Scrivi un messaggio…"
+                : "Apri prima la chat con un template ↗"
+          }
+          disabled={(!canSendFreeText && !pendingFile) || isBusy}
           rows={2}
           className="resize-none text-sm"
         />
         <div className="flex flex-col gap-1.5">
+          <div className="flex gap-1.5">
+            <QuickReplyPicker
+              onPick={(body) => setText((cur) => cur ? `${cur}\n${body}` : body)}
+              disabled={isBusy || !canSendFreeText}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTemplatePicker(true)}
+              disabled={isBusy}
+              title="Invia un template approvato"
+              className="gap-1.5"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Template
+            </Button>
+          </div>
           <Button
-            variant="outline"
             size="sm"
-            onClick={() => setTemplatePicker(true)}
-            disabled={sendTextMutation.isPending}
-            title="Invia un template approvato"
+            onClick={() => {
+              if (pendingFile) sendMediaMutation.mutate();
+              else sendTextMutation.mutate();
+            }}
+            disabled={
+              isBusy ||
+              (!pendingFile && (!canSendFreeText || !text.trim()))
+            }
             className="gap-1.5"
           >
-            <FileText className="h-3.5 w-3.5" />
-            Template
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => sendTextMutation.mutate()}
-            disabled={!canSendFreeText || !text.trim() || sendTextMutation.isPending}
-            className="gap-1.5"
-          >
-            {sendTextMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+            {isBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
             Invia
           </Button>
         </div>
@@ -762,6 +1016,248 @@ function TemplatePickerDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ============================================================
+// Quick reply picker (popover con lista canned responses)
+// ============================================================
+
+interface QuickReply {
+  id: string;
+  label: string;
+  body: string;
+  category: string | null;
+  sort_order: number;
+  usage_count: number;
+}
+
+function QuickReplyPicker({ onPick, disabled }: { onPick: (body: string) => void; disabled: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const { data: replies } = useQuery({
+    queryKey: ["whatsapp-quick-replies"],
+    queryFn: async (): Promise<QuickReply[]> => {
+      const { data, error } = await supabase
+        .from("whatsapp_quick_replies")
+        .select("id, label, body, category, sort_order, usage_count")
+        .eq("is_active", true)
+        .order("sort_order")
+        .order("label");
+      if (error) throw error;
+      return (data as QuickReply[]) ?? [];
+    },
+  });
+
+  // Raggruppa per categoria
+  const grouped = useMemo(() => {
+    if (!replies) return new Map<string, QuickReply[]>();
+    const q = search.trim().toLowerCase();
+    const filtered = q
+      ? replies.filter((r) =>
+          r.label.toLowerCase().includes(q) ||
+          r.body.toLowerCase().includes(q) ||
+          (r.category?.toLowerCase().includes(q) ?? false),
+        )
+      : replies;
+    const map = new Map<string, QuickReply[]>();
+    for (const r of filtered) {
+      const cat = r.category ?? "Senza categoria";
+      if (!map.has(cat)) map.set(cat, []);
+      map.get(cat)!.push(r);
+    }
+    return map;
+  }, [replies, search]);
+
+  const handlePick = async (r: QuickReply) => {
+    onPick(r.body);
+    setOpen(false);
+    setSearch("");
+    // Fire-and-forget: incrementa usage_count (per ordering smart futuro)
+    try {
+      await supabase.rpc("increment_quick_reply_usage" as never, { _id: r.id });
+    } catch {
+      // non-blocking
+    }
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={disabled}
+          title="Risposta rapida"
+          className="gap-1.5"
+        >
+          <Zap className="h-3.5 w-3.5" />
+          Rapide
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="end">
+        <div className="p-2 border-b">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              autoFocus
+              placeholder="Cerca…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 h-8 text-xs"
+            />
+          </div>
+        </div>
+        <div className="max-h-72 overflow-y-auto p-2 space-y-3">
+          {grouped.size === 0 && (
+            <p className="text-xs text-muted-foreground text-center py-6">
+              {(replies?.length ?? 0) === 0
+                ? "Nessuna risposta rapida configurata. Aggiungile da /admin/whatsapp-quick-replies."
+                : "Nessun risultato."}
+            </p>
+          )}
+          {Array.from(grouped.entries()).map(([cat, items]) => (
+            <div key={cat} className="space-y-1">
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold px-1.5">{cat}</p>
+              {items.map((r) => (
+                <button
+                  key={r.id}
+                  onClick={() => handlePick(r)}
+                  className="w-full text-left p-2 rounded hover:bg-slate-100 transition-colors group"
+                >
+                  <p className="text-xs font-medium">{r.label}</p>
+                  <p className="text-[11px] text-muted-foreground line-clamp-2 group-hover:text-foreground">{r.body}</p>
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// ============================================================
+// Assignment picker: assegna la chat a un utente staff
+// ============================================================
+
+function AssignmentPicker({ conversationId, assignedTo }: {
+  conversationId: string;
+  assignedTo: string | null;
+}) {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const [open, setOpen] = useState(false);
+
+  const { data: assignees } = useQuery({
+    queryKey: ["chat-assignees"],
+    queryFn: async (): Promise<ChatAssignee[]> => {
+      const { data, error } = await supabase.rpc("list_chat_assignees" as never);
+      if (error) throw error;
+      return (data as ChatAssignee[]) ?? [];
+    },
+    enabled: open, // carica solo quando aprono il dropdown
+  });
+
+  const assignMutation = useMutation({
+    mutationFn: async (userId: string | null) => {
+      const { error } = await supabase
+        .from("whatsapp_conversations")
+        .update({ assigned_to: userId })
+        .eq("id", conversationId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-conversation", conversationId] });
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-conversations"] });
+      setOpen(false);
+    },
+    onError: (err: Error) => {
+      toast({ variant: "destructive", title: "Errore assegnazione", description: err.message });
+    },
+  });
+
+  const currentAssignee = assignees?.find((a) => a.user_id === assignedTo);
+  const assignedToMe = assignedTo === user?.id;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          title="Assegna chat"
+        >
+          <UserCheck className={`h-3.5 w-3.5 ${assignedTo ? "text-emerald-600" : "text-muted-foreground"}`} />
+          {assignedToMe ? (
+            <span className="text-xs">A te</span>
+          ) : currentAssignee ? (
+            <span className="text-xs max-w-[100px] truncate">
+              {currentAssignee.full_name?.split(" ")[0] ?? currentAssignee.email.split("@")[0]}
+            </span>
+          ) : (
+            <span className="text-xs">Assegna</span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-1" align="end">
+        <div className="space-y-0.5">
+          {/* Quick action: prendi in carico */}
+          {user?.id && assignedTo !== user.id && (
+            <button
+              onClick={() => assignMutation.mutate(user.id!)}
+              disabled={assignMutation.isPending}
+              className="w-full text-left px-2 py-1.5 rounded text-xs font-medium hover:bg-emerald-50 text-emerald-700 flex items-center gap-2"
+            >
+              <UserCheck className="h-3.5 w-3.5" />
+              Prendi in carico
+            </button>
+          )}
+          {/* Rimuovi assegnazione */}
+          {assignedTo && (
+            <button
+              onClick={() => assignMutation.mutate(null)}
+              disabled={assignMutation.isPending}
+              className="w-full text-left px-2 py-1.5 rounded text-xs hover:bg-slate-100 text-muted-foreground"
+            >
+              ✕ Rimuovi assegnazione
+            </button>
+          )}
+          <div className="h-px bg-slate-200 my-1" />
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold px-2 py-1">
+            Assegna a
+          </p>
+          {!assignees && (
+            <div className="px-2 py-3 flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" /> Caricamento…
+            </div>
+          )}
+          {assignees && assignees.length === 0 && (
+            <p className="text-xs text-muted-foreground px-2 py-2">Nessun utente staff disponibile</p>
+          )}
+          {assignees?.map((a) => (
+            <button
+              key={a.user_id}
+              onClick={() => assignMutation.mutate(a.user_id)}
+              disabled={assignMutation.isPending || a.user_id === assignedTo}
+              className={`w-full text-left px-2 py-1.5 rounded text-xs hover:bg-slate-100 flex items-center justify-between gap-2 ${
+                a.user_id === assignedTo ? "bg-emerald-50 text-emerald-700" : ""
+              }`}
+            >
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">{a.full_name ?? a.email.split("@")[0]}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{a.email}</p>
+              </div>
+              <Badge variant="outline" className="text-[9px] shrink-0">
+                {a.role === "super_admin" ? "admin" : a.role}
+              </Badge>
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 

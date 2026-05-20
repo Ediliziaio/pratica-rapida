@@ -22,6 +22,7 @@ import {
   FormInput,
   Download,
   Activity,
+  Zap as ZapIcon,
 } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
@@ -270,6 +271,7 @@ export function AppSidebar() {
           { title: "Moduli Form", url: "/admin/moduli", icon: FormInput },
           { title: "Integrazioni (Health)", url: "/admin/integrazioni", icon: Activity },
           { title: "WhatsApp Setup", url: "/admin/whatsapp-config", icon: MessageCircle },
+          { title: "Risposte rapide WA", url: "/admin/whatsapp-quick-replies", icon: ZapIcon },
         ],
       });
     }

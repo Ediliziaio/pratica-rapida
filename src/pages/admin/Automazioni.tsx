@@ -216,6 +216,82 @@ const EMAIL_TEMPLATES = [
   { value: "recensione", label: "Richiesta recensione" },
 ];
 
+/**
+ * Select template WhatsApp che legge dal DB i template APPROVED + attivi.
+ * Sostituisce la lista hardcoded EMAIL_TEMPLATES per le action send_whatsapp.
+ * Mostra anche un hint con il body preview + categoria + lingua.
+ */
+function WhatsappTemplateSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { data: templates, isLoading } = useQuery({
+    queryKey: ["whatsapp-templates-approved-for-automation"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("whatsapp_templates")
+        .select("id, meta_template_name, language, body_text, category, status, is_active, mapped_trigger_event")
+        .eq("status", "APPROVED")
+        .eq("is_active", true)
+        .order("meta_template_name");
+      if (error) throw error;
+      return (data as Array<{
+        id: string;
+        meta_template_name: string;
+        language: string;
+        body_text: string;
+        category: string | null;
+        status: string;
+        is_active: boolean;
+        mapped_trigger_event: string | null;
+      }>) ?? [];
+    },
+  });
+
+  return (
+    <>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="bg-white">
+          <SelectValue placeholder={isLoading ? "Caricamento…" : "Scegli template WhatsApp..."} />
+        </SelectTrigger>
+        <SelectContent>
+          {templates && templates.length === 0 && (
+            <div className="px-3 py-4 text-xs text-muted-foreground text-center">
+              Nessun template approvato disponibile.
+              <br />
+              <a href="/admin/whatsapp-config" className="text-primary hover:underline">
+                Vai a /admin/whatsapp-config
+              </a> per crearne.
+            </div>
+          )}
+          {templates?.map((t) => (
+            <SelectItem key={t.id} value={t.meta_template_name}>
+              <div className="flex items-center gap-2">
+                <code className="font-mono text-xs">{t.meta_template_name}</code>
+                <span className="text-[10px] text-muted-foreground">({t.language})</span>
+                {t.category && (
+                  <span className="text-[9px] uppercase font-semibold text-muted-foreground/70">{t.category}</span>
+                )}
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {/* Preview del body se selezionato */}
+      {value && templates && (() => {
+        const selected = templates.find((t) => t.meta_template_name === value);
+        if (!selected) return null;
+        return (
+          <div className="mt-2 rounded-md border border-emerald-200 bg-emerald-50/50 p-2 text-[11px] space-y-1">
+            <p className="text-emerald-800 font-semibold">Preview body</p>
+            <pre className="whitespace-pre-wrap break-words text-slate-700 font-sans">{selected.body_text}</pre>
+            <p className="text-[10px] text-muted-foreground italic mt-1">
+              Le variabili {`{{1}}, {{2}}, ...`} vengono popolate automaticamente dal cron con: nome cliente, link form, giorni rimanenti (ordine dipende dal template — vedi /admin/whatsapp-config).
+            </p>
+          </div>
+        );
+      })()}
+    </>
+  );
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function genId() {
@@ -719,24 +795,35 @@ function ActionBlock({
           {(action.type === "send_email" || action.type === "send_whatsapp") && (
             <>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">Template</Label>
-                <Select
-                  value={(action.config.template as string) ?? ""}
-                  onValueChange={(v) =>
-                    onChange({ ...action, config: { ...action.config, template: v } })
-                  }
-                >
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Scegli template..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {EMAIL_TEMPLATES.map((t) => (
-                      <SelectItem key={t.value} value={t.value}>
-                        {t.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="text-xs font-medium">
+                  Template {action.type === "send_whatsapp" ? "WhatsApp" : "email"}
+                </Label>
+                {action.type === "send_whatsapp" ? (
+                  <WhatsappTemplateSelect
+                    value={(action.config.template as string) ?? ""}
+                    onChange={(v) =>
+                      onChange({ ...action, config: { ...action.config, template: v } })
+                    }
+                  />
+                ) : (
+                  <Select
+                    value={(action.config.template as string) ?? ""}
+                    onValueChange={(v) =>
+                      onChange({ ...action, config: { ...action.config, template: v } })
+                    }
+                  >
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Scegli template..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EMAIL_TEMPLATES.map((t) => (
+                        <SelectItem key={t.value} value={t.value}>
+                          {t.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">

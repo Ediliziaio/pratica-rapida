@@ -30,6 +30,10 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+// Phone normalize centralizzato in @/lib/phone — gemello server in
+// supabase/functions/_shared/phone.ts (entrambe versioni devono restare
+// allineate). Fixa il bug del prefisso `+39` mancante che causava #200 Meta.
+import { normalizePhone } from "@/lib/phone";
 import { useAuth } from "@/hooks/useAuth";
 import {
   MessageCircle, Mail, Send, Clock, CheckCheck, Check, AlertTriangle,
@@ -73,11 +77,6 @@ interface Conversation {
   id: string;
   phone: string;
   last_inbound_at: string | null;
-}
-
-// Phone normalize (matcha logica server: digit only, +39 → 39, leading 0039 → 39)
-function normalizePhone(phone: string): string {
-  return phone.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
 }
 
 // ─── Componente principale ────────────────────────────────────────────────

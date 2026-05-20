@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { normalizePhone } from "../_shared/phone.ts";
 
 const REQUIRED_ENV = [
   "SUPABASE_URL",
@@ -39,10 +40,6 @@ const TIPO_PATH: Record<string, string> = {
 
 function applyVars(template: string, vars: Record<string, string>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_, k) => vars[k] ?? "");
-}
-
-function normalizePhone(phone: string): string {
-  return phone.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
 }
 
 async function sendEmail(

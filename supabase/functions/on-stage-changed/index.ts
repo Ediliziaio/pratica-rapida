@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { reportError } from "../_shared/error.ts";
+import { normalizePhone } from "../_shared/phone.ts";
 
 const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 for (const k of REQUIRED_ENV) {
@@ -16,10 +17,6 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
-
-function normalizePhone(phone: string): string {
-  return phone.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
-}
 
 async function invoke(fnName: string, body: unknown) {
   try {

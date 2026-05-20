@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { reportError } from "../_shared/error.ts";
+import { normalizePhone } from "../_shared/phone.ts";
 
 const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 for (const k of REQUIRED_ENV) {
@@ -21,10 +22,6 @@ function isBusinessHour(): boolean {
     10,
   );
   return romeHour >= 9 && romeHour < 18;
-}
-
-function normalizePhone(phone: string): string {
-  return phone.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
 }
 
 function buildFormLink(token: string): string {

@@ -461,6 +461,81 @@ serve(async () => {
           processed++;
           break;
         }
+
+        // ============================================================
+        // pratica_pagata: invio thank-you / richiesta recensione quando
+        // una pratica viene marcata come pagata. Polling-based: cerca
+        // pratiche pagate nelle ultime 48h che non hanno ancora ricevuto
+        // il template di ringraziamento (matching via communication_log).
+        // ============================================================
+        case "pratica_pagata": {
+          const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+          const { data: practices } = await supabase
+            .from("enea_practices")
+            .select("*, companies:reseller_id(ragione_sociale)")
+            .eq("pagamento_stato", "pagata")
+            .gte("data_incasso", twoDaysAgo);
+
+          for (const p of practices ?? []) {
+            if (!rulePassesConditions(rule as Record<string, unknown>, p as Record<string, unknown>)) {
+              continue;
+            }
+            // Idempotency: skip se il template è già stato inviato a questa pratica.
+            // Match per template_id della rule in communication_log degli ultimi 30gg.
+            const templateId = (rule as { template_id?: string }).template_id;
+            if (templateId) {
+              const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+              const { data: alreadySent } = await supabase
+                .from("communication_log")
+                .select("id")
+                .eq("practice_id", p.id)
+                .eq("status", "sent")
+                .or(`body_preview.ilike.%${templateId}%,subject.ilike.%${templateId}%`)
+                .gte("sent_at", thirtyDaysAgo)
+                .limit(1)
+                .maybeSingle();
+              if (alreadySent) continue;
+            }
+
+            try {
+              if (rule.channel === "email" && p.cliente_email) {
+                await invoke(supabase, "send-email", {
+                  to: p.cliente_email,
+                  template: templateId ?? "pratica_inviata",
+                  data: {
+                    nome: p.cliente_nome,
+                    cognome: p.cliente_cognome,
+                    practice_id: p.id,
+                    link: p.form_token
+                      ? `https://app.praticarapida.it/recensione/${p.form_token}`
+                      : "",
+                  },
+                });
+              }
+              if (rule.channel === "whatsapp" && p.cliente_telefono) {
+                await invoke(supabase, "send-whatsapp", {
+                  to: normalizePhone(p.cliente_telefono),
+                  template_name: templateId ?? "pratica_completata",
+                  components: [{
+                    type: "body",
+                    parameters: [{ type: "text", text: p.cliente_nome }],
+                  }],
+                  practice_id: p.id,
+                });
+              }
+            } catch (sendErr) {
+              console.error(`[pratica_pagata] practice ${p.id} failed:`, sendErr);
+              await reportError(sendErr, {
+                fn: "process-automations",
+                rule_name: rule.name,
+                trigger_event: rule.trigger_event,
+                practice_id: p.id,
+              });
+            }
+          }
+          processed++;
+          break;
+        }
       }
     } catch (err) {
       console.error(`Error processing rule ${rule.name}:`, err);

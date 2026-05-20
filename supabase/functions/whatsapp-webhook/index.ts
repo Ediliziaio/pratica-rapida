@@ -468,6 +468,55 @@ serve(async (req) => {
       } else {
         console.log(`[whatsapp-webhook] inbound from ${from} → conversation ${convId} (no practice link)`);
       }
+
+      // 4. Auto-notify staff: nuovo messaggio inbound = campanella in-app
+      // per super_admin + operatori. Se la conversation ha un assigned_to,
+      // notifica SOLO quell'utente (evita spam ai colleghi). Altrimenti
+      // notifica tutti gli internal users (qualcuno deve prendersene
+      // carico).
+      try {
+        const { data: convFull } = await supabase
+          .from("whatsapp_conversations")
+          .select("assigned_to, display_name, phone")
+          .eq("id", convId)
+          .maybeSingle();
+
+        const targetUserIds: string[] = [];
+        if (convFull?.assigned_to) {
+          targetUserIds.push(convFull.assigned_to);
+        } else {
+          // Recupera tutti gli internal users (super_admin + operatore)
+          const { data: staff } = await supabase
+            .from("user_roles")
+            .select("user_id")
+            .in("role", ["super_admin", "operatore"]);
+          if (staff) {
+            for (const s of staff) {
+              if (s.user_id && !targetUserIds.includes(s.user_id)) {
+                targetUserIds.push(s.user_id);
+              }
+            }
+          }
+        }
+
+        if (targetUserIds.length > 0) {
+          const senderName = convFull?.display_name
+            || (convFull?.phone ? `+${convFull.phone}` : `+${from}`);
+          const preview = body.slice(0, 80) + (body.length > 80 ? "…" : "");
+          await supabase.from("notifications").insert(
+            targetUserIds.map((user_id) => ({
+              user_id,
+              tipo: "whatsapp_inbound",
+              titolo: `💬 Nuovo messaggio da ${senderName}`,
+              messaggio: preview,
+              link: `/admin/whatsapp-chat?conv=${convId}`,
+            })),
+          );
+        }
+      } catch (notifErr) {
+        // non-blocking — l'inbound è già stato salvato, la notifica è bonus
+        console.warn("[whatsapp-webhook] inbound notification failed:", notifErr);
+      }
     }
 
     return Response.json({ ok: true });

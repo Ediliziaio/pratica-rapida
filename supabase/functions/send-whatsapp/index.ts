@@ -143,7 +143,11 @@ serve(async (req) => {
       .maybeSingle();
     const lastInbound = conv?.last_inbound_at ? new Date(conv.last_inbound_at).getTime() : 0;
     const ageMs = Date.now() - lastInbound;
-    if (!lastInbound || ageMs >= 24 * 3600 * 1000) {
+    // Buffer di sicurezza 5min: evita falsi negativi proprio al boundary
+    // (server clock skew vs client può far passare un invio "borderline"
+    // che poi Meta rifiuta opaco).
+    const WINDOW_MS = 24 * 3600 * 1000 - 5 * 60 * 1000;
+    if (!lastInbound || ageMs >= WINDOW_MS) {
       return new Response(JSON.stringify({
         success: false,
         error: "Customer service window chiusa (>24h dall'ultimo inbound). Usa un template approvato per riaprire la chat.",

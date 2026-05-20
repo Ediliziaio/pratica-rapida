@@ -423,10 +423,15 @@ function ChatThread({ conversationId, onBack }: { conversationId: string; onBack
   }, [messages]);
 
   // 24h customer service window: posso scrivere testo libero?
+  // Buffer di sicurezza 5min: il clock skew del browser vs server può causare
+  // false positivi proprio al limite (utente clicca "invia" a 23:59:59,
+  // server riceve a 00:00:01 e rifiuta). Meglio anticipare la chiusura
+  // window di 5 min e suggerire un template prima del fallimento Meta.
   const canSendFreeText = useMemo(() => {
     if (!conv?.last_inbound_at) return false;
     const ageMs = Date.now() - new Date(conv.last_inbound_at).getTime();
-    return ageMs < 24 * 3600 * 1000;
+    const WINDOW_MS = 24 * 3600 * 1000 - 5 * 60 * 1000; // 23h55m
+    return ageMs < WINDOW_MS;
   }, [conv]);
 
   const archiveMutation = useMutation({

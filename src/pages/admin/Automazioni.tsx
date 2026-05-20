@@ -1126,7 +1126,17 @@ export default function Automazioni() {
           .eq("id", editingRule.id);
         if (error) throw error;
       } else {
-        const maxOrder = rules.length > 0 ? Math.max(...rules.map((r) => r.order_index)) + 1 : 0;
+        // Race-safe order_index: fetch fresh il max corrente dal DB invece
+        // di leggere dallo stato locale (che può essere stale se 2 admin
+        // creano regole in parallelo o se la cache react-query non è in
+        // sync con l'ultimo insert).
+        const { data: maxRow } = await supabase
+          .from("automation_rules")
+          .select("order_index")
+          .order("order_index", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        const maxOrder = (maxRow?.order_index ?? -1) + 1;
         const { error } = await supabase.from("automation_rules").insert({
           ...payload,
           category: "custom",

@@ -2406,13 +2406,20 @@ export default function KanbanBoard() {
     const archiviateStage = stages.find((s) => s.stage_type === "archiviate");
     if (!daInviareStage || !archiviateStage) return;
 
-    const toArchive = practices.filter(
+    const allEligible = practices.filter(
       (p) =>
         p.current_stage_id === daInviareStage.id &&
         !p.archived_at &&
         daysAgo(p.updated_at) >= 10 &&
-        !autoArchivedRef.current.has(p.id)
+        !autoArchivedRef.current.has(p.id),
     );
+
+    // Limit a max 3 mutation in parallelo per evitare:
+    // - Race condition su update concorrenti dello stesso row
+    // - Spam toast (10+ "archiviata automaticamente" sarebbe rumoroso)
+    // - Throttling Supabase su molte UPDATE simultanee
+    // Le pratiche eccedenti verranno processate al prossimo refetch.
+    const toArchive = allEligible.slice(0, 3);
 
     toArchive.forEach((p) => {
       autoArchivedRef.current.add(p.id);
@@ -2426,9 +2433,12 @@ export default function KanbanBoard() {
     });
 
     if (toArchive.length > 0) {
+      const remaining = allEligible.length - toArchive.length;
       toast({
         title: `${toArchive.length} ${toArchive.length === 1 ? "pratica archiviata" : "pratiche archiviate"} automaticamente`,
-        description: "Pratiche in 'Pratica inviata' da più di 10 giorni.",
+        description: remaining > 0
+          ? `${remaining} altre verranno archiviate al prossimo refresh.`
+          : "Pratiche in 'Pratica inviata' da più di 10 giorni.",
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

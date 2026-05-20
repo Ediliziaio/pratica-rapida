@@ -374,9 +374,21 @@ serve(async (req) => {
     // Quando success=false propaghiamo il messaggio errore di Meta per
     // diagnosi UI (toast, debug). Prima del fix: il response era senza
     // `error` quindi la UI mostrava "Invio fallito" generico.
+    // Includiamo anche `debug` con il payload effettivamente inviato a Meta
+    // (numero normalizzato, type, template name) così l'utente può vedere
+    // in console F12 se il bug fix del prefisso `+39` è applicato davvero.
+    debug: {
+      phone_received: to,
+      phone_sent_to_meta: phone,
+      payload_type: templatePayload.type,
+      template_name_sent: isTemplateMode ? template_name : null,
+      phone_number_id: PHONE_NUMBER_ID,
+      meta_url: `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
+    },
     ...(success ? {} : {
       error: error_message ?? `Meta HTTP ${response.status}`,
       meta_response: result,
+      meta_request_payload: templatePayload,
       attempts,
     }),
   }), {

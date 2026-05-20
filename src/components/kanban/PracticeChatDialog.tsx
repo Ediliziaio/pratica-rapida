@@ -431,6 +431,13 @@ function WhatsAppComposer({
           : [];
       const components = parameters.length > 0 ? [{ type: "body", parameters }] : [];
 
+      // Log debug pre-invio: vediamo in console esattamente cosa mandiamo
+      console.log("[whatsapp-send] invocking send-whatsapp", {
+        to_after_client_normalize: phone,
+        template: tpl.meta_template_name,
+        language: tpl.language,
+        components,
+      });
       const { data, error } = await supabase.functions.invoke("send-whatsapp", {
         body: {
           to: phone,
@@ -441,6 +448,13 @@ function WhatsAppComposer({
           sent_by_user_id: userId ?? undefined,
         },
       });
+      // Logga SEMPRE la response completa (anche su success) per audit/debug.
+      // Quando fallisce con #200 di Meta, qui vediamo:
+      // - debug.phone_sent_to_meta: il numero ESATTO inviato a Meta (verifica
+      //   che la normalize abbia aggiunto il "39" davanti)
+      // - meta_request_payload: il body completo POST a Graph API
+      // - meta_response: la risposta Meta verbatim
+      console.log("[whatsapp-send] response from edge function", data);
       if (error) throw error;
       const res = data as { success?: boolean; error?: string };
       if (!res.success) throw new Error(res.error ?? "Invio fallito");

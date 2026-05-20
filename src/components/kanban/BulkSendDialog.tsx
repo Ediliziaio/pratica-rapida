@@ -54,6 +54,57 @@ const EMAIL_TEMPLATES = [
 
 type Channel = "whatsapp" | "email";
 
+/**
+ * Variabili dinamiche disponibili per popolare i {{N}} dei template
+ * con valori per-pratica (es. nome cliente diverso per ogni invio).
+ * Risolte via lookup nei field della pratica al momento dell'invio.
+ */
+const DYNAMIC_VARS = [
+  { value: "__static", label: "✏️ Valore fisso" },
+  { value: "cliente_nome", label: "Nome cliente" },
+  { value: "cliente_cognome", label: "Cognome cliente" },
+  { value: "cliente_nome_cognome", label: "Nome + Cognome" },
+  { value: "cliente_email", label: "Email cliente" },
+  { value: "cliente_telefono", label: "Telefono cliente" },
+  { value: "form_link", label: "Link form pratica" },
+  { value: "practice_id", label: "ID pratica" },
+] as const;
+type DynamicVarKey = (typeof DYNAMIC_VARS)[number]["value"];
+
+interface PlaceholderConfig {
+  kind: DynamicVarKey;       // "__static" = staticValue usato; altrimenti risolve dinamicamente
+  staticValue: string;       // ignorato se kind != "__static"
+}
+
+/**
+ * Risolve un placeholder per una pratica specifica.
+ * Es: kind="cliente_nome" → ritorna p.cliente_nome ?? "Cliente"
+ *     kind="__static" + staticValue="30 giorni" → ritorna "30 giorni"
+ */
+function resolvePlaceholder(
+  config: PlaceholderConfig,
+  practice: PracticeForBulk,
+): string {
+  if (config.kind === "__static") return config.staticValue;
+  switch (config.kind) {
+    case "cliente_nome": return practice.cliente_nome ?? "Cliente";
+    case "cliente_cognome": return practice.cliente_cognome ?? "";
+    case "cliente_nome_cognome": {
+      const n = practice.cliente_nome ?? "Cliente";
+      const c = practice.cliente_cognome ?? "";
+      return c ? `${n} ${c}` : n;
+    }
+    case "cliente_email": return practice.cliente_email ?? "";
+    case "cliente_telefono": return practice.cliente_telefono ?? "";
+    case "form_link":
+      return practice.form_token
+        ? `https://app.praticarapida.it/form/${practice.form_token}`
+        : "";
+    case "practice_id": return practice.id;
+    default: return "";
+  }
+}
+
 export function BulkSendDialog({
   practices,
   defaultChannel,
@@ -65,14 +116,24 @@ export function BulkSendDialog({
 }) {
   const [channel, setChannel] = useState<Channel>(defaultChannel);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
-  const [params, setParams] = useState<string>("");
+  // Configurazione dinamica dei {{N}} del template. Inizialmente vuoto;
+  // si auto-popola quando l'utente seleziona un template con placeholder.
+  // Default smart: {{1}} → cliente_nome, {{2}} → form_link, altri → static "".
+  const [placeholderConfigs, setPlaceholderConfigs] = useState<PlaceholderConfig[]>([]);
   const [progress, setProgress] = useState<{ sent: number; failed: number; total: number } | null>(null);
   const [results, setResults] = useState<Array<{ practiceId: string; success: boolean; error?: string }>>([]);
 
   // Reset selection quando si cambia channel (i template sono diversi)
   useEffect(() => {
     setSelectedTemplate("");
+    setPlaceholderConfigs([]);
   }, [channel]);
+
+  // Auto-init placeholderConfigs quando l'utente seleziona un template.
+  // Conta le {{N}} nel body e popola con default smart: {{1}}=cliente_nome,
+  // {{2}}=form_link, altri=static vuoto. Re-init solo quando il TEMPLATE
+  // cambia, non quando waTemplates si refresca (evita override mentre
+  // l'utente sta editando i campi).
 
   // Carica template WhatsApp approvati dal DB
   const { data: waTemplates } = useQuery({
@@ -90,6 +151,28 @@ export function BulkSendDialog({
     enabled: channel === "whatsapp",
   });
 
+  // Auto-init placeholderConfigs quando l'utente seleziona un template.
+  // Default smart: {{1}}=cliente_nome (dinamico), {{2}}=form_link (dinamico),
+  // altri=static "". Re-init SOLO quando selectedTemplate cambia, non
+  // quando waTemplates si refresca (evita override mentre user edita).
+  useEffect(() => {
+    if (channel !== "whatsapp" || !selectedTemplate) {
+      setPlaceholderConfigs([]);
+      return;
+    }
+    const tpl = waTemplates?.find((t) => t.meta_template_name === selectedTemplate);
+    if (!tpl) return;
+    const matches = Array.from(tpl.body_text.matchAll(/\{\{(\d+)\}\}/g));
+    const numbers = Array.from(new Set(matches.map((m) => parseInt(m[1], 10)))).sort((a, b) => a - b);
+    const initial: PlaceholderConfig[] = numbers.map((n) => {
+      if (n === 1) return { kind: "cliente_nome" as const, staticValue: "" };
+      if (n === 2) return { kind: "form_link" as const, staticValue: "" };
+      return { kind: "__static" as const, staticValue: "" };
+    });
+    setPlaceholderConfigs(initial);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTemplate, channel]);
+
   // Pratiche con contatti validi per il canale scelto
   const validPractices = useMemo(() => {
     return practices.filter((p) =>
@@ -99,19 +182,22 @@ export function BulkSendDialog({
 
   const invalidCount = practices.length - validPractices.length;
 
-  // Preview body con esempio del primo cliente
+  // Preview body con esempio del primo cliente, risolvendo placeholder
+  // dinamici (es. cliente_nome) con i dati REALI del primo cliente +
+  // statici col loro valore.
   const previewBody = useMemo(() => {
     if (channel !== "whatsapp") return "";
     const tpl = waTemplates?.find((t) => t.meta_template_name === selectedTemplate);
     if (!tpl) return "";
     const firstPractice = validPractices[0];
-    const paramsList = params.split(",").map((p) => p.trim()).filter(Boolean);
-    return tpl.body_text
-      .replace(/\{\{(\d+)\}\}/g, (_, n) => {
-        const idx = parseInt(n, 10) - 1;
-        return paramsList[idx] || (idx === 0 ? firstPractice?.cliente_nome ?? "Nome" : `{{${n}}}`);
-      });
-  }, [channel, waTemplates, selectedTemplate, params, validPractices]);
+    if (!firstPractice) return tpl.body_text;
+    return tpl.body_text.replace(/\{\{(\d+)\}\}/g, (_, n) => {
+      const idx = parseInt(n, 10) - 1;
+      const config = placeholderConfigs[idx];
+      if (!config) return `{{${n}}}`;
+      return resolvePlaceholder(config, firstPractice) || `{{${n}}}`;
+    });
+  }, [channel, waTemplates, selectedTemplate, placeholderConfigs, validPractices]);
 
   const sendMutation = useMutation({
     mutationFn: async () => {
@@ -128,14 +214,17 @@ export function BulkSendDialog({
         const p = validPractices[i];
         try {
           if (channel === "whatsapp") {
-            // Per template con {{N}}: usa params espliciti se forniti, altrimenti
-            // injecta nome cliente come {{1}} (utile per template tipo
-            // sollecito_compilazione: {{1}} nome).
-            const paramsList = params.split(",").map((s) => s.trim()).filter(Boolean);
-            const parameters = paramsList.length > 0
-              ? paramsList.map((text) => ({ type: "text", text }))
-              : [{ type: "text", text: p.cliente_nome ?? "Cliente" }];
-            const components = [{ type: "body", parameters }];
+            // Risolvi placeholders PER QUESTA pratica: per ogni config,
+            // resolvePlaceholder ritorna il valore dinamico (es. cliente_nome
+            // di p) o lo static value. Ogni pratica riceve quindi parametri
+            // personalizzati (no più valori fissi per il batch).
+            const parameters = placeholderConfigs.length > 0
+              ? placeholderConfigs.map((config) => ({
+                  type: "text",
+                  text: resolvePlaceholder(config, p),
+                }))
+              : [];
+            const components = parameters.length > 0 ? [{ type: "body", parameters }] : [];
 
             const { data, error } = await supabase.functions.invoke("send-whatsapp", {
               body: {
@@ -274,18 +363,46 @@ export function BulkSendDialog({
             </div>
           )}
 
-          {/* Parametri body (solo WhatsApp con {{N}}) */}
-          {!isInProgress && !isDone && channel === "whatsapp" && selectedTemplate && previewBody.includes("{{") && (
-            <div>
-              <Label htmlFor="bulk-params">Parametri body</Label>
-              <Input
-                id="bulk-params"
-                value={params}
-                onChange={(e) => setParams(e.target.value)}
-                placeholder="es. Mario, https://app.praticarapida.it/form, 30 giorni"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Valori separati da virgola per ogni <code>{`{{N}}`}</code>. Se vuoto, <code>{`{{1}}`}</code> = nome cliente.
+          {/* Parametri body (solo WhatsApp con {{N}}) — UI per-placeholder
+              con scelta dinamico/statico. Ogni placeholder può prendere
+              valore diverso per ogni pratica del batch. */}
+          {!isInProgress && !isDone && channel === "whatsapp" && selectedTemplate && placeholderConfigs.length > 0 && (
+            <div className="space-y-2">
+              <Label>Variabili template (un valore per pratica)</Label>
+              <div className="space-y-2 rounded-md border bg-slate-50 p-2.5">
+                {placeholderConfigs.map((config, idx) => (
+                  <div key={idx} className="flex items-start gap-2">
+                    <code className="text-xs bg-white border rounded px-1.5 py-1.5 shrink-0 w-12 text-center">{`{{${idx + 1}}}`}</code>
+                    <select
+                      value={config.kind}
+                      onChange={(e) => {
+                        const next = [...placeholderConfigs];
+                        next[idx] = { ...next[idx], kind: e.target.value as DynamicVarKey };
+                        setPlaceholderConfigs(next);
+                      }}
+                      className="rounded-md border border-input bg-background px-2 py-1.5 text-xs flex-1 min-w-0"
+                    >
+                      {DYNAMIC_VARS.map((dv) => (
+                        <option key={dv.value} value={dv.value}>{dv.label}</option>
+                      ))}
+                    </select>
+                    {config.kind === "__static" && (
+                      <Input
+                        value={config.staticValue}
+                        onChange={(e) => {
+                          const next = [...placeholderConfigs];
+                          next[idx] = { ...next[idx], staticValue: e.target.value };
+                          setPlaceholderConfigs(next);
+                        }}
+                        placeholder="es. 30 giorni"
+                        className="h-8 text-xs flex-1"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Variabili <strong>dinamiche</strong> = valore diverso per ogni pratica (es. nome cliente). <strong>Fisso</strong> = stesso testo per tutte.
               </p>
             </div>
           )}

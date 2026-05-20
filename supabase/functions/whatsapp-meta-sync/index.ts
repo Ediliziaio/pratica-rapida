@@ -1097,6 +1097,64 @@ async function handleVerifyPhoneOtp(
 }
 
 /**
+ * Action "register_phone": registra/riconnette il phone number sul Cloud API.
+ *
+ * Risolve lo stato "Non in linea" / Offline tipico dei numeri verificati ma
+ * non attivati sul Cloud API (es. dopo migrazione da BSP, o se il 2FA PIN
+ * non è stato configurato). Quando il numero è offline, Meta restituisce
+ * #200 OAuthException su QUALSIASI send — la diagnostica permessi non
+ * intercetta perché GET su phone funziona, ma POST /messages no.
+ *
+ * POST /v18.0/{PHONE_NUMBER_ID}/register
+ * Body: { messaging_product: "whatsapp", pin: "123456" }
+ *
+ * Il PIN è il "Two-step verification" del numero. Se mai impostato → puoi
+ * sceglierne uno (Meta lo registra). Se già impostato → devi usare quello.
+ * Una volta registrato, lo stato passa a "Online" e i send funzionano.
+ */
+async function handleRegisterPhone(payload: { phone_number_id?: string; pin?: string }): Promise<Record<string, unknown>> {
+  const ACCESS_TOKEN = Deno.env.get("WA_ACCESS_TOKEN");
+  if (!ACCESS_TOKEN) return { success: false, error: "WA_ACCESS_TOKEN non configurato" };
+  const PHONE_NUMBER_ID = payload.phone_number_id ?? Deno.env.get("WA_PHONE_NUMBER_ID");
+  if (!PHONE_NUMBER_ID) return { success: false, error: "phone_number_id mancante (passa payload o setta WA_PHONE_NUMBER_ID)" };
+  if (!payload.pin || !/^\d{6}$/.test(payload.pin)) {
+    return { success: false, error: "PIN deve essere esattamente 6 cifre numeriche (es. 123456)" };
+  }
+
+  const res = await fetch(
+    `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/register`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        pin: payload.pin,
+      }),
+    },
+  );
+  const data = await res.json();
+  return {
+    success: res.ok,
+    status: res.status,
+    meta_response: data,
+    phone_number_id: PHONE_NUMBER_ID,
+    // Pattern errori comuni:
+    // - 133005 "Two-factor authentication pin mismatch" → PIN sbagliato
+    // - 133006 "Phone number recovery code required" → richiesta verifica via codice (raro)
+    // - 133010 "Phone number not registered" → numero non ancora verificato in WhatsApp Manager
+    // - 200 success → numero registrato, stato passa a Online
+    next_step: res.ok
+      ? "✅ Numero registrato. Stato dovrebbe passare a 'In linea' entro 30s. Ritenta il test send."
+      : (data as { error?: { code?: number; message?: string } }).error?.code === 133005
+        ? "❌ PIN sbagliato. Se mai impostato, prova un PIN diverso o resetta via WhatsApp Manager → Two-step verification."
+        : (data as { error?: { message?: string } }).error?.message ?? "Vedi meta_response per dettagli",
+  };
+}
+
+/**
  * Action "test_send": invia un template via la edge function send-whatsapp.
  * Sicuro per il super_admin (verificato sopra) — riusa il flow standard.
  */
@@ -1162,6 +1220,8 @@ serve(async (req) => {
         return json(await handleVerifyPhoneOtp(payload as { phone_number_id?: string; code?: string }));
       case "test_send":
         return json(await handleTestSend(payload as { to?: string; template_name?: string; language?: string; components?: unknown }));
+      case "register_phone":
+        return json(await handleRegisterPhone(payload as { phone_number_id?: string; pin?: string }));
       default:
         return json({ error: `unknown action: ${action}` }, 400);
     }

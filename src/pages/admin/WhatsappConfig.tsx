@@ -183,6 +183,12 @@ function SetupTab() {
     },
   });
 
+  // Register phone dialog: fix per numero "Non in linea" su WhatsApp Manager.
+  // Quando il numero non è registrato sul Cloud API, Meta torna #200 su qualsiasi
+  // send anche con permessi OK. Questo dialog chiama Meta direttamente con
+  // POST /{PHONE_NUMBER_ID}/register passando un PIN 2FA.
+  const [registerOpen, setRegisterOpen] = useState(false);
+
   return (
     <div className="space-y-4">
       {/* Stato connessione */}
@@ -194,6 +200,16 @@ function SetupTab() {
               <CardDescription>Verifica live dei secrets + chiamata Meta API</CardDescription>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setRegisterOpen(true)}
+                className="gap-2"
+                title="Registra/Riconnetti il phone number sul Cloud API. Fix per numeri 'Non in linea' che causano #200 su send."
+              >
+                <Phone className="h-3.5 w-3.5" />
+                Registra numero
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -383,7 +399,140 @@ function SetupTab() {
           </div>
         </CardContent>
       </Card>
+
+      {registerOpen && <RegisterPhoneDialog onClose={() => setRegisterOpen(false)} />}
     </div>
+  );
+}
+
+// ============================================================
+// Dialog: registrazione phone number su Cloud API
+// ============================================================
+
+/**
+ * Fix per phone number "Non in linea" / Offline su WhatsApp Manager che
+ * causa Meta #200 OAuthException su qualsiasi send anche con permessi
+ * corretti. Chiama POST /v18.0/{PHONE_NUMBER_ID}/register con un PIN 2FA
+ * a 6 cifre. Una volta registrato, il numero passa a stato "In linea" e
+ * i send funzionano normalmente.
+ */
+function RegisterPhoneDialog({ onClose }: { onClose: () => void }) {
+  const [pin, setPin] = useState("");
+  const [lastResponse, setLastResponse] = useState<Record<string, unknown> | null>(null);
+
+  const registerMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("whatsapp-meta-sync", {
+        body: { action: "register_phone", pin },
+      });
+      if (error) throw error;
+      setLastResponse(data as Record<string, unknown>);
+      const result = data as { success?: boolean; next_step?: string };
+      return result;
+    },
+    onSuccess: (res) => {
+      if (res.success) {
+        toast({
+          title: "Numero registrato ✅",
+          description: res.next_step ?? "Stato passerà a 'In linea' entro 30s.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Registrazione fallita",
+          description: res.next_step ?? "Vedi dettagli sotto.",
+        });
+      }
+    },
+    onError: (err: Error) => {
+      toast({ variant: "destructive", title: "Errore", description: err.message });
+    },
+  });
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Phone className="h-5 w-5" />
+            Registra phone number
+          </DialogTitle>
+          <DialogDescription>
+            Risolve lo stato &quot;Non in linea&quot; del numero che causa l&apos;errore #200 di Meta su send dei template.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3 py-2">
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs space-y-1.5">
+            <p className="font-semibold text-amber-900">Quando usare questo?</p>
+            <p className="text-amber-900">
+              Se in <a href="https://business.facebook.com/wa/manage/phone-numbers/" target="_blank" rel="noopener noreferrer" className="text-primary underline">WhatsApp Manager</a> il tuo numero ha stato <strong>&quot;Non in linea&quot;</strong> ma i template sono APPROVED, è quasi sicuramente un problema di registrazione sul Cloud API. Questo bottone lo registra.
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="pin">PIN a 6 cifre (Two-step verification)</Label>
+            <Input
+              id="pin"
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="123456"
+              inputMode="numeric"
+              maxLength={6}
+              className="font-mono text-lg tracking-widest"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Se non hai mai impostato un PIN 2FA per questo numero, scegli adesso un PIN qualsiasi (es. <code className="text-[10px]">123456</code>). <strong>Salvalo</strong> — Meta lo chiederà alla prossima riautenticazione del numero.
+            </p>
+          </div>
+
+          {/* Banner debug con response Meta — sempre visibile dopo invio */}
+          {lastResponse && (() => {
+            const success = (lastResponse as { success?: boolean }).success === true;
+            const status = (lastResponse as { status?: number }).status;
+            const meta = (lastResponse as { meta_response?: { error?: { code?: number; message?: string }; success?: boolean } }).meta_response;
+            const nextStep = (lastResponse as { next_step?: string }).next_step;
+            return (
+              <div className={`rounded-md border-2 p-3 text-[11px] space-y-1.5 ${success ? "border-emerald-300 bg-emerald-50" : "border-red-300 bg-red-50"}`}>
+                <div className={`font-bold ${success ? "text-emerald-900" : "text-red-900"}`}>
+                  {success ? "✅ Registrazione OK" : "❌ Registrazione fallita"}
+                </div>
+                <div className="grid grid-cols-[120px_1fr] gap-1 font-mono">
+                  <span className="opacity-70">HTTP status:</span>
+                  <span>{status}</span>
+                  {meta?.error?.code && (
+                    <>
+                      <span className="opacity-70">Meta code:</span>
+                      <span className="font-bold">#{meta.error.code}</span>
+                      <span className="opacity-70">Meta msg:</span>
+                      <span>{meta.error.message}</span>
+                    </>
+                  )}
+                </div>
+                {nextStep && <p className="mt-2 font-semibold">{nextStep}</p>}
+                <details className="mt-2">
+                  <summary className="cursor-pointer opacity-70 font-semibold">Response Meta (raw JSON)</summary>
+                  <pre className="mt-2 p-2 bg-white rounded overflow-x-auto text-[10px] max-h-40">
+{JSON.stringify(meta, null, 2)}
+                  </pre>
+                </details>
+              </div>
+            );
+          })()}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Chiudi</Button>
+          <Button
+            onClick={() => registerMutation.mutate()}
+            disabled={registerMutation.isPending || pin.length !== 6}
+          >
+            {registerMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            {lastResponse ? "Riprova" : "Registra"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

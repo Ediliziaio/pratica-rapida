@@ -191,8 +191,91 @@ serve(async (req) => {
 
     try {
 
-    const entry = (body as { entry?: Array<{ changes?: Array<{ value?: unknown }> }> }).entry?.[0];
-    const changes = entry?.changes?.[0]?.value as {
+    const entry = (body as { entry?: Array<{ changes?: Array<{ field?: string; value?: unknown }> }> }).entry?.[0];
+    const allChanges = entry?.changes ?? [];
+
+    // Loop su TUTTI i changes (Meta a volte ne manda più di uno nello stesso
+    // webhook). Per ognuno controlliamo il `field` per capire come processarlo.
+    for (const change of allChanges) {
+      const field = change.field;
+
+      // ============================================================
+      // Template status update (APPROVED / REJECTED / PAUSED / DISABLED)
+      // ============================================================
+      if (field === "message_template_status_update") {
+        const v = change.value as {
+          event?: string;                       // APPROVED | REJECTED | PAUSED | DISABLED | FLAGGED
+          message_template_id?: string;
+          message_template_name?: string;
+          message_template_language?: string;
+          reason?: string;                      // motivo rejection (es. "INVALID_FORMAT")
+        };
+
+        const newStatus = v.event?.toUpperCase();
+        if (!newStatus || !v.message_template_name) continue;
+
+        // Update whatsapp_templates con il nuovo status. Match per nome + lingua
+        // perché Meta può avere lo stesso nome in lingue diverse.
+        const updatePayload: Record<string, unknown> = {
+          status: newStatus,
+          meta_last_synced_at: new Date().toISOString(),
+        };
+        if (newStatus === "REJECTED" && v.reason) {
+          updatePayload.rejection_reason = v.reason;
+        } else if (newStatus === "APPROVED") {
+          updatePayload.rejection_reason = null; // pulisci eventuali reject precedenti
+        }
+        const lang = v.message_template_language ?? "it";
+        const { error: updErr } = await supabase
+          .from("whatsapp_templates")
+          .update(updatePayload)
+          .eq("meta_template_name", v.message_template_name)
+          .eq("language", lang);
+        if (updErr) {
+          console.error(`[template-status] update failed for ${v.message_template_name}/${lang}:`, updErr);
+        } else {
+          console.log(`[template-status] ${v.message_template_name} (${lang}) → ${newStatus}${v.reason ? ` (${v.reason})` : ""}`);
+        }
+
+        // Notifica super_admin per eventi importanti (REJECTED, PAUSED, DISABLED)
+        // così non scoprono il problema solo quando provano a inviare.
+        if (newStatus === "REJECTED" || newStatus === "PAUSED" || newStatus === "DISABLED" || newStatus === "FLAGGED") {
+          try {
+            const { data: admins } = await supabase
+              .from("user_roles")
+              .select("user_id")
+              .eq("role", "super_admin");
+            if (admins && admins.length > 0) {
+              const emoji = newStatus === "REJECTED" ? "❌" : newStatus === "FLAGGED" ? "⚠️" : "⏸";
+              const title = `${emoji} Template WhatsApp ${newStatus}`;
+              const message = `Il template "${v.message_template_name}" è stato ${newStatus.toLowerCase()} da Meta${v.reason ? `. Motivo: ${v.reason}` : ""}.`;
+              await supabase.from("notifications").insert(
+                admins.map((a) => ({
+                  user_id: a.user_id,
+                  tipo: "template_status_change",
+                  titolo: title,
+                  messaggio: message,
+                  link: "/admin/whatsapp-config",
+                })),
+              );
+            }
+          } catch (notifErr) {
+            console.warn("[template-status] notification insert failed:", notifErr);
+          }
+        }
+
+        continue; // passa al prossimo change
+      }
+
+      // ============================================================
+      // Default: messages / statuses (handler legacy)
+      // ============================================================
+    }
+
+    // Recupero il primo change "messages-like" per backward compat con il
+    // codice esistente (statuses inbound, incoming messages). Meta nel
+    // mondo reale manda statuses+messages sempre nel primo change.
+    const changes = allChanges.find((c) => !c.field || c.field === "messages")?.value as {
       statuses?: Array<{ id: string; status: string; timestamp: string }>;
       messages?: Array<{ id: string; from: string; text?: { body?: string } }>;
     } | undefined;

@@ -438,6 +438,35 @@ const TRIGGER_CATEGORIES = [
 ];
 
 /**
+ * Set dei trigger CABLATI nel backend (cron `process-automations` o
+ * webhook `on-*` dedicati). I trigger non in questo set sono
+ * configurabili ma il cron li skippa silenziosamente.
+ *
+ * UPDATE QUESTO SET quando aggiungi un handler backend per un nuovo
+ * trigger. La UI mostra un badge "Backend attivo" / "Solo UI" per
+ * permettere all'admin di capire se la rule funzionerà davvero.
+ *
+ * Sincronizzato con supabase/functions/process-automations/index.ts
+ * e supabase/functions/on-{practice-created,stage-changed}/index.ts.
+ */
+const BACKEND_CABLED_TRIGGERS = new Set([
+  "practice_created",
+  "stage_changed",
+  "days_waiting_7",
+  "days_waiting_fornitore_30",
+  "days_waiting_fornitore_60",
+  "days_waiting_fornitore_90",
+  "recensione_7d_followup",
+  "form_submitted",
+  "pratica_pagata",
+  "manual",
+]);
+
+function isTriggerBackendCabled(triggerValue: string): boolean {
+  return BACKEND_CABLED_TRIGGERS.has(triggerValue);
+}
+
+/**
  * Filtri (condizioni) applicabili a una rule per restringere il pubblico.
  * Permettono di differenziare automazioni: es. "sollecito_compilazione
  * solo per pratiche infissi ENEA non ancora pagate".
@@ -1109,19 +1138,44 @@ function TriggerBlock({
                       <div className="px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold sticky top-0 bg-white">
                         {category}
                       </div>
-                      {inCategory.map((t) => (
-                        <SelectItem key={t.value} value={t.value}>
-                          <div className="flex flex-col items-start">
-                            <span className="text-sm">{t.label}</span>
-                            <span className="text-[10px] text-muted-foreground line-clamp-1">{t.description}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {inCategory.map((t) => {
+                        const cabled = isTriggerBackendCabled(t.value);
+                        return (
+                          <SelectItem key={t.value} value={t.value}>
+                            <div className="flex flex-col items-start gap-0.5">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-sm">{t.label}</span>
+                                {cabled ? (
+                                  <span className="text-[9px] px-1.5 py-0 rounded bg-emerald-100 text-emerald-700 font-semibold">
+                                    ATTIVO
+                                  </span>
+                                ) : (
+                                  <span className="text-[9px] px-1.5 py-0 rounded bg-amber-100 text-amber-700 font-semibold">
+                                    SOLO UI
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-muted-foreground line-clamp-1">{t.description}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
                     </div>
                   );
                 })}
               </SelectContent>
             </Select>
+            {/* Warning se il trigger selezionato non è ancora cablato nel
+                backend (UI only). Eviti la sorpresa di "ho configurato
+                la rule ma il cron non la esegue mai". */}
+            {trigger.type && !isTriggerBackendCabled(trigger.type) && (
+              <div className="mt-2 rounded-md border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-900 flex items-start gap-1.5">
+                <span className="text-amber-600 shrink-0">⚠️</span>
+                <span>
+                  <strong>Solo UI</strong>: questo trigger è configurabile ma il backend non lo esegue ancora. La rule verrà salvata ma il cron la skipperà finché non aggiungiamo l'handler dedicato. Per ora usa uno dei trigger con badge "ATTIVO".
+                </span>
+              </div>
+            )}
           </div>
 
           {trigger.type === "days_in_stage" && (

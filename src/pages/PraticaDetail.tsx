@@ -340,22 +340,38 @@ export default function PraticaDetail() {
   // fix: il bottone "Scheda completa" del Kanban portava sempre qui →
   // "Pratica non trovata" perché PraticaDetail legge da `pratiche`, non
   // da `enea_practices`.
+  //
+  // `checkingFallback`: durante il check async a enea_practices, mostriamo
+  // un loader invece del flash "Pratica non trovata". Risolve il bug UX
+  // dove l'utente vedeva la pagina di errore per ~200-500ms prima del
+  // redirect.
+  const [checkingFallback, setCheckingFallback] = useState(true);
   useEffect(() => {
     if (!id || isLoading) return;
-    if (pratica) return; // trovata in `pratiche` → tutto ok
+    if (pratica) {
+      setCheckingFallback(false);
+      return;
+    }
     // Fallback: prova `enea_practices`
+    let cancelled = false;
     (async () => {
       const { data: enea } = await supabase
         .from("enea_practices")
         .select("id")
         .eq("id", id)
         .maybeSingle();
+      if (cancelled) return;
       if (enea) {
-        // È una pratica ENEA → vai al Kanban e apri la sheet
+        // È una pratica ENEA → vai al Kanban e apri la sheet.
+        // Manteniamo checkingFallback=true così l'utente vede il loader
+        // fino al redirect effettivo (no flash di "Pratica non trovata").
         navigate(`/kanban?practice=${id}`, { replace: true });
+      } else {
+        // Non in nessuna delle 2 tabelle → mostra "Pratica non trovata"
+        setCheckingFallback(false);
       }
-      // Se non trova in nessuna delle 2 tabelle, lascia il "Pratica non trovata"
     })();
+    return () => { cancelled = true; };
   }, [id, isLoading, pratica, navigate]);
 
   // Fetch assignee profile when present
@@ -443,10 +459,15 @@ export default function PraticaDetail() {
     onError: (e) => toast({ title: "Errore duplicazione", description: e.message, variant: "destructive" }),
   });
 
-  if (isLoading) {
+  // Loading iniziale OR check fallback in corso → mostra spinner unico
+  // (no flash di "Pratica non trovata" durante il check enea_practices)
+  if (isLoading || checkingFallback) {
     return (
-      <div className="flex justify-center py-12">
+      <div className="flex flex-col items-center justify-center py-12 gap-3">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        {checkingFallback && !isLoading && (
+          <p className="text-xs text-muted-foreground">Verifica in corso…</p>
+        )}
       </div>
     );
   }

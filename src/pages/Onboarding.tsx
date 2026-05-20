@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -64,10 +64,41 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [step, setStep] = useState(0);
+  // Persistenza onboarding draft in localStorage: se l'utente refresha,
+  // chiude il tab o ha un timeout di rete, ritrova lo stato compilato
+  // invece di ripartire da zero. Chiave per-utente per supportare login
+  // multipli sullo stesso browser.
+  const ONBOARDING_KEY = user ? `onboarding-draft-${user.id}` : null;
+  const loadDraft = (): { step: number; data: Partial<Step1 & Step2 & Step3 & Step4> } => {
+    if (!ONBOARDING_KEY || typeof window === "undefined") return { step: 0, data: {} };
+    try {
+      const raw = window.localStorage.getItem(ONBOARDING_KEY);
+      if (!raw) return { step: 0, data: {} };
+      const parsed = JSON.parse(raw);
+      return {
+        step: typeof parsed?.step === "number" ? parsed.step : 0,
+        data: (parsed?.data ?? {}) as Partial<Step1 & Step2 & Step3 & Step4>,
+      };
+    } catch {
+      return { step: 0, data: {} };
+    }
+  };
+
+  const initialDraft = loadDraft();
+  const [step, setStep] = useState(initialDraft.step);
   const [direction, setDirection] = useState(1);
   const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState<Partial<Step1 & Step2 & Step3 & Step4>>({});
+  const [formData, setFormData] = useState<Partial<Step1 & Step2 & Step3 & Step4>>(initialDraft.data);
+
+  // Persist draft a ogni cambio (debounced via React batching)
+  useEffect(() => {
+    if (!ONBOARDING_KEY || typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(ONBOARDING_KEY, JSON.stringify({ step, data: formData }));
+    } catch {
+      // localStorage pieno o quota exceeded — non-blocking
+    }
+  }, [step, formData, ONBOARDING_KEY]);
 
   // Forms per step
   const form1 = useForm<Step1>({ resolver: zodResolver(step1Schema), defaultValues: { preferred_contact: "email" } });
@@ -140,6 +171,11 @@ export default function Onboarding() {
       await supabase.functions.invoke("send-email", {
         body: { to: user!.email, template: "onboarding_welcome", data: { nome: merged.nome ?? "", cognome: merged.cognome ?? "" } },
       }).catch(() => null);
+
+      // Pulisci draft localStorage — onboarding completato, non serve più
+      if (ONBOARDING_KEY && typeof window !== "undefined") {
+        try { window.localStorage.removeItem(ONBOARDING_KEY); } catch { /* ignore */ }
+      }
 
       toast({ title: "Benvenuto in Pratica Rapida! 🎉", description: "Il tuo account è pronto." });
       navigate("/");

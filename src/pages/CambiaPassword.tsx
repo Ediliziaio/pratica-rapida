@@ -52,12 +52,34 @@ export default function CambiaPassword() {
       const { error: updErr } = await supabase.auth.updateUser({ password: newPwd });
       if (updErr) throw updErr;
 
-      // Step 2: azzera il flag must_change_password in profiles
-      const { error: clearErr } = await supabase.rpc("clear_must_change_password");
-      if (clearErr) {
-        console.error("[CambiaPassword] clear_must_change_password failed:", clearErr);
-        // non blocking — la password è stata cambiata, ma il flag potrebbe restare.
-        // Al prossimo reload il check si rifà.
+      // Step 2: azzera il flag must_change_password in profiles.
+      // BLOCCANTE con retry: prima del fix era non-blocking + console.error,
+      // ma se la RPC fallisce il flag resta true e al prossimo reload
+      // l'utente è BLOCCATO di nuovo sulla pagina CambiaPassword anche se la
+      // password è stata già aggiornata. Inconsistenza grave.
+      // Ora: 3 tentativi con backoff 300/600/1200ms, se tutti falliscono
+      // tossiamo errore esplicito.
+      let clearOk = false;
+      let lastClearErr: unknown = null;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        const { error: clearErr } = await supabase.rpc("clear_must_change_password");
+        if (!clearErr) { clearOk = true; break; }
+        lastClearErr = clearErr;
+        console.warn(`[CambiaPassword] clear flag attempt ${attempt}/3 failed:`, clearErr);
+        if (attempt < 3) {
+          await new Promise((r) => setTimeout(r, 300 * Math.pow(2, attempt - 1)));
+        }
+      }
+      if (!clearOk) {
+        // Non blocchiamo il navigate (la password È stata cambiata) ma
+        // mostriamo un toast esplicito così l'utente sa di scrivere a
+        // supporto se al prossimo login viene di nuovo bloccato.
+        const msg = lastClearErr instanceof Error ? lastClearErr.message : "errore sconosciuto";
+        toast({
+          variant: "destructive",
+          title: "Password cambiata ma flag non aggiornato",
+          description: `Se al prossimo accesso ti viene chiesto di cambiare di nuovo, contatta il supporto. (${msg})`,
+        });
       }
 
       clearMustChangePassword();

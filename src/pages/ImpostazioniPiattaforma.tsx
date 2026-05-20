@@ -79,11 +79,21 @@ function IntegrationSection({
     },
   });
 
+  // Sync state locale col DB. Reset esplicito a {} quando row torna NULL
+  // (es. switch tra section diverse). Prima del fix: il form restava
+  // sporco con i valori della section precedente, causando confusione
+  // (cross-contamination tra "Email Config" e "WhatsApp Config").
   useEffect(() => {
     if (row?.value) {
       setForm(row.value as Record<string, string>);
+    } else {
+      // Row null → section corrente non ha ancora valori salvati. Reset.
+      setForm({});
     }
-  }, [row]);
+    // Aggiungiamo anche settingKey alle deps così quando l'admin switcha
+    // tra integrazioni diverse, il form si pulisce immediatamente invece
+    // di mostrare i valori della precedente fino al fetch DB.
+  }, [row, settingKey]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {

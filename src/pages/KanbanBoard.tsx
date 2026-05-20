@@ -37,6 +37,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { BulkSendDialog } from "@/components/kanban/BulkSendDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1816,6 +1817,8 @@ export default function KanbanBoard() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkMoveStageId, setBulkMoveStageId] = useState<string>("");
   const [bulkArchiveConfirm, setBulkArchiveConfirm] = useState(false);
+  // Bulk send (WhatsApp / Email) — apre dialog con selettore template
+  const [bulkSendChannel, setBulkSendChannel] = useState<"whatsapp" | "email" | null>(null);
 
   // Clear selection when leaving select mode
   useEffect(() => {
@@ -3131,6 +3134,26 @@ export default function KanbanBoard() {
             variant="outline"
             size="sm"
             className="h-8 gap-1.5"
+            onClick={() => setBulkSendChannel("whatsapp")}
+            title="Invia WhatsApp a tutte le pratiche selezionate"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            WhatsApp
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5"
+            onClick={() => setBulkSendChannel("email")}
+            title="Invia email a tutte le pratiche selezionate"
+          >
+            <Mail className="h-3.5 w-3.5" />
+            Email
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5"
             onClick={() => setBulkArchiveConfirm(true)}
             disabled={bulkArchiveMutation.isPending}
           >
@@ -3144,9 +3167,27 @@ export default function KanbanBoard() {
             onClick={() => setSelectedIds(new Set())}
           >
             <X className="h-3.5 w-3.5" />
-            Annulla selezione
+            Annulla
           </Button>
         </div>
+      )}
+
+      {/* Bulk send dialog (WhatsApp/Email) — Channel guida il default tab */}
+      {bulkSendChannel && (
+        <BulkSendDialog
+          defaultChannel={bulkSendChannel}
+          practices={practices
+            .filter((p) => selectedIds.has(p.id))
+            .map((p) => ({
+              id: p.id,
+              cliente_nome: p.cliente_nome,
+              cliente_cognome: p.cliente_cognome,
+              cliente_telefono: p.cliente_telefono,
+              cliente_email: p.cliente_email,
+              form_token: p.form_token,
+            }))}
+          onClose={() => setBulkSendChannel(null)}
+        />
       )}
 
       {/* Bulk archive confirm dialog */}

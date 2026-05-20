@@ -705,11 +705,20 @@ async function handleDebugTemplateAccess(): Promise<Record<string, unknown>> {
     diagnosis.test_7_app_subscribed = { error: String(err) };
   }
 
-  // Test 8: POST /{PHONE_NUMBER_ID}/messages con payload INVALIDO ma
-  // ben-formato. Forza Meta a fare il check permessi PRIMA della validazione
-  // del payload. Se torna #200 → permission issue. Se torna #100 (param
-  // validation) → permessi OK ma payload sbagliato. Questo discrimina
-  // permessi vs payload nei send reali falliti.
+  // Test 8: POST /{PHONE_NUMBER_ID}/messages con payload TEMPLATE su numero
+  // ben-formato (E.164 italiano fittizio). Meta valida nell'ordine:
+  //   1) auth → 401
+  //   2) account permissions sul WABA → #10/#200
+  //   3) recipient whitelist (se App in Dev mode) → #200
+  //   4) template ownership/exists → #132001
+  //   5) payload params → #132xxx
+  //   6) recipient reale/opt-in → #131xxx
+  //
+  // V1 di questo test usava `to: "0000000000"` e text dummy → Meta bocciava
+  // al passo 5 con #100 prima di arrivare ai permessi recipient, mascherando
+  // i problemi di Dev mode / whitelist. V2 usa formato E.164 valido +
+  // payload template, così se il send reale fallisce per Dev-mode anche il
+  // probe lo fa, e possiamo dirlo chiaramente.
   if (PHONE_NUMBER_ID) {
     try {
       const dryRes = await fetch(
@@ -720,34 +729,47 @@ async function handleDebugTemplateAccess(): Promise<Record<string, unknown>> {
             Authorization: `Bearer ${ACCESS_TOKEN}`,
             "Content-Type": "application/json",
           },
-          // Payload volutamente malformato: numero impossibile + messaging_product mancante.
-          // Meta valida nell'ordine: 1) auth, 2) entity permissions, 3) payload.
-          // Se torna #200 qui → permessi rotti. Se torna altro → permessi OK.
           body: JSON.stringify({
-            to: "0000000000",
-            type: "text",
-            text: { body: "diagnostic-probe-do-not-send" },
+            messaging_product: "whatsapp",
+            to: "393999999999",      // E.164 IT valido, numero inesistente
+            type: "template",
+            template: {
+              name: "hello_world",   // template di default presente su ogni WABA test
+              language: { code: "en_US" },
+            },
           }),
         },
       );
       const dryData = await dryRes.json();
-      const errCode = (dryData as { error?: { code?: number; message?: string; error_subcode?: number; error_user_msg?: string } }).error?.code;
+      const errCode = (dryData as { error?: { code?: number } }).error?.code;
       const errMsg = (dryData as { error?: { message?: string } }).error?.message;
+      const errSubcode = (dryData as { error?: { error_subcode?: number } }).error?.error_subcode;
+      const errUserMsg = (dryData as { error?: { error_user_msg?: string } }).error?.error_user_msg;
       diagnosis.test_8_send_permission_probe = {
         status: dryRes.status,
+        ok: dryRes.ok,
         meta_error_code: errCode,
         meta_error_message: errMsg,
-        meta_error_subcode: (dryData as { error?: { error_subcode?: number } }).error?.error_subcode,
-        // Interpretazione del codice di errore:
-        // - 100 = "Invalid parameter" → permessi OK, è il payload (atteso qui)
-        // - 200 = "Permissions error" → permessi NON OK, è il problema reale
-        // - 131009 / 131030 / 131047 → numero non valido (permessi OK)
+        meta_error_subcode: errSubcode,
+        meta_error_user_msg: errUserMsg,
+        // Interpretazione:
+        // - 200 → ❌ Permission error (App in Dev mode + recipient non whitelist, OPPURE WABA permission rotto)
+        // - 132001 → ✅ permessi OK, ma template `hello_world` non esiste su questo WABA (= il WABA è custom, ok)
+        // - 131030 / 131026 → ✅ permessi OK, recipient non in whitelist (Dev mode) o non opt-in
+        // - 131009 / 131047 → ✅ permessi OK, numero invalido (atteso)
+        // - 100 → ❓ payload format error
         interpretation:
           errCode === 200
-            ? "❌ #200 anche con payload dummy → permessi send NON OK"
-            : errCode === 100 || (errCode && errCode >= 131000 && errCode < 132000)
-              ? "✅ permessi send OK (#" + errCode + " è errore di payload/numero, atteso)"
-              : `❓ codice inatteso #${errCode}: ${errMsg}`,
+            ? "❌ #200 anche con probe → permessi send NON OK (App in Dev mode + recipient non whitelist, o WABA permission)"
+            : errCode === 132001
+              ? "✅ permessi OK (#132001 = `hello_world` non su questo WABA, atteso se è un WABA personalizzato)"
+              : errCode === 131030 || errCode === 131026
+                ? "❌ #" + errCode + " → App probabilmente in Dev mode: recipient non in whitelist `Meta for Developers → App → WhatsApp → API Setup → To`"
+                : errCode === 131009 || errCode === 131047
+                  ? "✅ permessi OK (#" + errCode + " = numero invalido/non opt-in, atteso)"
+                  : errCode === 100
+                    ? "❓ #100 payload format error: " + errMsg
+                    : `❓ codice inatteso #${errCode}: ${errMsg}`,
       };
     } catch (err) {
       diagnosis.test_8_send_permission_probe = { error: String(err) };
@@ -756,18 +778,44 @@ async function handleDebugTemplateAccess(): Promise<Record<string, unknown>> {
     diagnosis.test_8_send_permission_probe = { skipped: "WA_PHONE_NUMBER_ID non settato" };
   }
 
-  // Conclusione automatica — ordine di priorità: scope > messaging probe > subscription > read access
+  // Test 9: GET /{WABA_ID}/message_templates?name=compilazione_avvenuta
+  // verifica che il template specifico che sta fallendo esista DAVVERO su
+  // questo WABA (non solo nel DB locale, che potrebbe essere stale post
+  // switch WABA). Se non esiste → spiega tutto, e Meta sta restituendo
+  // #200 invece di #132001 perché il send con un template non-esistente
+  // su un WABA può triggerare permission check prima di template check.
+  try {
+    const tplRes = await fetch(
+      `https://graph.facebook.com/v18.0/${WABA_ID}/message_templates?name=compilazione_avvenuta&fields=name,status,language,category`,
+      { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } },
+    );
+    const tplData = await tplRes.json();
+    const arr = (tplData as { data?: Array<{ name?: string; status?: string; language?: string; category?: string }> }).data;
+    diagnosis.test_9_failing_template_exists = {
+      template_name: "compilazione_avvenuta",
+      url: `https://graph.facebook.com/v18.0/${WABA_ID}/message_templates?name=compilazione_avvenuta`,
+      status: tplRes.status,
+      found_on_waba: Array.isArray(arr) && arr.length > 0,
+      template_details: arr,
+      raw: tplRes.ok ? undefined : tplData,
+    };
+  } catch (err) {
+    diagnosis.test_9_failing_template_exists = { error: String(err) };
+  }
+
+  // Conclusione automatica — ordine di priorità:
+  // scopes → probe template send #200 → subscription → template esistenza → read access
   const t3 = diagnosis.test_3_list_templates as { ok?: boolean; response?: { error?: { message?: string; code?: number } } };
   const t4 = diagnosis.test_4_token_scopes as { response?: { scopes?: string[] } };
   const t5 = diagnosis.test_5_phone_number_access as { ok?: boolean; response?: { error?: { message?: string; code?: number } } };
   const t6 = diagnosis.test_6_phone_belongs_to_waba as { ok?: boolean; phone_belongs_to_waba?: boolean };
   const t7 = diagnosis.test_7_app_subscribed as { ok?: boolean; apps_count?: number };
-  const t8 = diagnosis.test_8_send_permission_probe as { meta_error_code?: number; meta_error_message?: string };
+  const t8 = diagnosis.test_8_send_permission_probe as { meta_error_code?: number; meta_error_message?: string; ok?: boolean };
+  const t9 = diagnosis.test_9_failing_template_exists as { found_on_waba?: boolean; template_details?: Array<{ status?: string }> };
 
   const scopes = t4?.response?.scopes ?? [];
   const hasManagement = scopes.includes("whatsapp_business_management");
   const hasMessaging = scopes.includes("whatsapp_business_messaging");
-  const sendProbeOk = t8?.meta_error_code !== 200 && t8?.meta_error_code !== undefined;
   const sendProbe200 = t8?.meta_error_code === 200;
 
   if (!hasMessaging && scopes.length > 0) {
@@ -775,18 +823,23 @@ async function handleDebugTemplateAccess(): Promise<Record<string, unknown>> {
   } else if (!hasManagement && scopes.length > 0) {
     diagnosis.conclusion = "❌ Il token NON ha lo scope `whatsapp_business_management` — i template non sono leggibili/scrivibili. Rigenera il Permanent Token con entrambi gli scope.";
   } else if (sendProbe200) {
-    // Send probe ha confermato #200: dobbiamo capire SE è subscription o policy.
+    // Send probe ha confermato #200 anche con un template valido + numero E.164.
+    // È la causa esatta del fallimento del send reale dell'utente.
     if (t7 && t7.ok && (t7.apps_count ?? 0) === 0) {
-      diagnosis.conclusion = "❌ Meta error #200 in invio + NESSUNA app subscribed al WABA. Devi iscrivere l'app: in Meta for Developers → la tua App → WhatsApp → Configuration → 'Webhooks' → clicca 'Subscribe' (oltre a settare l'URL). Senza subscription, l'app può leggere ma non sempre inviare.";
+      diagnosis.conclusion = "❌ Meta #200 sul probe + NESSUNA app subscribed al WABA. SOLUZIONE: vai su Meta for Developers → App → WhatsApp → Configuration → bottone 'Subscribe' (oltre alle altre cose già fatte). L'app deve essere subscribed AL WABA, non basta che il token sia valido.";
     } else {
-      diagnosis.conclusion = "❌ Meta error #200 confermato anche con probe dummy. Cause residue: (1) App ancora in 'Development' mode → vai su Meta for Developers → App Settings → App Mode → switch a 'Live' (richiede privacy policy URL); (2) numero destinatario non whitelistato come Recipient se sei in Dev; (3) System User non ha 'Manage WhatsApp Accounts' sul WABA in Business Settings.";
+      diagnosis.conclusion = "❌ Meta #200 sul probe template (numero E.164 valido, template `hello_world` standard). Sei al 99% in **DEVELOPMENT MODE**. SOLUZIONI: (A) [consigliata] Vai su Meta for Developers → App Settings → Basic → in alto vedi 'App Mode: Development' con switch → flippa su 'Live' (richiede Privacy Policy URL già configurata, hai già fatto). Da Dev a Live ci vogliono ~30 sec. (B) [workaround] Aggiungi il numero +393483467567 in Meta for Developers → App → WhatsApp → API Setup → sezione 'To' → bottone 'Manage phone number list'. In Dev mode solo i numeri lì elencati possono ricevere messaggi.";
     }
+  } else if (t9 && t9.found_on_waba === false) {
+    diagnosis.conclusion = "❌ Il template `compilazione_avvenuta` NON esiste su questo WABA. È un residuo nel DB locale di un WABA precedente. SOLUZIONE: vai su /admin/whatsapp-config tab Template → bottone 'Sincronizza con Meta' (cancella i template stale e riprende quelli reali). Poi ricrea il template `compilazione_avvenuta` su Meta Business Manager.";
+  } else if (t9 && t9.template_details && t9.template_details[0]?.status && t9.template_details[0].status !== "APPROVED") {
+    diagnosis.conclusion = `❌ Il template \`compilazione_avvenuta\` esiste sul WABA ma è in stato \`${t9.template_details[0].status}\` (non APPROVED). I template non APPROVED non sono inviabili. Vai su Meta Business Manager → WhatsApp Manager → Message Templates per vedere il motivo e ri-sottomettere.`;
   } else if (t6 && t6.ok && t6.phone_belongs_to_waba === false) {
-    diagnosis.conclusion = "❌ Il `WA_PHONE_NUMBER_ID` NON appartiene al `WA_BUSINESS_ACCOUNT_ID` configurato. Controlla che PHONE_NUMBER_ID e WABA siano coerenti (vai su Business Manager → WhatsApp Accounts → seleziona il WABA → Phone numbers e copia l'ID corretto).";
+    diagnosis.conclusion = "❌ Il `WA_PHONE_NUMBER_ID` NON appartiene al `WA_BUSINESS_ACCOUNT_ID` configurato. Controlla che PHONE_NUMBER_ID e WABA siano coerenti.";
   } else if (t5 && !t5.ok) {
     diagnosis.conclusion = `❌ Phone Number non accessibile: ${t5.response?.error?.message ?? JSON.stringify(t5.response)}`;
-  } else if (t3?.ok && t5?.ok && sendProbeOk) {
-    diagnosis.conclusion = `✅ Tutti i test passano (incluso send permission probe — Meta torna #${t8?.meta_error_code} sul payload dummy, che è il comportamento atteso). Se l'invio di un template specifico fallisce ancora, è un problema del singolo template (status REJECTED/PAUSED/IN_APPEAL) o del numero destinatario non opt-in. Controlla i dettagli del template fallito in /admin/whatsapp-config tab Template.`;
+  } else if (t3?.ok && t5?.ok) {
+    diagnosis.conclusion = `✅ Tutti i test passano — config Meta OK, template esiste e APPROVED, probe send template torna #${t8?.meta_error_code} (atteso). Se l'invio del template specifico fallisce ancora, è un problema del singolo destinatario (non opt-in / numero non valido in formato +39).`;
   } else if (t3?.response?.error?.message) {
     diagnosis.conclusion = `❌ Meta error su list_templates: ${t3.response.error.message}`;
   } else {

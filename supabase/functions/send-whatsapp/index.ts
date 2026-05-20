@@ -81,6 +81,10 @@ serve(async (req) => {
     language?: string;
     components?: unknown;
     practice_id?: string;
+    // Per outbound da chat in-app: testo libero (richiede customer service window 24h)
+    text_body?: string;
+    // User che ha inviato (per audit chat)
+    sent_by_user_id?: string;
   };
   try {
     payload = await req.json();
@@ -91,7 +95,7 @@ serve(async (req) => {
     });
   }
 
-  const { to, template_name, language, components, practice_id } = payload;
+  const { to, template_name, language, components, practice_id, text_body, sent_by_user_id } = payload;
 
   if (!to || typeof to !== "string") {
     return new Response(JSON.stringify({ success: false, error: "Missing 'to'" }), {
@@ -99,8 +103,11 @@ serve(async (req) => {
       headers: { ...CORS, "Content-Type": "application/json" },
     });
   }
-  if (!template_name || typeof template_name !== "string") {
-    return new Response(JSON.stringify({ success: false, error: "Missing template_name" }), {
+  // Modalità: template (default per qualsiasi invio) OR text (solo dentro
+  // customer service window di 24h dall'ultimo inbound del cliente).
+  const isTextMode = !!text_body && !template_name;
+  if (!isTextMode && (!template_name || typeof template_name !== "string")) {
+    return new Response(JSON.stringify({ success: false, error: "Missing template_name (or text_body for text mode)" }), {
       status: 400,
       headers: { ...CORS, "Content-Type": "application/json" },
     });
@@ -110,16 +117,25 @@ serve(async (req) => {
 
   const phone = normalizePhone(to);
 
-  const templatePayload = {
-    messaging_product: "whatsapp",
-    to: phone,
-    type: "template",
-    template: {
-      name: template_name,
-      language: { code: language ?? "it" },
-      components: components ?? [],
-    },
-  };
+  // Costruisce payload Meta in base alla modalità (template default, text se
+  // sviluppatore ha passato `text_body` esplicito senza template_name).
+  const templatePayload = isTextMode
+    ? {
+        messaging_product: "whatsapp",
+        to: phone,
+        type: "text",
+        text: { body: text_body },
+      }
+    : {
+        messaging_product: "whatsapp",
+        to: phone,
+        type: "template",
+        template: {
+          name: template_name,
+          language: { code: language ?? "it" },
+          components: components ?? [],
+        },
+      };
 
   const { response, result, attempts } = await callMetaWithRetry(
     `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
@@ -141,19 +157,23 @@ serve(async (req) => {
   // serializza i parameters del primo body component, troncata a 500 char.
   // whatsapp_logs.body era sempre NULL prima — perdevamo il content esatto.
   let bodyPreview: string | null = null;
-  try {
-    const comps = (components as Array<{ type: string; parameters?: Array<{ type: string; text?: string }> }> | undefined) ?? [];
-    const bodyComp = comps.find((c) => c.type === "body");
-    if (bodyComp?.parameters) {
-      bodyPreview = `[${template_name}] ` + bodyComp.parameters
-        .map((p) => p.text ?? `<${p.type}>`)
-        .join(" | ")
-        .slice(0, 480);
-    } else {
+  if (isTextMode) {
+    bodyPreview = (text_body ?? "").slice(0, 480);
+  } else {
+    try {
+      const comps = (components as Array<{ type: string; parameters?: Array<{ type: string; text?: string }> }> | undefined) ?? [];
+      const bodyComp = comps.find((c) => c.type === "body");
+      if (bodyComp?.parameters) {
+        bodyPreview = `[${template_name}] ` + bodyComp.parameters
+          .map((p) => p.text ?? `<${p.type}>`)
+          .join(" | ")
+          .slice(0, 480);
+      } else {
+        bodyPreview = `[${template_name}]`;
+      }
+    } catch {
       bodyPreview = `[${template_name}]`;
     }
-  } catch {
-    bodyPreview = `[${template_name}]`;
   }
 
   if (!success) {
@@ -223,20 +243,54 @@ serve(async (req) => {
     });
   }
 
-  // Log su whatsapp_logs (pannello admin) — popoliamo `body` con la preview
-  // ricostruita dai parameters così l'audit ha visibilità sul content reale,
-  // non solo sul nome del template.
+  // Log su whatsapp_logs (pannello admin legacy) — popoliamo `body` con la
+  // preview ricostruita dai parameters così l'audit ha visibilità sul content
+  // reale, non solo sul nome del template.
   await supabase.from("whatsapp_logs").insert({
     client_id: null,
     pratica_id: practice_id ?? null,
     direction: "outbound",
     phone,
-    message_type: "template",
-    template_name,
+    message_type: isTextMode ? "text" : "template",
+    template_name: isTextMode ? null : template_name,
     body: bodyPreview,
     status: success ? "sent" : "failed",
     wa_message_id: wa_message_id ?? null,
   });
+
+  // Chat thread (nuovo, Fase 2): popola whatsapp_conversations +
+  // whatsapp_messages per la UI chat in-app. Upsert idempotente.
+  try {
+    const { data: conv } = await supabase
+      .from("whatsapp_conversations")
+      .upsert(
+        {
+          phone,
+          ...(practice_id ? { practice_id } : {}),
+        },
+        { onConflict: "phone", ignoreDuplicates: false },
+      )
+      .select("id")
+      .single();
+    if (conv) {
+      await supabase.from("whatsapp_messages").insert({
+        conversation_id: conv.id,
+        direction: "outbound",
+        message_type: isTextMode ? "text" : "template",
+        body: bodyPreview,
+        template_name: isTextMode ? null : template_name,
+        template_components: isTextMode ? null : (components ?? null),
+        wa_message_id: wa_message_id ?? null,
+        status: success ? "sent" : "failed",
+        error_message: error_message ?? null,
+        sent_by_user_id: sent_by_user_id ?? null,
+      });
+    }
+  } catch (chatErr) {
+    // non-blocking: i log primari (communication_log + whatsapp_logs) sono
+    // già stati scritti. La chat thread è "best-effort".
+    console.warn("[send-whatsapp] chat thread insert failed:", chatErr);
+  }
 
   return new Response(JSON.stringify({ success, wa_message_id }), {
     status: 200,

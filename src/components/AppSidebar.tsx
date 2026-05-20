@@ -234,6 +234,7 @@ export function AppSidebar() {
         items: [
           { title: "Email", url: "/admin/email", icon: Mail },
           { title: "WhatsApp", url: "/admin/whatsapp", icon: MessageCircle },
+          { title: "Chat WhatsApp", url: "/admin/whatsapp-chat", icon: MessageSquare },
           { title: "Log", url: "/admin/comunicazioni", icon: MessageSquare },
           { title: "Calendario", url: "/admin/calendario", icon: CalendarClock },
         ],

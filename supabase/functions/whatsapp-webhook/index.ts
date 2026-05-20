@@ -113,46 +113,78 @@ serve(async (req) => {
       messages?: Array<{ id: string; from: string; text?: { body?: string } }>;
     } | undefined;
 
-    // Status updates (delivered, read, failed)
+    // Status updates (delivered, read, failed) — aggiorna sia communication_log
+    // (audit) sia whatsapp_messages (chat UI).
     const statuses = changes?.statuses ?? [];
     for (const status of statuses) {
       const { id, status: st, timestamp } = status;
+      const ts = new Date(parseInt(timestamp) * 1000).toISOString();
+      const normalizedStatus = st === "delivered" ? "delivered"
+        : st === "read" ? "read"
+        : st === "sent" ? "sent"
+        : "failed";
+
+      // communication_log (audit-centric)
       await supabase
         .from("communication_log")
         .update({
-          status: st === "delivered" ? "delivered" : st === "read" ? "read" : "failed",
-          read_at: st === "read" ? new Date(parseInt(timestamp) * 1000).toISOString() : undefined,
+          status: normalizedStatus === "sent" ? "sent" : normalizedStatus,
+          read_at: st === "read" ? ts : undefined,
         })
+        .eq("wa_message_id", id);
+
+      // whatsapp_messages (chat-centric) — popolato anche dei timestamps specifici
+      const msgUpdate: Record<string, unknown> = { status: normalizedStatus };
+      if (st === "delivered") msgUpdate.delivered_at = ts;
+      if (st === "read") msgUpdate.read_at = ts;
+      await supabase
+        .from("whatsapp_messages")
+        .update(msgUpdate)
         .eq("wa_message_id", id);
     }
 
     // Incoming messages
+    //
+    // Doppio storage:
+    //  - communication_log: audit (legato a practice_id, immutabile)
+    //  - whatsapp_conversations + whatsapp_messages: chat UI (thread per phone)
+    //
+    // Anche se non troviamo una practice (es. cliente nuovo, numero non
+    // ancora salvato), CREIAMO comunque la conversation: l'admin la vedrà
+    // nella inbox e potrà rispondere/linkare manualmente alla practice.
     const messages = changes?.messages ?? [];
+    const contacts = (changes as { contacts?: Array<{ wa_id: string; profile?: { name?: string } }> })?.contacts ?? [];
+    const profileNameMap = new Map<string, string>();
+    for (const c of contacts) {
+      if (c.profile?.name) profileNameMap.set(c.wa_id, c.profile.name);
+    }
+
     for (const msg of messages) {
       const from = msg.from; // Meta invia "393331234567" (E.164 senza +)
-      const text = msg.text?.body ?? "";
+      // Estrae il body in base al tipo di messaggio (Meta supporta text,
+      // image, document, audio, video, location, contacts, sticker, ...).
+      const msgAny = msg as Record<string, unknown> & { type?: string };
+      const msgType = (msgAny.type as string) ?? "text";
+      const text = (msgAny.text as { body?: string } | undefined)?.body ?? "";
+      const caption = ((msgAny.image as { caption?: string } | undefined)?.caption)
+        ?? ((msgAny.document as { caption?: string } | undefined)?.caption)
+        ?? ((msgAny.video as { caption?: string } | undefined)?.caption)
+        ?? "";
+      const body = text || caption || `[${msgType}]`;
+      const displayName = profileNameMap.get(from) ?? null;
 
       // STOP opt-out
       if (text.trim().toUpperCase() === "STOP") {
-        // Future: mark phone as opted out
+        // Future: mark phone as opted out (TODO: aggiungere flag su conversation)
         console.log(`STOP from ${from}`);
         continue;
       }
 
-      // Find practice by phone — il vecchio codice cercava match esatto su
-      // `+${from}` ma il DB può avere "+39 333 123 4567", "0039333...",
-      // "333 123 4567" (senza prefisso), ecc. → match silenziosamente
-      // fallito → messaggio inbound non collegato alla pratica.
-      //
-      // Strategia: normalizzo il numero in DB ai soli digit e confronto
-      // sugli ultimi 10 (numero italiano senza prefisso 39). Uso ilike con
-      // wildcard sui digit per matchare formati eterogenei.
+      // Find practice by phone (matching robusto, vedi commit precedente)
       const digits = from.replace(/\D/g, "");
-      const last10 = digits.slice(-10); // "3331234567" — copre IT senza prefisso
+      const last10 = digits.slice(-10);
       let practice: { id: string } | null = null;
       if (last10.length === 10) {
-        // Match formati: "333 123 4567", "+39 333 123 4567", "0039 333...",
-        // "333-123-4567", "3331234567". Inseriamo wildcard tra i digit.
         const pattern = `%${last10.slice(0, 3)}%${last10.slice(3, 6)}%${last10.slice(6)}%`;
         const { data: matches } = await supabase
           .from("enea_practices")
@@ -162,26 +194,63 @@ serve(async (req) => {
         if (matches && matches.length === 1) {
           practice = matches[0];
         } else if (matches && matches.length > 1) {
-          // Più match possibili (numero ambiguo): logghiamo per diagnosi
-          // ma non collegamo per evitare di attribuire al cliente sbagliato.
-          console.warn(`[whatsapp-webhook] ambiguous phone ${from} → ${matches.length} matches, skipping link`);
+          console.warn(`[whatsapp-webhook] ambiguous phone ${from} → ${matches.length} matches`);
         }
       }
 
+      // 1. Upsert conversation (idempotent — se esiste già aggiorniamo solo
+      //    practice_id/display_name se non già settati)
+      const { data: conv, error: convErr } = await supabase
+        .from("whatsapp_conversations")
+        .upsert(
+          {
+            phone: from,
+            display_name: displayName,
+            practice_id: practice?.id ?? null,
+          },
+          { onConflict: "phone", ignoreDuplicates: false },
+        )
+        .select("id")
+        .single();
+
+      if (convErr || !conv) {
+        console.error(`[whatsapp-webhook] upsert conversation failed for ${from}:`, convErr);
+        continue;
+      }
+
+      // 2. Insert message (il trigger AFTER INSERT aggiorna last_message_at,
+      //    unread_count, last_inbound_at sulla conversation)
+      const { error: msgErr } = await supabase
+        .from("whatsapp_messages")
+        .insert({
+          conversation_id: conv.id,
+          direction: "inbound",
+          message_type: msgType,
+          body,
+          wa_message_id: msg.id,
+          status: "delivered", // inbound: già delivered (Meta ce l'ha mandato)
+        });
+      if (msgErr) {
+        // Dedup check: se è un duplicato (Meta a volte rinvia lo stesso webhook),
+        // wa_message_id UNIQUE constraint lo blocca → ignoriamo.
+        if (!msgErr.message.includes("duplicate")) {
+          console.error(`[whatsapp-webhook] insert message failed:`, msgErr);
+        }
+      }
+
+      // 3. Legacy: communication_log per audit (solo se collegato a practice)
       if (practice) {
         await supabase.from("communication_log").insert({
           practice_id: practice.id,
           channel: "whatsapp",
           direction: "inbound",
           recipient: from,
-          body_preview: text.slice(0, 200),
+          body_preview: body.slice(0, 200),
           status: "read",
           wa_message_id: msg.id,
         });
       } else {
-        // Inbound non collegato — log per diagnosi (es. numero non in DB,
-        // o cliente che scrive da numero diverso da quello salvato).
-        console.warn(`[whatsapp-webhook] inbound from ${from} not linked to any practice`);
+        console.log(`[whatsapp-webhook] inbound from ${from} → conversation ${conv.id} (no practice link)`);
       }
     }
 

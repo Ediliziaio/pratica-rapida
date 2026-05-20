@@ -200,10 +200,10 @@ function SetupTab() {
                 onClick={() => debugMutation.mutate()}
                 disabled={debugMutation.isPending}
                 className="gap-2"
-                title="Diagnosi server-side: testa secrets + 4 chiamate Meta progressive + scope token. Output dettagliato in console (F12)."
+                title="Diagnosi server-side: testa scope token, accesso phone number, link WABA. Output dettagliato in console (F12)."
               >
                 {debugMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
-                Debug
+                Diagnostica permessi
               </Button>
               <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching} className="gap-2">
                 <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />

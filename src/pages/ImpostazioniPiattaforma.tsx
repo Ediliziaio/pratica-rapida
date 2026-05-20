@@ -33,7 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Clock, Building2, Users, FolderOpen, Save, Plus, Pencil, Trash2, GripVertical, X, Mail, MessageCircle, Puzzle, Eye, EyeOff, Layers, Shield, BookOpen } from "lucide-react";
+import { Settings, Clock, Building2, Users, FolderOpen, Save, Plus, Pencil, Trash2, GripVertical, X, Mail, Puzzle, Eye, EyeOff, Layers, Shield, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { CustomField, CustomFieldType, CustomFieldEntity } from "@/integrations/supabase/types";
 import UtentiPage from "./Utenti";
@@ -761,7 +761,17 @@ interface SLASettings {
 
 type SettingsSection =
   | "sla" | "utenti" | "listino" | "audit"
-  | "email" | "whatsapp" | "integrazioni" | "campi" | "info";
+  | "email" | "integrazioni" | "campi" | "info";
+
+// Nota storica: la sezione "whatsapp" (Phone Number ID / WABA / Access Token /
+// Webhook Verify) è stata rimossa qui perché era un doppione *dannoso*: il
+// form scriveva su `platform_settings.whatsapp_config` ma le edge function
+// (`send-whatsapp`, `whatsapp-webhook`, `whatsapp-meta-sync`) leggono dai
+// Supabase Edge Function Secrets (`WA_PHONE_NUMBER_ID`, `WA_ACCESS_TOKEN`,
+// `WA_BUSINESS_ACCOUNT_ID`, `WA_WEBHOOK_VERIFY_TOKEN`). Quindi gli admin
+// editavano valori che venivano *ignorati* dall'integrazione → confusione e
+// debug sprecato. La config WhatsApp vive ora esclusivamente in
+// /admin/whatsapp-config (gestione secrets + template + diagnostica live).
 
 const SETTINGS_NAV: {
   id: SettingsSection;
@@ -774,7 +784,6 @@ const SETTINGS_NAV: {
   { id: "listino", label: "Listino Prezzi", icon: BookOpen, description: "Tariffari" },
   { id: "audit", label: "Audit Log", icon: Shield, description: "Registro attività" },
   { id: "email", label: "Email", icon: Mail, description: "Resend & SMTP" },
-  { id: "whatsapp", label: "WhatsApp", icon: MessageCircle, description: "Cloud API" },
   { id: "integrazioni", label: "Integrazioni", icon: Puzzle, description: "ElevenLabs, n8n" },
   { id: "campi", label: "Campi Custom", icon: Layers, description: "Campi personalizzati" },
   { id: "info", label: "Info Piattaforma", icon: Building2, description: "Versione & stats" },
@@ -1010,49 +1019,8 @@ export default function ImpostazioniPiattaforma() {
             />
           )}
 
-          {/* ── WhatsApp ────────────────────────────────────── */}
-          {activeSection === "whatsapp" && (
-            <>
-              <IntegrationSection
-                title="WhatsApp Cloud API (Meta)"
-                description="Configura l'integrazione WhatsApp Business per l'invio di messaggi ai clienti."
-                fields={[
-                  { key: "wa_phone_number_id", label: "Phone Number ID", placeholder: "123456789012345", description: "ID numero di telefono da Meta Business Manager" },
-                  { key: "wa_waba_id", label: "WABA ID", placeholder: "123456789012345", description: "WhatsApp Business Account ID" },
-                  { key: "wa_access_token", label: "Access Token", placeholder: "EAAxxxxxxxxx...", secret: true, description: "Token di accesso permanente (non temporaneo)" },
-                  { key: "wa_webhook_verify_token", label: "Webhook Verify Token", placeholder: "token_segreto_webhook", secret: true, description: "Token personalizzato per la verifica del webhook Meta" },
-                ]}
-                settingKey="whatsapp_config"
-              />
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Template WhatsApp approvati</CardTitle>
-                  <CardDescription className="text-xs">I template devono essere approvati da Meta Business Manager prima dell'uso</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {[
-                      { name: "pratica_ricevuta", desc: "Conferma ricezione pratica" },
-                      { name: "sollecito_documenti", desc: "Sollecito caricamento documenti" },
-                      { name: "pratica_completata", desc: "Notifica pratica completata" },
-                      { name: "recensione_request", desc: "Richiesta recensione" },
-                      { name: "appuntamento_reminder", desc: "Reminder appuntamento call" },
-                    ].map(t => (
-                      <div key={t.name} className="flex items-center justify-between rounded-lg border p-3">
-                        <div>
-                          <code className="text-xs font-mono text-muted-foreground">{t.name}</code>
-                          <p className="text-sm">{t.desc}</p>
-                        </div>
-                        <Badge variant="outline" className="text-orange-600 border-orange-200 text-xs gap-1">
-                          <Clock className="h-3 w-3" />In attesa approvazione
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
+          {/* WhatsApp: sezione rimossa. La config vive in /admin/whatsapp-config
+              (vedi nota sopra SETTINGS_NAV). */}
 
           {/* ── Integrazioni ────────────────────────────────── */}
           {activeSection === "integrazioni" && (

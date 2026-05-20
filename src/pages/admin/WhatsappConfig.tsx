@@ -32,6 +32,7 @@ import {
   ExternalLink, KeyRound, Webhook, Send, Pencil, Loader2, Plus, Sparkles,
   Trash2, Phone, Zap, TrendingUp,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // ============================================================
 // Tipi
@@ -666,6 +667,7 @@ function TemplatesTab() {
   const [editing, setEditing] = useState<WhatsappTemplate | null>(null);
   const [testing, setTesting] = useState<WhatsappTemplate | null>(null);
   const [creating, setCreating] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const { data: templates, isLoading } = useQuery({
     queryKey: ["whatsapp-templates"],
@@ -699,6 +701,50 @@ function TemplatesTab() {
     },
     onError: (err: Error) => {
       toast({ variant: "destructive", title: "Errore sync", description: err.message });
+    },
+  });
+
+  // Bulk delete: elimina N template selezionati su Meta + DB.
+  // Loop sequenziale per non sovraccaricare Meta API (rate limit).
+  // Se uno fallisce, gli altri continuano e mostriamo il summary.
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (templatesToDelete: WhatsappTemplate[]) => {
+      const results: Array<{ name: string; success: boolean; error?: string }> = [];
+      for (const t of templatesToDelete) {
+        try {
+          const { data, error } = await supabase.functions.invoke("whatsapp-meta-sync", {
+            body: { action: "delete_template", name: t.meta_template_name },
+          });
+          if (error) throw error;
+          const res = data as { success?: boolean; error?: string };
+          if (!res.success) throw new Error(res.error ?? "delete failed");
+          results.push({ name: t.meta_template_name, success: true });
+        } catch (err) {
+          results.push({
+            name: t.meta_template_name,
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
+      }
+      return results;
+    },
+    onSuccess: (results) => {
+      const ok = results.filter((r) => r.success).length;
+      const fail = results.filter((r) => !r.success).length;
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-templates"] });
+      setSelectedIds(new Set());
+      toast({
+        title: `${ok} template eliminati`,
+        description: fail > 0 ? `${fail} errori — verifica i log` : "Tutti rimossi su Meta + DB",
+        variant: fail > 0 ? "destructive" : "default",
+      });
+      if (fail > 0) {
+        console.warn("[bulk-delete] failures:", results.filter((r) => !r.success));
+      }
+    },
+    onError: (err: Error) => {
+      toast({ variant: "destructive", title: "Errore eliminazione bulk", description: err.message });
     },
   });
 
@@ -751,28 +797,58 @@ function TemplatesTab() {
               </CardDescription>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <Button
-                variant="outline"
-                onClick={() => seedMutation.mutate()}
-                disabled={seedMutation.isPending}
-                className="gap-2"
-                title="Crea automaticamente i 5 template di base (sollecito_compilazione, sollecito_recensione, modulo_cliente_enea, pratica_ricevuta, pratica_completata)"
-              >
-                {seedMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                Crea 5 template di base
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => syncMutation.mutate()}
-                disabled={syncMutation.isPending}
-                className="gap-2"
-              >
-                {syncMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                Sincronizza
-              </Button>
-              <Button onClick={() => setCreating(true)} className="gap-2">
-                <Plus className="h-4 w-4" /> Nuovo template
-              </Button>
+              {selectedIds.size > 0 ? (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedIds(new Set())}
+                    className="gap-2"
+                  >
+                    Deseleziona ({selectedIds.size})
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      const toDelete = (templates ?? []).filter((t) => selectedIds.has(t.id));
+                      if (confirm(`Eliminare ${toDelete.length} template da Meta? Operazione non reversibile.`)) {
+                        bulkDeleteMutation.mutate(toDelete);
+                      }
+                    }}
+                    disabled={bulkDeleteMutation.isPending}
+                    className="gap-2"
+                  >
+                    {bulkDeleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                    Elimina {selectedIds.size} selezionati
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => seedMutation.mutate()}
+                    disabled={seedMutation.isPending}
+                    className="gap-2"
+                    title="Crea automaticamente i 5 template di base (sollecito_compilazione, sollecito_recensione, modulo_cliente_enea, pratica_ricevuta, pratica_completata)"
+                  >
+                    {seedMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    Crea 5 template di base
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => syncMutation.mutate()}
+                    disabled={syncMutation.isPending}
+                    className="gap-2"
+                  >
+                    {syncMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                    Sincronizza
+                  </Button>
+                  <Button onClick={() => setCreating(true)} className="gap-2">
+                    <Plus className="h-4 w-4" /> Nuovo template
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -794,10 +870,40 @@ function TemplatesTab() {
           )}
           {templates && templates.length > 0 && (
             <div className="space-y-2">
+              {/* Header row con "seleziona tutti" */}
+              <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground border-b">
+                <Checkbox
+                  checked={
+                    selectedIds.size === templates.length
+                      ? true
+                      : selectedIds.size > 0
+                        ? "indeterminate"
+                        : false
+                  }
+                  onCheckedChange={(v) => {
+                    if (v) setSelectedIds(new Set(templates.map((t) => t.id)));
+                    else setSelectedIds(new Set());
+                  }}
+                />
+                <span>
+                  {selectedIds.size === 0
+                    ? `Seleziona tutti (${templates.length})`
+                    : `${selectedIds.size} di ${templates.length} selezionati`}
+                </span>
+              </div>
               {templates.map((t) => (
                 <TemplateRow
                   key={t.id}
                   template={t}
+                  selected={selectedIds.has(t.id)}
+                  onToggleSelect={() => {
+                    setSelectedIds((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(t.id)) next.delete(t.id);
+                      else next.add(t.id);
+                      return next;
+                    });
+                  }}
                   onEdit={() => setEditing(t)}
                   onTest={() => setTesting(t)}
                 />
@@ -826,8 +932,10 @@ function statusBadge(status: string) {
   return <Badge variant={cfg.variant} className="text-[10px]">{cfg.label}</Badge>;
 }
 
-function TemplateRow({ template, onEdit, onTest }: {
+function TemplateRow({ template, selected, onToggleSelect, onEdit, onTest }: {
   template: WhatsappTemplate;
+  selected: boolean;
+  onToggleSelect: () => void;
   onEdit: () => void;
   onTest: () => void;
 }) {
@@ -864,8 +972,17 @@ function TemplateRow({ template, onEdit, onTest }: {
   });
 
   return (
-    <div className="border rounded-lg p-3 hover:bg-slate-50 transition-colors">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
+    <div className={`border rounded-lg p-3 transition-colors ${
+      selected ? "bg-emerald-50 border-emerald-300" : "hover:bg-slate-50"
+    }`}>
+      <div className="flex items-start gap-3">
+        {/* Checkbox selezione */}
+        <Checkbox
+          checked={selected}
+          onCheckedChange={onToggleSelect}
+          className="mt-1 shrink-0"
+        />
+        <div className="flex items-start justify-between gap-3 flex-wrap flex-1 min-w-0">
         <div className="flex-1 min-w-0 space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
             <code className="font-mono text-sm font-semibold">{template.meta_template_name}</code>
@@ -921,6 +1038,7 @@ function TemplateRow({ template, onEdit, onTest }: {
           >
             {deleteMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
           </Button>
+        </div>
         </div>
       </div>
     </div>

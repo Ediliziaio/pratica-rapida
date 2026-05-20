@@ -117,7 +117,10 @@ serve(async () => {
               if (rule.channel === "email" && p.cliente_email) {
                 await invoke(supabase, "send-email", {
                   to: p.cliente_email,
-                  template: "sollecito_privato",
+                  // rule.template_id è il nome del template salvato dall'admin
+                  // in /admin/automazioni. Fallback a "sollecito_privato" se
+                  // mancante (regola legacy senza template configurato).
+                  template: (rule as { template_id?: string }).template_id ?? "sollecito_privato",
                   data: {
                     nome: p.cliente_nome,
                     link: buildFormLink(p.form_token),
@@ -128,7 +131,9 @@ serve(async () => {
               if (rule.channel === "whatsapp" && p.cliente_telefono) {
                 await invoke(supabase, "send-whatsapp", {
                   to: normalizePhone(p.cliente_telefono),
-                  template_name: "sollecito_compilazione",
+                  // Idem per WhatsApp: usa template_id dalla rule. L'admin può
+                  // remappare il template senza dover ridepoyare l'edge function.
+                  template_name: (rule as { template_id?: string }).template_id ?? "sollecito_compilazione",
                   components: [{
                     type: "body",
                     parameters: [
@@ -184,7 +189,7 @@ serve(async () => {
             try {
               await invoke(supabase, "send-email", {
                 to: resellerEmail,
-                template: "sollecito_fornitore",
+                template: (rule as { template_id?: string }).template_id ?? "sollecito_fornitore",
                 data: {
                   giorni: String(days),
                   cliente_nome: p.cliente_nome,
@@ -240,7 +245,12 @@ serve(async () => {
               if (p.cliente_email) {
                 await invoke(supabase, "send-email", {
                   to: p.cliente_email,
-                  template: "recensione",
+                  // Rispetta rule.template_id se configurato; fallback al
+                  // template di default "recensione" (per compatibilità
+                  // con regole legacy).
+                  template: rule.channel === "email"
+                    ? ((rule as { template_id?: string }).template_id ?? "recensione")
+                    : "recensione",
                   data: {
                     nome: p.cliente_nome,
                     token: p.form_token,
@@ -252,7 +262,9 @@ serve(async () => {
               if (p.cliente_telefono) {
                 await invoke(supabase, "send-whatsapp", {
                   to: normalizePhone(p.cliente_telefono),
-                  template_name: "sollecito_recensione",
+                  template_name: rule.channel === "whatsapp"
+                    ? ((rule as { template_id?: string }).template_id ?? "sollecito_recensione")
+                    : "sollecito_recensione",
                   components: [{
                     type: "body",
                     parameters: [{ type: "text", text: p.cliente_nome }],

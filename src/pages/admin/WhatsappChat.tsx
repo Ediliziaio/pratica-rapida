@@ -545,16 +545,16 @@ function MessageBubble({ msg, showDate }: { msg: Message; showDate: boolean }) {
               Template: {msg.template_name}
             </p>
           )}
-          {/* Media (outbound): mostriamo preview inline per immagini, link
-              per documenti/altro. Per inbound i media URL Meta scadono in
-              5 min, quindi mostriamo solo il tipo. */}
-          {msg.media_url && msg.direction === "outbound" && (
+          {/* Media (sia inbound che outbound). Inbound vengono mirrorati su
+              Supabase Storage dal webhook (signed URL 7 giorni), quindi
+              media_url è valorizzato anche per loro. */}
+          {msg.media_url && (
             <MediaPreview url={msg.media_url} mimeType={msg.media_mime_type} type={msg.message_type} />
           )}
           {!msg.media_url && msg.message_type !== "text" && msg.message_type !== "template" && msg.direction === "inbound" && (
             <div className="flex items-center gap-2 p-2 bg-slate-100 rounded text-xs">
               <FileIcon className="h-4 w-4 text-slate-500 shrink-0" />
-              <span className="text-slate-700">Allegato: {msg.message_type}</span>
+              <span className="text-slate-700">Allegato: {msg.message_type} (download fallito)</span>
             </div>
           )}
           {msg.body ? (

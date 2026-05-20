@@ -127,9 +127,37 @@ serve(async (req) => {
     });
   }
 
+  // Normalizza il phone UNA volta (usato in più punti sotto).
+  const phone = normalizePhone(to);
+
+  // SERVER-SIDE customer service window check.
+  // Meta vieta invio di text/media (non-template) oltre 24h dall'ultimo
+  // inbound del cliente. La UI controlla già — questo è il fallback
+  // server-side per impedire bypass via curl/client modificato.
+  // Per template skippiamo il check (sono sempre consentiti).
+  if (isTextMode || isMediaMode) {
+    const { data: conv } = await supabase
+      .from("whatsapp_conversations")
+      .select("last_inbound_at")
+      .eq("phone", phone)
+      .maybeSingle();
+    const lastInbound = conv?.last_inbound_at ? new Date(conv.last_inbound_at).getTime() : 0;
+    const ageMs = Date.now() - lastInbound;
+    if (!lastInbound || ageMs >= 24 * 3600 * 1000) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Customer service window chiusa (>24h dall'ultimo inbound). Usa un template approvato per riaprire la chat.",
+        window_closed: true,
+      }), {
+        status: 400,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+  }
+
   try {
 
-  const phone = normalizePhone(to);
+  // (phone è già normalizzato sopra, prima del check finestra 24h)
 
   // Costruisce payload Meta in base alla modalità.
   let templatePayload: Record<string, unknown>;
@@ -326,6 +354,9 @@ serve(async (req) => {
         status: success ? "sent" : "failed",
         error_message: error_message ?? null,
         sent_by_user_id: sent_by_user_id ?? null,
+        // Denormalize: practice_id viene dal payload (se chiamato da cron)
+        // o dalla conversation esistente (se chiamato da chat in-app)
+        practice_id: practice_id ?? null,
       });
     }
   } catch (chatErr) {

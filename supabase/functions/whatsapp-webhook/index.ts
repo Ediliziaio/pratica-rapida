@@ -19,6 +19,90 @@ if (!Deno.env.get("WA_APP_SECRET")) {
 
 const VERIFY_TOKEN = Deno.env.get("WA_WEBHOOK_VERIFY_TOKEN") ?? "";
 const APP_SECRET = Deno.env.get("WA_APP_SECRET") ?? "";
+const WA_ACCESS_TOKEN = Deno.env.get("WA_ACCESS_TOKEN") ?? "";
+
+/**
+ * Scarica un media inbound da Meta Graph API e lo salva in Supabase
+ * Storage (bucket `whatsapp-media`). Necessario perché i media URL Meta
+ * scadono in 5 minuti — se non li mirroriamo subito, sono persi.
+ *
+ * Ritorna: { storage_path, mime_type, signed_url } oppure null su errore.
+ */
+async function mirrorInboundMedia(
+  supabase: ReturnType<typeof createClient>,
+  mediaId: string,
+  waMessageId: string,
+): Promise<{ storage_path: string; mime_type: string; signed_url: string } | null> {
+  if (!WA_ACCESS_TOKEN) {
+    console.warn("[whatsapp-webhook] WA_ACCESS_TOKEN missing, skip media mirror");
+    return null;
+  }
+  try {
+    // 1. GET media URL da Meta
+    const metaRes = await fetch(
+      `https://graph.facebook.com/v18.0/${mediaId}?fields=url,mime_type`,
+      { headers: { Authorization: `Bearer ${WA_ACCESS_TOKEN}` } },
+    );
+    if (!metaRes.ok) {
+      console.error(`[mirror-media] meta fetch failed for ${mediaId}: HTTP ${metaRes.status}`);
+      return null;
+    }
+    const meta = (await metaRes.json()) as { url?: string; mime_type?: string };
+    if (!meta.url) {
+      console.error(`[mirror-media] no url in Meta response for ${mediaId}`);
+      return null;
+    }
+
+    // 2. Download del file binario (richiede il Bearer token)
+    const fileRes = await fetch(meta.url, {
+      headers: { Authorization: `Bearer ${WA_ACCESS_TOKEN}` },
+    });
+    if (!fileRes.ok) {
+      console.error(`[mirror-media] download failed for ${mediaId}: HTTP ${fileRes.status}`);
+      return null;
+    }
+    const blob = await fileRes.blob();
+    const mimeType = meta.mime_type ?? fileRes.headers.get("content-type") ?? "application/octet-stream";
+
+    // 3. Determine extension da mime
+    const ext = mimeType.includes("jpeg") ? "jpg"
+      : mimeType.includes("png") ? "png"
+      : mimeType.includes("webp") ? "webp"
+      : mimeType.includes("pdf") ? "pdf"
+      : mimeType.includes("mp4") ? "mp4"
+      : mimeType.includes("ogg") ? "ogg"
+      : mimeType.includes("mpeg") ? "mp3"
+      : "bin";
+
+    // 4. Upload a Storage (path: inbound/wa_message_id.ext)
+    const path = `inbound/${waMessageId}.${ext}`;
+    const { error: uploadErr } = await supabase.storage
+      .from("whatsapp-media")
+      .upload(path, blob, { contentType: mimeType, upsert: true });
+    if (uploadErr) {
+      console.error(`[mirror-media] storage upload failed:`, uploadErr);
+      return null;
+    }
+
+    // 5. Signed URL (7 giorni — media inbound restano accessibili dalla chat)
+    const { data: signed, error: signErr } = await supabase.storage
+      .from("whatsapp-media")
+      .createSignedUrl(path, 7 * 24 * 3600);
+    if (signErr || !signed?.signedUrl) {
+      console.error(`[mirror-media] signed url failed:`, signErr);
+      return null;
+    }
+
+    return {
+      storage_path: path,
+      mime_type: mimeType,
+      signed_url: signed.signedUrl,
+    };
+  } catch (err) {
+    console.error(`[mirror-media] threw:`, err);
+    return null;
+  }
+}
 
 // Constant-time comparison of two equal-length Uint8Arrays
 function timingSafeEqual(a: Uint8Array, b: Uint8Array): boolean {
@@ -173,6 +257,17 @@ serve(async (req) => {
       const body = text || caption || `[${msgType}]`;
       const displayName = profileNameMap.get(from) ?? null;
 
+      // Estrae il media_id se presente (per tipi: image, document, audio, video, sticker)
+      const mediaTypes = ["image", "document", "audio", "video", "sticker"] as const;
+      let inboundMediaId: string | null = null;
+      for (const mt of mediaTypes) {
+        const obj = msgAny[mt] as { id?: string } | undefined;
+        if (obj?.id) {
+          inboundMediaId = obj.id;
+          break;
+        }
+      }
+
       // STOP opt-out
       if (text.trim().toUpperCase() === "STOP") {
         // Future: mark phone as opted out (TODO: aggiungere flag su conversation)
@@ -198,37 +293,75 @@ serve(async (req) => {
         }
       }
 
-      // 1. Upsert conversation (idempotent — se esiste già aggiorniamo solo
-      //    practice_id/display_name se non già settati)
-      const { data: conv, error: convErr } = await supabase
+      // 1. Cerca conversation esistente per phone (per non sovrascrivere
+      //    practice_id/display_name già valorizzati). Il vecchio upsert
+      //    aveva un bug: ogni inbound senza match practice azzerava
+      //    il practice_id esistente sulla conversation.
+      const { data: existingConv } = await supabase
         .from("whatsapp_conversations")
-        .upsert(
-          {
+        .select("id, practice_id, display_name")
+        .eq("phone", from)
+        .maybeSingle();
+
+      let convId: string;
+      let resolvedPracticeId: string | null;
+      if (existingConv) {
+        // Update solo dei campi safe: display_name se mancante + practice_id
+        // solo se PRIMA era null e ora abbiamo un match
+        const patch: Record<string, unknown> = {};
+        if (!existingConv.display_name && displayName) patch.display_name = displayName;
+        if (!existingConv.practice_id && practice?.id) patch.practice_id = practice.id;
+        if (Object.keys(patch).length > 0) {
+          await supabase
+            .from("whatsapp_conversations")
+            .update(patch)
+            .eq("id", existingConv.id);
+        }
+        convId = existingConv.id;
+        resolvedPracticeId = existingConv.practice_id ?? practice?.id ?? null;
+      } else {
+        // Nessuna conversation esistente: crea nuova
+        const { data: newConv, error: insertErr } = await supabase
+          .from("whatsapp_conversations")
+          .insert({
             phone: from,
             display_name: displayName,
             practice_id: practice?.id ?? null,
-          },
-          { onConflict: "phone", ignoreDuplicates: false },
-        )
-        .select("id")
-        .single();
-
-      if (convErr || !conv) {
-        console.error(`[whatsapp-webhook] upsert conversation failed for ${from}:`, convErr);
-        continue;
+          })
+          .select("id")
+          .single();
+        if (insertErr || !newConv) {
+          console.error(`[whatsapp-webhook] insert conversation failed for ${from}:`, insertErr);
+          continue;
+        }
+        convId = newConv.id;
+        resolvedPracticeId = practice?.id ?? null;
       }
 
-      // 2. Insert message (il trigger AFTER INSERT aggiorna last_message_at,
-      //    unread_count, last_inbound_at sulla conversation)
+      // 2a. Se il messaggio contiene media, scarica subito da Meta e mirror
+      //     in Supabase Storage. Senza questo il media URL Meta scade in 5
+      //     minuti e il file diventa inaccessibile dalla chat UI.
+      let mirroredMedia: { signed_url: string; mime_type: string } | null = null;
+      if (inboundMediaId) {
+        mirroredMedia = await mirrorInboundMedia(supabase, inboundMediaId, msg.id);
+      }
+
+      // 2b. Insert message (il trigger AFTER INSERT aggiorna last_message_at,
+      //     unread_count, last_inbound_at sulla conversation)
+      //     Denormalizza practice_id al momento dell'insert per audit (vedi
+      //     migration 20260520000005).
       const { error: msgErr } = await supabase
         .from("whatsapp_messages")
         .insert({
-          conversation_id: conv.id,
+          conversation_id: convId,
           direction: "inbound",
           message_type: msgType,
           body,
           wa_message_id: msg.id,
-          status: "delivered", // inbound: già delivered (Meta ce l'ha mandato)
+          status: "delivered",
+          practice_id: resolvedPracticeId,
+          media_url: mirroredMedia?.signed_url ?? null,
+          media_mime_type: mirroredMedia?.mime_type ?? null,
         });
       if (msgErr) {
         // Dedup check: se è un duplicato (Meta a volte rinvia lo stesso webhook),
@@ -239,9 +372,9 @@ serve(async (req) => {
       }
 
       // 3. Legacy: communication_log per audit (solo se collegato a practice)
-      if (practice) {
+      if (resolvedPracticeId) {
         await supabase.from("communication_log").insert({
-          practice_id: practice.id,
+          practice_id: resolvedPracticeId,
           channel: "whatsapp",
           direction: "inbound",
           recipient: from,
@@ -250,7 +383,7 @@ serve(async (req) => {
           wa_message_id: msg.id,
         });
       } else {
-        console.log(`[whatsapp-webhook] inbound from ${from} → conversation ${conv.id} (no practice link)`);
+        console.log(`[whatsapp-webhook] inbound from ${from} → conversation ${convId} (no practice link)`);
       }
     }
 

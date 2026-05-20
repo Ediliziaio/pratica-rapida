@@ -98,46 +98,201 @@ interface AutomationFlow {
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
+/**
+ * Trigger raggruppati per categoria. Ogni trigger dichiara `category` per
+ * il render del Select con header di gruppo. La logica di esecuzione vive
+ * in `supabase/functions/process-automations/index.ts` (cron daily) +
+ * `on-practice-created` / `on-stage-changed` (webhook trigger immediati).
+ *
+ * Aggiungere un trigger qui = renderlo selezionabile dall'admin. Per
+ * cablarlo davvero serve corrispondente handler nelle edge function.
+ */
 const TRIGGER_TYPES = [
+  // ─── 📋 Ciclo pratica ─────────────────────────────────────────────────────
   {
     value: "practice_created",
     label: "Pratica Creata",
     description: "Quando una nuova pratica ENEA/CT viene inviata al sistema",
     icon: FilePlus,
+    category: "Ciclo pratica",
   },
   {
     value: "stage_changed",
-    label: "Stage Cambiato",
+    label: "Stage Cambiato (qualsiasi)",
     description: "Quando la pratica viene spostata in un nuovo stage Kanban",
     icon: ArrowRight,
+    category: "Ciclo pratica",
   },
+  {
+    value: "stage_in_lavorazione",
+    label: "Stage → In lavorazione",
+    description: "Quando la pratica entra nello stage 'In lavorazione'",
+    icon: ArrowRight,
+    category: "Ciclo pratica",
+  },
+  {
+    value: "stage_completata",
+    label: "Stage → Completata",
+    description: "Quando la pratica entra nello stage 'Completata'",
+    icon: CheckCircle2,
+    category: "Ciclo pratica",
+  },
+  {
+    value: "stage_da_inviare",
+    label: "Stage → Da inviare",
+    description: "Pratica pronta per essere inviata a ENEA",
+    icon: ArrowRight,
+    category: "Ciclo pratica",
+  },
+  {
+    value: "pratica_archiviata",
+    label: "Pratica Archiviata",
+    description: "Quando la pratica viene archiviata (manuale o auto dopo 10gg)",
+    icon: FilePlus,
+    category: "Ciclo pratica",
+  },
+
+  // ─── ⏰ Trigger temporali (cron daily) ────────────────────────────────────
   {
     value: "days_in_stage",
     label: "Giorni nello Stage",
     description: "Quando la pratica è ferma nello stesso stage per N giorni",
     icon: Clock,
+    category: "Tempo",
   },
+  {
+    value: "days_waiting_7",
+    label: "Cliente non compila (7gg)",
+    description: "Cliente non ha compilato il modulo dopo 7 giorni dall'invio link",
+    icon: Clock,
+    category: "Tempo",
+  },
+  {
+    value: "days_waiting_fornitore_30",
+    label: "Rivenditore inattivo (30gg)",
+    description: "Pratica ferma 30 giorni senza aggiornamenti dal rivenditore",
+    icon: Clock,
+    category: "Tempo",
+  },
+  {
+    value: "days_waiting_fornitore_60",
+    label: "Rivenditore inattivo (60gg)",
+    description: "Pratica ferma 60 giorni — escalation",
+    icon: Clock,
+    category: "Tempo",
+  },
+  {
+    value: "days_waiting_fornitore_90",
+    label: "Rivenditore inattivo (90gg)",
+    description: "Pratica ferma 90 giorni — possibile chiusura",
+    icon: Clock,
+    category: "Tempo",
+  },
+  {
+    value: "days_since_form_sent",
+    label: "Giorni dall'invio modulo",
+    description: "N giorni da quando hai inviato il link form al cliente",
+    icon: Clock,
+    category: "Tempo",
+  },
+
+  // ─── 👤 Eventi cliente ────────────────────────────────────────────────────
   {
     value: "form_submitted",
     label: "Form Compilato",
     description: "Quando il cliente compila il form pubblico inviato via link",
     icon: CheckCircle2,
+    category: "Cliente",
+  },
+  {
+    value: "form_iniziato",
+    label: "Form Iniziato (non completato)",
+    description: "Cliente apre il link ma non finisce — utile per remarketing",
+    icon: CheckCircle2,
+    category: "Cliente",
+  },
+  {
+    value: "documenti_caricati",
+    label: "Documenti Caricati",
+    description: "Cliente ha caricato tutti i documenti richiesti",
+    icon: CheckCircle2,
+    category: "Cliente",
+  },
+  {
+    value: "recensione_7d_followup",
+    label: "Sollecito recensione (7gg)",
+    description: "7 giorni dopo la richiesta recensione, se non ancora ricevuta",
+    icon: Clock,
+    category: "Cliente",
+  },
+  {
+    value: "recensione_ricevuta",
+    label: "Recensione Ricevuta",
+    description: "Cliente ha lasciato una recensione",
+    icon: CheckCircle2,
+    category: "Cliente",
+  },
+  {
+    value: "cliente_risponde_whatsapp",
+    label: "Cliente risponde su WhatsApp",
+    description: "Cliente invia un messaggio WhatsApp al nostro numero business",
+    icon: MessageCircle,
+    category: "Cliente",
   },
   {
     value: "call_completed",
     label: "Chiamata AI Completata",
     description: "Quando una chiamata ElevenLabs Conversational AI termina",
     icon: Phone,
+    category: "Cliente",
   },
+
+  // ─── 💰 Pagamento ────────────────────────────────────────────────────────
+  {
+    value: "pratica_pagata",
+    label: "Pratica Pagata",
+    description: "Stato pagamento aggiornato a 'pagata'",
+    icon: CheckCircle2,
+    category: "Pagamento",
+  },
+  {
+    value: "pratica_non_pagata_30g",
+    label: "Pratica non pagata (30gg)",
+    description: "Pratica creata da 30 giorni ma ancora non pagata",
+    icon: Clock,
+    category: "Pagamento",
+  },
+
+  // ─── 🛠 Manuale ──────────────────────────────────────────────────────────
   {
     value: "manual",
     label: "Manuale",
     description: "Eseguita solo manualmente dall'operatore (no trigger automatico)",
     icon: Play,
+    category: "Manuale",
   },
 ];
 
+// Categorie nell'ordine di visualizzazione del Select
+const TRIGGER_CATEGORIES = [
+  "Ciclo pratica",
+  "Tempo",
+  "Cliente",
+  "Pagamento",
+  "Manuale",
+];
+
+/**
+ * Filtri (condizioni) applicabili a una rule per restringere il pubblico.
+ * Permettono di differenziare automazioni: es. "sollecito_compilazione
+ * solo per pratiche infissi ENEA non ancora pagate".
+ *
+ * Le condizioni vengono valutate da process-automations leggendo i campi
+ * della pratica corrispondente. Salvate in `automation_rules.trigger_config`
+ * sotto la chiave `conditions`.
+ */
 const CONDITION_FIELDS = [
+  // ─── Identità pratica ─────────────────────────────────────────────────────
   {
     value: "brand",
     label: "Brand pratica",
@@ -147,6 +302,69 @@ const CONDITION_FIELDS = [
     ],
     valueType: "select" as const,
     options: ["ENEA", "CT"],
+  },
+  {
+    value: "prodotto_tipo",
+    label: "Tipo prodotto",
+    operators: [
+      { value: "eq", label: "è" },
+      { value: "neq", label: "non è" },
+    ],
+    valueType: "select" as const,
+    options: ["infissi", "schermature", "impianto_termico", "caldaia", "fotovoltaico"],
+  },
+  {
+    value: "tipo_servizio",
+    label: "Tipo servizio",
+    operators: [
+      { value: "eq", label: "è" },
+      { value: "neq", label: "non è" },
+    ],
+    valueType: "select" as const,
+    options: ["servizio_completo", "solo_invio", "consulenza"],
+  },
+  {
+    value: "tipo_intervento",
+    label: "Tipo intervento",
+    operators: [
+      { value: "eq", label: "è" },
+      { value: "neq", label: "non è" },
+      { value: "contains", label: "contiene" },
+    ],
+    valueType: "text" as const,
+    options: [],
+  },
+
+  // ─── Stato pratica ───────────────────────────────────────────────────────
+  {
+    value: "stage_name",
+    label: "Nome stage attuale",
+    operators: [
+      { value: "eq", label: "è" },
+      { value: "neq", label: "non è" },
+      { value: "contains", label: "contiene" },
+    ],
+    valueType: "text" as const,
+    options: [],
+  },
+  {
+    value: "stage_type",
+    label: "Tipo stage",
+    operators: [
+      { value: "eq", label: "è" },
+      { value: "neq", label: "non è" },
+    ],
+    valueType: "select" as const,
+    options: [
+      "contatta_cliente",
+      "modulo_da_inviare",
+      "in_lavorazione",
+      "da_inserire_excel",
+      "da_inviare",
+      "recensione",
+      "completata",
+      "archiviata",
+    ],
   },
   {
     value: "days_in_stage",
@@ -160,6 +378,18 @@ const CONDITION_FIELDS = [
     options: [],
   },
   {
+    value: "priorita",
+    label: "Priorità",
+    operators: [
+      { value: "eq", label: "è" },
+      { value: "neq", label: "non è" },
+    ],
+    valueType: "select" as const,
+    options: ["alta", "normale", "bassa"],
+  },
+
+  // ─── Documenti ───────────────────────────────────────────────────────────
+  {
     value: "has_all_documents",
     label: "Documenti completi",
     operators: [{ value: "eq", label: "è" }],
@@ -167,15 +397,46 @@ const CONDITION_FIELDS = [
     options: ["true", "false"],
   },
   {
-    value: "stage_name",
-    label: "Nome stage attuale",
+    value: "form_compilato",
+    label: "Form cliente compilato",
+    operators: [{ value: "eq", label: "è" }],
+    valueType: "boolean" as const,
+    options: ["true", "false"],
+  },
+
+  // ─── Pagamento ───────────────────────────────────────────────────────────
+  {
+    value: "pagamento_stato",
+    label: "Stato pagamento",
     operators: [
       { value: "eq", label: "è" },
       { value: "neq", label: "non è" },
-      { value: "contains", label: "contiene" },
     ],
-    valueType: "text" as const,
-    options: [],
+    valueType: "select" as const,
+    options: ["pagata", "non_pagata", "pagamento_parziale"],
+  },
+  {
+    value: "is_free",
+    label: "Pratica gratuita (promo)",
+    operators: [{ value: "eq", label: "è" }],
+    valueType: "boolean" as const,
+    options: ["true", "false"],
+  },
+
+  // ─── Cliente ─────────────────────────────────────────────────────────────
+  {
+    value: "cliente_ha_email",
+    label: "Cliente ha email",
+    operators: [{ value: "eq", label: "è" }],
+    valueType: "boolean" as const,
+    options: ["true", "false"],
+  },
+  {
+    value: "cliente_ha_whatsapp",
+    label: "Cliente ha WhatsApp",
+    operators: [{ value: "eq", label: "è" }],
+    valueType: "boolean" as const,
+    options: ["true", "false"],
   },
 ];
 
@@ -513,12 +774,26 @@ function TriggerBlock({
               <SelectTrigger className="bg-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                {TRIGGER_TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    {t.label}
-                  </SelectItem>
-                ))}
+              <SelectContent className="max-h-96">
+                {TRIGGER_CATEGORIES.map((category) => {
+                  const inCategory = TRIGGER_TYPES.filter((t) => t.category === category);
+                  if (inCategory.length === 0) return null;
+                  return (
+                    <div key={category}>
+                      <div className="px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold sticky top-0 bg-white">
+                        {category}
+                      </div>
+                      {inCategory.map((t) => (
+                        <SelectItem key={t.value} value={t.value}>
+                          <div className="flex flex-col items-start">
+                            <span className="text-sm">{t.label}</span>
+                            <span className="text-[10px] text-muted-foreground line-clamp-1">{t.description}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </div>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>

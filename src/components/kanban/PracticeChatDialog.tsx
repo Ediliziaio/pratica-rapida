@@ -371,6 +371,11 @@ function WhatsAppComposer({
   const [text, setText] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [templateParams, setTemplateParams] = useState("");
+  // Quando un invio fallisce, salviamo qui la response completa della edge
+  // function (debug + meta_response + meta_request_payload). Renderiamo un
+  // banner in-page con tutti i dettagli così l'utente non deve aprire la
+  // console del browser per troubleshooting.
+  const [lastError, setLastError] = useState<Record<string, unknown> | null>(null);
 
   // Forziamo "template" mode se finestra chiusa
   useEffect(() => {
@@ -448,20 +453,19 @@ function WhatsAppComposer({
           sent_by_user_id: userId ?? undefined,
         },
       });
-      // Logga SEMPRE la response completa (anche su success) per audit/debug.
-      // Quando fallisce con #200 di Meta, qui vediamo:
-      // - debug.phone_sent_to_meta: il numero ESATTO inviato a Meta (verifica
-      //   che la normalize abbia aggiunto il "39" davanti)
-      // - meta_request_payload: il body completo POST a Graph API
-      // - meta_response: la risposta Meta verbatim
       console.log("[whatsapp-send] response from edge function", data);
       if (error) throw error;
       const res = data as { success?: boolean; error?: string };
-      if (!res.success) throw new Error(res.error ?? "Invio fallito");
+      if (!res.success) {
+        // Salviamo la response completa per il banner debug in-page
+        setLastError(data as Record<string, unknown>);
+        throw new Error(res.error ?? "Invio fallito");
+      }
     },
     onSuccess: () => {
       setSelectedTemplate("");
       setTemplateParams("");
+      setLastError(null);
       queryClient.invalidateQueries({ queryKey: ["practice-chat-messages"] });
       queryClient.invalidateQueries({ queryKey: ["practice-chat-conv"] });
     },
@@ -472,6 +476,62 @@ function WhatsAppComposer({
 
   return (
     <div className="border-t bg-white p-3 space-y-2">
+      {/* Banner debug ultimo errore — visibile inline così l'utente non
+          deve aprire la console del browser per i dettagli. Espone:
+          numero realmente mandato a Meta, payload, response Meta verbatim. */}
+      {lastError && (
+        <div className="rounded-md border-2 border-red-300 bg-red-50 p-3 text-[11px] space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-red-900">🔍 Dettagli ultimo errore</span>
+            <button
+              onClick={() => setLastError(null)}
+              className="text-red-700 hover:text-red-900 text-base leading-none"
+              title="Chiudi banner"
+            >×</button>
+          </div>
+          {(() => {
+            const dbg = (lastError as { debug?: Record<string, unknown> }).debug ?? {};
+            const meta = (lastError as { meta_response?: { error?: { code?: number; message?: string; error_subcode?: number; error_data?: { details?: string } } } }).meta_response;
+            const payload = (lastError as { meta_request_payload?: Record<string, unknown> }).meta_request_payload;
+            return (
+              <>
+                <div className="grid grid-cols-[160px_1fr] gap-1 font-mono">
+                  <span className="text-red-700">phone in input:</span>
+                  <span className="text-red-900 font-semibold">{String(dbg.phone_received ?? "—")}</span>
+                  <span className="text-red-700">phone → Meta:</span>
+                  <span className={`font-semibold ${String(dbg.phone_sent_to_meta ?? "").startsWith("39") ? "text-green-700" : "text-red-900"}`}>
+                    {String(dbg.phone_sent_to_meta ?? "—")}
+                    {!String(dbg.phone_sent_to_meta ?? "").startsWith("39") && " ⚠️ manca 39"}
+                  </span>
+                  <span className="text-red-700">template:</span>
+                  <span className="text-red-900">{String(dbg.template_name_sent ?? "—")}</span>
+                  <span className="text-red-700">Meta error code:</span>
+                  <span className="text-red-900 font-bold">#{meta?.error?.code ?? "—"} (sub: {meta?.error?.error_subcode ?? "—"})</span>
+                  <span className="text-red-700">Meta message:</span>
+                  <span className="text-red-900">{meta?.error?.message ?? "—"}</span>
+                  {meta?.error?.error_data?.details && (
+                    <>
+                      <span className="text-red-700">Meta details:</span>
+                      <span className="text-red-900">{meta.error.error_data.details}</span>
+                    </>
+                  )}
+                </div>
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-red-700 font-semibold">Payload completo + risposta Meta (raw JSON)</summary>
+                  <pre className="mt-2 p-2 bg-white rounded overflow-x-auto text-[10px] max-h-60">
+{`REQUEST a Meta:
+${JSON.stringify(payload, null, 2)}
+
+RESPONSE da Meta:
+${JSON.stringify(meta, null, 2)}`}
+                  </pre>
+                </details>
+              </>
+            );
+          })()}
+        </div>
+      )}
+
       {/* Banner finestra 24h */}
       {!canSendFreeText && (
         <div className="rounded-md border border-amber-200 bg-amber-50 p-2 text-[11px] flex items-start gap-2">

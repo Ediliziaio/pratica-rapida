@@ -533,10 +533,12 @@ async function handleDebugTemplateAccess(): Promise<Record<string, unknown>> {
   const WABA_ID = Deno.env.get("WA_BUSINESS_ACCOUNT_ID");
   const ACCESS_TOKEN = Deno.env.get("WA_ACCESS_TOKEN");
   const APP_SECRET = Deno.env.get("WA_APP_SECRET");
+  const PHONE_NUMBER_ID = Deno.env.get("WA_PHONE_NUMBER_ID");
 
   const diagnosis: Record<string, unknown> = {
     secrets_check: {
       WA_BUSINESS_ACCOUNT_ID: WABA_ID ? `set (${WABA_ID.length} chars, starts with "${WABA_ID.slice(0, 6)}...")` : "MISSING",
+      WA_PHONE_NUMBER_ID: PHONE_NUMBER_ID ? `set (${PHONE_NUMBER_ID.length} chars, starts with "${PHONE_NUMBER_ID.slice(0, 6)}...")` : "MISSING",
       WA_ACCESS_TOKEN: ACCESS_TOKEN ? `set (${ACCESS_TOKEN.length} chars, starts with "${ACCESS_TOKEN.slice(0, 4)}...")` : "MISSING",
       WA_APP_SECRET: APP_SECRET ? `set (${APP_SECRET.length} chars)` : "MISSING",
     },
@@ -633,13 +635,75 @@ async function handleDebugTemplateAccess(): Promise<Record<string, unknown>> {
     diagnosis.test_4_token_scopes = { error: String(err) };
   }
 
-  // Conclusione automatica
-  const t3 = diagnosis.test_3_list_templates as { ok?: boolean; response?: { error?: { message?: string } } };
+  // Test 5: GET /{PHONE_NUMBER_ID} — verifica che il token abbia accesso al
+  // Phone Number specifico. Se ritorna #200 qui, l'errore #200 su /messages
+  // è SPIEGATO: il token non ha `whatsapp_business_messaging` su questo PN.
+  if (PHONE_NUMBER_ID) {
+    try {
+      const phoneRes = await fetch(
+        `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}?fields=verified_name,display_phone_number,quality_rating,code_verification_status`,
+        { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } },
+      );
+      const phoneData = await phoneRes.json();
+      diagnosis.test_5_phone_number_access = {
+        url: `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}?fields=verified_name,...`,
+        status: phoneRes.status,
+        ok: phoneRes.ok,
+        response: phoneData,
+      };
+    } catch (err) {
+      diagnosis.test_5_phone_number_access = { error: String(err) };
+    }
+
+    // Test 6: GET /{WABA_ID}/phone_numbers — lista i numeri del WABA. Serve
+    // per capire se il PHONE_NUMBER_ID appartiene davvero a questo WABA o
+    // a un altro (causa frequente di #200: numero su un WABA su cui il
+    // System User non ha permessi).
+    try {
+      const numsRes = await fetch(
+        `https://graph.facebook.com/v18.0/${WABA_ID}/phone_numbers`,
+        { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } },
+      );
+      const numsData = await numsRes.json();
+      const dataArr = (numsData as { data?: Array<{ id?: string; display_phone_number?: string; verified_name?: string }> }).data;
+      const matchesWaba = Array.isArray(dataArr) && dataArr.some((n) => n.id === PHONE_NUMBER_ID);
+      diagnosis.test_6_phone_belongs_to_waba = {
+        url: `https://graph.facebook.com/v18.0/${WABA_ID}/phone_numbers`,
+        status: numsRes.status,
+        ok: numsRes.ok,
+        phone_belongs_to_waba: matchesWaba,
+        numbers_visible: dataArr?.map((n) => ({ id: n.id, display: n.display_phone_number, name: n.verified_name })) ?? numsData,
+      };
+    } catch (err) {
+      diagnosis.test_6_phone_belongs_to_waba = { error: String(err) };
+    }
+  } else {
+    diagnosis.test_5_phone_number_access = { skipped: "WA_PHONE_NUMBER_ID non settato" };
+    diagnosis.test_6_phone_belongs_to_waba = { skipped: "WA_PHONE_NUMBER_ID non settato" };
+  }
+
+  // Conclusione automatica — ordine di priorità: messaging > templates > scopes
+  const t3 = diagnosis.test_3_list_templates as { ok?: boolean; response?: { error?: { message?: string; code?: number } } };
   const t4 = diagnosis.test_4_token_scopes as { response?: { scopes?: string[] } };
-  if (t3?.ok) {
-    diagnosis.conclusion = "✅ Tutto OK — il token funziona sui template. Se la UI fallisce ancora, è un bug app-side.";
-  } else if (t4?.response?.scopes && !t4.response.scopes.includes("whatsapp_business_management")) {
-    diagnosis.conclusion = "❌ Il token NON ha lo scope `whatsapp_business_management`. Rigenera il Permanent Token su Business Manager → System Users con ENTRAMBI i permessi WhatsApp.";
+  const t5 = diagnosis.test_5_phone_number_access as { ok?: boolean; response?: { error?: { message?: string; code?: number } } };
+  const t6 = diagnosis.test_6_phone_belongs_to_waba as { ok?: boolean; phone_belongs_to_waba?: boolean };
+
+  const scopes = t4?.response?.scopes ?? [];
+  const hasManagement = scopes.includes("whatsapp_business_management");
+  const hasMessaging = scopes.includes("whatsapp_business_messaging");
+
+  if (!hasMessaging && scopes.length > 0) {
+    diagnosis.conclusion = "❌ Il token NON ha lo scope `whatsapp_business_messaging` — è questa la causa dell'errore #200 in invio. Rigenera il Permanent Token su Business Manager → System Users assegnando ENTRAMBI i permessi: `whatsapp_business_messaging` E `whatsapp_business_management`.";
+  } else if (!hasManagement && scopes.length > 0) {
+    diagnosis.conclusion = "❌ Il token NON ha lo scope `whatsapp_business_management` — i template non sono leggibili/scrivibili. Rigenera il Permanent Token con entrambi gli scope.";
+  } else if (t6 && t6.ok && t6.phone_belongs_to_waba === false) {
+    diagnosis.conclusion = "❌ Il `WA_PHONE_NUMBER_ID` NON appartiene al `WA_BUSINESS_ACCOUNT_ID` configurato. Controlla che PHONE_NUMBER_ID e WABA siano coerenti (vai su Business Manager → WhatsApp Accounts → seleziona il WABA → Phone numbers e copia l'ID corretto).";
+  } else if (t5 && !t5.ok && t5.response?.error?.code === 200) {
+    diagnosis.conclusion = "❌ Meta error #200 sul Phone Number → il System User non ha permessi di messaging su questo numero. In Business Settings → System Users → seleziona l'utente → Add Assets → WhatsApp Accounts → seleziona il WABA → spunta 'Manage WhatsApp accounts' E assicurati che la app collegata sia tra le assigned apps.";
+  } else if (t5 && !t5.ok) {
+    diagnosis.conclusion = `❌ Phone Number non accessibile: ${t5.response?.error?.message ?? JSON.stringify(t5.response)}`;
+  } else if (t3?.ok && t5?.ok) {
+    diagnosis.conclusion = "✅ Token OK su template E su phone number. Se l'invio fallisce ancora, è probabile la 24h window o un template non approvato.";
   } else if (t3?.response?.error?.message) {
     diagnosis.conclusion = `❌ Meta error su list_templates: ${t3.response.error.message}`;
   } else {

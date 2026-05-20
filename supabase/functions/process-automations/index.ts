@@ -65,6 +65,164 @@ async function invoke(
   return json as Record<string, unknown>;
 }
 
+// ============================================================
+// Condition evaluator — applica i filtri della rule alla pratica
+// ============================================================
+//
+// L'admin nella UI può configurare condizioni AND tipo:
+//   - prodotto_tipo = "infissi"
+//   - brand = "ENEA"
+//   - tipo_servizio = "servizio_completo"
+//   - pagamento_stato != "pagata"
+//
+// Prima del fix: il cron leggeva la rule MA ignorava il campo
+// `trigger_config.conditions` → la rule veniva applicata a TUTTE le
+// pratiche del trigger, anche quelle che non matchavano i filtri.
+// Risultato: messaggi inviati a clienti sbagliati.
+//
+// Adesso: per ogni pratica candidata valuta tutte le conditions in AND.
+// Se anche UNA fallisce, skip della pratica. Fail-open: campi non
+// riconosciuti (es. cliente_provincia non ancora supportato) loggano
+// warn e considerano la condition come passed (non bloccano la rule).
+
+interface RuleCondition {
+  id?: string;
+  field: string;
+  operator: string;
+  value: string;
+}
+
+/**
+ * Estrae le conditions dalla rule. La UI le salva sotto
+ * `trigger_config.conditions` come array. Le rules legacy (senza
+ * conditions o con conditions vuote) → array vuoto = sempre match.
+ */
+function getRuleConditions(rule: Record<string, unknown>): RuleCondition[] {
+  const cfg = rule.trigger_config as { conditions?: RuleCondition[] } | null;
+  if (!cfg || !Array.isArray(cfg.conditions)) return [];
+  return cfg.conditions.filter((c) => c && typeof c.field === "string");
+}
+
+/**
+ * Legge il valore del campo dalla pratica. Mappa nome-condition →
+ * proprietà della pratica (oppure derived value).
+ */
+function readFieldValue(
+  field: string,
+  practice: Record<string, unknown>,
+  stage?: { name?: string; stage_type?: string } | null,
+): string | number | boolean | null {
+  switch (field) {
+    case "brand": {
+      const b = (practice.brand as string | undefined)?.toLowerCase();
+      if (b === "enea") return "ENEA";
+      if (b === "conto_termico" || b === "ct") return "CT";
+      return b ?? null;
+    }
+    case "prodotto_tipo": {
+      // Match flessibile sul testo libero `prodotto_installato`
+      // (es. "Infissi / Serramenti" → "infissi", "Caldaia gas" → "caldaia")
+      const p = (practice.prodotto_installato as string | undefined)?.toLowerCase() ?? "";
+      if (p.includes("infissi") || p.includes("serramenti")) return "infissi";
+      if (p.includes("schermatur")) return "schermature";
+      if (p.includes("caldaia")) return "caldaia";
+      if (p.includes("termic") || p.includes("pompa di calore")) return "impianto_termico";
+      if (p.includes("fotovoltaic") || p.includes("solare")) return "fotovoltaico";
+      return p || null;
+    }
+    case "tipo_servizio":
+      return (practice.tipo_servizio as string | undefined) ?? null;
+    case "tipo_intervento":
+      return (practice.tipo_intervento as string | undefined) ?? null;
+    case "stage_name":
+      return stage?.name ?? null;
+    case "stage_type":
+      return stage?.stage_type ?? null;
+    case "priorita":
+      return (practice.priorita as string | undefined) ?? null;
+    case "pagamento_stato":
+      return (practice.pagamento_stato as string | undefined) ?? "non_pagata";
+    case "is_free":
+      return !!practice.is_free;
+    case "form_compilato":
+      return !!practice.form_compilato_at;
+    case "has_all_documents": {
+      const mancanti = practice.documenti_mancanti as string[] | undefined;
+      return !mancanti || mancanti.length === 0;
+    }
+    case "cliente_ha_email":
+      return !!practice.cliente_email;
+    case "cliente_ha_whatsapp":
+      return !!practice.cliente_telefono;
+    case "prezzo_netto":
+      return (practice.prezzo_netto as number | undefined) ?? 0;
+    case "giorni_da_creazione": {
+      const created = practice.created_at as string | undefined;
+      if (!created) return 0;
+      return Math.floor((Date.now() - new Date(created).getTime()) / (1000 * 60 * 60 * 24));
+    }
+    default:
+      // Field non riconosciuto (es. cliente_provincia, tag_contains).
+      // Ritorniamo `undefined` → l'evaluator lo tratta come "skip non
+      // bloccante" così le rules continuano a funzionare anche con
+      // filtri non ancora cablati.
+      return undefined as unknown as null;
+  }
+}
+
+/**
+ * Valuta una singola condition contro la pratica. Ritorna true se
+ * match, false se non match. Campi sconosciuti → true (non bloccante).
+ */
+function evaluateCondition(
+  condition: RuleCondition,
+  practice: Record<string, unknown>,
+  stage?: { name?: string; stage_type?: string } | null,
+): boolean {
+  const fieldValue = readFieldValue(condition.field, practice, stage);
+  // Campo non cablato → permissivo (true) per non bloccare rules con
+  // filtri "futuri" configurati dall'admin.
+  if (fieldValue === undefined) {
+    console.warn(`[evaluateCondition] field "${condition.field}" not yet supported, treating as pass`);
+    return true;
+  }
+  const targetValue = condition.value;
+  switch (condition.operator) {
+    case "eq":
+      // Caso booleano: "true"/"false" → confronto bool
+      if (targetValue === "true") return fieldValue === true;
+      if (targetValue === "false") return fieldValue === false || fieldValue === null;
+      return String(fieldValue ?? "").toLowerCase() === targetValue.toLowerCase();
+    case "neq":
+      return String(fieldValue ?? "").toLowerCase() !== targetValue.toLowerCase();
+    case "contains":
+      return String(fieldValue ?? "").toLowerCase().includes(targetValue.toLowerCase());
+    case "not_contains":
+      return !String(fieldValue ?? "").toLowerCase().includes(targetValue.toLowerCase());
+    case "gte":
+      return Number(fieldValue ?? 0) >= Number(targetValue);
+    case "lte":
+      return Number(fieldValue ?? 0) <= Number(targetValue);
+    default:
+      console.warn(`[evaluateCondition] operator "${condition.operator}" not supported, treating as pass`);
+      return true;
+  }
+}
+
+/**
+ * Valuta tutte le conditions di una rule contro una pratica (AND).
+ * Se non ci sono conditions → match per default (backward compat).
+ */
+function rulePassesConditions(
+  rule: Record<string, unknown>,
+  practice: Record<string, unknown>,
+  stage?: { name?: string; stage_type?: string } | null,
+): boolean {
+  const conditions = getRuleConditions(rule);
+  if (conditions.length === 0) return true;
+  return conditions.every((c) => evaluateCondition(c, practice, stage));
+}
+
 serve(async () => {
   if (!isBusinessHour()) {
     return Response.json({ processed: 0, reason: "outside_business_hours" });
@@ -109,6 +267,12 @@ serve(async () => {
             .or(`ultimo_sollecito_privato.is.null,ultimo_sollecito_privato.lt.${sevenDaysAgo}`);
 
           for (const p of practices ?? []) {
+            // Applica filtri condition della rule (es. solo infissi, solo ENEA, ecc.).
+            // Skippa la pratica se non match. Backward compat: rules senza
+            // conditions (legacy) restituiscono true e procedono normalmente.
+            if (!rulePassesConditions(rule as Record<string, unknown>, p as Record<string, unknown>)) {
+              continue;
+            }
             // Per-practice try/catch: se un invio fallisce vogliamo loggare
             // e continuare con le altre, non bloccare l'intero loop. La
             // pratica fallita verrà riprovata al prossimo cron tick perché
@@ -184,6 +348,12 @@ serve(async () => {
             .or(`ultimo_sollecito_fornitore.is.null,ultimo_sollecito_fornitore.lt.${cutoff}`);
 
           for (const p of practices ?? []) {
+            // Applica filtri condition della rule (es. solo infissi, solo ENEA, ecc.).
+            // Skippa la pratica se non match. Backward compat: rules senza
+            // conditions (legacy) restituiscono true e procedono normalmente.
+            if (!rulePassesConditions(rule as Record<string, unknown>, p as Record<string, unknown>)) {
+              continue;
+            }
             const resellerEmail = (p.companies as { email?: string })?.email;
             if (!resellerEmail) continue;
             try {
@@ -227,6 +397,12 @@ serve(async () => {
             .lt("recensione_richiesta_at", sevenDaysAgo);
 
           for (const p of practices ?? []) {
+            // Applica filtri condition della rule (es. solo infissi, solo ENEA, ecc.).
+            // Skippa la pratica se non match. Backward compat: rules senza
+            // conditions (legacy) restituiscono true e procedono normalmente.
+            if (!rulePassesConditions(rule as Record<string, unknown>, p as Record<string, unknown>)) {
+              continue;
+            }
             try {
               // Skip if we already sent a review follow-up (prevents re-sending every cron tick).
               // NB: matchamo solo entry con status='sent' — se l'ultimo tentativo è

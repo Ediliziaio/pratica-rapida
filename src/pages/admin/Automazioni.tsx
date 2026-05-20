@@ -262,6 +262,156 @@ const TRIGGER_TYPES = [
     icon: Clock,
     category: "Pagamento",
   },
+  {
+    value: "fattura_emessa",
+    label: "Fattura Emessa",
+    description: "Fattura generata e inviata al cliente / SDI",
+    icon: FilePlus,
+    category: "Pagamento",
+  },
+  {
+    value: "fattura_scaduta",
+    label: "Fattura Scaduta",
+    description: "Fattura non pagata oltre la data di scadenza",
+    icon: Clock,
+    category: "Pagamento",
+  },
+
+  // ─── 📄 Documenti ────────────────────────────────────────────────────────
+  {
+    value: "documento_uploadato",
+    label: "Documento Caricato",
+    description: "Cliente carica un singolo documento (anche se non tutti completi)",
+    icon: FilePlus,
+    category: "Documenti",
+  },
+  {
+    value: "documenti_completi",
+    label: "Documenti Completi",
+    description: "Tutti i documenti obbligatori sono stati caricati",
+    icon: CheckCircle2,
+    category: "Documenti",
+  },
+  {
+    value: "documenti_mancanti_3g",
+    label: "Documenti mancanti (3gg)",
+    description: "Cliente ha caricato alcuni documenti ma non tutti, fermo da 3gg",
+    icon: Clock,
+    category: "Documenti",
+  },
+
+  // ─── 📧 Tracking comunicazioni ──────────────────────────────────────────
+  {
+    value: "email_aperta",
+    label: "Email Aperta",
+    description: "Cliente apre un'email inviata dal sistema (richiede tracking pixel)",
+    icon: Mail,
+    category: "Comunicazioni",
+  },
+  {
+    value: "email_link_cliccato",
+    label: "Email Link Cliccato",
+    description: "Cliente clicca un link dentro un'email",
+    icon: Mail,
+    category: "Comunicazioni",
+  },
+  {
+    value: "email_bounce",
+    label: "Email Rimbalzata",
+    description: "Email non consegnata (indirizzo invalido o casella piena)",
+    icon: Mail,
+    category: "Comunicazioni",
+  },
+  {
+    value: "whatsapp_letto",
+    label: "WhatsApp Letto",
+    description: "Doppia spunta blu — cliente ha letto il messaggio",
+    icon: MessageCircle,
+    category: "Comunicazioni",
+  },
+  {
+    value: "whatsapp_fallito",
+    label: "WhatsApp Fallito",
+    description: "Invio fallito (numero non WhatsApp, blocco, ecc.)",
+    icon: MessageCircle,
+    category: "Comunicazioni",
+  },
+
+  // ─── 👨‍💼 Staff / Assignment ───────────────────────────────────────────
+  {
+    value: "pratica_assegnata",
+    label: "Pratica Assegnata",
+    description: "Pratica viene assegnata a un operatore specifico",
+    icon: Play,
+    category: "Staff",
+  },
+  {
+    value: "pratica_non_assegnata_24h",
+    label: "Pratica non assegnata (24h)",
+    description: "Pratica nuova senza operatore assegnato da 24h",
+    icon: Clock,
+    category: "Staff",
+  },
+  {
+    value: "nota_aggiunta",
+    label: "Nota Aggiunta",
+    description: "Operatore aggiunge una nota interna alla pratica",
+    icon: FilePlus,
+    category: "Staff",
+  },
+
+  // ─── 📥 Lead / Ticket ─────────────────────────────────────────────────
+  {
+    value: "lead_creato",
+    label: "Lead Creato",
+    description: "Nuovo lead dal form pubblico del sito",
+    icon: FilePlus,
+    category: "Lead & Ticket",
+  },
+  {
+    value: "ticket_aperto",
+    label: "Ticket Aperto",
+    description: "Cliente apre un ticket di supporto",
+    icon: FilePlus,
+    category: "Lead & Ticket",
+  },
+  {
+    value: "ticket_chiuso",
+    label: "Ticket Chiuso",
+    description: "Ticket risolto e chiuso",
+    icon: CheckCircle2,
+    category: "Lead & Ticket",
+  },
+
+  // ─── ⚠️ Errori / Sistema ────────────────────────────────────────────────
+  {
+    value: "errore_invio_whatsapp",
+    label: "Errore Invio WhatsApp",
+    description: "Token WhatsApp scaduto o errore Meta API",
+    icon: MessageCircle,
+    category: "Sistema",
+  },
+  {
+    value: "portale_enea_bloccato",
+    label: "Portale ENEA Bloccato",
+    description: "Il portale ENEA non è raggiungibile (segnalazione manuale)",
+    icon: Clock,
+    category: "Sistema",
+  },
+  {
+    value: "anniversario_pratica",
+    label: "Anniversario Pratica Completata",
+    description: "1 anno dalla pratica completata — follow-up annuale",
+    icon: Clock,
+    category: "Sistema",
+  },
+  {
+    value: "data_specifica",
+    label: "Data/Ora Specifica",
+    description: "Esegui automazione a una data e ora pianificata (one-shot)",
+    icon: Clock,
+    category: "Sistema",
+  },
 
   // ─── 🛠 Manuale ──────────────────────────────────────────────────────────
   {
@@ -278,7 +428,12 @@ const TRIGGER_CATEGORIES = [
   "Ciclo pratica",
   "Tempo",
   "Cliente",
+  "Documenti",
+  "Comunicazioni",
   "Pagamento",
+  "Staff",
+  "Lead & Ticket",
+  "Sistema",
   "Manuale",
 ];
 
@@ -438,34 +593,205 @@ const CONDITION_FIELDS = [
     valueType: "boolean" as const,
     options: ["true", "false"],
   },
+  {
+    value: "cliente_provincia",
+    label: "Provincia cliente",
+    operators: [
+      { value: "eq", label: "è" },
+      { value: "neq", label: "non è" },
+      { value: "contains", label: "contiene" },
+    ],
+    valueType: "text" as const,
+    options: [],
+  },
+  {
+    value: "cliente_regione",
+    label: "Regione cliente",
+    operators: [
+      { value: "eq", label: "è" },
+      { value: "neq", label: "non è" },
+    ],
+    valueType: "select" as const,
+    options: [
+      "Lombardia", "Lazio", "Campania", "Sicilia", "Veneto", "Emilia-Romagna",
+      "Piemonte", "Puglia", "Toscana", "Calabria", "Sardegna", "Liguria",
+      "Marche", "Abruzzo", "Friuli-Venezia Giulia", "Trentino-Alto Adige",
+      "Umbria", "Basilicata", "Molise", "Valle d'Aosta",
+    ],
+  },
+
+  // ─── Valore pratica ──────────────────────────────────────────────────────
+  {
+    value: "prezzo_netto",
+    label: "Prezzo netto pratica",
+    operators: [
+      { value: "gte", label: "≥" },
+      { value: "lte", label: "≤" },
+      { value: "eq", label: "=" },
+    ],
+    valueType: "number" as const,
+    options: [],
+  },
+  {
+    value: "giorni_da_creazione",
+    label: "Giorni dalla creazione",
+    operators: [
+      { value: "gte", label: "≥" },
+      { value: "lte", label: "≤" },
+    ],
+    valueType: "number" as const,
+    options: [],
+  },
+
+  // ─── Tag ─────────────────────────────────────────────────────────────────
+  {
+    value: "tag_contains",
+    label: "Tag pratica contiene",
+    operators: [
+      { value: "contains", label: "contiene" },
+      { value: "not_contains", label: "non contiene" },
+    ],
+    valueType: "text" as const,
+    options: [],
+  },
 ];
 
+/**
+ * Azioni disponibili nel flow editor. Ogni azione ha:
+ * - value: chiave salvata in DB (automation_rules.trigger_config.actions[].type)
+ * - label: visualizzato nel selettore
+ * - icon: rendering accanto al label
+ * - color: tinta delle card action editor
+ * - category: raggruppamento nel dropdown
+ *
+ * Backend: handler in supabase/functions/process-automations/index.ts
+ * + dedicate edge functions (send-whatsapp, send-email, ecc.)
+ */
 const ACTION_TYPES = [
-  { value: "send_email", label: "Invia Email", icon: Mail, color: "border-blue-200 bg-blue-50" },
-  {
-    value: "send_whatsapp",
+  // ─── 📧 Comunicazioni outbound ────────────────────────────────────────
+  { value: "send_email",
+    label: "Invia Email",
+    icon: Mail,
+    color: "border-blue-200 bg-blue-50",
+    category: "Comunicazioni" },
+  { value: "send_whatsapp",
     label: "Invia WhatsApp",
     icon: MessageCircle,
     color: "border-green-200 bg-green-50",
-  },
-  {
-    value: "move_to_stage",
-    label: "Sposta Stage",
-    icon: ArrowRight,
-    color: "border-purple-200 bg-purple-50",
-  },
-  {
-    value: "elevenlabs_call",
+    category: "Comunicazioni" },
+  { value: "send_sms",
+    label: "Invia SMS",
+    icon: MessageCircle,
+    color: "border-cyan-200 bg-cyan-50",
+    category: "Comunicazioni" },
+  { value: "send_internal_email",
+    label: "Email interna staff",
+    icon: Mail,
+    color: "border-indigo-200 bg-indigo-50",
+    category: "Comunicazioni" },
+  { value: "create_notification",
+    label: "Notifica in-app",
+    icon: CheckCircle2,
+    color: "border-violet-200 bg-violet-50",
+    category: "Comunicazioni" },
+
+  // ─── 🤖 AI / Voice ──────────────────────────────────────────────────────
+  { value: "elevenlabs_call",
     label: "Chiamata AI (ElevenLabs)",
     icon: Phone,
     color: "border-rose-200 bg-rose-50",
-  },
-  {
-    value: "wait_days",
+    category: "AI & Voice" },
+
+  // ─── 📋 Modifica pratica ──────────────────────────────────────────────
+  { value: "move_to_stage",
+    label: "Sposta Stage",
+    icon: ArrowRight,
+    color: "border-purple-200 bg-purple-50",
+    category: "Modifica pratica" },
+  { value: "change_priority",
+    label: "Cambia priorità",
+    icon: ArrowRight,
+    color: "border-purple-200 bg-purple-50",
+    category: "Modifica pratica" },
+  { value: "update_pagamento_stato",
+    label: "Aggiorna stato pagamento",
+    icon: CheckCircle2,
+    color: "border-emerald-200 bg-emerald-50",
+    category: "Modifica pratica" },
+  { value: "add_tag",
+    label: "Aggiungi tag",
+    icon: FilePlus,
+    color: "border-amber-200 bg-amber-50",
+    category: "Modifica pratica" },
+  { value: "remove_tag",
+    label: "Rimuovi tag",
+    icon: FilePlus,
+    color: "border-amber-200 bg-amber-50",
+    category: "Modifica pratica" },
+  { value: "add_note",
+    label: "Aggiungi nota interna",
+    icon: FilePlus,
+    color: "border-slate-200 bg-slate-50",
+    category: "Modifica pratica" },
+  { value: "archive_practice",
+    label: "Archivia pratica",
+    icon: FilePlus,
+    color: "border-slate-200 bg-slate-50",
+    category: "Modifica pratica" },
+
+  // ─── 👨‍💼 Assignment ────────────────────────────────────────────────
+  { value: "assign_user",
+    label: "Assegna a operatore",
+    icon: Play,
+    color: "border-teal-200 bg-teal-50",
+    category: "Assignment" },
+  { value: "create_task",
+    label: "Crea task per operatore",
+    icon: CheckCircle2,
+    color: "border-teal-200 bg-teal-50",
+    category: "Assignment" },
+
+  // ─── 📄 Documenti / Fatturazione ────────────────────────────────────
+  { value: "request_documents",
+    label: "Richiedi documenti al cliente",
+    icon: FilePlus,
+    color: "border-lime-200 bg-lime-50",
+    category: "Documenti" },
+  { value: "generate_invoice",
+    label: "Genera fattura",
+    icon: FilePlus,
+    color: "border-lime-200 bg-lime-50",
+    category: "Documenti" },
+
+  // ─── ⏱ Flow control ──────────────────────────────────────────────────
+  { value: "wait_days",
     label: "Attendi N giorni",
     icon: Clock,
     color: "border-amber-200 bg-amber-50",
-  },
+    category: "Flow control" },
+  { value: "wait_hours",
+    label: "Attendi N ore",
+    icon: Clock,
+    color: "border-amber-200 bg-amber-50",
+    category: "Flow control" },
+
+  // ─── 🔌 Integrazioni esterne ──────────────────────────────────────────
+  { value: "trigger_webhook",
+    label: "Webhook esterno (HTTP)",
+    icon: Play,
+    color: "border-orange-200 bg-orange-50",
+    category: "Integrazioni" },
+];
+
+// Categorie azioni nell'ordine di visualizzazione del Select
+const ACTION_CATEGORIES = [
+  "Comunicazioni",
+  "AI & Voice",
+  "Modifica pratica",
+  "Assignment",
+  "Documenti",
+  "Flow control",
+  "Integrazioni",
 ];
 
 const EMAIL_TEMPLATES = [
@@ -1057,12 +1383,23 @@ function ActionBlock({
               <SelectTrigger className="bg-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                {ACTION_TYPES.map((a) => (
-                  <SelectItem key={a.value} value={a.value}>
-                    {a.label}
-                  </SelectItem>
-                ))}
+              <SelectContent className="max-h-96">
+                {ACTION_CATEGORIES.map((category) => {
+                  const inCategory = ACTION_TYPES.filter((a) => a.category === category);
+                  if (inCategory.length === 0) return null;
+                  return (
+                    <div key={category}>
+                      <div className="px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold sticky top-0 bg-white">
+                        {category}
+                      </div>
+                      {inCategory.map((a) => (
+                        <SelectItem key={a.value} value={a.value}>
+                          {a.label}
+                        </SelectItem>
+                      ))}
+                    </div>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>

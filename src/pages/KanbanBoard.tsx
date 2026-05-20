@@ -393,6 +393,7 @@ function PracticeDetailSheet({
   allPractices,
   onClose,
   onMove,
+  onOpenChat,
 }: {
   practice: PracticeWithRelations | null;
   isInternal: boolean;
@@ -405,6 +406,15 @@ function PracticeDetailSheet({
     oldStageName: string;
     newStageName: string;
   }) => void;
+  /**
+   * Apre il PracticeChatDialog (WhatsApp + Email) per la pratica passata.
+   * Indispensabile come prop perché lo stato `chatDialogPractice` vive in
+   * KanbanBoard (root) e PracticeDetailSheet è una funzione separata: senza
+   * questa prop il vecchio `onClick={() => setChatDialogPractice(practice)}`
+   * referenziava un identifier fuori scope → ReferenceError a runtime, click
+   * silenziosamente no-op (typecheck non lo intercetta perché strict:false).
+   */
+  onOpenChat: (practice: PracticeWithRelations) => void;
 }) {
   const { toast } = useToast();
   const updatePractice = useUpdateEneaPractice();
@@ -767,7 +777,7 @@ function PracticeDetailSheet({
                     variant="outline"
                     size="sm"
                     className="h-8 text-xs gap-1"
-                    onClick={() => setChatDialogPractice(practice)}
+                    onClick={() => onOpenChat(practice)}
                     title="Apri chat in-app: invia template/email, vedi storico messaggi"
                   >
                     <MessageCircle className="h-3.5 w-3.5" />
@@ -3101,6 +3111,7 @@ export default function KanbanBoard() {
         allPractices={practices}
         onClose={() => setSelectedPractice(null)}
         onMove={handleMoveFromSheet}
+        onOpenChat={(p) => setChatDialogPractice(p)}
       />
 
       <PipelineSettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />

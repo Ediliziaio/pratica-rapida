@@ -522,6 +522,134 @@ async function handleDeleteTemplate(
 }
 
 /**
+ * Action "debug_template_access": diagnostica server-side dei permessi
+ * del token sul WABA corrente. Chiama 4 endpoint Meta progressivi e
+ * ritorna ogni risposta + scope effettivi del token via /debug_token.
+ *
+ * Permette di capire ESATTAMENTE dove fallisce senza esporre token in
+ * chat. Risultato sicuro per audit (token mai esposto in response).
+ */
+async function handleDebugTemplateAccess(): Promise<Record<string, unknown>> {
+  const WABA_ID = Deno.env.get("WA_BUSINESS_ACCOUNT_ID");
+  const ACCESS_TOKEN = Deno.env.get("WA_ACCESS_TOKEN");
+  const APP_SECRET = Deno.env.get("WA_APP_SECRET");
+
+  const diagnosis: Record<string, unknown> = {
+    secrets_check: {
+      WA_BUSINESS_ACCOUNT_ID: WABA_ID ? `set (${WABA_ID.length} chars, starts with "${WABA_ID.slice(0, 6)}...")` : "MISSING",
+      WA_ACCESS_TOKEN: ACCESS_TOKEN ? `set (${ACCESS_TOKEN.length} chars, starts with "${ACCESS_TOKEN.slice(0, 4)}...")` : "MISSING",
+      WA_APP_SECRET: APP_SECRET ? `set (${APP_SECRET.length} chars)` : "MISSING",
+    },
+  };
+
+  if (!WABA_ID || !ACCESS_TOKEN) {
+    diagnosis.conclusion = "Secrets mancanti — controlla Supabase Edge Function Secrets";
+    return diagnosis;
+  }
+
+  // Test 1: /me — token validity check (richiede solo accesso al token)
+  try {
+    const meRes = await fetch(`https://graph.facebook.com/v18.0/me`, {
+      headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
+    });
+    const meData = await meRes.json();
+    diagnosis.test_1_me = {
+      status: meRes.status,
+      ok: meRes.ok,
+      response: meRes.ok ? { id: (meData as { id?: string }).id, name: (meData as { name?: string }).name } : meData,
+    };
+  } catch (err) {
+    diagnosis.test_1_me = { error: String(err) };
+  }
+
+  // Test 2: GET /{WABA_ID} — base WABA info (richiede whatsapp_business_messaging O management)
+  try {
+    const wabaRes = await fetch(
+      `https://graph.facebook.com/v18.0/${WABA_ID}?fields=name,timezone_id,message_template_namespace`,
+      { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } },
+    );
+    const wabaData = await wabaRes.json();
+    diagnosis.test_2_waba_info = {
+      url: `https://graph.facebook.com/v18.0/${WABA_ID}?fields=name,...`,
+      status: wabaRes.status,
+      ok: wabaRes.ok,
+      response: wabaData,
+    };
+  } catch (err) {
+    diagnosis.test_2_waba_info = { error: String(err) };
+  }
+
+  // Test 3: GET /{WABA_ID}/message_templates — richiede whatsapp_business_management
+  try {
+    const tplRes = await fetch(
+      `https://graph.facebook.com/v18.0/${WABA_ID}/message_templates?limit=1&fields=name`,
+      { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } },
+    );
+    const tplData = await tplRes.json();
+    diagnosis.test_3_list_templates = {
+      url: `https://graph.facebook.com/v18.0/${WABA_ID}/message_templates?limit=1`,
+      status: tplRes.status,
+      ok: tplRes.ok,
+      response: tplData,
+    };
+  } catch (err) {
+    diagnosis.test_3_list_templates = { error: String(err) };
+  }
+
+  // Test 4: /debug_token — scope effettivi del token (richiede APP_ID|APP_SECRET come app token)
+  // Recupero APP_ID dal /me?fields=id (l'id è l'app_id quando il token è System User)
+  try {
+    // Per debug_token serve un "app access token" formato `APP_ID|APP_SECRET`.
+    // Recuperiamo l'app_id dal token corrente
+    const appRes = await fetch(
+      `https://graph.facebook.com/v18.0/me?fields=id`,
+      { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } },
+    );
+    const appData = (await appRes.json()) as { id?: string };
+    const appId = appData.id;
+    if (appId && APP_SECRET) {
+      const debugRes = await fetch(
+        `https://graph.facebook.com/v18.0/debug_token?input_token=${ACCESS_TOKEN}&access_token=${appId}|${APP_SECRET}`,
+      );
+      const debugData = await debugRes.json();
+      diagnosis.test_4_token_scopes = {
+        status: debugRes.status,
+        ok: debugRes.ok,
+        // Restituiamo SOLO i campi sicuri (no token raw)
+        response: debugRes.ok
+          ? {
+              type: (debugData as { data?: { type?: string } }).data?.type,
+              is_valid: (debugData as { data?: { is_valid?: boolean } }).data?.is_valid,
+              expires_at: (debugData as { data?: { expires_at?: number } }).data?.expires_at,
+              scopes: (debugData as { data?: { scopes?: string[] } }).data?.scopes,
+              app_id: (debugData as { data?: { app_id?: string } }).data?.app_id,
+            }
+          : debugData,
+      };
+    } else {
+      diagnosis.test_4_token_scopes = { skipped: "manca app_id o app_secret" };
+    }
+  } catch (err) {
+    diagnosis.test_4_token_scopes = { error: String(err) };
+  }
+
+  // Conclusione automatica
+  const t3 = diagnosis.test_3_list_templates as { ok?: boolean; response?: { error?: { message?: string } } };
+  const t4 = diagnosis.test_4_token_scopes as { response?: { scopes?: string[] } };
+  if (t3?.ok) {
+    diagnosis.conclusion = "✅ Tutto OK — il token funziona sui template. Se la UI fallisce ancora, è un bug app-side.";
+  } else if (t4?.response?.scopes && !t4.response.scopes.includes("whatsapp_business_management")) {
+    diagnosis.conclusion = "❌ Il token NON ha lo scope `whatsapp_business_management`. Rigenera il Permanent Token su Business Manager → System Users con ENTRAMBI i permessi WhatsApp.";
+  } else if (t3?.response?.error?.message) {
+    diagnosis.conclusion = `❌ Meta error su list_templates: ${t3.response.error.message}`;
+  } else {
+    diagnosis.conclusion = "❓ Risultato non chiaro — manda l'intero JSON a Claude per analisi";
+  }
+
+  return diagnosis;
+}
+
+/**
  * Action "purge_orphan_templates": cancella DAL DB i template che non
  * esistono più sul WABA Meta corrente. Utile dopo switch WABA o per
  * pulizia generale. NON chiama Meta API — solo housekeeping locale.
@@ -721,6 +849,8 @@ serve(async (req) => {
         return json(await handleDeleteTemplate(supabase, payload as { name?: string; language?: string }));
       case "purge_orphan_templates":
         return json(await handlePurgeOrphans(supabase));
+      case "debug_template_access":
+        return json(await handleDebugTemplateAccess());
       case "list_phone_numbers":
         return json(await handleListPhoneNumbers());
       case "request_phone_verification":

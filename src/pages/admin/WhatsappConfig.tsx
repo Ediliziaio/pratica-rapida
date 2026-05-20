@@ -159,6 +159,30 @@ function SetupTab() {
   const allSecretsSet = data && Object.values(data.secrets).every(Boolean);
   const tokenValid = data?.token_status === "valid";
 
+  // Debug mutation: diagnostica server-side dei permessi token
+  const debugMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("whatsapp-meta-sync", {
+        body: { action: "debug_template_access" },
+      });
+      if (error) throw error;
+      return data as Record<string, unknown>;
+    },
+    onSuccess: (res) => {
+      const conclusion = (res.conclusion as string) ?? "Vedi console per dettagli";
+      console.log("[whatsapp-debug] full diagnosis:", res);
+      toast({
+        title: "Diagnosi completata",
+        description: conclusion,
+        duration: 20_000,
+        variant: conclusion.startsWith("✅") ? "default" : "destructive",
+      });
+    },
+    onError: (err: Error) => {
+      toast({ variant: "destructive", title: "Errore debug", description: err.message });
+    },
+  });
+
   return (
     <div className="space-y-4">
       {/* Stato connessione */}
@@ -169,10 +193,23 @@ function SetupTab() {
               <CardTitle className="text-lg">Stato connessione</CardTitle>
               <CardDescription>Verifica live dei secrets + chiamata Meta API</CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching} className="gap-2">
-              <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
-              Verifica
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => debugMutation.mutate()}
+                disabled={debugMutation.isPending}
+                className="gap-2"
+                title="Diagnosi server-side: testa secrets + 4 chiamate Meta progressive + scope token. Output dettagliato in console (F12)."
+              >
+                {debugMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
+                Debug
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching} className="gap-2">
+                <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
+                Verifica
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

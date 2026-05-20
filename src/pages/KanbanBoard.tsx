@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { BulkSendDialog } from "@/components/kanban/BulkSendDialog";
+import { PracticeChatDialog } from "@/components/kanban/PracticeChatDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -756,47 +757,26 @@ function PracticeDetailSheet({
                   </Select>
                 )}
 
-                {/* Email */}
-                {practice.cliente_email ? (
+                {/* Conversazione in-app: WhatsApp chat + Email log + composer.
+                    Sostituisce i precedenti bottoni mailto: e wa.me che aprivano
+                    app esterne senza tenere traccia dei messaggi nella nostra
+                    cronologia. Adesso: tutto in-app, tutto loggato, tutto
+                    cercabile in /admin/whatsapp-chat e log email. */}
+                {(practice.cliente_telefono || practice.cliente_email) ? (
                   <Button
                     variant="outline"
                     size="sm"
                     className="h-8 text-xs gap-1"
-                    asChild
+                    onClick={() => setChatDialogPractice(practice)}
+                    title="Apri chat in-app: invia template/email, vedi storico messaggi"
                   >
-                    <a href={`mailto:${practice.cliente_email}`}>
-                      <Mail className="h-3.5 w-3.5" />
-                      Email
-                    </a>
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    Conversazione
                   </Button>
                 ) : (
-                  <Button variant="outline" size="sm" className="h-8 text-xs gap-1" disabled>
-                    <Mail className="h-3.5 w-3.5" />
-                    Email
-                  </Button>
-                )}
-
-                {/* WhatsApp */}
-                {practice.cliente_telefono ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-xs gap-1"
-                    asChild
-                  >
-                    <a
-                      href={`https://wa.me/${practice.cliente_telefono.replace(/\D/g, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Phone className="h-3.5 w-3.5" />
-                      WhatsApp
-                    </a>
-                  </Button>
-                ) : (
-                  <Button variant="outline" size="sm" className="h-8 text-xs gap-1" disabled>
-                    <Phone className="h-3.5 w-3.5" />
-                    WhatsApp
+                  <Button variant="outline" size="sm" className="h-8 text-xs gap-1" disabled title="Nessun contatto cliente disponibile">
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    Conversazione
                   </Button>
                 )}
 
@@ -1814,6 +1794,10 @@ export default function KanbanBoard() {
   const [bulkArchiveConfirm, setBulkArchiveConfirm] = useState(false);
   // Bulk send (WhatsApp / Email) — apre dialog con selettore template
   const [bulkSendChannel, setBulkSendChannel] = useState<"whatsapp" | "email" | null>(null);
+
+  // Practice chat dialog (WhatsApp + email in-app, sostituisce wa.me + mailto:)
+  // Stato: la practice corrente da mostrare nel dialog (null = chiuso).
+  const [chatDialogPractice, setChatDialogPractice] = useState<PracticeWithRelations | null>(null);
 
   // (Deep-link auto-open practice sheet via ?practice=<id> — useEffect
   //  spostato sotto la dichiarazione di `practices` per evitare TDZ.)
@@ -3186,6 +3170,19 @@ export default function KanbanBoard() {
             Annulla
           </Button>
         </div>
+      )}
+
+      {/* Practice chat dialog: WhatsApp chat + Email log per UNA pratica */}
+      {chatDialogPractice && (
+        <PracticeChatDialog
+          practiceId={chatDialogPractice.id}
+          clienteNome={chatDialogPractice.cliente_nome}
+          clienteCognome={chatDialogPractice.cliente_cognome}
+          clienteTelefono={chatDialogPractice.cliente_telefono}
+          clienteEmail={chatDialogPractice.cliente_email}
+          formToken={chatDialogPractice.form_token}
+          onClose={() => setChatDialogPractice(null)}
+        />
       )}
 
       {/* Bulk send dialog (WhatsApp/Email) — Channel guida il default tab */}

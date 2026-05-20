@@ -795,12 +795,23 @@ function TemplatesTab() {
       if (res.created > 0) parts.push(`${res.created} creati`);
       if (res.skipped > 0) parts.push(`${res.skipped} già esistenti`);
       if (res.failed > 0) parts.push(`${res.failed} errori`);
+
+      // Estrai messaggio errore dettagliato dal primo fail (di solito tutti
+      // i fail hanno la stessa causa: permessi, token, rate limit)
+      const firstFail = res.results.find((r) => !r.success);
+      const errorDetail = firstFail?.error
+        ? ` — Errore: "${firstFail.error.slice(0, 200)}"`
+        : "";
+
       toast({
         title: "Template base inviati a Meta",
-        description: `${parts.join(" · ")}. Approval da Meta in pochi minuti.`,
+        description: res.failed > 0
+          ? `${parts.join(" · ")}${errorDetail}`
+          : `${parts.join(" · ")}. Approval da Meta in pochi minuti.`,
         variant: res.failed > 0 ? "destructive" : "default",
+        duration: res.failed > 0 ? 15_000 : 5_000, // più tempo per leggere l'errore
       });
-      // Logga i fail dettagliati nel console per debug
+      // Logga i fail completi nel console per debug
       if (res.failed > 0) {
         const fails = res.results.filter((r) => !r.success);
         console.warn("[seed_default_templates] failures:", fails);

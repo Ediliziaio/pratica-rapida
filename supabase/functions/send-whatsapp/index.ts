@@ -365,7 +365,18 @@ serve(async (req) => {
     console.warn("[send-whatsapp] chat thread insert failed:", chatErr);
   }
 
-  return new Response(JSON.stringify({ success, wa_message_id }), {
+  return new Response(JSON.stringify({
+    success,
+    wa_message_id,
+    // Quando success=false propaghiamo il messaggio errore di Meta per
+    // diagnosi UI (toast, debug). Prima del fix: il response era senza
+    // `error` quindi la UI mostrava "Invio fallito" generico.
+    ...(success ? {} : {
+      error: error_message ?? `Meta HTTP ${response.status}`,
+      meta_response: result,
+      attempts,
+    }),
+  }), {
     status: 200,
     headers: { ...CORS, "Content-Type": "application/json" },
   });

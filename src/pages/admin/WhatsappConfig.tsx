@@ -748,6 +748,32 @@ function TemplatesTab() {
     },
   });
 
+  // Pulizia orphan templates: cancella DAL DB i template che non esistono
+  // più sul WABA Meta corrente. Utile dopo switch WABA o pulizia generale.
+  const purgeMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("whatsapp-meta-sync", {
+        body: { action: "purge_orphan_templates" },
+      });
+      if (error) throw error;
+      const res = data as { success?: boolean; error?: string; purged?: number; purged_names?: string[] };
+      if (!res.success) throw new Error(res.error ?? "Purge fallito");
+      return res;
+    },
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-templates"] });
+      toast({
+        title: res.purged === 0 ? "Nessun template fantasma" : `Rimossi ${res.purged} template fantasma`,
+        description: res.purged && res.purged > 0
+          ? `Template puliti dal DB (non esistevano più su Meta): ${res.purged_names?.slice(0, 3).join(", ")}${res.purged > 3 ? "..." : ""}`
+          : "Tutti i template in DB esistono ancora sul WABA Meta corrente",
+      });
+    },
+    onError: (err: Error) => {
+      toast({ variant: "destructive", title: "Errore pulizia", description: err.message });
+    },
+  });
+
   // Seed dei 5 template di base (one-click batch creation su Meta)
   const seedMutation = useMutation({
     mutationFn: async () => {
@@ -825,6 +851,20 @@ function TemplatesTab() {
                 </>
               ) : (
                 <>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (confirm("Cancellare i template 'fantasma' dal DB locale? Cancella SOLO i template che non esistono più sul WABA Meta corrente (es. residui di un WABA precedente). Non tocca Meta.")) {
+                        purgeMutation.mutate();
+                      }
+                    }}
+                    disabled={purgeMutation.isPending}
+                    className="gap-2"
+                    title="Cancella dal DB i template che non esistono più su Meta (residui di WABA precedenti)"
+                  >
+                    {purgeMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                    Pulisci fantasma
+                  </Button>
                   <Button
                     variant="outline"
                     onClick={() => seedMutation.mutate()}

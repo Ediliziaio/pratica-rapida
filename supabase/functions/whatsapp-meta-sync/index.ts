@@ -485,15 +485,94 @@ async function handleDeleteTemplate(
     },
   );
   const result = await res.json();
-  if (!res.ok) return { success: false, error: result?.error?.message ?? `HTTP ${res.status}` };
 
-  // Soft-delete in DB
+  // Casi di "template non trovato su questo WABA" — succedono spesso quando:
+  //  - L'admin ha switchato WABA e i template del vecchio WABA sono ancora
+  //    in DB ma non esistono sul WABA corrente.
+  //  - Il template è già stato cancellato in passato.
+  // In questi casi vogliamo cancellare comunque dal DB locale (hard delete)
+  // per pulire orphans senza richiedere SQL diretto.
+  const metaError = result?.error;
+  const errMsg = (metaError?.message as string) ?? "";
+  const errCode = metaError?.code;
+  const isNotFound = res.status === 404
+    || errCode === 100
+    || /not found|does not exist|non esiste|invalid template/i.test(errMsg);
+
+  if (!res.ok && !isNotFound) {
+    return { success: false, error: errMsg || `HTTP ${res.status}` };
+  }
+
+  if (isNotFound) {
+    // Hard delete dal DB — l'orphan non serve a niente
+    await supabase
+      .from("whatsapp_templates")
+      .delete()
+      .eq("meta_template_name", payload.name);
+    return { success: true, db_only: true, reason: "template_not_on_meta" };
+  }
+
+  // Soft-delete in DB (delete riuscito su Meta, manteniamo storico)
   await supabase
     .from("whatsapp_templates")
     .update({ is_active: false, status: "DISABLED" })
     .eq("meta_template_name", payload.name);
 
   return { success: true };
+}
+
+/**
+ * Action "purge_orphan_templates": cancella DAL DB i template che non
+ * esistono più sul WABA Meta corrente. Utile dopo switch WABA o per
+ * pulizia generale. NON chiama Meta API — solo housekeeping locale.
+ */
+async function handlePurgeOrphans(
+  supabase: ReturnType<typeof createClient>,
+): Promise<Record<string, unknown>> {
+  const WABA_ID = Deno.env.get("WA_BUSINESS_ACCOUNT_ID");
+  const ACCESS_TOKEN = Deno.env.get("WA_ACCESS_TOKEN");
+  if (!WABA_ID || !ACCESS_TOKEN) return { success: false, error: "Secrets mancanti" };
+
+  // 1. Fetch lista template dal WABA Meta corrente
+  const metaRes = await fetch(
+    `https://graph.facebook.com/v18.0/${WABA_ID}/message_templates?fields=name,language&limit=200`,
+    { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } },
+  );
+  if (!metaRes.ok) {
+    const data = await metaRes.json();
+    return { success: false, error: data?.error?.message ?? `HTTP ${metaRes.status}` };
+  }
+  const metaData = await metaRes.json();
+  const metaSet = new Set(
+    ((metaData.data as Array<{ name: string; language: string }>) ?? [])
+      .map((t) => `${t.name}::${t.language}`),
+  );
+
+  // 2. Confronta col DB
+  const { data: dbTemplates } = await supabase
+    .from("whatsapp_templates")
+    .select("id, meta_template_name, language");
+
+  if (!dbTemplates) return { success: true, purged: 0 };
+
+  const orphans = (dbTemplates as Array<{ id: string; meta_template_name: string; language: string }>)
+    .filter((t) => !metaSet.has(`${t.meta_template_name}::${t.language}`));
+
+  // 3. Hard-delete gli orphans
+  if (orphans.length > 0) {
+    const ids = orphans.map((o) => o.id);
+    const { error } = await supabase
+      .from("whatsapp_templates")
+      .delete()
+      .in("id", ids);
+    if (error) return { success: false, error: error.message };
+  }
+
+  return {
+    success: true,
+    purged: orphans.length,
+    purged_names: orphans.map((o) => `${o.meta_template_name} (${o.language})`),
+  };
 }
 
 /**
@@ -640,6 +719,8 @@ serve(async (req) => {
         return json(await handleSeedDefaultTemplates(supabase));
       case "delete_template":
         return json(await handleDeleteTemplate(supabase, payload as { name?: string; language?: string }));
+      case "purge_orphan_templates":
+        return json(await handlePurgeOrphans(supabase));
       case "list_phone_numbers":
         return json(await handleListPhoneNumbers());
       case "request_phone_verification":

@@ -225,6 +225,278 @@ async function handleSyncTemplates(supabase: ReturnType<typeof createClient>): P
 }
 
 /**
+ * Action "create_template": crea un template su Meta + lo upserta in DB
+ * in stato PENDING. Meta lo metterà in review e cambierà status via webhook
+ * `message_template_status_update` (oppure a un sync successivo).
+ *
+ * Payload atteso:
+ * {
+ *   action: "create_template",
+ *   template: {
+ *     name: "sollecito_compilazione",
+ *     category: "UTILITY",
+ *     language: "it",
+ *     components: [
+ *       { type: "BODY", text: "Ciao {{1}}...", example: { body_text: [["Mario"]] } },
+ *       { type: "FOOTER", text: "..." },
+ *       { type: "HEADER", format: "TEXT", text: "..." }, // opzionale
+ *       { type: "BUTTONS", buttons: [{ type: "URL", text: "Apri", url: "https://..." }] } // opzionale
+ *     ]
+ *   }
+ * }
+ */
+async function handleCreateTemplate(
+  supabase: ReturnType<typeof createClient>,
+  payload: { template?: Record<string, unknown> },
+): Promise<Record<string, unknown>> {
+  const WABA_ID = Deno.env.get("WA_BUSINESS_ACCOUNT_ID");
+  const ACCESS_TOKEN = Deno.env.get("WA_ACCESS_TOKEN");
+  if (!WABA_ID) return { success: false, error: "WA_BUSINESS_ACCOUNT_ID non configurato" };
+  if (!ACCESS_TOKEN) return { success: false, error: "WA_ACCESS_TOKEN non configurato" };
+
+  const tpl = payload.template;
+  if (!tpl || typeof tpl !== "object") return { success: false, error: "Payload template mancante" };
+  const name = (tpl as { name?: string }).name;
+  const category = (tpl as { category?: string }).category;
+  const language = (tpl as { language?: string }).language ?? "it";
+  const components = (tpl as { components?: unknown }).components;
+  if (!name || !category || !components) {
+    return { success: false, error: "Mancano campi obbligatori: name, category, components" };
+  }
+
+  // Submit a Meta
+  const res = await fetch(
+    `https://graph.facebook.com/v18.0/${WABA_ID}/message_templates`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, category, language, components }),
+    },
+  );
+  const result = await res.json();
+  if (!res.ok) {
+    return {
+      success: false,
+      error: result?.error?.message ?? `HTTP ${res.status}`,
+      meta_response: result,
+    };
+  }
+
+  // Estrazione componenti per upsert in DB (pattern simile a sync_templates)
+  const comps = components as Array<{ type: string; format?: string; text?: string; buttons?: unknown }>;
+  const body = comps.find((c) => c.type === "BODY");
+  const header = comps.find((c) => c.type === "HEADER");
+  const footer = comps.find((c) => c.type === "FOOTER");
+  const buttons = comps.find((c) => c.type === "BUTTONS");
+
+  const { error: upsertErr } = await supabase
+    .from("whatsapp_templates")
+    .upsert(
+      {
+        meta_template_name: name,
+        meta_template_id: result.id ?? null,
+        language,
+        category,
+        status: result.status ?? "PENDING",
+        header_type: header?.format ?? null,
+        header_text: header?.text ?? null,
+        body_text: body?.text ?? "",
+        footer_text: footer?.text ?? null,
+        buttons: (buttons?.buttons as unknown) ?? [],
+        meta_last_synced_at: new Date().toISOString(),
+      },
+      { onConflict: "meta_template_name,language" },
+    );
+  if (upsertErr) {
+    console.error("[create_template] upsert failed:", upsertErr);
+    // non blocca — il template è già su Meta, riportiamo successo parziale
+  }
+
+  return {
+    success: true,
+    meta_template_id: result.id,
+    meta_status: result.status,
+    name,
+    category,
+  };
+}
+
+/**
+ * Action "seed_default_templates": crea in batch i 5 template di base
+ * preconfigurati per Pratica Rapida. Skippa quelli che già esistono su DB.
+ */
+async function handleSeedDefaultTemplates(
+  supabase: ReturnType<typeof createClient>,
+): Promise<Record<string, unknown>> {
+  const defaults = getDefaultTemplates();
+  const results: Array<{ name: string; success: boolean; error?: string; status?: string }> = [];
+
+  // Check quali template esistono già in DB (skip per evitare conflict Meta)
+  const names = defaults.map((d) => d.name);
+  const { data: existing } = await supabase
+    .from("whatsapp_templates")
+    .select("meta_template_name")
+    .in("meta_template_name", names);
+  const existingSet = new Set((existing ?? []).map((r) => r.meta_template_name as string));
+
+  for (const tpl of defaults) {
+    if (existingSet.has(tpl.name)) {
+      results.push({ name: tpl.name, success: true, status: "SKIPPED_EXISTS" });
+      continue;
+    }
+    try {
+      const res = await handleCreateTemplate(supabase, { template: tpl });
+      results.push({
+        name: tpl.name,
+        success: !!res.success,
+        error: res.success ? undefined : (res.error as string),
+        status: res.success ? (res.meta_status as string) : "ERROR",
+      });
+    } catch (err) {
+      results.push({
+        name: tpl.name,
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+        status: "ERROR",
+      });
+    }
+  }
+
+  return {
+    success: true,
+    results,
+    total: defaults.length,
+    created: results.filter((r) => r.success && r.status !== "SKIPPED_EXISTS").length,
+    skipped: results.filter((r) => r.status === "SKIPPED_EXISTS").length,
+    failed: results.filter((r) => !r.success).length,
+  };
+}
+
+/**
+ * 5 template di base per Pratica Rapida. Tutti UTILITY (approval rapido Meta),
+ * lingua italiana, body con placeholder {{N}} ed esempi obbligatori.
+ *
+ * Mapping intended:
+ *  - sollecito_compilazione → days_waiting_7
+ *  - sollecito_recensione   → recensione_7d_followup
+ *  - modulo_cliente_enea    → notify-cliente (manuale)
+ *  - pratica_ricevuta       → stage_changed (manuale, conferma ricezione)
+ *  - pratica_completata     → stage_changed (manuale, chiusura pratica)
+ */
+function getDefaultTemplates(): Array<{
+  name: string;
+  category: string;
+  language: string;
+  components: Array<Record<string, unknown>>;
+}> {
+  return [
+    {
+      name: "sollecito_compilazione",
+      category: "UTILITY",
+      language: "it",
+      components: [
+        {
+          type: "BODY",
+          text: "Ciao {{1}}! 👋\n\nTi ricordiamo di compilare il modulo per la tua pratica ENEA. Puoi farlo in 5 minuti seguendo questo link:\n\n{{2}}\n\nHai ancora {{3}} per completare. Se hai bisogno di aiuto, rispondi a questo messaggio.\n\nGrazie!",
+          example: { body_text: [["Mario", "https://app.praticarapida.it/form/abc123", "30 giorni"]] },
+        },
+        { type: "FOOTER", text: "Pratica Rapida - Edilizia.io" },
+      ],
+    },
+    {
+      name: "sollecito_recensione",
+      category: "UTILITY",
+      language: "it",
+      components: [
+        {
+          type: "BODY",
+          text: "Ciao {{1}}! 🌟\n\nLa tua pratica ENEA è stata completata con successo. Come è andata l'esperienza con noi?\n\nLa tua opinione conta tantissimo e ci aiuta a migliorare il servizio. Lascia una recensione veloce, ti ruba 30 secondi.",
+          example: { body_text: [["Mario"]] },
+        },
+        { type: "FOOTER", text: "Pratica Rapida - Edilizia.io" },
+      ],
+    },
+    {
+      name: "modulo_cliente_enea",
+      category: "UTILITY",
+      language: "it",
+      components: [
+        {
+          type: "BODY",
+          text: "Ciao {{1}},\n\nper completare la tua pratica ENEA abbiamo bisogno di alcune informazioni. Compila il modulo in 5 minuti:\n\n{{2}}\n\nSe hai domande, rispondi pure a questo messaggio.\n\nGrazie,\nIl team di Pratica Rapida",
+          example: { body_text: [["Mario", "https://app.praticarapida.it/form/abc123"]] },
+        },
+        { type: "FOOTER", text: "Pratica Rapida - Edilizia.io" },
+      ],
+    },
+    {
+      name: "pratica_ricevuta",
+      category: "UTILITY",
+      language: "it",
+      components: [
+        {
+          type: "BODY",
+          text: "Ciao {{1}},\n\nabbiamo ricevuto correttamente la tua pratica ENEA (rif. {{2}}). I nostri tecnici inizieranno la lavorazione nelle prossime ore.\n\nTi terremo aggiornato sullo stato. Per qualsiasi domanda rispondi pure qui.\n\nGrazie per averci scelto!",
+          example: { body_text: [["Mario", "ENEA-2026-001234"]] },
+        },
+        { type: "FOOTER", text: "Pratica Rapida - Edilizia.io" },
+      ],
+    },
+    {
+      name: "pratica_completata",
+      category: "UTILITY",
+      language: "it",
+      components: [
+        {
+          type: "BODY",
+          text: "Ciao {{1}}! ✅\n\nLa tua pratica ENEA è stata completata e inviata con successo. Riceverai la conferma ufficiale via email entro 48 ore.\n\nGrazie per averci scelto. Per qualsiasi necessità futura siamo qui.",
+          example: { body_text: [["Mario"]] },
+        },
+        { type: "FOOTER", text: "Pratica Rapida - Edilizia.io" },
+      ],
+    },
+  ];
+}
+
+/**
+ * Action "delete_template": elimina un template su Meta (richiede approval
+ * Meta, può essere ri-creato successivamente con stesso nome). NB: in DB
+ * resta lo storico per audit — toggliamo solo is_active=false.
+ */
+async function handleDeleteTemplate(
+  supabase: ReturnType<typeof createClient>,
+  payload: { name?: string; language?: string },
+): Promise<Record<string, unknown>> {
+  const WABA_ID = Deno.env.get("WA_BUSINESS_ACCOUNT_ID");
+  const ACCESS_TOKEN = Deno.env.get("WA_ACCESS_TOKEN");
+  if (!WABA_ID || !ACCESS_TOKEN) return { success: false, error: "Secrets mancanti" };
+  if (!payload.name) return { success: false, error: "Manca `name`" };
+
+  // Meta: DELETE /{waba_id}/message_templates?name=...
+  const params = new URLSearchParams({ name: payload.name });
+  const res = await fetch(
+    `https://graph.facebook.com/v18.0/${WABA_ID}/message_templates?${params}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
+    },
+  );
+  const result = await res.json();
+  if (!res.ok) return { success: false, error: result?.error?.message ?? `HTTP ${res.status}` };
+
+  // Soft-delete in DB
+  await supabase
+    .from("whatsapp_templates")
+    .update({ is_active: false, status: "DISABLED" })
+    .eq("meta_template_name", payload.name);
+
+  return { success: true };
+}
+
+/**
  * Action "test_send": invia un template via la edge function send-whatsapp.
  * Sicuro per il super_admin (verificato sopra) — riusa il flow standard.
  */
@@ -272,6 +544,12 @@ serve(async (req) => {
         return json(await handleStatus());
       case "sync_templates":
         return json(await handleSyncTemplates(supabase));
+      case "create_template":
+        return json(await handleCreateTemplate(supabase, payload as { template?: Record<string, unknown> }));
+      case "seed_default_templates":
+        return json(await handleSeedDefaultTemplates(supabase));
+      case "delete_template":
+        return json(await handleDeleteTemplate(supabase, payload as { name?: string; language?: string }));
       case "test_send":
         return json(await handleTestSend(payload as { to?: string; template_name?: string; language?: string; components?: unknown }));
       default:

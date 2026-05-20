@@ -29,7 +29,8 @@ import {
 import { toast } from "@/hooks/use-toast";
 import {
   CheckCircle2, XCircle, AlertTriangle, Copy, RefreshCw, MessageCircle,
-  ExternalLink, KeyRound, Webhook, Send, Pencil, Loader2,
+  ExternalLink, KeyRound, Webhook, Send, Pencil, Loader2, Plus, Sparkles,
+  Trash2,
 } from "lucide-react";
 
 // ============================================================
@@ -376,6 +377,7 @@ function TemplatesTab() {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<WhatsappTemplate | null>(null);
   const [testing, setTesting] = useState<WhatsappTemplate | null>(null);
+  const [creating, setCreating] = useState(false);
 
   const { data: templates, isLoading } = useQuery({
     queryKey: ["whatsapp-templates"],
@@ -412,6 +414,43 @@ function TemplatesTab() {
     },
   });
 
+  // Seed dei 5 template di base (one-click batch creation su Meta)
+  const seedMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("whatsapp-meta-sync", {
+        body: { action: "seed_default_templates" },
+      });
+      if (error) throw error;
+      return data as {
+        success: boolean;
+        results: Array<{ name: string; success: boolean; status?: string; error?: string }>;
+        created: number;
+        skipped: number;
+        failed: number;
+      };
+    },
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-templates"] });
+      const parts: string[] = [];
+      if (res.created > 0) parts.push(`${res.created} creati`);
+      if (res.skipped > 0) parts.push(`${res.skipped} già esistenti`);
+      if (res.failed > 0) parts.push(`${res.failed} errori`);
+      toast({
+        title: "Template base inviati a Meta",
+        description: `${parts.join(" · ")}. Approval da Meta in pochi minuti.`,
+        variant: res.failed > 0 ? "destructive" : "default",
+      });
+      // Logga i fail dettagliati nel console per debug
+      if (res.failed > 0) {
+        const fails = res.results.filter((r) => !r.success);
+        console.warn("[seed_default_templates] failures:", fails);
+      }
+    },
+    onError: (err: Error) => {
+      toast({ variant: "destructive", title: "Errore seed", description: err.message });
+    },
+  });
+
   return (
     <div className="space-y-4">
       <Card>
@@ -420,13 +459,33 @@ function TemplatesTab() {
             <div>
               <CardTitle className="text-lg">Template WhatsApp</CardTitle>
               <CardDescription>
-                Template approvati su Meta. Importa con un click + mappa i trigger interni.
+                Crea template direttamente dall'app, oppure importa quelli già esistenti su Meta.
               </CardDescription>
             </div>
-            <Button onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending} className="gap-2">
-              {syncMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-              Sincronizza con Meta
-            </Button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                onClick={() => seedMutation.mutate()}
+                disabled={seedMutation.isPending}
+                className="gap-2"
+                title="Crea automaticamente i 5 template di base (sollecito_compilazione, sollecito_recensione, modulo_cliente_enea, pratica_ricevuta, pratica_completata)"
+              >
+                {seedMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                Crea 5 template di base
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => syncMutation.mutate()}
+                disabled={syncMutation.isPending}
+                className="gap-2"
+              >
+                {syncMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                Sincronizza
+              </Button>
+              <Button onClick={() => setCreating(true)} className="gap-2">
+                <Plus className="h-4 w-4" /> Nuovo template
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -439,7 +498,10 @@ function TemplatesTab() {
             <div className="text-center py-12 text-muted-foreground">
               <MessageCircle className="h-10 w-10 mx-auto opacity-30 mb-3" />
               <p className="text-sm font-medium">Nessun template ancora importato</p>
-              <p className="text-xs mt-1">Crea i template su Meta Business Manager e clicca <strong>Sincronizza con Meta</strong>.</p>
+              <p className="text-xs mt-1">
+                Clicca <strong>Crea 5 template di base</strong> per partire subito,
+                oppure <strong>Nuovo template</strong> per crearne uno custom.
+              </p>
             </div>
           )}
           {templates && templates.length > 0 && (
@@ -459,6 +521,7 @@ function TemplatesTab() {
 
       {editing && <EditTemplateDialog template={editing} onClose={() => setEditing(null)} />}
       {testing && <TestSendDialog template={testing} onClose={() => setTesting(null)} />}
+      {creating && <CreateTemplateDialog onClose={() => setCreating(false)} />}
     </div>
   );
 }
@@ -490,6 +553,26 @@ function TemplateRow({ template, onEdit, onTest }: {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["whatsapp-templates"] }),
+  });
+
+  // Elimina il template su Meta (lo soft-disabilita in DB). Meta richiede
+  // approval per ricreare un template con lo stesso nome dopo delete.
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("whatsapp-meta-sync", {
+        body: { action: "delete_template", name: template.meta_template_name },
+      });
+      if (error) throw error;
+      const res = data as { success?: boolean; error?: string };
+      if (!res.success) throw new Error(res.error ?? "Eliminazione fallita");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-templates"] });
+      toast({ title: "Template eliminato da Meta" });
+    },
+    onError: (err: Error) => {
+      toast({ variant: "destructive", title: "Errore eliminazione", description: err.message });
+    },
   });
 
   return (
@@ -535,6 +618,20 @@ function TemplateRow({ template, onEdit, onTest }: {
           )}
           <Button variant="outline" size="sm" onClick={onEdit} className="gap-1.5">
             <Pencil className="h-3.5 w-3.5" /> Modifica
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (confirm(`Eliminare il template "${template.meta_template_name}" da Meta? Non recuperabile.`)) {
+                deleteMutation.mutate();
+              }
+            }}
+            disabled={deleteMutation.isPending}
+            className="gap-1.5 text-red-600 hover:text-red-700"
+            title="Elimina su Meta"
+          >
+            {deleteMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
           </Button>
         </div>
       </div>
@@ -764,6 +861,226 @@ function TestSendDialog({ template, onClose }: { template: WhatsappTemplate; onC
           <Button onClick={() => sendMutation.mutate()} disabled={sendMutation.isPending || !phone}>
             {sendMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
             Invia
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ============================================================
+// Dialog: crea nuovo template (submit a Meta)
+// ============================================================
+
+/**
+ * Form per creare un template direttamente dall'app. Invia il template a
+ * Meta Business API che lo metterà in stato PENDING fino all'approval.
+ * Estrae automaticamente le variabili {{N}} dal body per richiedere gli
+ * esempi (campo obbligatorio per approval Meta).
+ */
+function CreateTemplateDialog({ onClose }: { onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState<"UTILITY" | "MARKETING" | "AUTHENTICATION">("UTILITY");
+  const [language, setLanguage] = useState("it");
+  const [body, setBody] = useState("");
+  const [footer, setFooter] = useState("");
+  const [examples, setExamples] = useState<string[]>([]);
+
+  // Estrae i placeholder {{1}}, {{2}}, ... dal body e crea il count
+  const placeholders = (() => {
+    const matches = body.matchAll(/\{\{(\d+)\}\}/g);
+    const nums = new Set<number>();
+    for (const m of matches) nums.add(parseInt(m[1], 10));
+    return Array.from(nums).sort((a, b) => a - b);
+  })();
+
+  // Auto-ridimensiona examples quando placeholders cambia
+  if (examples.length !== placeholders.length) {
+    setExamples(placeholders.map((_, i) => examples[i] ?? ""));
+  }
+
+  const nameValid = /^[a-z0-9_]+$/.test(name) && name.length >= 3;
+  const bodyValid = body.trim().length >= 10;
+  const examplesValid = placeholders.length === 0 || examples.every((e) => e.trim().length > 0);
+  const canSubmit = nameValid && bodyValid && examplesValid;
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const components: Array<Record<string, unknown>> = [
+        {
+          type: "BODY",
+          text: body,
+          ...(placeholders.length > 0 && {
+            example: { body_text: [examples] },
+          }),
+        },
+      ];
+      if (footer.trim()) {
+        components.push({ type: "FOOTER", text: footer.trim() });
+      }
+
+      const { data, error } = await supabase.functions.invoke("whatsapp-meta-sync", {
+        body: {
+          action: "create_template",
+          template: { name, category, language, components },
+        },
+      });
+      if (error) throw error;
+      const result = data as { success?: boolean; error?: string; meta_template_id?: string; meta_status?: string };
+      if (!result.success) {
+        throw new Error(result.error ?? "Creazione fallita");
+      }
+      return result;
+    },
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-templates"] });
+      toast({
+        title: "Template inviato a Meta",
+        description: `Status: ${res.meta_status ?? "PENDING"}. Approval di solito in pochi minuti.`,
+      });
+      onClose();
+    },
+    onError: (err: Error) => {
+      toast({ variant: "destructive", title: "Errore creazione", description: err.message });
+    },
+  });
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Crea nuovo template</DialogTitle>
+          <DialogDescription>
+            Il template viene inviato a Meta per approvazione. Una volta approvato (di solito pochi minuti per UTILITY) sarà disponibile per l'invio.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="tpl_name">Nome template *</Label>
+              <Input
+                id="tpl_name"
+                value={name}
+                onChange={(e) => setName(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_"))}
+                placeholder="es. sollecito_pagamento"
+                className="font-mono"
+              />
+              <p className={`text-xs mt-1 ${nameValid ? "text-muted-foreground" : "text-red-600"}`}>
+                snake_case, lowercase, min 3 caratteri. Non modificabile dopo creazione.
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="tpl_lang">Lingua</Label>
+              <select
+                id="tpl_lang"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="it">Italiano (it)</option>
+                <option value="en_US">English US (en_US)</option>
+                <option value="en_GB">English UK (en_GB)</option>
+                <option value="es">Español (es)</option>
+                <option value="fr">Français (fr)</option>
+                <option value="de">Deutsch (de)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="tpl_cat">Categoria *</Label>
+            <select
+              id="tpl_cat"
+              value={category}
+              onChange={(e) => setCategory(e.target.value as typeof category)}
+              className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="UTILITY">Utility — transazionali (consigliato)</option>
+              <option value="MARKETING">Marketing — promozionali (richiede opt-in)</option>
+              <option value="AUTHENTICATION">Authentication — OTP/codici</option>
+            </select>
+            <p className="text-xs text-muted-foreground mt-1">
+              <strong>Utility</strong> si approva in pochi minuti e non richiede opt-in.
+              <strong> Marketing</strong> per promozioni: approval più lento, il cliente deve aver dato consenso.
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="tpl_body">Body *</Label>
+            <Textarea
+              id="tpl_body"
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={6}
+              placeholder={"Ciao {{1}}!\n\nIl tuo ordine {{2}} è stato spedito.\n\nGrazie!"}
+              className="font-mono text-xs"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Usa <code>{`{{1}}`}</code>, <code>{`{{2}}`}</code>, ... per i placeholder. Meta richiede esempi sotto.
+            </p>
+          </div>
+
+          {placeholders.length > 0 && (
+            <div className="rounded-md border p-3 bg-amber-50 space-y-2">
+              <Label className="text-xs">Esempi per i placeholder (obbligatori per approval) *</Label>
+              {placeholders.map((n, i) => (
+                <div key={n} className="flex items-center gap-2">
+                  <code className="text-xs bg-white border rounded px-1.5 py-1 shrink-0 w-12 text-center">{`{{${n}}}`}</code>
+                  <Input
+                    value={examples[i] ?? ""}
+                    onChange={(e) => {
+                      const next = [...examples];
+                      next[i] = e.target.value;
+                      setExamples(next);
+                    }}
+                    placeholder={n === 1 ? "Mario" : n === 2 ? "ORD-12345" : `esempio ${n}`}
+                    className="text-xs"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div>
+            <Label htmlFor="tpl_footer">Footer (opzionale)</Label>
+            <Input
+              id="tpl_footer"
+              value={footer}
+              onChange={(e) => setFooter(e.target.value)}
+              placeholder="Pratica Rapida - Edilizia.io"
+              maxLength={60}
+            />
+            <p className="text-xs text-muted-foreground mt-1">Max 60 caratteri. Visibile sotto il body.</p>
+          </div>
+
+          {/* Preview */}
+          {body && (
+            <div className="rounded-md bg-emerald-50 border border-emerald-200 p-3">
+              <p className="text-xs font-medium text-emerald-900 mb-2">Preview (con esempi popolati)</p>
+              <div className="bg-white rounded-lg border p-3 shadow-sm">
+                <pre className="whitespace-pre-wrap break-words text-[12px] font-sans">
+                  {body.replace(/\{\{(\d+)\}\}/g, (_, n) => examples[parseInt(n, 10) - 1] || `{{${n}}}`)}
+                </pre>
+                {footer && (
+                  <p className="text-[11px] text-muted-foreground mt-2 pt-2 border-t">{footer}</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Annulla</Button>
+          <Button
+            onClick={() => createMutation.mutate()}
+            disabled={!canSubmit || createMutation.isPending}
+            className="gap-2"
+          >
+            {createMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            Invia a Meta per approval
           </Button>
         </DialogFooter>
       </DialogContent>

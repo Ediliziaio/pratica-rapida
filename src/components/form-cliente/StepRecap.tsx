@@ -180,6 +180,12 @@ export function StepRecap({ data, prodottoTipo }: Props) {
             value={i.libretto_url ? "Caricato" : "—"}
           />
         )}
+        {prodottoTipo === "insufflaggio" && (
+          <Row
+            label="Insufflaggio tetti"
+            value="Nessun dato specifico richiesto al cliente — info tecniche dalla fattura del rivenditore"
+          />
+        )}
       </Section>
     </div>
   );

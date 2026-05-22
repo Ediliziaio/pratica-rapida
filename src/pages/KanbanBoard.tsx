@@ -1518,7 +1518,12 @@ function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
         {prodottoTipo && (
           <section>
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-              Dati prodotto · {prodottoTipo === "infissi" ? "Infissi" : prodottoTipo === "schermature" ? "Schermature solari" : "Impianto termico"}
+              Dati prodotto · {
+                prodottoTipo === "infissi" ? "Infissi"
+                : prodottoTipo === "schermature" ? "Schermature solari"
+                : prodottoTipo === "insufflaggio" ? "Insufflaggio tetti"
+                : "Impianto termico"
+              }
             </p>
             {prodottoTipo === "infissi" && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">

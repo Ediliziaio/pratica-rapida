@@ -277,26 +277,22 @@ export function AppSidebar() {
         ],
       });
     }
-  } else if (rivenditore) {
-    groups = [
-      {
-        items: [
-          { title: "Dashboard ENEA", url: "/enea/dashboard", icon: BarChart3 },
-          { title: "Nuova Pratica ENEA", url: "/enea/nuova", icon: PlusCircle },
-          { title: "Kanban Board", url: "/kanban", icon: Kanban },
-          { title: "Archivio ENEA", url: "/enea/archivio", icon: Archive },
-          { title: "Documenti utili", url: "/documenti-utili", icon: Download },
-        ],
-      },
-    ];
   } else {
-    // Azienda (default / impersonating)
+    // Aziende E rivenditori legacy condividono lo STESSO menu — la doppia
+    // diramazione precedente era un bug: il branch `isReseller(roles)` veniva
+    // raggiunto SOLO da `roles.includes("rivenditore")` (ruolo legacy), ma
+    // tutti i clienti B2B reali sono `azienda_admin`/`azienda_user` →
+    // cadevano nel branch default che NON aveva Dashboard ENEA, né Archivio
+    // ENEA → menu mutilato per il 100% degli utenti azienda reali.
+    // Unifichiamo: stesso menu completo per chiunque non sia staff interno.
     settingsItem = { title: "Impostazioni", url: "/impostazioni", icon: Settings };
     groups = [
       {
         items: [
-          { title: "Le mie Pratiche", url: "/kanban", icon: FolderOpen },
+          { title: "Dashboard ENEA", url: "/enea/dashboard", icon: BarChart3 },
+          { title: "Le mie Pratiche", url: "/kanban", icon: Kanban },
           { title: "Nuova Pratica ENEA", url: "/enea/nuova", icon: FilePlus, end: true },
+          { title: "Archivio ENEA", url: "/enea/archivio", icon: Archive },
           { title: "Documenti utili", url: "/documenti-utili", icon: Download },
           { title: "Assistenza", url: "/assistenza", icon: LifeBuoy },
         ],

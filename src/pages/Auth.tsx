@@ -32,35 +32,56 @@ export default function Auth() {
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
+  // try/finally garantisce setLoading(false) anche se network drop / timeout
+  // lancia exception. Senza, il bottone restava bloccato "Accesso in corso…"
+  // per sempre, costringendo l'utente a refresh pagina.
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        toast({
+          title: "Credenziali non valide",
+          description: "Email o password errati. Riprova.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
       toast({
-        title: "Credenziali non valide",
-        description: "Email o password errati. Riprova.",
+        title: "Errore di rete",
+        description: err instanceof Error ? err.message : "Riprova tra qualche istante.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${APP_URL}/auth`,
-    });
-    setLoading(false);
-    if (error) {
-      toast({ title: "Errore", description: error.message, variant: "destructive" });
-    } else {
-      toast({
-        title: "Email inviata ✓",
-        description: "Controlla la tua casella di posta per reimpostare la password.",
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${APP_URL}/auth`,
       });
-      setView("login");
+      if (error) {
+        toast({ title: "Errore", description: error.message, variant: "destructive" });
+      } else {
+        toast({
+          title: "Email inviata ✓",
+          description: "Controlla la tua casella di posta per reimpostare la password.",
+        });
+        setView("login");
+      }
+    } catch (err) {
+      toast({
+        title: "Errore di rete",
+        description: err instanceof Error ? err.message : "Riprova tra qualche istante.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -75,13 +96,22 @@ export default function Auth() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    setLoading(false);
-    if (error) {
-      toast({ title: "Errore", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Password aggiornata ✓", description: "Puoi ora accedere con la nuova password." });
-      clearPasswordRecovery();
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        toast({ title: "Errore", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Password aggiornata ✓", description: "Puoi ora accedere con la nuova password." });
+        clearPasswordRecovery();
+      }
+    } catch (err) {
+      toast({
+        title: "Errore di rete",
+        description: err instanceof Error ? err.message : "Riprova tra qualche istante.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 

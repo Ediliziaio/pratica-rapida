@@ -245,28 +245,34 @@ function CommLogSection({
   });
 
   async function submitCallLog() {
+    // try/finally garantisce setSubmitting(false) anche se insert lancia
+    // exception (network drop, RLS reject, ecc.). Senza, in caso di errore
+    // network il bottone restava bloccato in "Invio..." per sempre.
     setSubmitting(true);
-    const { error } = await supabase.from("communication_log").insert({
-      practice_id: practiceId,
-      channel: "phone",
-      direction: "outbound",
-      recipient: "manual",
-      subject: callOutcome === "risposta_ottenuta" ? "Risposta ottenuta" : "Non risposto",
-      body_preview: callNotes.trim() || null,
-      status: "sent",
-      sent_at: new Date().toISOString(),
-      outcome: callOutcome,
-      notes: callNotes.trim() || null,
-    });
-    setSubmitting(false);
-    if (error) {
-      toast({ title: "Errore", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      const { error } = await supabase.from("communication_log").insert({
+        practice_id: practiceId,
+        channel: "phone",
+        direction: "outbound",
+        recipient: "manual",
+        subject: callOutcome === "risposta_ottenuta" ? "Risposta ottenuta" : "Non risposto",
+        body_preview: callNotes.trim() || null,
+        status: "sent",
+        sent_at: new Date().toISOString(),
+        outcome: callOutcome,
+        notes: callNotes.trim() || null,
+      });
+      if (error) throw error;
       toast({ title: "Chiamata registrata" });
       setShowCallForm(false);
       setCallNotes("");
       setCallOutcome("risposta_ottenuta");
       refetch();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Errore registrazione chiamata";
+      toast({ title: "Errore", description: msg, variant: "destructive" });
+    } finally {
+      setSubmitting(false);
     }
   }
 

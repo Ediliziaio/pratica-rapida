@@ -13,7 +13,7 @@ import {
   categoryColor,
 } from "@/lib/news";
 
-const blogJsonLd = [
+const baseBlogJsonLd = [
   {
     "@context": "https://schema.org",
     "@type": "Blog",
@@ -31,6 +31,29 @@ const blogJsonLd = [
     ],
   },
 ];
+
+/**
+ * Costruisce un ItemList schema dei 10 articoli più recenti per dare a Google
+ * il segnale "carousel". Quando l'utente cerca "pratica ENEA guida", Google
+ * può mostrare un carosello orizzontale degli articoli del blog direttamente
+ * in SERP (rich result), aumentando CTR rispetto a un single link.
+ *
+ * Standard ItemList con position + url + name per ciascun articolo.
+ */
+function buildBlogItemListLd(posts: NewsArticle[]): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Articoli Pratica Rapida",
+    description: "Guide e notizie pratica ENEA, Conto Termico, ecobonus per installatori",
+    itemListElement: posts.slice(0, 10).map((p, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      url: `https://www.praticarapida.it/blog/${p.slug}`,
+      name: p.title,
+    })),
+  };
+}
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return "";
@@ -108,6 +131,10 @@ export default function BlogPage() {
   const filtered = activeCategory === "tutti"
     ? posts
     : posts.filter((p) => p.category === activeCategory);
+
+  // ItemList dinamica: ricalcola quando arrivano nuovi articoli (auto-refresh
+  // del rich result Google ad ogni publish nuovo, senza redeploy).
+  const blogJsonLd = [...baseBlogJsonLd, buildBlogItemListLd(posts)];
 
   return (
     <div className="min-h-screen bg-background">

@@ -1,1 +1,33 @@
-/* /index.html 200
+# Cloudflare Pages _redirects — order matters (first match wins)
+
+# ────────────────────────────────────────────────────────────────
+# SEO: sitemap + RSS dinamici (servito da Supabase Edge Function).
+# Status 200 = rewrite (URL bar resta /sitemap.xml).
+# ────────────────────────────────────────────────────────────────
+/sitemap.xml         https://xmkjrhwmmuzaqjqlvzxm.supabase.co/functions/v1/seo-sitemap  200
+/feed.xml            https://xmkjrhwmmuzaqjqlvzxm.supabase.co/functions/v1/seo-rss      200
+/rss.xml             https://xmkjrhwmmuzaqjqlvzxm.supabase.co/functions/v1/seo-rss      200
+/rss                 /feed.xml                                                          301
+/feed                /feed.xml                                                          301
+
+# ────────────────────────────────────────────────────────────────
+# IndexNow: file di ownership verification. La key DEVE essere
+# uguale al valore del secret INDEXNOW_KEY impostato sull'edge
+# function seo-indexnow-ping. Esempio key: "a8f3...12cd" (UUID).
+#
+# Quando l'admin pubblica un articolo, /admin/news chiama
+# seo-indexnow-ping → Bing/Yandex/Seznam visitano questo file per
+# verificare ownership prima di accettare i submit URL.
+#
+# IMPORTANTE: il file deve contenere SOLO la key in plain text,
+# senza header/whitespace/newline finali. Creato come public/{key}.txt
+# in fase deploy. Per ora redirect statico a /indexnow-key.txt.
+# ────────────────────────────────────────────────────────────────
+# (Configurare manualmente: create public/{INDEXNOW_KEY}.txt al deploy)
+
+# ────────────────────────────────────────────────────────────────
+# SPA fallback — TUTTI gli altri path servono index.html (React
+# Router gestisce le route lato client). Questa DEVE essere ultima
+# riga per non shadoware i rewrite sopra.
+# ────────────────────────────────────────────────────────────────
+/*                   /index.html                                                        200

@@ -283,6 +283,7 @@ export default function BlogPostPage() {
     : `/blog/${post.slug}`;
   const articleImage = absoluteUrl(post.og_image_url || post.cover_image_url);
 
+  const articleUrl = `https://www.praticarapida.it/blog/${post.slug}`;
   const articleJsonLd = [
     {
       "@context": "https://schema.org",
@@ -298,12 +299,19 @@ export default function BlogPostPage() {
       },
       datePublished: post.published_at,
       dateModified: post.updated_at,
-      mainEntityOfPage: { "@type": "WebPage", "@id": `https://www.praticarapida.it/blog/${post.slug}` },
-      url: `https://www.praticarapida.it/blog/${post.slug}`,
+      mainEntityOfPage: { "@type": "WebPage", "@id": articleUrl },
+      url: articleUrl,
       inLanguage: "it-IT",
       ...(articleImage ? { image: articleImage } : {}),
       isPartOf: { "@type": "Blog", name: "Notizie Pratica Rapida", url: "https://www.praticarapida.it/blog" },
       keywords: (post.meta_keywords || post.tags).join(", "),
+      // Speakable: indica a Google quali sezioni leggere su voice search
+      // (Google Assistant, Smart Display). Selettori CSS che identificano
+      // headline + intro paragrafo dell'articolo nel DOM.
+      speakable: {
+        "@type": "SpeakableSpecification",
+        cssSelector: ["h1", ".article-excerpt", "article p:first-of-type"],
+      },
     },
     {
       "@context": "https://schema.org",
@@ -311,8 +319,27 @@ export default function BlogPostPage() {
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Home", item: "https://www.praticarapida.it/" },
         { "@type": "ListItem", position: 2, name: "Notizie", item: "https://www.praticarapida.it/blog" },
-        { "@type": "ListItem", position: 3, name: post.title, item: `https://www.praticarapida.it/blog/${post.slug}` },
+        { "@type": "ListItem", position: 3, name: post.title, item: articleUrl },
       ],
+    },
+    // WebPage schema: Google capisce che è una pagina articolo standalone
+    // (non landing) e migliora il SERP snippet con dati strutturati.
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": articleUrl,
+      url: articleUrl,
+      name: post.title,
+      description: post.excerpt,
+      inLanguage: "it-IT",
+      isPartOf: {
+        "@type": "WebSite",
+        url: "https://www.praticarapida.it",
+        name: "Pratica Rapida",
+      },
+      primaryImageOfPage: articleImage ? { "@type": "ImageObject", url: articleImage } : undefined,
+      datePublished: post.published_at,
+      dateModified: post.updated_at,
     },
   ];
 

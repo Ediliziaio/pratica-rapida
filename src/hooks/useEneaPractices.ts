@@ -10,9 +10,13 @@ export function usePipelineStages(brand?: string) {
   return useQuery({
     queryKey: ["pipeline_stages", brand, resellerId],
     queryFn: async () => {
+      // Select esplicito: evita colonne potenzialmente pesanti (es. eventuali
+      // metadata/config JSONB future) e fa match con il type PipelineStage.
+      // Riduce payload e rende esplicite le colonne effettivamente usate
+      // dall'UI (filtro/grep più semplice quando si aggiungono colonne DB).
       let q = supabase
         .from("pipeline_stages")
-        .select("*")
+        .select("id,reseller_id,name,name_reseller,tooltip_text,is_visible_reseller,stage_type,order_index,color,brand,is_visible,created_at")
         .eq("is_visible", true)
         .order("order_index");
 
@@ -27,6 +31,10 @@ export function usePipelineStages(brand?: string) {
       if (error) throw error;
       return data as PipelineStage[];
     },
+    // Pipeline stages è configurazione quasi-statica (cambia solo via
+    // /admin/impostazioni-piattaforma). Senza staleTime ogni mount del
+    // Kanban / detail sheet / select "Sposta in..." rifa la fetch identica.
+    staleTime: 10 * 60 * 1000, // 10min
   });
 }
 

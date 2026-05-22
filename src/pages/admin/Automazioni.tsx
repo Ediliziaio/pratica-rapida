@@ -1860,7 +1860,20 @@ export default function Automazioni() {
 
   const duplicateMutation = useMutation({
     mutationFn: async (rule: AutomationRule) => {
-      const maxOrder = rules.length > 0 ? Math.max(...rules.map((r) => r.order_index)) + 1 : 0;
+      // Race-safe order_index: fetch FRESH dal DB il max corrente, non
+      // leggere da `rules` (state locale react-query) che può essere stale
+      // se 2 admin duplicano in parallelo o se la cache non si è ancora
+      // ri-sincronizzata dopo l'ultimo insert. Senza, 2 admin duplicate
+      // simultaneamente ricevono lo stesso `maxOrder` → 2 insert con
+      // stesso order_index → ordering inconsistente.
+      // Stesso pattern già usato nel saveMutation, ora applicato anche qui.
+      const { data: maxRow } = await supabase
+        .from("automation_rules")
+        .select("order_index")
+        .order("order_index", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const maxOrder = (maxRow?.order_index ?? -1) + 1;
       const { error } = await supabase.from("automation_rules").insert({
         name: `${rule.name} (copia)`,
         description: rule.description,

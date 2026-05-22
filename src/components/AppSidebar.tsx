@@ -189,10 +189,14 @@ export function AppSidebar() {
 
   // Count uncontacted leads from the public form so staff sees a "X new" badge
   // on the Aziende link. Only fetched for internal staff who can see the leads.
+  // Polling 5min (era 60s): è un badge informativo, non richiede freschezza
+  // istantanea. Riduce traffico ~5x e battery drain mobile. Quando lo staff
+  // contatta un lead, l'invalidazione esplicita aggiorna il badge subito.
   const { data: uncontactedLeads = 0 } = useQuery({
     queryKey: ["uncontacted-public-leads"],
     enabled: internal,
-    refetchInterval: 60_000, // refresh every 60s so badge stays current
+    refetchInterval: 5 * 60_000, // 5min — badge non-urgente
+    staleTime: 2 * 60_000,        // 2min — evita doppia fetch su rimount sidebar
     queryFn: async () => {
       const { count, error } = await supabase
         .from("leads")

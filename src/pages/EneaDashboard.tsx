@@ -105,63 +105,103 @@ function DashboardContent({ brand }: { brand: "enea" | "conto_termico" }) {
     },
   });
 
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+  // ─── KPI aggregates ─────────────────────────────────────────────────────
+  // Tutti i conteggi/somme della dashboard sono raggruppati in un singolo
+  // useMemo. Prima: ~12 .filter() + 2 .reduce() su `practices` ad ogni
+  // render del component (es. trigger di Skeleton loading, sub-component
+  // mount). Su 500-1000 pratiche = 6000-12000 op inutili per render.
+  // Ora: una sola passata O(n) memoizzata su `practices` (singola dep).
+  // `now` interno al memo → ricalcolato solo quando `practices` cambia
+  // (accettabile: l'utente non sta sulla dashboard a mezzanotte tra mesi).
+  const {
+    totaleAttive,
+    totaleAttiviMese,
+    totaleAttiviPrevMese,
+    inAttesaCompilazione,
+    inAttesaCompilazionePrev,
+    pronteDaFare,
+    pronteDaFarePrev,
+    archiviateMesseCorrente,
+    archiviateMessePrev,
+    guadagnoMese,
+    guadagnoPrevMese,
+    guadagnoTrend,
+    stageChartData,
+  } = useMemo(() => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
 
-  // Current month counts
-  const totaleAttive = practices.filter((p) => !p.archived_at).length;
-  const totaleAttiviMese = practices.filter((p) => !p.archived_at && p.created_at >= startOfMonth).length;
-  const totaleAttiviPrevMese = practices.filter(
-    (p) => !p.archived_at && p.created_at >= startOfPrevMonth && p.created_at < startOfMonth
-  ).length;
+    let totaleAttive = 0;
+    let totaleAttiviMese = 0;
+    let totaleAttiviPrevMese = 0;
+    let inAttesaCompilazione = 0;
+    let inAttesaCompilazionePrev = 0;
+    let pronteDaFare = 0;
+    let pronteDaFarePrev = 0;
+    let archiviateMesseCorrente = 0;
+    let archiviateMessePrev = 0;
+    let guadagnoMese = 0;
+    let guadagnoPrevMese = 0;
+    const stageCountMap: Record<string, number> = {};
 
-  const inAttesaCompilazione = practices.filter(
-    (p) => p.pipeline_stage?.stage_type === "attesa_compilazione" && !p.archived_at
-  ).length;
-  const inAttesaCompilazionePrev = practices.filter(
-    (p) =>
-      p.pipeline_stage?.stage_type === "attesa_compilazione" &&
-      !p.archived_at &&
-      p.created_at >= startOfPrevMonth &&
-      p.created_at < startOfMonth
-  ).length;
+    // Una sola passata su `practices` per tutti i KPI invece di 12 filter().
+    for (const p of practices) {
+      const isActive = !p.archived_at;
+      const isThisMonth = p.created_at >= startOfMonth;
+      const isPrevMonth = p.created_at >= startOfPrevMonth && p.created_at < startOfMonth;
+      const stageType = p.pipeline_stage?.stage_type;
 
-  const pronteDaFare = practices.filter(
-    (p) => p.pipeline_stage?.stage_type === "pronte_da_fare" && !p.archived_at
-  ).length;
-  const pronteDaFarePrev = practices.filter(
-    (p) =>
-      p.pipeline_stage?.stage_type === "pronte_da_fare" &&
-      !p.archived_at &&
-      p.created_at >= startOfPrevMonth &&
-      p.created_at < startOfMonth
-  ).length;
+      if (isActive) {
+        totaleAttive++;
+        if (isThisMonth) totaleAttiviMese++;
+        if (isPrevMonth) totaleAttiviPrevMese++;
+        if (stageType === "attesa_compilazione") {
+          inAttesaCompilazione++;
+          if (isPrevMonth) inAttesaCompilazionePrev++;
+        }
+        if (stageType === "pronte_da_fare") {
+          pronteDaFare++;
+          if (isPrevMonth) pronteDaFarePrev++;
+        }
+        if (p.pipeline_stage) {
+          const name = p.pipeline_stage.name;
+          stageCountMap[name] = (stageCountMap[name] ?? 0) + 1;
+        }
+      } else {
+        // archived
+        if (p.archived_at && p.archived_at >= startOfMonth) archiviateMesseCorrente++;
+        if (p.archived_at && p.archived_at >= startOfPrevMonth && p.archived_at < startOfMonth) archiviateMessePrev++;
+      }
 
-  const archiviateMesseCorrente = practices.filter(
-    (p) => p.archived_at && p.archived_at >= startOfMonth
-  ).length;
-  const archiviateMessePrev = practices.filter(
-    (p) => p.archived_at && p.archived_at >= startOfPrevMonth && p.archived_at < startOfMonth
-  ).length;
-
-  const guadagnoMese = practices
-    .filter((p) => p.created_at >= startOfMonth)
-    .reduce((s, p) => s + (p.guadagno_netto ?? 0), 0);
-  const guadagnoPrevMese = practices
-    .filter((p) => p.created_at >= startOfPrevMonth && p.created_at < startOfMonth)
-    .reduce((s, p) => s + (p.guadagno_netto ?? 0), 0);
-  const guadagnoTrend = guadagnoMese - guadagnoPrevMese;
-
-  // Bar chart: pratiche per stage
-  const stageCountMap: Record<string, number> = {};
-  for (const p of practices) {
-    if (!p.archived_at && p.pipeline_stage) {
-      const name = p.pipeline_stage.name;
-      stageCountMap[name] = (stageCountMap[name] ?? 0) + 1;
+      const guadagno = p.guadagno_netto ?? 0;
+      if (isThisMonth) guadagnoMese += guadagno;
+      if (isPrevMonth) guadagnoPrevMese += guadagno;
     }
-  }
-  const stageChartData = Object.entries(stageCountMap).map(([name, count]) => ({ name, count }));
+
+    const stageChartData = Object.entries(stageCountMap).map(([name, count]) => ({ name, count }));
+
+    return {
+      totaleAttive,
+      totaleAttiviMese,
+      totaleAttiviPrevMese,
+      inAttesaCompilazione,
+      inAttesaCompilazionePrev,
+      pronteDaFare,
+      pronteDaFarePrev,
+      archiviateMesseCorrente,
+      archiviateMessePrev,
+      guadagnoMese,
+      guadagnoPrevMese,
+      guadagnoTrend: guadagnoMese - guadagnoPrevMese,
+      stageChartData,
+    };
+  }, [practices]);
+
+  // `now` ricostruito qui dopo la refactor del KPI useMemo. Usato da
+  // monthlyData e altri spot più in basso (line ~500). Una sola istanza
+  // top-level per consistency tra usi (vs ricostruirla in ogni memo).
+  const now = new Date();
 
   // Line chart: pratiche create per mese (ultimi 6 mesi)
   const monthlyData = useMemo(() => {

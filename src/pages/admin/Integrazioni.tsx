@@ -219,6 +219,8 @@ export default function Integrazioni() {
       return out;
     },
     refetchInterval: 60_000, // poll ogni minuto
+    staleTime: 30_000, // 30s — health check non serve "freschissimo" tra
+                       // due render ravvicinati. Evita doppia fetch al mount.
   });
 
   const integrations = data ?? [];

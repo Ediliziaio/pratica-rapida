@@ -185,16 +185,32 @@ function ConversationsList({
   // L'invalidate è "broad" — invalida tutte le varianti di filtro
   // (whatsapp-conversations) così non perdiamo aggiornamenti quando l'utente
   // cambia filtro.
+  //
+  // Debounce 600ms: il canale riceve TUTTI gli eventi della tabella (no
+  // filter server-side perché i conversation scope vanno valutati con RLS
+  // + UI filter). Quando arriva un burst (es. import bulk di messaggi o
+  // chat molto attiva con 5+ msg/s), il debounce evita N invalidate +
+  // refetch back-to-back che bloccherebbero il rendering. Una invalidate
+  // ogni 600ms è sufficiente per UX percepita di "aggiornamento live".
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const scheduleInvalidate = () => {
+      if (timeoutId) return; // burst già pianificato
+      timeoutId = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["whatsapp-conversations"] });
+        timeoutId = null;
+      }, 600);
+    };
     const channel = supabase
       .channel("whatsapp-conversations-list")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "whatsapp_conversations" },
-        () => queryClient.invalidateQueries({ queryKey: ["whatsapp-conversations"] }),
+        scheduleInvalidate,
       )
       .subscribe();
     return () => {
+      if (timeoutId) clearTimeout(timeoutId);
       supabase.removeChannel(channel);
     };
   }, [queryClient]);

@@ -72,6 +72,30 @@ export interface AdminKpi {
 
 // ── Internal helper ────────────────────────────────────────────────────────────
 
+/**
+ * Serializza i filtri in una stringa stabile per la queryKey di React Query.
+ *
+ * Senza questo, ogni nuovo riferimento a `filters` (anche con stessi valori)
+ * genera una queryKey "diversa" da TanStack → cache miss → refetch inutile.
+ * Es. il parent passa `{ brand: "all", stato: "active" }` e poi
+ * `{ stato: "active", brand: "all" }` — stesso filtro logico ma object refs
+ * diverse + ordine chiavi diverso, cache miss in entrambi i casi.
+ *
+ * Normalizzando: sort keys + JSON.stringify → stessa stringa per stessi valori.
+ * Cache hit garantito quando i filtri logici non sono cambiati.
+ */
+function filterKey(f: PraticheServerFilters): string {
+  const keys = Object.keys(f).sort();
+  const obj: Record<string, unknown> = {};
+  for (const k of keys) {
+    const v = (f as Record<string, unknown>)[k];
+    // skippa undefined/null/stringa vuota — non discriminano logicamente
+    if (v === undefined || v === null || v === "") continue;
+    obj[k] = v;
+  }
+  return JSON.stringify(obj);
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function applyFilters(q: any, f: PraticheServerFilters): any {
   if (f.companyId)         q = q.eq("company_id", f.companyId);
@@ -111,7 +135,7 @@ export function usePratichePagedQuery(
   enabled = true,
 ) {
   return useQuery<PagedResult>({
-    queryKey: ["pratiche-server", "paged", filters, page, select],
+    queryKey: ["pratiche-server", "paged", filterKey(filters), page, select],
     queryFn: async () => {
       const from = page * PAGE_SIZE;
       const to   = from + PAGE_SIZE - 1;
@@ -146,7 +170,7 @@ export function usePraticheAllQuery(
   enabled = true,
 ) {
   return useQuery<AllResult>({
-    queryKey: ["pratiche-server", "all", filters, select],
+    queryKey: ["pratiche-server", "all", filterKey(filters), select],
     queryFn: async () => {
       let q: any = supabase
         .from("pratiche")

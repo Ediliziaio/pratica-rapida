@@ -108,6 +108,14 @@ export default function AziendePipeline() {
 
   // ── Queries ──────────────────────────────────────────────────────────────
 
+  // staleTime alti su dati semi-statici (cambiano solo via admin UI):
+  // - crm_stages: configurazione pipeline (raro)
+  // - crm_assignments: assegnazioni azienda → stage (cambiano via drag&drop,
+  //   ma quando cambia invalida via onSuccess della mutation → refresh
+  //   forzato non serve)
+  // - admin-companies: lista aziende (poche modifiche/giorno)
+  // Senza staleTime, ogni mount del componente (apertura tab/dialog/route)
+  // refetch immediato anche se i dati sono freschi → tempo morto UI.
   const { data: stages = DEFAULT_STAGES } = useQuery<CrmStage[]>({
     queryKey: ["crm_stages"],
     queryFn: async () => {
@@ -115,6 +123,7 @@ export default function AziendePipeline() {
         .select("value").eq("key", KEY_STAGES).single();
       return (data?.value as CrmStage[]) ?? DEFAULT_STAGES;
     },
+    staleTime: 10 * 60 * 1000, // 10min
   });
 
   const { data: assignments = {} } = useQuery<Record<string, string>>({
@@ -124,6 +133,7 @@ export default function AziendePipeline() {
         .select("value").eq("key", KEY_ASSIGNMENTS).single();
       return (data?.value as Record<string, string>) ?? {};
     },
+    staleTime: 5 * 60 * 1000, // 5min — invalidato esplicitamente da moveCompany
   });
 
   const { data: leads = [] } = useQuery<CrmLead[]>({
@@ -137,6 +147,7 @@ export default function AziendePipeline() {
       if (error) throw error;
       return (data ?? []) as CrmLead[];
     },
+    staleTime: 2 * 60 * 1000, // 2min — lead può arrivare via realtime/manuale
   });
 
   const { data: companies = [] } = useQuery<Company[]>({
@@ -148,6 +159,7 @@ export default function AziendePipeline() {
       if (error) throw error;
       return data as Company[];
     },
+    staleTime: 10 * 60 * 1000, // 10min — aziende cambiano raramente
   });
 
   // ── Mutations ─────────────────────────────────────────────────────────────

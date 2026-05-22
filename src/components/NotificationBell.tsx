@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -98,6 +98,12 @@ export function NotificationBell() {
   const unreadCount = notifications.filter((n) => !n.letto).length;
 
   /* ── Realtime (INSERT + UPDATE) ─────────────────────────────────────── */
+  // Ref per tracciare il setTimeout dell'animazione bell. Se l'utente
+  // naviga via prima che il timer scada (es. nuova notifica e click veloce
+  // su altra pagina), senza ref il setTimeout resterebbe orfano e tenterebbe
+  // setState su componente smontato → React warning + potenziale leak se
+  // ripetuto. Con ref puliamo in cleanup.
+  const animTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -109,9 +115,14 @@ export function NotificationBell() {
         filter: `user_id=eq.${user.id}`,
       }, () => {
         queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
-        // Animate bell on new notification
+        // Animate bell on new notification — track timeout so cleanup
+        // può cancellarlo se il componente si smonta prima dei 1000ms.
         setAnimating(true);
-        setTimeout(() => setAnimating(false), 1000);
+        if (animTimeoutRef.current) clearTimeout(animTimeoutRef.current);
+        animTimeoutRef.current = setTimeout(() => {
+          setAnimating(false);
+          animTimeoutRef.current = null;
+        }, 1000);
       })
       .on("postgres_changes", {
         event: "UPDATE",
@@ -122,7 +133,13 @@ export function NotificationBell() {
         queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+      if (animTimeoutRef.current) {
+        clearTimeout(animTimeoutRef.current);
+        animTimeoutRef.current = null;
+      }
+    };
   }, [user, queryClient]);
 
   /* ── Mutations ──────────────────────────────────────────────────────── */

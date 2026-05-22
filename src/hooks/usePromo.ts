@@ -35,7 +35,10 @@ export function usePromo(clientId?: string) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Promo attiva del cliente
+  // Promo attiva del cliente. Cambia raramente (admin la crea/modifica) e
+  // viene invalidata esplicitamente dopo applyPromo → safe usare staleTime
+  // alto. Senza, ogni mount di dialog/sidebar che mostra il badge promo
+  // rifetcha inutilmente.
   const { data: activePromo, isLoading } = useQuery({
     queryKey: ["client-promo", clientId],
     enabled: !!clientId,
@@ -52,6 +55,7 @@ export function usePromo(clientId?: string) {
       if (error) throw error;
       return data as ClientPromo | null;
     },
+    staleTime: 5 * 60 * 1000, // 5min — invalidato esplicitamente da applyPromo
   });
 
   // Applica promo a una pratica
@@ -130,6 +134,7 @@ export function usePromoTypes() {
       if (error) throw error;
       return data as PromoType[];
     },
+    staleTime: 15 * 60 * 1000, // 15min — tipi promo cambiano molto raramente
   });
 }
 
@@ -137,8 +142,12 @@ export function usePromoTypes() {
 // Hook admin: assegnazioni clienti
 // -----------------------------------------------
 export function useClientPromos(filters?: { status?: string }) {
+  // queryKey atomica: solo `status` (unico campo discriminante del filter)
+  // invece di filters intero (object ref instabile → cache miss).
+  // Es. due render con `{status: "active"}` differenti object refs → stessa
+  // queryKey, cache hit. Stesso risultato logico.
   return useQuery({
-    queryKey: ["client-promos", filters],
+    queryKey: ["client-promos", filters?.status ?? "all"],
     queryFn: async () => {
       let q = supabase
         .from("client_promos")
@@ -149,5 +158,6 @@ export function useClientPromos(filters?: { status?: string }) {
       if (error) throw error;
       return data;
     },
+    staleTime: 3 * 60 * 1000, // 3min — invalidato esplicitamente da mutation
   });
 }

@@ -2057,8 +2057,16 @@ export default function KanbanBoard() {
     (p) => daysAgo(p.updated_at) > 7
   ).length;
 
-  // Apply all client-side filters
-  const filteredPractices = practices.filter((p) => {
+  // Apply all client-side filters.
+  // Memoized: `filteredPractices` è usato come dipendenza da `kpis` (useMemo),
+  // dal raggruppamento Kanban (line 2267+), dagli export CSV/XLSX e
+  // dalle row PracticeTable. Senza memo, ogni render ricreava una nuova
+  // array ref → kpis si ricalcola, ogni .map() figlio rigenera children
+  // anche se gli stessi filtri non sono cambiati (es. apertura sheet
+  // dettaglio: setSelectedPractice triggera render del parent ma i
+  // filtri non sono cambiati). Su 500+ pratiche con 5+ filtri sequenziali
+  // = ~3-5ms di lavoro inutile per ogni render.
+  const filteredPractices = useMemo(() => practices.filter((p) => {
     if (isInternal && operatoreFilter !== "all" && p.operatore_id !== operatoreFilter) return false;
     if (isInternal && aziendaFilter !== "all" && p.companies?.id !== aziendaFilter) return false;
     if (stageFilter !== "all" && p.current_stage_id !== stageFilter) return false;
@@ -2072,7 +2080,7 @@ export default function KanbanBoard() {
       if (!fullName.includes(q) && !email.includes(q) && !cf.includes(q)) return false;
     }
     return true;
-  });
+  }), [practices, isInternal, operatoreFilter, aziendaFilter, stageFilter, dateFrom, dateTo, clienteFilter]);
 
   const activeFilterCount = [
     dateFrom, dateTo,

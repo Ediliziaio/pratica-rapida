@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { isValidPivaIT } from "@/lib/validation-schemas";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,13 @@ const step1Schema = z.object({
 
 const step2Schema = z.object({
   company_name: z.string().min(2, "Inserisci la ragione sociale"),
-  piva: z.string().min(11, "P.IVA non valida").max(11, "P.IVA non valida"),
+  // P.IVA italiana: 11 cifre + checksum mod-11 Ministero Finanze.
+  // Prima del fix: validazione solo lunghezza → l'utente poteva inserire
+  // "12345678901" e procedere con onboarding con dati invalidi.
+  piva: z.string()
+    .min(11, "P.IVA deve avere 11 cifre")
+    .max(11, "P.IVA deve avere 11 cifre")
+    .refine(isValidPivaIT, { message: "P.IVA non valida (checksum errato)" }),
   address: z.string().min(3, "Inserisci l'indirizzo"),
   city: z.string().min(2, "Inserisci la città"),
 });

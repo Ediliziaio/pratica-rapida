@@ -240,14 +240,31 @@ export function useUpdateEneaPractice() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<EneaPractice> }) => {
-      const { error } = await supabase
+      // Forziamo .select().single() come in useMoveStage per intercettare
+      // UPDATE silenti (0 rows modificate per RLS / FK / trigger ribalta).
+      // Senza questo, il caller riceve success ma in DB nulla è cambiato.
+      const { data, error } = await supabase
         .from("enea_practices")
         .update(updates)
-        .eq("id", id);
-      if (error) throw error;
+        .eq("id", id)
+        .select("id")
+        .single();
+      if (error) {
+        console.error("[useUpdateEneaPractice] UPDATE failed:", { id, updates, error });
+        throw error;
+      }
+      if (!data) {
+        throw new Error("Aggiornamento fallito: nessuna riga modificata (RLS o FK)");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["enea_practices"] });
+    },
+    // Defense in depth: tutti i callsite ATTUALI usano mutateAsync con
+    // try/catch ma se in futuro qualcuno usa .mutate() senza wrap, almeno
+    // logghiamo l'errore in console invece di silent.
+    onError: (err) => {
+      console.error("[useUpdateEneaPractice] mutation error:", err);
     },
   });
 }

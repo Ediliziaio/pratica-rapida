@@ -148,7 +148,59 @@ export function useMoveStage() {
       void newStageName;
       void userId;
     },
-    onSuccess: () => {
+    // Optimistic update: senza questo, dopo un drag&drop la card resta
+    // visivamente "bloccata" sopra la pipeline finché il refetch (onSuccess)
+    // non completa e ri-renderizza con i nuovi dati. Bug user-visible:
+    // "card non sembra inserita, devo ricaricare la pagina".
+    // Soluzione: aggiorniamo subito la cache react-query con il nuovo
+    // current_stage_id + pipeline_stages (lookup), così il re-render
+    // immediato post-mutation mostra la card già nella destination column.
+    // onError fa rollback alla snapshot precedente per safety.
+    onMutate: async ({ practiceId, newStageId }) => {
+      // Cancella refetch in-flight per evitare race
+      await queryClient.cancelQueries({ queryKey: ["enea_practices"] });
+
+      // Snapshot di tutte le query enea_practices attive (per rollback)
+      const previousData = queryClient.getQueriesData<EneaPractice[]>({
+        queryKey: ["enea_practices"],
+      });
+
+      // Lookup del nuovo stage (per popolare il join pipeline_stages)
+      const stagesCache = queryClient.getQueryData<PipelineStage[]>(["pipeline_stages"]);
+      // Cerca in TUTTE le varianti di pipeline_stages (con brand filter)
+      const allStageQueries = queryClient.getQueriesData<PipelineStage[]>({
+        queryKey: ["pipeline_stages"],
+      });
+      const newStage = stagesCache?.find((s) => s.id === newStageId)
+        ?? allStageQueries.flatMap(([, data]) => data ?? []).find((s) => s.id === newStageId)
+        ?? null;
+
+      // Update ottimistico: applica il nuovo current_stage_id + il join
+      queryClient.setQueriesData<EneaPractice[]>(
+        { queryKey: ["enea_practices"] },
+        (old) => {
+          if (!old) return old;
+          return old.map((p) =>
+            p.id === practiceId
+              ? { ...p, current_stage_id: newStageId, pipeline_stages: newStage }
+              : p,
+          );
+        },
+      );
+
+      return { previousData };
+    },
+    onError: (_err, _vars, context) => {
+      // Rollback: ripristina tutte le query alla snapshot pre-mutation
+      if (context?.previousData) {
+        for (const [key, data] of context.previousData) {
+          queryClient.setQueryData(key, data);
+        }
+      }
+    },
+    onSettled: () => {
+      // Allinea col server alla fine (sia success sia error), così se il
+      // server ha rifiutato l'update vediamo lo stato reale.
       queryClient.invalidateQueries({ queryKey: ["enea_practices"] });
     },
   });

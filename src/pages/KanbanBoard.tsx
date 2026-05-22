@@ -967,12 +967,23 @@ function PracticeDetailSheet({
                     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
                       Operatore
                     </label>
-                    <Select value={editOperatoreId} onValueChange={setEditOperatoreId}>
+                    {/* Radix Select NON accetta value="" (lo riserva per
+                        "deseleziona" interno). Useremo "__none__" come
+                        sentinel e convertiamo ai bordi: state interno resta
+                        "" per "nessun operatore" (così handleSave continua
+                        a tradurlo in null DB), ma il Select riceve/restituisce
+                        "__none__". Crash precedente:
+                        > A <Select.Item /> must have a value prop that is not
+                        > an empty string. */}
+                    <Select
+                      value={editOperatoreId === "" ? "__none__" : editOperatoreId}
+                      onValueChange={(v) => setEditOperatoreId(v === "__none__" ? "" : v)}
+                    >
                       <SelectTrigger className="text-sm">
                         <SelectValue placeholder="Nessun operatore" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nessun operatore</SelectItem>
+                        <SelectItem value="__none__">Nessun operatore</SelectItem>
                         {allOperators.map((op) => (
                           <SelectItem key={op.id} value={op.id}>
                             {op.nome} {op.cognome}
@@ -1940,9 +1951,35 @@ export default function KanbanBoard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, isInternal]);
 
-  const { data: stages = [] } = usePipelineStages(
+  const { data: rawStages = [] } = usePipelineStages(
     brandFilter !== "all" ? brandFilter : undefined
   );
+
+  // Deduplicazione stages: nel DB esistono stages "globali" (reseller_id IS
+  // NULL) e stages personalizzati per ogni reseller. Per il super_admin la
+  // query usePipelineStages restituisce TUTTI (no filtro per reseller),
+  // quindi se più resellers hanno stages con lo stesso nome appaiono
+  // duplicati nei Select "Sposta in...". Bug user-visible: la tendina
+  // mostrava "pronta da fare" 2 volte, "recensione" 2 volte, ecc.
+  // Soluzione: dedup per (name, brand), preferendo lo stage globale
+  // (reseller_id NULL) se disponibile, altrimenti il primo trovato.
+  const stages = useMemo(() => {
+    const byKey = new Map<string, PipelineStage>();
+    for (const s of rawStages) {
+      const key = `${s.brand ?? "_"}::${s.name}`;
+      const existing = byKey.get(key);
+      if (!existing) {
+        byKey.set(key, s);
+      } else {
+        // Preferisci sempre lo stage globale (reseller_id NULL)
+        const existingIsGlobal = existing.reseller_id == null;
+        const candidateIsGlobal = s.reseller_id == null;
+        if (candidateIsGlobal && !existingIsGlobal) byKey.set(key, s);
+      }
+    }
+    // Mantieni l'order_index originale
+    return Array.from(byKey.values()).sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+  }, [rawStages]);
 
   const { data: practices = [], isLoading, isError: practicesError } = useEneaPractices({
     brand: brandFilter !== "all" ? brandFilter : undefined,

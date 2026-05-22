@@ -1024,7 +1024,27 @@ function EmailModuliClienteSection() {
 
 function parseFlow(rule: AutomationRule): AutomationFlow {
   const config = rule.trigger_config as Record<string, unknown>;
-  if (config?.__v === 2) return config as unknown as AutomationFlow;
+  if (config?.__v === 2) {
+    // Le rule v2 hanno il flow completo dentro trigger_config. Però se per
+    // qualsiasi motivo `config.trigger.type` è vuoto/null/undefined (es.
+    // rule importata da seed legacy + migrata a v2 ma senza setting del
+    // trigger), il Select sarebbe vuoto e l'admin vedrebbe "trigger non
+    // collegato". Fallback: leggi rule.trigger_event (la colonna piatta
+    // del DB, mantenuta sincronizzata da saveMutation), così almeno
+    // mostriamo il valore reale.
+    const flow = config as unknown as AutomationFlow;
+    const triggerType = (flow.trigger?.type as string | undefined) ?? "";
+    if (!triggerType || triggerType.trim() === "") {
+      return {
+        ...flow,
+        trigger: {
+          ...(flow.trigger ?? { config: {} }),
+          type: rule.trigger_event || "manual",
+        },
+      };
+    }
+    return flow;
+  }
   // Migrate legacy seeded rules
   const legacyAction: ActionDef[] =
     rule.channel && rule.channel !== ("none" as string)
@@ -1094,6 +1114,12 @@ function TriggerBlock({
 }) {
   const def = TRIGGER_TYPES.find((t) => t.value === trigger.type);
   const Icon = def?.icon ?? Zap;
+  // Quando trigger.type non è in TRIGGER_TYPES (es. valore legacy "manual"
+  // o trigger_event raw che il backend ha ma la UI non gestisce), mostra
+  // comunque il valore raw + badge giallo. Senza questo, l'admin vedeva il
+  // blocco trigger "vuoto" pensando che la rule non fosse collegata,
+  // mentre in realtà funzionava nel backend.
+  const isUnknown = !def && !!trigger.type;
 
   return (
     <div className="rounded-xl border-2 border-violet-200 bg-violet-50 overflow-hidden">
@@ -1106,10 +1132,21 @@ function TriggerBlock({
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wider text-violet-600">Trigger</p>
-          <p className="font-semibold text-sm">{def?.label ?? trigger.type}</p>
-          {def?.description && (
+          <p className="font-semibold text-sm flex items-center gap-1.5">
+            {def?.label ?? trigger.type ?? "Non configurato"}
+            {isUnknown && (
+              <span className="text-[9px] px-1.5 py-0 rounded bg-amber-100 text-amber-700 font-semibold">
+                LEGACY
+              </span>
+            )}
+          </p>
+          {def?.description ? (
             <p className="text-xs text-muted-foreground truncate">{def.description}</p>
-          )}
+          ) : isUnknown ? (
+            <p className="text-xs text-amber-700 truncate">
+              Trigger legacy <code className="text-[10px]">{trigger.type}</code> — clicca per riassegnarlo.
+            </p>
+          ) : null}
         </div>
         {expanded ? (
           <ChevronUp className="h-4 w-4 text-violet-400" />

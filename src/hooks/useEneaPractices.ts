@@ -141,17 +141,39 @@ export function useMoveStage() {
       newStageName: string;
       userId: string;
     }) => {
-      // 1. Update stage
-      const { error } = await supabase
+      // 1. Update stage + verifica che la riga sia stata davvero modificata
+      // (la RLS può non bloccare con error ma silenziosamente ritornare 0 rows
+      // se la policy nega l'UPDATE → utente vede card "spostata" via optimistic
+      // ma al refresh torna indietro perché il save non è mai stato applicato).
+      // Forziamo .select() per ricevere le righe affette + .single() per
+      // ottenere errore esplicito se 0 rows updated.
+      const { data, error } = await supabase
         .from("enea_practices")
         .update({ current_stage_id: newStageId })
-        .eq("id", practiceId);
-      if (error) throw error;
+        .eq("id", practiceId)
+        .select("id, current_stage_id")
+        .single();
+
+      if (error) {
+        // Log dettagliato + rethrow con messaggio user-friendly
+        console.error("[useMoveStage] UPDATE failed:", { practiceId, newStageId, error });
+        throw new Error(
+          error.message?.includes("policy")
+            ? `Permessi insufficienti per spostare la pratica. Controlla le RLS o se il tuo ruolo permette UPDATE su enea_practices.`
+            : `Save fallito: ${error.message ?? error.code ?? "errore sconosciuto"}`,
+        );
+      }
+      if (!data || data.current_stage_id !== newStageId) {
+        // Update silente: la query ha avuto successo ma 0 rows modificate o il
+        // valore non corrisponde. Causa più comune: RLS che restringe l'UPDATE
+        // (es. policy `USING (current_stage_id IN (lista valori del reseller))`)
+        // O foreign key fallita lato DB. Forziamo error qui invece di lasciare
+        // optimistic rollback silente.
+        console.error("[useMoveStage] UPDATE 0 rows / mismatch:", { practiceId, newStageId, data });
+        throw new Error("Save fallito: la pratica non è stata aggiornata (RLS o FK violation). Riprova o contatta l'admin.");
+      }
 
       // Audit trail cambio stage — lasciato vuoto per ora.
-      // communication_log è riservato a comunicazioni cliente reali (email/WA/phone),
-      // non per log interni. Per tracking stage history aggiungere una tabella dedicata
-      // stage_history se necessario in futuro.
       void oldStageName;
       void newStageName;
       void userId;

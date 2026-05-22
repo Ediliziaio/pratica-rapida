@@ -1968,29 +1968,41 @@ export default function KanbanBoard() {
   );
 
   // Deduplicazione stages: nel DB esistono stages "globali" (reseller_id IS
-  // NULL) e stages personalizzati per ogni reseller. Per il super_admin la
-  // query usePipelineStages restituisce TUTTI (no filtro per reseller),
-  // quindi se più resellers hanno stages con lo stesso nome appaiono
-  // duplicati nei Select "Sposta in...". Bug user-visible: la tendina
-  // mostrava "pronta da fare" 2 volte, "recensione" 2 volte, ecc.
-  // Soluzione: dedup per (name, brand), preferendo lo stage globale
-  // (reseller_id NULL) se disponibile, altrimenti il primo trovato.
+  // NULL) E stages personalizzati per ogni reseller, MOLTIPLICATI PER BRAND
+  // (enea + conto_termico). Risultato: per N reseller × 2 brand × 8 stages
+  // possiamo avere fino a 16N righe, con MOLTI nomi duplicati.
+  //
+  // V1 di questo dedup usava key `(brand, name)`: riduceva i duplicati
+  // per-brand ma non eliminava i duplicati cross-brand quando brandFilter=all
+  // (l'admin vedeva "Pronte da fare" 2 volte: una enea + una CT).
+  // V2 (questo): usa SOLO `stage_type` come key (es. "pronte_da_fare",
+  // enum stabile DB-side) + preferenza per stage globale (reseller_id NULL),
+  // poi per brand="enea" come primario. Risultato: max 8 voci nel select.
+  //
+  // Side effect: il select del PracticeDetailSheet — che potrebbe avere una
+  // pratica brand="conto_termico" — riceverà l'id dello stage brand="enea".
+  // È OK: il backend UPDATE su current_stage_id non valida cross-brand (è
+  // un FK semplice), e il join successivo `pipeline_stages(...)` segue
+  // semplicemente l'id. Visivamente il name mostrato non cambia per brand.
   const stages = useMemo(() => {
-    const byKey = new Map<string, PipelineStage>();
+    const byType = new Map<string, PipelineStage>();
     for (const s of rawStages) {
-      const key = `${s.brand ?? "_"}::${s.name}`;
-      const existing = byKey.get(key);
+      const key = s.stage_type as string;
+      const existing = byType.get(key);
       if (!existing) {
-        byKey.set(key, s);
-      } else {
-        // Preferisci sempre lo stage globale (reseller_id NULL)
-        const existingIsGlobal = existing.reseller_id == null;
-        const candidateIsGlobal = s.reseller_id == null;
-        if (candidateIsGlobal && !existingIsGlobal) byKey.set(key, s);
+        byType.set(key, s);
+        continue;
+      }
+      // Priorità: 1) stage globale (reseller_id NULL), 2) brand="enea"
+      const existingIsGlobal = existing.reseller_id == null;
+      const candidateIsGlobal = s.reseller_id == null;
+      if (candidateIsGlobal && !existingIsGlobal) {
+        byType.set(key, s);
+      } else if (candidateIsGlobal === existingIsGlobal && s.brand === "enea" && existing.brand !== "enea") {
+        byType.set(key, s);
       }
     }
-    // Mantieni l'order_index originale
-    return Array.from(byKey.values()).sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+    return Array.from(byType.values()).sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
   }, [rawStages]);
 
   const { data: practices = [], isLoading, isError: practicesError } = useEneaPractices({
@@ -2258,36 +2270,58 @@ export default function KanbanBoard() {
   //   per `stage_type`, sparirebbero dal kanban. Quindi raggruppiamo per
   //   stage_type: tutti gli stage con lo stesso `stage_type` puntano alla
   //   stessa colonna virtuale (lo stage con order_index minore vince).
+  // stageToColumn DEVE essere costruito da rawStages (TUTTI gli stage DB, non
+  // solo quelli deduped) altrimenti le pratiche con current_stage_id puntante
+  // a uno stage reseller-specific (non nel deduped) spariscono dal kanban.
+  //
+  // Bug originale user-reported: "drag&drop, la card si blocca sopra e al
+  // refresh torna alla pipeline precedente". Cause concorrenti:
+  //  1) trigger DB sync_pratiche_to_enea sovrascrive current_stage_id allo
+  //     stage globale equivalente per stage_type
+  //  2) prima del fix, stageToColumn usava `stages` (deduped) — quindi se la
+  //     pratica aveva un id reseller-specific (non in deduped), la card non
+  //     compariva in nessuna colonna
+  //
+  // Fix: costruisci il map da rawStages, mappando ogni stage_id al column id
+  // della colonna deduped corrispondente per (stage_type) o (name_reseller).
   const stageToColumn = useMemo(() => {
     const map = new Map<string, string>();
 
-    if (isInternal && brandFilter !== "all") {
-      // Brand specifico: identity mapping
-      for (const s of stages) map.set(s.id, s.id);
-      return map;
-    }
-
-    if (isInternal && brandFilter === "all") {
-      // Raggruppa per stage_type (entrambi i brand confluiscono nella stessa colonna)
-      const groups = new Map<string, string>();
-      const sorted = [...stages].sort((a, b) => a.order_index - b.order_index);
-      for (const s of sorted) {
-        if (!groups.has(s.stage_type)) groups.set(s.stage_type, s.id);
-        map.set(s.id, groups.get(s.stage_type)!);
+    if (isInternal) {
+      // Per ogni stage_type, identifica il "column owner" = il deduped stage.id
+      // (sorted per order_index). TUTTI gli stage rawStages con quel stage_type
+      // mappano allo stesso column owner.
+      const ownerByType = new Map<string, string>();
+      for (const s of stages) {
+        if (!ownerByType.has(s.stage_type as string)) {
+          ownerByType.set(s.stage_type as string, s.id);
+        }
+      }
+      // Brand=all: collassa entrambi i brand sullo stesso column_id (deduped)
+      // Brand specifico: il deduped già contiene solo quel brand → identity-like
+      for (const s of rawStages) {
+        const ownerId = ownerByType.get(s.stage_type as string);
+        if (ownerId) map.set(s.id, ownerId);
       }
       return map;
     }
 
-    // Reseller: raggruppa per name_reseller
-    const groups = new Map<string, string>();
+    // Reseller: raggruppa per name_reseller. Usa rawStages per non perdere
+    // pratiche con current_stage_id su stage non-deduped.
+    const ownerByLabel = new Map<string, string>();
     for (const s of stages) {
       if (s.is_visible_reseller === false) continue;
       const key = s.name_reseller ?? s.name;
-      if (!groups.has(key)) groups.set(key, s.id);
-      map.set(s.id, groups.get(key)!);
+      if (!ownerByLabel.has(key)) ownerByLabel.set(key, s.id);
+    }
+    for (const s of rawStages) {
+      if (s.is_visible_reseller === false) continue;
+      const key = s.name_reseller ?? s.name;
+      const ownerId = ownerByLabel.get(key);
+      if (ownerId) map.set(s.id, ownerId);
     }
     return map;
-  }, [stages, isInternal, brandFilter]);
+  }, [stages, rawStages, isInternal]);
 
   const byStage = useCallback(
     (stageId: string) => {

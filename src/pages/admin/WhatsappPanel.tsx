@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageCircle, ClipboardList } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
+import { normalizePhone } from "@/lib/phone";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -39,12 +40,12 @@ type WhatsappLog = {
 
 type MessageMode = "template" | "free";
 
-const TEMPLATES = [
-  { value: "pratica_ricevuta",      label: "Pratica Ricevuta" },
-  { value: "pratica_in_lavorazione", label: "Pratica in Lavorazione" },
-  { value: "pratica_completata",    label: "Pratica Completata" },
-  { value: "reminder_documenti",    label: "Reminder Documenti" },
-];
+// La vecchia lista TEMPLATES hardcoded conteneva 4 nomi legacy
+// (pratica_ricevuta, pratica_in_lavorazione, pratica_completata, reminder_documenti)
+// che NON corrispondono ai 9 template ufficiali v3 su Meta. Inviare uno di
+// quei nomi a Meta tornava #132001 "Template name does not exist". Ora la
+// lista viene letta dinamicamente dalla tabella whatsapp_templates con
+// filtro APPROVED + is_active=true (vedi useApprovedTemplates qui sotto).
 
 // ---------------------------------------------------------------------------
 // Status badge helpers
@@ -84,16 +85,44 @@ function SendMessageModal({
   const [template, setTemplate] = useState("");
   const [freeText, setFreeText] = useState("");
 
+  // Template approved live dal DB (sostituisce la lista TEMPLATES hardcoded
+  // legacy che conteneva nomi non più esistenti su Meta → causava #132001
+  // "Template name does not exist" su ogni invio).
+  const { data: approvedTemplates = [] } = useQuery({
+    queryKey: ["whatsapp-templates-approved"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("whatsapp_templates")
+        .select("meta_template_name, language")
+        .eq("status", "APPROVED")
+        .eq("is_active", true)
+        .order("meta_template_name");
+      if (error) throw error;
+      return data as Array<{ meta_template_name: string; language: string }>;
+    },
+  });
+
   const mutation = useMutation({
     mutationFn: async () => {
       if (!profile) return;
-      const phone = profile.telefono ?? "";
-      if (!phone) throw new Error("Numero di telefono mancante");
+      const rawPhone = profile.telefono ?? "";
+      if (!rawPhone) throw new Error("Numero di telefono mancante");
+
+      // Bug fix: la edge function send-whatsapp si aspetta `to` (non `phone`)
+      // e `text_body` (non `body`). Prima del fix ogni invio falliva con
+      // "Missing 'to'". normalizePhone aggiunge il prefisso italiano se
+      // manca (numero 10-cifre → 393XXXXXXXXX) — altrimenti Meta parsa
+      // come paese errato e torna #200.
+      const to = normalizePhone(rawPhone);
+
+      // Per i template recuperiamo anche la language code dal DB così Meta
+      // riceve il code esatto del template approvato (es. "it" vs "it_IT").
+      const tplRow = approvedTemplates.find((t) => t.meta_template_name === template);
 
       const payload =
         mode === "template"
-          ? { phone, template_name: template }
-          : { phone, body: freeText };
+          ? { to, template_name: template, language: tplRow?.language ?? "it" }
+          : { to, text_body: freeText };
 
       const { error } = await supabase.functions.invoke("send-whatsapp", {
         body: payload,
@@ -152,16 +181,22 @@ function SendMessageModal({
               <Label>Template</Label>
               <Select value={template} onValueChange={setTemplate}>
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Seleziona template…" />
+                  <SelectValue placeholder={approvedTemplates.length === 0 ? "Nessun template approvato" : "Seleziona template…"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {TEMPLATES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
+                  {approvedTemplates.map((t) => (
+                    <SelectItem key={t.meta_template_name} value={t.meta_template_name}>
+                      <span className="font-mono text-xs">{t.meta_template_name}</span>
+                      <span className="text-[10px] text-muted-foreground ml-1.5">({t.language})</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {approvedTemplates.length === 0 && (
+                <p className="text-xs text-amber-600 mt-1">
+                  Nessun template approvato. Vai su <a href="/admin/whatsapp-config" className="underline">/admin/whatsapp-config</a> per crearli.
+                </p>
+              )}
             </div>
           ) : (
             <div>

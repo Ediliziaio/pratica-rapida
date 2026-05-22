@@ -433,14 +433,21 @@ serve(async () => {
                 });
               }
               if (p.cliente_telefono) {
+                // Fallback "sollecito_recensione" era un nome template LEGACY
+                // non più in getDefaultTemplates() v3. Inviarlo a Meta torna
+                // #132001. Fallback corretto v3: pratica_inviata_recensione
+                // (che include sia notifica invio sia richiesta recensione).
                 await invoke(supabase, "send-whatsapp", {
                   to: normalizePhone(p.cliente_telefono),
                   template_name: rule.channel === "whatsapp"
-                    ? ((rule as { template_id?: string }).template_id ?? "sollecito_recensione")
-                    : "sollecito_recensione",
+                    ? ((rule as { template_id?: string }).template_id ?? "pratica_inviata_recensione")
+                    : "pratica_inviata_recensione",
                   components: [{
                     type: "body",
-                    parameters: [{ type: "text", text: p.cliente_nome }],
+                    parameters: [
+                      { type: "text", text: p.cliente_nome },
+                      { type: "text", text: p.cliente_email ?? "—" },
+                    ],
                   }],
                   practice_id: p.id,
                 });
@@ -510,12 +517,19 @@ serve(async () => {
                 });
               }
               if (rule.channel === "whatsapp" && p.cliente_telefono) {
+                // Fallback "pratica_completata" era LEGACY (5 template vecchi),
+                // sostituito dal v3 "pratica_inviata_recensione" che include
+                // notifica chiusura + email destinazione + richiesta recensione.
+                // Senza questo fix: cron tentava invio template inesistente → #132001.
                 await invoke(supabase, "send-whatsapp", {
                   to: normalizePhone(p.cliente_telefono),
-                  template_name: templateId ?? "pratica_completata",
+                  template_name: templateId ?? "pratica_inviata_recensione",
                   components: [{
                     type: "body",
-                    parameters: [{ type: "text", text: p.cliente_nome }],
+                    parameters: [
+                      { type: "text", text: p.cliente_nome },
+                      { type: "text", text: p.cliente_email ?? "—" },
+                    ],
                   }],
                   practice_id: p.id,
                 });

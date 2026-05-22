@@ -226,11 +226,15 @@ export function BulkSendDialog({
               : [];
             const components = parameters.length > 0 ? [{ type: "body", parameters }] : [];
 
+            // Cerca la language code del template selezionato dal DB.
+            // Hardcodare "it" causava mismatch se il template era approvato
+            // come "it_IT" → Meta tornava #132005 "Translation not found".
+            const tplRow = waTemplates?.find((t) => t.meta_template_name === selectedTemplate);
             const { data, error } = await supabase.functions.invoke("send-whatsapp", {
               body: {
                 to: p.cliente_telefono!,
                 template_name: selectedTemplate,
-                language: "it",
+                language: tplRow?.language ?? "it",
                 components,
                 practice_id: p.id,
               },

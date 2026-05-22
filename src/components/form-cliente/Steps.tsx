@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "@/hooks/use-toast";
 
 import {
   CALDAIA_LABELS,
@@ -842,8 +843,11 @@ function ProdottoImpianto({
   const libretto = data.impianto.libretto_url;
 
   const onFile = async (file: File) => {
+    // Use toast (non-blocking) instead of alert() (blocca UI thread + look
+    // browser-native rotto su mobile). Comportamento identico per l'utente:
+    // vede il messaggio di errore e l'upload viene rifiutato.
     if (file.size > 20 * 1024 * 1024) {
-      alert("File troppo grande (max 20MB)");
+      toast({ variant: "destructive", title: "File troppo grande", description: "Massimo 20 MB." });
       return;
     }
     onUploadStart();
@@ -857,7 +861,7 @@ function ProdottoImpianto({
         .upload(path, file, { upsert: false });
       if (error) {
         console.error("Upload libretto failed:", error);
-        alert("Caricamento fallito. Riprova.");
+        toast({ variant: "destructive", title: "Caricamento fallito", description: "Riprova o contatta il supporto." });
         return;
       }
       patchSection("impianto", { libretto_url: path } as SectionPatch<"impianto">);

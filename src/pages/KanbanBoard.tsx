@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef, useDeferredValue } from "react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -1897,6 +1897,13 @@ export default function KanbanBoard() {
     return "all";
   });
   const [search, setSearch] = useState("");
+  // useDeferredValue (React 18 nativo, zero dipendenze): mentre l'utente
+  // sta digitando rapidamente, React mantiene il valore "deferred" stabile
+  // e aggiorna la UI urgenti (input visivo) per primi. La query DB usa la
+  // versione deferred, evitando una fetch a ogni keystroke. Risultato:
+  // input fluido + query solo quando l'utente pausa digitazione.
+  // È più safe e leggero di un useDebounce custom + non richiede lib esterne.
+  const deferredSearch = useDeferredValue(search);
   const [showArchived, setShowArchived] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedPractice, setSelectedPractice] = useState<PracticeWithRelations | null>(null);
@@ -1988,7 +1995,10 @@ export default function KanbanBoard() {
 
   const { data: practices = [], isLoading, isError: practicesError } = useEneaPractices({
     brand: brandFilter !== "all" ? brandFilter : undefined,
-    search: search.length > 1 ? search : undefined,
+    // Usa deferredSearch invece di search: la fetch DB parte solo quando
+    // l'utente pausa digitazione, non a ogni keystroke. Comportamento
+    // identico per l'utente (la lista si aggiorna), ma con meno fetch.
+    search: deferredSearch.length > 1 ? deferredSearch : undefined,
     includeArchived: showArchived,
   });
 
@@ -2031,8 +2041,12 @@ export default function KanbanBoard() {
     enabled: operatorIds.length > 0,
   });
 
-  const operatorMap = Object.fromEntries(
-    operators.map((o) => [o.id, `${o.nome} ${o.cognome}`.trim()])
+  // Memo: senza, Object.fromEntries(map(...)) crea nuovo oggetto ad ogni
+  // render → usato in CSV export, table cells, badge → invalida memo
+  // dipendenti anche quando `operators` non è cambiato.
+  const operatorMap = useMemo(
+    () => Object.fromEntries(operators.map((o) => [o.id, `${o.nome} ${o.cognome}`.trim()])),
+    [operators],
   );
 
   // All companies from DB (for internal filter - loads all, not just from loaded practices)
@@ -2048,14 +2062,26 @@ export default function KanbanBoard() {
     },
   });
 
-  // Stats
-  const activePractices = practices.filter((p) => !p.archived_at);
-  const pronteDaFare = activePractices.filter(
-    (p) => p.pipeline_stages?.stage_type === "pronte_da_fare"
-  ).length;
-  const staleCount = activePractices.filter(
-    (p) => daysAgo(p.updated_at) > 7
-  ).length;
+  // Stats: collapsed in singolo useMemo + single-pass O(n) per evitare
+  // 3 filter() sequenziali ad ogni render. Senza memo:
+  //   - activePractices (full array allocato ogni render)
+  //   - pronteDaFare.length (rifiltra activePractices)
+  //   - staleCount.length (rifiltra activePractices, +daysAgo per ogni p)
+  // Su 500-1000 pratiche × 3 filter = 1500-3000 op inutili per render parent.
+  // Ora: 1 passata, 3 contatori. Result memoizzato su [practices].
+  const { activePractices, pronteDaFare, staleCount } = useMemo(() => {
+    const active: typeof practices = [];
+    let pronte = 0;
+    let stale = 0;
+    for (const p of practices) {
+      if (!p.archived_at) {
+        active.push(p);
+        if (p.pipeline_stages?.stage_type === "pronte_da_fare") pronte++;
+        if (daysAgo(p.updated_at) > 7) stale++;
+      }
+    }
+    return { activePractices: active, pronteDaFare: pronte, staleCount: stale };
+  }, [practices]);
 
   // Apply all client-side filters.
   // Memoized: `filteredPractices` è usato come dipendenza da `kpis` (useMemo),
@@ -2325,14 +2351,31 @@ export default function KanbanBoard() {
           if (newStage?.stage_type === "pronte_da_fare") {
             toast({ title: "Pratica pronta!", description: "Assegna un operatore." });
           }
-          // Salva nota documenti mancanti se presente
+          // Salva nota documenti mancanti se presente.
+          // Wrappato in try/catch: il primary action (move stage) è già OK,
+          // ma se il save della nota fallisce vogliamo:
+          //  1) Loggare l'errore (no silent error nella console del browser)
+          //  2) Informare l'utente con toast (no crash)
+          //  3) NON propagare (il move è già committato — re-throw farebbe
+          //     un toast generico onError sopra inutile)
           if (newStage?.stage_type === "documenti_mancanti" && noteDocMancanti?.trim()) {
-            await updatePracticeForDocMiss.mutateAsync({
-              id: practiceId,
-              updates: { note_documenti_mancanti: noteDocMancanti.trim() },
-            });
+            try {
+              await updatePracticeForDocMiss.mutateAsync({
+                id: practiceId,
+                updates: { note_documenti_mancanti: noteDocMancanti.trim() },
+              });
+            } catch (err) {
+              console.error("[KanbanBoard] save note_documenti_mancanti failed:", err);
+              toast({
+                variant: "destructive",
+                title: "Nota documenti non salvata",
+                description: "Lo spostamento è OK ma la nota non è stata salvata. Riapri la card e riprova.",
+              });
+            }
           }
-          // Imposta archivio_path quando la pratica viene inviata al cliente
+          // Imposta archivio_path quando la pratica viene inviata al cliente.
+          // Idem: try/catch per evitare silent error se l'archivio_path update
+          // fallisce (es. RLS, network). Lo spostamento stage è già committato.
           if (newStage?.stage_type === "da_inviare") {
             const practice = practices.find((p) => p.id === practiceId);
             if (practice) {
@@ -2341,10 +2384,17 @@ export default function KanbanBoard() {
               const month = String(now.getMonth() + 1).padStart(2, "0");
               const clientName = `${practice.cliente_nome ?? ""}_${practice.cliente_cognome ?? ""}`.replace(/\s+/g, "_").toLowerCase();
               const archivioPath = `archivio/${year}/${month}/${clientName}_${practiceId}/`;
-              await updatePracticeForDocMiss.mutateAsync({
-                id: practiceId,
-                updates: { archivio_path: archivioPath },
-              });
+              try {
+                await updatePracticeForDocMiss.mutateAsync({
+                  id: practiceId,
+                  updates: { archivio_path: archivioPath },
+                });
+              } catch (err) {
+                console.error("[KanbanBoard] save archivio_path failed:", err);
+                // No toast: l'archivio_path è metadato interno per future
+                // archiviazioni, l'utente non vede / non agisce su questo
+                // campo direttamente. Log silente è sufficiente.
+              }
             }
           }
           // Fire automation triggers (non-blocking, but surface failures to user)

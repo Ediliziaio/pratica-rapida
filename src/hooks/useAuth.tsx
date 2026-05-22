@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useRef, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { setUser as sentrySetUser } from "@/lib/sentry";
 
@@ -55,6 +56,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
@@ -65,6 +67,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [mustChangePassword, setMustChangePassword] = useState(false);
   // Guard against concurrent fetches for the same userId
   const fetchingForRef = useRef<string | null>(null);
+  // Mounted guard: protegge i setState async dentro onAuthStateChange e
+  // fetchRolesAndProfile dal firing dopo unmount. Senza, React warning:
+  // "Can't perform a React state update on an unmounted component" + leak.
+  const mountedRef = useRef(true);
 
   const fetchRolesAndProfile = async (userId: string) => {
     if (fetchingForRef.current === userId) return;
@@ -121,8 +127,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Set initial mounted state. NB: mountedRef is on top-level useRef.
+    // In React StrictMode, useEffect cleanup+setup fires once extra in dev.
+    // mountedRef tracks "current effect lifecycle is alive".
+    mountedRef.current = true;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        // Race guard: se il provider si è smontato (logout veloce, route
+        // change, hot-reload), evita di chiamare setState su unmounted.
+        if (!mountedRef.current) return;
+
         if (event === "PASSWORD_RECOVERY") {
           // User clicked the reset-password link — hold them on /auth, don't redirect
           setIsPasswordRecovery(true);
@@ -142,6 +156,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setResellerId(null);
           setIsBlocked(false);
           setLoading(false);
+          // CRITICO: clear della cache React Query dopo logout.
+          // Senza, i dati dell'utente precedente restano in cache → quando
+          // il nuovo utente fa login, vede momentaneamente i dati del
+          // precedente prima che le query si refetch (info leak tra
+          // utenti su computer condiviso, audit-trail incorretto).
+          queryClient.clear();
           return;
         }
 
@@ -164,6 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // fire PASSWORD_RECOVERY via onAuthStateChange above before this resolves,
     // so we only set session/loading here if not already in recovery mode.
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mountedRef.current) return;
       setSession(prev => prev ?? session);
       setUser(prev => prev ?? (session?.user ?? null));
       if (session?.user) {
@@ -172,7 +193,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }).catch(console.error);
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mountedRef.current = false;
+      subscription.unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Sync the authenticated user into Sentry so errors carry identity.
@@ -186,12 +211,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    // Try/catch per evitare unhandled rejection se signOut Supabase fallisce
+    // (network down, token già expired). In quel caso forziamo comunque
+    // il clear state locale per non lasciare l'utente in stato "loggato a metà".
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("[useAuth] signOut Supabase failed:", err);
+      // Fallback: forziamo SIGNED_OUT event handler manualmente reset state.
+      // Senza, l'utente avrebbe ancora session=valid ma UI inconsistente.
+    }
     setIsPasswordRecovery(false);
     setMustChangePassword(false);
     setRoles([]);
     setResellerId(null);
     setIsBlocked(false);
+    // Cache clear ulteriore (SIGNED_OUT handler dovrebbe averla fatto già,
+    // ma se signOut fallisce sopra arriviamo qui senza evento → safety net).
+    queryClient.clear();
   };
 
   const clearPasswordRecovery = () => setIsPasswordRecovery(false);

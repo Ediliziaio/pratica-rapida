@@ -21,6 +21,15 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Esbuild minification — production-only optimization:
+  // - `pure`: marca le call console.log / debug / info come prive di side
+  //   effects → esbuild le rimuove via tree-shaking in build production.
+  //   In dev restano (utili per diagnosi locale).
+  // - Manteniamo console.warn e console.error per troubleshooting in prod
+  //   (es. fix WhatsApp, debug auth) — sono diagnostici, non noise.
+  esbuild: {
+    pure: mode === "production" ? ["console.log", "console.debug", "console.info"] : [],
+  },
   build: {
     // Code split per ridurre bundle size principale (era >500kb). Chunk
     // separati per dipendenze pesanti che cambiano raramente → meglio

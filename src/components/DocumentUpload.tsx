@@ -381,7 +381,14 @@ export function DocumentUpload({ praticaId, companyId }: DocumentUploadProps) {
       ...(tipo ? { tipo } : {}),
     });
     if (dbError) {
-      await supabase.storage.from("documenti").remove([path]).catch(() => {});
+      // Cleanup orphan storage file: l'INSERT su `documenti` è fallito ma il
+      // file è stato caricato → rimuoviamo per non lasciare orphan in
+      // Storage. Se la remove fallisce (file già rimosso, RLS, network)
+      // non vogliamo che si propaghi e maschere il vero errore (dbError).
+      // Loggiamo solo, no rethrow.
+      await supabase.storage.from("documenti").remove([path]).catch((e) => {
+        console.warn("[DocumentUpload] orphan storage cleanup failed:", e);
+      });
       throw new Error(`${file.name} (DB): ${dbError.message}`);
     }
   }, [user, companyId, praticaId, documenti]);

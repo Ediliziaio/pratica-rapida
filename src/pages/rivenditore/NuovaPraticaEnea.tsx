@@ -15,7 +15,7 @@ import {
   CheckCircle, Upload, X, Loader2, FileText,
   Sun, Home, Maximize2, Thermometer, Sparkles,
   FolderUp, User, Building2, AlertCircle, ExternalLink,
-  HelpCircle, Info,
+  HelpCircle, Info, Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TipoFatturazione, TipoSoggetto, TipoServizio } from "@/integrations/supabase/types";
@@ -33,7 +33,7 @@ const STORAGE_BUCKET = "enea-documents";
 // Link moduli raccolta dati
 const MODULI_URL = "https://drive.google.com/file/d/1ZZit5BsW1X0IkQ2_Xit5Jd8YRUuU6jrQ/view?usp=sharing";
 
-type TipoProdotto = "schermature_solari" | "infissi" | "vepa" | "pompe_calore";
+type TipoProdotto = "schermature_solari" | "infissi" | "vepa" | "pompe_calore" | "insufflaggio_tetti";
 
 // ── Config prodotti ───────────────────────────────────────────────────────────
 const PRODOTTI: {
@@ -47,6 +47,7 @@ const PRODOTTI: {
   { id: "infissi", label: "Infissi / Serramenti", short: "Infissi", icon: Home, color: "text-blue-600 bg-blue-50 border-blue-200" },
   { id: "vepa", label: "VEPA – Vetrate Panoramiche", short: "VEPA", icon: Maximize2, color: "text-purple-600 bg-purple-50 border-purple-200" },
   { id: "pompe_calore", label: "Pompe di Calore / Climatizzazione", short: "Pompe di calore", icon: Thermometer, color: "text-green-600 bg-green-50 border-green-200" },
+  { id: "insufflaggio_tetti", label: "Insufflaggio Tetti", short: "Insufflaggio", icon: Layers, color: "text-orange-600 bg-orange-50 border-orange-200" },
 ];
 
 // ── Dropzone helper ───────────────────────────────────────────────────────────
@@ -237,6 +238,16 @@ export default function NuovaPraticaEnea() {
           extraLabel: null,
           hasExtra: false,
           hasLibretto: true,
+        };
+      case "insufflaggio_tetti":
+        // Insufflaggio tetti: flusso identico agli infissi MA con domanda
+        // specifica su spessore + conducibilità termica. Se NO → allegato
+        // aggiuntivo obbligatorio con questi dati.
+        return {
+          flagQuestion: "La fattura riporta lo spessore dell'insufflaggio e la conducibilità termica?",
+          extraLabel: "Documento con spessore insufflaggio e conducibilità termica",
+          hasExtra: true,
+          hasLibretto: false,
         };
     }
   };

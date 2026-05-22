@@ -12,7 +12,7 @@ export type StepId =
   | "prodotto"
   | "recap";
 
-export type ProdottoTipo = "infissi" | "schermature" | "impianto_termico";
+export type ProdottoTipo = "infissi" | "schermature" | "impianto_termico" | "insufflaggio";
 
 export type TitoloRichiedente =
   | "proprietario_o_comproprietario"
@@ -140,10 +140,23 @@ export interface ProdottoImpiantoTermicoData {
   // libretto già su impianto.libretto_url; nessun campo extra al momento
 }
 
+/**
+ * Insufflaggio tetti: il cliente NON deve compilare campi specifici del
+ * prodotto (no infissi sostituiti / montati / zanzariere). Le info tecniche
+ * arrivano dalla fattura del rivenditore (spessore insufflaggio +
+ * conducibilità termica). Step "prodotto" del form pubblico rende null
+ * per questo tipo — gli altri step (edificio, impianto, ecc.) restano
+ * uguali agli infissi.
+ */
+export interface ProdottoInsufflaggioData {
+  tipo: "insufflaggio";
+}
+
 export type ProdottoData =
   | ProdottoInfissiData
   | ProdottoSchermatureData
-  | ProdottoImpiantoTermicoData;
+  | ProdottoImpiantoTermicoData
+  | ProdottoInsufflaggioData;
 
 export interface FormClienteData {
   richiedente: RichiedenteData;
@@ -170,6 +183,7 @@ export const STEPS: { id: StepId; label: string }[] = [
 // ── Helper: detection variante prodotto da `prodotto_installato` ───────────────
 export function detectProdottoTipo(prodottoInstallato: string | null | undefined): ProdottoTipo {
   const v = (prodottoInstallato ?? "").toLowerCase();
+  if (v.includes("insufflag")) return "insufflaggio";
   if (v.includes("infiss")) return "infissi";
   if (v.includes("schermat") || v.includes("tend") || v.includes("pergot")) return "schermature";
   if (v.includes("termico") || v.includes("pompa") || v.includes("calor")) return "impianto_termico";

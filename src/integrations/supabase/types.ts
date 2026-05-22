@@ -1094,7 +1094,7 @@ export type CustomFieldEntity = "enea_practice" | "reseller" | "cliente" | "cont
 
 export type TipoFatturazione = "rivenditore" | "cliente_finale"
 export type TipoSoggetto = "persona_fisica" | "azienda_piva"
-export type TipoProdotto = "schermature_solari" | "infissi" | "vepa" | "pompe_calore"
+export type TipoProdotto = "schermature_solari" | "infissi" | "vepa" | "pompe_calore" | "insufflaggio_tetti"
 export type TipoServizio = "servizio_completo" | "documenti_forniti"
 
 export interface PipelineStage {

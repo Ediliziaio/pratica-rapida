@@ -110,6 +110,12 @@ function initProdottoForVariant(data: FormClienteData, tipo: ProdottoTipo): Form
       prodotto: { tipo: "schermature", items: [{ tipo: "", direzione: "" }] },
     };
   }
+  if (tipo === "insufflaggio") {
+    // Insufflaggio: nessun dato specifico del prodotto. Le info tecniche
+    // (spessore + conducibilità termica) le fornisce il rivenditore via
+    // fattura/allegato, non il cliente finale.
+    return { ...data, prodotto: { tipo: "insufflaggio" } };
+  }
   return { ...data, prodotto: { tipo: "impianto_termico" } };
 }
 

@@ -376,15 +376,23 @@ async function handleSeedDefaultTemplates(
 }
 
 /**
- * 5 template di base per Pratica Rapida. Tutti UTILITY (approval rapido Meta),
- * lingua italiana, body con placeholder {{N}} ed esempi obbligatori.
+ * 9 template ufficiali Pratica Rapida v3 (dal doc "Descrizione form per
+ * florin"). Tutti UTILITY, lingua italiana, body con placeholder {{N}} ed
+ * esempi obbligatori per approval Meta.
  *
  * Mapping intended:
- *  - sollecito_compilazione → days_waiting_7
- *  - sollecito_recensione   → recensione_7d_followup
- *  - modulo_cliente_enea    → notify-cliente (manuale)
- *  - pratica_ricevuta       → stage_changed (manuale, conferma ricezione)
- *  - pratica_completata     → stage_changed (manuale, chiusura pratica)
+ *  - pratica_climatizzatori / _cf      → invio form al cliente (servizio_completo, prodotto=climatizzatori/pompe_calore)
+ *  - pratica_infissi / _cf             → invio form al cliente (servizio_completo, prodotto=infissi/vepa)
+ *  - pratica_schermature / _cf         → invio form al cliente (servizio_completo, prodotto=schermature_solari)
+ *  - sollecito_compilazione            → days_waiting_7 (cron daily, link form)
+ *  - conferma_ricezione                → form_submitted (stage → pronte_da_fare)
+ *  - pratica_inviata_recensione        → stage_changed → da_inviare (incl. richiesta recensione)
+ *
+ * Footer brand "PraticaRapida" su tutti per consistency.
+ *
+ * Placeholders:
+ *  {{1}} = nome cliente finale
+ *  {{2}} = nome rivenditore (per le pratica_*) OPPURE email (per conferma_ricezione e pratica_inviata_recensione)
  */
 function getDefaultTemplates(): Array<{
   name: string;
@@ -392,70 +400,124 @@ function getDefaultTemplates(): Array<{
   language: string;
   components: Array<Record<string, unknown>>;
 }> {
+  // Body comune per i 6 template invio form (varia solo il nome prodotto)
+  const bodyTemplateInvioForm = (prodottoDescrizione: string) =>
+    `Gentile {{1}}, la contattiamo perché *{{2}}* ci ha incaricato di gestire la pratica ENEA relativa ${prodottoDescrizione} presso la sua abitazione, necessaria per poter usufruire della detrazione fiscale prevista dall'Ecobonus. PraticaRapida è il servizio che si occupa della raccolta dei dati e della trasmissione della pratica al portale ENEA. Per procedere le chiediamo di compilare il modulo alla fine di questo messaggio, inserendo i dati richiesti. Al termine della compilazione clicchi su "INVIA". Riceverà un messaggio di conferma se l'invio è avvenuto correttamente. Una volta ricevuti i dati completi, la pratica ENEA verrà elaborata e inviata entro 24/48 ore all'indirizzo email indicato nel modulo. Se preferisce, può anche contattarci telefonicamente per compilare passo-passo a voce. Per qualsiasi dubbio può rispondere direttamente a questo messaggio. Restiamo a disposizione.`;
+
+  const exampleNomeRivenditore: { body_text: string[][] } = {
+    body_text: [["Mario", "EdiliRossi SRL"]],
+  };
+
   return [
+    // 1. Climatizzatori (standard)
+    {
+      name: "pratica_climatizzatori",
+      category: "UTILITY",
+      language: "it",
+      components: [
+        { type: "HEADER", format: "TEXT", text: "Pratica ENEA per conto di {{1}}", example: { header_text: ["Mario"] } },
+        { type: "BODY", text: bodyTemplateInvioForm("all'intervento di climatizzazione effettuato"), example: exampleNomeRivenditore },
+        { type: "FOOTER", text: "PraticaRapida" },
+      ],
+    },
+    // 2. Climatizzatori CF (a carico cliente finale)
+    {
+      name: "pratica_climatizzatori_cf",
+      category: "UTILITY",
+      language: "it",
+      components: [
+        { type: "HEADER", format: "TEXT", text: "Pratica ENEA per conto di {{1}}", example: { header_text: ["Mario"] } },
+        { type: "BODY", text: bodyTemplateInvioForm("all'intervento di climatizzazione effettuato"), example: exampleNomeRivenditore },
+        { type: "FOOTER", text: "PraticaRapida" },
+      ],
+    },
+    // 3. Infissi (standard) — copre anche VEPA (stesso schema doc v3)
+    {
+      name: "pratica_infissi",
+      category: "UTILITY",
+      language: "it",
+      components: [
+        { type: "HEADER", format: "TEXT", text: "Pratica ENEA per conto di {{1}}", example: { header_text: ["Mario"] } },
+        { type: "BODY", text: bodyTemplateInvioForm("all'installazione di infissi"), example: exampleNomeRivenditore },
+        { type: "FOOTER", text: "PraticaRapida" },
+      ],
+    },
+    // 4. Infissi CF
+    {
+      name: "pratica_infissi_cf",
+      category: "UTILITY",
+      language: "it",
+      components: [
+        { type: "HEADER", format: "TEXT", text: "Pratica ENEA per conto di {{1}}", example: { header_text: ["Mario"] } },
+        { type: "BODY", text: bodyTemplateInvioForm("all'installazione di infissi"), example: exampleNomeRivenditore },
+        { type: "FOOTER", text: "PraticaRapida" },
+      ],
+    },
+    // 5. Schermature solari (standard)
+    {
+      name: "pratica_schermature",
+      category: "UTILITY",
+      language: "it",
+      components: [
+        { type: "HEADER", format: "TEXT", text: "Pratica ENEA per conto di {{1}}", example: { header_text: ["Mario"] } },
+        { type: "BODY", text: bodyTemplateInvioForm("all'installazione di schermature solari"), example: exampleNomeRivenditore },
+        { type: "FOOTER", text: "PraticaRapida" },
+      ],
+    },
+    // 6. Schermature solari CF
+    {
+      name: "pratica_schermature_cf",
+      category: "UTILITY",
+      language: "it",
+      components: [
+        { type: "HEADER", format: "TEXT", text: "Pratica ENEA per conto di {{1}}", example: { header_text: ["Mario"] } },
+        { type: "BODY", text: bodyTemplateInvioForm("all'installazione di schermature solari"), example: exampleNomeRivenditore },
+        { type: "FOOTER", text: "PraticaRapida" },
+      ],
+    },
+    // 7. Sollecito compilazione (cron daily ogni 7gg)
     {
       name: "sollecito_compilazione",
       category: "UTILITY",
       language: "it",
       components: [
+        { type: "HEADER", format: "TEXT", text: "Stiamo aspettando di lavorare la tua pratica ENEA!", example: { header_text: ["promemoria"] } },
         {
           type: "BODY",
-          text: "Ciao {{1}}! 👋\n\nTi ricordiamo di compilare il modulo per la tua pratica ENEA. Puoi farlo in 5 minuti seguendo questo link:\n\n{{2}}\n\nHai ancora {{3}} per completare. Se hai bisogno di aiuto, rispondi a questo messaggio.\n\nGrazie!",
-          example: { body_text: [["Mario", "https://app.praticarapida.it/form/abc123", "30 giorni"]] },
+          text: "Gentile {{1}}, le ricordiamo di completare la compilazione del modulo necessario per la gestione della sua pratica ENEA relativa all'intervento effettuato da {{2}}. Può compilare il modulo al seguente link: {{3}}\n\nUna volta inviati i dati richiesti, potremo procedere con l'elaborazione della pratica ENEA e inviarla entro 24/48 ore all'indirizzo email indicato. Se ha dubbi o preferisce, può contattarci telefonicamente o scriverci su WhatsApp: saremo lieti di aiutarla e, se necessario, compilare insieme i dati richiesti. Cordiali saluti\nServizio Clienti PraticaRapida",
+          example: { body_text: [["Mario", "EdiliRossi SRL", "https://app.praticarapida.it/form/abc123"]] },
         },
-        { type: "FOOTER", text: "Pratica Rapida - Edilizia.io" },
+        { type: "FOOTER", text: "PraticaRapida" },
       ],
     },
+    // 8. Conferma ricezione (dopo form_submitted, stage → pronte_da_fare)
     {
-      name: "sollecito_recensione",
+      name: "conferma_ricezione",
       category: "UTILITY",
       language: "it",
       components: [
+        { type: "HEADER", format: "TEXT", text: "Grazie per la compilazione", example: { header_text: ["conferma"] } },
         {
           type: "BODY",
-          text: "Ciao {{1}}! 🌟\n\nLa tua pratica ENEA è stata completata con successo. Come è andata l'esperienza con noi?\n\nLa tua opinione conta tantissimo e ci aiuta a migliorare il servizio. Lascia una recensione veloce, ti ruba 30 secondi.",
-          example: { body_text: [["Mario"]] },
+          text: "Gentile {{1}}, la informiamo che abbiamo ricevuto correttamente i dati relativi alla sua pratica ENEA e la richiesta è ora in lavorazione. Una volta completata, la pratica verrà inviata all'indirizzo email indicato nel modulo: {{2}}\n\nCordiali saluti\nServizio Clienti PraticaRapida",
+          example: { body_text: [["Mario", "mario.rossi@email.it"]] },
         },
-        { type: "FOOTER", text: "Pratica Rapida - Edilizia.io" },
+        { type: "FOOTER", text: "PraticaRapida" },
       ],
     },
+    // 9. Pratica inviata + richiesta recensione
     {
-      name: "modulo_cliente_enea",
+      name: "pratica_inviata_recensione",
       category: "UTILITY",
       language: "it",
       components: [
+        { type: "HEADER", format: "TEXT", text: "Abbiamo inviato la tua pratica", example: { header_text: ["completata"] } },
         {
           type: "BODY",
-          text: "Ciao {{1}},\n\nper completare la tua pratica ENEA abbiamo bisogno di alcune informazioni. Compila il modulo in 5 minuti:\n\n{{2}}\n\nSe hai domande, rispondi pure a questo messaggio.\n\nGrazie,\nIl team di Pratica Rapida",
-          example: { body_text: [["Mario", "https://app.praticarapida.it/form/abc123"]] },
+          text: "Buongiorno {{1}},\nAvvisiamo che la sua pratica è stata inviata via email all'indirizzo: {{2}}\n\nLa pratica è pronta da esibire in fase di dichiarazione. Grazie per la collaborazione. Se desidera, può dedicarci un minuto per lasciare una recensione sul servizio ricevuto cliccando al link di questo messaggio. Il suo feedback è molto importante per noi.\n\nGrazie e buona giornata.\nServizio Clienti PraticaRapida",
+          example: { body_text: [["Mario", "mario.rossi@email.it"]] },
         },
-        { type: "FOOTER", text: "Pratica Rapida - Edilizia.io" },
-      ],
-    },
-    {
-      name: "pratica_ricevuta",
-      category: "UTILITY",
-      language: "it",
-      components: [
-        {
-          type: "BODY",
-          text: "Ciao {{1}},\n\nabbiamo ricevuto correttamente la tua pratica ENEA (rif. {{2}}). I nostri tecnici inizieranno la lavorazione nelle prossime ore.\n\nTi terremo aggiornato sullo stato. Per qualsiasi domanda rispondi pure qui.\n\nGrazie per averci scelto!",
-          example: { body_text: [["Mario", "ENEA-2026-001234"]] },
-        },
-        { type: "FOOTER", text: "Pratica Rapida - Edilizia.io" },
-      ],
-    },
-    {
-      name: "pratica_completata",
-      category: "UTILITY",
-      language: "it",
-      components: [
-        {
-          type: "BODY",
-          text: "Ciao {{1}}! ✅\n\nLa tua pratica ENEA è stata completata e inviata con successo. Riceverai la conferma ufficiale via email entro 48 ore.\n\nGrazie per averci scelto. Per qualsiasi necessità futura siamo qui.",
-          example: { body_text: [["Mario"]] },
-        },
-        { type: "FOOTER", text: "Pratica Rapida - Edilizia.io" },
+        { type: "FOOTER", text: "PraticaRapida" },
       ],
     },
   ];

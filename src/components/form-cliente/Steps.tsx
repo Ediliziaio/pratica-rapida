@@ -934,5 +934,26 @@ export interface StepProdottoProps extends StepProps {
 export function StepProdotto(props: StepProdottoProps) {
   if (props.prodottoTipo === "infissi") return <ProdottoInfissi {...props} />;
   if (props.prodottoTipo === "schermature") return <ProdottoSchermature {...props} />;
+  if (props.prodottoTipo === "insufflaggio") return <ProdottoInsufflaggio {...props} />;
   return <ProdottoImpianto {...props} />;
+}
+
+/**
+ * Step "prodotto" per Insufflaggio Tetti: il cliente finale non deve
+ * compilare nulla di specifico per il prodotto. Le info tecniche (spessore
+ * insufflaggio + conducibilità termica) le fornisce il rivenditore tramite
+ * fattura o allegato dedicato. Gli step precedenti (richiedente, indirizzo,
+ * catastali, edificio, impianto) restano identici agli infissi.
+ */
+function ProdottoInsufflaggio(_props: StepProdottoProps) {
+  return (
+    <div className="space-y-3">
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+        <p className="font-semibold mb-1">✓ Nessun dato aggiuntivo richiesto</p>
+        <p className="text-xs text-emerald-800">
+          Per la sua pratica di insufflaggio tetti non servono ulteriori informazioni in questa sezione. Può procedere al recap finale.
+        </p>
+      </div>
+    </div>
+  );
 }

@@ -1067,10 +1067,10 @@ function TemplatesTab() {
                     onClick={() => seedMutation.mutate()}
                     disabled={seedMutation.isPending}
                     className="gap-2"
-                    title="Crea automaticamente i 5 template di base (sollecito_compilazione, sollecito_recensione, modulo_cliente_enea, pratica_ricevuta, pratica_completata)"
+                    title="Push a Meta i 9 template ufficiali v3: pratica_climatizzatori (+_cf), pratica_infissi (+_cf), pratica_schermature (+_cf), sollecito_compilazione, conferma_ricezione, pratica_inviata_recensione. Skippa quelli già esistenti."
                   >
                     {seedMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                    Crea 5 template di base
+                    Crea 9 template ufficiali
                   </Button>
                   <Button
                     variant="outline"

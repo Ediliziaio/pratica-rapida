@@ -50,6 +50,19 @@ export default defineConfig(({ mode }) => ({
           ],
           "vendor-forms": ["react-hook-form", "@hookform/resolvers", "zod"],
           "vendor-date": ["date-fns"],
+          "vendor-tiptap": [
+            "@tiptap/react",
+            "@tiptap/starter-kit",
+            "@tiptap/extension-link",
+            "@tiptap/extension-image",
+            "@tiptap/extension-placeholder",
+            "@tiptap/extension-underline",
+            "@tiptap/extension-text-align",
+            "@tiptap/extension-table",
+            "@tiptap/extension-table-row",
+            "@tiptap/extension-table-header",
+            "@tiptap/extension-table-cell",
+          ],
         },
         // Naming hash → cache invalidation deterministica + cache hit ottimale
         // su deploy successivi che non toccano un chunk.

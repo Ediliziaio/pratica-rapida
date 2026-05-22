@@ -562,6 +562,43 @@
 }
 
 /* ============================================================
+ * Image Aspect Ratios — prevent CLS (Cumulative Layout Shift)
+ * Define aspect-ratio early to prevent layout shift when images load
+ * ============================================================ */
+
+/* Logos (aspect-ratio 1966/247 ≈ 8:1) */
+img[alt*="Pratica Rapida"],
+img[alt*="pratica rapida"],
+[class*="logo-img"],
+[class*="brand-logo"] {
+  aspect-ratio: 1966 / 247;
+}
+
+/* Blog cover images — common 16:9 */
+.blog-cover,
+.article-cover,
+.post-thumbnail {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Hero images */
+.hero-image,
+[class*="hero"] img {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  height: auto;
+}
+
+/* Generic img fallback */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ============================================================
  * Print-friendly documents — nascondiamo tutto durante la stampa
  * tranne `.printable-area`. Attivato via classe `.printing-document`
  * applicata a <body> dal componente che chiama window.print().

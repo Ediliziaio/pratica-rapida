@@ -16,7 +16,7 @@
  *  - Reading-time auto-calcolato dal body
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,7 +57,12 @@ import SlugInput from "@/components/admin/news/SlugInput";
 import TagInput from "@/components/admin/news/TagInput";
 import CharacterCounter from "@/components/admin/news/CharacterCounter";
 import PublishChecklist, { type PublishCheck } from "@/components/admin/news/PublishChecklist";
-import WysiwygEditor from "@/components/admin/news/wysiwyg/WysiwygEditor";
+// WysiwygEditor (TipTap-based) lazy-loaded: pesa ~300KB con tutti gli
+// extension TipTap. Senza lazy, finiva nel chunk principale di AdminNews
+// (era 487KB / 152KB gzipped). Lazy permette di mostrare la lista articoli
+// e i metadata SENZA caricare l'editor finché l'admin non clicca "Modifica"
+// o "Nuovo". Fallback skeleton durante chunk fetch.
+const WysiwygEditor = lazy(() => import("@/components/admin/news/wysiwyg/WysiwygEditor"));
 
 type EditorState = Partial<NewsArticle> & { id?: string };
 
@@ -933,11 +938,13 @@ function BodyEditor({ value, onChange }: { value: string; onChange: (v: string) 
           {wordCount} parole · ~{readingTime} min di lettura
         </span>
       </div>
-      <WysiwygEditor
-        value={value}
-        onChange={onChange}
-        placeholder="Inizia a scrivere il tuo articolo… Usa la barra in alto per titoli, grassetto, liste, immagini, riquadri evidenziati, tabelle."
-      />
+      <Suspense fallback={<div className="h-96 rounded-lg bg-muted/30 animate-pulse" />}>
+        <WysiwygEditor
+          value={value}
+          onChange={onChange}
+          placeholder="Inizia a scrivere il tuo articolo… Usa la barra in alto per titoli, grassetto, liste, immagini, riquadri evidenziati, tabelle."
+        />
+      </Suspense>
       <p className="text-[11px] text-muted-foreground mt-1">
         Suggerimento: seleziona del testo per far comparire il menu rapido.
       </p>

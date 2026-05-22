@@ -253,9 +253,22 @@ export default function BlogPostPage() {
 
   const related = useMemo(() => {
     if (!post) return [];
-    return allPosts
+    // First, try to find articles in the same category (sorted by date desc)
+    const sameCat = allPosts
       .filter((p) => p.id !== post.id && p.category === post.category)
+      .sort((a, b) => new Date(b.published_at || "").getTime() - new Date(a.published_at || "").getTime())
       .slice(0, 2);
+    
+    // If we have 2 articles in same category, return them
+    if (sameCat.length >= 2) return sameCat;
+    
+    // Otherwise, supplement with recent articles from other categories
+    const otherCat = allPosts
+      .filter((p) => p.id !== post.id && p.category !== post.category)
+      .sort((a, b) => new Date(b.published_at || "").getTime() - new Date(a.published_at || "").getTime())
+      .slice(0, 2 - sameCat.length);
+    
+    return [...sameCat, ...otherCat];
   }, [post, allPosts]);
 
   if (isLoading) {

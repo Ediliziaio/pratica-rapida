@@ -68,11 +68,11 @@
     <meta name="twitter:description" content="Gestiamo pratiche ENEA e Conto Termico a tuo nome in 48 ore. Nessun canone fisso. 500+ installatori attivi in tutta Italia." />
     <meta name="twitter:image" content="https://www.praticarapida.it/og-image.png" />
 
-    <!-- JSON-LD: Organization -->
+    <!-- JSON-LD: Organization + LocalBusiness -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "Organization",
+      "@type": ["Organization", "LocalBusiness"],
       "name": "Pratica Rapida",
       "legalName": "Pratica Rapida S.r.l.s.",
       "url": "https://www.praticarapida.it",
@@ -114,6 +114,46 @@
     }
     </script>
 
+    <!-- JSON-LD: Services (ENEA + Conto Termico) -->
+    <script type="application/ld+json">
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        "name": "Gestione Pratiche ENEA",
+        "description": "Completiamo le tue pratiche ENEA di ecobonus e riqualificazione energetica in 48 ore lavorative. Raccogliamo i documenti, compiliamo e inviamo al portale ENEA.",
+        "provider": {
+          "@type": "Organization",
+          "name": "Pratica Rapida",
+          "url": "https://www.praticarapida.it"
+        },
+        "areaServed": {
+          "@type": "Country",
+          "name": "IT"
+        },
+        "availableLanguage": "it",
+        "serviceType": "Pratica ENEA Ecobonus"
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        "name": "Gestione Pratiche Conto Termico GSE",
+        "description": "Gestiamo le tue richieste Conto Termico 2.0 per pompe di calore e generatori a biomassa. Inviamo direttamente al portale GSE, nessun canone fisso.",
+        "provider": {
+          "@type": "Organization",
+          "name": "Pratica Rapida",
+          "url": "https://www.praticarapida.it"
+        },
+        "areaServed": {
+          "@type": "Country",
+          "name": "IT"
+        },
+        "availableLanguage": "it",
+        "serviceType": "Pratica Conto Termico GSE"
+      }
+    ]
+    </script>
+
     <!-- JSON-LD: WebSite + SearchAction -->
     <script type="application/ld+json">
     {
@@ -142,14 +182,14 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap"
     />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap&subset=latin"
       rel="stylesheet"
       media="print"
       onload="this.media='all'; this.onload=null;"
     />
     <noscript>
       <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap&subset=latin"
         rel="stylesheet"
       />
     </noscript>

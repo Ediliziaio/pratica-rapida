@@ -724,8 +724,12 @@ export default function Utenti() {
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
                                         <AlertDialogCancel>Annulla</AlertDialogCancel>
+                                        {/* disabled durante mutation pending: evita double-click che
+                                            invierebbe 2 DELETE in parallelo (raro ma possibile su
+                                            rete lenta + utente nervoso). */}
                                         <AlertDialogAction
                                           onClick={() => removeRole.mutate(r.id)}
+                                          disabled={removeRole.isPending}
                                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                         >Rimuovi</AlertDialogAction>
                                       </AlertDialogFooter>

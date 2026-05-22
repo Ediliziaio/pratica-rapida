@@ -704,7 +704,12 @@ function MessageComposer({
       else if (mime.startsWith("audio/")) mediaType = "audio";
       else mediaType = "document";
 
-      // 2. Validation: 16MB images, 100MB video (Meta limits)
+      // 2. Validation: limiti ufficiali Meta WhatsApp Cloud API (v18+).
+      // Ref: https://developers.facebook.com/docs/whatsapp/cloud-api/reference/media
+      //   image: 5 MB (jpg/png/webp)
+      //   video: 16 MB (mp4/3gpp)
+      //   audio: 16 MB (aac/m4a/amr/mp3/ogg)
+      //   document: 100 MB (pdf/doc/xls/ppt/txt)
       const limits: Record<typeof mediaType, number> = {
         image: 5 * 1024 * 1024,
         video: 16 * 1024 * 1024,

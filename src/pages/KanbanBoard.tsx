@@ -3226,12 +3226,20 @@ export default function KanbanBoard() {
           <Select
             value={bulkMoveStageId}
             onValueChange={(stageId) => {
+              // Guard contro double-click rapido durante mutation in flight:
+              // senza, l'utente che clicca rapidamente 2 stages diversi
+              // triggera 2 mutate() in parallelo → race condition (la
+              // seconda può completare prima della prima, ordering
+              // inconsistente nel DB). Il Select disabled chiude la
+              // tendina durante la mutation e ignora click successivi.
+              if (bulkMoveMutation.isPending) return;
               setBulkMoveStageId(stageId);
               bulkMoveMutation.mutate({ ids: Array.from(selectedIds), stageId });
             }}
+            disabled={bulkMoveMutation.isPending}
           >
             <SelectTrigger className="h-8 w-[180px] text-xs">
-              <SelectValue placeholder="Sposta in..." />
+              <SelectValue placeholder={bulkMoveMutation.isPending ? "Spostamento…" : "Sposta in..."} />
             </SelectTrigger>
             <SelectContent>
               {stages.map((s) => (

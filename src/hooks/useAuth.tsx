@@ -76,54 +76,84 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (fetchingForRef.current === userId) return;
     fetchingForRef.current = userId;
 
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
-    if (roleData) {
-      setRoles(roleData.map((r) => r.role as AppRole));
-    }
+    // try/finally garantisce reset di fetchingForRef anche su throw.
+    // mountedRef guard prima di ogni setState evita warning + leak se il
+    // provider si è smontato durante la fetch. CRITICO: se questa fetch
+    // fallisce silenziosamente (RLS deny, network), DEVE comunque chiamare
+    // setRoles([]) esplicitamente — altrimenti `roles` resta `[]` iniziale
+    // e RoleGuard ritorna null infinito (spinner senza fine). Stesso per
+    // mustChangePassword e resellerId.
+    try {
+      const { data: roleData, error: roleErr } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
 
-    // resellerId resolves via user_company_assignments for ANY role that owns
-    // practices in the new enea_practices table. Historically only "rivenditore"
-    // needed it, but azienda_admin / azienda_user now also create practices via
-    // /enea/nuova, and enea_practices RLS checks user_company_assignments via
-    // get_reseller_company_id() regardless of role. Widen it here so the form
-    // can submit and the kanban/archive queries resolve the right company.
-    const ownsPracticesViaAssignment = roleData?.some((r) =>
-      ["rivenditore", "azienda_admin", "azienda_user"].includes(r.role),
-    );
-    if (ownsPracticesViaAssignment) {
-      const { data: assignment } = await supabase
-        .from("user_company_assignments")
-        .select("company_id, companies(is_active, blocked_at)")
-        .eq("user_id", userId)
-        .limit(1)
-        .maybeSingle();
+      if (!mountedRef.current) return;
 
-      if (assignment) {
-        setResellerId(assignment.company_id);
-        const company = assignment.companies as { is_active: boolean; blocked_at: string | null } | null;
-        setIsBlocked(!company?.is_active || !!company?.blocked_at);
+      // Esplicito anche su roleData null/errore: setRoles([]) chiude lo
+      // "stato di caricamento" di RoleGuard. Pre-fix: solo se roleData
+      // veniva valorizzato la UI sapeva che il fetch era completato.
+      if (roleErr) {
+        console.error("[useAuth] fetch user_roles failed:", roleErr);
+      }
+      setRoles(roleData ? roleData.map((r) => r.role as AppRole) : []);
+
+      // resellerId resolves via user_company_assignments for ANY role that owns
+      // practices in the new enea_practices table. Historically only "rivenditore"
+      // needed it, but azienda_admin / azienda_user now also create practices via
+      // /enea/nuova, and enea_practices RLS checks user_company_assignments via
+      // get_reseller_company_id() regardless of role. Widen it here so the form
+      // can submit and the kanban/archive queries resolve the right company.
+      const ownsPracticesViaAssignment = roleData?.some((r) =>
+        ["rivenditore", "azienda_admin", "azienda_user"].includes(r.role),
+      );
+      if (ownsPracticesViaAssignment) {
+        const { data: assignment } = await supabase
+          .from("user_company_assignments")
+          .select("company_id, companies(is_active, blocked_at)")
+          .eq("user_id", userId)
+          .limit(1)
+          .maybeSingle();
+
+        if (!mountedRef.current) return;
+        if (assignment) {
+          setResellerId(assignment.company_id);
+          const company = assignment.companies as { is_active: boolean; blocked_at: string | null } | null;
+          setIsBlocked(!company?.is_active || !!company?.blocked_at);
+        } else {
+          setResellerId(null);
+          setIsBlocked(false);
+        }
       } else {
         setResellerId(null);
         setIsBlocked(false);
       }
-    } else {
-      setResellerId(null);
-      setIsBlocked(false);
+
+      // Read profile flag for forced password change (set by super_admin via
+      // set-company-password edge function).
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("must_change_password")
+        .eq("id", userId)
+        .maybeSingle();
+      if (!mountedRef.current) return;
+      setMustChangePassword(!!profile?.must_change_password);
+    } catch (err) {
+      // Fail-safe: qualunque errore non gestito → almeno chiudi lo stato
+      // "caricamento ruoli" per evitare spinner infinito su RoleGuard.
+      // L'utente vedrà fallback redirect a "/", non meglio ma almeno
+      // l'app non è bloccata.
+      console.error("[useAuth] fetchRolesAndProfile threw:", err);
+      if (mountedRef.current) {
+        setRoles([]);
+        setResellerId(null);
+        setIsBlocked(false);
+        setMustChangePassword(false);
+      }
+    } finally {
+      fetchingForRef.current = null;
     }
-
-    // Read profile flag for forced password change (set by super_admin via
-    // set-company-password edge function).
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("must_change_password")
-      .eq("id", userId)
-      .maybeSingle();
-    setMustChangePassword(!!profile?.must_change_password);
-
-    fetchingForRef.current = null;
   };
 
   useEffect(() => {

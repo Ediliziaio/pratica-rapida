@@ -2,20 +2,49 @@
 <html lang="it">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Mobile / PWA -->
+    <meta name="theme-color" content="#00843D" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0F172A" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Pratica Rapida" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Icons -->
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png" />
+    <link rel="mask-icon" href="/favicon.png" color="#00843D" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Performance: DNS prefetch + preconnect critici -->
+    <link rel="dns-prefetch" href="https://xmkjrhwmmuzaqjqlvzxm.supabase.co" />
+    <link rel="preconnect" href="https://xmkjrhwmmuzaqjqlvzxm.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
 
     <!-- SEO PRIMARIO (fallback — react-helmet sovrascrive per ogni pagina) -->
     <title>Pratiche ENEA e Conto Termico per Installatori | Pratica Rapida</title>
     <meta name="description" content="Gestiamo pratiche ENEA e Conto Termico a tuo nome in 48 ore. Raccogliamo i documenti, compiliamo e inviamo. Nessun canone fisso. 500+ installatori attivi in tutta Italia." />
     <meta name="keywords" content="pratica ENEA, comunicazione ENEA, ecobonus infissi, bonus casa serramenti, conto termico GSE, pompe di calore detrazione, pratiche installatori, gestione pratiche energetiche, ENEA online, outsourcing pratiche ENEA" />
     <meta name="author" content="Pratica Rapida S.r.l.s." />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="bingbot" content="index, follow" />
     <meta name="language" content="it" />
-    <meta name="geo.region" content="IT" />
+    <meta name="geo.region" content="IT-MB" />
     <meta name="geo.placename" content="Lissone, Monza e Brianza, Italia" />
+    <meta name="geo.position" content="45.612;9.241" />
+    <meta name="ICBM" content="45.612, 9.241" />
+    <meta name="rating" content="general" />
+    <meta name="revisit-after" content="7 days" />
     <link rel="canonical" href="https://www.praticarapida.it/" />
+
+    <!-- Alternate language (futuro multilingua — placeholder) -->
+    <link rel="alternate" hreflang="it" href="https://www.praticarapida.it/" />
+    <link rel="alternate" hreflang="x-default" href="https://www.praticarapida.it/" />
 
     <!-- OPEN GRAPH -->
     <meta property="og:type" content="website" />
@@ -98,10 +127,29 @@
     }
     </script>
 
-    <!-- Fonts -->
+    <!-- Fonts: preconnect + preload del CSS critico per ridurre FCP/LCP.
+         `display=swap` evita FOIT (testo invisibile finché font carica) —
+         mostriamo subito fallback system font, poi swap quando arriva il
+         file remoto. Riduce CLS percepito su 3G/4G lenti. -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet">
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'; this.onload=null;"
+    />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
   </head>
   <body>
     <div id="root"></div>

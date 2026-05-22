@@ -51,8 +51,29 @@ export default defineConfig(({ mode }) => ({
           "vendor-forms": ["react-hook-form", "@hookform/resolvers", "zod"],
           "vendor-date": ["date-fns"],
         },
+        // Naming hash → cache invalidation deterministica + cache hit ottimale
+        // su deploy successivi che non toccano un chunk.
+        chunkFileNames: "assets/[name]-[hash].js",
+        entryFileNames: "assets/[name]-[hash].js",
+        assetFileNames: "assets/[name]-[hash][extname]",
       },
     },
     chunkSizeWarningLimit: 600,
+    // CSS code split: ogni route lazy ha il suo file CSS → no flash di
+    // styling non collegato + meno render-blocking sul first paint.
+    cssCodeSplit: true,
+    // Minify aggressive — usa esbuild (più veloce di terser, output simile)
+    minify: "esbuild",
+    // Source maps in production: utili per debug Sentry ma SOLO hidden
+    // (no `//# sourceMappingURL=` nel bundle finale → no exposure).
+    sourcemap: "hidden",
+    // Asset inline limit: file < 4kb come data URL (riduce request count
+    // per piccoli SVG/icons inline). Default 4096.
+    assetsInlineLimit: 4096,
+    // Target browser ES2020 — copre 95%+ browser moderni senza dover
+    // polyfillare cose che gli installatori (Chrome/Safari recenti) hanno.
+    target: "es2020",
+    // Report compressed sizes in build log per visibilità performance.
+    reportCompressedSize: true,
   },
 }));

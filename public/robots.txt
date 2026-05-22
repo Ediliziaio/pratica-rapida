@@ -1,8 +1,12 @@
 # robots.txt — praticarapida.it
 # Pratica Rapida S.r.l.s. — Lissone (MB)
 
+# ────────────────────────────────────────────────────────────────
+# Default — tutti i crawler
+# ────────────────────────────────────────────────────────────────
 User-agent: *
 Allow: /
+Crawl-delay: 1
 
 # Aree private — non indicizzare
 Disallow: /auth
@@ -21,7 +25,112 @@ Disallow: /coda-pratiche
 Disallow: /modulo-infissi/
 Disallow: /schermature-solari/
 Disallow: /impianto-termico/
+Disallow: /modulo-vepa/
 Disallow: /form/
 Disallow: /area-riservata-vecchia
+Disallow: /cambia-password
+
+# ────────────────────────────────────────────────────────────────
+# Bot SEO esplicitamente ammessi (Google, Bing)
+# Crawl-delay 0 per ranking velocità
+# ────────────────────────────────────────────────────────────────
+User-agent: Googlebot
+Allow: /
+Disallow: /auth
+Disallow: /admin/
+Disallow: /kanban
+Disallow: /enea/
+Disallow: /form/
+Disallow: /onboarding
+Disallow: /cambia-password
+
+User-agent: Bingbot
+Allow: /
+Disallow: /auth
+Disallow: /admin/
+Disallow: /kanban
+Disallow: /enea/
+Disallow: /form/
+
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /auth
+Disallow: /admin/
+
+# ────────────────────────────────────────────────────────────────
+# Bot social — necessari per Open Graph preview (link sharing).
+# Devono accedere alle pagine pubbliche per leggere og:image, og:title.
+# ────────────────────────────────────────────────────────────────
+User-agent: facebookexternalhit
+Allow: /
+Disallow: /auth
+Disallow: /admin/
+
+User-agent: Twitterbot
+Allow: /
+Disallow: /auth
+
+User-agent: LinkedInBot
+Allow: /
+Disallow: /auth
+
+User-agent: WhatsApp
+Allow: /
+Disallow: /auth
+
+User-agent: Slackbot
+Allow: /
+Disallow: /auth
+
+User-agent: TelegramBot
+Allow: /
+Disallow: /auth
+
+# ────────────────────────────────────────────────────────────────
+# Bot AI / LLM — permettiamo l'accesso per visibilità su AI search
+# (ChatGPT, Perplexity, Gemini AI Overviews). Gli installatori
+# cercano "chi gestisce pratiche ENEA" sempre più via AI.
+# ────────────────────────────────────────────────────────────────
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+Disallow: /kanban
+Disallow: /form/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+Disallow: /kanban
+Disallow: /form/
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /admin/
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+Disallow: /admin/
+
+# ────────────────────────────────────────────────────────────────
+# Scraper aggressivi — throttle pesante
+# ────────────────────────────────────────────────────────────────
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
 
 Sitemap: https://www.praticarapida.it/sitemap.xml
+Host: https://www.praticarapida.it

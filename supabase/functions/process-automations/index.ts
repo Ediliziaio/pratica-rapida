@@ -160,16 +160,18 @@ function readFieldValue(
     }
     default:
       // Field non riconosciuto (es. cliente_provincia, tag_contains).
-      // Ritorniamo `undefined` → l'evaluator lo tratta come "skip non
-      // bloccante" così le rules continuano a funzionare anche con
-      // filtri non ancora cablati.
+      // Ritorniamo `undefined` → l'evaluator lo tratta come FAIL-CLOSED
+      // (condizione NON soddisfatta). Un filtro che il motore non sa
+      // valutare NON deve far scattare la rule per tutte le pratiche.
       return undefined as unknown as null;
   }
 }
 
 /**
  * Valuta una singola condition contro la pratica. Ritorna true se
- * match, false se non match. Campi sconosciuti → true (non bloccante).
+ * match, false se non match. FAIL-CLOSED: campi/operatori sconosciuti
+ * → false (la pratica viene saltata). Inviare a destinatari sbagliati
+ * è peggio che non inviare: un filtro non valutabile deve bloccare.
  */
 function evaluateCondition(
   condition: RuleCondition,
@@ -177,11 +179,13 @@ function evaluateCondition(
   stage?: { name?: string; stage_type?: string } | null,
 ): boolean {
   const fieldValue = readFieldValue(condition.field, practice, stage);
-  // Campo non cablato → permissivo (true) per non bloccare rules con
-  // filtri "futuri" configurati dall'admin.
+  // FAIL-CLOSED: campo non cablato → condizione NON soddisfatta.
+  // Se l'admin configura un filtro su un campo che il motore non sa
+  // valutare, la rule NON deve scattare per tutte le pratiche (causa
+  // storica degli invii a clienti che non devono ricevere email).
   if (fieldValue === undefined) {
-    console.warn(`[evaluateCondition] field "${condition.field}" not yet supported, treating as pass`);
-    return true;
+    console.warn(`[evaluateCondition] field "${condition.field}" non supportato → condizione NON soddisfatta (skip pratica)`);
+    return false;
   }
   const targetValue = condition.value;
   switch (condition.operator) {
@@ -201,8 +205,9 @@ function evaluateCondition(
     case "lte":
       return Number(fieldValue ?? 0) <= Number(targetValue);
     default:
-      console.warn(`[evaluateCondition] operator "${condition.operator}" not supported, treating as pass`);
-      return true;
+      // FAIL-CLOSED anche per operatori non riconosciuti.
+      console.warn(`[evaluateCondition] operator "${condition.operator}" non supportato → condizione NON soddisfatta (skip pratica)`);
+      return false;
   }
 }
 
@@ -484,22 +489,27 @@ serve(async () => {
             if (!rulePassesConditions(rule as Record<string, unknown>, p as Record<string, unknown>)) {
               continue;
             }
-            // Idempotency: skip se il template è già stato inviato a questa pratica.
-            // Match per template_id della rule in communication_log degli ultimi 30gg.
             const templateId = (rule as { template_id?: string }).template_id;
-            if (templateId) {
-              const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-              const { data: alreadySent } = await supabase
-                .from("communication_log")
-                .select("id")
-                .eq("practice_id", p.id)
-                .eq("status", "sent")
-                .or(`body_preview.ilike.%${templateId}%,subject.ilike.%${templateId}%`)
-                .gte("sent_at", thirtyDaysAgo)
-                .limit(1)
-                .maybeSingle();
-              if (alreadySent) continue;
-            }
+            // Idempotency ROBUSTA. Il communication_log NON registra il nome
+            // del template (solo subject + primi 200 char dell'HTML), quindi
+            // il vecchio match `body_preview.ilike.%templateId%` non agganciava
+            // quasi mai → la mail veniva re-inviata ad ogni run del cron per
+            // ~48h. Inoltre la guardia era dentro `if (templateId)`: senza
+            // template_id la deduplica veniva saltata del tutto.
+            // Nuova regola: la mail post-pagamento va inviata UNA volta per
+            // pagamento → saltiamo se esiste già un invio riuscito su questo
+            // canale per la pratica DOPO la data di incasso.
+            const since = (p.data_incasso as string | undefined) ?? twoDaysAgo;
+            const { data: alreadySent } = await supabase
+              .from("communication_log")
+              .select("id")
+              .eq("practice_id", p.id)
+              .eq("channel", rule.channel)
+              .eq("status", "sent")
+              .gte("sent_at", since)
+              .limit(1)
+              .maybeSingle();
+            if (alreadySent) continue;
 
             try {
               if (rule.channel === "email" && p.cliente_email) {

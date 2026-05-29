@@ -26,6 +26,8 @@ const AdminPratiche = lazy(() => import("./pages/AdminPratiche"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Home = lazy(() => import("./pages/Home"));
 const HomeCT = lazy(() => import("./pages/HomeCT"));
+const GuidaCT = lazy(() => import("./pages/GuidaCT"));
+const SimulatoreCT = lazy(() => import("./pages/SimulatoreCT"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
 const TerminiServizio = lazy(() => import("./pages/TerminiServizio"));
@@ -250,6 +252,8 @@ const App = () => (
                 <Route path="/" element={<RootRoute />} />
                 <Route path="/pratica-enea" element={<Home />} />
                 <Route path="/conto-termico" element={<HomeCT />} />
+                <Route path="/conto-termico/guida" element={<GuidaCT />} />
+                <Route path="/conto-termico/simulatore" element={<SimulatoreCT />} />
                 <Route path="/offerta" element={<Navigate to="/pratica-enea" replace />} />
                 <Route path="/home" element={<Navigate to="/" replace />} />
                 <Route path="/area-riservata-vecchia" element={<AreaRiservataVecchia />} />

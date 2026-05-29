@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, Star, ChevronDown } from "lucide-react";
+import { ArrowRight, Star, ChevronDown, Calculator } from "lucide-react";
 import BenefitsWidget from "../landing/BenefitsWidget";
 import HeroNewsWidget from "../landing/HeroNewsWidget";
 
@@ -88,7 +88,7 @@ export default function HeroSectionHome() {
 
           {/* CTAs */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}
-            className="flex flex-col sm:flex-row gap-3">
+            className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
             <Link
               to="/pratica-enea"
               className="inline-flex items-center justify-center gap-2 text-white font-bold px-7 py-4 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
@@ -98,9 +98,21 @@ export default function HeroSectionHome() {
             </Link>
             <Link
               to="/conto-termico"
-              className="inline-flex items-center justify-center gap-2 font-semibold px-7 py-4 rounded-full text-base transition-all border hover:bg-muted active:scale-[0.97] text-foreground border-border"
+              className="group inline-flex items-center justify-center gap-2 font-bold px-7 py-4 rounded-full text-base border-2 transition-all active:scale-[0.97]"
+              style={{ color: "hsl(var(--pr-green))", background: "#faf6ec", borderColor: "hsl(var(--pr-green))", boxShadow: "0 4px 16px hsla(152,80%,35%,0.18)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "hsl(var(--pr-green))"; e.currentTarget.style.color = "#fff"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "#faf6ec"; e.currentTarget.style.color = "hsl(var(--pr-green))"; }}
             >
               Conto Termico <ArrowRight size={16} />
+            </Link>
+            <Link
+              to="/conto-termico/simulatore"
+              className="group inline-flex items-center justify-center gap-2 font-bold px-7 py-4 rounded-full text-base border-2 transition-all active:scale-[0.97]"
+              style={{ color: "hsl(var(--pr-green))", background: "#faf6ec", borderColor: "hsl(var(--pr-green))", boxShadow: "0 4px 16px hsla(152,80%,35%,0.18)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "hsl(var(--pr-green))"; e.currentTarget.style.color = "#fff"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "#faf6ec"; e.currentTarget.style.color = "hsl(var(--pr-green))"; }}
+            >
+              <Calculator size={18} /> Simula l'incentivo C.T. 3.0
             </Link>
           </motion.div>
 

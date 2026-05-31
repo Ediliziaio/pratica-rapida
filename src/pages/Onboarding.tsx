@@ -174,10 +174,14 @@ export default function Onboarding() {
 
       await supabase.from("profiles").update({ onboarding_completed: true, onboarding_step: 4 }).eq("id", user!.id);
 
-      // Email benvenuto
-      await supabase.functions.invoke("send-email", {
-        body: { to: user!.email, template: "onboarding_welcome", data: { nome: merged.nome ?? "", cognome: merged.cognome ?? "" } },
-      }).catch(() => null);
+      // NOTE: la mail di benvenuto è già stata inviata in fase di registrazione
+      // dell'account (template `benvenuto_azienda` / `registrazione_azienda`).
+      // Qui non rispediamo nulla: il toast UI è sufficiente come conferma di fine onboarding.
+      // Storico: in precedenza si invocava send-email con template "onboarding_welcome",
+      // che non esisteva né in email_templates né hardcoded — causava mail VUOTE
+      // ("Notifica da Pratica Rapida" senza corpo) a ogni rivenditore che completava
+      // l'onboarding. Vedi bug-fix mail tagliate.
+      void merged; // silenzia unused-var; merged resta per coerenza con resto del flow
 
       // Pulisci draft localStorage — onboarding completato, non serve più
       if (ONBOARDING_KEY && typeof window !== "undefined") {

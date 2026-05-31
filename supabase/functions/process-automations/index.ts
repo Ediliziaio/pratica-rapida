@@ -177,11 +177,14 @@ function evaluateCondition(
   stage?: { name?: string; stage_type?: string } | null,
 ): boolean {
   const fieldValue = readFieldValue(condition.field, practice, stage);
-  // Campo non cablato → permissivo (true) per non bloccare rules con
-  // filtri "futuri" configurati dall'admin.
+  // FAIL-CLOSED: campo non cablato → consideriamo la condizione NON soddisfatta.
+  // Comportamento precedente: ritornava true (fail-open) → la regola scattava su
+  // TUTTE le pratiche del trigger anche quando il filtro era pensato per
+  // colpirne pochissime, spammando clienti fuori flusso (es. mail a Moroni di
+  // FV Tende). Meglio non inviare che inviare al destinatario sbagliato.
   if (fieldValue === undefined) {
-    console.warn(`[evaluateCondition] field "${condition.field}" not yet supported, treating as pass`);
-    return true;
+    console.warn(`[evaluateCondition] field "${condition.field}" not supported — failing condition closed (no send)`);
+    return false;
   }
   const targetValue = condition.value;
   switch (condition.operator) {
@@ -201,8 +204,9 @@ function evaluateCondition(
     case "lte":
       return Number(fieldValue ?? 0) <= Number(targetValue);
     default:
-      console.warn(`[evaluateCondition] operator "${condition.operator}" not supported, treating as pass`);
-      return true;
+      // FAIL-CLOSED: operatore sconosciuto → condizione NON soddisfatta.
+      console.warn(`[evaluateCondition] operator "${condition.operator}" not supported — failing condition closed (no send)`);
+      return false;
   }
 }
 
@@ -286,6 +290,7 @@ serve(async () => {
                     nome: p.cliente_nome,
                     link: buildFormLink(p.form_token),
                     practice_id: p.id,
+                    trigger_event: rule.trigger_event, // per dedup metadata-based
                   },
                 });
               }
@@ -364,6 +369,7 @@ serve(async () => {
                   stato: "In attesa",
                   tentativi: String(p.conteggio_solleciti),
                   practice_id: p.id,
+                  trigger_event: rule.trigger_event, // per dedup metadata-based
                 },
               });
               // Mark to prevent duplicate sends on subsequent cron ticks
@@ -401,16 +407,23 @@ serve(async () => {
               continue;
             }
             try {
-              // Skip if we already sent a review follow-up (prevents re-sending every cron tick).
-              // NB: matchamo solo entry con status='sent' — se l'ultimo tentativo è
-              // failed vogliamo riprovare al prossimo tick.
+              // Skip if we already sent a review follow-up.
+              // PRIMA: si faceva match testuale `subject ILIKE %recensione%` OR
+              // `body_preview ILIKE %sollecito_recensione%`. Era FRAGILE: quando
+              // il template scelto era inesistente, il subject sparato dal
+              // fallback era "Notifica da Pratica Rapida" e il body non
+              // conteneva "sollecito_recensione" — la dedup NON matchava mai
+              // e il cron rispediva la stessa mail vuota ogni giorno per
+              // settimane (loop infinito). Vedi Moroni FV Tende.
+              // ADESSO: match esatto su metadata->>'trigger_event' = trigger
+              // corrente, scritto da send-email per ogni invio.
               const { data: alreadySent } = await supabase
                 .from("communication_log")
                 .select("id")
                 .eq("practice_id", p.id)
                 .in("channel", ["email", "whatsapp"])
                 .eq("status", "sent")
-                .or("subject.ilike.%recensione%,body_preview.ilike.%sollecito_recensione%")
+                .filter("metadata->>trigger_event", "eq", rule.trigger_event)
                 .limit(1)
                 .maybeSingle();
               if (alreadySent) continue;
@@ -429,6 +442,7 @@ serve(async () => {
                     token: p.form_token,
                     base_url: "https://app.praticarapida.it",
                     practice_id: p.id,
+                    trigger_event: rule.trigger_event, // per dedup metadata-based
                   },
                 });
               }
@@ -484,18 +498,24 @@ serve(async () => {
             if (!rulePassesConditions(rule as Record<string, unknown>, p as Record<string, unknown>)) {
               continue;
             }
-            // Idempotency: skip se il template è già stato inviato a questa pratica.
-            // Match per template_id della rule in communication_log degli ultimi 30gg.
+            // Idempotency: skip se questa rule è già scattata su questa pratica
+            // dopo la data di incasso.
+            // PRIMA: si faceva `body_preview ILIKE %templateId%` ma il
+            // body_preview NON contiene il nome del template (solo i primi 200
+            // caratteri dell'HTML), quindi non matchava mai → re-inviava ad
+            // ogni cron tick per ~48h.
+            // ADESSO: match esatto su metadata->>'trigger_event' = 'pratica_pagata'
+            // scoped sul canale e su sent_at >= data_incasso.
             const templateId = (rule as { template_id?: string }).template_id;
-            if (templateId) {
-              const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+            if (p.data_incasso) {
               const { data: alreadySent } = await supabase
                 .from("communication_log")
                 .select("id")
                 .eq("practice_id", p.id)
+                .eq("channel", rule.channel)
                 .eq("status", "sent")
-                .or(`body_preview.ilike.%${templateId}%,subject.ilike.%${templateId}%`)
-                .gte("sent_at", thirtyDaysAgo)
+                .filter("metadata->>trigger_event", "eq", rule.trigger_event)
+                .gte("sent_at", p.data_incasso)
                 .limit(1)
                 .maybeSingle();
               if (alreadySent) continue;
@@ -513,6 +533,7 @@ serve(async () => {
                     link: p.form_token
                       ? `https://app.praticarapida.it/recensione/${p.form_token}`
                       : "",
+                    trigger_event: rule.trigger_event, // per dedup metadata-based
                   },
                 });
               }

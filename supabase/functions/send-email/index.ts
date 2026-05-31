@@ -137,6 +137,31 @@ function cta(text: string, url: string) {
   return `<div style="text-align:center;margin:24px 0"><a href="${url}" style="background:${COLORS.cta};color:#ffffff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:16px;">${text}</a></div>`;
 }
 
+/**
+ * Lista esplicita di tutti i template name riconosciuti da renderTemplate.
+ * Serve a distinguere "template noto" da "template sconosciuto" in modo
+ * affidabile prima di invocare il rendering, così possiamo fail-closed
+ * quando un caller passa un template inesistente (era la causa delle
+ * mail vuote "Notifica da Pratica Rapida" arrivate ai clienti).
+ * MANTENERE IN SYNC con i `case` dello switch in renderTemplate qui sotto.
+ */
+const HARDCODED_TEMPLATES = new Set<string>([
+  "pratica_ricevuta",
+  "sollecito_privato",
+  "sollecito_fornitore",
+  "form_compilato",
+  "pratica_inviata",
+  "recensione",
+  "ticket_conferma",
+  "ticket_risposta_staff",
+  "ticket_replica_cliente",
+  "ticket_nuovo",
+  "benvenuto_azienda",
+  "richiesta_form",
+  "notifica_docs_mancanti",
+  "notifica_pratica_disponibile",
+]);
+
 function renderTemplate(template: string, data: Record<string, string>): { subject: string; html: string } {
   const r = (s: string) => s.replace(/\{\{(\w+)\}\}/g, (_, k) => data[k] ?? "");
 
@@ -413,7 +438,15 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
       };
 
     default:
-      return { subject: "Notifica da Pratica Rapida", html: base(`<p>${r("{{message}}")}</p>`) };
+      // FAIL-CLOSED: in passato qui si tornava un fallback "Notifica da Pratica
+      // Rapida" con corpo vuoto, che faceva arrivare mail "tagliate" a tutti i
+      // clienti quando un caller invocava send-email con un template name non
+      // esistente (es. "onboarding_welcome", "sollecito_recensione"). Ora il
+      // controllo a monte (HARDCODED_TEMPLATES + email_templates DB) rifiuta la
+      // richiesta con un 400 prima di arrivare qui — questo throw è solo una
+      // safety net per il caso teorico in cui le due liste si siano
+      // disallineate.
+      throw new Error(`unknown_template: ${template}`);
   }
 }
 
@@ -486,9 +519,28 @@ serve(async (req) => {
     const r = (s: string) => s.replace(/\{\{(\w+)\}\}/g, (_, k) => String(safeData[k] ?? ""));
     subject = r(dbTemplate.subject);
     html = r(dbTemplate.html_body);
-  } else {
+  } else if (HARDCODED_TEMPLATES.has(template)) {
     // ── 2) Fallback: rendering hardcoded (utile in caso di DB offline / template non seedato)
     ({ subject, html } = renderTemplate(template, data ?? {}));
+  } else {
+    // ── FAIL-CLOSED: template sconosciuto → non inviamo una mail vuota.
+    // Loggiamo l'errore e ritorniamo 400 al caller, che decide se ritentare
+    // con un template valido o silenziare l'errore. Questo previene la classe
+    // di bug "Notifica da Pratica Rapida vuota" che colpiva i clienti quando
+    // un'automation rule referenziava un template_id inesistente.
+    await reportError(new Error(`send-email: unknown template "${template}"`), {
+      fn: "send-email",
+      template,
+      to,
+      reason: "template_not_found_in_db_and_hardcoded",
+    });
+    return new Response(JSON.stringify({
+      success: false,
+      error: `Unknown template "${template}". Add a row to public.email_templates with trigger_event="${template}" and is_active=true, or use one of the hardcoded templates.`,
+    }), {
+      status: 400,
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
   }
 
   // ── 3) Inietta il footer "Servizio clienti Pratica Rapida" con il telefono
@@ -527,6 +579,11 @@ serve(async (req) => {
   const recipient = Array.isArray(to) ? to.join(",") : to;
 
   if (data?.practice_id) {
+    // Salviamo trigger_event + template in metadata per dedup affidabile lato
+    // process-automations (prima si faceva match testuale sul subject — fragile
+    // e rotto quando il subject cambiava). Vedi process-automations dedup.
+    const meta: Record<string, unknown> = { template };
+    if (data?.trigger_event) meta.trigger_event = data.trigger_event;
     await supabase.from("communication_log").insert({
       practice_id: data.practice_id,
       channel: "email",
@@ -537,6 +594,7 @@ serve(async (req) => {
       status: success ? "sent" : "failed",
       resend_email_id: emailData?.id ?? null,
       error_message: !success ? JSON.stringify(emailData) : null,
+      metadata: meta,
     });
   }
 

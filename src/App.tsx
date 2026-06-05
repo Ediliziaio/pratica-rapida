@@ -35,8 +35,6 @@ const Clienti = lazy(() => import("./pages/Clienti"));
 const AziendaDetail = lazy(() => import("./pages/AziendaDetail"));
 const ImpostazioniPiattaforma = lazy(() => import("./pages/ImpostazioniPiattaforma"));
 const ImpostazioniAzienda = lazy(() => import("./pages/ImpostazioniAzienda"));
-const Assistenza = lazy(() => import("./pages/Assistenza"));
-const AdminTicket = lazy(() => import("./pages/AdminTicket"));
 const Blocked = lazy(() => import("./pages/Blocked"));
 const FormPubblico = lazy(() => import("./pages/FormPubblico"));
 const ModuloClientePage = lazy(() => import("./pages/ModuloClientePage"));
@@ -299,7 +297,6 @@ const App = () => (
                 <Route path="/pratiche/:id" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]} fallback="/kanban"><PraticaDetail /></RoleGuard></ProtectedRoute>} />
                 <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
                 <Route path="/impostazioni" element={<ProtectedRoute><ImpostazioniAzienda /></ProtectedRoute>} />
-                <Route path="/assistenza" element={<ProtectedRoute><Assistenza /></ProtectedRoute>} />
                 <Route path="/clienti" element={<ProtectedRoute><Clienti /></ProtectedRoute>} />
 
                 {/* Staff-only routes (super_admin + operatore — NOT admin_interno/company admins) */}
@@ -311,7 +308,6 @@ const App = () => (
                 <Route path="/admin/audit-log" element={<Navigate to="/admin/impostazioni" replace />} />
                 <Route path="/coda-pratiche" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><CodaPratiche /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/pratiche" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><AdminPratiche /></RoleGuard></ProtectedRoute>} />
-                <Route path="/admin/ticket" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><AdminTicket /></RoleGuard></ProtectedRoute>} />
 
                 {/* Super admin only */}
                 <Route path="/admin/impostazioni" element={<ProtectedRoute><RoleGuard allowed={[...ADMIN_ROLES]}><ImpostazioniPiattaforma /></RoleGuard></ProtectedRoute>} />

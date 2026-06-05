@@ -201,6 +201,9 @@ export default function NuovaPraticaEnea() {
   const [fatturaFiles, setFatturaFiles] = useState<File[]>([]);
   const [docExtra1, setDocExtra1] = useState<File[]>([]); // doc condizionale 1
   const [docExtra2, setDocExtra2] = useState<File[]>([]); // doc condizionale 2 (solo pompe di calore: libretto)
+  // Moduli di raccolta dati compilati — obbligatori SOLO se tipoServizio === "documenti_forniti".
+  // Valido per tutti i prodotti (schermature, infissi, vepa, pompe di calore, insufflaggio tetti).
+  const [moduliRaccoltaFiles, setModuliRaccoltaFiles] = useState<File[]>([]);
   const [flagDocCompleto, setFlagDocCompleto] = useState<boolean | null>(null); // risposta al flag
 
   const [submitting, setSubmitting] = useState(false);
@@ -265,6 +268,9 @@ export default function NuovaPraticaEnea() {
     if (!cognome.trim())   e.cognome = "Cognome obbligatorio";
     if (!telefono.trim())  e.telefono = "Telefono obbligatorio";
     if (fatturaFiles.length === 0) e.fattura = "La fattura è obbligatoria";
+    // Documenti forniti: i moduli di raccolta dati compilati sono obbligatori per ogni prodotto
+    if (tipoServizio === "documenti_forniti" && moduliRaccoltaFiles.length === 0)
+      e.moduliRaccolta = "I moduli di raccolta dati compilati sono obbligatori";
     // Pompe di calore: libretto obbligatorio
     if (tipoProdotto === "pompe_calore" && docExtra2.length === 0)
       e.libretto = "Il libretto dell'impianto è obbligatorio";
@@ -344,13 +350,14 @@ export default function NuovaPraticaEnea() {
       if (insertError || !practice) throw insertError ?? new Error("Insert fallito");
 
       // Upload documenti in parallelo
-      const [fatture, docExtra, docExtra2Res] = await Promise.all([
+      const [fatture, docExtra, docExtra2Res, moduliRes] = await Promise.all([
         uploadFiles(fatturaFiles, practice.id, "fattura"),
         uploadFiles(docExtra1, practice.id, "doc_extra"),
         uploadFiles(docExtra2, practice.id, "libretto"),
+        uploadFiles(moduliRaccoltaFiles, practice.id, "moduli_raccolta"),
       ]);
 
-      const allFailed = [...fatture.failed, ...docExtra.failed, ...docExtra2Res.failed];
+      const allFailed = [...fatture.failed, ...docExtra.failed, ...docExtra2Res.failed, ...moduliRes.failed];
       if (allFailed.length > 0) {
         toast({
           variant: "destructive",
@@ -359,10 +366,10 @@ export default function NuovaPraticaEnea() {
         });
       }
 
-      if (fatture.urls.length || docExtra.urls.length || docExtra2Res.urls.length) {
+      if (fatture.urls.length || docExtra.urls.length || docExtra2Res.urls.length || moduliRes.urls.length) {
         await supabase.from("enea_practices").update({
           fatture_urls: fatture.urls,
-          documenti_aggiuntivi_urls: [...docExtra.urls, ...docExtra2Res.urls],
+          documenti_aggiuntivi_urls: [...docExtra.urls, ...docExtra2Res.urls, ...moduliRes.urls],
         }).eq("id", practice.id);
       }
 
@@ -402,6 +409,7 @@ export default function NuovaPraticaEnea() {
     setNome(""); setCognome(""); setEmail(""); setTelefono("");
     setCf(""); setIndirizzo(""); setNote("");
     setFatturaFiles([]); setDocExtra1([]); setDocExtra2([]);
+    setModuliRaccoltaFiles([]);
     setFlagDocCompleto(null); setErrors({});
     setSubmitted(null);
   };
@@ -724,6 +732,28 @@ export default function NuovaPraticaEnea() {
           onAdd={(f) => setFatturaFiles((p) => [...p, ...f])}
           onRemove={(i) => setFatturaFiles((p) => p.filter((_, j) => j !== i))}
         />
+
+        {/* Moduli di raccolta dati compilati — obbligatori solo per "documenti_forniti".
+            Vale per ogni prodotto (schermature, infissi, vepa, pompe di calore, insufflaggio tetti). */}
+        {tipoServizio === "documenti_forniti" && (
+          <div className="space-y-2">
+            {errors.moduliRaccolta && (
+              <p className="text-xs text-destructive flex items-center gap-1" data-error>
+                <AlertCircle className="h-3.5 w-3.5" />{errors.moduliRaccolta}
+              </p>
+            )}
+            <FileDropzone
+              label="Moduli di raccolta dati compilati"
+              required
+              files={moduliRaccoltaFiles}
+              onAdd={(f) => setModuliRaccoltaFiles((p) => [...p, ...f])}
+              onRemove={(i) => setModuliRaccoltaFiles((p) => p.filter((_, j) => j !== i))}
+            />
+            <p className="text-xs text-muted-foreground">
+              Allega qui i moduli scaricabili sopra, compilati e firmati dal cliente.
+            </p>
+          </div>
+        )}
 
         {/* Logica condizionale per prodotto */}
         {tipoProdotto && tipoProdotto !== "pompe_calore" && docConfig?.hasExtra && (

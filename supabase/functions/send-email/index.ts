@@ -46,11 +46,6 @@ const TEMPLATE_RECIPIENT: Record<string, RecipientType | "internal"> = {
   sollecito_fornitore:         "reseller",
   recupera_password:           "reseller", // account portale = rivenditore in maggioranza
 
-  // Ticket → rispondiamo sempre con footer "client" (più frequente)
-  ticket_conferma:        "client",
-  ticket_risposta_staff:  "client",
-  ticket_replica_cliente: "internal", // notifica al team interno, no footer
-  ticket_nuovo:           "internal", // notifica al team interno, no footer
 };
 
 /** Footer comune con email modulistica + telefono per ruolo. */
@@ -152,10 +147,6 @@ const HARDCODED_TEMPLATES = new Set<string>([
   "form_compilato",
   "pratica_inviata",
   "recensione",
-  "ticket_conferma",
-  "ticket_risposta_staff",
-  "ticket_replica_cliente",
-  "ticket_nuovo",
   "benvenuto_azienda",
   "richiesta_form",
   "notifica_docs_mancanti",
@@ -247,108 +238,6 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
                 </a>
               </td>`).join("")}
           </tr></table>
-        `),
-      };
-
-    // ── Support ticket: conferma all'utente ────────────────────────────────
-    case "ticket_conferma":
-      return {
-        subject: r("✓ Ticket ricevuto — {{oggetto}}"),
-        html: base(`
-          <h2 style="margin-top:0">Ticket ricevuto ✓</h2>
-          <p>Ciao <strong>${r("{{nome}}")}</strong>,</p>
-          <p>Il tuo ticket di assistenza è stato ricevuto. Ti risponderemo entro <strong>24 ore lavorative</strong>.</p>
-          <table width="100%" cellpadding="0" cellspacing="0"
-            style="border-collapse:collapse;margin:20px 0;background:#f9f9f9;border-radius:6px;overflow:hidden;">
-            <tr>
-              <td style="padding:10px 16px;font-weight:bold;color:#555;width:28%;border-bottom:1px solid #eee">Oggetto</td>
-              <td style="padding:10px 16px;border-bottom:1px solid #eee">${r("{{oggetto}}")}</td>
-            </tr>
-            <tr>
-              <td style="padding:10px 16px;font-weight:bold;color:#555;border-bottom:1px solid #eee">Priorità</td>
-              <td style="padding:10px 16px;border-bottom:1px solid #eee">${r("{{priorita}}")}</td>
-            </tr>
-            <tr>
-              <td style="padding:10px 16px;font-weight:bold;color:#555;vertical-align:top">Descrizione</td>
-              <td style="padding:10px 16px;white-space:pre-wrap">${r("{{descrizione}}")}</td>
-            </tr>
-          </table>
-          <p style="color:#666;font-size:13px;margin-top:24px">
-            Per ulteriori informazioni: <a href="mailto:modulistica@praticarapida.it" style="color:${COLORS.cta}">modulistica@praticarapida.it</a>
-          </p>
-        `),
-      };
-
-    // ── Support ticket: risposta staff → cliente ────────────────────────────
-    case "ticket_risposta_staff":
-      return {
-        subject: r("{{subject}}"),
-        html: base(`
-          <h2 style="margin-top:0">Nuova risposta al tuo ticket</h2>
-          <p>Ciao <strong>${r("{{nome}}")}</strong>,</p>
-          <p>Hai ricevuto una nuova risposta dal team di supporto sul ticket:</p>
-          <p style="background:#f4f4f4;padding:12px 16px;border-left:3px solid ${COLORS.cta};margin:16px 0;font-weight:bold;">
-            ${r("{{oggetto}}")}
-          </p>
-          <div style="background:#fff;border:1px solid #e5e5e5;border-radius:6px;padding:16px;margin:16px 0;white-space:pre-wrap;">${r("{{messaggio}}")}</div>
-          ${cta("Apri il ticket", r("{{ticket_link}}"))}
-          <p style="color:#666;font-size:13px;margin-top:24px">
-            Puoi rispondere direttamente da qui per continuare la conversazione.
-          </p>
-        `),
-      };
-
-    // ── Support ticket: cliente ribatte → notifica staff ─────────────────────
-    case "ticket_replica_cliente":
-      return {
-        subject: r("{{subject}}"),
-        html: base(`
-          <h2 style="margin-top:0">Replica cliente sul ticket</h2>
-          <p>Il cliente <strong>${r("{{company}}")}</strong> ha aggiunto un messaggio al ticket:</p>
-          <p style="background:#f4f4f4;padding:12px 16px;border-left:3px solid ${COLORS.cta};margin:16px 0;font-weight:bold;">
-            ${r("{{oggetto}}")}
-          </p>
-          <div style="background:#fff;border:1px solid #e5e5e5;border-radius:6px;padding:16px;margin:16px 0;white-space:pre-wrap;">${r("{{messaggio}}")}</div>
-          ${cta("Apri il ticket", r("{{ticket_link}}"))}
-        `),
-      };
-
-    // ── Support ticket: notifica al team interno ────────────────────────────
-    case "ticket_nuovo":
-      return {
-        subject: r("[TICKET] {{priorita_upper}} — {{oggetto}} ({{company}})"),
-        html: base(`
-          <h2 style="margin-top:0">Nuovo ticket di assistenza</h2>
-          <table width="100%" cellpadding="0" cellspacing="0"
-            style="border-collapse:collapse;margin:20px 0;background:#f9f9f9;border-radius:6px;overflow:hidden;">
-            <tr>
-              <td style="padding:10px 16px;font-weight:bold;color:#555;width:28%;border-bottom:1px solid #eee">Azienda</td>
-              <td style="padding:10px 16px;border-bottom:1px solid #eee"><strong>${r("{{company}}")}</strong></td>
-            </tr>
-            <tr>
-              <td style="padding:10px 16px;font-weight:bold;color:#555;border-bottom:1px solid #eee">Utente</td>
-              <td style="padding:10px 16px;border-bottom:1px solid #eee">${r("{{nome}}")} &lt;${r("{{email}}")}&gt;</td>
-            </tr>
-            <tr>
-              <td style="padding:10px 16px;font-weight:bold;color:#555;border-bottom:1px solid #eee">Oggetto</td>
-              <td style="padding:10px 16px;border-bottom:1px solid #eee">${r("{{oggetto}}")}</td>
-            </tr>
-            <tr>
-              <td style="padding:10px 16px;font-weight:bold;color:#555;border-bottom:1px solid #eee">Priorità</td>
-              <td style="padding:10px 16px;border-bottom:1px solid #eee">
-                <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:bold;
-                  background:${r("{{priorita}}") === "alta" ? "#fee2e2" : r("{{priorita}}") === "normale" ? "#fef9c3" : "#f0fdf4"};
-                  color:${r("{{priorita}}") === "alta" ? "#b91c1c" : r("{{priorita}}") === "normale" ? "#854d0e" : "#166534"}">
-                  ${r("{{priorita_upper}}")}
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:10px 16px;font-weight:bold;color:#555;vertical-align:top">Descrizione</td>
-              <td style="padding:10px 16px;white-space:pre-wrap">${r("{{descrizione}}")}</td>
-            </tr>
-          </table>
-          ${data.link ? cta("Gestisci nel pannello", r("{{link}}")) : ""}
         `),
       };
 

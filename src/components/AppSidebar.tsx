@@ -6,7 +6,6 @@ import {
   ListChecks,
   LogOut,
   BarChart3,
-  LifeBuoy,
   Kanban,
   PlusCircle,
   Zap,
@@ -252,7 +251,6 @@ export function AppSidebar() {
           { title: "Clienti", url: "/admin/clienti", icon: UserSearch },
           { title: "Promo", url: "/admin/promo", icon: Gift },
           { title: "Notizie Sito", url: "/admin/news", icon: Newspaper },
-          { title: "Ticket", url: "/admin/ticket", icon: LifeBuoy },
         ],
       },
       {
@@ -294,7 +292,6 @@ export function AppSidebar() {
           { title: "Nuova Pratica ENEA", url: "/enea/nuova", icon: FilePlus, end: true },
           { title: "Archivio ENEA", url: "/enea/archivio", icon: Archive },
           { title: "Documenti utili", url: "/documenti-utili", icon: Download },
-          { title: "Assistenza", url: "/assistenza", icon: LifeBuoy },
         ],
       },
     ];

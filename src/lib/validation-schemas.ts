@@ -138,14 +138,6 @@ export const clienteSchema = z.object({
 
 export type ClienteFormData = z.infer<typeof clienteSchema>;
 
-export const ticketSchema = z.object({
-  oggetto: z.string().trim().min(1, "Oggetto obbligatorio").max(200, "Massimo 200 caratteri"),
-  descrizione: z.string().trim().min(1, "Descrizione obbligatoria").max(2000, "Massimo 2000 caratteri"),
-  priorita: z.enum(["bassa", "normale", "alta"]),
-});
-
-export type TicketFormData = z.infer<typeof ticketSchema>;
-
 export const serviceSchema = z.object({
   nome: z.string().trim().min(1, "Nome obbligatorio").max(200, "Massimo 200 caratteri"),
   descrizione: z.string().trim().max(2000, "Massimo 2000 caratteri").optional().or(z.literal("")),

@@ -360,27 +360,13 @@ const TRIGGER_TYPES = [
     category: "Staff",
   },
 
-  // ─── 📥 Lead / Ticket ─────────────────────────────────────────────────
+  // ─── 📥 Lead ──────────────────────────────────────────────────────────
   {
     value: "lead_creato",
     label: "Lead Creato",
     description: "Nuovo lead dal form pubblico del sito",
     icon: FilePlus,
-    category: "Lead & Ticket",
-  },
-  {
-    value: "ticket_aperto",
-    label: "Ticket Aperto",
-    description: "Cliente apre un ticket di supporto",
-    icon: FilePlus,
-    category: "Lead & Ticket",
-  },
-  {
-    value: "ticket_chiuso",
-    label: "Ticket Chiuso",
-    description: "Ticket risolto e chiuso",
-    icon: CheckCircle2,
-    category: "Lead & Ticket",
+    category: "Lead",
   },
 
   // ─── ⚠️ Errori / Sistema ────────────────────────────────────────────────
@@ -432,7 +418,7 @@ const TRIGGER_CATEGORIES = [
   "Comunicazioni",
   "Pagamento",
   "Staff",
-  "Lead & Ticket",
+  "Lead",
   "Sistema",
   "Manuale",
 ];

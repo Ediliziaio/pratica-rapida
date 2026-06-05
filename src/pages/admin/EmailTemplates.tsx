@@ -52,11 +52,6 @@ type TriggerEvent =
   | "sollecito_fornitore"
   | "notifica_docs_mancanti"
   | "notifica_pratica_disponibile"
-  // Ticket
-  | "ticket_conferma"
-  | "ticket_risposta_staff"
-  | "ticket_replica_cliente"
-  | "ticket_nuovo"
   // Onboarding/Auth
   | "benvenuto_azienda"
   | "registrazione_azienda"
@@ -105,11 +100,6 @@ const TRIGGER_EVENTS: { value: TriggerEvent; label: string; group: string }[] = 
   { value: "sollecito_fornitore", label: "⏰ Notifica B (30/60/90gg)", group: "Rivenditore" },
   { value: "notifica_docs_mancanti", label: "📄 Notifica A documenti mancanti", group: "Rivenditore" },
   { value: "notifica_pratica_disponibile", label: "📂 Notifica C archivio disponibile", group: "Rivenditore" },
-  // Ticket
-  { value: "ticket_conferma", label: "🎫 Ticket aperto (al cliente)", group: "Ticket" },
-  { value: "ticket_risposta_staff", label: "💬 Risposta staff → cliente", group: "Ticket" },
-  { value: "ticket_replica_cliente", label: "💬 Cliente ribatte → staff", group: "Ticket" },
-  { value: "ticket_nuovo", label: "🆕 Nuovo ticket (al team)", group: "Ticket" },
   // Onboarding
   { value: "benvenuto_azienda", label: "👋 Benvenuto nuova azienda", group: "Onboarding" },
   { value: "registrazione_azienda", label: "✅ Registrazione completata", group: "Onboarding" },
@@ -128,7 +118,6 @@ const TRIGGER_EVENTS: { value: TriggerEvent; label: string; group: string }[] = 
 const TRIGGER_GROUPS = [
   "Cliente finale",
   "Rivenditore",
-  "Ticket",
   "Onboarding",
   "Modulo cliente",
   "Pratica generica",
@@ -155,12 +144,9 @@ const SAMPLE_TEST_DATA: Record<string, string> = {
   brand: "ENEA",
   prodotto: "Schermature solari",
   reseller: "Bricoman SpA",
-  oggetto: "Esempio oggetto ticket",
-  subject: "Risposta al tuo ticket",
+  subject: "Email di esempio",
   messaggio: "Questo è un messaggio di esempio per la test email.",
-  descrizione: "Descrizione di esempio del problema riportato.",
-  priorita: "normale",
-  priorita_upper: "NORMALE",
+  descrizione: "Descrizione di esempio.",
   company: "Cliente Test Srl",
   giorni: "30",
   stato: "In lavorazione",
@@ -168,7 +154,6 @@ const SAMPLE_TEST_DATA: Record<string, string> = {
   note: "Manca la planimetria firmata e la copia documento installatore.",
   tipo_modulo: "Schermature",
   link: "https://app.praticarapida.it/test-link",
-  ticket_link: "https://app.praticarapida.it/ticket/test",
   login_url: "https://pannello.praticarapida.it",
   app_url: "https://app.praticarapida.it",
   base_url: "https://app.praticarapida.it",
@@ -368,7 +353,7 @@ export default function EmailTemplates() {
       <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm">
         <p className="font-semibold text-emerald-900 mb-1">✅ Ambito di questa pagina</p>
         <p className="text-emerald-800">
-          Tutte le email transazionali (flusso ENEA <em>M1-M5</em>, <em>Notifica A/B/C</em>, <em>ticket</em>, <em>benvenuto azienda</em>, moduli cliente) sono lette da qui dall'edge function <code className="font-mono text-xs bg-emerald-100 px-1 py-0.5 rounded">send-email</code>. Modifica oggetto/HTML e attiva/disattiva il template per applicare subito le variazioni.
+          Tutte le email transazionali (flusso ENEA <em>M1-M5</em>, <em>Notifica A/B/C</em>, <em>benvenuto azienda</em>, moduli cliente) sono lette da qui dall'edge function <code className="font-mono text-xs bg-emerald-100 px-1 py-0.5 rounded">send-email</code>. Modifica oggetto/HTML e attiva/disattiva il template per applicare subito le variazioni.
         </p>
         <p className="text-emerald-800 mt-2">
           Se un template è <strong>disattivato</strong> o <strong>mancante</strong>, l'edge function ricade automaticamente sulla versione hardcoded di sicurezza presente in <code className="font-mono text-xs bg-emerald-100 px-1 py-0.5 rounded">supabase/functions/send-email/index.ts</code>.

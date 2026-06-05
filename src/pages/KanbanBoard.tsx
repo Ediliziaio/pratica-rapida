@@ -2547,24 +2547,33 @@ export default function KanbanBoard() {
     });
   }, [stages, brandFilter, isInternal]);
 
-  // ── Auto-archive: sposta in "archiviate" le pratiche in "da_inviare" da >10 giorni ──
-  // Ref to prevent firing mutations multiple times for the same practice before the DB propagates.
+  // ── Auto-archive client-side (fallback) ─────────────────────────────────
+  // La logica primaria gira nel cron `process-automations` (sposta in
+  // "archiviate" le pratiche in stage "recensione" da >10 giorni). Questo
+  // effect è un fallback se il cron è in ritardo: l'utente staff che apre
+  // il kanban completa l'archiviazione manualmente. Stessa logica del cron
+  // (stage_type="recensione", current_stage_entered_at >10 giorni).
   const autoArchivedRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     // Solo staff può eseguire UPDATE su enea_practices via RLS — per rivenditori/azienda
     // questo effect produrrebbe mutation fallite silenti + toast fuorviante.
     if (!isInternal) return;
     if (!stages.length || !practices.length) return;
-    const daInviareStage = stages.find((s) => s.stage_type === "da_inviare");
+    const recensioneStage = stages.find((s) => s.stage_type === "recensione");
     const archiviateStage = stages.find((s) => s.stage_type === "archiviate");
-    if (!daInviareStage || !archiviateStage) return;
+    if (!recensioneStage || !archiviateStage) return;
 
     const allEligible = practices.filter(
-      (p) =>
-        p.current_stage_id === daInviareStage.id &&
-        !p.archived_at &&
-        daysAgo(p.updated_at) >= 10 &&
-        !autoArchivedRef.current.has(p.id),
+      (p) => {
+        const stageEnteredAt =
+          (p as { current_stage_entered_at?: string }).current_stage_entered_at ?? p.updated_at;
+        return (
+          p.current_stage_id === recensioneStage.id &&
+          !p.archived_at &&
+          daysAgo(stageEnteredAt) >= 10 &&
+          !autoArchivedRef.current.has(p.id)
+        );
+      },
     );
 
     // Limit a max 3 mutation in parallelo per evitare:
@@ -2579,7 +2588,7 @@ export default function KanbanBoard() {
       moveStage.mutate({
         practiceId: p.id,
         newStageId: archiviateStage.id,
-        oldStageName: daInviareStage.name,
+        oldStageName: recensioneStage.name,
         newStageName: archiviateStage.name,
         userId: user?.id ?? "",
       });
@@ -2591,7 +2600,7 @@ export default function KanbanBoard() {
         title: `${toArchive.length} ${toArchive.length === 1 ? "pratica archiviata" : "pratiche archiviate"} automaticamente`,
         description: remaining > 0
           ? `${remaining} altre verranno archiviate al prossimo refresh.`
-          : "Pratiche in 'Pratica inviata' da più di 10 giorni.",
+          : "Pratiche in 'Recensione' da più di 10 giorni.",
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

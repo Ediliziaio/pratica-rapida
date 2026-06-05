@@ -231,13 +231,56 @@ serve(async () => {
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+  // ── Auto-archive: pratiche in stage "recensione" da >10 giorni ───────────
+  // Indipendente da automation_rules: è una regola hard-coded del workflow.
+  // Usa current_stage_entered_at (set dal trigger DB) → timer corretto anche
+  // se la pratica viene editata mentre è in stage.
+  let autoArchived = 0;
+  try {
+    const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: stagesAA } = await supabase
+      .from("pipeline_stages")
+      .select("id, stage_type")
+      .in("stage_type", ["recensione", "archiviate"]);
+    const recensioneStage = stagesAA?.find((s) => s.stage_type === "recensione");
+    const archiviateStage = stagesAA?.find((s) => s.stage_type === "archiviate");
+
+    if (recensioneStage && archiviateStage) {
+      const { data: toArchive } = await supabase
+        .from("enea_practices")
+        .select("id")
+        .eq("current_stage_id", recensioneStage.id)
+        .is("archived_at", null)
+        .lt("current_stage_entered_at", tenDaysAgo);
+
+      if (toArchive?.length) {
+        const ids = toArchive.map((p) => p.id);
+        const { error: updErr } = await supabase
+          .from("enea_practices")
+          .update({
+            current_stage_id: archiviateStage.id,
+            archived_at: new Date().toISOString(),
+          })
+          .in("id", ids);
+        if (updErr) throw updErr;
+        autoArchived = ids.length;
+        console.log(`[auto-archive] moved ${autoArchived} practices recensione → archiviate`);
+      }
+    } else {
+      console.warn("[auto-archive] missing recensione or archiviate stage — skipping");
+    }
+  } catch (err) {
+    console.error("[auto-archive] failed:", err);
+    await reportError(err, { fn: "process-automations", step: "auto-archive" });
+  }
+
   const { data: rules } = await supabase
     .from("automation_rules")
     .select("*")
     .eq("is_enabled", true)
     .order("order_index");
 
-  if (!rules?.length) return Response.json({ processed: 0 });
+  if (!rules?.length) return Response.json({ processed: 0, auto_archived: autoArchived });
 
   let processed = 0;
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -580,5 +623,5 @@ serve(async () => {
     }
   }
 
-  return Response.json({ processed });
+  return Response.json({ processed, auto_archived: autoArchived });
 });

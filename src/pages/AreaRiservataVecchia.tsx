@@ -12,18 +12,67 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/landing";
 import { SEO } from "@/components/SEO";
-import { Upload, LogIn, ArrowRight } from "lucide-react";
+import {
+  ArrowRight, FileText, Send, CheckCircle2,
+  LayoutDashboard, BarChart3, Bell,
+} from "lucide-react";
 
-const CHOICES = [
+/**
+ * Illustrazione card: icona principale grande + due mini-badge che
+ * raccontano l'azione (più chiara di una singola icona generica).
+ */
+function CardIllustration({ variant }: { variant: "richiesta" | "area" }) {
+  const green = "hsl(152 65% 38%)";
+  const blue = "hsl(220 60% 35%)";
+  return (
+    <div className="relative w-24 h-24 mx-auto mb-5">
+      {/* tile principale */}
+      <div
+        className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto transition-transform group-hover:scale-105"
+        style={{ background: variant === "richiesta" ? "hsl(152 65% 38% / 0.12)" : "hsl(220 60% 35% / 0.10)" }}
+      >
+        {variant === "richiesta"
+          ? <FileText className="w-9 h-9" style={{ color: green }} strokeWidth={1.8} />
+          : <LayoutDashboard className="w-9 h-9" style={{ color: blue }} strokeWidth={1.8} />}
+      </div>
+      {/* badge in alto a destra */}
+      <div
+        className="absolute -top-1 -right-0.5 w-9 h-9 rounded-full bg-white border-2 shadow-sm flex items-center justify-center transition-transform group-hover:scale-110 group-hover:rotate-6"
+        style={{ borderColor: variant === "richiesta" ? "hsl(152 65% 38% / 0.3)" : "hsl(220 60% 35% / 0.25)" }}
+      >
+        {variant === "richiesta"
+          ? <Send className="w-4 h-4" style={{ color: green }} />
+          : <BarChart3 className="w-4 h-4" style={{ color: blue }} />}
+      </div>
+      {/* badge in basso a sinistra */}
+      <div
+        className="absolute -bottom-1 -left-0.5 w-8 h-8 rounded-full bg-white border-2 shadow-sm flex items-center justify-center transition-transform group-hover:scale-110 group-hover:-rotate-6"
+        style={{ borderColor: variant === "richiesta" ? "hsl(152 65% 38% / 0.3)" : "hsl(220 60% 35% / 0.25)" }}
+      >
+        {variant === "richiesta"
+          ? <CheckCircle2 className="w-4 h-4" style={{ color: green }} />
+          : <Bell className="w-4 h-4" style={{ color: blue }} />}
+      </div>
+    </div>
+  );
+}
+
+const CHOICES: Array<{
+  variant: "richiesta" | "area";
+  title: string;
+  desc: string;
+  cta: string;
+  to: string;
+}> = [
   {
-    icon: Upload,
+    variant: "richiesta",
     title: "Carica la tua richiesta",
     desc: "Inserisci una nuova pratica: ENEA, fotovoltaico, visura catastale, verifica prezzi e altro. Bastano i dati della tua azienda e del cliente — al resto pensiamo noi.",
     cta: "Inserisci pratica",
     to: "/area-riservata-vecchia/servizi",
   },
   {
-    icon: LogIn,
+    variant: "area",
     title: "Accedi alla tua area",
     desc: "Entra nel portale per vedere lo stato delle tue pratiche in tempo reale, scaricare le ricevute e comunicare con il nostro team.",
     cta: "Accedi al portale",
@@ -65,7 +114,6 @@ export default function AreaRiservataVecchia() {
 
           <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {CHOICES.map((c, i) => {
-              const Icon = c.icon;
               return (
                 <motion.div
                   key={i}
@@ -77,12 +125,7 @@ export default function AreaRiservataVecchia() {
                     to={c.to}
                     className="group block h-full bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-[hsl(152_65%_38%)]/40 transition-all p-8 text-center"
                   >
-                    <div
-                      className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center transition-transform group-hover:scale-110"
-                      style={{ background: "hsl(152 65% 38% / 0.1)" }}
-                    >
-                      <Icon className="w-8 h-8" style={{ color: "hsl(152 65% 38%)" }} />
-                    </div>
+                    <CardIllustration variant={c.variant} />
                     <h2 className="text-lg font-extrabold mb-3" style={{ color: "hsl(220 60% 25%)" }}>
                       {c.title}
                     </h2>

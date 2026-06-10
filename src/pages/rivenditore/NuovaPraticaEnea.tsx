@@ -159,11 +159,23 @@ async function uploadFiles(
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export default function NuovaPraticaEnea() {
+/**
+ * Form Nuova Pratica ENEA. Stesso componente usato in due contesti:
+ *  - interno (/enea/nuova): rivenditore/staff loggato → insert diretto
+ *  - pubblico (publicMode, /area-riservata-vecchia/pratica-enea): senza
+ *    login → invio via edge function `richiesta-pubblica`, con in più i
+ *    campi azienda (ragione sociale, email, telefono).
+ */
+export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: boolean } = {}) {
   const { resellerId, isInternal } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { data: stages = [] } = usePipelineStages("enea");
+
+  // ── Campi azienda (solo publicMode) ──
+  const [ragioneSociale, setRagioneSociale] = useState("");
+  const [aziendaEmail, setAziendaEmail] = useState("");
+  const [aziendaTelefono, setAziendaTelefono] = useState("");
 
   // For staff (super_admin/operatore) who don't have a resellerId, let them pick
   // the company (reseller) that will own the practice. Direct-channel clients.
@@ -260,6 +272,10 @@ export default function NuovaPraticaEnea() {
   // ── Validazione ────────────────────────────────────────────────────────────
   const validate = () => {
     const e: Record<string, string> = {};
+    if (publicMode) {
+      if (ragioneSociale.trim().length < 2) e.ragioneSociale = "Ragione sociale obbligatoria";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(aziendaEmail.trim())) e.aziendaEmail = "Email aziendale non valida";
+    }
     if (!tipoServizio)     e.tipoServizio = "Seleziona il tipo di servizio";
     if (!tipoProdotto)     e.tipoProdotto = "Seleziona il prodotto";
     if (!tipoSoggetto)     e.tipoSoggetto = "Seleziona il tipo di soggetto";
@@ -291,6 +307,57 @@ export default function NuovaPraticaEnea() {
       setTimeout(() => document.querySelector("[data-error]")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
       return;
     }
+    // ── PUBLIC MODE: invio via edge function (no login, no insert diretto) ──
+    if (publicMode) {
+      setSubmitting(true);
+      try {
+        const prodottoLabel = PRODOTTI.find((p) => p.id === tipoProdotto)?.label ?? tipoProdotto ?? "";
+        const payload = {
+          modulo: "pratica-enea",
+          prodotto: prodottoLabel,
+          tipo_servizio: tipoServizio,
+          tipo_fatturazione: tipoFatturazione,
+          tipo_soggetto: tipoSoggetto,
+          azienda: {
+            ragione_sociale: ragioneSociale.trim(),
+            email: aziendaEmail.trim(),
+            telefono: aziendaTelefono.trim() || undefined,
+          },
+          cliente: {
+            nome: nome.trim(),
+            cognome: cognome.trim(),
+            telefono: telefono.trim(),
+            email: email.trim() || undefined,
+            cf: cf.trim() || undefined,
+            indirizzo: indirizzo.trim() || undefined,
+          },
+          note: note.trim() || undefined,
+        };
+        const fd = new FormData();
+        fd.append("payload", JSON.stringify(payload));
+        fatturaFiles.forEach((f) => fd.append("fattura", f));
+        docExtra1.forEach((f) => fd.append("doc_extra", f));
+        docExtra2.forEach((f) => fd.append("libretto", f));
+        moduliRaccoltaFiles.forEach((f) => fd.append("moduli_raccolta", f));
+
+        const { data, error: fnErr } = await supabase.functions.invoke("richiesta-pubblica", { body: fd });
+        if (fnErr) throw new Error(fnErr.message);
+        const res = data as { success: boolean; error?: string; form_token?: string | null };
+        if (!res.success) throw new Error(res.error ?? "Invio fallito");
+
+        if (tipoServizio === "documenti_forniti" && res.form_token) {
+          navigate(`/form/${res.form_token}`);
+          return;
+        }
+        setSubmitted({ id: "public", nome: `${nome.trim()} ${cognome.trim()}` });
+      } catch (err) {
+        toast({ variant: "destructive", title: "Errore invio", description: err instanceof Error ? err.message : "Riprova tra poco" });
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
     if (!effectiveResellerId) {
       toast({
         variant: "destructive",
@@ -430,7 +497,9 @@ export default function NuovaPraticaEnea() {
         </p>
         <div className="flex gap-3 justify-center pt-2">
           <Button variant="outline" onClick={resetForm}>Nuova pratica</Button>
-          <Button asChild><a href="/kanban">Vai alla Board</a></Button>
+          {publicMode
+            ? <Button asChild><a href="/area-riservata-vecchia/servizi">Torna ai servizi</a></Button>
+            : <Button asChild><a href="/kanban">Vai alla Board</a></Button>}
         </div>
       </div>
     );
@@ -446,8 +515,43 @@ export default function NuovaPraticaEnea() {
         </p>
       </div>
 
+      {/* ── Dati azienda (solo modalità pubblica dal sito) ── */}
+      {publicMode && (
+        <div className="rounded-xl border bg-card p-5 space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
+              <Building2 className="h-3.5 w-3.5" />
+            </span>
+            <h2 className="font-semibold">I tuoi dati (azienda / rivenditore)</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="ragione" className="text-sm">Ragione sociale *</Label>
+              <Input id="ragione" value={ragioneSociale}
+                onChange={(e) => { setRagioneSociale(e.target.value); setErrors((p) => ({ ...p, ragioneSociale: "" })); }}
+                placeholder="Es. Serramenti Rossi S.r.l." className={errors.ragioneSociale ? "border-destructive" : ""} />
+              {errors.ragioneSociale && <p className="text-xs text-destructive" data-error>{errors.ragioneSociale}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="azienda-email" className="text-sm">Email aziendale *</Label>
+              <Input id="azienda-email" type="email" value={aziendaEmail}
+                onChange={(e) => { setAziendaEmail(e.target.value); setErrors((p) => ({ ...p, aziendaEmail: "" })); }}
+                placeholder="info@azienda.it" className={errors.aziendaEmail ? "border-destructive" : ""} />
+              {errors.aziendaEmail
+                ? <p className="text-xs text-destructive" data-error>{errors.aziendaEmail}</p>
+                : <p className="text-xs text-muted-foreground">Se sei già registrato, usa la stessa email del portale.</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="azienda-tel" className="text-sm">Telefono azienda</Label>
+              <Input id="azienda-tel" value={aziendaTelefono}
+                onChange={(e) => setAziendaTelefono(e.target.value)} placeholder="Opzionale" />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Company picker (solo staff interni, per clienti direct-channel) ── */}
-      {isInternal && (
+      {isInternal && !publicMode && (
         <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50/60 p-5 space-y-2">
           <div className="flex items-center gap-2">
             <Building2 className="h-4 w-4 text-amber-700" />

@@ -50,6 +50,10 @@ function json(body: unknown, status = 200) {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
+// Azienda-contenitore di sistema per le richieste con email non riconosciuta
+// (nessun account/accesso creato automaticamente — lo staff abbina a mano).
+const PLACEHOLDER_COMPANY = "⚠️ Da abbinare — richieste sito";
+
 interface Payload {
   website?: string; // honeypot
   modulo?: string;
@@ -61,7 +65,7 @@ interface Payload {
   tipo_fatturazione?: "rivenditore" | "cliente_finale";
   tipo_soggetto?: "persona_fisica" | "azienda_piva";
   azienda?: { ragione_sociale?: string; email?: string; telefono?: string };
-  cliente?: { nome?: string; cognome?: string; telefono?: string; email?: string };
+  cliente?: { nome?: string; cognome?: string; telefono?: string; email?: string; cf?: string; indirizzo?: string };
   note?: string;
 }
 
@@ -71,15 +75,23 @@ serve(async (req) => {
 
   // ── Parse: JSON puro o multipart (payload + files) ──
   let p: Payload;
+  // Categorie file (stesse del form interno): fattura sempre, doc_extra
+  // (certificati/misure), libretto (pompe di calore), moduli_raccolta
+  // (documenti forniti). "fatture"/"documenti" mantenute per retrocompat.
   let fattureFiles: File[] = [];
-  let documentiFiles: File[] = [];
+  let docExtraFiles: File[] = [];
+  let librettoFiles: File[] = [];
+  let moduliFiles: File[] = [];
   try {
     const contentType = req.headers.get("content-type") ?? "";
     if (contentType.includes("multipart/form-data")) {
       const form = await req.formData();
       p = JSON.parse((form.get("payload") as string) ?? "{}");
-      fattureFiles = form.getAll("fatture").filter((f): f is File => f instanceof File);
-      documentiFiles = form.getAll("documenti").filter((f): f is File => f instanceof File);
+      const grab = (k: string) => form.getAll(k).filter((f): f is File => f instanceof File);
+      fattureFiles = [...grab("fattura"), ...grab("fatture")];
+      docExtraFiles = [...grab("doc_extra"), ...grab("documenti")];
+      librettoFiles = grab("libretto");
+      moduliFiles = grab("moduli_raccolta");
     } else {
       p = await req.json();
     }
@@ -103,7 +115,7 @@ serve(async (req) => {
   if (nome.length < 2 || cognome.length < 2) return json({ success: false, error: "Nome e cognome del cliente obbligatori" }, 400);
   if (telefono.replace(/\D/g, "").length < 8) return json({ success: false, error: "Telefono del cliente non valido" }, 400);
 
-  const allFiles = [...fattureFiles, ...documentiFiles];
+  const allFiles = [...fattureFiles, ...docExtraFiles, ...librettoFiles, ...moduliFiles];
   if (allFiles.length > MAX_FILES) return json({ success: false, error: `Massimo ${MAX_FILES} file` }, 400);
   for (const f of allFiles) {
     if (f.size > MAX_FILE_SIZE) return json({ success: false, error: `File "${f.name}" troppo grande (max 10MB)` }, 400);
@@ -141,21 +153,27 @@ serve(async (req) => {
     }
 
     if (!companyId) {
-      // Auto-crea l'anagrafica azienda (NIENTE utente/login: lo staff invierà
-      // le credenziali dopo verifica — evita account spazzatura dai bot)
-      const { data: created, error: createErr } = await supabase
+      // Email/ragione sconosciute → NON creiamo né azienda né accessi
+      // automatici. La pratica va nel contenitore di sistema "Da abbinare":
+      // lo staff verifica e la riassegna (o crea l'azienda manualmente).
+      matchType = "creata"; // "da abbinare"
+      const { data: holder } = await supabase
         .from("companies")
-        .insert({
-          ragione_sociale: ragione,
-          email: aziendaEmail,
-          telefono: p.azienda?.telefono?.trim() ?? "",
-          settore: "auto-creata da richiesta sito",
-        })
         .select("id")
-        .single();
-      if (createErr || !created) throw createErr ?? new Error("Creazione azienda fallita");
-      companyId = created.id;
-      matchType = "creata";
+        .eq("ragione_sociale", PLACEHOLDER_COMPANY)
+        .limit(1)
+        .maybeSingle();
+      if (holder) {
+        companyId = holder.id;
+      } else {
+        const { data: created, error: createErr } = await supabase
+          .from("companies")
+          .insert({ ragione_sociale: PLACEHOLDER_COMPANY, settore: "sistema" })
+          .select("id")
+          .single();
+        if (createErr || !created) throw createErr ?? new Error("Creazione contenitore fallita");
+        companyId = created.id;
+      }
     }
 
     // ── 2. Stage iniziale (stage di sistema, come il form interno) ──
@@ -201,6 +219,8 @@ serve(async (req) => {
         cliente_cognome: cognome,
         cliente_telefono: normalizePhone(telefono),
         cliente_email: p.cliente?.email?.trim() || null,
+        cliente_cf: p.cliente?.cf?.trim() || null,
+        cliente_indirizzo: p.cliente?.indirizzo?.trim() || null,
         note: declared,
         fatture_urls: [],
         documenti_enea_urls: [],
@@ -225,14 +245,17 @@ serve(async (req) => {
       }
       return paths;
     };
-    const [fattureUrls, documentiUrls] = await Promise.all([
+    const [fattureUrls, docExtraUrls, librettoUrls, moduliUrls] = await Promise.all([
       uploadAll(fattureFiles, "fattura"),
-      uploadAll(documentiFiles, "doc_extra"),
+      uploadAll(docExtraFiles, "doc_extra"),
+      uploadAll(librettoFiles, "libretto"),
+      uploadAll(moduliFiles, "moduli_raccolta"),
     ]);
-    if (fattureUrls.length || documentiUrls.length) {
+    const aggiuntivi = [...docExtraUrls, ...librettoUrls, ...moduliUrls];
+    if (fattureUrls.length || aggiuntivi.length) {
       await supabase.from("enea_practices").update({
         fatture_urls: fattureUrls,
-        documenti_aggiuntivi_urls: documentiUrls,
+        documenti_aggiuntivi_urls: aggiuntivi,
       }).eq("id", practice.id);
     }
 

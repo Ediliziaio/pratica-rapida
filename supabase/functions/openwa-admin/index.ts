@@ -109,6 +109,15 @@ serve(async (req) => {
           return json({ secrets, reachable: false, session: null, error: "Secrets OpenWA mancanti" });
         }
         const res = await callOpenWA(cfg, "GET", `/sessions/${cfg.sessionId}`);
+        // Auto-recovery: se la sessione risulta disconnessa (es. l'utente ha
+        // scollegato il dispositivo dal telefono), riavviala subito così il
+        // QR ricompare nel pannello senza intervento manuale. Lo start su
+        // una sessione già in avvio risponde 400 → ignorato.
+        const st = String(res.body.status ?? "").toLowerCase();
+        if (res.ok && ["disconnected", "stopped", "failed", "auth_failed"].includes(st)) {
+          callOpenWA(cfg, "POST", `/sessions/${cfg.sessionId}/start`).catch(() => {});
+          (res.body as Record<string, unknown>).status = "initializing";
+        }
         return json({
           secrets,
           reachable: res.status !== 0,

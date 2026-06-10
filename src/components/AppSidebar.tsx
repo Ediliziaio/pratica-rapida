@@ -235,9 +235,11 @@ export function AppSidebar() {
         collapsible: true,
         defaultOpen: false,
         items: [
-          { title: "Email", url: "/admin/email", icon: Mail },
-          { title: "WhatsApp", url: "/admin/whatsapp", icon: MessageCircle },
-          { title: "Chat WhatsApp", url: "/admin/whatsapp-chat", icon: MessageSquare },
+          // "Chat" è l'inbox unificata (WhatsApp + email + attività) e
+          // sostituisce nel menu le vecchie voci "WhatsApp" (pannello log)
+          // e "Chat WhatsApp" — le route restano attive per i bookmark.
+          { title: "Chat", url: "/admin/chat", icon: MessageCircle },
+          { title: "Template Email", url: "/admin/email", icon: Mail },
           { title: "Log", url: "/admin/comunicazioni", icon: MessageSquare },
           { title: "Calendario", url: "/admin/calendario", icon: CalendarClock },
         ],

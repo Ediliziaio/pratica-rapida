@@ -151,6 +151,7 @@ const HARDCODED_TEMPLATES = new Set<string>([
   "richiesta_form",
   "notifica_docs_mancanti",
   "notifica_pratica_disponibile",
+  "chat_messaggio_diretto", // email libera dall'area /admin/chat
 ]);
 
 function renderTemplate(template: string, data: Record<string, string>): { subject: string; html: string } {
@@ -238,6 +239,21 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
                 </a>
               </td>`).join("")}
           </tr></table>
+        `),
+      };
+
+    // ── Chat unificata: email libera scritta dallo staff ─────────────────────
+    // Usata dall'area /admin/chat per inviare email dirette al cliente.
+    // data: { subject, messaggio, nome?, practice_id? (per log) }
+    case "chat_messaggio_diretto":
+      return {
+        subject: r("{{subject}}"),
+        html: base(`
+          ${r("{{nome}}") ? `<p>Ciao <strong>${r("{{nome}}")}</strong>,</p>` : ""}
+          <div style="background:#fff;border:1px solid #e5e5e5;border-radius:6px;padding:16px;margin:16px 0;white-space:pre-wrap;">${r("{{messaggio}}")}</div>
+          <p style="color:#666;font-size:13px;margin-top:24px">
+            Puoi rispondere direttamente a questa email.
+          </p>
         `),
       };
 

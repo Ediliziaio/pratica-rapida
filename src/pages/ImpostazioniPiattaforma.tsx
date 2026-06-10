@@ -23,6 +23,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  Tabs,
+  TabsList,
+  TabsContent,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,

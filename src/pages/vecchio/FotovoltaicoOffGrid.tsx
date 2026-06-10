@@ -11,9 +11,11 @@ export default function VecchioFotovoltaicoOffGrid() {
         "ricevuta ENEA ufficiale pronta per il commercialista;",
         "assistenza sulla documentazione da inviare.",
       ]}
-      iframeSrc="https://api.leadconnectorhq.com/widget/form/u5CzuxVck3ZN9ZFSg27x"
-      iframeId="inline-u5CzuxVck3ZN9ZFSg27x"
-      iframeHeight={1461}
+      richiesta={{
+        modulo: "fotovoltaico-off-grid",
+        conTipoServizio: true,
+        prodottoFisso: "Fotovoltaico off-grid",
+      }}
       formName="Modulo Rivenditore Fotovoltaico off grid"
     />
   );

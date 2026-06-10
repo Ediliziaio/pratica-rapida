@@ -11,9 +11,10 @@ export default function VecchioVerificaPrezzi() {
         "eventuali note su come adeguare la fattura;",
         "indicazione del massimale applicabile all'intervento verificato.",
       ]}
-      iframeSrc="https://api.leadconnectorhq.com/widget/form/tPrZvb9fWC0FwZJMyIql"
-      iframeId="inline-tPrZvb9fWC0FwZJMyIql"
-      iframeHeight={1150}
+      richiesta={{
+        modulo: "verifica-prezzi",
+        prodottoFisso: "Verifica prezzi",
+      }}
       formName="Verifica congruità dei prezzi"
     />
   );

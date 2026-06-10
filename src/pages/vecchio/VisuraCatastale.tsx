@@ -11,9 +11,10 @@ export default function VecchioVisuraCatastale() {
         "dati completi dell'immobile/terreno (intestatari e rendita);",
         "documento in formato digitale pronto da inviare a tecnico, notaio o commercialista.",
       ]}
-      iframeSrc="https://api.leadconnectorhq.com/widget/form/bCcXKz5pjboI1hePxICL"
-      iframeId="inline-bCcXKz5pjboI1hePxICL"
-      iframeHeight={1144}
+      richiesta={{
+        modulo: "visura-catastale",
+        prodottoFisso: "Visura catastale",
+      }}
       formName="richiesta visura catastale"
     />
   );

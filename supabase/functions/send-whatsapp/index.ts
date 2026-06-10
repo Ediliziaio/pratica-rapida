@@ -4,12 +4,24 @@ import { reportError } from "../_shared/error.ts";
 // normalizePhone centralizzato in _shared/phone.ts — fixa il bug del prefisso
 // `+39` mancante che causava #200 di Meta su numeri italiani a 10 cifre.
 import { normalizePhone } from "../_shared/phone.ts";
+import {
+  getOpenWAConfig,
+  renderTemplateText,
+  sendOpenWAMedia,
+  sendOpenWAText,
+} from "../_shared/openwa.ts";
+
+// Provider attivo: "meta" (Cloud API ufficiale) o "openwa" (gateway
+// self-hosted whatsapp-web.js). Con "openwa" i template vengono
+// renderizzati in testo e NON c'è la finestra 24h.
+const WA_PROVIDER = (Deno.env.get("WA_PROVIDER") ?? "meta").toLowerCase();
 
 const REQUIRED_ENV = [
   "SUPABASE_URL",
   "SUPABASE_SERVICE_ROLE_KEY",
-  "WA_PHONE_NUMBER_ID",
-  "WA_ACCESS_TOKEN",
+  ...(WA_PROVIDER === "openwa"
+    ? ["OPENWA_BASE_URL", "OPENWA_API_KEY", "OPENWA_SESSION_ID"]
+    : ["WA_PHONE_NUMBER_ID", "WA_ACCESS_TOKEN"]),
 ];
 for (const k of REQUIRED_ENV) {
   if (!Deno.env.get(k)) console.error(`[send-whatsapp] Missing env: ${k}`);
@@ -75,6 +87,9 @@ serve(async (req) => {
   );
 
   let payload: {
+    // Action speciale "get_provider": la UI chat la usa per sapere quale
+    // provider è attivo (con openwa la finestra 24h non si applica).
+    action?: string;
     to?: string;
     template_name?: string;
     language?: string;
@@ -95,6 +110,14 @@ serve(async (req) => {
   } catch {
     return new Response(JSON.stringify({ success: false, error: "Bad JSON" }), {
       status: 400,
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
+
+  // Info provider per la UI (nessun invio): risponde subito.
+  if (payload.action === "get_provider") {
+    return new Response(JSON.stringify({ provider: WA_PROVIDER }), {
+      status: 200,
       headers: { ...CORS, "Content-Type": "application/json" },
     });
   }
@@ -134,7 +157,9 @@ serve(async (req) => {
   // inbound del cliente. La UI controlla già — questo è il fallback
   // server-side per impedire bypass via curl/client modificato.
   // Per template skippiamo il check (sono sempre consentiti).
-  if (isTextMode || isMediaMode) {
+  // Con provider OpenWA (whatsapp-web.js) la finestra 24h NON esiste:
+  // è una regola del solo Cloud API Meta — skip totale.
+  if ((isTextMode || isMediaMode) && WA_PROVIDER !== "openwa") {
     const { data: conv } = await supabase
       .from("whatsapp_conversations")
       .select("last_inbound_at")
@@ -201,21 +226,72 @@ serve(async (req) => {
     };
   }
 
-  const { response, result, attempts } = await callMetaWithRetry(
-    `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(templatePayload),
-    },
-  );
+  let wa_message_id: string | undefined;
+  let error_message: string | undefined;
+  let success: boolean;
+  let responseStatus: number;
+  let result: Record<string, unknown>;
+  let attempts = 1;
 
-  const wa_message_id = (result.messages as Array<{ id?: string }> | undefined)?.[0]?.id;
-  const error_message = (result.error as { message?: string } | undefined)?.message;
-  const success = !!wa_message_id;
+  if (WA_PROVIDER === "openwa") {
+    // ── Provider OpenWA (whatsapp-web.js self-hosted) ──
+    const cfg = getOpenWAConfig();
+    if (!cfg) {
+      return new Response(JSON.stringify({ success: false, error: "OpenWA non configurato (OPENWA_BASE_URL/OPENWA_API_KEY/OPENWA_SESSION_ID)" }), {
+        status: 500,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+    let sendRes;
+    if (isMediaMode) {
+      sendRes = await sendOpenWAMedia(cfg, phone, media_type!, media_url!, {
+        caption: media_caption,
+        filename: media_filename,
+      });
+    } else if (isTextMode) {
+      sendRes = await sendOpenWAText(cfg, phone, text_body!);
+    } else {
+      // Template mode: OpenWA non ha template — renderizza body_text dal
+      // DB sostituendo i {{n}} con i parameters Meta-style già in payload.
+      const { data: tpl } = await supabase
+        .from("whatsapp_templates")
+        .select("header_text, body_text, footer_text")
+        .eq("meta_template_name", template_name!)
+        .eq("language", language ?? "it")
+        .maybeSingle();
+      if (!tpl) {
+        return new Response(JSON.stringify({ success: false, error: `Template "${template_name}" non trovato in whatsapp_templates (necessario per render OpenWA)` }), {
+          status: 400,
+          headers: { ...CORS, "Content-Type": "application/json" },
+        });
+      }
+      sendRes = await sendOpenWAText(cfg, phone, renderTemplateText(tpl, components));
+    }
+    wa_message_id = sendRes.messageId ?? undefined;
+    error_message = sendRes.error ?? undefined;
+    success = sendRes.success;
+    responseStatus = sendRes.status;
+    result = sendRes.raw;
+  } else {
+    // ── Provider Meta Cloud API (default) ──
+    const meta = await callMetaWithRetry(
+      `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(templatePayload),
+      },
+    );
+    result = meta.result;
+    attempts = meta.attempts;
+    responseStatus = meta.response.status;
+    wa_message_id = (result.messages as Array<{ id?: string }> | undefined)?.[0]?.id;
+    error_message = (result.error as { message?: string } | undefined)?.message;
+    success = !!wa_message_id;
+  }
 
   // Costruisce una preview leggibile del body (per audit/contestazione):
   // serializza i parameters del primo body component, troncata a 500 char.
@@ -247,9 +323,10 @@ serve(async (req) => {
   if (!success) {
     await reportError(new Error(`WhatsApp API failed after ${attempts} attempts: ${error_message ?? "no message id"}`), {
       fn: "send-whatsapp",
+      provider: WA_PROVIDER,
       template_name,
       practice_id,
-      status: response.status,
+      status: responseStatus,
       attempts,
       response: result,
     });
@@ -260,7 +337,11 @@ serve(async (req) => {
     // Pattern Meta: "Invalid OAuth access token - Cannot parse access token"
     //               "Error validating access token: Session has expired"
     //               "Access token has expired"
-    const isTokenError = !!error_message && /oauth|access[_ ]?token|expired|session has expired/i.test(error_message);
+    // Per OpenWA il problema equivalente è la sessione QR disconnessa o il
+    // server irraggiungibile: stessa campanella, messaggio diverso.
+    const isTokenError = WA_PROVIDER === "openwa"
+      ? !!error_message && /disconnected|logged.?out|unreachable|session|qr/i.test(error_message)
+      : !!error_message && /oauth|access[_ ]?token|expired|session has expired/i.test(error_message);
     if (isTokenError) {
       try {
         // Throttle: massimo 1 alert ogni 6 ore per non spammare
@@ -285,7 +366,9 @@ serve(async (req) => {
                 user_id: a.user_id,
                 tipo: "integration_error",
                 titolo: "⚠️ WhatsApp non funziona",
-                messaggio: `Token WhatsApp Business API scaduto/invalido. Errore: ${error_message?.slice(0, 200) ?? ""}. Aggiorna WA_ACCESS_TOKEN nei secrets Supabase Edge Functions.`,
+                messaggio: WA_PROVIDER === "openwa"
+                  ? `Sessione OpenWA disconnessa o server irraggiungibile. Errore: ${error_message?.slice(0, 200) ?? ""}. Verifica il server OpenWA e ri-scansiona il QR se necessario.`
+                  : `Token WhatsApp Business API scaduto/invalido. Errore: ${error_message?.slice(0, 200) ?? ""}. Aggiorna WA_ACCESS_TOKEN nei secrets Supabase Edge Functions.`,
                 link: "/admin/impostazioni",
               })),
             );
@@ -378,15 +461,18 @@ serve(async (req) => {
     // (numero normalizzato, type, template name) così l'utente può vedere
     // in console F12 se il bug fix del prefisso `+39` è applicato davvero.
     debug: {
+      provider: WA_PROVIDER,
       phone_received: to,
       phone_sent_to_meta: phone,
       payload_type: templatePayload.type,
       template_name_sent: isTemplateMode ? template_name : null,
-      phone_number_id: PHONE_NUMBER_ID,
-      meta_url: `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
+      ...(WA_PROVIDER === "openwa" ? {} : {
+        phone_number_id: PHONE_NUMBER_ID,
+        meta_url: `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
+      }),
     },
     ...(success ? {} : {
-      error: error_message ?? `Meta HTTP ${response.status}`,
+      error: error_message ?? `${WA_PROVIDER === "openwa" ? "OpenWA" : "Meta"} HTTP ${responseStatus}`,
       meta_response: result,
       meta_request_payload: templatePayload,
       attempts,

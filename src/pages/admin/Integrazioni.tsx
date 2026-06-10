@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import OpenWAPanel from "@/components/admin/OpenWAPanel";
 import {
   Mail, MessageCircle, Clock, CheckCircle2, AlertTriangle, XCircle,
   RefreshCw, ExternalLink, Database,
@@ -271,6 +272,9 @@ export default function Integrazioni() {
           </div>
         </div>
       )}
+
+      {/* OpenWA gateway (gestione sessione + QR) */}
+      <OpenWAPanel />
 
       {/* Integration cards */}
       <div className="grid gap-3 lg:grid-cols-2">

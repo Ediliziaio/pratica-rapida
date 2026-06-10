@@ -1,13 +1,12 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { normalizePhone } from "../_shared/phone.ts";
 
+// WhatsApp passa dalla edge function send-whatsapp (router provider):
+// niente più chiamate dirette a Meta da qui → nessun WA_* env richiesto.
 const REQUIRED_ENV = [
   "SUPABASE_URL",
   "SUPABASE_SERVICE_ROLE_KEY",
   "RESEND_API_KEY",
-  "WA_PHONE_NUMBER_ID",
-  "WA_ACCESS_TOKEN",
 ];
 for (const k of REQUIRED_ENV) {
   if (!Deno.env.get(k)) console.error(`[notify-cliente] Missing env: ${k}`);
@@ -15,8 +14,6 @@ for (const k of REQUIRED_ENV) {
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const FROM_EMAIL = `Pratica Rapida <noreply@${Deno.env.get("EMAIL_FROM_DOMAIN") ?? "praticarapida.it"}>`;
-const PHONE_NUMBER_ID = Deno.env.get("WA_PHONE_NUMBER_ID")!;
-const ACCESS_TOKEN = Deno.env.get("WA_ACCESS_TOKEN")!;
 const APP_URL = Deno.env.get("APP_URL") ?? "https://app.praticarapida.it";
 
 const CORS = {
@@ -85,43 +82,41 @@ async function sendEmail(
   return await res.json();
 }
 
-async function sendWhatsApp(phone: string, nome: string, moduloUrl: string) {
-  const normalizedPhone = normalizePhone(phone);
-  // Uses a free-form text message (requires 24h customer service window)
-  // For template-based, use the template flow in send-whatsapp function
-  const res = await fetch(
-    `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        to: normalizedPhone,
-        type: "template",
-        template: {
-          name: "modulo_cliente_enea",
-          language: { code: "it" },
-          components: [
-            {
-              type: "body",
-              parameters: [
-                { type: "text", text: nome },
-                { type: "text", text: moduloUrl },
-              ],
-            },
+/**
+ * Invio WhatsApp via la edge function `send-whatsapp` (router provider:
+ * OpenWA o Meta a seconda di WA_PROVIDER). NON chiama più Meta direttamente
+ * — così rispetta il provider attivo e logga in chat/communication_log.
+ */
+async function sendWhatsApp(phone: string, nome: string, moduloUrl: string, practiceId?: string) {
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+  const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/send-whatsapp`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${SERVICE_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      to: phone,
+      template_name: "modulo_cliente_enea",
+      language: "it",
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: nome },
+            { type: "text", text: moduloUrl },
           ],
         },
-      }),
-    }
-  );
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`WhatsApp error: ${err}`);
+      ],
+      practice_id: practiceId,
+    }),
+  });
+  const result = await res.json().catch(() => ({}));
+  if (!res.ok || !(result as { success?: boolean }).success) {
+    throw new Error(`WhatsApp error: ${(result as { error?: string }).error ?? `HTTP ${res.status}`}`);
   }
-  return await res.json();
+  return result;
 }
 
 serve(async (req) => {
@@ -191,7 +186,7 @@ serve(async (req) => {
 
     // Send WhatsApp
     if ((channel === "whatsapp" || channel === "both") && telefono) {
-      results.whatsapp = await sendWhatsApp(telefono, nome, moduloUrl);
+      results.whatsapp = await sendWhatsApp(telefono, nome, moduloUrl, pratica?.id);
     } else if ((channel === "whatsapp" || channel === "both") && !telefono) {
       results.whatsapp = { skipped: "nessun telefono disponibile" };
     }

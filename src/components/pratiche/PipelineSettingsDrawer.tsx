@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,11 +26,17 @@ export function PipelineSettingsDrawer({ open, onClose }: PipelineSettingsDrawer
   const { resellerId } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data: stages = [] } = usePipelineStages();
+  // Niente default `= []` qui: creerebbe un nuovo array a ogni render finché
+  // i dati caricano, ri-triggerando la useMemo sotto. Default applicato dentro.
+  const { data: stages } = usePipelineStages();
 
-  // Filter to reseller-specific stages (or create copies from system stages)
-  const resellerStages = stages.filter(
-    (s) => s.reseller_id === resellerId || s.reseller_id === null
+  // Filter to reseller-specific stages (or create copies from system stages).
+  // useMemo: senza memoizzazione `resellerStages` era un nuovo array a ogni
+  // render → l'useEffect [resellerStages] scattava sempre → setState → loop
+  // infinito ("Maximum update depth exceeded").
+  const resellerStages = useMemo(
+    () => (stages ?? []).filter((s) => s.reseller_id === resellerId || s.reseller_id === null),
+    [stages, resellerId],
   );
 
   const [localStages, setLocalStages] = useState<PipelineStage[]>([]);

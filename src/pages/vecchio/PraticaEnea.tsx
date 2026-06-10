@@ -11,9 +11,17 @@ export default function VecchioPraticaEnea() {
         "ricevuta ENEA ufficiale da conservare;",
         "copia per il cliente finale e per il rivenditore.",
       ]}
-      iframeSrc="https://api.leadconnectorhq.com/widget/form/QQHfDRgAPOynEERpP5DK"
-      iframeId="inline-QQHfDRgAPOynEERpP5DK"
-      iframeHeight={2475}
+      richiesta={{
+        modulo: "pratica-enea",
+        conTipoServizio: true,
+        prodotti: [
+          "Schermature Solari",
+          "Infissi / Serramenti",
+          "VEPA – Vetrate Panoramiche",
+          "Pompe di Calore / Climatizzazione",
+          "Insufflaggio Tetti",
+        ],
+      }}
       formName="Modulo Rivenditore"
     />
   );

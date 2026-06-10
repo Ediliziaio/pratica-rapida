@@ -27,6 +27,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+import { useWaProvider } from "@/hooks/useWaProvider";
 import {
   CheckCircle2, XCircle, AlertTriangle, Copy, RefreshCw, MessageCircle,
   ExternalLink, KeyRound, Webhook, Send, Pencil, Loader2, Plus, Sparkles,
@@ -419,6 +420,8 @@ function SetupTab() {
 function RegisterPhoneDialog({ onClose }: { onClose: () => void }) {
   const [pin, setPin] = useState("");
   const [lastResponse, setLastResponse] = useState<Record<string, unknown> | null>(null);
+  const [step, setStep] = useState<"info" | "pin" | "done">("info");
+  const [dialogOpen, setDialogOpen] = useState(true);
 
   const registerMutation = useMutation({
     mutationFn: async () => {
@@ -426,15 +429,16 @@ function RegisterPhoneDialog({ onClose }: { onClose: () => void }) {
         body: { action: "register_phone", pin },
       });
       if (error) throw error;
-      setLastResponse(data as Record<string, unknown>);
       const result = data as { success?: boolean; next_step?: string };
       return result;
     },
     onSuccess: (res) => {
+      setLastResponse(res as Record<string, unknown>);
       if (res.success) {
+        setStep("done");
         toast({
           title: "Numero registrato ✅",
-          description: res.next_step ?? "Stato passerà a 'In linea' entro 30s.",
+          description: res.next_step ?? "Stato passerà a 'In linea' entro 30s. Ricarica la pagina per vedere l'aggiornamento.",
         });
       } else {
         toast({
@@ -449,8 +453,15 @@ function RegisterPhoneDialog({ onClose }: { onClose: () => void }) {
     },
   });
 
+  const handleOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
+    <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -458,43 +469,102 @@ function RegisterPhoneDialog({ onClose }: { onClose: () => void }) {
             Registra phone number
           </DialogTitle>
           <DialogDescription>
-            Risolve lo stato &quot;Non in linea&quot; del numero che causa l&apos;errore #200 di Meta su send dei template.
+            Risolve lo stato &quot;Non in linea&quot; che blocca l&apos;invio dei template.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 py-2">
-          <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs space-y-1.5">
-            <p className="font-semibold text-amber-900">Quando usare questo?</p>
-            <p className="text-amber-900">
-              Se in <a href="https://business.facebook.com/wa/manage/phone-numbers/" target="_blank" rel="noopener noreferrer" className="text-primary underline">WhatsApp Manager</a> il tuo numero ha stato <strong>&quot;Non in linea&quot;</strong> ma i template sono APPROVED, è quasi sicuramente un problema di registrazione sul Cloud API. Questo bottone lo registra.
-            </p>
+        <div className="space-y-4 py-2">
+          {/* Step indicator */}
+          <div className="flex gap-2 justify-center text-xs font-semibold">
+            <div className={`flex items-center justify-center w-7 h-7 rounded-full ${
+              step === "info" || step === "pin" || step === "done"
+                ? "bg-emerald-600 text-white"
+                : "bg-slate-200 text-slate-600"
+            }`}>
+              {step === "done" ? <CheckCircle2 className="h-4 w-4" /> : "1"}
+            </div>
+            <div className={`flex items-center justify-center w-7 h-7 rounded-full ${
+              step === "pin" || step === "done"
+                ? "bg-emerald-600 text-white"
+                : "bg-slate-200 text-slate-600"
+            }`}>
+              {step === "done" ? <CheckCircle2 className="h-4 w-4" /> : "2"}
+            </div>
+            <div className={`flex items-center justify-center w-7 h-7 rounded-full ${
+              step === "done" ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-600"
+            }`}>
+              3
+            </div>
           </div>
 
-          <div>
-            <Label htmlFor="pin">PIN a 6 cifre (Two-step verification)</Label>
-            <Input
-              id="pin"
-              value={pin}
-              onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder="123456"
-              inputMode="numeric"
-              maxLength={6}
-              className="font-mono text-lg tracking-widest"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Se non hai mai impostato un PIN 2FA per questo numero, scegli adesso un PIN qualsiasi (es. <code className="text-[10px]">123456</code>). <strong>Salvalo</strong> — Meta lo chiederà alla prossima riautenticazione del numero.
-            </p>
-          </div>
+          {/* Step 1: Info */}
+          {step === "info" && (
+            <div className="space-y-3">
+              <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-xs space-y-2">
+                <p className="font-semibold text-blue-900">Cos'è lo stato &quot;Non in linea&quot;?</p>
+                <p className="text-blue-900">
+                  Significa che il numero è stato aggiunto al WABA (WhatsApp Business Account) ma <strong>non è stato ancora registrato</strong> sul Cloud API di Meta. I template sono approved ma non si possono inviare messaggi fino a quando il numero non viene registrato e diventa &quot;In linea&quot;.
+                </p>
+              </div>
 
-          {/* Banner debug con response Meta — sempre visibile dopo invio */}
-          {lastResponse && (() => {
+              <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-xs space-y-2">
+                <p className="font-semibold text-emerald-900">Cosa farà questo bottone?</p>
+                <p className="text-emerald-900">
+                  Registrerà il numero sul Cloud API usando un PIN a 6 cifre (two-step verification). Lo stato cambierà da &quot;Non in linea&quot; a &quot;In linea&quot; in pochi secondi.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setStep("pin")}
+                className="w-full px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary/90 transition"
+              >
+                Continua →
+              </button>
+            </div>
+          )}
+
+          {/* Step 2: PIN input */}
+          {step === "pin" && (
+            <div className="space-y-3">
+              <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs space-y-1.5">
+                <p className="font-semibold text-amber-900">Dove trovo il PIN?</p>
+                <ol className="space-y-1 text-amber-900 list-decimal list-inside">
+                  <li>Vai su <a href="https://business.facebook.com/" target="_blank" rel="noopener noreferrer" className="text-primary underline font-semibold">Meta Business Manager</a></li>
+                  <li>Seleziona il tuo account WhatsApp</li>
+                  <li>Vai a <strong>Impostazioni → Numero di telefono</strong></li>
+                  <li>Cerca <strong>Two-step verification PIN</strong></li>
+                  <li>Se non ce l'hai, scegli un PIN qualsiasi di 6 cifre (es. 123456)</li>
+                </ol>
+              </div>
+
+              <div>
+                <Label htmlFor="pin" className="text-xs font-semibold">PIN a 6 cifre</Label>
+                <Input
+                  id="pin"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="123456"
+                  inputMode="numeric"
+                  maxLength={6}
+                  className="font-mono text-lg tracking-widest mt-1.5"
+                  autoFocus
+                />
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  Inserisci il PIN che hai impostato in Meta. Se non l'hai mai configurato, usa qualsiasi combinazione di 6 cifre e <strong>salvalo bene</strong>.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Success or error */}
+          {step === "done" && (() => {
             const success = (lastResponse as { success?: boolean }).success === true;
             const status = (lastResponse as { status?: number }).status;
             const meta = (lastResponse as { meta_response?: { error?: { code?: number; message?: string }; success?: boolean } }).meta_response;
             const nextStep = (lastResponse as { next_step?: string }).next_step;
             return (
               <div className={`rounded-md border-2 p-3 text-[11px] space-y-1.5 ${success ? "border-emerald-300 bg-emerald-50" : "border-red-300 bg-red-50"}`}>
-                <div className={`font-bold ${success ? "text-emerald-900" : "text-red-900"}`}>
+                <div className={`font-bold text-sm ${success ? "text-emerald-900" : "text-red-900"}`}>
                   {success ? "✅ Registrazione OK" : "❌ Registrazione fallita"}
                 </div>
                 <div className="grid grid-cols-[120px_1fr] gap-1 font-mono">
@@ -510,26 +580,60 @@ function RegisterPhoneDialog({ onClose }: { onClose: () => void }) {
                   )}
                 </div>
                 {nextStep && <p className="mt-2 font-semibold">{nextStep}</p>}
-                <details className="mt-2">
-                  <summary className="cursor-pointer opacity-70 font-semibold">Response Meta (raw JSON)</summary>
-                  <pre className="mt-2 p-2 bg-white rounded overflow-x-auto text-[10px] max-h-40">
+                {success && (
+                  <p className="mt-2 text-emerald-900">
+                    Il numero passerà a &quot;In linea&quot; entro 30 secondi. Ricarica la pagina per vedere l'aggiornamento.
+                  </p>
+                )}
+                {!success && (
+                  <details className="mt-2">
+                    <summary className="cursor-pointer opacity-70 font-semibold">Response Meta (raw JSON)</summary>
+                    <pre className="mt-2 p-2 bg-white rounded overflow-x-auto text-[10px] max-h-40">
 {JSON.stringify(meta, null, 2)}
-                  </pre>
-                </details>
+                    </pre>
+                  </details>
+                )}
               </div>
             );
           })()}
+
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Chiudi</Button>
+        <DialogFooter className="gap-2">
           <Button
-            onClick={() => registerMutation.mutate()}
-            disabled={registerMutation.isPending || pin.length !== 6}
+            variant="outline"
+            onClick={() => {
+              if (step === "done" || (lastResponse && (lastResponse as { success?: boolean }).success)) {
+                onClose();
+              } else if (step === "pin") {
+                setStep("info");
+                setPin("");
+              } else {
+                onClose();
+              }
+            }}
           >
-            {registerMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-            {lastResponse ? "Riprova" : "Registra"}
+            {step === "done" ? "Chiudi" : step === "pin" ? "Indietro" : "Annulla"}
           </Button>
+          {step === "pin" && (
+            <Button
+              onClick={() => registerMutation.mutate()}
+              disabled={registerMutation.isPending || pin.length !== 6}
+              className="gap-2"
+            >
+              {registerMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {lastResponse ? "Riprova" : "Registra"}
+            </Button>
+          )}
+          {step === "done" && (
+            <Button
+              onClick={onClose}
+              className="gap-2"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              Fatto
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -1243,6 +1347,11 @@ function TemplateRow({ template, selected, onToggleSelect, onEdit, onTest }: {
           {template.rejection_reason && (
             <p className="text-xs text-red-700">Motivo rifiuto: {template.rejection_reason}</p>
           )}
+          {template.meta_last_synced_at && (
+            <p className="text-[11px] text-muted-foreground">
+              Sincronizzato: {new Date(template.meta_last_synced_at).toLocaleString("it-IT")}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <div className="flex items-center gap-1.5">
@@ -1593,6 +1702,9 @@ ${JSON.stringify(meta, null, 2)}`}
  */
 function CreateTemplateDialog({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient();
+  // Con provider OpenWA i template sono locali (nessuna approvazione Meta):
+  // insert diretto in whatsapp_templates con status APPROVED, subito usabili.
+  const { provider } = useWaProvider();
   const [name, setName] = useState("");
   const [category, setCategory] = useState<"UTILITY" | "MARKETING" | "AUTHENTICATION">("UTILITY");
   const [language, setLanguage] = useState("it");
@@ -1620,6 +1732,30 @@ function CreateTemplateDialog({ onClose }: { onClose: () => void }) {
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      // ── Provider OpenWA: template locale, subito APPROVED ──
+      if (provider === "openwa") {
+        const { data: userData } = await supabase.auth.getUser();
+        const { error } = await supabase.from("whatsapp_templates").insert({
+          meta_template_name: name,
+          language,
+          category,
+          status: "APPROVED",
+          body_text: body,
+          footer_text: footer.trim() || null,
+          is_active: true,
+          display_name: name,
+          description: "Template locale (OpenWA) — nessuna approvazione Meta richiesta",
+          variables: placeholders.map((p, i) => ({
+            position: p,
+            name: `var_${p}`,
+            example: examples[i] ?? "",
+          })),
+        });
+        if (error) throw new Error(error.message);
+        return { success: true, meta_status: "APPROVED" };
+      }
+
+      // ── Provider Meta: submit per approvazione ──
       const components: Array<Record<string, unknown>> = [
         {
           type: "BODY",
@@ -1649,8 +1785,10 @@ function CreateTemplateDialog({ onClose }: { onClose: () => void }) {
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["whatsapp-templates"] });
       toast({
-        title: "Template inviato a Meta",
-        description: `Status: ${res.meta_status ?? "PENDING"}. Approval di solito in pochi minuti.`,
+        title: provider === "openwa" ? "Template creato e già attivo ✅" : "Template inviato a Meta",
+        description: provider === "openwa"
+          ? "Con OpenWA non serve approvazione: puoi usarlo subito in chat e automazioni."
+          : `Status: ${res.meta_status ?? "PENDING"}. Approval di solito in pochi minuti.`,
       });
       onClose();
     },
@@ -1665,7 +1803,9 @@ function CreateTemplateDialog({ onClose }: { onClose: () => void }) {
         <DialogHeader>
           <DialogTitle>Crea nuovo template</DialogTitle>
           <DialogDescription>
-            Il template viene inviato a Meta per approvazione. Una volta approvato (di solito pochi minuti per UTILITY) sarà disponibile per l'invio.
+            {provider === "openwa"
+              ? "Con OpenWA il template è subito attivo: nessuna approvazione Meta richiesta. Usa {{1}}, {{2}}… per le variabili."
+              : "Il template viene inviato a Meta per approvazione. Una volta approvato (di solito pochi minuti per UTILITY) sarà disponibile per l'invio."}
           </DialogDescription>
         </DialogHeader>
 

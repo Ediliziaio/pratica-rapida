@@ -11,9 +11,10 @@ export default function VecchioAllaccioFotovoltaico() {
         "conferma di avvenuta registrazione/attivazione sul portale GSE;",
         "copia completa della documentazione per il cliente finale e per il rivenditore.",
       ]}
-      iframeSrc="https://api.leadconnectorhq.com/widget/form/sCxXf1IPSH9MD36NkHwU"
-      iframeId="inline-sCxXf1IPSH9MD36NkHwU"
-      iframeHeight={7391}
+      richiesta={{
+        modulo: "allaccio-fotovoltaico",
+        prodottoFisso: "Allaccio fotovoltaico GSE",
+      }}
       formName="Allaccio fotovoltaico"
     />
   );

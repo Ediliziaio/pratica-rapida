@@ -43,6 +43,7 @@ const DocumentiUtili = lazy(() => import("./pages/DocumentiUtili"));
 const NuovaPraticaEnea = lazy(() => import("./pages/rivenditore/NuovaPraticaEnea"));
 const HomeMain = lazy(() => import("./pages/HomeMain"));
 const AreaRiservataVecchia = lazy(() => import("./pages/AreaRiservataVecchia"));
+const AreaRiservataVecchiaServizi = lazy(() => import("./pages/AreaRiservataVecchiaServizi"));
 const VecchioPraticaEnea = lazy(() => import("./pages/vecchio/PraticaEnea"));
 const VecchioFotovoltaicoOffGrid = lazy(() => import("./pages/vecchio/FotovoltaicoOffGrid"));
 const VecchioVisuraCatastale = lazy(() => import("./pages/vecchio/VisuraCatastale"));
@@ -61,6 +62,7 @@ const AdminNews = lazy(() => import("./pages/AdminNews"));
 const Integrazioni = lazy(() => import("./pages/admin/Integrazioni"));
 const WhatsappConfig = lazy(() => import("./pages/admin/WhatsappConfig"));
 const WhatsappChat = lazy(() => import("./pages/admin/WhatsappChat"));
+const Chat = lazy(() => import("./pages/admin/Chat"));
 const ClientiAdmin = lazy(() => import("./pages/admin/ClientiAdmin"));
 const ClienteDettaglio = lazy(() => import("./pages/admin/ClienteDettaglio"));
 const EmailTemplates = lazy(() => import("./pages/admin/EmailTemplates"));
@@ -255,6 +257,7 @@ const App = () => (
                 <Route path="/offerta" element={<Navigate to="/pratica-enea" replace />} />
                 <Route path="/home" element={<Navigate to="/" replace />} />
                 <Route path="/area-riservata-vecchia" element={<AreaRiservataVecchia />} />
+                <Route path="/area-riservata-vecchia/servizi" element={<AreaRiservataVecchiaServizi />} />
                 <Route path="/area-riservata-vecchia/pratica-enea" element={<VecchioPraticaEnea />} />
                 <Route path="/area-riservata-vecchia/fotovoltaico-off-grid" element={<VecchioFotovoltaicoOffGrid />} />
                 <Route path="/area-riservata-vecchia/visura-catastale" element={<VecchioVisuraCatastale />} />
@@ -334,6 +337,7 @@ const App = () => (
                 <Route path="/admin/integrazioni" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><Integrazioni /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/whatsapp-config" element={<ProtectedRoute><RoleGuard allowed={["super_admin"]}><WhatsappConfig /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/whatsapp-chat" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><WhatsappChat /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/chat" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><Chat /></RoleGuard></ProtectedRoute>} />
                 {/* Redirect retrocompatibile: la vecchia pagina dedicata è ora un tab di /admin/whatsapp-config */}
                 <Route path="/admin/whatsapp-quick-replies" element={<Navigate to="/admin/whatsapp-config" replace />} />
                 <Route path="/admin/calendario-eventi" element={<Navigate to="/admin/calendario" replace />} />

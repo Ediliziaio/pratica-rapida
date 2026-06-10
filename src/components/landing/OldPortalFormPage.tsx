@@ -4,16 +4,28 @@ import { CheckCircle2, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/landing";
 import { SEO } from "@/components/SEO";
+import RichiestaPubblicaForm from "@/components/landing/RichiestaPubblicaForm";
 
 interface Props {
   title: string;
   description: string;
   bulletIntro: string;
   bullets: string[];
-  iframeSrc: string;
-  iframeId: string;
-  iframeHeight: number;
   formName: string;
+  /**
+   * Form interno Pratica Rapida (sostituisce il vecchio iframe GoHighLevel).
+   * Se presente, l'iframe viene ignorato.
+   */
+  richiesta?: {
+    modulo: string;
+    prodottoFisso?: string;
+    prodotti?: string[];
+    conTipoServizio?: boolean;
+  };
+  /** Legacy: embed GoHighLevel. Usato solo se `richiesta` è assente. */
+  iframeSrc?: string;
+  iframeId?: string;
+  iframeHeight?: number;
 }
 
 export default function OldPortalFormPage({
@@ -21,18 +33,21 @@ export default function OldPortalFormPage({
   description,
   bulletIntro,
   bullets,
+  formName,
+  richiesta,
   iframeSrc,
   iframeId,
   iframeHeight,
-  formName,
 }: Props) {
+  // Lo script GHL serve solo per il vecchio embed
   useEffect(() => {
+    if (richiesta) return;
     if (document.querySelector('script[src="https://link.msgsndr.com/js/form_embed.js"]')) return;
     const s = document.createElement("script");
     s.src = "https://link.msgsndr.com/js/form_embed.js";
     s.async = true;
     document.body.appendChild(s);
-  }, []);
+  }, [richiesta]);
 
   return (
     <>
@@ -54,10 +69,10 @@ export default function OldPortalFormPage({
             className="mb-8"
           >
             <Link
-              to="/area-riservata-vecchia"
+              to="/area-riservata-vecchia/servizi"
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              <ArrowLeft className="w-4 h-4" /> Torna all'area riservata
+              <ArrowLeft className="w-4 h-4" /> Torna ai servizi
             </Link>
           </motion.div>
 
@@ -89,27 +104,37 @@ export default function OldPortalFormPage({
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8"
           >
-            <p className="text-sm font-semibold text-muted-foreground mb-6">{bulletIntro}</p>
+            <p className="text-sm font-semibold text-muted-foreground mb-4">{bulletIntro}</p>
 
-            <iframe
-              src={iframeSrc}
-              style={{ width: "100%", height: iframeHeight, border: "none", borderRadius: 3 }}
-              id={iframeId}
-              data-layout="{'id':'INLINE'}"
-              data-trigger-type="alwaysShow"
-              data-trigger-value=""
-              data-activation-type="alwaysActivated"
-              data-activation-value=""
-              data-deactivation-type="neverDeactivate"
-              data-deactivation-value=""
-              data-form-name={formName}
-              data-height={iframeHeight}
-              data-layout-iframe-id={iframeId}
-              data-form-id={iframeId.replace("inline-", "")}
-              title={formName}
-            />
+            {richiesta ? (
+              <RichiestaPubblicaForm
+                modulo={richiesta.modulo}
+                prodottoFisso={richiesta.prodottoFisso}
+                prodotti={richiesta.prodotti}
+                conTipoServizio={richiesta.conTipoServizio}
+              />
+            ) : iframeSrc ? (
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+                <iframe
+                  src={iframeSrc}
+                  style={{ width: "100%", height: iframeHeight, border: "none", borderRadius: 3 }}
+                  id={iframeId}
+                  data-layout="{'id':'INLINE'}"
+                  data-trigger-type="alwaysShow"
+                  data-trigger-value=""
+                  data-activation-type="alwaysActivated"
+                  data-activation-value=""
+                  data-deactivation-type="neverDeactivate"
+                  data-deactivation-value=""
+                  data-form-name={formName}
+                  data-height={iframeHeight}
+                  data-layout-iframe-id={iframeId}
+                  data-form-id={iframeId?.replace("inline-", "")}
+                  title={formName}
+                />
+              </div>
+            ) : null}
           </motion.div>
 
         </div>

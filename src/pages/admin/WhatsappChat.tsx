@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useWaProvider } from "@/hooks/useWaProvider";
 import {
   MessageCircle, Search, Send, Archive, ArchiveRestore, Clock,
   CheckCheck, Check, AlertTriangle, FileText, Phone, Loader2,
@@ -443,12 +444,16 @@ function ChatThread({ conversationId, onBack }: { conversationId: string; onBack
   // false positivi proprio al limite (utente clicca "invia" a 23:59:59,
   // server riceve a 00:00:01 e rifiuta). Meglio anticipare la chiusura
   // window di 5 min e suggerire un template prima del fallimento Meta.
+  // Con provider OpenWA (whatsapp-web.js) la finestra NON esiste: testo
+  // libero sempre consentito, come da WhatsApp normale.
+  const { provider } = useWaProvider();
   const canSendFreeText = useMemo(() => {
+    if (provider === "openwa") return true;
     if (!conv?.last_inbound_at) return false;
     const ageMs = Date.now() - new Date(conv.last_inbound_at).getTime();
     const WINDOW_MS = 24 * 3600 * 1000 - 5 * 60 * 1000; // 23h55m
     return ageMs < WINDOW_MS;
-  }, [conv]);
+  }, [conv, provider]);
 
   const archiveMutation = useMutation({
     mutationFn: async (archived: boolean) => {

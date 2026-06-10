@@ -35,6 +35,7 @@ import { toast } from "@/hooks/use-toast";
 // allineate). Fixa il bug del prefisso `+39` mancante che causava #200 Meta.
 import { normalizePhone } from "@/lib/phone";
 import { useAuth } from "@/hooks/useAuth";
+import { useWaProvider } from "@/hooks/useWaProvider";
 import {
   MessageCircle, Mail, Send, Clock, CheckCheck, Check, AlertTriangle,
   FileText, Loader2, Phone, X,
@@ -253,12 +254,15 @@ function WhatsAppTab({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Finestra 24h (5min buffer per clock skew)
+  // Finestra 24h (5min buffer per clock skew).
+  // Con provider OpenWA la finestra non esiste: testo libero sempre OK.
+  const { provider } = useWaProvider();
   const canSendFreeText = useMemo(() => {
+    if (provider === "openwa") return true;
     if (!conv?.last_inbound_at) return false;
     const ageMs = Date.now() - new Date(conv.last_inbound_at).getTime();
     return ageMs < (24 * 3600 * 1000 - 5 * 60 * 1000);
-  }, [conv]);
+  }, [conv, provider]);
 
   return (
     <>

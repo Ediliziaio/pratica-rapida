@@ -8,6 +8,19 @@ const SERVICES = [
   {
     icon: (
       <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 mx-auto" stroke="hsl(152 65% 38%)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="10" y="6" width="28" height="36" rx="3" />
+        <line x1="16" y1="16" x2="32" y2="16" /><line x1="16" y1="22" x2="32" y2="22" /><line x1="16" y1="28" x2="24" y2="28" />
+      </svg>
+    ),
+    title: "PRATICA ENEA",
+    desc: "Gestiamo la tua pratica ENEA per schermature solari, infissi, climatizzatori.",
+    cta: "INSERISCI PRATICA",
+    to: "/area-riservata-vecchia/pratica-enea",
+    soon: false,
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 mx-auto" stroke="hsl(152 65% 38%)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="24" cy="24" r="8" />
         <line x1="24" y1="4" x2="24" y2="10" /><line x1="24" y1="38" x2="24" y2="44" />
         <line x1="4" y1="24" x2="10" y2="24" /><line x1="38" y1="24" x2="44" y2="24" />
@@ -19,19 +32,6 @@ const SERVICES = [
     desc: "Forniamo la gestione completa delle pratiche GSE per impianti fotovoltaici (Iter semplificato)",
     cta: "INSERISCI PRATICA",
     to: "/area-riservata-vecchia/allaccio-fotovoltaico",
-    soon: false,
-  },
-  {
-    icon: (
-      <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 mx-auto" stroke="hsl(152 65% 38%)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="10" y="6" width="28" height="36" rx="3" />
-        <line x1="16" y1="16" x2="32" y2="16" /><line x1="16" y1="22" x2="32" y2="22" /><line x1="16" y1="28" x2="24" y2="28" />
-      </svg>
-    ),
-    title: "PRATICA ENEA",
-    desc: "Gestiamo la tua pratica ENEA per schermature solari, infissi, climatizzatori.",
-    cta: "INSERISCI PRATICA",
-    to: "/area-riservata-vecchia/pratica-enea",
     soon: false,
   },
   {

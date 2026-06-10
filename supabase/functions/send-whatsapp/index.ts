@@ -272,6 +272,22 @@ serve(async (req) => {
     success = sendRes.success;
     responseStatus = sendRes.status;
     result = sendRes.raw;
+    // Se l'invio fallisce, verifica lo stato sessione: il 500 generico di
+    // OpenWA su sessione non collegata diventa un messaggio chiaro per la UI.
+    if (!success) {
+      try {
+        const statusRes = await fetch(`${cfg.baseUrl}/api/sessions/${cfg.sessionId}`, {
+          headers: { "X-API-Key": cfg.apiKey },
+        });
+        const sess = await statusRes.json().catch(() => ({})) as { status?: string };
+        const st = String(sess.status ?? "").toLowerCase();
+        if (st && !["connected", "ready", "authenticated", "working"].includes(st)) {
+          error_message = "WhatsApp non connesso: ri-scansiona il QR code da Impostazioni → Integrazioni.";
+        }
+      } catch {
+        error_message = "WhatsApp non raggiungibile: verifica il server OpenWA.";
+      }
+    }
   } else {
     // ── Provider Meta Cloud API (default) ──
     const meta = await callMetaWithRetry(

@@ -6,6 +6,7 @@ import { reportError } from "../_shared/error.ts";
 import { normalizePhone } from "../_shared/phone.ts";
 import {
   getOpenWAConfig,
+  OPENWA_TEMPLATE_FALLBACKS,
   renderTemplateText,
   sendOpenWAMedia,
   sendOpenWAText,
@@ -253,12 +254,16 @@ serve(async (req) => {
     } else {
       // Template mode: OpenWA non ha template — renderizza body_text dal
       // DB sostituendo i {{n}} con i parameters Meta-style già in payload.
-      const { data: tpl } = await supabase
+      const { data: tplDb } = await supabase
         .from("whatsapp_templates")
         .select("header_text, body_text, footer_text")
         .eq("meta_template_name", template_name!)
         .eq("language", language ?? "it")
         .maybeSingle();
+      // DB prima, poi fallback hardcoded per i template di sistema (vedi
+      // OPENWA_TEMPLATE_FALLBACKS): le automazioni non si rompono se manca
+      // la riga in whatsapp_templates.
+      const tpl = tplDb ?? OPENWA_TEMPLATE_FALLBACKS[template_name!] ?? null;
       if (!tpl) {
         return new Response(JSON.stringify({ success: false, error: `Template "${template_name}" non trovato in whatsapp_templates (necessario per render OpenWA)` }), {
           status: 400,

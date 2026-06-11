@@ -111,6 +111,24 @@ export function sendOpenWAMedia(
 }
 
 /**
+ * Fallback per i template DI SISTEMA invocati dal codice (on-practice-created,
+ * on-stage-changed) ma non presenti in whatsapp_templates. Senza questi, con
+ * provider OpenWA l'invio fallirebbe con "template non trovato". Il DB ha
+ * SEMPRE la precedenza: se l'admin crea il template con lo stesso nome,
+ * viene usato quello.
+ */
+export const OPENWA_TEMPLATE_FALLBACKS: Record<string, { header_text?: string; body_text: string; footer_text?: string }> = {
+  contatta_cliente: {
+    body_text:
+      "Ciao {{1}}! 👋\n\nSiamo *Pratica Rapida*: per conto di *{{2}}* gestiamo la pratica ENEA del tuo acquisto.\n\nPer completarla ci servono alcuni dati — compila il modulo qui sotto, bastano 5 minuti:\n\n👉 {{3}}\n\nGrazie!",
+  },
+  conferma_dati_ricevuti: {
+    body_text:
+      "Ciao {{1}}! ✅\n\nAbbiamo ricevuto correttamente i tuoi dati: la tua pratica ENEA è ora *in lavorazione*.\n\nTi aggiorneremo appena completata. Grazie per la fiducia!",
+  },
+};
+
+/**
  * Renderizza un template del portale in testo semplice per OpenWA.
  * Sostituisce {{1}}, {{2}}, ... con i parametri body estratti dai
  * `components` in formato Meta (gli stessi che il portale già passa

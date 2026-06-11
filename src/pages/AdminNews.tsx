@@ -243,12 +243,20 @@ export default function AdminNews() {
         // Promote local state to "edit mode" so subsequent saves update
         setEditor((prev) => ({ ...prev, id: savedId, ...data }));
       }
-      return { id: savedId, closeAfter: params.closeAfter };
+      return { id: savedId, closeAfter: params.closeAfter, published: payload.status === "published", slug: payload.slug };
     },
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ["news_articles"] });
       toast({ title: result.closeAfter ? "Articolo salvato" : "Bozza salvata" });
       if (result.closeAfter) setEditorOpen(false);
+      // SEO: se pubblicato, avvisa i motori (IndexNow → Bing/Yandex) per
+      // indicizzazione quasi istantanea dell'articolo. Non-blocking.
+      if (result.published && result.slug) {
+        const base = "https://www.praticarapida.it";
+        supabase.functions.invoke("seo-indexnow-ping", {
+          body: { urls: [`${base}/blog/${result.slug}`, `${base}/blog`] },
+        }).catch((err) => console.warn("[indexnow] ping failed:", err));
+      }
     },
     onError: (err: Error) => toast({ title: "Errore salvataggio", description: err.message, variant: "destructive" }),
   });

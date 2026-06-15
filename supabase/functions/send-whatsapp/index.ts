@@ -263,7 +263,11 @@ serve(async (req) => {
       // DB prima, poi fallback hardcoded per i template di sistema (vedi
       // OPENWA_TEMPLATE_FALLBACKS): le automazioni non si rompono se manca
       // la riga in whatsapp_templates.
-      const tpl = tplDb ?? OPENWA_TEMPLATE_FALLBACKS[template_name!] ?? null;
+      // DIFENSIVO: se la riga DB esiste ma ha body_text vuoto/whitespace
+      // (es. sincronizzata da Meta senza il testo), usa il fallback invece
+      // di mandare un messaggio vuoto. Così OpenWA renderizza sempre testo reale.
+      const dbHasText = !!tplDb && typeof tplDb.body_text === "string" && tplDb.body_text.trim().length > 0;
+      const tpl = dbHasText ? tplDb : (OPENWA_TEMPLATE_FALLBACKS[template_name!] ?? tplDb ?? null);
       if (!tpl) {
         return new Response(JSON.stringify({ success: false, error: `Template "${template_name}" non trovato in whatsapp_templates (necessario per render OpenWA)` }), {
           status: 400,

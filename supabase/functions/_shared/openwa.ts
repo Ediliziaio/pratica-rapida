@@ -126,6 +126,27 @@ export const OPENWA_TEMPLATE_FALLBACKS: Record<string, { header_text?: string; b
     body_text:
       "Ciao {{1}}! ✅\n\nAbbiamo ricevuto correttamente i tuoi dati: la tua pratica ENEA è ora *in lavorazione*.\n\nTi aggiorneremo appena completata. Grazie per la fiducia!",
   },
+  // Usato da process-automations (recensione_7d_followup, pratica_pagata) sul
+  // canale WhatsApp. 2 parametri: {{1}} nome, {{2}} email destinazione.
+  pratica_inviata_recensione: {
+    body_text:
+      "Ciao {{1}}! ✅\n\nLa tua pratica ENEA è stata *completata e inviata*: trovi conferma e ricevuta all'indirizzo {{2}}.\n\nSe ti va, ci aiuteresti con una breve recensione sulla tua esperienza con *Pratica Rapida*? Bastano 30 secondi e per noi vale tantissimo. 🙏\n\nGrazie di cuore!",
+  },
+  // notify-cliente → primo invio modulo al cliente. {{1}} nome, {{2}} link form.
+  modulo_cliente_enea: {
+    body_text:
+      "Gentile {{1}}, 👋\n\nper completare la sua pratica ENEA la invitiamo a compilare il modulo con i dati richiesti:\n\n👉 {{2}}\n\nÈ semplice e veloce. Per qualsiasi dubbio può rispondere direttamente a questo messaggio. Grazie!\n\n_Servizio Clienti Pratica Rapida_",
+  },
+  // on-stage-changed (da_inviare) → notifica chiusura. {{1}} nome.
+  pratica_completata: {
+    body_text:
+      "Gentile {{1}}, ✅\n\nla sua pratica ENEA è stata *completata e inviata* con successo.\n\nGrazie per la fiducia!\n_Servizio Clienti Pratica Rapida_",
+  },
+  // process-automations (days_waiting_7) → sollecito. {{1}} nome, {{2}} link form, {{3}} durata attesa.
+  sollecito_compilazione: {
+    body_text:
+      "Gentile {{1}}, le ricordiamo di completare il modulo necessario per la sua pratica ENEA — risulta in attesa da {{3}}.\n\nPuò compilarlo qui:\n👉 {{2}}\n\nUna volta inviati i dati procederemo con l'elaborazione entro 24/48h. Per dubbi può rispondere a questo messaggio.\n\n_Servizio Clienti Pratica Rapida_",
+  },
 };
 
 /**

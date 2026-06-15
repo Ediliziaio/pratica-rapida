@@ -152,6 +152,7 @@ const HARDCODED_TEMPLATES = new Set<string>([
   "notifica_docs_mancanti",
   "notifica_pratica_disponibile",
   "chat_messaggio_diretto", // email libera dall'area /admin/chat
+  "whatsapp_disconnesso",   // alert interno: sessione OpenWA caduta/bannata
 ]);
 
 function renderTemplate(template: string, data: Record<string, string>): { subject: string; html: string } {
@@ -254,6 +255,42 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
           <p style="color:#666;font-size:13px;margin-top:24px">
             Puoi rispondere direttamente a questa email.
           </p>
+        `),
+      };
+
+    // ── Alert interno: sessione WhatsApp (OpenWA) caduta o bannata ────────────
+    // data: { status, reason?, action_url? }
+    case "whatsapp_disconnesso":
+      return {
+        subject: "🔴 WhatsApp DISCONNESSO — Pratica Rapida",
+        html: base(`
+          <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:20px;margin:8px 0;">
+            <h2 style="margin:0 0 8px;color:#b91c1c;font-size:18px;">🔴 La connessione WhatsApp è caduta</h2>
+            <p style="margin:0;color:#7f1d1d;">
+              Il numero WhatsApp del portale <strong>non è più collegato</strong>: i messaggi automatici
+              e le risposte ai clienti sono <strong>sospesi</strong> finché non ripristini la sessione.
+            </p>
+          </div>
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;border-collapse:collapse;">
+            <tr><td style="padding:8px 12px;background:#f9fafb;border:1px solid #eee;font-weight:bold;width:35%;">Stato</td>
+                <td style="padding:8px 12px;border:1px solid #eee;font-family:monospace;">${r("{{status}}")}</td></tr>
+            <tr><td style="padding:8px 12px;background:#f9fafb;border:1px solid #eee;font-weight:bold;">Motivo</td>
+                <td style="padding:8px 12px;border:1px solid #eee;">${r("{{reason}}") || "non specificato"}</td></tr>
+          </table>
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:16px;margin:16px 0;color:#1e3a8a;font-size:14px;">
+            <strong>Come ripristinare:</strong>
+            <ol style="margin:8px 0 0;padding-left:20px;line-height:1.7;">
+              <li>Apri <strong>Impostazioni → Integrazioni</strong> nel pannello</li>
+              <li>Scansiona il nuovo <strong>QR code</strong> con WhatsApp sul telefono del numero aziendale</li>
+              <li>Verifica che lo stato torni <strong>"Connesso"</strong></li>
+            </ol>
+            <p style="margin:12px 0 0;font-size:13px;color:#1e40af;">
+              ⚠️ Se il QR non compare o si riscollega da solo, il numero potrebbe essere stato
+              <strong>bannato da WhatsApp</strong>: in tal caso apri WhatsApp sul telefono e richiedi
+              la revisione ("Richiedi una revisione"), oppure contatta l'assistenza.
+            </p>
+          </div>
+          ${cta("Vai alle Integrazioni →", r("{{action_url}}"))}
         `),
       };
 

@@ -284,10 +284,18 @@ serve(async (req) => {
 
       // ──────────────────────────────────────────────
       case "session.status": {
-        const data = evt.data as { status?: string } | undefined;
+        const data = evt.data as { status?: string; reason?: string } | undefined;
         const status = data?.status?.toUpperCase() ?? "";
-        if (status === "DISCONNECTED" || status === "FAILED") {
-          // Stessa campanella del token Meta scaduto, con throttle 6h
+        const reason = data?.reason ?? "";
+        // Stati che indicano "WhatsApp NON funziona più": disconnessione,
+        // auth fallita, ban (TOS_BLOCK/SMB_TOS_BLOCK), conflitto, logout.
+        const DOWN_STATES = [
+          "DISCONNECTED", "FAILED", "STOPPED", "UNPAIRED", "UNPAIRED_IDLE",
+          "CONFLICT", "TOS_BLOCK", "SMB_TOS_BLOCK", "PROXYBLOCK", "BANNED", "TIMEOUT",
+        ];
+        if (DOWN_STATES.includes(status)) {
+          // Throttle 6h: una sola campanella+email per finestra, per non
+          // sommergere l'admin se l'evento si ripete.
           const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
           const { data: recent } = await supabase
             .from("notifications")
@@ -298,6 +306,7 @@ serve(async (req) => {
             .limit(1)
             .maybeSingle();
           if (!recent) {
+            // 1) Notifica in-app a tutti i super_admin
             const { data: admins } = await supabase
               .from("user_roles")
               .select("user_id")
@@ -308,10 +317,37 @@ serve(async (req) => {
                   user_id: a.user_id,
                   tipo: "integration_error",
                   titolo: "⚠️ WhatsApp (OpenWA) disconnesso",
-                  messaggio: `La sessione OpenWA è in stato ${status}. Ri-scansiona il QR code dal server OpenWA per ripristinare l'invio messaggi.`,
-                  link: "/admin/impostazioni-piattaforma",
+                  messaggio: `La sessione OpenWA è in stato ${status}. Ri-scansiona il QR code da Impostazioni → Integrazioni per ripristinare l'invio messaggi.`,
+                  link: "/admin/integrazioni",
                 })),
               );
+            }
+
+            // 2) Email "rumorosa" alla casella operativa modulistica@
+            //    (sovrascrivibile via env WA_ALERT_EMAIL).
+            try {
+              const alertEmail = Deno.env.get("WA_ALERT_EMAIL") ?? "modulistica@praticarapida.it";
+              const emails: string[] = [alertEmail];
+
+              const baseUrl = Deno.env.get("PUBLIC_APP_URL") ?? "https://pannello.praticarapida.it";
+              await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-email`, {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  to: emails,
+                  template: "whatsapp_disconnesso",
+                  data: {
+                    status,
+                    reason,
+                    action_url: `${baseUrl}/admin/integrazioni`,
+                  },
+                }),
+              });
+            } catch (mailErr) {
+              console.error("[openwa-webhook] alert email failed:", mailErr);
             }
           }
         }

@@ -195,10 +195,15 @@ serve(async (req) => {
           media_url: mirrored?.signed_url ?? null,
           media_mime_type: mirrored?.mime_type ?? null,
         });
-        // Dedup: OpenWA può reinviare lo stesso evento (retry webhook).
-        // Caso speciale: il messaggio era già stato salvato come placeholder
-        // ([image] senza media perché il download era fallito) e ora il retry
-        // del poller ha portato il media → AGGIORNA la riga esistente.
+        // Dedup: OpenWA può consegnare lo STESSO messaggio due volte (evento
+        // `message`/`message_create` + poller, o retry del webhook). wa_message_id
+        // è UNIQUE → il secondo insert fallisce con "duplicate".
+        // IMPORTANTE: in quel caso dobbiamo USCIRE SUBITO, altrimenti si creano
+        // una seconda notifica + un secondo communication_log per lo stesso
+        // messaggio (bug: "arrivano due avvisi contemporaneamente").
+        // Unica eccezione: se ora abbiamo il media e prima era un placeholder
+        // senza media, aggiorniamo la riga esistente — ma comunque NON
+        // ri-notifichiamo.
         if (msgErr && msgErr.message.includes("duplicate")) {
           if (mirrored) {
             await supabase
@@ -207,6 +212,7 @@ serve(async (req) => {
               .eq("wa_message_id", data.id)
               .is("media_url", null);
           }
+          return Response.json({ ok: true, deduped: true });
         } else if (msgErr) {
           console.error("[openwa-webhook] insert message failed:", msgErr);
         }

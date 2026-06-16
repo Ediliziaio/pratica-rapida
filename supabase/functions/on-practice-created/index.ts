@@ -64,9 +64,14 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   let practice_id: string | undefined;
+  // is_resend=true → invocato da "Rinvia link" sulla card cliente: rispedisce
+  // SOLO email+WA al cliente finale, NON l'email "pratica ricevuta" al
+  // rivenditore (che serve solo alla prima creazione della pratica).
+  let is_resend = false;
   try {
     const body = await req.json();
     practice_id = body.practice_id;
+    is_resend = body.is_resend === true;
   } catch {
     return new Response(JSON.stringify({ ok: false, error: "Bad JSON" }), {
       status: 400, headers: { ...CORS, "Content-Type": "application/json" },
@@ -114,7 +119,8 @@ serve(async (req) => {
   const whatsappEnabled = await isRuleEnabled(supabase, "practice_created", "whatsapp");
 
   // 1. Email di conferma al rivenditore (gated by practice_created/email)
-  if (emailEnabled && resellerEmail) {
+  //    Skippata sui resend: "Rinvia link" deve toccare solo il cliente finale.
+  if (emailEnabled && resellerEmail && !is_resend) {
     steps.reseller_email = await invoke("send-email", {
       to: resellerEmail,
       template: "pratica_ricevuta",

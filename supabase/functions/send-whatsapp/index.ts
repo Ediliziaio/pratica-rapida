@@ -8,6 +8,7 @@ import {
   getOpenWAConfig,
   OPENWA_TEMPLATE_FALLBACKS,
   renderTemplateText,
+  resolveSessionId,
   sendOpenWAMedia,
   sendOpenWAText,
 } from "../_shared/openwa.ts";
@@ -285,7 +286,8 @@ serve(async (req) => {
     // OpenWA su sessione non collegata diventa un messaggio chiaro per la UI.
     if (!success) {
       try {
-        const statusRes = await fetch(`${cfg.baseUrl}/api/sessions/${cfg.sessionId}`, {
+        const sid = await resolveSessionId(cfg);
+        const statusRes = await fetch(`${cfg.baseUrl}/api/sessions/${sid}`, {
           headers: { "X-API-Key": cfg.apiKey },
         });
         const sess = await statusRes.json().catch(() => ({})) as { status?: string };

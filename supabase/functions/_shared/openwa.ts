@@ -23,6 +23,8 @@ export interface OpenWAConfig {
   baseUrl: string;
   apiKey: string;
   sessionId: string;
+  /** Nome stabile della sessione (sopravvive ai restart). Default "praticarapida". */
+  sessionName?: string;
 }
 
 export function getOpenWAConfig(): OpenWAConfig | null {
@@ -30,7 +32,52 @@ export function getOpenWAConfig(): OpenWAConfig | null {
   const apiKey = Deno.env.get("OPENWA_API_KEY");
   const sessionId = Deno.env.get("OPENWA_SESSION_ID");
   if (!baseUrl || !apiKey || !sessionId) return null;
-  return { baseUrl, apiKey, sessionId };
+  const sessionName = Deno.env.get("OPENWA_SESSION_NAME") ?? "praticarapida";
+  return { baseUrl, apiKey, sessionId, sessionName };
+}
+
+// Cache module-level dell'ID sessione risolto (l'isolate Supabase si riusa per
+// alcune invocazioni → evita una GET /sessions ad ogni invio). TTL 60s.
+let _resolvedSid: string | null = null;
+let _resolvedAt = 0;
+
+/**
+ * Risolve l'ID REALE della sessione attiva. OpenWA, a ogni restart del
+ * container, PERDE il record sessione e ne crea uno con ID nuovo (le
+ * credenziali WhatsApp persistono però nel volume). Affidarsi all'ID fisso
+ * in OPENWA_SESSION_ID significherebbe rompere gli invii a ogni riavvio.
+ *
+ * Strategia: lista /api/sessions e scegli la sessione per NOME
+ * (OPENWA_SESSION_NAME, default "praticarapida"); in mancanza, la prima
+ * connessa; in ultima istanza l'ID configurato. Così l'integrazione
+ * sopravvive ai riavvii senza dover aggiornare il secret.
+ */
+export async function resolveSessionId(cfg: OpenWAConfig, force = false): Promise<string> {
+  const now = Date.now();
+  if (!force && _resolvedSid && now - _resolvedAt < 60_000) return _resolvedSid;
+  try {
+    const res = await fetch(`${cfg.baseUrl}/api/sessions`, {
+      headers: { "X-API-Key": cfg.apiKey },
+    });
+    if (res.ok) {
+      const list = (await res.json().catch(() => [])) as Array<{ id?: string; name?: string; status?: string }>;
+      if (Array.isArray(list) && list.length > 0) {
+        const byName = list.find((s) => s.name === cfg.sessionName);
+        const connected = list.find((s) =>
+          ["connected", "ready", "authenticated", "working"].includes(String(s.status ?? "").toLowerCase())
+        );
+        const chosen = byName?.id ?? connected?.id ?? list[0].id;
+        if (chosen) {
+          _resolvedSid = chosen;
+          _resolvedAt = now;
+          return chosen;
+        }
+      }
+    }
+  } catch {
+    // rete/parse KO → fallback all'ID configurato
+  }
+  return cfg.sessionId;
 }
 
 /** Converte un numero E.164 (con o senza +) nel chatId whatsapp-web.js. */
@@ -46,38 +93,55 @@ export interface OpenWASendResult {
   raw: Record<string, unknown>;
 }
 
+async function postOnce(
+  cfg: OpenWAConfig,
+  sid: string,
+  endpoint: string,
+  body: Record<string, unknown>,
+): Promise<OpenWASendResult> {
+  const res = await fetch(
+    `${cfg.baseUrl}/api/sessions/${sid}/messages/${endpoint}`,
+    {
+      method: "POST",
+      headers: {
+        "X-API-Key": cfg.apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    },
+  );
+  const raw = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  // OpenWA risponde sia { messageId } top-level (versioni recenti) che
+  // { data: { messageId } } (formato documentato) — supporta entrambi.
+  const data = raw.data as { messageId?: string } | undefined;
+  const messageId = (raw.messageId as string | undefined) ?? data?.messageId ?? null;
+  const err = raw.error as { message?: string } | undefined;
+  return {
+    success: res.ok && !!messageId,
+    messageId,
+    error: res.ok && messageId
+      ? null
+      : ((typeof raw.message === "string" ? raw.message : undefined) ?? err?.message ?? `OpenWA HTTP ${res.status}`),
+    status: res.status,
+    raw,
+  };
+}
+
 async function callOpenWA(
   cfg: OpenWAConfig,
   endpoint: string,
   body: Record<string, unknown>,
 ): Promise<OpenWASendResult> {
   try {
-    const res = await fetch(
-      `${cfg.baseUrl}/api/sessions/${cfg.sessionId}/messages/${endpoint}`,
-      {
-        method: "POST",
-        headers: {
-          "X-API-Key": cfg.apiKey,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      },
-    );
-    const raw = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-    // OpenWA risponde sia { messageId } top-level (versioni recenti) che
-    // { data: { messageId } } (formato documentato) — supporta entrambi.
-    const data = raw.data as { messageId?: string } | undefined;
-    const messageId = (raw.messageId as string | undefined) ?? data?.messageId ?? null;
-    const err = raw.error as { message?: string } | undefined;
-    return {
-      success: res.ok && !!messageId,
-      messageId,
-      error: res.ok && messageId
-        ? null
-        : ((typeof raw.message === "string" ? raw.message : undefined) ?? err?.message ?? `OpenWA HTTP ${res.status}`),
-      status: res.status,
-      raw,
-    };
+    let sid = await resolveSessionId(cfg);
+    let result = await postOnce(cfg, sid, endpoint, body);
+    // Se la sessione non esiste (404 / "not found") l'ID in cache è stale
+    // (container riavviato → nuovo ID). Ri-risolvi FORZANDO e ritenta una volta.
+    if (!result.success && (result.status === 404 || /not\s*found/i.test(result.error ?? ""))) {
+      sid = await resolveSessionId(cfg, true);
+      result = await postOnce(cfg, sid, endpoint, body);
+    }
+    return result;
   } catch (e) {
     return {
       success: false,

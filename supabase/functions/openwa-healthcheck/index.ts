@@ -39,20 +39,32 @@ serve(async (req) => {
     return Response.json({ ok: false, error: "OpenWA env mancanti" }, { status: 200 });
   }
 
-  // 1) Ping della sessione (timeout 8s → se scade = server giù/lento)
+  // 1) Lista le sessioni (timeout 8s → se scade = server giù/lento) e cerca la
+  //    sessione per NOME. L'ID cambia a ogni restart del container, quindi NON
+  //    ci affidiamo a OPENWA_SESSION_ID: controlliamo per nome/connessione.
+  const sessionName = Deno.env.get("OPENWA_SESSION_NAME") ?? "praticarapida";
   let status = "UNREACHABLE";
   let reason = "";
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 8000);
-    const res = await fetch(`${baseUrl}/api/sessions/${sessionId}`, {
+    const res = await fetch(`${baseUrl}/api/sessions`, {
       headers: { "X-API-Key": apiKey },
       signal: ctrl.signal,
     });
     clearTimeout(t);
     if (res.ok) {
-      const data = await res.json().catch(() => ({})) as { status?: string };
-      status = (data.status ?? "UNKNOWN").toUpperCase();
+      const list = (await res.json().catch(() => [])) as Array<{ id?: string; name?: string; status?: string }>;
+      if (Array.isArray(list) && list.length > 0) {
+        const sess = list.find((s) => s.name === sessionName)
+          ?? list.find((s) => ["connected", "ready", "authenticated", "working"].includes(String(s.status ?? "").toLowerCase()))
+          ?? list[0];
+        status = (sess.status ?? "UNKNOWN").toUpperCase();
+      } else {
+        // Nessuna sessione registrata = WhatsApp non collegato (record perso al restart)
+        status = "NO_SESSION";
+        reason = "nessuna sessione attiva sul server";
+      }
     } else {
       status = "UNREACHABLE";
       reason = `HTTP ${res.status}`;

@@ -138,16 +138,9 @@ async function advancePracticeToPronteDaFare(praticaId: string): Promise<void> {
     return;
   }
 
-  // Fire Messaggio 3 confirmation (email + WA) via on-stage-changed.
-  // The edge function guards on tipo_servizio === "servizio_completo" and form_compilato_at.
-  supabase.functions
-    .invoke("on-stage-changed", {
-      body: {
-        practice_id: praticaId,
-        new_stage_type: "pronte_da_fare",
-      },
-    })
-    .catch(console.error);
+  // Messaggio 3 (email + WA conferma) parte dal TRIGGER DB on_form_compilato_trigger
+  // (scatta quando l'UPDATE sopra setta form_compilato_at). NON invocare
+  // on-stage-changed anche qui: causerebbe un DOPPIO invio al cliente.
 }
 
 // ── Shared field component ────────────────────────────────────────────────────

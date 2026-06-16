@@ -439,12 +439,9 @@ export default function FormPubblico() {
         return;
       }
 
-      supabase.functions
-        .invoke("on-stage-changed", {
-          body: { practice_id: practice.id, new_stage_type: "pronte_da_fare" },
-        })
-        .catch(console.error);
-
+      // Messaggio 3 (email + WA conferma) parte dal TRIGGER DB on_form_compilato_trigger
+      // (scatta quando submit_form_by_token setta form_compilato_at). NON invocare
+      // on-stage-changed anche qui: causerebbe un DOPPIO invio al cliente.
       setSubmitted(true);
       setSubmitting(false);
       return;
@@ -490,14 +487,9 @@ export default function FormPubblico() {
       return;
     }
 
-    // Fire Messaggio 3 confirmation (email + WA) to cliente finale via on-stage-changed.
-    // The edge function itself guards on tipo_servizio === "servizio_completo" and form_compilato_at.
-    supabase.functions
-      .invoke("on-stage-changed", {
-        body: { practice_id: practice.id, new_stage_type: "pronte_da_fare" },
-      })
-      .catch(console.error);
-
+    // Messaggio 3 (email + WA conferma) parte dal TRIGGER DB on_form_compilato_trigger
+    // (scatta quando submit_form_by_token setta form_compilato_at). NON invocare
+    // on-stage-changed anche qui: causerebbe un DOPPIO invio al cliente.
     setSubmitted(true);
     setSubmitting(false);
   };

@@ -1397,10 +1397,14 @@ function TemplateRow({ template, selected, onToggleSelect, onEdit, onTest }: {
 
 function EditTemplateDialog({ template, onClose }: { template: WhatsappTemplate; onClose: () => void }) {
   const queryClient = useQueryClient();
+  const { provider } = useWaProvider();
   const [displayName, setDisplayName] = useState(template.display_name ?? "");
   const [description, setDescription] = useState(template.description ?? "");
   const [trigger, setTrigger] = useState(template.mapped_trigger_event ?? "");
   const [variables, setVariables] = useState<string>(JSON.stringify(template.variables ?? [], null, 2));
+  // Con OpenWA il testo del messaggio è locale (non gestito da Meta) → editabile.
+  const [body, setBody] = useState(template.body_text ?? "");
+  const [footer, setFooter] = useState(template.footer_text ?? "");
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -1417,6 +1421,11 @@ function EditTemplateDialog({ template, onClose }: { template: WhatsappTemplate;
           description: description || null,
           mapped_trigger_event: trigger || null,
           variables: parsedVars as never,
+          // Solo OpenWA: il testo è locale → salviamo body/footer editati.
+          // Con Meta restano read-only (il testo è approvato lato Meta).
+          ...(provider === "openwa"
+            ? { body_text: body, footer_text: footer.trim() || null }
+            : {}),
         })
         .eq("id", template.id);
       if (error) throw error;
@@ -1442,23 +1451,53 @@ function EditTemplateDialog({ template, onClose }: { template: WhatsappTemplate;
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {/* Read-only meta info */}
-          <div className="rounded-md border p-3 bg-slate-50 text-xs space-y-1">
-            <p className="font-medium">Contenuto (sola lettura — gestito da Meta)</p>
-            {template.header_text && (
-              <p><strong>Header:</strong> {template.header_text}</p>
-            )}
-            <div>
-              <strong>Body:</strong>
-              <pre className="whitespace-pre-wrap break-words bg-white border rounded p-2 mt-1 text-[11px]">{template.body_text}</pre>
+          {provider === "openwa" ? (
+            /* OpenWA: testo locale → editabile. Usa {{1}}, {{2}}, … come segnaposto. */
+            <div className="space-y-3 rounded-md border p-3 bg-emerald-50/40">
+              <p className="font-medium text-xs">Contenuto messaggio (OpenWA — modificabile)</p>
+              <div>
+                <Label htmlFor="body_text">Testo del messaggio</Label>
+                <Textarea
+                  id="body_text"
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  rows={8}
+                  className="text-sm"
+                  placeholder="Gentile {{1}}, …"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Usa <code>{`{{1}}`}</code>, <code>{`{{2}}`}</code>… per i parametri (vedi sotto cosa sono).
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="footer_text">Footer (opzionale)</Label>
+                <Input
+                  id="footer_text"
+                  value={footer}
+                  onChange={(e) => setFooter(e.target.value)}
+                  placeholder="Pratica Rapida"
+                />
+              </div>
             </div>
-            {template.footer_text && (
-              <p><strong>Footer:</strong> {template.footer_text}</p>
-            )}
-            {template.buttons && template.buttons.length > 0 && (
-              <p><strong>Buttons:</strong> {template.buttons.length}</p>
-            )}
-          </div>
+          ) : (
+            /* Meta: contenuto approvato lato Meta → sola lettura */
+            <div className="rounded-md border p-3 bg-slate-50 text-xs space-y-1">
+              <p className="font-medium">Contenuto (sola lettura — gestito da Meta)</p>
+              {template.header_text && (
+                <p><strong>Header:</strong> {template.header_text}</p>
+              )}
+              <div>
+                <strong>Body:</strong>
+                <pre className="whitespace-pre-wrap break-words bg-white border rounded p-2 mt-1 text-[11px]">{template.body_text}</pre>
+              </div>
+              {template.footer_text && (
+                <p><strong>Footer:</strong> {template.footer_text}</p>
+              )}
+              {template.buttons && template.buttons.length > 0 && (
+                <p><strong>Buttons:</strong> {template.buttons.length}</p>
+              )}
+            </div>
+          )}
 
           <div>
             <Label htmlFor="display_name">Nome display (admin)</Label>

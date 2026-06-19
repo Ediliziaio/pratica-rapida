@@ -8,6 +8,7 @@ import { useEneaPractices } from "@/hooks/useEneaPractices";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -25,6 +26,7 @@ import {
   FolderOpen,
   AlertTriangle,
   Upload,
+  Search,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { EneaPractice, PipelineStage } from "@/integrations/supabase/types";
@@ -378,7 +380,24 @@ export default function ArchivioEnea() {
     archivedOnly: true,
     limit,
   });
-  const archived = archivedRaw as PracticeWithCompany[];
+  const allArchived = archivedRaw as PracticeWithCompany[];
+
+  // Ricerca per nome cliente / email / azienda (match per token).
+  const [search, setSearch] = useState("");
+  const archived = (() => {
+    const t = search.trim().toLowerCase();
+    if (!t) return allArchived;
+    const tokens = t.split(/\s+/).filter(Boolean);
+    return allArchived.filter((p) => {
+      const hay = [
+        `${p.cliente_nome ?? ""} ${p.cliente_cognome ?? ""}`,
+        p.cliente_email ?? "",
+        p.cliente_telefono ?? "",
+        (p as PracticeWithCompany & { companies?: { ragione_sociale?: string } }).companies?.ragione_sociale ?? "",
+      ].join(" ").toLowerCase();
+      return tokens.every((tok) => hay.includes(tok));
+    });
+  })();
 
   // Group by year → month
   const byYear = new Map<number, Map<string, PracticeWithCompany[]>>();
@@ -401,9 +420,20 @@ export default function ArchivioEnea() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Archive className="h-6 w-6 text-muted-foreground" />
-        <h1 className="text-2xl font-bold">Archivio Pratiche</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <Archive className="h-6 w-6 text-muted-foreground" />
+          <h1 className="text-2xl font-bold">Archivio Pratiche</h1>
+        </div>
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Cerca cliente, email, azienda…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </div>
 
       {/* Archive section */}
@@ -428,7 +458,9 @@ export default function ArchivioEnea() {
         <Card>
           <CardContent className="py-12 text-center">
             <Archive className="mx-auto h-10 w-10 text-muted-foreground/40 mb-3" />
-            <p className="text-muted-foreground text-sm">Nessuna pratica archiviata.</p>
+            <p className="text-muted-foreground text-sm">
+              {search.trim() ? `Nessun risultato per "${search.trim()}".` : "Nessuna pratica archiviata."}
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -442,7 +474,7 @@ export default function ArchivioEnea() {
             />
           ))}
 
-          {archived.length === limit && (
+          {allArchived.length === limit && (
             <div className="flex justify-center pt-4">
               <Button variant="outline" onClick={() => setLimit((l) => l + 100)}>
                 Carica altre 100

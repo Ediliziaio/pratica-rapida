@@ -13,11 +13,9 @@ import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import NuovaPraticaEnea from "@/pages/rivenditore/NuovaPraticaEnea";
 
-// TEMP: in produzione mostriamo il form esterno LeadConnector al posto
-// del form nativo. Impostare a `false` per ripristinare il form originale
-// (NuovaPraticaEnea publicMode) tra qualche giorno. Il form nativo viene
-// renderizzato nascosto per preservarne lo stato e facilitare il rollback.
-const USE_LEADCONNECTOR_FORM = true;
+// Form NATIVO attivo (NuovaPraticaEnea publicMode): sostituisce l'embed esterno
+// LeadConnector. Lasciato come flag per eventuale rollback rapido.
+const USE_LEADCONNECTOR_FORM = false;
 const LEADCONNECTOR_FORM_ID = "QQHfDRgAPOynEERpP5DK";
 const LEADCONNECTOR_FORM_URL = `https://api.leadconnectorhq.com/widget/form/${LEADCONNECTOR_FORM_ID}`;
 const LEADCONNECTOR_EMBED_SCRIPT = "https://link.msgsndr.com/js/form_embed.js";

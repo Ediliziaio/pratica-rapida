@@ -153,6 +153,7 @@ const HARDCODED_TEMPLATES = new Set<string>([
   "notifica_pratica_disponibile",
   "chat_messaggio_diretto", // email libera dall'area /admin/chat
   "whatsapp_disconnesso",   // alert interno: sessione OpenWA caduta/bannata
+  "rivenditore_invito",     // richiesta dal sito, azienda non registrata
 ]);
 
 function renderTemplate(template: string, data: Record<string, string>): { subject: string; html: string } {
@@ -291,6 +292,30 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
             </p>
           </div>
           ${cta("Vai alle Integrazioni →", r("{{action_url}}"))}
+        `),
+      };
+
+    // ── Richiesta dal sito da azienda NON registrata: invito a iscriversi ──────
+    // data: { ragione_sociale, cliente, servizio, login_url }
+    case "rivenditore_invito":
+      return {
+        subject: "Abbiamo ricevuto la tua richiesta — Pratica Rapida",
+        html: base(`
+          <h2 style="margin-top:0;color:#1a1a2e;">Richiesta ricevuta ✅</h2>
+          <p>Gentile <strong>${r("{{ragione_sociale}}")}</strong>,</p>
+          <p>
+            abbiamo ricevuto correttamente la tua richiesta${r("{{servizio}}") ? ` per <strong>${r("{{servizio}}")}</strong>` : ""}${r("{{cliente}}") ? ` (cliente: ${r("{{cliente}}")})` : ""}.
+            La pratica è stata <strong>inoltrata al nostro team</strong> e verrà presa in carico al più presto.
+          </p>
+          <div style="background:#f0f9f4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:16px 0;color:#14532d;font-size:14px;">
+            Vuoi seguire lo <strong>stato delle tue pratiche</strong> in tempo reale e inviarne di nuove più velocemente?
+            <strong>Iscriviti all'area riservata</strong>: ti bastano pochi minuti.
+          </div>
+          ${cta("Accedi / Richiedi le credenziali →", r("{{login_url}}"))}
+          <p style="color:#888;font-size:13px;margin-top:24px;">
+            Se non hai ancora un account, dalla pagina di accesso puoi richiedere le credenziali.
+            Per assistenza: <a href="mailto:modulistica@praticarapida.it" style="color:#00843D;">modulistica@praticarapida.it</a>
+          </p>
         `),
       };
 

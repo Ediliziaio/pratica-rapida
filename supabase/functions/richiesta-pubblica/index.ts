@@ -126,17 +126,36 @@ serve(async (req) => {
   try {
     // ── 1. Abbinamento azienda: email → ragione sociale → crea ──
     let companyId: string | null = null;
-    let matchType: "email" | "ragione_sociale" | "creata" = "creata";
+    let matchType: "email" | "telefono" | "ragione_sociale" | "creata" = "creata";
 
-    const { data: byEmail } = await supabase
-      .from("companies")
-      .select("id, ragione_sociale")
-      .ilike("email", aziendaEmail)
-      .limit(1)
-      .maybeSingle();
-    if (byEmail) {
-      companyId = byEmail.id;
-      matchType = "email";
+    if (aziendaEmail) {
+      const { data: byEmail } = await supabase
+        .from("companies")
+        .select("id, ragione_sociale")
+        .ilike("email", aziendaEmail)
+        .limit(1)
+        .maybeSingle();
+      if (byEmail) {
+        companyId = byEmail.id;
+        matchType = "email";
+      }
+    }
+
+    // Match per TELEFONO del rivenditore (oltre all'email). Confronta sulle
+    // ultime 9 cifre per tollerare prefissi/spazi diversi.
+    const aziendaTel = (p.azienda?.telefono ?? "").replace(/\D/g, "");
+    if (!companyId && aziendaTel.length >= 6) {
+      const last9 = aziendaTel.slice(-9);
+      const { data: byPhone } = await supabase
+        .from("companies")
+        .select("id, ragione_sociale, telefono")
+        .ilike("telefono", `%${last9}%`)
+        .limit(1)
+        .maybeSingle();
+      if (byPhone) {
+        companyId = byPhone.id;
+        matchType = "telefono";
+      }
     }
 
     if (!companyId) {
@@ -193,8 +212,9 @@ serve(async (req) => {
     // ── 3. Nota di audit ──
     const matchLabel = {
       email: "✅ Abbinata per email",
+      telefono: "✅ Abbinata per telefono",
       ragione_sociale: "✅ Abbinata per ragione sociale",
-      creata: "🆕 AZIENDA CREATA AUTOMATICAMENTE — verifica anagrafica e invia credenziali",
+      creata: "⚠️ AZIENDA NON TROVATA — pratica DA ABBINARE (invito registrazione inviato al rivenditore)",
     }[matchType];
     const declared = [
       `📥 RICHIESTA DAL SITO (modulo: ${p.modulo ?? "?"})`,
@@ -273,6 +293,26 @@ serve(async (req) => {
       }).catch((e) => console.warn("[richiesta-pubblica] on-practice-created failed:", e));
     }
 
+    // ── 6b. Azienda NON trovata → email di invito al rivenditore ──
+    // Nessun account creato: invitiamo il rivenditore a registrarsi per seguire
+    // la pratica. (Per le aziende già abbinate la pratica appare nel loro portale.)
+    if (matchType === "creata" && aziendaEmail) {
+      fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: aziendaEmail,
+          template: "rivenditore_invito",
+          data: {
+            ragione_sociale: ragione || "Rivenditore",
+            cliente: `${nome} ${cognome}`.trim(),
+            servizio: p.prodotto?.trim() || p.modulo || "pratica",
+            login_url: "https://pannello.praticarapida.it/auth",
+          },
+        }),
+      }).catch((e) => console.warn("[richiesta-pubblica] invito email failed:", e));
+    }
+
     // ── 7. Notifica super_admin ──
     try {
       const { data: admins } = await supabase
@@ -285,9 +325,9 @@ serve(async (req) => {
             user_id: a.user_id,
             tipo: "richiesta_pubblica",
             titolo: matchType === "creata"
-              ? `🆕 Richiesta dal sito + NUOVA azienda — ${ragione}`
+              ? `⚠️ Richiesta dal sito — azienda DA ABBINARE (${ragione})`
               : `📥 Nuova richiesta dal sito — ${ragione}`,
-            messaggio: `${nome} ${cognome} · ${p.prodotto ?? p.modulo ?? ""}${allFiles.length ? ` · ${allFiles.length} file` : ""}${matchType === "creata" ? " — verifica l'anagrafica e invia le credenziali" : ""}`,
+            messaggio: `${nome} ${cognome} · ${p.prodotto ?? p.modulo ?? ""}${allFiles.length ? ` · ${allFiles.length} file` : ""}${matchType === "creata" ? " — azienda non trovata: invito inviato al rivenditore, verifica e abbina la pratica" : ""}`,
             link: `/pratiche/${practice.id}`,
           })),
         );

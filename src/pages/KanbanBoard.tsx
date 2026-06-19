@@ -294,7 +294,7 @@ function CommLogSection({
     <section className="border-t pt-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          Log comunicazioni
+          Vedi contatti con il cliente
         </h3>
         {isInternal && (
           <Button
@@ -1339,7 +1339,7 @@ function PracticeDetailSheet({
                 {/* 5. Log comunicazioni — collapsed by default */}
                 <details className="group">
                   <summary className="cursor-pointer text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-primary">
-                    Log comunicazioni
+                    Vedi contatti con il cliente
                   </summary>
                   <div className="mt-3">
                     <CommLogSection practiceId={practice.id} isInternal={isInternal} />

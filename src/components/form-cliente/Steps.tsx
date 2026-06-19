@@ -162,7 +162,7 @@ export function StepRichiedente({ data, errors, patchSection }: StepProps) {
       </div>
 
       <div className="space-y-2">
-        <Label>La casa dove sono stati fatti i lavori è l'abitazione principale? *</Label>
+        <Label>La casa dove sono stati eseguiti i lavori è la sua abitazione principale (dove risiede)? *</Label>
         <RadioYesNo
           name="abitazione_principale"
           value={r.abitazione_principale}
@@ -319,7 +319,10 @@ export function StepCointestazione({ data, errors, patchSection }: StepProps) {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label>La pratica è cointestata? *</Label>
+        <Label>La pratica sarà cointestata con un'altra persona (oltre a lei)? *</Label>
+        <p className="text-xs text-muted-foreground -mt-1">
+          Rispondi <strong>No</strong> se la pratica è intestata solo a lei; <strong>Sì</strong> se c'è un cointestatario.
+        </p>
         <RadioYesNo
           name="cointestata"
           value={c.presente}

@@ -812,16 +812,19 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
 
       {/* ── 6. Documenti ────────────────────────────────────────────────── */}
       <Section number={6} title="Documenti da allegare">
-        {/* Link moduli raccolta dati */}
-        <a
-          href={MODULI_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
-        >
-          <ExternalLink className="h-4 w-4" />
-          Scarica i moduli di raccolta dati
-        </a>
+        {/* Link moduli raccolta dati — solo per "documenti forniti" (col servizio
+            completo è il cliente a compilare online, quindi non servono i moduli). */}
+        {tipoServizio === "documenti_forniti" && (
+          <a
+            href={MODULI_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Scarica i moduli di raccolta dati
+          </a>
+        )}
 
         {/* Fattura — sempre obbligatoria */}
         {errors.fattura && (

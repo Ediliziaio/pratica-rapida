@@ -253,12 +253,17 @@ serve(async (req) => {
       const stageEmailEnabled = await isRuleEnabled(supabase, "stage_changed", "email");
       const stageWhatsappEnabled = await isRuleEnabled(supabase, "stage_changed", "whatsapp");
 
+      // Traccia l'esito degli invii al cliente: l'auto-spostamento in
+      // "da inserire su Excel" avviene solo se gli invii sono andati a buon fine.
+      let clientEmailOk = true;
+      let clientWaOk = true;
+
       // Email al cliente finale (gated by stage_changed/email; no such rule in DB → defaults to enabled).
       // CON ALLEGATI: recupera tutti i documenti della pratica e li allega base64.
       // Resend limita gli allegati totali a 40MB.
       if (stageEmailEnabled && practice.cliente_email) {
         const attachments = await collectPracticeAttachments(supabase, practice_id);
-        await invoke("send-email", {
+        clientEmailOk = await invoke("send-email", {
           to: practice.cliente_email,
           template: "pratica_inviata",
           data: {
@@ -275,7 +280,7 @@ serve(async (req) => {
 
       // WA al cliente finale (gated by stage_changed/whatsapp — recensione rule)
       if (stageWhatsappEnabled && practice.cliente_telefono) {
-        await invoke("send-whatsapp", {
+        clientWaOk = await invoke("send-whatsapp", {
           to: normalizePhone(practice.cliente_telefono),
           template_name: "pratica_completata",
           components: [{
@@ -306,6 +311,27 @@ serve(async (req) => {
       await supabase.from("enea_practices").update({
         recensione_richiesta_at: new Date().toISOString(),
       }).eq("id", practice_id);
+
+      // CRM#9 — Auto-spostamento: dopo che mail + WhatsApp di chiusura sono
+      // partiti correttamente, sposta la pratica in "da inserire su Excel"
+      // (stage di sistema per il brand), così lo staff sa che va loggata.
+      if (clientEmailOk && clientWaOk) {
+        const { data: excelStage } = await supabase
+          .from("pipeline_stages")
+          .select("id")
+          .is("reseller_id", null)
+          .eq("stage_type", "da_inserire_excel")
+          .eq("brand", practice.brand)
+          .maybeSingle();
+        if (excelStage?.id) {
+          await supabase
+            .from("enea_practices")
+            .update({ current_stage_id: excelStage.id })
+            .eq("id", practice_id);
+        } else {
+          console.warn(`[on-stage-changed] stage da_inserire_excel non trovato per brand ${practice.brand}`);
+        }
+      }
 
       break;
     }

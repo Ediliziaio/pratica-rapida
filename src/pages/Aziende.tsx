@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Building2, Plus, Search, Receipt, Users, FolderOpen, LogIn,
   ChevronDown, BarChart3, TrendingUp, CircleDollarSign, CalendarDays, CheckCircle2, Clock,
-  ShieldOff, ShieldCheck, Eye, EyeOff, List, Kanban, AlertCircle,
+  ShieldOff, ShieldCheck, Eye, EyeOff, List, Kanban, AlertCircle, KeyRound,
 } from "lucide-react";
 import AziendePipeline from "@/components/aziende/AziendePipeline";
 import { useNavigate } from "react-router-dom";
@@ -178,6 +178,67 @@ export default function Aziende() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-companies"] });
       toast({ title: "Account sbloccato", description: "L'account è stato riattivato con successo." });
+    },
+    onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  // ── Reset password + invio credenziali (CRM#3) ──────────────────────────────
+  const [credCompany, setCredCompany] = useState<{ id: string; ragione_sociale: string; email: string | null } | null>(null);
+  const [credPassword, setCredPassword] = useState("");
+  const [credSendEmail, setCredSendEmail] = useState(true);
+  const [credShowPass, setCredShowPass] = useState(false);
+
+  function genPassword(): string {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    let out = "";
+    const arr = new Uint32Array(12);
+    crypto.getRandomValues(arr);
+    for (const n of arr) out += chars[n % chars.length];
+    return out;
+  }
+
+  function openCredDialog(c: { id: string; ragione_sociale: string; email: string | null }) {
+    setCredCompany(c);
+    setCredPassword(genPassword());
+    setCredSendEmail(true);
+    setCredShowPass(true);
+  }
+
+  const resetCredentials = useMutation({
+    mutationFn: async () => {
+      if (!credCompany) throw new Error("Nessuna azienda selezionata");
+      if (!credPassword || credPassword.length < 8) throw new Error("Password troppo corta (min 8)");
+      // 1. Imposta la nuova password sull'account azienda_admin (edge function esistente)
+      const { data: setRes, error: setErr } = await supabase.functions.invoke("set-company-password", {
+        body: { company_id: credCompany.id, new_password: credPassword },
+      });
+      if (setErr) throw setErr;
+      const r = setRes as { success?: boolean; email?: string; error?: string };
+      if (!r?.success) throw new Error(r?.error ?? "Reset password fallito");
+      const dest = r.email ?? credCompany.email;
+      // 2. (opzionale) Invia email con le credenziali
+      if (credSendEmail && dest) {
+        await supabase.functions.invoke("send-email", {
+          body: {
+            to: dest,
+            template: "benvenuto_azienda",
+            data: {
+              ragione_sociale: credCompany.ragione_sociale,
+              email: dest,
+              password: credPassword,
+              login_url: "https://pannello.praticarapida.it",
+            },
+          },
+        });
+      }
+      return { dest };
+    },
+    onSuccess: ({ dest }) => {
+      toast({
+        title: "Credenziali aggiornate",
+        description: credSendEmail ? `Email con le credenziali inviata a ${dest}.` : "Nuova password impostata.",
+      });
+      setCredCompany(null);
     },
     onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
@@ -467,6 +528,17 @@ export default function Aziende() {
                             )
                           )}
 
+                          {superAdmin && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openCredDialog({ id: c.id, ragione_sociale: c.ragione_sociale, email: c.email ?? null })}
+                              title="Reset password e invio credenziali"
+                            >
+                              <KeyRound className="mr-1 h-4 w-4" />Credenziali
+                            </Button>
+                          )}
+
                           <CollapsibleTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                               <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
@@ -538,6 +610,48 @@ export default function Aziende() {
                 disabled={!blockReason.trim() || blockCompany.isPending}
               >
                 {blockCompany.isPending ? "Blocco in corso..." : "Conferma Blocco"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Reset password + invio credenziali (CRM#3) */}
+        <Dialog open={!!credCompany} onOpenChange={(o) => !o && setCredCompany(null)}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Credenziali — {credCompany?.ragione_sociale}</DialogTitle></DialogHeader>
+            <div className="grid gap-4">
+              <p className="text-sm text-muted-foreground">
+                Imposta una nuova password per l'account rivenditore. Le password esistenti non sono
+                leggibili (cifrate): puoi solo impostarne una nuova.
+              </p>
+              <div>
+                <Label>Nuova password</Label>
+                <div className="relative mt-1">
+                  <Input
+                    type={credShowPass ? "text" : "password"}
+                    value={credPassword}
+                    onChange={(e) => setCredPassword(e.target.value)}
+                    className="pr-20 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setCredPassword(genPassword())}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-primary hover:underline"
+                  >
+                    Genera
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Minimo 8 caratteri.</p>
+              </div>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" checked={credSendEmail} onChange={(e) => setCredSendEmail(e.target.checked)} />
+                Invia email con le credenziali a <strong>{credCompany?.email ?? "—"}</strong>
+              </label>
+              <Button
+                onClick={() => resetCredentials.mutate()}
+                disabled={!credPassword || credPassword.length < 8 || resetCredentials.isPending}
+              >
+                {resetCredentials.isPending ? "Salvataggio..." : credSendEmail ? "Imposta password e invia email" : "Imposta password"}
               </Button>
             </div>
           </DialogContent>

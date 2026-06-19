@@ -639,6 +639,7 @@ export default function FormPubblico() {
               onChange={updateDynamicField}
               errors={stepErrors}
               practiceId={practice?.id ?? ""}
+              publicToken={token}
             />
           ) : (
             <StepBody
@@ -651,6 +652,7 @@ export default function FormPubblico() {
               uploading={uploading}
               onUploadStart={() => setUploading(true)}
               onUploadEnd={() => setUploading(false)}
+              publicToken={token}
             />
           )}
         </div>
@@ -751,6 +753,7 @@ interface StepBodyProps {
   uploading: boolean;
   onUploadStart: () => void;
   onUploadEnd: () => void;
+  publicToken?: string;
 }
 
 function StepBody(props: StepBodyProps) {
@@ -779,6 +782,7 @@ function StepBody(props: StepBodyProps) {
           uploading={props.uploading}
           onUploadStart={props.onUploadStart}
           onUploadEnd={props.onUploadEnd}
+          publicToken={props.publicToken}
         />
       );
     case "recap":

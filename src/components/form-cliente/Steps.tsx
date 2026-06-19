@@ -5,6 +5,7 @@
 
 import { useRef } from "react";
 import { Plus, X, Upload, Loader2 } from "lucide-react";
+import { uploadPublicFormFile } from "./uploadFormFile";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -831,6 +832,8 @@ interface ProdottoImpiantoProps extends StepProps {
   onUploadStart: () => void;
   onUploadEnd: () => void;
   uploading: boolean;
+  /** Form pubblico (cliente anonimo): upload via edge function form-upload. */
+  publicToken?: string;
 }
 
 function ProdottoImpianto({
@@ -841,6 +844,7 @@ function ProdottoImpianto({
   onUploadStart,
   onUploadEnd,
   uploading,
+  publicToken,
 }: ProdottoImpiantoProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const libretto = data.impianto.libretto_url;
@@ -855,19 +859,26 @@ function ProdottoImpianto({
     }
     onUploadStart();
     try {
-      // Lazy import per evitare ciclo: il client supabase è in @/integrations/supabase/client
-      const { supabase } = await import("@/integrations/supabase/client");
-      const ext = file.name.split(".").pop() ?? "bin";
-      const path = `${practiceId}/libretto/${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage
-        .from("enea-documents")
-        .upload(path, file, { upsert: false });
-      if (error) {
-        console.error("Upload libretto failed:", error);
-        toast({ variant: "destructive", title: "Caricamento fallito", description: "Riprova o contatta il supporto." });
-        return;
+      let path: string;
+      if (publicToken) {
+        // Cliente anonimo (form pubblico): l'upload diretto su enea-documents è
+        // bloccato da RLS → passa dalla edge function con il token.
+        path = await uploadPublicFormFile(publicToken, "libretto", file);
+      } else {
+        // Staff autenticato: upload diretto.
+        const { supabase } = await import("@/integrations/supabase/client");
+        const ext = file.name.split(".").pop() ?? "bin";
+        const directPath = `${practiceId}/libretto/${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage
+          .from("enea-documents")
+          .upload(directPath, file, { upsert: false });
+        if (error) throw error;
+        path = directPath;
       }
       patchSection("impianto", { libretto_url: path } as SectionPatch<"impianto">);
+    } catch (err) {
+      console.error("Upload libretto failed:", err);
+      toast({ variant: "destructive", title: "Caricamento fallito", description: "Riprova o contatta il supporto." });
     } finally {
       onUploadEnd();
     }
@@ -936,6 +947,8 @@ export interface StepProdottoProps extends StepProps {
   uploading: boolean;
   onUploadStart: () => void;
   onUploadEnd: () => void;
+  /** Form pubblico (cliente anonimo): upload via edge function form-upload. */
+  publicToken?: string;
 }
 
 export function StepProdotto(props: StepProdottoProps) {

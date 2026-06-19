@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { uploadPublicFormFile } from "./uploadFormFile";
 
 import type { FormField, FormSchema, FormStep } from "@/types/form-module";
 import { checkVisibleIf } from "./dynamicValidation";
@@ -44,6 +45,8 @@ export interface DynamicStepsProps {
   onChange: (stepKey: string, fieldKey: string, value: unknown) => void;
   errors: Record<string, string>;
   practiceId: string;
+  /** Form pubblico (cliente anonimo): upload via edge function form-upload. */
+  publicToken?: string;
 }
 
 // Limite ragionevole per array dinamici lato cliente
@@ -58,6 +61,7 @@ export function DynamicSteps({
   onChange,
   errors,
   practiceId,
+  publicToken,
 }: DynamicStepsProps) {
   // Filtriamo gli step in base a visible_if. Lo stesso filtro è applicato a
   // monte da FormPubblico per la navigazione, ma replichiamo qui per safety
@@ -101,6 +105,7 @@ export function DynamicSteps({
             onChange={(v) => onChange(step.key, field.key, v)}
             errors={errors}
             practiceId={practiceId}
+            publicToken={publicToken}
           />
         );
       })}
@@ -117,6 +122,7 @@ interface DynamicFieldProps {
   onChange: (value: unknown) => void;
   errors: Record<string, string>;
   practiceId: string;
+  publicToken?: string;
   /** Per il renderer ricorsivo dell'array, override del path errore. */
   errorKey?: string;
   /** Quando renderizzato dentro un array, il key univoco per i RadioGroup ecc. */
@@ -130,6 +136,7 @@ function DynamicField({
   onChange,
   errors,
   practiceId,
+  publicToken,
   errorKey,
   scope,
 }: DynamicFieldProps) {
@@ -151,6 +158,7 @@ function DynamicField({
         onChange={onChange}
         errors={errors}
         practiceId={practiceId}
+        publicToken={publicToken}
         errorKey={errKey}
         scope={scope}
       />
@@ -172,6 +180,7 @@ interface FieldControlProps {
   onChange: (value: unknown) => void;
   errors: Record<string, string>;
   practiceId: string;
+  publicToken?: string;
   errorKey: string;
   scope?: string;
 }
@@ -386,6 +395,7 @@ function UploadControl({
   value,
   onChange,
   practiceId,
+  publicToken,
 }: FieldControlProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -405,20 +415,18 @@ function UploadControl({
       return;
     }
     try {
-      const { supabase } = await import("@/integrations/supabase/client");
-      const ext = (file.name.split(".").pop() ?? "bin").toLowerCase();
-      const uploadPath = `${practiceId}/dynamic/${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage
-        .from("enea-documents")
-        .upload(uploadPath, file, { upsert: false });
-      if (error) {
-        console.error("Dynamic upload failed:", error);
-        toast({
-          variant: "destructive",
-          title: "Caricamento fallito",
-          description: "Riprova o contatta il supporto.",
-        });
-        return;
+      let uploadPath: string;
+      if (publicToken) {
+        // Cliente anonimo (form pubblico): upload via edge function (RLS blocca anon).
+        uploadPath = await uploadPublicFormFile(publicToken, "dynamic", file);
+      } else {
+        const { supabase } = await import("@/integrations/supabase/client");
+        const ext = (file.name.split(".").pop() ?? "bin").toLowerCase();
+        uploadPath = `${practiceId}/dynamic/${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage
+          .from("enea-documents")
+          .upload(uploadPath, file, { upsert: false });
+        if (error) throw error;
       }
       onChange(uploadPath);
     } catch (err) {

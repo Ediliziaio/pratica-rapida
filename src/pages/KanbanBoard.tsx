@@ -101,6 +101,7 @@ import {
   Columns3,
   List,
   ExternalLink,
+  Trash2,
 } from "lucide-react";
 import {
   Tooltip,
@@ -436,6 +437,34 @@ function PracticeDetailSheet({
   const [deleteConclusaPath, setDeleteConclusaPath] = useState<string | null>(null);
   const [showDichiarazione, setShowDichiarazione] = useState(false);
   const conclusaInputRef = useRef<HTMLInputElement>(null);
+
+  // Eliminazione pratica — solo super_admin.
+  const { roles } = useAuth();
+  const isSuperAdmin = roles.includes("super_admin");
+  const sheetQueryClient = useQueryClient();
+  const [showDeletePractice, setShowDeletePractice] = useState(false);
+  const [deletingPractice, setDeletingPractice] = useState(false);
+
+  async function handleDeletePractice() {
+    if (!practice) return;
+    setDeletingPractice(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-practice", {
+        body: { practice_id: practice.id },
+      });
+      if (error) throw error;
+      const res = data as { success?: boolean; error?: string };
+      if (!res?.success) throw new Error(res?.error ?? "Eliminazione fallita");
+      toast({ title: "Pratica eliminata", description: "La pratica e i dati collegati sono stati rimossi." });
+      setShowDeletePractice(false);
+      sheetQueryClient.invalidateQueries({ queryKey: ["enea_practices"] });
+      onClose();
+    } catch (err) {
+      toast({ variant: "destructive", title: "Errore eliminazione", description: err instanceof Error ? err.message : "Riprova." });
+    } finally {
+      setDeletingPractice(false);
+    }
+  }
 
   // Memoize operatorIds: without useMemo the spread produces a new array every
   // render, invalidating the react-query cache key and refetching on each render.
@@ -829,6 +858,20 @@ function PracticeDetailSheet({
                   >
                     <Mail className="h-3.5 w-3.5" />
                     {resendingLink ? "Invio…" : "Reinvia link"}
+                  </Button>
+                )}
+
+                {/* Elimina pratica — solo super_admin (rimuove pratica + dati collegati) */}
+                {isSuperAdmin && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                    onClick={() => setShowDeletePractice(true)}
+                    title="Elimina definitivamente la pratica e tutti i dati collegati"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Elimina pratica
                   </Button>
                 )}
 
@@ -1329,6 +1372,34 @@ function PracticeDetailSheet({
               }}
             >
               Elimina
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm elimina pratica — solo super_admin */}
+      <AlertDialog open={showDeletePractice} onOpenChange={(o) => !o && setShowDeletePractice(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminare la pratica?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {practice ? (
+                <>
+                  La pratica di <strong>{practice.cliente_nome} {practice.cliente_cognome}</strong> verrà
+                  eliminata <strong>definitivamente</strong> insieme a documenti, messaggi e log collegati.
+                  Le automazioni su questa pratica si interromperanno. L'operazione non può essere annullata.
+                </>
+              ) : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingPractice}>Annulla</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleDeletePractice(); }}
+              disabled={deletingPractice}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deletingPractice ? "Eliminazione…" : "Elimina definitivamente"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

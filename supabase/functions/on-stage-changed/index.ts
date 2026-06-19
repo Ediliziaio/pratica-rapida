@@ -258,10 +258,15 @@ serve(async (req) => {
       let clientEmailOk = true;
       let clientWaOk = true;
 
+      // Per "documenti forniti" il rivenditore ha fornito tutto e NON va inviato
+      // alcun messaggio al cliente finale (né conferma né recensione): solo le
+      // email al rivenditore. Saltiamo quindi gli invii al cliente.
+      const skipClientMessages = practice.tipo_servizio === "documenti_forniti";
+
       // Email al cliente finale (gated by stage_changed/email; no such rule in DB → defaults to enabled).
       // CON ALLEGATI: recupera tutti i documenti della pratica e li allega base64.
       // Resend limita gli allegati totali a 40MB.
-      if (stageEmailEnabled && practice.cliente_email) {
+      if (!skipClientMessages && stageEmailEnabled && practice.cliente_email) {
         const attachments = await collectPracticeAttachments(supabase, practice_id);
         clientEmailOk = await invoke("send-email", {
           to: practice.cliente_email,
@@ -279,7 +284,7 @@ serve(async (req) => {
       }
 
       // WA al cliente finale (gated by stage_changed/whatsapp — recensione rule)
-      if (stageWhatsappEnabled && practice.cliente_telefono) {
+      if (!skipClientMessages && stageWhatsappEnabled && practice.cliente_telefono) {
         clientWaOk = await invoke("send-whatsapp", {
           to: normalizePhone(practice.cliente_telefono),
           template_name: "pratica_completata",

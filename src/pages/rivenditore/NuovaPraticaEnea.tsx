@@ -196,6 +196,10 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
 
   // ── State ─────────────────────────────────────────────────────────────────
   const [tipoServizio, setTipoServizio] = useState<TipoServizio | null>(null);
+  // Solo per "documenti_forniti": il rivenditore sceglie se allegare i moduli
+  // cartacei compilati ("moduli_cartacei") o compilare il form online a nome
+  // del cliente ("form_online").
+  const [documentiMode, setDocumentiMode] = useState<"moduli_cartacei" | "form_online" | null>(null);
   const [tipoProdotto, setTipoProdotto] = useState<TipoProdotto | null>(null);
   const [tipoSoggetto, setTipoSoggetto] = useState<TipoSoggetto | null>(null);
   const [tipoFatturazione, setTipoFatturazione] = useState<TipoFatturazione | null>(null);
@@ -287,7 +291,10 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     if (!telefono.trim())  e.telefono = "Telefono obbligatorio";
     if (fatturaFiles.length === 0) e.fattura = "La fattura è obbligatoria";
     // Documenti forniti: i moduli di raccolta dati compilati sono obbligatori per ogni prodotto
-    if (tipoServizio === "documenti_forniti" && moduliRaccoltaFiles.length === 0)
+    if (tipoServizio === "documenti_forniti" && !documentiMode)
+      e.documentiMode = "Scegli se allegare i moduli cartacei o compilare il form online";
+    // I moduli di raccolta dati sono obbligatori SOLO se si è scelto il cartaceo.
+    if (tipoServizio === "documenti_forniti" && documentiMode === "moduli_cartacei" && moduliRaccoltaFiles.length === 0)
       e.moduliRaccolta = "I moduli di raccolta dati compilati sono obbligatori";
     // Pompe di calore: libretto obbligatorio
     if (tipoProdotto === "pompe_calore" && docExtra2.length === 0)
@@ -386,7 +393,17 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       // - documenti_forniti → "attesa_compilazione" (il rivenditore deve completare lui
       //   il modulo cliente; dopo il submit del form la pratica viene promossa a
       //   "pronte_da_fare" via submit_form_by_token RPC + on-stage-changed)
-      const targetStageType = tipoServizio === "servizio_completo" ? "inviata" : "attesa_compilazione";
+      // Stage iniziale:
+      //  - servizio_completo → "inviata"
+      //  - documenti_forniti + moduli cartacei → "pronte_da_fare" (tutto fornito)
+      //  - documenti_forniti + form online → "attesa_compilazione" (il rivenditore
+      //    compilerà il form a nome del cliente, poi diventa pronte_da_fare)
+      const targetStageType =
+        tipoServizio === "servizio_completo"
+          ? "inviata"
+          : documentiMode === "moduli_cartacei"
+            ? "pronte_da_fare"
+            : "attesa_compilazione";
       const initialStage = stages.find((s) => s.stage_type === targetStageType) ?? stages[0];
 
       const prodottoLabel = PRODOTTI.find((p) => p.id === tipoProdotto)?.label ?? tipoProdotto ?? "";
@@ -442,25 +459,32 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         }).eq("id", practice.id);
       }
 
-      // Trigger automations for "servizio_completo"
+      // Trigger automations for "servizio_completo" (email+WA al cliente)
       if (tipoServizio === "servizio_completo") {
         supabase.functions.invoke("on-practice-created", {
           body: { practice_id: practice.id },
         }).catch(console.error); // non-blocking
       }
 
-      // Per "documenti_forniti" il rivenditore DEVE compilare il modulo cliente
-      // completo (dati anagrafici, dichiarazioni, fatture) come se fosse il cliente
-      // finale. La pratica creata sopra è la "shell"; ora reindirizziamo al
-      // FormPubblico col form_token così può finire la compilazione.
-      // Toast + navigate, niente schermata di "submitted" intermedia.
-      if (tipoServizio === "documenti_forniti" && practice.form_token) {
+      // "documenti_forniti" + FORM ONLINE: il rivenditore compila il modulo
+      // cliente a nome del cliente. Reindirizziamo al FormPubblico col token.
+      if (tipoServizio === "documenti_forniti" && documentiMode === "form_online" && practice.form_token) {
         toast({
           title: "Pratica creata",
           description: "Ora compila il modulo cliente con tutti i dettagli per inviarcela.",
         });
         navigate(`/form/${practice.form_token}`);
         return;
+      }
+
+      // "documenti_forniti" + MODULI CARTACEI: tutto fornito → pratica già in
+      // "pronte da fare". Nessun messaggio al cliente; al rivenditore parte solo
+      // l'email "pratica ricevuta" (reseller_only). La seconda email ("lavorata")
+      // arriverà quando lo staff la chiude (on-stage-changed → notifica rivenditore).
+      if (tipoServizio === "documenti_forniti" && documentiMode === "moduli_cartacei") {
+        supabase.functions.invoke("on-practice-created", {
+          body: { practice_id: practice.id, reseller_only: true },
+        }).catch(console.error); // non-blocking
       }
 
       setSubmitted({ id: practice.id, nome: `${nome.trim()} ${cognome.trim()}` });
@@ -473,7 +497,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   };
 
   const resetForm = () => {
-    setTipoServizio(null); setTipoProdotto(null);
+    setTipoServizio(null); setDocumentiMode(null); setTipoProdotto(null);
     setTipoSoggetto(null); setTipoFatturazione(null);
     setNome(""); setCognome(""); setEmail(""); setTelefono("");
     setCf(""); setIndirizzo(""); setNote("");
@@ -643,6 +667,46 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
             </p>
           </button>
         </div>
+
+        {/* Sotto-scelta per "Documenti Forniti": cartaceo vs form online */}
+        {tipoServizio === "documenti_forniti" && (
+          <div className="mt-4 space-y-2.5">
+            <p className="text-sm font-medium">Come vuoi fornire i dati del cliente?</p>
+            {errors.documentiMode && (
+              <p className="text-xs text-destructive flex items-center gap-1" data-error>
+                <AlertCircle className="h-3.5 w-3.5" />{errors.documentiMode}
+              </p>
+            )}
+            <div className="grid sm:grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => setDocumentiMode("moduli_cartacei")}
+                className={cn(
+                  "rounded-xl border-2 p-3 text-left transition-all hover:shadow-sm focus:outline-none",
+                  documentiMode === "moduli_cartacei" ? "border-foreground/60 bg-muted/30" : "border-border hover:border-foreground/30"
+                )}
+              >
+                <p className="font-semibold text-sm">📄 Scarica i moduli e allegali</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Stampi i moduli di raccolta dati, li fai compilare/firmare e li alleghi qui sotto.
+                </p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDocumentiMode("form_online")}
+                className={cn(
+                  "rounded-xl border-2 p-3 text-left transition-all hover:shadow-sm focus:outline-none",
+                  documentiMode === "form_online" ? "border-foreground/60 bg-muted/30" : "border-border hover:border-foreground/30"
+                )}
+              >
+                <p className="font-semibold text-sm">💻 Compila il form online</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Compili tu i dati del cliente in un modulo online, al posto del cartaceo.
+                </p>
+              </button>
+            </div>
+          </div>
+        )}
       </Section>
 
       {/* ── 2. Tipo di Prodotto ──────────────────────────────────────────── */}
@@ -814,9 +878,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
 
       {/* ── 6. Documenti ────────────────────────────────────────────────── */}
       <Section number={6} title="Documenti da allegare">
-        {/* Link moduli raccolta dati — solo per "documenti forniti" (col servizio
-            completo è il cliente a compilare online, quindi non servono i moduli). */}
-        {tipoServizio === "documenti_forniti" && (
+        {/* Link moduli raccolta dati — solo se "documenti forniti" + modalità
+            cartacea (col form online o servizio completo i moduli non servono). */}
+        {documentiMode === "moduli_cartacei" && (
           <a
             href={MODULI_URL}
             target="_blank"
@@ -842,9 +906,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           onRemove={(i) => setFatturaFiles((p) => p.filter((_, j) => j !== i))}
         />
 
-        {/* Moduli di raccolta dati compilati — obbligatori solo per "documenti_forniti".
+        {/* Moduli di raccolta dati compilati — solo modalità cartacea.
             Vale per ogni prodotto (schermature, infissi, vepa, pompe di calore, insufflaggio tetti). */}
-        {tipoServizio === "documenti_forniti" && (
+        {documentiMode === "moduli_cartacei" && (
           <div className="space-y-2">
             {errors.moduliRaccolta && (
               <p className="text-xs text-destructive flex items-center gap-1" data-error>

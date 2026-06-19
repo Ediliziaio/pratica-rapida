@@ -449,6 +449,8 @@ serve(async () => {
             if (!rulePassesConditions(rule as Record<string, unknown>, p as Record<string, unknown>)) {
               continue;
             }
+            // "Documenti forniti": nessun messaggio al cliente finale (né recensione).
+            if (p.tipo_servizio === "documenti_forniti") continue;
             try {
               // Skip if we already sent a review follow-up.
               // PRIMA: si faceva match testuale `subject ILIKE %recensione%` OR
@@ -541,6 +543,8 @@ serve(async () => {
             if (!rulePassesConditions(rule as Record<string, unknown>, p as Record<string, unknown>)) {
               continue;
             }
+            // "Documenti forniti": nessun messaggio al cliente finale.
+            if (p.tipo_servizio === "documenti_forniti") continue;
             // Idempotency: skip se questa rule è già scattata su questa pratica
             // dopo la data di incasso.
             // PRIMA: si faceva `body_preview ILIKE %templateId%` ma il

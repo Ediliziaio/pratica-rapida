@@ -68,10 +68,14 @@ serve(async (req) => {
   // SOLO email+WA al cliente finale, NON l'email "pratica ricevuta" al
   // rivenditore (che serve solo alla prima creazione della pratica).
   let is_resend = false;
+  // reseller_only=true → caso "documenti forniti" (moduli cartacei): manda SOLO
+  // l'email "pratica ricevuta" al rivenditore, nessun messaggio al cliente finale.
+  let reseller_only = false;
   try {
     const body = await req.json();
     practice_id = body.practice_id;
     is_resend = body.is_resend === true;
+    reseller_only = body.reseller_only === true;
   } catch {
     return new Response(JSON.stringify({ ok: false, error: "Bad JSON" }), {
       status: 400, headers: { ...CORS, "Content-Type": "application/json" },
@@ -135,7 +139,7 @@ serve(async (req) => {
   }
 
   // 2. Primo contatto WA al cliente privato (gated by practice_created/whatsapp)
-  if (whatsappEnabled && practice.tipo_servizio === "servizio_completo" && practice.cliente_telefono) {
+  if (!reseller_only && whatsappEnabled && practice.tipo_servizio === "servizio_completo" && practice.cliente_telefono) {
     const phone = practice.cliente_telefono.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
     steps.client_wa = await invoke("send-whatsapp", {
       to: phone,
@@ -153,7 +157,7 @@ serve(async (req) => {
   }
 
   // 3. Email al cliente finale (solo servizio_completo, gated by practice_created/email)
-  if (emailEnabled && practice.tipo_servizio === "servizio_completo" && practice.cliente_email) {
+  if (!reseller_only && emailEnabled && practice.tipo_servizio === "servizio_completo" && practice.cliente_email) {
     steps.client_email = await invoke("send-email", {
       to: practice.cliente_email,
       template: "richiesta_form",

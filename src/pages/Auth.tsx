@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, FileCheck, Zap, Shield, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Loader2, FileCheck, Zap, Shield, ArrowLeft, Eye, EyeOff, MessageCircle } from "lucide-react";
 
 type View = "login" | "forgot" | "reset";
 
@@ -408,6 +408,31 @@ export default function Auth() {
                     : "Accedi →"}
                 </button>
               </form>
+
+              {/* Richiesta credenziali via WhatsApp (rivenditori senza account) */}
+              <div style={{ marginTop: "1.75rem", paddingTop: "1.5rem", borderTop: "1px solid #e5e7eb", textAlign: "center" }}>
+                <p style={{ color: "#6b7280", fontSize: "0.875rem", margin: "0 0 0.875rem" }}>
+                  Non hai le credenziali?
+                </p>
+                <a
+                  href={`https://wa.me/390398682692?text=${encodeURIComponent(
+                    "Ciao! Sono un rivenditore e vorrei richiedere le credenziali di accesso al portale Pratica Rapida.",
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
+                    width: "100%", padding: "0.75rem 1rem", boxSizing: "border-box",
+                    background: "#25D366", color: "#fff", textDecoration: "none",
+                    borderRadius: "0.625rem", fontSize: "0.9375rem", fontWeight: 600,
+                    fontFamily: "inherit", transition: "opacity 0.15s",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.9"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+                >
+                  <MessageCircle size={18} /> Richiedile via WhatsApp
+                </a>
+              </div>
             </>
           )}
 

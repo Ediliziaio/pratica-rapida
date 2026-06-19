@@ -432,6 +432,13 @@ function PracticeDetailSheet({
   const [editOperatoreId, setEditOperatoreId] = useState<string>("");
   const [editPrezzo, setEditPrezzo] = useState<string>("");
   const [editPagamentoStato, setEditPagamentoStato] = useState<string>("non_pagata");
+  // Dati cliente editabili dallo staff (CRM#5): correzione errori inseriti nel form.
+  const [editClienteNome, setEditClienteNome] = useState("");
+  const [editClienteCognome, setEditClienteCognome] = useState("");
+  const [editClienteEmail, setEditClienteEmail] = useState("");
+  const [editClienteTelefono, setEditClienteTelefono] = useState("");
+  const [editClienteCf, setEditClienteCf] = useState("");
+  const [editClienteIndirizzo, setEditClienteIndirizzo] = useState("");
   const [newDoc, setNewDoc] = useState("");
   const [uploadingConclusa, setUploadingConclusa] = useState(false);
   const [deleteConclusaPath, setDeleteConclusaPath] = useState<string | null>(null);
@@ -513,6 +520,12 @@ function PracticeDetailSheet({
     setEditOperatoreId(practice.operatore_id ?? "");
     setEditPrezzo(practice.prezzo != null ? String(practice.prezzo) : "");
     setEditPagamentoStato(practice.pagamento_stato ?? "non_pagata");
+    setEditClienteNome(practice.cliente_nome ?? "");
+    setEditClienteCognome(practice.cliente_cognome ?? "");
+    setEditClienteEmail(practice.cliente_email ?? "");
+    setEditClienteTelefono(practice.cliente_telefono ?? "");
+    setEditClienteCf(practice.cliente_cf ?? "");
+    setEditClienteIndirizzo(practice.cliente_indirizzo ?? "");
     setEditMode(true);
   }
 
@@ -549,6 +562,13 @@ function PracticeDetailSheet({
         updates: {
           note: editNote || null,
           note_interne: isInternal ? editNoteInterne || null : undefined,
+          // Dati cliente — modificabili dallo staff (CRM#5)
+          cliente_nome: isInternal ? editClienteNome.trim() : undefined,
+          cliente_cognome: isInternal ? editClienteCognome.trim() : undefined,
+          cliente_email: isInternal ? (editClienteEmail.trim() || null) : undefined,
+          cliente_telefono: isInternal ? editClienteTelefono.trim() : undefined,
+          cliente_cf: isInternal ? (editClienteCf.trim() || null) : undefined,
+          cliente_indirizzo: isInternal ? (editClienteIndirizzo.trim() || null) : undefined,
           documenti_mancanti: editDocs,
           // operatore_id: invia solo se realmente cambiato, e mai stringa vuota
           // (gli uuid in postgres rigettano '' → "invalid input syntax for type uuid")
@@ -929,6 +949,25 @@ function PracticeDetailSheet({
             {/* Edit mode */}
             {editMode ? (
               <div className="space-y-4">
+                {/* Dati cliente — modificabili dallo staff (CRM#5) */}
+                {isInternal && (
+                  <div className="rounded-lg border p-3 space-y-2.5 bg-muted/20">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
+                      Dati cliente
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input placeholder="Nome" value={editClienteNome} onChange={(e) => setEditClienteNome(e.target.value)} />
+                      <Input placeholder="Cognome" value={editClienteCognome} onChange={(e) => setEditClienteCognome(e.target.value)} />
+                    </div>
+                    <Input placeholder="Email" value={editClienteEmail} onChange={(e) => setEditClienteEmail(e.target.value)} />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input placeholder="Telefono" value={editClienteTelefono} onChange={(e) => setEditClienteTelefono(e.target.value)} />
+                      <Input placeholder="Codice fiscale" value={editClienteCf} onChange={(e) => setEditClienteCf(e.target.value)} />
+                    </div>
+                    <Input placeholder="Indirizzo" value={editClienteIndirizzo} onChange={(e) => setEditClienteIndirizzo(e.target.value)} />
+                  </div>
+                )}
+
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
                     Note

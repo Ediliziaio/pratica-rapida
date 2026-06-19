@@ -2084,10 +2084,9 @@ export default function KanbanBoard() {
 
   const { data: practices = [], isLoading, isError: practicesError } = useEneaPractices({
     brand: brandFilter !== "all" ? brandFilter : undefined,
-    // Usa deferredSearch invece di search: la fetch DB parte solo quando
-    // l'utente pausa digitazione, non a ogni keystroke. Comportamento
-    // identico per l'utente (la lista si aggiorna), ma con meno fetch.
-    search: deferredSearch.length > 1 ? deferredSearch : undefined,
+    // La ricerca è gestita CLIENT-SIDE in filteredPractices (vedi sotto): così
+    // cerca anche per nome+cognome insieme e per NOME RIVENDITORE (tabella
+    // joinata), cosa che il filtro server .or() su singoli campi non copriva.
     includeArchived: showArchived,
   });
 
@@ -2187,15 +2186,24 @@ export default function KanbanBoard() {
     if (stageFilter !== "all" && p.current_stage_id !== stageFilter) return false;
     if (dateFrom && p.created_at < dateFrom) return false;
     if (dateTo && p.created_at > dateTo + "T23:59:59") return false;
-    if (clienteFilter.trim()) {
-      const q = clienteFilter.trim().toLowerCase();
-      const fullName = `${p.cliente_nome ?? ""} ${p.cliente_cognome ?? ""}`.toLowerCase();
-      const email = (p.cliente_email ?? "").toLowerCase();
-      const cf = (p.cliente_cf ?? "").toLowerCase();
-      if (!fullName.includes(q) && !email.includes(q) && !cf.includes(q)) return false;
+    // Ricerca: combina la barra principale (deferredSearch) e il filtro avanzato
+    // (clienteFilter). Cerca su nome+cognome insieme, email, CF, telefono e
+    // NOME RIVENDITORE (azienda) — ogni token deve matchare almeno un campo.
+    const haystack = [
+      `${p.cliente_nome ?? ""} ${p.cliente_cognome ?? ""}`,
+      p.cliente_email ?? "",
+      p.cliente_cf ?? "",
+      p.cliente_telefono ?? "",
+      p.companies?.ragione_sociale ?? "",
+    ].join(" ").toLowerCase();
+    for (const term of [deferredSearch, clienteFilter]) {
+      const t = term.trim().toLowerCase();
+      if (!t) continue;
+      const tokens = t.split(/\s+/).filter(Boolean);
+      if (!tokens.every((tok) => haystack.includes(tok))) return false;
     }
     return true;
-  }), [practices, isInternal, operatoreFilter, aziendaFilter, stageFilter, dateFrom, dateTo, clienteFilter]);
+  }), [practices, isInternal, operatoreFilter, aziendaFilter, stageFilter, dateFrom, dateTo, clienteFilter, deferredSearch]);
 
   const activeFilterCount = [
     dateFrom, dateTo,

@@ -241,9 +241,11 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           hasLibretto: false,
         };
       case "vepa":
+        // VEPA: NON serve la trasmittanza. Servono fattura + metri quadri delle
+        // vetrate (solo fattura se i mq sono già indicati in fattura).
         return {
-          flagQuestion: "La fattura riporta il valore di trasmittanza e le dimensioni?",
-          extraLabel: "Certificati di trasmittanza e misure",
+          flagQuestion: "La fattura riporta i metri quadri delle vetrate (VEPA)?",
+          extraLabel: "Documento con i metri quadri delle VEPA",
           hasExtra: true,
           hasLibretto: false,
         };

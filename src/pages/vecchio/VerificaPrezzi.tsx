@@ -14,6 +14,10 @@ export default function VecchioVerificaPrezzi() {
       richiesta={{
         modulo: "verifica-prezzi",
         prodottoFisso: "Verifica prezzi",
+        extraFields: [
+          { key: "tipo_intervento", label: "Tipo di intervento/prodotto", required: true, placeholder: "es. infissi, schermature, pergole…" },
+          { key: "importo", label: "Importo fattura dichiarato (€)", placeholder: "es. 5.000" },
+        ],
       }}
       formName="Verifica congruità dei prezzi"
     />

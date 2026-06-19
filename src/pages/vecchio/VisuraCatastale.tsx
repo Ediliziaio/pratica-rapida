@@ -14,6 +14,14 @@ export default function VecchioVisuraCatastale() {
       richiesta={{
         modulo: "visura-catastale",
         prodottoFisso: "Visura catastale",
+        priceNote: "La visura catastale è un servizio a pagamento. Dopo l'invio della richiesta ti contatteremo con i dettagli per il saldo prima dell'evasione.",
+        extraFields: [
+          { key: "tipo_visura", label: "Tipo visura (per immobile / per soggetto)", required: true, placeholder: "es. per immobile" },
+          { key: "comune", label: "Comune dell'immobile", required: true, placeholder: "es. Milano (MI)" },
+          { key: "foglio", label: "Foglio", placeholder: "es. 12" },
+          { key: "particella", label: "Particella / Mappale", placeholder: "es. 345" },
+          { key: "subalterno", label: "Subalterno", placeholder: "es. 7" },
+        ],
       }}
       formName="richiesta visura catastale"
     />

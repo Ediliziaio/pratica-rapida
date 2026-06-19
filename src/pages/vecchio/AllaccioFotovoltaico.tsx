@@ -14,6 +14,11 @@ export default function VecchioAllaccioFotovoltaico() {
       richiesta={{
         modulo: "allaccio-fotovoltaico",
         prodottoFisso: "Allaccio fotovoltaico GSE",
+        extraFields: [
+          { key: "pod", label: "Codice POD", placeholder: "IT001E..." },
+          { key: "potenza", label: "Potenza impianto (kW)", placeholder: "es. 6" },
+          { key: "data_installazione", label: "Data installazione", placeholder: "gg/mm/aaaa" },
+        ],
       }}
       formName="Allaccio fotovoltaico"
     />

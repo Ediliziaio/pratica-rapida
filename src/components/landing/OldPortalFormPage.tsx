@@ -21,6 +21,8 @@ interface Props {
     prodottoFisso?: string;
     prodotti?: string[];
     conTipoServizio?: boolean;
+    extraFields?: { key: string; label: string; required?: boolean; placeholder?: string }[];
+    priceNote?: string;
   };
   /** Legacy: embed GoHighLevel. Usato solo se `richiesta` è assente. */
   iframeSrc?: string;
@@ -113,6 +115,8 @@ export default function OldPortalFormPage({
                 prodottoFisso={richiesta.prodottoFisso}
                 prodotti={richiesta.prodotti}
                 conTipoServizio={richiesta.conTipoServizio}
+                extraFields={richiesta.extraFields}
+                priceNote={richiesta.priceNote}
               />
             ) : iframeSrc ? (
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">

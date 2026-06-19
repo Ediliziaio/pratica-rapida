@@ -28,6 +28,13 @@ interface Props {
    * cliente completo). Default: false → sempre servizio_completo.
    */
   conTipoServizio?: boolean;
+  /**
+   * Campi extra specifici del servizio (es. POD per GSE, foglio/particella per
+   * visura catastale). Vengono aggiunti alla nota della pratica per lo staff.
+   */
+  extraFields?: { key: string; label: string; required?: boolean; placeholder?: string }[];
+  /** Nota di costo mostrata in cima (servizi a pagamento, es. visura catastale). */
+  priceNote?: string;
 }
 
 const inputCls =
@@ -35,7 +42,7 @@ const inputCls =
 
 const labelCls = "block text-xs font-semibold text-gray-700 mb-1.5";
 
-export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti, conTipoServizio = false }: Props) {
+export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti, conTipoServizio = false, extraFields, priceNote }: Props) {
   const navigate = useNavigate();
   const [tipoServizio, setTipoServizio] = useState<"servizio_completo" | "documenti_forniti">("servizio_completo");
   const [ragioneSociale, setRagioneSociale] = useState("");
@@ -47,6 +54,7 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
   const [telefono, setTelefono] = useState("");
   const [email, setEmail] = useState("");
   const [note, setNote] = useState("");
+  const [extra, setExtra] = useState<Record<string, string>>({});
   const [tipoFatturazione, setTipoFatturazione] = useState<"rivenditore" | "cliente_finale" | "">("");
   const [tipoSoggetto, setTipoSoggetto] = useState<"persona_fisica" | "azienda_piva" | "">("");
   const [fatture, setFatture] = useState<File[]>([]);
@@ -68,6 +76,7 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
     (prodottoFisso || !prodotti || prodotto) &&
     tipoFatturazione !== "" &&
     tipoSoggetto !== "" &&
+    (extraFields ?? []).every((f) => !f.required || (extra[f.key] ?? "").trim().length > 0) &&
     privacy;
 
   const addFiles = (list: FileList | null, setter: React.Dispatch<React.SetStateAction<File[]>>) => {
@@ -101,7 +110,14 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
           telefono: telefono.trim(),
           email: email.trim() || undefined,
         },
-        note: note.trim() || undefined,
+        // Campi specifici del servizio (POD, foglio/particella, ecc.) → in nota
+        // così lo staff li vede sulla pratica.
+        note: [
+          ...(extraFields ?? [])
+            .map((f) => (extra[f.key] ?? "").trim() ? `${f.label}: ${extra[f.key].trim()}` : null)
+            .filter(Boolean),
+          note.trim() || null,
+        ].filter(Boolean).join("\n") || undefined,
       };
 
       // Con allegati → multipart; senza → JSON semplice
@@ -150,6 +166,11 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
 
   return (
     <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 space-y-6">
+      {priceNote && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          💶 {priceNote}
+        </div>
+      )}
       {/* Honeypot: invisibile agli umani, i bot lo compilano */}
       <input
         type="text"
@@ -277,6 +298,30 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
           </div>
         </div>
       </div>
+
+      {/* ── Campi specifici del servizio (es. POD, foglio/particella) ── */}
+      {extraFields && extraFields.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <FileText className="w-4 h-4" style={{ color: "hsl(152 65% 38%)" }} />
+            <h3 className="text-sm font-bold text-gray-900">Dati del servizio</h3>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {extraFields.map((f) => (
+              <div key={f.key}>
+                <label className={labelCls}>{f.label}{f.required && " *"}</label>
+                <input
+                  className={inputCls}
+                  value={extra[f.key] ?? ""}
+                  onChange={(e) => setExtra((p) => ({ ...p, [f.key]: e.target.value }))}
+                  placeholder={f.placeholder ?? ""}
+                  required={f.required}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Fatturazione + tipo soggetto ── */}
       <div>

@@ -176,6 +176,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   const [ragioneSociale, setRagioneSociale] = useState("");
   const [aziendaEmail, setAziendaEmail] = useState("");
   const [aziendaTelefono, setAziendaTelefono] = useState("");
+  // Consenso condizioni di pagamento (publicMode, solo se paga il rivenditore)
+  const [accettoPagamento, setAccettoPagamento] = useState(false);
 
   // For staff (super_admin/operatore) who don't have a resellerId, let them pick
   // the company (reseller) that will own the practice. Direct-channel clients.
@@ -281,6 +283,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     if (publicMode) {
       if (ragioneSociale.trim().length < 2) e.ragioneSociale = "Ragione sociale obbligatoria";
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(aziendaEmail.trim())) e.aziendaEmail = "Email aziendale non valida";
+      if (aziendaTelefono.replace(/\D/g, "").length < 8) e.aziendaTelefono = "Telefono azienda obbligatorio";
+      if (!accettoPagamento) e.accettoPagamento = "Devi accettare le condizioni per inviare la richiesta";
     }
     if (!tipoServizio)     e.tipoServizio = "Seleziona il tipo di servizio";
     if (!tipoProdotto)     e.tipoProdotto = "Seleziona il prodotto";
@@ -330,7 +334,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           azienda: {
             ragione_sociale: ragioneSociale.trim(),
             email: aziendaEmail.trim(),
-            telefono: aziendaTelefono.trim() || undefined,
+            telefono: aziendaTelefono.trim(),
           },
           cliente: {
             nome: nome.trim(),
@@ -568,9 +572,11 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                 : <p className="text-xs text-muted-foreground">Se sei già registrato, usa la stessa email del portale.</p>}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="azienda-tel" className="text-sm">Telefono azienda</Label>
+              <Label htmlFor="azienda-tel" className="text-sm">Telefono azienda *</Label>
               <Input id="azienda-tel" value={aziendaTelefono}
-                onChange={(e) => setAziendaTelefono(e.target.value)} placeholder="Opzionale" />
+                onChange={(e) => { setAziendaTelefono(e.target.value); setErrors((p) => ({ ...p, aziendaTelefono: "" })); }}
+                placeholder="es. 333 1234567" className={errors.aziendaTelefono ? "border-destructive" : ""} />
+              {errors.aziendaTelefono && <p className="text-xs text-destructive" data-error>{errors.aziendaTelefono}</p>}
             </div>
           </div>
         </div>
@@ -1024,6 +1030,25 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
 
       {/* ── Submit ───────────────────────────────────────────────────────── */}
       <div className="sticky bottom-4">
+        {publicMode && (
+          <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer select-none mb-3">
+            <input
+              type="checkbox"
+              checked={accettoPagamento}
+              onChange={(e) => { setAccettoPagamento(e.target.checked); setErrors((p) => ({ ...p, accettoPagamento: "" })); }}
+              className="mt-0.5 accent-primary"
+            />
+            <span>
+              Dichiaro di aver informato il cliente finale e acconsento al trattamento dei dati (GDPR)
+              per la gestione della pratica.
+              {tipoFatturazione === "rivenditore" && (
+                <> In qualità di soggetto pagante, <strong>accetto di corrispondere a Pratica Rapida S.r.l.s. il compenso pattuito a pratica completata</strong>.</>
+              )}
+              {errors.accettoPagamento && <span className="block text-destructive mt-0.5" data-error>{errors.accettoPagamento}</span>}
+            </span>
+          </label>
+        )}
+
         <div className="rounded-xl border bg-card/95 backdrop-blur p-4 shadow-lg flex items-center justify-between gap-4">
           <div className="text-sm text-muted-foreground hidden sm:block">
             {[tipoServizio && (tipoServizio === "servizio_completo" ? "Servizio Completo" : "Documenti Forniti"),

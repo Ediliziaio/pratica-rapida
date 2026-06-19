@@ -70,6 +70,7 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
   const canSubmit =
     ragioneSociale.trim().length >= 2 &&
     /\S+@\S+\.\S+/.test(aziendaEmail) &&
+    aziendaTelefono.replace(/\D/g, "").length >= 8 &&
     nome.trim().length >= 2 &&
     cognome.trim().length >= 2 &&
     telefono.replace(/\D/g, "").length >= 8 &&
@@ -102,7 +103,7 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
         azienda: {
           ragione_sociale: ragioneSociale.trim(),
           email: aziendaEmail.trim(),
-          telefono: aziendaTelefono.trim() || undefined,
+          telefono: aziendaTelefono.trim(),
         },
         cliente: {
           nome: nome.trim(),
@@ -249,8 +250,8 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
             <p className="text-[11px] text-gray-400 mt-1">Se sei già registrato, usa la stessa email del portale: la pratica apparirà nella tua area.</p>
           </div>
           <div>
-            <label className={labelCls}>Telefono azienda</label>
-            <input type="tel" className={inputCls} value={aziendaTelefono} onChange={(e) => setAziendaTelefono(e.target.value)} placeholder="Opzionale" />
+            <label className={labelCls}>Telefono azienda *</label>
+            <input type="tel" className={inputCls} value={aziendaTelefono} onChange={(e) => setAziendaTelefono(e.target.value)} placeholder="es. 333 1234567" required />
           </div>
         </div>
       </div>
@@ -418,7 +419,11 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
         />
         <span>
           Dichiaro di aver informato il cliente finale e acconsento al trattamento
-          dei dati ai sensi del GDPR per la gestione della pratica. *
+          dei dati ai sensi del GDPR per la gestione della pratica.
+          {tipoFatturazione === "rivenditore" && (
+            <> In qualità di soggetto pagante, <strong>accetto di corrispondere a Pratica Rapida S.r.l.s. il compenso pattuito a pratica completata</strong>.</>
+          )}
+          {" *"}
         </span>
       </label>
 

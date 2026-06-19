@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Building2, Plus, Search, Receipt, Users, FolderOpen, LogIn,
   ChevronDown, BarChart3, TrendingUp, CircleDollarSign, CalendarDays, CheckCircle2, Clock,
-  ShieldOff, ShieldCheck, Eye, EyeOff, List, Kanban, AlertCircle, KeyRound,
+  ShieldOff, ShieldCheck, Eye, EyeOff, List, Kanban, AlertCircle, KeyRound, Trash2,
 } from "lucide-react";
 import AziendePipeline from "@/components/aziende/AziendePipeline";
 import { useNavigate } from "react-router-dom";
@@ -239,6 +239,29 @@ export default function Aziende() {
         description: credSendEmail ? `Email con le credenziali inviata a ${dest}.` : "Nuova password impostata.",
       });
       setCredCompany(null);
+    },
+    onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  // ── Elimina rivenditore, mantieni pratiche (CRM#4) ──────────────────────────
+  const [deleteComp, setDeleteComp] = useState<{ id: string; ragione_sociale: string } | null>(null);
+  const deleteCompany = useMutation({
+    mutationFn: async (companyId: string) => {
+      const { data, error } = await supabase.functions.invoke("delete-company", { body: { company_id: companyId } });
+      if (error) throw error;
+      const r = data as { success?: boolean; error?: string; reassigned_practices?: number };
+      if (!r?.success) throw new Error(r?.error ?? "Eliminazione fallita");
+      return r;
+    },
+    onSuccess: (r) => {
+      toast({
+        title: "Rivenditore eliminato",
+        description: r.reassigned_practices
+          ? `${r.reassigned_practices} pratiche conservate (riassegnate a "Rivenditore eliminato").`
+          : "Account e accessi rimossi.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["admin-companies"] });
+      setDeleteComp(null);
     },
     onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
@@ -539,6 +562,18 @@ export default function Aziende() {
                             </Button>
                           )}
 
+                          {superAdmin && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-destructive border-destructive hover:bg-destructive/10"
+                              onClick={() => setDeleteComp({ id: c.id, ragione_sociale: c.ragione_sociale })}
+                              title="Elimina rivenditore (le pratiche vengono conservate)"
+                            >
+                              <Trash2 className="mr-1 h-4 w-4" />Elimina
+                            </Button>
+                          )}
+
                           <CollapsibleTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                               <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
@@ -652,6 +687,27 @@ export default function Aziende() {
                 disabled={!credPassword || credPassword.length < 8 || resetCredentials.isPending}
               >
                 {resetCredentials.isPending ? "Salvataggio..." : credSendEmail ? "Imposta password e invia email" : "Imposta password"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Elimina rivenditore (CRM#4) — pratiche conservate */}
+        <Dialog open={!!deleteComp} onOpenChange={(o) => !o && setDeleteComp(null)}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Eliminare il rivenditore?</DialogTitle></DialogHeader>
+            <div className="grid gap-4">
+              <p className="text-sm text-muted-foreground">
+                <strong>{deleteComp?.ragione_sociale}</strong> verrà rimosso dal portale insieme ai suoi
+                account di accesso. Le eventuali <strong>pratiche vengono conservate</strong> (riassegnate
+                a "⚠️ Rivenditore eliminato"). L'operazione non può essere annullata.
+              </p>
+              <Button
+                variant="destructive"
+                onClick={() => deleteComp && deleteCompany.mutate(deleteComp.id)}
+                disabled={deleteCompany.isPending}
+              >
+                {deleteCompany.isPending ? "Eliminazione..." : "Elimina definitivamente"}
               </Button>
             </div>
           </DialogContent>

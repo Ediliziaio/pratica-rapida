@@ -1028,27 +1028,28 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         <p className="text-xs text-muted-foreground text-right">{note.length}/2000</p>
       </Section>
 
+      {/* ── Consenso (publicMode) — nel flusso normale, NON nella barra sticky ── */}
+      {publicMode && (
+        <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer select-none rounded-lg border bg-muted/20 p-3">
+          <input
+            type="checkbox"
+            checked={accettoPagamento}
+            onChange={(e) => { setAccettoPagamento(e.target.checked); setErrors((p) => ({ ...p, accettoPagamento: "" })); }}
+            className="mt-0.5 accent-primary"
+          />
+          <span>
+            Dichiaro di aver informato il cliente finale e acconsento al trattamento dei dati (GDPR)
+            per la gestione della pratica.
+            {tipoFatturazione === "rivenditore" && (
+              <> In qualità di soggetto pagante, <strong>accetto di corrispondere a Pratica Rapida S.r.l.s. il compenso pattuito a pratica completata</strong>.</>
+            )}
+            {errors.accettoPagamento && <span className="block text-destructive mt-0.5" data-error>{errors.accettoPagamento}</span>}
+          </span>
+        </label>
+      )}
+
       {/* ── Submit ───────────────────────────────────────────────────────── */}
       <div className="sticky bottom-4">
-        {publicMode && (
-          <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer select-none mb-3">
-            <input
-              type="checkbox"
-              checked={accettoPagamento}
-              onChange={(e) => { setAccettoPagamento(e.target.checked); setErrors((p) => ({ ...p, accettoPagamento: "" })); }}
-              className="mt-0.5 accent-primary"
-            />
-            <span>
-              Dichiaro di aver informato il cliente finale e acconsento al trattamento dei dati (GDPR)
-              per la gestione della pratica.
-              {tipoFatturazione === "rivenditore" && (
-                <> In qualità di soggetto pagante, <strong>accetto di corrispondere a Pratica Rapida S.r.l.s. il compenso pattuito a pratica completata</strong>.</>
-              )}
-              {errors.accettoPagamento && <span className="block text-destructive mt-0.5" data-error>{errors.accettoPagamento}</span>}
-            </span>
-          </label>
-        )}
-
         <div className="rounded-xl border bg-card/95 backdrop-blur p-4 shadow-lg flex items-center justify-between gap-4">
           <div className="text-sm text-muted-foreground hidden sm:block">
             {[tipoServizio && (tipoServizio === "servizio_completo" ? "Servizio Completo" : "Documenti Forniti"),

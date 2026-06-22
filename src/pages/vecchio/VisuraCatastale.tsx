@@ -15,8 +15,8 @@ export default function VecchioVisuraCatastale() {
         modulo: "visura-catastale",
         prodottoFisso: "Visura catastale",
         requiresPayment: true,
-        priceCents: 3000,
-        priceNote: "La visura catastale è un servizio a pagamento (€ 30 IVA inclusa). Al termine della richiesta verrai reindirizzato al pagamento sicuro tramite Stripe.",
+        priceCents: 1000,
+        priceNote: "La visura catastale è un servizio a pagamento (€ 10 IVA inclusa). Al termine della richiesta verrai reindirizzato al pagamento sicuro tramite Stripe.",
         extraFields: [
           { key: "tipo_visura", label: "Tipo visura (per immobile / per soggetto)", required: true, placeholder: "es. per immobile" },
           { key: "comune", label: "Comune dell'immobile", required: true, placeholder: "es. Milano (MI)" },

@@ -329,6 +329,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           modulo: "pratica-enea",
           prodotto: prodottoLabel,
           tipo_servizio: tipoServizio,
+          // Sotto-modalità documenti_forniti: cartacei (tutto allegato → pronte
+          // da fare) vs form online (il rivenditore compila lui il /form).
+          documenti_mode: tipoServizio === "documenti_forniti" ? documentiMode : undefined,
           tipo_fatturazione: tipoFatturazione,
           tipo_soggetto: tipoSoggetto,
           azienda: {
@@ -358,7 +361,10 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         const res = data as { success: boolean; error?: string; form_token?: string | null };
         if (!res.success) throw new Error(res.error ?? "Invio fallito");
 
-        if (tipoServizio === "documenti_forniti" && res.form_token) {
+        // SOLO con "form online" il rivenditore viene mandato a compilare il
+        // modulo. Con i moduli cartacei ci ha già dato tutto → conferma e basta
+        // (la pratica è già in "pronte da fare", il cliente NON viene contattato).
+        if (tipoServizio === "documenti_forniti" && documentiMode === "form_online" && res.form_token) {
           navigate(`/form/${res.form_token}`);
           return;
         }

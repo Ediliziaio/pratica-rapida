@@ -63,6 +63,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -473,6 +474,51 @@ function PracticeDetailSheet({
     }
   }
 
+  // ── Abbina pratica a un rivenditore — solo super_admin ───────────────────
+  // Le richieste arrivate dal sito da un'azienda non ancora in anagrafica
+  // finiscono sull'azienda segnaposto "⚠️ Da abbinare — richieste sito".
+  // Da qui il super_admin può assegnarle al rivenditore corretto (anche
+  // creato successivamente) cambiando reseller_id.
+  const isDaAbbinare = !!practice?.companies?.ragione_sociale?.includes("Da abbinare");
+  const [showAbbina, setShowAbbina] = useState(false);
+  const [abbinaCompanyId, setAbbinaCompanyId] = useState<string>("");
+  const [abbinando, setAbbinando] = useState(false);
+
+  const { data: abbinaCompanies = [] } = useQuery({
+    queryKey: ["abbina-companies"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("companies")
+        .select("id, ragione_sociale")
+        .order("ragione_sociale");
+      // Nascondi l'azienda segnaposto: non ha senso "abbinare" al placeholder.
+      return (data ?? []).filter((c) => !c.ragione_sociale?.includes("Da abbinare"));
+    },
+    enabled: showAbbina && isSuperAdmin,
+  });
+
+  async function handleAbbina() {
+    if (!practice || !abbinaCompanyId) return;
+    setAbbinando(true);
+    try {
+      const { error } = await supabase
+        .from("enea_practices")
+        .update({ reseller_id: abbinaCompanyId })
+        .eq("id", practice.id);
+      if (error) throw error;
+      const nome = abbinaCompanies.find((c) => c.id === abbinaCompanyId)?.ragione_sociale ?? "rivenditore";
+      toast({ title: "Pratica abbinata", description: `Assegnata a ${nome}.` });
+      setShowAbbina(false);
+      setAbbinaCompanyId("");
+      sheetQueryClient.invalidateQueries({ queryKey: ["enea_practices"] });
+      onClose();
+    } catch (err) {
+      toast({ variant: "destructive", title: "Errore abbinamento", description: err instanceof Error ? err.message : "Riprova." });
+    } finally {
+      setAbbinando(false);
+    }
+  }
+
   // Memoize operatorIds: without useMemo the spread produces a new array every
   // render, invalidating the react-query cache key and refetching on each render.
   const operatorIds = useMemo(
@@ -878,6 +924,21 @@ function PracticeDetailSheet({
                   >
                     <Mail className="h-3.5 w-3.5" />
                     {resendingLink ? "Invio…" : "Reinvia link"}
+                  </Button>
+                )}
+
+                {/* Abbina a rivenditore — solo super_admin. Evidenziato quando
+                    la pratica è sull'azienda segnaposto "Da abbinare". */}
+                {isSuperAdmin && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={`h-8 text-xs gap-1 ${isDaAbbinare ? "text-amber-700 hover:text-amber-800 hover:bg-amber-50 border-amber-300 bg-amber-50/50" : ""}`}
+                    onClick={() => { setAbbinaCompanyId(""); setShowAbbina(true); }}
+                    title="Assegna questa pratica a un rivenditore esistente"
+                  >
+                    <Building2 className="h-3.5 w-3.5" />
+                    {isDaAbbinare ? "Abbina rivenditore" : "Cambia rivenditore"}
                   </Button>
                 )}
 
@@ -1443,6 +1504,52 @@ function PracticeDetailSheet({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Abbina la pratica a un rivenditore esistente — solo super_admin */}
+      <Dialog open={showAbbina} onOpenChange={(o) => { if (!o) { setShowAbbina(false); setAbbinaCompanyId(""); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Abbina a un rivenditore</DialogTitle>
+            <DialogDescription>
+              {practice ? (
+                <>
+                  Assegna la pratica di <strong>{practice.cliente_nome} {practice.cliente_cognome}</strong>
+                  {" "}al rivenditore corretto. La pratica resterà invariata, cambierà solo l'azienda collegata.
+                </>
+              ) : null}
+            </DialogDescription>
+          </DialogHeader>
+
+          <Command className="rounded-md border">
+            <CommandInput placeholder="Cerca rivenditore…" />
+            <CommandList className="max-h-60">
+              <CommandEmpty>Nessun rivenditore trovato.</CommandEmpty>
+              <CommandGroup>
+                {abbinaCompanies.map((c) => (
+                  <CommandItem
+                    key={c.id}
+                    value={c.ragione_sociale}
+                    onSelect={() => setAbbinaCompanyId(c.id)}
+                    className="cursor-pointer"
+                  >
+                    <Check className={`mr-2 h-4 w-4 ${abbinaCompanyId === c.id ? "opacity-100" : "opacity-0"}`} />
+                    {c.ragione_sociale}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowAbbina(false); setAbbinaCompanyId(""); }} disabled={abbinando}>
+              Annulla
+            </Button>
+            <Button onClick={handleAbbina} disabled={!abbinaCompanyId || abbinando}>
+              {abbinando ? "Abbinamento…" : "Abbina"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dichiarazione Requisiti Tecnici — documento precompilato per ENEA */}
       <DichiarazioneTecnicaDialog

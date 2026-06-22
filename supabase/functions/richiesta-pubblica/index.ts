@@ -59,9 +59,13 @@ interface Payload {
   modulo?: string;
   prodotto?: string;
   // servizio_completo → noi contattiamo il cliente (stage "inviata")
-  // documenti_forniti → l'azienda compila subito il modulo completo
-  //                     (stage "attesa_compilazione", redirect a /form/{token})
+  // documenti_forniti → il rivenditore ci dà tutto lui; il cliente NON va MAI
+  //   contattato. Sotto-modalità in documenti_mode:
+  //     · moduli_cartacei → tutto allegato → stage "pronte_da_fare" (niente form)
+  //     · form_online     → il rivenditore compila lui il /form → stage
+  //                         "attesa_compilazione" (poi promosso a pronte_da_fare)
   tipo_servizio?: "servizio_completo" | "documenti_forniti";
+  documenti_mode?: "moduli_cartacei" | "form_online";
   tipo_fatturazione?: "rivenditore" | "cliente_finale";
   tipo_soggetto?: "persona_fisica" | "azienda_piva";
   azienda?: { ragione_sociale?: string; email?: string; telefono?: string };
@@ -196,10 +200,22 @@ serve(async (req) => {
     }
 
     // ── 2. Stage iniziale (stage di sistema, come il form interno) ──
-    //  - servizio_completo  → "inviata" (aspettiamo che il cliente compili)
-    //  - documenti_forniti  → "attesa_compilazione" (compila subito l'azienda)
+    //  - servizio_completo            → "inviata" (aspettiamo che il cliente compili)
+    //  - documenti_forniti + cartacei → "pronte_da_fare": il rivenditore ci ha
+    //    già allegato TUTTO → pronta per lo staff.
+    //  - documenti_forniti + online   → "attesa_compilazione": il rivenditore
+    //    compila lui il /form; al submit submit_form_by_token promuove a
+    //    "pronte_da_fare".
+    //  In OGNI caso documenti_forniti il CLIENTE NON va MAI contattato: i guard
+    //  tipo_servizio==='documenti_forniti' in on-stage-changed e
+    //  process-automations bloccano ogni messaggio/email al privato.
     const tipoServizio = p.tipo_servizio === "documenti_forniti" ? "documenti_forniti" : "servizio_completo";
-    const targetStageType = tipoServizio === "servizio_completo" ? "inviata" : "attesa_compilazione";
+    const targetStageType =
+      tipoServizio === "servizio_completo"
+        ? "inviata"
+        : p.documenti_mode === "form_online"
+          ? "attesa_compilazione"
+          : "pronte_da_fare";
     const { data: stage } = await supabase
       .from("pipeline_stages")
       .select("id")

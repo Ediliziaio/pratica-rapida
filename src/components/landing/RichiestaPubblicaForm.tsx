@@ -10,10 +10,10 @@
  * Anti-spam: honeypot (campo "website" invisibile).
  */
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Send, CheckCircle2, Building2, User, Receipt, Paperclip, X, FileText, Sparkles, FolderUp, UserCircle } from "lucide-react";
+import { Loader2, Send, CheckCircle2, Building2, User, Receipt, Paperclip, X, FileText, Sparkles, FolderUp, UserCircle, CreditCard } from "lucide-react";
 
 interface Props {
   /** Slug del modulo, es. "pratica-enea" (va nei log/nota della pratica) */
@@ -79,6 +79,8 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  // URL Stripe: quando impostato mostra la schermata di redirect
+  const [stripeUrl, setStripeUrl] = useState<string | null>(null);
 
   const canSubmit =
     // Dati aziendali richiesti solo se NON è un cliente privato
@@ -95,6 +97,13 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
     tipoSoggetto !== "" &&
     (extraFields ?? []).every((f) => !f.required || (extra[f.key] ?? "").trim().length > 0) &&
     privacy;
+
+  // Redirect automatico a Stripe appena stripeUrl viene impostato
+  useEffect(() => {
+    if (!stripeUrl) return;
+    const t = setTimeout(() => { window.location.href = stripeUrl; }, 300);
+    return () => clearTimeout(t);
+  }, [stripeUrl]);
 
   const addFiles = (list: FileList | null, setter: React.Dispatch<React.SetStateAction<File[]>>) => {
     if (!list) return;
@@ -173,7 +182,7 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
         });
         const url = (ck as { url?: string } | null)?.url;
         if (ckErr || !url) throw new Error("Pagamento non disponibile al momento. Riprova o contattaci.");
-        window.location.href = url; // redirect a Stripe
+        setStripeUrl(url); // mostra schermata di redirect + triggera useEffect
         return;
       }
 
@@ -190,6 +199,31 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
       setSubmitting(false);
     }
   };
+
+  // Schermata di transizione verso Stripe (redirect automatico via useEffect)
+  if (stripeUrl) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-10 text-center">
+        <div className="w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ background: "hsl(152 65% 38% / 0.1)" }}>
+          <CreditCard className="w-7 h-7" style={{ color: "hsl(152 65% 38%)" }} />
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">Reindirizzamento al pagamento…</h3>
+        <p className="text-sm text-gray-500 mb-6">
+          Verrai portato alla pagina di pagamento sicura Stripe.
+        </p>
+        <Loader2 className="w-6 h-6 animate-spin mx-auto mb-6 text-gray-400" />
+        <a
+          href={stripeUrl}
+          className="inline-flex items-center gap-2 text-sm font-bold text-white py-3 px-7 rounded-full transition-all hover:opacity-90"
+          style={{ background: "hsl(152 65% 38%)" }}
+        >
+          <CreditCard className="w-4 h-4" />
+          Procedi al pagamento — € {(priceCents / 100).toFixed(2)}
+        </a>
+        <p className="text-xs text-gray-400 mt-3">Se non vieni reindirizzato automaticamente, clicca il pulsante.</p>
+      </div>
+    );
+  }
 
   if (done) {
     return (

@@ -115,7 +115,8 @@ serve(async (req) => {
   const cognome = p.cliente?.cognome?.trim() ?? "";
   const telefono = p.cliente?.telefono?.trim() ?? "";
   if (ragione.length < 2) return json({ success: false, error: "Ragione sociale obbligatoria" }, 400);
-  if (!EMAIL_RE.test(aziendaEmail)) return json({ success: false, error: "Email aziendale non valida" }, 400);
+  // Email aziendale opzionale per clienti privati (campo vuoto ammesso).
+  if (aziendaEmail && !EMAIL_RE.test(aziendaEmail)) return json({ success: false, error: "Email aziendale non valida" }, 400);
   if (nome.length < 2 || cognome.length < 2) return json({ success: false, error: "Nome e cognome del cliente obbligatori" }, 400);
   if (telefono.replace(/\D/g, "").length < 8) return json({ success: false, error: "Telefono del cliente non valido" }, 400);
 

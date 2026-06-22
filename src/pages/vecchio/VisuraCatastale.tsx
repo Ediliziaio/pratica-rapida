@@ -14,6 +14,7 @@ export default function VecchioVisuraCatastale() {
       richiesta={{
         modulo: "visura-catastale",
         prodottoFisso: "Visura catastale",
+        conTipoRichiedente: true,
         requiresPayment: true,
         priceCents: 1000,
         priceNote: "La visura catastale è un servizio a pagamento (€ 10 IVA inclusa). Al termine della richiesta verrai reindirizzato al pagamento sicuro tramite Stripe.",

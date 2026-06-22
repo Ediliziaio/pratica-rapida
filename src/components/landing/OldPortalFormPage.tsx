@@ -21,6 +21,7 @@ interface Props {
     prodottoFisso?: string;
     prodotti?: string[];
     conTipoServizio?: boolean;
+    conTipoRichiedente?: boolean;
     extraFields?: { key: string; label: string; required?: boolean; placeholder?: string }[];
     priceNote?: string;
     requiresPayment?: boolean;
@@ -117,6 +118,7 @@ export default function OldPortalFormPage({
                 prodottoFisso={richiesta.prodottoFisso}
                 prodotti={richiesta.prodotti}
                 conTipoServizio={richiesta.conTipoServizio}
+                conTipoRichiedente={richiesta.conTipoRichiedente}
                 extraFields={richiesta.extraFields}
                 priceNote={richiesta.priceNote}
                 requiresPayment={richiesta.requiresPayment}

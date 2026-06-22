@@ -13,7 +13,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Send, CheckCircle2, Building2, User, Receipt, Paperclip, X, FileText, Sparkles, FolderUp } from "lucide-react";
+import { Loader2, Send, CheckCircle2, Building2, User, Receipt, Paperclip, X, FileText, Sparkles, FolderUp, UserCircle } from "lucide-react";
 
 interface Props {
   /** Slug del modulo, es. "pratica-enea" (va nei log/nota della pratica) */
@@ -28,6 +28,13 @@ interface Props {
    * cliente completo). Default: false → sempre servizio_completo.
    */
   conTipoServizio?: boolean;
+  /**
+   * Mostra la scelta "Sei un'azienda/rivenditore o un cliente privato?" in cima.
+   * Se scelgono "privato": nasconde i dati aziendali, imposta fatturazione
+   * automaticamente a "cliente_finale" e usa i dati personali come intestatario.
+   * Utile per servizi B2C come la visura catastale.
+   */
+  conTipoRichiedente?: boolean;
   /**
    * Campi extra specifici del servizio (es. POD per GSE, foglio/particella per
    * visura catastale). Vengono aggiunti alla nota della pratica per lo staff.
@@ -46,8 +53,10 @@ const inputCls =
 
 const labelCls = "block text-xs font-semibold text-gray-700 mb-1.5";
 
-export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti, conTipoServizio = false, extraFields, priceNote, requiresPayment = false, priceCents = 3000 }: Props) {
+export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti, conTipoServizio = false, conTipoRichiedente = false, extraFields, priceNote, requiresPayment = false, priceCents = 3000 }: Props) {
   const navigate = useNavigate();
+  const [tipoRichiedente, setTipoRichiedente] = useState<"azienda" | "privato">("azienda");
+  const isPrivato = tipoRichiedente === "privato";
   const [tipoServizio, setTipoServizio] = useState<"servizio_completo" | "documenti_forniti">("servizio_completo");
   const [ragioneSociale, setRagioneSociale] = useState("");
   const [aziendaEmail, setAziendaEmail] = useState("");
@@ -72,9 +81,12 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
   const [done, setDone] = useState(false);
 
   const canSubmit =
-    ragioneSociale.trim().length >= 2 &&
-    /\S+@\S+\.\S+/.test(aziendaEmail) &&
-    aziendaTelefono.replace(/\D/g, "").length >= 8 &&
+    // Dati aziendali richiesti solo se NON è un cliente privato
+    (isPrivato || (
+      ragioneSociale.trim().length >= 2 &&
+      /\S+@\S+\.\S+/.test(aziendaEmail) &&
+      aziendaTelefono.replace(/\D/g, "").length >= 8
+    )) &&
     nome.trim().length >= 2 &&
     cognome.trim().length >= 2 &&
     telefono.replace(/\D/g, "").length >= 8 &&
@@ -104,7 +116,12 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
         tipo_servizio: tipoServizio,
         tipo_fatturazione: tipoFatturazione,
         tipo_soggetto: tipoSoggetto,
-        azienda: {
+        // Cliente privato: usa i dati personali come intestatario azienda
+        azienda: isPrivato ? {
+          ragione_sociale: `${nome.trim()} ${cognome.trim()}`,
+          email: email.trim() || undefined,
+          telefono: telefono.trim(),
+        } : {
           ragione_sociale: ragioneSociale.trim(),
           email: aziendaEmail.trim(),
           telefono: aziendaTelefono.trim(),
@@ -194,6 +211,52 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
           💶 {priceNote}
         </div>
       )}
+      {/* ── Tipo richiedente: azienda/rivenditore oppure cliente privato ── */}
+      {conTipoRichiedente && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <UserCircle className="w-4 h-4" style={{ color: "hsl(152 65% 38%)" }} />
+            <h3 className="text-sm font-bold text-gray-900">Chi effettua la richiesta?</h3>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => { setTipoRichiedente("azienda"); setTipoFatturazione(""); }}
+              className={`text-left rounded-xl border-2 p-4 transition-all ${
+                !isPrivato
+                  ? "border-[hsl(152_65%_38%)] bg-[hsl(152_65%_38%)]/5 shadow-sm"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Building2 className="w-4 h-4" style={{ color: "hsl(152 65% 38%)" }} />
+                <span className="text-sm font-bold text-gray-900">Azienda / Rivenditore</span>
+              </div>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Stai richiedendo per conto di un'azienda, studio o come rivenditore.
+              </p>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setTipoRichiedente("privato"); setTipoFatturazione("cliente_finale"); }}
+              className={`text-left rounded-xl border-2 p-4 transition-all ${
+                isPrivato
+                  ? "border-[hsl(152_65%_38%)] bg-[hsl(152_65%_38%)]/5 shadow-sm"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <User className="w-4 h-4 text-gray-600" />
+                <span className="text-sm font-bold text-gray-900">Cliente privato</span>
+              </div>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Stai richiedendo per te stesso, come persona fisica o professionista.
+              </p>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Honeypot: invisibile agli umani, i bot lo compilano */}
       <input
         type="text"
@@ -255,28 +318,30 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
       </div>
       )}
 
-      {/* ── Sezione azienda ── */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Building2 className="w-4 h-4" style={{ color: "hsl(152 65% 38%)" }} />
-          <h3 className="text-sm font-bold text-gray-900">I tuoi dati (azienda / rivenditore)</h3>
+      {/* ── Sezione azienda (nascosta per clienti privati) ── */}
+      {!isPrivato && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Building2 className="w-4 h-4" style={{ color: "hsl(152 65% 38%)" }} />
+            <h3 className="text-sm font-bold text-gray-900">I tuoi dati (azienda / rivenditore)</h3>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="sm:col-span-2">
+              <label className={labelCls}>Ragione sociale *</label>
+              <input className={inputCls} value={ragioneSociale} onChange={(e) => setRagioneSociale(e.target.value)} placeholder="Es. Serramenti Rossi S.r.l." required />
+            </div>
+            <div>
+              <label className={labelCls}>Email aziendale *</label>
+              <input type="email" className={inputCls} value={aziendaEmail} onChange={(e) => setAziendaEmail(e.target.value)} placeholder="info@azienda.it" required />
+              <p className="text-[11px] text-gray-400 mt-1">Se sei già registrato, usa la stessa email del portale: la pratica apparirà nella tua area.</p>
+            </div>
+            <div>
+              <label className={labelCls}>Telefono azienda *</label>
+              <input type="tel" className={inputCls} value={aziendaTelefono} onChange={(e) => setAziendaTelefono(e.target.value)} placeholder="es. 333 1234567" required />
+            </div>
+          </div>
         </div>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div className="sm:col-span-2">
-            <label className={labelCls}>Ragione sociale *</label>
-            <input className={inputCls} value={ragioneSociale} onChange={(e) => setRagioneSociale(e.target.value)} placeholder="Es. Serramenti Rossi S.r.l." required />
-          </div>
-          <div>
-            <label className={labelCls}>Email aziendale *</label>
-            <input type="email" className={inputCls} value={aziendaEmail} onChange={(e) => setAziendaEmail(e.target.value)} placeholder="info@azienda.it" required />
-            <p className="text-[11px] text-gray-400 mt-1">Se sei già registrato, usa la stessa email del portale: la pratica apparirà nella tua area.</p>
-          </div>
-          <div>
-            <label className={labelCls}>Telefono azienda *</label>
-            <input type="tel" className={inputCls} value={aziendaTelefono} onChange={(e) => setAziendaTelefono(e.target.value)} placeholder="es. 333 1234567" required />
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* ── Prodotto (solo se selezionabile) ── */}
       {!prodottoFisso && prodotti && prodotti.length > 0 && (
@@ -291,11 +356,13 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
         </div>
       )}
 
-      {/* ── Sezione cliente finale ── */}
+      {/* ── Sezione cliente finale / dati personali ── */}
       <div>
         <div className="flex items-center gap-2 mb-3">
           <User className="w-4 h-4" style={{ color: "hsl(152 65% 38%)" }} />
-          <h3 className="text-sm font-bold text-gray-900">Dati del cliente finale</h3>
+          <h3 className="text-sm font-bold text-gray-900">
+            {isPrivato ? "I tuoi dati" : "Dati del cliente finale"}
+          </h3>
         </div>
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
@@ -307,12 +374,12 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
             <input className={inputCls} value={cognome} onChange={(e) => setCognome(e.target.value)} placeholder="Bianchi" required />
           </div>
           <div>
-            <label className={labelCls}>Telefono cliente *</label>
+            <label className={labelCls}>{isPrivato ? "Il tuo telefono *" : "Telefono cliente *"}</label>
             <input type="tel" className={inputCls} value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="333 1234567" required />
-            <p className="text-[11px] text-gray-400 mt-1">Il cliente riceverà qui il link per completare i suoi dati.</p>
+            {!isPrivato && <p className="text-[11px] text-gray-400 mt-1">Il cliente riceverà qui il link per completare i suoi dati.</p>}
           </div>
           <div>
-            <label className={labelCls}>Email cliente</label>
+            <label className={labelCls}>{isPrivato ? "La tua email" : "Email cliente"}</label>
             <input type="email" className={inputCls} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Opzionale" />
           </div>
           <div className="sm:col-span-2">
@@ -352,23 +419,28 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
           <Receipt className="w-4 h-4" style={{ color: "hsl(152 65% 38%)" }} />
           <h3 className="text-sm font-bold text-gray-900">Fatturazione</h3>
         </div>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className={labelCls}>A chi fatturiamo il servizio? *</label>
-            <div className="space-y-2">
-              {([
-                { v: "rivenditore", label: "Alla mia azienda (rivenditore)" },
-                { v: "cliente_finale", label: "Al cliente finale" },
-              ] as const).map((o) => (
-                <label key={o.v} className={`flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm cursor-pointer transition-colors ${tipoFatturazione === o.v ? "border-[hsl(152_65%_38%)] bg-[hsl(152_65%_38%)]/5" : "border-gray-200 hover:border-gray-300"}`}>
-                  <input type="radio" name="fatturazione" checked={tipoFatturazione === o.v} onChange={() => setTipoFatturazione(o.v)} className="accent-[hsl(152_65%_38%)]" />
-                  {o.label}
-                </label>
-              ))}
+        <div className={`grid gap-3 ${!isPrivato ? "sm:grid-cols-2" : ""}`}>
+          {/* "A chi fatturiamo?" — solo per aziende/rivenditori */}
+          {!isPrivato && (
+            <div>
+              <label className={labelCls}>A chi fatturiamo il servizio? *</label>
+              <div className="space-y-2">
+                {([
+                  { v: "rivenditore", label: "Alla mia azienda (rivenditore)" },
+                  { v: "cliente_finale", label: "Al cliente finale" },
+                ] as const).map((o) => (
+                  <label key={o.v} className={`flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm cursor-pointer transition-colors ${tipoFatturazione === o.v ? "border-[hsl(152_65%_38%)] bg-[hsl(152_65%_38%)]/5" : "border-gray-200 hover:border-gray-300"}`}>
+                    <input type="radio" name="fatturazione" checked={tipoFatturazione === o.v} onChange={() => setTipoFatturazione(o.v)} className="accent-[hsl(152_65%_38%)]" />
+                    {o.label}
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           <div>
-            <label className={labelCls}>Il cliente finale è… *</label>
+            <label className={labelCls}>
+              {isPrivato ? "Sei una persona fisica o hai P.IVA? *" : "Il cliente finale è… *"}
+            </label>
             <div className="space-y-2">
               {([
                 { v: "persona_fisica", label: "Privato (persona fisica)" },
@@ -440,8 +512,10 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
           required
         />
         <span>
-          Dichiaro di aver informato il cliente finale e acconsento al trattamento
-          dei dati ai sensi del GDPR per la gestione della pratica.
+          {isPrivato
+            ? "Acconsento al trattamento dei miei dati personali ai sensi del GDPR per la gestione della pratica."
+            : "Dichiaro di aver informato il cliente finale e acconsento al trattamento dei dati ai sensi del GDPR per la gestione della pratica."
+          }
           {tipoFatturazione === "rivenditore" && (
             <> In qualità di soggetto pagante, <strong>accetto di corrispondere a Pratica Rapida S.r.l.s. il compenso pattuito a pratica completata</strong>.</>
           )}

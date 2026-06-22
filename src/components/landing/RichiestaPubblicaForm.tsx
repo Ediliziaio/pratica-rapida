@@ -171,6 +171,9 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
 
       // Servizio a pagamento → Stripe Checkout: la pratica è creata "in attesa
       // pagamento", ora reindirizziamo a Stripe; il webhook la segnerà pagata.
+      if (requiresPayment && !res.practice_id) {
+        throw new Error("Errore: pratica creata senza ID. Contattaci su WhatsApp per completare il pagamento.");
+      }
       if (requiresPayment && res.practice_id) {
         const { data: ck, error: ckErr } = await supabase.functions.invoke("stripe-checkout", {
           body: {
@@ -292,16 +295,16 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
         </div>
       )}
 
-      {/* Honeypot: invisibile agli umani, i bot lo compilano */}
+      {/* Honeypot: invisibile agli umani, i bot lo compilano.
+          NON ha name/id per evitare che i password manager lo compilino. */}
       <input
         type="text"
-        name="website"
         value={website}
         onChange={(e) => setWebsite(e.target.value)}
         tabIndex={-1}
-        autoComplete="off"
+        autoComplete="new-password"
         aria-hidden="true"
-        className="absolute opacity-0 h-0 w-0 pointer-events-none"
+        style={{ position: "absolute", opacity: 0, height: 0, width: 0, pointerEvents: "none" }}
       />
 
       {/* ── Tipo di servizio (solo moduli ENEA) ── */}

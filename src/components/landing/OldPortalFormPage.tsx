@@ -23,6 +23,8 @@ interface Props {
     conTipoServizio?: boolean;
     extraFields?: { key: string; label: string; required?: boolean; placeholder?: string }[];
     priceNote?: string;
+    requiresPayment?: boolean;
+    priceCents?: number;
   };
   /** Legacy: embed GoHighLevel. Usato solo se `richiesta` è assente. */
   iframeSrc?: string;
@@ -117,6 +119,8 @@ export default function OldPortalFormPage({
                 conTipoServizio={richiesta.conTipoServizio}
                 extraFields={richiesta.extraFields}
                 priceNote={richiesta.priceNote}
+                requiresPayment={richiesta.requiresPayment}
+                priceCents={richiesta.priceCents}
               />
             ) : iframeSrc ? (
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">

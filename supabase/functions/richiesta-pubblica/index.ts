@@ -340,6 +340,9 @@ serve(async (req) => {
       success: true,
       matched: matchType !== "creata",
       company_created: matchType === "creata",
+      // practice_id: usato dal frontend per avviare il checkout Stripe sui
+      // servizi a pagamento (es. visura catastale).
+      practice_id: practice.id,
       // Con documenti_forniti il frontend reindirizza l'azienda al modulo
       // completo da compilare subito (pagina pubblica tokenizzata).
       form_token: tipoServizio === "documenti_forniti" ? (practice.form_token ?? null) : null,

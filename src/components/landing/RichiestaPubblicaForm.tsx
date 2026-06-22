@@ -35,6 +35,10 @@ interface Props {
   extraFields?: { key: string; label: string; required?: boolean; placeholder?: string }[];
   /** Nota di costo mostrata in cima (servizi a pagamento, es. visura catastale). */
   priceNote?: string;
+  /** Servizio a pagamento: dopo l'invio reindirizza a Stripe Checkout. */
+  requiresPayment?: boolean;
+  /** Importo in centesimi (es. 3000 = 30€). Default 3000. */
+  priceCents?: number;
 }
 
 const inputCls =
@@ -42,7 +46,7 @@ const inputCls =
 
 const labelCls = "block text-xs font-semibold text-gray-700 mb-1.5";
 
-export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti, conTipoServizio = false, extraFields, priceNote }: Props) {
+export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti, conTipoServizio = false, extraFields, priceNote, requiresPayment = false, priceCents = 3000 }: Props) {
   const navigate = useNavigate();
   const [tipoServizio, setTipoServizio] = useState<"servizio_completo" | "documenti_forniti">("servizio_completo");
   const [ragioneSociale, setRagioneSociale] = useState("");
@@ -135,8 +139,26 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
 
       const { data, error: fnError } = await supabase.functions.invoke("richiesta-pubblica", { body });
       if (fnError) throw new Error(fnError.message);
-      const res = data as { success: boolean; error?: string; form_token?: string | null };
+      const res = data as { success: boolean; error?: string; form_token?: string | null; practice_id?: string };
       if (!res.success) throw new Error(res.error ?? "Invio fallito");
+
+      // Servizio a pagamento → Stripe Checkout: la pratica è creata "in attesa
+      // pagamento", ora reindirizziamo a Stripe; il webhook la segnerà pagata.
+      if (requiresPayment && res.practice_id) {
+        const { data: ck, error: ckErr } = await supabase.functions.invoke("stripe-checkout", {
+          body: {
+            practice_id: res.practice_id,
+            amount_cents: priceCents,
+            descrizione: prodottoFisso ?? "Servizio Pratica Rapida",
+            email: aziendaEmail.trim() || email.trim() || undefined,
+          },
+        });
+        const url = (ck as { url?: string } | null)?.url;
+        if (ckErr || !url) throw new Error("Pagamento non disponibile al momento. Riprova o contattaci.");
+        window.location.href = url; // redirect a Stripe
+        return;
+      }
+
       // Documenti forniti: l'azienda compila SUBITO il modulo completo
       // (stessa esperienza del form interno rivenditore)
       if (tipoServizio === "documenti_forniti" && res.form_token) {
@@ -440,9 +462,11 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
         {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
         {submitting
           ? "Invio in corso…"
-          : conTipoServizio && tipoServizio === "documenti_forniti"
-            ? "Invia e compila il modulo"
-            : "Invia la richiesta"}
+          : requiresPayment
+            ? `Vai al pagamento — € ${(priceCents / 100).toFixed(2)}`
+            : conTipoServizio && tipoServizio === "documenti_forniti"
+              ? "Invia e compila il modulo"
+              : "Invia la richiesta"}
       </button>
     </form>
   );

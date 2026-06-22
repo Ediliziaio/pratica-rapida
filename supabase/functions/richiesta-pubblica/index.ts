@@ -66,6 +66,9 @@ interface Payload {
   //                         "attesa_compilazione" (poi promosso a pronte_da_fare)
   tipo_servizio?: "servizio_completo" | "documenti_forniti";
   documenti_mode?: "moduli_cartacei" | "form_online";
+  // Servizio a pagamento diretto (es. visura catastale): non invia il link
+  // "completa i tuoi dati" al cliente — il cliente sta già pagando.
+  requires_payment?: boolean;
   tipo_fatturazione?: "rivenditore" | "cliente_finale";
   tipo_soggetto?: "persona_fisica" | "azienda_piva";
   azienda?: { ragione_sociale?: string; email?: string; telefono?: string };
@@ -299,7 +302,10 @@ serve(async (req) => {
     // ── 6. Trigger automazioni — SOLO per servizio_completo (come il form
     // interno): con documenti_forniti è l'azienda a compilare subito il
     // modulo, niente messaggio al cliente.
-    if (tipoServizio === "servizio_completo") {
+    // Con requires_payment il cliente paga direttamente su Stripe: non
+    // mandiamo nessun link "completa i tuoi dati" perché è lui stesso che
+    // ha appena compilato il form.
+    if (tipoServizio === "servizio_completo" && !p.requires_payment) {
       fetch(`${SUPABASE_URL}/functions/v1/on-practice-created`, {
         method: "POST",
         headers: {

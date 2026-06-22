@@ -114,6 +114,7 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
         modulo,
         prodotto: prodottoFisso ?? prodotto,
         tipo_servizio: tipoServizio,
+        requires_payment: requiresPayment || undefined,
         tipo_fatturazione: tipoFatturazione,
         tipo_soggetto: tipoSoggetto,
         // Cliente privato: usa i dati personali come intestatario azienda

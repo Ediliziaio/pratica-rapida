@@ -24,6 +24,7 @@ import { toast } from "@/hooks/use-toast";
 import {
   CALDAIA_LABELS,
   COMBUSTIBILE_LABELS,
+  DocumentiData,
   FormClienteData,
   IMPIANTO_TIPO_LABELS,
   MATERIALE_LABELS,
@@ -974,6 +975,143 @@ function ProdottoInsufflaggio(_props: StepProdottoProps) {
           Per la sua pratica di insufflaggio tetti non servono ulteriori informazioni in questa sezione. Può procedere al recap finale.
         </p>
       </div>
+    </div>
+  );
+}
+
+// ── 8. Documenti ─────────────────────────────────────────────────────────────
+
+export interface StepDocumentiProps {
+  data: FormClienteData;
+  errors: ErrorMap;
+  patchSection: <K extends keyof FormClienteData>(section: K, patch: Partial<FormClienteData[K]>) => void;
+  uploading: boolean;
+  onUploadStart: () => void;
+  onUploadEnd: () => void;
+  publicToken?: string;
+  practiceId: string;
+}
+
+export function StepDocumenti({
+  data,
+  patchSection,
+  uploading,
+  onUploadStart,
+  onUploadEnd,
+  publicToken,
+  practiceId,
+}: StepDocumentiProps) {
+  const fatturaRef = useRef<HTMLInputElement>(null);
+  const bonificoRef = useRef<HTMLInputElement>(null);
+
+  const { fattura_url, bonifico_url } = data.documenti;
+
+  const makeUploadHandler = (kind: "fattura" | "bonifico") => async (file: File) => {
+    if (file.size > 20 * 1024 * 1024) {
+      toast({ variant: "destructive", title: "File troppo grande", description: "Massimo 20 MB." });
+      return;
+    }
+    onUploadStart();
+    try {
+      let path: string;
+      if (publicToken) {
+        path = await uploadPublicFormFile(publicToken, kind, file);
+      } else {
+        const { supabase } = await import("@/integrations/supabase/client");
+        const ext = file.name.split(".").pop() ?? "bin";
+        const directPath = `${practiceId}/${kind}/${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage
+          .from("enea-documents")
+          .upload(directPath, file, { upsert: false });
+        if (error) throw error;
+        path = directPath;
+      }
+      patchSection("documenti", { [`${kind}_url`]: path } as Partial<DocumentiData>);
+    } catch (err) {
+      console.error(`Upload ${kind} failed:`, err);
+      toast({ variant: "destructive", title: "Caricamento fallito", description: "Riprova o contatta il supporto." });
+    } finally {
+      onUploadEnd();
+    }
+  };
+
+  const renderUploadField = (
+    kind: "fattura" | "bonifico",
+    label: string,
+    description: string,
+    url: string | undefined,
+    inputRef: React.RefObject<HTMLInputElement>,
+  ) => (
+    <div className="space-y-2">
+      <p className="text-sm font-medium">{label}</p>
+      <p className="text-xs text-muted-foreground">{description}</p>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="application/pdf,image/jpeg,image/png"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) void makeUploadHandler(kind)(f);
+          e.target.value = "";
+        }}
+      />
+      {url ? (
+        <div className="rounded-md border p-3 flex items-center justify-between">
+          <div className="text-sm">
+            <p className="font-medium">File caricato</p>
+            <p className="text-xs text-muted-foreground break-all">{url.split("/").pop()}</p>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+          >
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sostituisci"}
+          </Button>
+        </div>
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+        >
+          {uploading ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Upload className="h-4 w-4 mr-2" />
+          )}
+          Carica {label.toLowerCase()}
+        </Button>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">
+        Carica qui la fattura dell'installatore e la ricevuta del bonifico parlante.
+        Entrambi i documenti sono facoltativi in questa fase, ma potrebbero essere
+        richiesti in seguito per completare la pratica ENEA.
+      </p>
+      {renderUploadField(
+        "fattura",
+        "Fattura dell'installatore",
+        "Fattura emessa dall'installatore per i lavori eseguiti (PDF, JPG o PNG, max 20 MB).",
+        fattura_url,
+        fatturaRef,
+      )}
+      {renderUploadField(
+        "bonifico",
+        "Bonifico parlante",
+        "Ricevuta del bonifico bancario intestato all'installatore (PDF, JPG o PNG, max 20 MB).",
+        bonifico_url,
+        bonificoRef,
+      )}
     </div>
   );
 }

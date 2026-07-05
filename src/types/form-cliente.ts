@@ -10,6 +10,7 @@ export type StepId =
   | "edificio"
   | "impianto"
   | "prodotto"
+  | "documenti"
   | "recap";
 
 export type ProdottoTipo = "infissi" | "schermature" | "impianto_termico" | "insufflaggio";
@@ -158,6 +159,11 @@ export type ProdottoData =
   | ProdottoImpiantoTermicoData
   | ProdottoInsufflaggioData;
 
+export interface DocumentiData {
+  fattura_url?: string;
+  bonifico_url?: string;
+}
+
 export interface FormClienteData {
   richiedente: RichiedenteData;
   residenza: ResidenzaData;
@@ -167,6 +173,7 @@ export interface FormClienteData {
   edificio: EdificioData;
   impianto: ImpiantoData;
   prodotto: ProdottoData;
+  documenti: DocumentiData;
 }
 
 export const STEPS: { id: StepId; label: string }[] = [
@@ -177,6 +184,7 @@ export const STEPS: { id: StepId; label: string }[] = [
   { id: "edificio", label: "Edificio" },
   { id: "impianto", label: "Impianto termico" },
   { id: "prodotto", label: "Dati prodotto" },
+  { id: "documenti", label: "Documenti" },
   { id: "recap", label: "Riepilogo" },
 ];
 
@@ -256,6 +264,7 @@ export function emptyFormData(): FormClienteData {
       nuovi_vetro: "",
       zanzariere_tapparelle: null,
     },
+    documenti: {},
   };
 }
 

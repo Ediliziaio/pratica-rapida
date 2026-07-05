@@ -21,6 +21,7 @@ import { validateStep } from "@/components/form-cliente/validation";
 import {
   StepCatastali,
   StepCointestazione,
+  StepDocumenti,
   StepEdificio,
   StepImpianto,
   StepIndirizzo,
@@ -59,6 +60,7 @@ function mergeDraft(base: FormClienteData, draft: unknown): FormClienteData {
     prodotto: (d.prodotto && (d.prodotto as { tipo?: string }).tipo
       ? (d.prodotto as FormClienteData["prodotto"])
       : base.prodotto),
+    documenti: { ...base.documenti, ...(d.documenti || {}) },
   };
 }
 
@@ -783,6 +785,19 @@ function StepBody(props: StepBodyProps) {
           onUploadStart={props.onUploadStart}
           onUploadEnd={props.onUploadEnd}
           publicToken={props.publicToken}
+        />
+      );
+    case "documenti":
+      return (
+        <StepDocumenti
+          data={data}
+          errors={errors}
+          patchSection={patchSection}
+          uploading={props.uploading}
+          onUploadStart={props.onUploadStart}
+          onUploadEnd={props.onUploadEnd}
+          publicToken={props.publicToken}
+          practiceId={props.practiceId}
         />
       );
     case "recap":

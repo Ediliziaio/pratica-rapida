@@ -175,6 +175,18 @@ export function validateProdotto(d: FormClienteData, tipo: ProdottoTipo): ErrorM
   return e;
 }
 
+export function validateDocumenti(d: FormClienteData): ErrorMap {
+  const e: ErrorMap = {};
+  const doc = d.documenti;
+  if (!doc.fattura_url) e["documenti.fattura_url"] = "Carica la fattura dell'installatore";
+  if (doc.finanziamento === null || doc.finanziamento === undefined) {
+    e["documenti.finanziamento"] = "Indica se hai usufruito di un finanziamento";
+  } else if (doc.finanziamento !== "si" && !doc.bonifico_url) {
+    e["documenti.bonifico_url"] = "Carica la copia del bonifico";
+  }
+  return e;
+}
+
 export function validateStep(
   step: StepId,
   data: FormClienteData,
@@ -195,6 +207,8 @@ export function validateStep(
       return validateImpianto(data);
     case "prodotto":
       return validateProdotto(data, prodottoTipo);
+    case "documenti":
+      return validateDocumenti(data);
     case "recap":
       // Tutti gli step precedenti devono passare prima del submit
       return {
@@ -205,6 +219,7 @@ export function validateStep(
         ...validateEdificio(data),
         ...validateImpianto(data),
         ...validateProdotto(data, prodottoTipo),
+        ...validateDocumenti(data),
       };
     default:
       return {};

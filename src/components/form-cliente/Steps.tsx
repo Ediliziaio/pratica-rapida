@@ -25,6 +25,7 @@ import {
   CALDAIA_LABELS,
   COMBUSTIBILE_LABELS,
   DocumentiData,
+  Finanziamento,
   FormClienteData,
   IMPIANTO_TIPO_LABELS,
   MATERIALE_LABELS,
@@ -994,6 +995,7 @@ export interface StepDocumentiProps {
 
 export function StepDocumenti({
   data,
+  errors,
   patchSection,
   uploading,
   onUploadStart,
@@ -1004,7 +1006,7 @@ export function StepDocumenti({
   const fatturaRef = useRef<HTMLInputElement>(null);
   const bonificoRef = useRef<HTMLInputElement>(null);
 
-  const { fattura_url, bonifico_url } = data.documenti;
+  const { finanziamento, fattura_url, bonifico_url } = data.documenti;
 
   const makeUploadHandler = (kind: "fattura" | "bonifico") => async (file: File) => {
     if (file.size > 20 * 1024 * 1024) {
@@ -1035,16 +1037,13 @@ export function StepDocumenti({
     }
   };
 
-  const renderUploadField = (
+  const renderUploadButton = (
     kind: "fattura" | "bonifico",
-    label: string,
-    description: string,
+    buttonLabel: string,
     url: string | undefined,
     inputRef: React.RefObject<HTMLInputElement>,
   ) => (
-    <div className="space-y-2">
-      <p className="text-sm font-medium">{label}</p>
-      <p className="text-xs text-muted-foreground">{description}</p>
+    <>
       <input
         ref={inputRef}
         type="file"
@@ -1085,33 +1084,75 @@ export function StepDocumenti({
           ) : (
             <Upload className="h-4 w-4 mr-2" />
           )}
-          Carica {label.toLowerCase()}
+          {buttonLabel}
         </Button>
       )}
-    </div>
+    </>
   );
+
+  const bonificoSection = () => {
+    if (!finanziamento) return null;
+    if (finanziamento === "si") {
+      return (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+          Non devi inserire la copia del bonifico.
+        </div>
+      );
+    }
+    const hint =
+      finanziamento === "in_parte"
+        ? "Inserisci solo la parte di bonifico che hai effettuato."
+        : "Inserisci la copia di tutti i bonifici effettuati per la detrazione.";
+    return (
+      <div className="space-y-2">
+        <Label>Copia del bonifico parlante *</Label>
+        <p className="text-xs text-muted-foreground">{hint}</p>
+        {renderUploadButton("bonifico", "Carica bonifico", bonifico_url, bonificoRef)}
+        <FieldError errors={errors} field="documenti.bonifico_url" />
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">
-        Carica qui la fattura dell'installatore e la ricevuta del bonifico parlante.
-        Entrambi i documenti sono facoltativi in questa fase, ma potrebbero essere
-        richiesti in seguito per completare la pratica ENEA.
-      </p>
-      {renderUploadField(
-        "fattura",
-        "Fattura dell'installatore",
-        "Fattura emessa dall'installatore per i lavori eseguiti (PDF, JPG o PNG, max 20 MB).",
-        fattura_url,
-        fatturaRef,
-      )}
-      {renderUploadField(
-        "bonifico",
-        "Bonifico parlante",
-        "Ricevuta del bonifico bancario intestato all'installatore (PDF, JPG o PNG, max 20 MB).",
-        bonifico_url,
-        bonificoRef,
-      )}
+      {/* Fattura — sempre obbligatoria */}
+      <div className="space-y-2">
+        <Label>Fattura dell'installatore *</Label>
+        <p className="text-xs text-muted-foreground">
+          Fattura emessa dall'installatore per i lavori eseguiti (PDF, JPG o PNG, max 20 MB).
+        </p>
+        {renderUploadButton("fattura", "Carica fattura", fattura_url, fatturaRef)}
+        <FieldError errors={errors} field="documenti.fattura_url" />
+      </div>
+
+      {/* Domanda finanziamento */}
+      <div className="space-y-3">
+        <Label>Hai usufruito di un finanziamento per i lavori? *</Label>
+        <RadioGroup
+          value={finanziamento ?? ""}
+          onValueChange={(v) =>
+            patchSection("documenti", { finanziamento: v as Finanziamento })
+          }
+          className="space-y-2"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="si" id="fin-si" />
+            <Label htmlFor="fin-si" className="font-normal cursor-pointer">Sì</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="in_parte" id="fin-in-parte" />
+            <Label htmlFor="fin-in-parte" className="font-normal cursor-pointer">In parte</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="no" id="fin-no" />
+            <Label htmlFor="fin-no" className="font-normal cursor-pointer">No</Label>
+          </div>
+        </RadioGroup>
+        <FieldError errors={errors} field="documenti.finanziamento" />
+      </div>
+
+      {/* Bonifico — condizionale */}
+      {bonificoSection()}
     </div>
   );
 }

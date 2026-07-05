@@ -159,7 +159,10 @@ export type ProdottoData =
   | ProdottoImpiantoTermicoData
   | ProdottoInsufflaggioData;
 
+export type Finanziamento = "si" | "in_parte" | "no";
+
 export interface DocumentiData {
+  finanziamento: Finanziamento | null;
   fattura_url?: string;
   bonifico_url?: string;
 }
@@ -264,7 +267,7 @@ export function emptyFormData(): FormClienteData {
       nuovi_vetro: "",
       zanzariere_tapparelle: null,
     },
-    documenti: {},
+    documenti: { finanziamento: null },
   };
 }
 

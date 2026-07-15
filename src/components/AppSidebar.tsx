@@ -21,6 +21,7 @@ import {
   FormInput,
   Download,
   Activity,
+  BookOpen,
 } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
@@ -46,6 +47,8 @@ type NavItem = {
   end?: boolean;
   /** Optional numeric badge (e.g., uncontacted leads count). Hidden if 0. */
   badge?: number;
+  /** If true, render as external anchor opening in a new tab (used for static PDFs). */
+  external?: boolean;
 };
 
 type NavGroup = {
@@ -67,14 +70,13 @@ function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
 
   const showBadge = !!item.badge && item.badge > 0;
 
-  const link = (
-    <Link
-      to={item.url}
-      className={[
-        "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-white hover:bg-white/[0.15] hover:text-white",
-        isActive ? "sidebar-nav-active" : "",
-      ].join(" ").trim()}
-    >
+  const linkClassName = [
+    "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-white hover:bg-white/[0.15] hover:text-white",
+    isActive ? "sidebar-nav-active" : "",
+  ].join(" ").trim();
+
+  const linkContent = (
+    <>
       <item.icon className="h-[1.05rem] w-[1.05rem] shrink-0 transition-all duration-200 group-hover:scale-110" />
       {!collapsed && <span className="truncate flex-1">{item.title}</span>}
       {showBadge && !collapsed && (
@@ -91,6 +93,16 @@ function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
           aria-label="Nuovi elementi"
         />
       )}
+    </>
+  );
+
+  const link = item.external ? (
+    <a href={item.url} target="_blank" rel="noopener noreferrer" className={linkClassName}>
+      {linkContent}
+    </a>
+  ) : (
+    <Link to={item.url} className={linkClassName}>
+      {linkContent}
     </Link>
   );
 
@@ -263,6 +275,11 @@ export function AppSidebar() {
           { title: "Documenti utili", url: "/documenti-utili", icon: Download },
         ],
       },
+      {
+        items: [
+          { title: "Come usare il portale", url: "/tutorial-pratica-enea.pdf", icon: BookOpen, external: true },
+        ],
+      },
     ];
     // Configurazione — solo super_admin
     if (superAdmin) {
@@ -294,6 +311,7 @@ export function AppSidebar() {
           { title: "Nuova Pratica ENEA", url: "/enea/nuova", icon: FilePlus, end: true },
           { title: "Archivio ENEA", url: "/enea/archivio", icon: Archive },
           { title: "Documenti utili", url: "/documenti-utili", icon: Download },
+          { title: "Come usare il portale", url: "/tutorial-pratica-enea.pdf", icon: BookOpen, external: true },
         ],
       },
     ];

@@ -1233,6 +1233,14 @@ function PracticeDetailSheet({
                       <p className="text-xs text-muted-foreground">Fornitore</p>
                       <p className="font-medium">{practice.fornitore || "—"}</p>
                     </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Data fine lavori</p>
+                      <p className="font-medium">
+                        {practice.data_fine_lavori
+                          ? format(new Date(practice.data_fine_lavori), "dd/MM/yyyy")
+                          : "—"}
+                      </p>
+                    </div>
                   </div>
                   {/* Note — sempre visibili se presenti; placeholder modifica solo per staff */}
                   {(practice.note || isInternal) && (

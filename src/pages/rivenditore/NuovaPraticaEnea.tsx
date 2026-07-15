@@ -15,8 +15,12 @@ import {
   CheckCircle, Upload, X, Loader2, FileText,
   Sun, Home, Maximize2, Thermometer, Sparkles,
   FolderUp, User, Building2, AlertCircle, ExternalLink,
-  HelpCircle, Info, Layers,
+  HelpCircle, Info, Layers, Calendar as CalendarIcon,
 } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { it } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import type { TipoFatturazione, TipoSoggetto, TipoServizio } from "@/integrations/supabase/types";
 
@@ -213,6 +217,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   const [telefono, setTelefono] = useState("");
   const [cf, setCf] = useState("");          // codice fiscale o P.IVA
   const [indirizzo, setIndirizzo] = useState("");
+  const [dataFineLavori, setDataFineLavori] = useState<Date | undefined>();
   const [note, setNote] = useState("");
 
   // Documenti: fattura sempre presente + slot condizionali
@@ -347,6 +352,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
             cf: cf.trim() || undefined,
             indirizzo: indirizzo.trim() || undefined,
           },
+          data_fine_lavori: dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : undefined,
           note: note.trim() || undefined,
         };
         const fd = new FormData();
@@ -434,6 +440,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           cliente_telefono: telefono.trim(),
           cliente_cf: cf.trim() || null,
           cliente_indirizzo: indirizzo.trim() || null,
+          data_fine_lavori: dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : null,
           note: note.trim() || null,
           fatture_urls: [],
           documenti_enea_urls: [],
@@ -717,6 +724,57 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                 </p>
               </button>
             </div>
+
+            {/* Form online — CTA per aprire il modulo cliente. Crea la pratica in
+                stato "attesa_compilazione" (via handleSubmit) e reindirizza a /form/:token. */}
+            {documentiMode === "form_online" && (
+              <div className="mt-4 rounded-lg border border-dashed bg-muted/30 p-3 flex items-center justify-between gap-3">
+                <p className="text-xs text-muted-foreground leading-snug">
+                  Clicca qui per aprire il modulo cliente e compilarlo online al posto del cartaceo.
+                </p>
+                <Button
+                  type="submit"
+                  disabled={submitting}
+                  size="sm"
+                  className="shrink-0"
+                >
+                  {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Apro...</> : "Apri form online"}
+                </Button>
+              </div>
+            )}
+
+            {/* Moduli raccolta dati — download link + upload allegati compilati.
+                Visibile solo quando il rivenditore sceglie "Scarica i moduli e allegali". */}
+            {documentiMode === "moduli_cartacei" && (
+              <div className="mt-4 space-y-3">
+                <a
+                  href={MODULI_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Scarica i moduli di raccolta dati
+                </a>
+                <div className="space-y-2">
+                  {errors.moduliRaccolta && (
+                    <p className="text-xs text-destructive flex items-center gap-1" data-error>
+                      <AlertCircle className="h-3.5 w-3.5" />{errors.moduliRaccolta}
+                    </p>
+                  )}
+                  <FileDropzone
+                    label="Moduli di raccolta dati compilati"
+                    required
+                    files={moduliRaccoltaFiles}
+                    onAdd={(f) => setModuliRaccoltaFiles((p) => [...p, ...f])}
+                    onRemove={(i) => setModuliRaccoltaFiles((p) => p.filter((_, j) => j !== i))}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Allega qui i moduli scaricabili sopra, compilati e firmati dal cliente.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </Section>
@@ -886,24 +944,35 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
               placeholder="Via Roma 1, Milano" />
           </div>
         </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="data-fine-lavori" className="text-sm">Data di fine lavori</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="data-fine-lavori"
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    "w-full h-10 justify-start text-left font-normal",
+                    !dataFineLavori && "text-muted-foreground",
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dataFineLavori ? format(dataFineLavori, "dd/MM/yyyy", { locale: it }) : "Seleziona data"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={dataFineLavori} onSelect={setDataFineLavori} locale={it} />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
       </Section>
 
       {/* ── 6. Documenti ────────────────────────────────────────────────── */}
       <Section number={6} title="Documenti da allegare">
-        {/* Link moduli raccolta dati — solo se "documenti forniti" + modalità
-            cartacea (col form online o servizio completo i moduli non servono). */}
-        {documentiMode === "moduli_cartacei" && (
-          <a
-            href={MODULI_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
-          >
-            <ExternalLink className="h-4 w-4" />
-            Scarica i moduli di raccolta dati
-          </a>
-        )}
-
         {/* Fattura — sempre obbligatoria */}
         {errors.fattura && (
           <p className="text-xs text-destructive flex items-center gap-1" data-error>
@@ -917,28 +986,6 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           onAdd={(f) => setFatturaFiles((p) => [...p, ...f])}
           onRemove={(i) => setFatturaFiles((p) => p.filter((_, j) => j !== i))}
         />
-
-        {/* Moduli di raccolta dati compilati — solo modalità cartacea.
-            Vale per ogni prodotto (schermature, infissi, vepa, pompe di calore, insufflaggio tetti). */}
-        {documentiMode === "moduli_cartacei" && (
-          <div className="space-y-2">
-            {errors.moduliRaccolta && (
-              <p className="text-xs text-destructive flex items-center gap-1" data-error>
-                <AlertCircle className="h-3.5 w-3.5" />{errors.moduliRaccolta}
-              </p>
-            )}
-            <FileDropzone
-              label="Moduli di raccolta dati compilati"
-              required
-              files={moduliRaccoltaFiles}
-              onAdd={(f) => setModuliRaccoltaFiles((p) => [...p, ...f])}
-              onRemove={(i) => setModuliRaccoltaFiles((p) => p.filter((_, j) => j !== i))}
-            />
-            <p className="text-xs text-muted-foreground">
-              Allega qui i moduli scaricabili sopra, compilati e firmati dal cliente.
-            </p>
-          </div>
-        )}
 
         {/* Logica condizionale per prodotto */}
         {tipoProdotto && tipoProdotto !== "pompe_calore" && docConfig?.hasExtra && (

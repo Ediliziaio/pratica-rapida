@@ -275,11 +275,6 @@ export function AppSidebar() {
           { title: "Documenti utili", url: "/documenti-utili", icon: Download },
         ],
       },
-      {
-        items: [
-          { title: "Come usare il portale", url: "/tutorial-pratica-enea.pdf", icon: BookOpen, external: true },
-        ],
-      },
     ];
     // Configurazione — solo super_admin
     if (superAdmin) {
@@ -294,6 +289,12 @@ export function AppSidebar() {
         ],
       });
     }
+    // Tutorial rivenditori — sempre come ultima voce, standalone senza label
+    groups.push({
+      items: [
+        { title: "Come usare il portale", url: "/tutorial-pratica-enea.pdf", icon: BookOpen, external: true },
+      ],
+    });
   } else {
     // Aziende E rivenditori legacy condividono lo STESSO menu — la doppia
     // diramazione precedente era un bug: il branch `isReseller(roles)` veniva

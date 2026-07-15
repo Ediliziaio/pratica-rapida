@@ -52,6 +52,8 @@ export interface FormField {
   max_size_mb?: number;
   /** per type="upload", estensioni accettate (senza punto), es. ["pdf","jpg"] */
   accept?: string[];
+  /** per type="upload": consente il caricamento di più file. Se true, value è string[]. */
+  multiple?: boolean;
   /** per type="array", template di sub-fields per ogni elemento */
   item_template?: { fields: FormField[] };
 }

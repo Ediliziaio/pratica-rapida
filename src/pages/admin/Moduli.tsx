@@ -1250,37 +1250,48 @@ function FieldRow({
           )}
 
           {field.type === "upload" && (
-            <div className="grid gap-2 sm:grid-cols-2">
-              <div>
-                <Label className="text-xs">Dimensione max (MB)</Label>
-                <Input
-                  type="number"
-                  value={field.max_size_mb ?? ""}
-                  onChange={(e) =>
-                    onChange({
-                      max_size_mb:
-                        e.target.value === "" ? undefined : Number(e.target.value),
-                    })
-                  }
-                />
+            <div className="space-y-2">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div>
+                  <Label className="text-xs">Dimensione max (MB)</Label>
+                  <Input
+                    type="number"
+                    value={field.max_size_mb ?? ""}
+                    onChange={(e) =>
+                      onChange({
+                        max_size_mb:
+                          e.target.value === "" ? undefined : Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">
+                    Estensioni accettate (separa con virgole, senza punto)
+                  </Label>
+                  <Input
+                    value={(field.accept ?? []).join(",")}
+                    placeholder="pdf,jpg,png"
+                    onChange={(e) =>
+                      onChange({
+                        accept: e.target.value
+                          .split(",")
+                          .map((s) => s.trim().toLowerCase())
+                          .filter(Boolean),
+                      })
+                    }
+                  />
+                </div>
               </div>
-              <div>
-                <Label className="text-xs">
-                  Estensioni accettate (separa con virgole, senza punto)
-                </Label>
-                <Input
-                  value={(field.accept ?? []).join(",")}
-                  placeholder="pdf,jpg,png"
-                  onChange={(e) =>
-                    onChange({
-                      accept: e.target.value
-                        .split(",")
-                        .map((s) => s.trim().toLowerCase())
-                        .filter(Boolean),
-                    })
-                  }
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={!!field.multiple}
+                  onChange={(e) => onChange({ multiple: e.target.checked })}
+                  className="h-4 w-4 accent-primary"
                 />
-              </div>
+                <span>Consenti più file (upload multiplo)</span>
+              </label>
             </div>
           )}
 

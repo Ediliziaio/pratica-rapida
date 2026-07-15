@@ -399,44 +399,75 @@ function UploadControl({
 }: FieldControlProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const path = typeof value === "string" ? value : "";
   const accept = field.accept?.length
     ? field.accept.map((e) => `.${e.replace(/^\./, "")}`).join(",")
     : undefined;
   const maxSizeMb = field.max_size_mb ?? 20;
+  const multiple = !!field.multiple;
 
-  const onFile = async (file: File) => {
+  // Normalizzazione value → array di path. Backward-compat: un vecchio valore
+  // string viene trattato come lista a un elemento.
+  const paths: string[] = Array.isArray(value)
+    ? (value as unknown[]).filter((v): v is string => typeof v === "string")
+    : typeof value === "string" && value
+      ? [value]
+      : [];
+
+  const commit = (next: string[]) => {
+    if (multiple) {
+      onChange(next);
+    } else {
+      onChange(next[0] ?? "");
+    }
+  };
+
+  const uploadOne = async (file: File): Promise<string | null> => {
     if (file.size > maxSizeMb * 1024 * 1024) {
       toast({
         variant: "destructive",
         title: "File troppo grande",
-        description: `Dimensione massima: ${maxSizeMb}MB`,
+        description: `${file.name}: dimensione massima ${maxSizeMb}MB`,
       });
-      return;
+      return null;
     }
     try {
-      let uploadPath: string;
       if (publicToken) {
-        // Cliente anonimo (form pubblico): upload via edge function (RLS blocca anon).
-        uploadPath = await uploadPublicFormFile(publicToken, "dynamic", file);
-      } else {
-        const { supabase } = await import("@/integrations/supabase/client");
-        const ext = (file.name.split(".").pop() ?? "bin").toLowerCase();
-        uploadPath = `${practiceId}/dynamic/${crypto.randomUUID()}.${ext}`;
-        const { error } = await supabase.storage
-          .from("enea-documents")
-          .upload(uploadPath, file, { upsert: false });
-        if (error) throw error;
+        return await uploadPublicFormFile(publicToken, "dynamic", file);
       }
-      onChange(uploadPath);
+      const { supabase } = await import("@/integrations/supabase/client");
+      const ext = (file.name.split(".").pop() ?? "bin").toLowerCase();
+      const uploadPath = `${practiceId}/dynamic/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("enea-documents")
+        .upload(uploadPath, file, { upsert: false });
+      if (error) throw error;
+      return uploadPath;
     } catch (err) {
       console.error("Dynamic upload error:", err);
       toast({
         variant: "destructive",
         title: "Caricamento fallito",
-        description: "Riprova o contatta il supporto.",
+        description: `${file.name}: riprova o contatta il supporto.`,
       });
+      return null;
     }
+  };
+
+  const onFiles = async (files: FileList) => {
+    const list = Array.from(files);
+    if (list.length === 0) return;
+    if (multiple) {
+      const results = await Promise.all(list.map(uploadOne));
+      const newPaths = results.filter((p): p is string => !!p);
+      if (newPaths.length) commit([...paths, ...newPaths]);
+    } else {
+      const p = await uploadOne(list[0]);
+      if (p) commit([p]);
+    }
+  };
+
+  const removeAt = (idx: number) => {
+    commit(paths.filter((_, i) => i !== idx));
   };
 
   return (
@@ -446,29 +477,45 @@ function UploadControl({
         id={fieldId}
         type="file"
         accept={accept}
+        multiple={multiple}
         className="hidden"
         onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) void onFile(f);
+          if (e.target.files) void onFiles(e.target.files);
           e.target.value = "";
         }}
       />
-      {path ? (
-        <div className="rounded-md border p-3 flex items-center justify-between gap-3">
-          <div className="text-sm min-w-0">
-            <p className="font-medium">File caricato</p>
-            <p className="text-xs text-muted-foreground break-all">
-              {path.split("/").pop()}
-            </p>
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => inputRef.current?.click()}
-          >
-            Sostituisci
-          </Button>
+      {paths.length > 0 ? (
+        <div className="space-y-2">
+          {paths.map((p, i) => (
+            <div key={`${p}-${i}`} className="rounded-md border p-3 flex items-center justify-between gap-3">
+              <div className="text-sm min-w-0">
+                <p className="font-medium">File caricato</p>
+                <p className="text-xs text-muted-foreground break-all">
+                  {p.split("/").pop()}
+                </p>
+              </div>
+              {multiple ? (
+                <Button type="button" variant="ghost" size="sm" onClick={() => removeAt(i)}>
+                  Rimuovi
+                </Button>
+              ) : (
+                <Button type="button" variant="ghost" size="sm" onClick={() => inputRef.current?.click()}>
+                  Sostituisci
+                </Button>
+              )}
+            </div>
+          ))}
+          {multiple && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => inputRef.current?.click()}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Aggiungi altri file
+            </Button>
+          )}
         </div>
       ) : (
         <Button
@@ -478,7 +525,7 @@ function UploadControl({
           onClick={() => inputRef.current?.click()}
         >
           <Upload className="h-4 w-4 mr-2" />
-          {field.placeholder ?? "Carica file"}
+          {field.placeholder ?? (multiple ? "Carica file (più selezionabili)" : "Carica file")}
         </Button>
       )}
     </>

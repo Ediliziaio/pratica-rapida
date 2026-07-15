@@ -1627,7 +1627,19 @@ function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
   const hasCointest = cointest.presente === true;
   const hasRecuperoCatastale = catastali.recupero_richiesto === true;
 
-  const prodottoTipo = prodotto.tipo as string | undefined;
+  // Il modulo cliente moderno salva `prodotto.items` (schermature) con chiavi
+  // `tipo` / `direzione`; alcune pratiche più vecchie hanno invece
+  // `prodotto.schermature` con `tipo_prodotto` / `direzione`. Uniformiamo qui
+  // per non lasciare buchi nel dettaglio pratica visto dallo staff.
+  const rawSchermature =
+    (Array.isArray(prodotto.items) && (prodotto.items as Array<Record<string, unknown>>)) ||
+    (Array.isArray(prodotto.schermature) && (prodotto.schermature as Array<Record<string, unknown>>)) ||
+    null;
+  const prodottoTipo =
+    (prodotto.tipo as string | undefined)
+    ?? (rawSchermature ? "schermature" : undefined)
+    ?? (prodotto.materiale_nuovi || prodotto.vetro_nuovi || prodotto.materiale_vecchi || prodotto.vetro_vecchi ? "infissi" : undefined)
+    ?? (prodotto.libretto_url ? "impianto_termico" : undefined);
 
   return (
     <details className="rounded-lg border bg-card group">
@@ -1758,20 +1770,20 @@ function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
             </p>
             {prodottoTipo === "infissi" && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-                <Field label="Materiale vecchi" value={prodotto.materiale_vecchi} />
-                <Field label="Vetro vecchi" value={prodotto.vetro_vecchi} />
-                <Field label="Materiale nuovi" value={prodotto.materiale_nuovi} />
-                <Field label="Vetro nuovi" value={prodotto.vetro_nuovi} />
-                <Field label="Zanzariere/tapparelle/persiane" value={prodotto.zanzariere_tapparelle_persiane} />
+                <Field label="Materiale vecchi" value={(prodotto.materiale_vecchi ?? prodotto.vecchi_materiale) as unknown} />
+                <Field label="Vetro vecchi" value={(prodotto.vetro_vecchi ?? prodotto.vecchi_vetro) as unknown} />
+                <Field label="Materiale nuovi" value={(prodotto.materiale_nuovi ?? prodotto.nuovi_materiale) as unknown} />
+                <Field label="Vetro nuovi" value={(prodotto.vetro_nuovi ?? prodotto.nuovi_vetro) as unknown} />
+                <Field label="Zanzariere/tapparelle/persiane" value={(prodotto.zanzariere_tapparelle_persiane ?? prodotto.zanzariere_tapparelle) as unknown} />
               </div>
             )}
-            {prodottoTipo === "schermature" && Array.isArray(prodotto.schermature) && (
+            {prodottoTipo === "schermature" && rawSchermature && (
               <div className="space-y-2">
-                {(prodotto.schermature as Array<Record<string, string>>).map((s, i) => (
+                {rawSchermature.map((s, i) => (
                   <div key={i} className="rounded border bg-muted/30 px-3 py-2 grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1">
                     <p className="text-xs text-muted-foreground sm:col-span-3 font-medium">Schermatura #{i + 1}</p>
-                    <Field label="Tipo" value={s.tipo_prodotto} />
-                    <Field label="Direzione" value={s.direzione} />
+                    <Field label="Tipo prodotto" value={(s.tipo ?? s.tipo_prodotto) as unknown} />
+                    <Field label="Esposizione" value={s.direzione as unknown} />
                   </div>
                 ))}
               </div>

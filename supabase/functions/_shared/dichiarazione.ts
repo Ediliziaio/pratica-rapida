@@ -64,28 +64,27 @@ export interface DichiarazioneTecnicaData {
 // ── Classificazione intervento ───────────────────────────────────────────────
 
 /**
- * Match STRETTO su "infissi/serramenti", per decidere se generare il documento
- * in automatico. Serve a non pescare "Pompe di Calore" o "Insufflaggio Tetti",
- * che inferTipoIntervento() classificherebbe come infissi solo perché è il suo
- * default.
+ * Classifica il prodotto rispetto a ciò che questo modulo dichiara: infissi
+ * (chiusure trasparenti, VEPA comprese) oppure schermature solari.
+ *
+ * `null` = il modulo NON copre l'intervento (pompe di calore, insufflaggio
+ * tetti, prodotto non indicato). Il documento viene generato lo stesso, ma con
+ * le caselle tecniche vuote: spuntarle vorrebbe dire far dichiarare al
+ * rivenditore, su un atto notorio che firma lui, che ha installato serramenti
+ * conformi alla trasmittanza — cosa che per una pompa di calore è falsa.
+ * Le compila lui a mano se il caso lo richiede.
+ *
+ * Prima qui il default era "infissi" per qualunque prodotto non-schermatura:
+ * comodo come valore iniziale del dialog, disastroso come base per una
+ * generazione automatica.
  */
-export function isInterventoInfissi(prodotto: string | null | undefined): boolean {
-  const p = (prodotto ?? "").toLowerCase();
-  return p.includes("infiss") || p.includes("serrament");
-}
-
-/**
- * Tipo intervento di partenza per il dialog. Attenzione: qui il default è
- * "infissi" anche per prodotti che non c'entrano — va bene perché è solo un
- * valore iniziale che il super_admin può correggere a mano, ma NON usarlo per
- * decidere se generare in automatico (vedi isInterventoInfissi).
- */
-export function inferTipoIntervento(
+export function classificaIntervento(
   prodotto: string | null | undefined,
-): DichiarazioneTecnicaData["tipo_intervento"] {
+): DichiarazioneTecnicaData["tipo_intervento"] | null {
   const p = (prodotto ?? "").toLowerCase();
   if (p.includes("scherm") || p.includes("tend") || p.includes("frangisole")) return "schermature";
-  return "infissi";
+  if (p.includes("infiss") || p.includes("serrament") || p.includes("vepa") || p.includes("vetrate")) return "infissi";
+  return null;
 }
 
 // ── Costruzione dati ─────────────────────────────────────────────────────────
@@ -200,7 +199,10 @@ export function buildDichiarazioneData(input: BuildInput): DichiarazioneTecnicaD
     civicoResidenza,
   );
 
-  const tipo = inferTipoIntervento(practice?.prodotto_installato);
+  // null (prodotto non coperto dal modulo) → nessuna casella spuntata; il
+  // dialog parte comunque da "infissi" così il super_admin ha un punto da cui
+  // correggere se il caso lo richiede.
+  const tipo = classificaIntervento(practice?.prodotto_installato);
   const infissi = tipo === "infissi" || tipo === "entrambi";
   const schermature = tipo === "schermature" || tipo === "entrambi";
 
@@ -239,7 +241,7 @@ export function buildDichiarazioneData(input: BuildInput): DichiarazioneTecnicaD
     },
     importo_congruo: true,
     lavori_ultimati: true,
-    tipo_intervento: tipo,
+    tipo_intervento: tipo ?? "infissi",
   };
 }
 

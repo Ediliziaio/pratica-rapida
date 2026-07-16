@@ -5,7 +5,6 @@ import { normalizePhone } from "../_shared/phone.ts";
 import { resellerDisplayName } from "../_shared/reseller.ts";
 import {
   buildDichiarazioneData,
-  isInterventoInfissi,
   renderDichiarazioneHtml,
 } from "../_shared/dichiarazione.ts";
 
@@ -388,12 +387,16 @@ serve(async (req) => {
     // Dichiarazione Requisiti Tecnici — generata quando la pratica entra in
     // "recensione": a quel punto il form del cliente è compilato e i lavori
     // sono conclusi, quindi indirizzo immobile, residenza e C.F. ci sono.
-    // Solo per gli infissi (match stretto: "Pompe di Calore" e "Insufflaggio"
-    // non c'entrano nulla con questa dichiarazione).
+    //
+    // Generata per OGNI tipo di intervento (scelta esplicita del committente).
+    // Nota: il modulo dichiara interventi su infissi e schermature solari, e i
+    // prodotti fuori da questi due (pompe di calore, insufflaggio) escono con
+    // le caselle tecniche vuote — vedi classificaIntervento in
+    // _shared/dichiarazione.ts.
+    //
     // I dati dell'azienda che mancano in anagrafica restano righe vuote da
     // riempire a penna: oggi quasi nessuna company ha P.IVA e sede legale.
     case "recensione": {
-      if (!isInterventoInfissi(practice.prodotto_installato)) break;
       if (!practice.reseller_id) break;
 
       // Idempotenza: la pratica può rientrare in "recensione" più volte, e non

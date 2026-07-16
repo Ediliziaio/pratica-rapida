@@ -28,11 +28,13 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Printer, Eye, FileText, CheckCircle2, Loader2, Save } from "lucide-react";
-import DichiarazioneTecnicaTemplate, {
+import { Printer, Eye, FileText, CheckCircle2, Loader2 } from "lucide-react";
+import DichiarazioneTecnicaTemplate from "./DichiarazioneTecnicaTemplate";
+import {
+  buildDichiarazioneData,
+  renderDichiarazioneHtml,
   type DichiarazioneTecnicaData,
-} from "./DichiarazioneTecnicaTemplate";
-import { renderDichiarazioneHtml } from "./renderDichiarazioneHtml";
+} from "@shared/dichiarazione.ts";
 
 interface Props {
   open: boolean;
@@ -46,28 +48,6 @@ interface Props {
     prodotto_installato?: string | null;
     reseller_id?: string | null;
   } | null;
-}
-
-/** Tenta di splittare "Via X 12, Milano" in {via, civico, citta}. */
-function splitIndirizzo(s: string | null | undefined): { via: string; civico: string; citta: string } {
-  if (!s) return { via: "", civico: "", citta: "" };
-  // Pattern: "Via xxx 12, Comune" oppure "Via xxx, 12 Comune"
-  const parts = s.split(",").map((x) => x.trim());
-  const last = parts.length > 1 ? parts[parts.length - 1] : "";
-  const head = parts.slice(0, -1).join(", ") || parts[0];
-  // Estrai numero civico finale dalla via
-  const m = head.match(/^(.*?)\s+(\d+\w?)\s*$/);
-  return {
-    via: m ? m[1].trim() : head,
-    civico: m ? m[2] : "",
-    citta: last,
-  };
-}
-
-function inferTipoIntervento(prodotto: string | null | undefined): "infissi" | "schermature" | "entrambi" {
-  const p = (prodotto ?? "").toLowerCase();
-  if (p.includes("scherm") || p.includes("tend") || p.includes("frangisole")) return "schermature";
-  return "infissi";
 }
 
 export default function DichiarazioneTecnicaDialog({ open, onOpenChange, practice }: Props) {
@@ -113,64 +93,13 @@ export default function DichiarazioneTecnicaDialog({ open, onOpenChange, practic
     },
   });
 
-  // Seed iniziale: derivato in priorità dai campi personalizzati salvati in
-  // `dati_form` (più ricchi e separati per sezione); fallback al parsing
-  // dell'indirizzo aggregato in `cliente_indirizzo` se il form non è ancora
-  // stato compilato.
-  const seedData = useMemo<DichiarazioneTecnicaData>(() => {
-    const indirizzoAzienda = splitIndirizzo(company?.indirizzo);
-
-    // Sezioni `dati_form` (struttura definita in src/types/form-cliente.ts)
-    const df = praticaDataForm ?? {};
-    const residenza = (df.residenza ?? {}) as Record<string, string | undefined>;
-    const appartamento = (df.appartamento_lavori ?? {}) as Record<string, string | undefined>;
-    const richiedente = (df.richiedente ?? {}) as Record<string, string | undefined>;
-
-    // Fallback parsing dell'indirizzo aggregato della pratica
-    const fallbackAddr = splitIndirizzo(practice?.cliente_indirizzo);
-
-    const tipoIntervento = inferTipoIntervento(practice?.prodotto_installato);
-
-    return {
-      // Azienda fornitrice — dalla tabella companies (colonne reali)
-      azienda_nome: company?.ragione_sociale ?? "",
-      azienda_citta: company?.citta ?? indirizzoAzienda.citta,
-      azienda_provincia: company?.provincia ?? "",
-      azienda_via: indirizzoAzienda.via,
-      azienda_civico: indirizzoAzienda.civico,
-      azienda_piva: company?.piva ?? "",
-
-      // Immobile oggetto intervento — preferisci dati_form.appartamento_lavori
-      // (esplicito: l'utente compila comune/provincia/cap separati nel form)
-      immobile_citta:     appartamento.comune    || fallbackAddr.citta,
-      immobile_provincia: appartamento.provincia || "",
-      immobile_cap:       appartamento.cap       || "",
-      immobile_via:       appartamento.indirizzo || fallbackAddr.via,
-      immobile_civico:    appartamento.numero    || fallbackAddr.civico,
-
-      // Cliente finale — anagrafica dal practice, residenza da dati_form.residenza
-      cliente_nome:    practice?.cliente_nome    ?? richiedente.nome    ?? "",
-      cliente_cognome: practice?.cliente_cognome ?? richiedente.cognome ?? "",
-      cliente_citta:   residenza.comune    || fallbackAddr.citta,
-      cliente_via:     residenza.indirizzo || fallbackAddr.via,
-      cliente_civico:  residenza.civico    || fallbackAddr.civico,
-      cliente_cf:      practice?.cliente_cf ?? richiedente.cf ?? "",
-
-      caratteristiche_infissi: { rispetta_trasmittanza: true },
-      caratteristiche_schermature: {
-        norma_en: true,
-        marchiatura_ce: true,
-        gtot_inferiore: true,
-        esposizione: true,
-        superficie_vetrata: true,
-        solidale_edificio: true,
-      },
-      importo_congruo: true,
-      lavori_ultimati: true,
-      importo_fattura: null,
-      tipo_intervento: tipoIntervento,
-    };
-  }, [practice, company, praticaDataForm]);
+  // Seed iniziale: stessa identica logica che usa la generazione automatica
+  // lato server (on-stage-changed → "recensione"), così il documento salvato a
+  // mano e quello generato da solo partono dagli stessi dati.
+  const seedData = useMemo<DichiarazioneTecnicaData>(
+    () => buildDichiarazioneData({ practice, company, datiForm: praticaDataForm ?? null }),
+    [practice, company, praticaDataForm],
+  );
 
   const [data, setData] = useState<DichiarazioneTecnicaData>(seedData);
   useEffect(() => { if (open) setData(seedData); }, [open, seedData]);
@@ -186,9 +115,6 @@ export default function DichiarazioneTecnicaDialog({ open, onOpenChange, practic
     mutationFn: async () => {
       if (!practice?.id || !practice?.reseller_id) {
         throw new Error("Pratica o azienda non identificata");
-      }
-      if (!data.importo_fattura || data.importo_fattura <= 0) {
-        throw new Error("Inserisci l'importo della fattura prima di confermare");
       }
       if (!data.azienda_nome.trim()) {
         throw new Error("Manca il nome dell'azienda fornitrice");
@@ -339,22 +265,22 @@ export default function DichiarazioneTecnicaDialog({ open, onOpenChange, practic
               </div>
             </section>
 
-            {/* Caratteristiche tecniche — toggleable */}
-            {(data.tipo_intervento === "infissi" || data.tipo_intervento === "entrambi") && (
-              <section className="border rounded-lg p-3 bg-muted/20">
-                <h4 className="font-semibold text-sm mb-2">Caratteristiche infissi</h4>
-                <ToggleField
-                  label="Rispetta trasmittanza minima (D.M. 26/06/2015, EN ISO 10077-1)"
-                  checked={data.caratteristiche_infissi.rispetta_trasmittanza}
-                  onChange={(v) => update("caratteristiche_infissi", { ...data.caratteristiche_infissi, rispetta_trasmittanza: v })}
-                />
-              </section>
-            )}
+            {/* Caratteristiche tecniche — il documento stampa sempre entrambe
+                le sezioni (è un modulo unico infissi + schermature), quindi
+                entrambi i gruppi restano modificabili: il "Tipo intervento"
+                qui sopra decide solo quali caselle nascono spuntate. */}
+            <section className="border rounded-lg p-3 bg-muted/20">
+              <h4 className="font-semibold text-sm mb-2">Caratteristiche infissi</h4>
+              <ToggleField
+                label="Rispetta trasmittanza minima (D.M. 26/06/2015, EN ISO 10077-1)"
+                checked={data.caratteristiche_infissi.rispetta_trasmittanza}
+                onChange={(v) => update("caratteristiche_infissi", { ...data.caratteristiche_infissi, rispetta_trasmittanza: v })}
+              />
+            </section>
 
-            {(data.tipo_intervento === "schermature" || data.tipo_intervento === "entrambi") && (
-              <section className="border rounded-lg p-3 bg-muted/20">
-                <h4 className="font-semibold text-sm mb-2">Caratteristiche schermature solari</h4>
-                <div className="grid gap-1">
+            <section className="border rounded-lg p-3 bg-muted/20">
+              <h4 className="font-semibold text-sm mb-2">Caratteristiche schermature solari</h4>
+              <div className="grid gap-1">
                   <ToggleField label="Schermatura mobile a norma EN 13561 / EN 13659"
                     checked={data.caratteristiche_schermature.norma_en}
                     onChange={(v) => update("caratteristiche_schermature", { ...data.caratteristiche_schermature, norma_en: v })} />
@@ -373,31 +299,7 @@ export default function DichiarazioneTecnicaDialog({ open, onOpenChange, practic
                   <ToggleField label="Applicata in modo solidale all'edificio"
                     checked={data.caratteristiche_schermature.solidale_edificio}
                     onChange={(v) => update("caratteristiche_schermature", { ...data.caratteristiche_schermature, solidale_edificio: v })} />
-                </div>
-              </section>
-            )}
-
-            <section className="border-2 border-primary/30 rounded-lg p-3 bg-primary/5">
-              <h4 className="font-semibold text-sm mb-2 flex items-center gap-1.5">
-                <span className="text-primary">€</span> Importo fattura
-                <span className="text-destructive">*</span>
-              </h4>
-              <p className="text-[11px] text-muted-foreground mb-2">
-                Inserisci a mano il totale della fattura (€). Verrà stampato nel
-                documento sotto la dichiarazione di congruità.
-              </p>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={data.importo_fattura ?? ""}
-                onChange={(e) => update(
-                  "importo_fattura",
-                  e.target.value === "" ? null : Number(e.target.value),
-                )}
-                placeholder="0,00"
-                className="font-mono text-right h-9"
-              />
+              </div>
             </section>
 
             <section className="border rounded-lg p-3 bg-muted/20">
@@ -448,17 +350,11 @@ export default function DichiarazioneTecnicaDialog({ open, onOpenChange, practic
             onClick={() => confirmAndSaveMut.mutate()}
             disabled={
               confirmAndSaveMut.isPending
-              || !data.importo_fattura
-              || data.importo_fattura <= 0
               || !data.azienda_nome.trim()
               || !data.cliente_nome.trim()
             }
             className="gap-1.5"
-            title={
-              !data.importo_fattura
-                ? "Inserisci l'importo della fattura per confermare"
-                : "Conferma il documento e rendilo disponibile nella card pratica"
-            }
+            title="Conferma il documento e rendilo disponibile nella card pratica"
           >
             {confirmAndSaveMut.isPending ? (
               <><Loader2 className="h-4 w-4 animate-spin" />Salvataggio…</>

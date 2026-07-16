@@ -2719,10 +2719,16 @@ export default function KanbanBoard() {
           if (
             newStage?.stage_type === "documenti_mancanti" ||
             newStage?.stage_type === "da_inviare" ||
-            newStage?.stage_type === "pronte_da_fare"
+            newStage?.stage_type === "pronte_da_fare" ||
+            newStage?.stage_type === "recensione"
           ) {
             const practice = practices.find((p) => p.id === practiceId);
-            if (practice?.tipo_servizio === "servizio_completo") {
+            // Gli altri stage mandano messaggi al cliente finale, che con
+            // "documenti forniti" non va mai contattato. "recensione" invece
+            // genera solo la Dichiarazione Requisiti Tecnici per il
+            // rivenditore: serve a prescindere dal tipo di servizio.
+            const soloDocumento = newStage?.stage_type === "recensione";
+            if (practice && (soloDocumento || practice.tipo_servizio === "servizio_completo")) {
               supabase.functions
                 .invoke("on-stage-changed", {
                   body: {
@@ -2736,8 +2742,9 @@ export default function KanbanBoard() {
                   toast({
                     variant: "destructive",
                     title: "Automazione non eseguita",
-                    description:
-                      "Lo spostamento è stato salvato, ma l'invio di email/WhatsApp al cliente non è riuscito. Contatta il supporto.",
+                    description: soloDocumento
+                      ? "Lo spostamento è stato salvato, ma la Dichiarazione Requisiti Tecnici non è stata generata. Puoi crearla a mano dalla card."
+                      : "Lo spostamento è stato salvato, ma l'invio di email/WhatsApp al cliente non è riuscito. Contatta il supporto.",
                   });
                 });
             }

@@ -3,6 +3,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { reportError } from "../_shared/error.ts";
 import { normalizePhone } from "../_shared/phone.ts";
 import { resellerDisplayName } from "../_shared/reseller.ts";
+import {
+  buildDichiarazioneData,
+  isInterventoInfissi,
+  renderDichiarazioneHtml,
+} from "../_shared/dichiarazione.ts";
 
 const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 for (const k of REQUIRED_ENV) {
@@ -212,7 +217,9 @@ serve(async (req) => {
   // Load practice with reseller company
   const { data: practice } = await supabase
     .from("enea_practices")
-    .select("*, companies:reseller_id(ragione_sociale, email)")
+    // piva/indirizzo/citta/provincia servono alla Dichiarazione Requisiti
+    // Tecnici generata allo stage "recensione".
+    .select("*, companies:reseller_id(ragione_sociale, email, piva, indirizzo, citta, provincia)")
     .eq("id", practice_id)
     .single();
 
@@ -229,6 +236,9 @@ serve(async (req) => {
     p_company_id: practice.reseller_id,
   });
   const resellerEmail: string | null = emailResolved ?? null;
+
+  // Esito dei passi opzionali, riportato nella risposta per diagnosi.
+  const steps: Record<string, string> = {};
 
   switch (new_stage_type) {
     // Notifica A — documenti mancanti → email al rivenditore
@@ -374,9 +384,79 @@ serve(async (req) => {
       }
       break;
     }
+
+    // Dichiarazione Requisiti Tecnici — generata quando la pratica entra in
+    // "recensione": a quel punto il form del cliente è compilato e i lavori
+    // sono conclusi, quindi indirizzo immobile, residenza e C.F. ci sono.
+    // Solo per gli infissi (match stretto: "Pompe di Calore" e "Insufflaggio"
+    // non c'entrano nulla con questa dichiarazione).
+    // I dati dell'azienda che mancano in anagrafica restano righe vuote da
+    // riempire a penna: oggi quasi nessuna company ha P.IVA e sede legale.
+    case "recensione": {
+      if (!isInterventoInfissi(practice.prodotto_installato)) break;
+      if (!practice.reseller_id) break;
+
+      // Idempotenza: la pratica può rientrare in "recensione" più volte, e non
+      // vogliamo una pila di dichiarazioni duplicate nella card.
+      const { data: esistente } = await supabase
+        .from("documenti")
+        .select("id")
+        .eq("pratica_id", practice_id)
+        .eq("tipo", "dichiarazione_tecnica")
+        .limit(1)
+        .maybeSingle();
+      if (esistente) {
+        steps.dichiarazione = "already_present";
+        break;
+      }
+
+      try {
+        const dati = buildDichiarazioneData({
+          practice,
+          company: practice.companies as Record<string, string | null> | null,
+          datiForm: (practice.dati_form ?? null) as Record<string, unknown> | null,
+        });
+        const html = renderDichiarazioneHtml(dati);
+        const bytes = new TextEncoder().encode(html);
+        const storagePath = `${practice.reseller_id}/${practice_id}/dichiarazione_tecnica_${Date.now()}.html`;
+
+        const { error: uploadErr } = await supabase.storage
+          .from("documenti")
+          .upload(storagePath, bytes, { contentType: "text/html;charset=utf-8", upsert: false });
+        if (uploadErr) throw new Error(`upload: ${uploadErr.message}`);
+
+        const cliente = `${practice.cliente_nome ?? ""} ${practice.cliente_cognome ?? ""}`.trim();
+        // caricato_da resta NULL: nessun utente ha caricato il file, l'ha
+        // generato il sistema (vedi migration 20260716140000).
+        const { error: insertErr } = await supabase.from("documenti").insert({
+          company_id: practice.reseller_id,
+          pratica_id: practice_id,
+          nome_file: `Dichiarazione Requisiti Tecnici${cliente ? ` — ${cliente}` : ""}.html`,
+          tipo: "dichiarazione_tecnica",
+          mime_type: "text/html",
+          size_bytes: bytes.byteLength,
+          storage_path: storagePath,
+          visibilita: "azienda_interno",
+        });
+        if (insertErr) {
+          // Niente file orfani nel bucket se il metadata non entra.
+          await supabase.storage.from("documenti").remove([storagePath]);
+          throw new Error(`insert: ${insertErr.message}`);
+        }
+        steps.dichiarazione = "created";
+      } catch (docErr) {
+        // Non-fatale: lo spostamento di stage resta valido anche se il
+        // documento non si genera. Il super_admin può sempre crearlo a mano
+        // dal dialog "Dichiarazione Requisiti Tecnici".
+        console.error("[on-stage-changed] dichiarazione fallita:", docErr);
+        await reportError(docErr, { fn: "on-stage-changed", step: "dichiarazione", practice_id });
+        steps.dichiarazione = "failed";
+      }
+      break;
+    }
   }
 
-  return new Response(JSON.stringify({ ok: true, stage: new_stage_type }), {
+  return new Response(JSON.stringify({ ok: true, stage: new_stage_type, ...steps }), {
     status: 200, headers: { ...CORS, "Content-Type": "application/json" },
   });
   } catch (err) {

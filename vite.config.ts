@@ -19,6 +19,11 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Codice condiviso 1:1 con le edge function (TypeScript puro, zero
+      // dipendenze). Serve per i documenti legali come la Dichiarazione
+      // Requisiti Tecnici, che deve uscire identica sia generata dal server
+      // sia salvata a mano dal dialog: una sola copia del testo, non due.
+      "@shared": path.resolve(__dirname, "./supabase/functions/_shared"),
     },
   },
   // Esbuild minification — production-only optimization:

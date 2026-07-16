@@ -28,6 +28,7 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { reportError } from "../_shared/error.ts";
 import { normalizePhone } from "../_shared/phone.ts";
+import { PLACEHOLDER_COMPANY } from "../_shared/reseller.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -49,10 +50,6 @@ function json(body: unknown, status = 200) {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-// Azienda-contenitore di sistema per le richieste con email non riconosciuta
-// (nessun account/accesso creato automaticamente — lo staff abbina a mano).
-const PLACEHOLDER_COMPANY = "⚠️ Da abbinare — richieste sito";
 
 interface Payload {
   website?: string; // honeypot
@@ -255,6 +252,10 @@ serve(async (req) => {
         tipo_fatturazione: p.tipo_fatturazione === "cliente_finale" ? "cliente_finale" : "rivenditore",
         tipo_soggetto: p.tipo_soggetto === "azienda_piva" ? "azienda_piva" : "persona_fisica",
         prodotto_installato: p.prodotto?.trim() || (p.modulo ?? "Richiesta sito"),
+        // Ragione sociale dichiarata dal rivenditore: sul segnaposto "Da
+        // abbinare" è questo il nome che i template mostrano al cliente finale
+        // (vedi _shared/reseller.ts) e che il CRM affianca al badge.
+        azienda_dichiarata: ragione,
         cliente_nome: nome,
         cliente_cognome: cognome,
         cliente_telefono: normalizePhone(telefono),

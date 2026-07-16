@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { reportError } from "../_shared/error.ts";
 import { normalizePhone } from "../_shared/phone.ts";
+import { resellerDisplayName } from "../_shared/reseller.ts";
 
 const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 for (const k of REQUIRED_ENV) {
@@ -221,7 +222,7 @@ serve(async (req) => {
     });
   }
 
-  const resellerName = (practice.companies as { ragione_sociale?: string })?.ragione_sociale ?? "";
+  const resellerName = resellerDisplayName(practice);
 
   // Risolve email rivenditore con fallback: companies.email → azienda_admin/rivenditore email
   const { data: emailResolved } = await supabase.rpc("get_reseller_contact_email", {

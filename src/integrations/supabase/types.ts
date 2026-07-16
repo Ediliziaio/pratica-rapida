@@ -1125,6 +1125,10 @@ export interface EneaPractice {
   cliente_cf: string | null
   prodotto_installato: string | null
   fornitore: string | null
+  // Ragione sociale dichiarata nel form pubblico del sito. Valorizzata solo
+  // sulle richieste dal sito; è il nome mostrato al cliente finale finché la
+  // pratica sta sul segnaposto "Da abbinare".
+  azienda_dichiarata: string | null
   note: string | null
   note_interne: string | null
   fatture_urls: string[]

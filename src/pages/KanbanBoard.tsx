@@ -141,6 +141,14 @@ function getInitials(name: string) {
     .slice(0, 2);
 }
 
+// Le richieste dal sito di un'azienda non ancora in anagrafica stanno sulla
+// company segnaposto "⚠️ Da abbinare — richieste sito" finché il super_admin
+// non le assegna al rivenditore giusto. Al posto del nome del segnaposto lo
+// staff deve vedere l'azienda dichiarata nel form (enea_practices.azienda_dichiarata).
+function isDaAbbinareCompany(ragioneSociale?: string | null) {
+  return !!ragioneSociale?.includes("Da abbinare");
+}
+
 // ── FileDownloadLink ──────────────────────────────────────────────────────────
 
 function FileDownloadLink({ label, path }: { label: string; path: string }) {
@@ -479,7 +487,7 @@ function PracticeDetailSheet({
   // finiscono sull'azienda segnaposto "⚠️ Da abbinare — richieste sito".
   // Da qui il super_admin può assegnarle al rivenditore corretto (anche
   // creato successivamente) cambiando reseller_id.
-  const isDaAbbinare = !!practice?.companies?.ragione_sociale?.includes("Da abbinare");
+  const isDaAbbinare = isDaAbbinareCompany(practice?.companies?.ragione_sociale);
   const [showAbbina, setShowAbbina] = useState(false);
   const [abbinaCompanyId, setAbbinaCompanyId] = useState<string>("");
   const [abbinando, setAbbinando] = useState(false);
@@ -830,7 +838,25 @@ function PracticeDetailSheet({
               </SheetTitle>
               {isInternal && practice.companies && (
                 <SheetDescription className="text-xs">
-                  {practice.companies.ragione_sociale}
+                  {isDaAbbinare ? (
+                    <span className="inline-flex flex-wrap items-center gap-1.5">
+                      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                        ⚠️ DA ABBINARE
+                      </span>
+                      {practice.azienda_dichiarata ? (
+                        <span>
+                          Azienda dichiarata:{" "}
+                          <strong className="font-semibold text-foreground">
+                            {practice.azienda_dichiarata}
+                          </strong>
+                        </span>
+                      ) : (
+                        <span>Azienda dichiarata non indicata — vedi note</span>
+                      )}
+                    </span>
+                  ) : (
+                    practice.companies.ragione_sociale
+                  )}
                 </SheetDescription>
               )}
             </SheetHeader>
@@ -1972,11 +1998,18 @@ function PracticeCard({
             </div>
           </div>
 
-          {/* Company (internal only) */}
+          {/* Company (internal only) — sul segnaposto mostra l'azienda
+              dichiarata, così la colonna non è una fila di "Da abbinare". */}
           {isInternal && practice.companies && (
-            <p className="text-[11px] text-muted-foreground truncate">
-              {practice.companies.ragione_sociale}
-            </p>
+            isDaAbbinareCompany(practice.companies.ragione_sociale) ? (
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 truncate">
+                ⚠️ Da abbinare · {practice.azienda_dichiarata || "azienda non indicata"}
+              </p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground truncate">
+                {practice.companies.ragione_sociale}
+              </p>
+            )
           )}
 
           {/* Product */}

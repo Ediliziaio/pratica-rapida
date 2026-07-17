@@ -292,7 +292,7 @@ export function AppSidebar() {
     // Tutorial rivenditori — sempre come ultima voce, standalone senza label
     groups.push({
       items: [
-        { title: "Come usare il portale", url: "/tutorial-pratica-enea.pdf", icon: BookOpen, external: true },
+        { title: "Come usare il portale", url: "/tutorial-area-riservata.pdf", icon: BookOpen, external: true },
       ],
     });
   } else {
@@ -312,7 +312,7 @@ export function AppSidebar() {
           { title: "Nuova Pratica ENEA", url: "/enea/nuova", icon: FilePlus, end: true },
           { title: "Archivio ENEA", url: "/enea/archivio", icon: Archive },
           { title: "Documenti utili", url: "/documenti-utili", icon: Download },
-          { title: "Come usare il portale", url: "/tutorial-pratica-enea.pdf", icon: BookOpen, external: true },
+          { title: "Come usare il portale", url: "/tutorial-area-riservata.pdf", icon: BookOpen, external: true },
         ],
       },
     ];

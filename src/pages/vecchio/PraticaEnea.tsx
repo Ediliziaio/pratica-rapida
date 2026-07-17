@@ -9,7 +9,7 @@
 import { useEffect } from "react";
 import { Navbar, Footer } from "@/components/landing";
 import { SEO } from "@/components/SEO";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import NuovaPraticaEnea from "@/pages/rivenditore/NuovaPraticaEnea";
 
@@ -64,12 +64,25 @@ export default function VecchioPraticaEnea() {
       <Navbar />
       <main className="min-h-screen bg-gray-50 pt-24 pb-20">
         <div className="max-w-2xl mx-auto px-4 lg:px-8">
-          <Link
-            to="/area-riservata-vecchia/servizi"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" /> Torna ai servizi
-          </Link>
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <Link
+              to="/area-riservata-vecchia/servizi"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" /> Torna ai servizi
+            </Link>
+            {/* Guida al form pubblico (PDF generato da tutorial/sito-web.html).
+                Sta qui accanto al modulo perché è qui che serve: chi arriva dal
+                sito non ha un account e non vede il menu dell'area riservata. */}
+            <a
+              href="/guida-pratica-enea-sito.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline shrink-0"
+            >
+              <BookOpen className="w-4 h-4" /> Come si compila
+            </a>
+          </div>
           {USE_LEADCONNECTOR_FORM ? (
             <>
               <LeadConnectorEmbed />

@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>Come inserire le pratiche ENEA — Guida sito web</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body { margin: 0; padding: 0; font-family: -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif; color: #111827; }
+  :root {
+    --green: #00843D;
+    --green-dark: #076430;
+    --green-50: #E6F3EC;
+    --green-100: #CFE7DA;
+    --border: #E5E7EB;
+    --muted: #6B7280;
+    --amber: #F59E0B;
+    --amber-50: #FEF3C7;
+    --blue: #3B82F6;
+    --blue-50: #EFF6FF;
+    --purple: #8B5CF6;
+  }
+  .page {
+    width: 210mm; height: 297mm; padding: 22mm 20mm;
+    page-break-after: always; position: relative; background: #fff;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  /* Cover */
+  .cover { background: linear-gradient(160deg, #076430 0%, #00843D 55%, #0d6b34 100%); color: #fff; padding: 22mm 20mm; }
+  .cover .logo img { height: 15mm; display: block; }
+  .cover .kicker { margin-top: 130mm; font-size: 9pt; letter-spacing: 3pt; color: rgba(255,255,255,0.85); text-transform: uppercase; }
+  .cover h1 { font-size: 40pt; line-height: 1.05; margin: 4mm 0 4mm; font-weight: 800; letter-spacing: -0.5pt; }
+  .cover .lead { font-size: 12pt; line-height: 1.5; max-width: 140mm; color: rgba(255,255,255,0.95); }
+  .cover .chips { margin-top: 8mm; display: flex; gap: 4mm; flex-wrap: wrap; }
+  .cover .chip { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 999px; padding: 2.5mm 5mm; font-size: 9.5pt; }
+  .cover .footer-row { position: absolute; bottom: 18mm; left: 20mm; right: 20mm; display: flex; justify-content: space-between; align-items: center; padding-top: 5mm; border-top: 1px solid rgba(255,255,255,0.3); font-size: 9pt; }
+
+  /* Common */
+  h2.section-title { font-size: 22pt; margin: 2mm 0 5mm; font-weight: 800; letter-spacing: -0.3pt; }
+  .kicker-box { background: var(--green-50); color: var(--green-dark); padding: 3mm 5mm; border-radius: 3mm; font-size: 9.5pt; font-weight: 600; letter-spacing: 1.2pt; text-transform: uppercase; display: flex; align-items: center; gap: 3mm; margin-bottom: 5mm; }
+  .kicker-box .dot { width: 5mm; height: 5mm; border-radius: 999px; background: var(--green); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 8pt; }
+  .lead-p { font-size: 11pt; line-height: 1.55; color: #1F2937; }
+  .lead-p strong { color: #111827; }
+
+  /* Step badge */
+  .step-header { display: flex; align-items: flex-start; gap: 5mm; margin-bottom: 5mm; }
+  .step-num { width: 12mm; height: 12mm; border-radius: 3mm; background: var(--green); color: #fff; font-weight: 800; font-size: 18pt; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-num.gray { background: #6B7280; }
+  .step-header .step-kicker { color: var(--muted); font-size: 9pt; letter-spacing: 1.5pt; text-transform: uppercase; margin-bottom: 1mm; }
+  .step-header h2 { margin: 0; font-size: 20pt; font-weight: 800; letter-spacing: -0.3pt; }
+
+  /* Step list block */
+  .step-list { display: flex; flex-direction: column; gap: 3mm; margin-top: 4mm; }
+  .step-row { display: flex; gap: 4mm; align-items: center; border: 1px solid var(--border); border-radius: 3mm; padding: 3.5mm 4mm; background: #fff; }
+  .step-row .num { width: 8mm; height: 8mm; border-radius: 2mm; background: var(--green); color: #fff; font-weight: 800; font-size: 12pt; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-row .icon { width: 8mm; height: 8mm; background: var(--green-50); border-radius: 2mm; display: flex; align-items: center; justify-content: center; color: var(--green); font-size: 12pt; }
+  .step-row .body { flex: 1; }
+  .step-row .body .title { font-weight: 700; font-size: 11pt; }
+  .step-row .body .sub { font-size: 9.5pt; color: var(--muted); margin-top: 0.5mm; }
+
+  /* Callout boxes */
+  .callout { padding: 4mm 5mm; border-radius: 3mm; font-size: 10pt; line-height: 1.5; margin-top: 4mm; display: flex; gap: 4mm; align-items: flex-start; }
+  .callout .ci { font-size: 12pt; margin-top: 0.5mm; }
+  .callout.tip { background: var(--green-50); color: #064E27; }
+  .callout.info { background: var(--blue-50); color: #1E3A8A; }
+  .callout.warn { background: var(--amber-50); color: #7A4A0B; }
+  .callout.success { background: var(--green-50); color: #064E27; }
+
+  /* Checklist */
+  .checklist { margin-top: 3mm; }
+  .checklist li { list-style: none; font-size: 10pt; line-height: 1.5; margin: 1.5mm 0; padding-left: 6mm; position: relative; }
+  .checklist li::before { content: "✓"; color: var(--green); font-weight: 800; position: absolute; left: 0; }
+  .checklist .chip-inline { background: #F3F4F6; border-radius: 1.5mm; padding: 0.3mm 2mm; font-weight: 600; }
+
+  /* Mockup screenshot */
+  .mockup { border: 1px solid var(--border); border-radius: 3mm; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); position: relative; margin: 3mm 0 5mm; background: #fff; }
+  .mock-shell { display: flex; }
+  .mock-side { width: 44mm; background: var(--green-dark); color: #fff; padding: 4mm 3mm; font-size: 8.5pt; flex-shrink: 0; min-height: 100mm; }
+  .mock-side .brand { padding-bottom: 3mm; border-bottom: 2px solid rgba(255,255,255,0.4); margin-bottom: 4mm; }
+  .mock-side .brand img { width: 36mm; height: auto; display: block; }
+  .mock-side .nav-item { padding: 2mm 3mm; border-radius: 1.5mm; margin: 1mm 0; display: flex; align-items: center; gap: 2mm; font-size: 8pt; }
+  .mock-side .nav-item.active { background: rgba(255,255,255,0.15); font-weight: 700; }
+  .mock-side .nav-item.highlight { border: 2px solid #FB923C; background: rgba(0,0,0,0.2); box-shadow: 0 0 0 2px rgba(251,146,60,0.4); position: relative; }
+  .mock-side .nav-item .ico { width: 4mm; height: 4mm; display: inline-block; }
+  .mock-side .user { position: absolute; bottom: 4mm; left: 3mm; right: 3mm; display: flex; align-items: center; gap: 2mm; font-size: 7.5pt; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 3mm; }
+  .mock-side .avatar { width: 6mm; height: 6mm; border-radius: 999px; background: #F59E0B; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 8pt; }
+
+  .mock-main { flex: 1; padding: 3mm; background: #F9FAFB; min-height: 100mm; }
+  .mock-header { display: flex; align-items: center; gap: 3mm; padding: 2mm 0 3mm; border-bottom: 1px solid var(--border); font-size: 8.5pt; color: #4B5563; }
+  .mock-header .crumb { color: var(--muted); }
+  .mock-header .crumb strong { color: #111827; }
+  .mock-header .crumb-sep { color: #9CA3AF; }
+
+  .mock-card { background: #fff; border: 1px solid var(--border); border-radius: 2mm; padding: 3mm; margin: 2mm 0; }
+  .mock-card .sec-head { display: flex; align-items: center; gap: 2mm; margin-bottom: 2mm; }
+  .mock-card .sec-num { width: 5mm; height: 5mm; border-radius: 999px; background: var(--green); color: #fff; font-size: 7pt; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
+  .mock-card .sec-name { font-weight: 700; font-size: 9pt; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2mm; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2mm; }
+  .btn-mock { border: 1px solid var(--border); border-radius: 2mm; padding: 2mm 3mm; font-size: 7.5pt; background: #fff; }
+  .btn-mock.selected { border-color: var(--green); background: #F0FDF4; }
+  .btn-mock.selected-dark { border-color: #6B7280; background: #F3F4F6; }
+  .btn-mock .title { font-weight: 700; font-size: 8pt; }
+  .btn-mock .sub { font-size: 7pt; color: var(--muted); margin-top: 0.5mm; line-height: 1.35; }
+  .badge-mock { display: inline-block; background: var(--green-50); color: var(--green-dark); font-size: 6.5pt; font-weight: 700; padding: 0.3mm 1.5mm; border-radius: 999px; margin-left: 1mm; }
+  .input-mock { border: 1px solid var(--border); border-radius: 1.5mm; padding: 1.5mm 2mm; font-size: 7.5pt; color: var(--muted); background: #fff; }
+  .label-mock { font-size: 7pt; font-weight: 600; color: #374151; display: block; margin-bottom: 0.7mm; }
+  .req { color: #DC2626; font-weight: 700; }
+
+  /* callout marker over mockup */
+  .marker { position: absolute; width: 7mm; height: 7mm; border-radius: 999px; background: #FB923C; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 10pt; box-shadow: 0 0 0 3px rgba(251,146,60,0.35); }
+  .highlight-box { border: 2px solid #FB923C; border-radius: 2mm; box-shadow: 0 0 0 3px rgba(251,146,60,0.25); }
+
+  /* Table */
+  table { border-collapse: collapse; width: 100%; margin-top: 4mm; font-size: 9.5pt; }
+  thead th { background: var(--green-50); color: var(--green-dark); font-weight: 700; padding: 3mm; text-align: left; border-bottom: 1px solid var(--green-100); }
+  tbody td { padding: 3mm; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.45; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 3mm; }
+  .info-card { border: 1px solid var(--border); border-radius: 3mm; padding: 4mm 5mm; }
+  .info-card.hero { border-color: var(--green); background: var(--green-50); }
+  .info-card h3 { margin: 0 0 2mm; font-size: 12pt; display: flex; align-items: center; gap: 2mm; }
+  .info-card p { margin: 0; font-size: 9.5pt; line-height: 1.5; color: #374151; }
+
+  /* Footer */
+  .foot { position: absolute; bottom: 12mm; left: 20mm; right: 20mm; display: flex; justify-content: space-between; font-size: 8.5pt; color: var(--muted); padding-top: 3mm; border-top: 1px solid var(--border); }
+  .foot .brand { color: var(--green); font-weight: 700; }
+
+  /* Pipeline mock */
+  .pipeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2mm; margin-top: 2mm; }
+  .col { background: #F3F4F6; border-radius: 2mm; padding: 2mm; }
+  .col .col-head { display: flex; align-items: center; justify-content: space-between; font-size: 7.5pt; font-weight: 700; margin-bottom: 2mm; }
+  .col .col-head .dot { width: 2mm; height: 2mm; border-radius: 999px; display: inline-block; margin-right: 1.5mm; }
+  .col .col-count { background: #fff; border-radius: 999px; padding: 0.2mm 1.5mm; font-size: 6.5pt; color: var(--muted); }
+  .k-card { background: #fff; border-radius: 1.5mm; padding: 2mm; font-size: 7.5pt; box-shadow: 0 1px 1px rgba(0,0,0,0.05); margin: 1mm 0; }
+  .k-card .name { font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+  .k-card .prod { color: var(--muted); font-size: 6.5pt; margin: 0.5mm 0; }
+  .k-card .status { font-size: 6.5pt; }
+  .k-card .status .dot { width: 1.5mm; height: 1.5mm; border-radius: 999px; display: inline-block; margin-right: 1mm; vertical-align: middle; }
+  .k-card .brand-tag { font-size: 6pt; font-weight: 800; padding: 0.2mm 1mm; border-radius: 1mm; background: #DBEAFE; color: #1D4ED8; }
+
+  /* Success screen */
+  .success-page { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6mm; text-align: center; height: 105mm; }
+  .success-icon { width: 22mm; height: 22mm; background: var(--green-50); border-radius: 999px; display: flex; align-items: center; justify-content: center; color: var(--green); font-size: 28pt; margin-bottom: 4mm; }
+
+  /* Final page */
+  .final-hero { text-align: center; margin-top: 90mm; }
+  .final-hero .icon { width: 26mm; height: 26mm; background: var(--green-50); color: var(--green); border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 34pt; margin-bottom: 6mm; }
+  .final-hero h1 { font-size: 34pt; margin: 0 0 5mm; font-weight: 800; letter-spacing: -0.5pt; }
+  .final-hero p { font-size: 11pt; line-height: 1.6; color: #374151; max-width: 120mm; margin: 0 auto; }
+  .contact-card { max-width: 130mm; margin: 10mm auto 0; border: 1px solid var(--border); border-radius: 3mm; padding: 5mm 8mm; display: flex; gap: 12mm; justify-content: center; }
+  .contact-card .col-c .label { font-size: 8pt; letter-spacing: 1.5pt; color: var(--muted); text-transform: uppercase; margin-bottom: 1mm; }
+  .contact-card .col-c .val { font-size: 11pt; font-weight: 700; }
+  .final-logo { position: absolute; bottom: 32mm; left: 0; right: 0; text-align: center; }
+  .final-logo img { height: 12mm; display: inline-block; }
+
+  .highlight-inline { background: #FEF3C7; padding: 0 1mm; border-radius: 1mm; }
+
+  /* utility */
+  .flex { display: flex; }
+  .between { justify-content: space-between; }
+  .center { align-items: center; }
+  .gap-2 { gap: 2mm; }
+  .gap-3 { gap: 3mm; }
+  .mt-3 { margin-top: 3mm; }
+  .mt-5 { margin-top: 5mm; }
+  .small { font-size: 9.5pt; }
+  .muted { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- ═════════════════ PAGE 1 — COVER ═════════════════ -->
+<section class="page cover">
+  <div class="logo"><img src="logo-white-1200.png" alt="Pratica Rapida"></div>
+  <div class="kicker">GUIDA RAPIDA · SITO WEB</div>
+  <h1>Come inserire<br/>le pratiche ENEA</h1>
+  <p class="lead">Inserisci la pratica ENEA del tuo cliente direttamente dal sito, senza registrarti. Bastano i dati del cliente e la fattura: <strong>al resto pensiamo noi</strong>.</p>
+  <div class="chips">
+    <span class="chip">✦ Nessun login</span>
+    <span class="chip">◷ ~2 minuti a pratica</span>
+    <span class="chip">▤ Un solo modulo</span>
+  </div>
+  <div class="footer-row">
+    <div>Modulo pubblico · Pratica ENEA</div>
+    <div><strong>praticarapida.it</strong></div>
+  </div>
+</section>
+
+<!-- ═════════════════ PAGE 2 — OVERVIEW ═════════════════ -->
+<section class="page">
+  <div class="kicker-box"><span class="dot">ⓘ</span>IN BREVE</div>
+  <h2 class="section-title">Cosa fa questa guida</h2>
+  <p class="lead-p">Dal sito <strong>praticarapida.it</strong> puoi inviarci la pratica ENEA del tuo cliente <strong>senza account e senza login</strong>: compili il modulo che hai davanti e la lavorazione parte da sola. Questa guida ti accompagna sezione per sezione.</p>
+
+  <div class="step-list">
+    <div class="step-row"><div class="num">1</div><div class="icon">▤</div><div class="body"><div class="title">Inserisci i dati della tua azienda</div><div class="sub">Ragione sociale, email e telefono: servono per intestarti la pratica.</div></div></div>
+    <div class="step-row"><div class="num">2</div><div class="icon">✦</div><div class="body"><div class="title">Scegli servizio e prodotto</div><div class="sub">Servizio Completo o Documenti Forniti + tipo di prodotto installato.</div></div></div>
+    <div class="step-row"><div class="num">3</div><div class="icon">◔</div><div class="body"><div class="title">Soggetto, fatturazione e cliente</div><div class="sub">Chi è il cliente, chi paga il servizio e i suoi dati.</div></div></div>
+    <div class="step-row"><div class="num">4</div><div class="icon">↑</div><div class="body"><div class="title">Allega la fattura e invia</div><div class="sub">Carica la fattura, accetta il consenso e premi «Invia Pratica ENEA».</div></div></div>
+  </div>
+
+  <div class="callout success">
+    <div class="ci">✓</div>
+    <div>
+      <strong>Prima di iniziare</strong>
+      <ul class="checklist" style="margin-top:2mm">
+        <li>Tieni a portata di mano la <span class="chip-inline">fattura</span> di acquisto/installazione (PDF o foto, max 10 MB).</li>
+        <li>Annota <span class="chip-inline">nome, cognome e telefono</span> del cliente finale: sono gli unici campi obbligatori che lo riguardano.</li>
+        <li>Se hai già un account, usa la <span class="chip-inline">stessa email del portale</span>: la pratica ti comparirà nella tua area riservata.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout info"><div class="ci">ⓘ</div><div>Il modulo <strong>si salva automaticamente</strong> mentre lo compili: se chiudi la pagina per sbaglio, ritrovi quello che avevi già scritto.</div></div>
+
+  <div class="foot"><div>Guida rapida — Pratica ENEA dal sito</div><div><span class="brand">praticarapida.it</span> · Pag. 2</div></div>
+</section>
+
+<!-- ═════════════════ PAGE 3 — STEP 1 — DATI AZIENDA ═════════════════ -->
+<section class="page">
+  <div class="step-header">
+    <div class="step-num">1</div>
+    <div>
+      <div class="step-kicker">PASSO 1 · CHI SEI</div>
+      <h2>Inserisci i dati della tua azienda</h2>
+    </div>
+  </div>
+
+  <div class="mockup" style="position:relative">
+    <div style="background:#fff;border-bottom:1px solid var(--border);padding:2.5mm 3mm;display:flex;align-items:center;justify-content:space-between">
+      <img src="logo-green-1200.png" alt="Pratica Rapida" style="height:5mm">
+      <div style="display:flex;gap:4mm;font-size:7pt;color:#4B5563;align-items:center">
+        <span>Home</span><span>Pratiche ENEA</span><span>Conto Termico</span><span>FAQ</span>
+        <span style="background:#F97316;color:#fff;border-radius:999px;padding:1mm 3mm;font-weight:700">Area Rivenditori</span>
+      </div>
+    </div>
+    <div style="padding:4mm;background:#F9FAFB">
+      <div style="font-size:7pt;color:var(--muted);margin-bottom:2mm">← Torna ai servizi</div>
+      <div style="font-size:12pt;font-weight:800;margin-bottom:1mm">Nuova Pratica ENEA</div>
+      <div style="font-size:7.5pt;color:var(--muted);margin-bottom:3mm">Completa tutte le sezioni, poi invia. La pagina si salva automaticamente.</div>
+
+      <div class="mock-card highlight-box">
+        <div class="sec-head"><span class="sec-num">▤</span><span class="sec-name">I tuoi dati (azienda / rivenditore)</span></div>
+        <label class="label-mock">Ragione sociale <span class="req">*</span></label>
+        <div class="input-mock" style="margin-bottom:2mm">Es. Serramenti Rossi S.r.l.</div>
+        <div class="grid2">
+          <div>
+            <label class="label-mock">Email aziendale <span class="req">*</span></label>
+            <div class="input-mock">info@azienda.it</div>
+            <div style="font-size:6.5pt;color:var(--muted);margin-top:1mm">Se sei già registrato, usa la stessa email del portale.</div>
+          </div>
+          <div>
+            <label class="label-mock">Telefono azienda <span class="req">*</span></label>
+            <div class="input-mock">es. 333 1234567</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="marker" style="top: 30mm; right: 6mm;">1</div>
+  </div>
+
+  <p class="lead-p">È la prima cosa che ti chiede il modulo: <strong>chi sei</strong>. Questi tre campi ci servono per intestare la pratica alla tua azienda e per ricontattarti.</p>
+  <ul class="checklist">
+    <li>Tutti e tre i campi sono <strong>obbligatori</strong>.</li>
+    <li>Ti abbiniamo automaticamente tramite <strong>email o telefono</strong>: se sei già nostro cliente, la pratica finisce subito nel tuo elenco.</li>
+  </ul>
+  <div class="callout tip"><div class="ci">💡</div><div>Hai già un account su <strong>app.praticarapida.it</strong>? Usa la <strong>stessa email</strong>: ritroverai questa pratica nella tua area riservata, insieme a tutte le altre. Se non ce l'hai ancora, ti mandiamo noi l'invito per registrarti.</div></div>
+
+  <div class="foot"><div>Guida rapida — Pratica ENEA dal sito</div><div><span class="brand">praticarapida.it</span> · Pag. 3</div></div>
+</section>
+
+<!-- ═════════════════ PAGE 4 — STEP 2 — SERVIZIO E PRODOTTO ═════════════════ -->
+<section class="page">
+  <div class="step-header">
+    <div class="step-num">2</div>
+    <div>
+      <div class="step-kicker">PASSO 2 · SERVIZIO E PRODOTTO</div>
+      <h2>Scegli il servizio e il prodotto</h2>
+    </div>
+  </div>
+
+  <div class="mockup" style="position:relative">
+    <div style="padding:4mm;background:#F9FAFB">
+      <div class="mock-card">
+        <div class="sec-head"><span class="sec-num">1</span><span class="sec-name">Tipo di servizio</span></div>
+        <div class="grid2">
+          <div class="btn-mock selected"><div class="title">✦ Servizio Completo <span class="badge-mock">Consigliato</span></div><div class="sub">Inserisci solo i dati del cliente e la fattura. <strong>Pratica Rapida contatta il cliente</strong>, raccoglie i documenti e gestisce tutto.</div></div>
+          <div class="btn-mock"><div class="title">▤ Documenti Forniti</div><div class="sub">Fornisci tu <strong>tutti i documenti</strong>. Pratica Rapida prepara e invia la pratica direttamente.</div></div>
+        </div>
+      </div>
+
+      <div class="mock-card">
+        <div class="sec-head"><span class="sec-num">2</span><span class="sec-name">Tipo di prodotto installato</span></div>
+        <div class="grid2">
+          <div class="btn-mock"><div class="title">☀ Schermature Solari</div></div>
+          <div class="btn-mock selected"><div class="title">🏠 Infissi / Serramenti ✓</div></div>
+          <div class="btn-mock"><div class="title">◇ VEPA – Vetrate Panoramiche</div></div>
+          <div class="btn-mock"><div class="title">▲ Pompe di Calore / Climatizz.</div></div>
+          <div class="btn-mock" style="grid-column: 1 / span 2"><div class="title">▦ Insufflaggio Tetti</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="marker" style="top: 8mm; right: 6mm;">2</div>
+  </div>
+
+  <p class="lead-p">Nella <strong>sezione 1</strong> scegli <strong>«Servizio Completo»</strong> (consigliato): inserisci solo i dati del cliente e la fattura, al cliente ci pensiamo noi. Nella <strong>sezione 2</strong> indichi il <strong>prodotto installato</strong>.</p>
+  <ul class="checklist">
+    <li>Prodotti disponibili: Schermature Solari, Infissi/Serramenti, VEPA, Pompe di Calore, Insufflaggio Tetti.</li>
+    <li>In base al prodotto, più avanti il modulo ti chiede i documenti giusti.</li>
+  </ul>
+  <div class="callout info"><div class="ci">ⓘ</div><div>Con <strong>«Documenti Forniti»</strong> il cliente <strong>non viene mai contattato</strong>: raccogli tu tutto e ci mandi i moduli compilati. Se non sei sicuro, scegli «Servizio Completo».</div></div>
+
+  <div class="foot"><div>Guida rapida — Pratica ENEA dal sito</div><div><span class="brand">praticarapida.it</span> · Pag. 4</div></div>
+</section>
+
+<!-- ═════════════════ PAGE 5 — STEP 3 — SOGGETTO, FATTURAZIONE, CLIENTE ═════════════════ -->
+<section class="page">
+  <div class="step-header">
+    <div class="step-num">3</div>
+    <div>
+      <div class="step-kicker">PASSO 3 · SOGGETTO, FATTURAZIONE E CLIENTE</div>
+      <h2>Chi è il cliente e chi paga</h2>
+    </div>
+  </div>
+
+  <div class="mockup" style="position:relative">
+    <div style="padding:4mm;background:#F9FAFB">
+      <div class="mock-card">
+        <div class="sec-head"><span class="sec-num">3</span><span class="sec-name">Tipo di soggetto</span></div>
+        <div class="grid2">
+          <div class="btn-mock selected"><div class="title">◔ Persona Fisica</div><div class="sub">Privato cittadino — Codice Fiscale</div></div>
+          <div class="btn-mock"><div class="title">▤ Azienda con P.IVA</div><div class="sub">Impresa o professionista con P.IVA</div></div>
+        </div>
+      </div>
+
+      <div class="mock-card">
+        <div class="sec-head"><span class="sec-num">4</span><span class="sec-name">Fatturazione del servizio</span></div>
+        <div class="grid2">
+          <div class="btn-mock selected"><div class="title">A carico mio (rivenditore)</div><div class="sub">€ 65 + IVA 22% — fatturazione mensile posticipata tramite bonifico</div></div>
+          <div class="btn-mock"><div class="title">A carico del cliente finale <span class="badge-mock">CF</span></div><div class="sub">Il costo del servizio è a carico del cliente che beneficia della detrazione</div></div>
+        </div>
+      </div>
+
+      <div class="mock-card highlight-box">
+        <div class="sec-head"><span class="sec-num">5</span><span class="sec-name">Dati del cliente finale</span></div>
+        <div class="grid2">
+          <div><label class="label-mock">Nome <span class="req">*</span></label><div class="input-mock">Mario</div></div>
+          <div><label class="label-mock">Cognome <span class="req">*</span></label><div class="input-mock">Rossi</div></div>
+          <div><label class="label-mock">Telefono <span class="req">*</span></label><div class="input-mock">+39 333 1234567</div></div>
+          <div><label class="label-mock">Email</label><div class="input-mock">mario.rossi@email.it</div></div>
+          <div><label class="label-mock">Codice Fiscale</label><div class="input-mock">RSSMRA80A01H501Z</div></div>
+          <div><label class="label-mock">Indirizzo immobile</label><div class="input-mock">Via Roma 1, Milano</div></div>
+          <div><label class="label-mock">Data di fine lavori</label><div class="input-mock">▦ 12/06/2026</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="marker" style="top: 52mm; right: 6mm;">3</div>
+  </div>
+
+  <ul class="checklist">
+    <li>Obbligatori solo <strong>Nome</strong>, <strong>Cognome</strong> e <strong>Telefono</strong>: il resto lo raccogliamo noi dal cliente.</li>
+    <li>La <strong>fatturazione</strong> decide chi paga i € 65 + IVA: tu a fine mese, oppure direttamente il cliente.</li>
+  </ul>
+  <div class="callout tip"><div class="ci">💡</div><div>Più campi compili (email, codice fiscale, indirizzo, data di fine lavori), meno cose dovremo chiedere al tuo cliente: la pratica si chiude prima.</div></div>
+
+  <div class="foot"><div>Guida rapida — Pratica ENEA dal sito</div><div><span class="brand">praticarapida.it</span> · Pag. 5</div></div>
+</section>
+
+<!-- ═════════════════ PAGE 6 — STEP 4 — FATTURA, CONSENSO, INVIO ═════════════════ -->
+<section class="page">
+  <div class="step-header">
+    <div class="step-num">4</div>
+    <div>
+      <div class="step-kicker">PASSO 4 · DOCUMENTI E INVIO</div>
+      <h2>Allega la fattura e invia</h2>
+    </div>
+  </div>
+
+  <div class="mockup" style="position:relative">
+    <div style="padding:4mm;background:#F9FAFB">
+      <div class="mock-card">
+        <div class="sec-head"><span class="sec-num">6</span><span class="sec-name">Documenti da allegare</span></div>
+        <label class="label-mock">Fattura di acquisto/installazione <span class="req">*</span></label>
+        <div style="border:1px dashed #9CA3AF;border-radius:2mm;padding:4mm;text-align:center;color:var(--muted);font-size:7.5pt;background:#fff">
+          ↑ Trascina qui o <span style="color:var(--green);font-weight:700">sfoglia</span><br>
+          <span style="font-size:6.5pt">PDF, JPG, PNG, DOCX · max 10 MB</span>
+        </div>
+        <div class="mock-card" style="display:flex;align-items:center;gap:2mm;padding:2mm 3mm;margin-top:2mm">
+          <span style="color:var(--muted)">▤</span><span style="font-size:7.5pt">Fattura_Rossi_2026.pdf</span><span style="margin-left:auto;font-size:6.5pt;color:var(--muted)">312 KB</span>
+        </div>
+      </div>
+
+      <div class="mock-card">
+        <div class="sec-head"><span class="sec-num">7</span><span class="sec-name">Note aggiuntive (opzionale)</span></div>
+        <div class="input-mock" style="padding:3mm 2mm">Informazioni aggiuntive sulla pratica o sul cliente…</div>
+      </div>
+
+      <div class="mock-card highlight-box" style="display:flex;gap:2mm;align-items:flex-start">
+        <span style="width:3mm;height:3mm;border:1px solid var(--green);background:var(--green);color:#fff;border-radius:0.7mm;font-size:6pt;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:0.5mm">✓</span>
+        <span style="font-size:7pt;line-height:1.4">Dichiaro di aver informato il cliente finale e acconsento al trattamento dei dati (GDPR) per la gestione della pratica.</span>
+      </div>
+
+      <div style="text-align:right;margin-top:2mm">
+        <span style="background:var(--green);color:#fff;border-radius:2mm;padding:2mm 4mm;font-size:8pt;font-weight:700">Invia Pratica ENEA</span>
+      </div>
+    </div>
+    <div class="marker" style="top: 47mm; right: 6mm;">4</div>
+  </div>
+
+  <p class="lead-p">Allega la <strong>fattura</strong> (obbligatoria) trascinandola o cliccando «sfoglia». Poi spunta il <strong>consenso</strong> e premi <strong>«Invia Pratica ENEA»</strong>.</p>
+  <ul class="checklist">
+    <li>La <strong>fattura</strong> è sempre obbligatoria. Per le <strong>Pompe di Calore</strong> serve anche il <strong>libretto dell'impianto</strong>.</li>
+    <li>Il <strong>consenso GDPR</strong> è obbligatorio: confermi di aver informato il cliente.</li>
+  </ul>
+  <div class="callout warn"><div class="ci">⚠</div><div>Controlla i campi con l'asterisco <strong>*</strong>: se manca qualcosa, il modulo te lo segnala prima dell'invio.</div></div>
+
+  <div class="foot"><div>Guida rapida — Pratica ENEA dal sito</div><div><span class="brand">praticarapida.it</span> · Pag. 6</div></div>
+</section>
+
+<!-- ═════════════════ PAGE 7 — COSA SUCCEDE DOPO ═════════════════ -->
+<section class="page">
+  <div class="kicker-box"><span class="dot">✓</span>DOPO L'INVIO</div>
+  <h2 class="section-title">Cosa succede adesso</h2>
+  <p class="lead-p">Appena premi invia la pratica è nostra: da lì in poi non devi fare più nulla. Ecco cosa succede, in ordine.</p>
+
+  <div class="step-list">
+    <div class="step-row"><div class="num">1</div><div class="icon">✓</div><div class="body"><div class="title">Riceviamo la pratica</div><div class="sub">Viene presa in carico e assegnata alla tua azienda.</div></div></div>
+    <div class="step-row"><div class="num">2</div><div class="icon">☎</div><div class="body"><div class="title">Contattiamo il cliente</div><div class="sub">Con «Servizio Completo» scriviamo noi al cliente per i dati mancanti. Con «Documenti Forniti» non lo contattiamo mai.</div></div></div>
+    <div class="step-row"><div class="num">3</div><div class="icon">▲</div><div class="body"><div class="title">Trasmettiamo ad ENEA</div><div class="sub">Prepariamo e inviamo la pratica al portale ENEA.</div></div></div>
+    <div class="step-row"><div class="num">4</div><div class="icon">▦</div><div class="body"><div class="title">Ti consegniamo i documenti</div><div class="sub">Pratica ENEA conclusa e dichiarazione tecnica precompilata.</div></div></div>
+  </div>
+
+  <div class="callout success"><div class="ci">✓</div><div><strong>Hai un account sul portale?</strong> Trovi questa pratica in <strong>«Le mie Pratiche»</strong> su <span class="chip-inline">app.praticarapida.it</span>, con lo stato sempre aggiornato e i documenti pronti da scaricare a lavorazione conclusa. Basta aver usato la stessa email.</div></div>
+  <div class="callout info"><div class="ci">ⓘ</div><div><strong>Non ce l'hai ancora?</strong> Ti arriva un'email con l'invito a registrarti: da quel momento vedi anche le pratiche che ci hai già mandato dal sito.</div></div>
+
+  <div class="foot"><div>Guida rapida — Pratica ENEA dal sito</div><div><span class="brand">praticarapida.it</span> · Pag. 7</div></div>
+</section>
+
+<!-- ═════════════════ PAGE 8 — DOCUMENTI PER PRODOTTO ═════════════════ -->
+<section class="page">
+  <div class="kicker-box"><span class="dot">▤</span>APPROFONDIMENTO</div>
+  <h2 class="section-title">Documenti richiesti per prodotto</h2>
+  <p class="lead-p">La <strong>fattura</strong> serve sempre. In base al prodotto può servire un secondo documento, ma solo se la fattura non riporta già i dati tecnici.</p>
+
+  <table>
+    <thead><tr><th style="width:34%">Prodotto</th><th style="width:26%">Sempre obbligatorio</th><th>Documento aggiuntivo (se serve)</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Schermature Solari</strong></td><td>Fattura di acquisto/installazione</td><td>Se la fattura <strong>non</strong> riporta valore <strong>GTOT</strong> e dimensioni → allega un documento con misure e GTOT.</td></tr>
+      <tr><td><strong>Infissi / Serramenti</strong></td><td>Fattura di acquisto/installazione</td><td>Se la fattura <strong>non</strong> riporta la <strong>trasmittanza</strong> → allega i certificati di trasmittanza.</td></tr>
+      <tr><td><strong>VEPA — Vetrate Panoramiche</strong></td><td>Fattura di acquisto/installazione</td><td>Se la fattura <strong>non</strong> riporta trasmittanza e dimensioni → allega certificati e misure.</td></tr>
+      <tr><td><strong>Pompe di Calore / Climatizz.</strong></td><td>Fattura + <strong>Libretto dell'impianto</strong></td><td>Il <strong>libretto</strong> (marca e modello) è sempre obbligatorio per questo prodotto.</td></tr>
+      <tr><td><strong>Insufflaggio Tetti</strong></td><td>Fattura di acquisto/installazione</td><td>Se la fattura <strong>non</strong> riporta spessore e conducibilità termica → allega un documento con questi dati.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout info" style="margin-top:5mm"><div class="ci">ⓘ</div><div>Formati ammessi per ogni allegato: <strong>PDF, JPG, PNG, DOCX</strong> · dimensione massima <strong>10 MB</strong> per file.</div></div>
+
+  <div class="foot"><div>Guida rapida — Pratica ENEA dal sito</div><div><span class="brand">praticarapida.it</span> · Pag. 8</div></div>
+</section>
+
+<!-- ═════════════════ PAGE 9 — FINAL ═════════════════ -->
+<section class="page">
+  <div class="final-hero">
+    <div class="icon">✓</div>
+    <h1>È tutto qui!</h1>
+    <p>Compili il modulo una volta, e la pratica ENEA del tuo cliente è in lavorazione. Se vuoi seguirla passo passo e scaricare i documenti pronti, registrati all'<strong>area riservata</strong>.</p>
+    <div class="contact-card">
+      <div class="col-c">
+        <div class="label">MODULO</div>
+        <div class="val" style="color:#111">praticarapida.it</div>
+      </div>
+      <div class="col-c">
+        <div class="label">AREA RISERVATA</div>
+        <div class="val" style="color:var(--green)">app.praticarapida.it</div>
+      </div>
+    </div>
+  </div>
+  <div class="final-logo"><img src="logo-green-1200.png" alt="Pratica Rapida"></div>
+  <div class="foot"><div>Guida rapida — Pratica ENEA dal sito</div><div><span class="brand">praticarapida.it</span> · Pag. 9</div></div>
+</section>
+
+</body>
+</html>

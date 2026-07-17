@@ -63,6 +63,10 @@ interface Payload {
   //                         "attesa_compilazione" (poi promosso a pronte_da_fare)
   tipo_servizio?: "servizio_completo" | "documenti_forniti";
   documenti_mode?: "moduli_cartacei" | "form_online";
+  // Solo con documenti_forniti: il rivenditore ha chiesto che la pratica
+  // conclusa venga inviata anche al suo cliente (altrimenti non lo contattiamo
+  // mai). Letto da on-stage-changed allo stage "da_inviare".
+  invia_pratica_al_cliente?: boolean;
   // Servizio a pagamento diretto (es. visura catastale): non invia il link
   // "completa i tuoi dati" al cliente — il cliente sta già pagando.
   requires_payment?: boolean;
@@ -249,6 +253,10 @@ serve(async (req) => {
         brand: "enea",
         current_stage_id: stage?.id ?? null,
         tipo_servizio: tipoServizio,
+        // Vale solo per documenti_forniti: nel servizio completo il cliente
+        // riceve comunque la pratica, quindi il flag non c'entra.
+        invia_pratica_al_cliente:
+          tipoServizio === "documenti_forniti" && p.invia_pratica_al_cliente === true,
         tipo_fatturazione: p.tipo_fatturazione === "cliente_finale" ? "cliente_finale" : "rivenditore",
         tipo_soggetto: p.tipo_soggetto === "azienda_piva" ? "azienda_piva" : "persona_fisica",
         prodotto_installato: p.prodotto?.trim() || (p.modulo ?? "Richiesta sito"),

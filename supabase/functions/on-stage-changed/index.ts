@@ -268,10 +268,14 @@ serve(async (req) => {
       let clientEmailOk = true;
       let clientWaOk = true;
 
-      // Per "documenti forniti" il rivenditore ha fornito tutto e NON va inviato
-      // alcun messaggio al cliente finale (né conferma né recensione): solo le
-      // email al rivenditore. Saltiamo quindi gli invii al cliente.
-      const skipClientMessages = practice.tipo_servizio === "documenti_forniti";
+      // Per "documenti forniti" il cliente finale non va contattato: ha fatto
+      // tutto il rivenditore. UNICA eccezione, scelta da lui nel form: se ha
+      // risposto sì a "mandiamo la pratica ENEA al cliente una volta conclusa?"
+      // (invia_pratica_al_cliente), qui il cliente riceve la pratica come nel
+      // servizio completo. Il default della colonna è false, quindi le pratiche
+      // già a sistema e chi non ha risposto restano al comportamento storico.
+      const skipClientMessages =
+        practice.tipo_servizio === "documenti_forniti" && !practice.invia_pratica_al_cliente;
 
       // Email al cliente finale (gated by stage_changed/email; no such rule in DB → defaults to enabled).
       // CON ALLEGATI: recupera tutti i documenti della pratica e li allega base64.

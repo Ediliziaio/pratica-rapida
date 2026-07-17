@@ -1152,6 +1152,9 @@ export interface EneaPractice {
   recensione_testo: string | null
   recensione_stelle: number | null
   tipo_servizio: TipoServizio | "pratica_only" | null  // pratica_only = legacy alias di documenti_forniti
+  // Solo con documenti_forniti: se true la pratica conclusa viene inviata anche
+  // al cliente finale (che altrimenti non viene mai contattato).
+  invia_pratica_al_cliente: boolean
   tipo_fatturazione: TipoFatturazione | null
   tipo_soggetto: TipoSoggetto | null
   archivio_path: string | null

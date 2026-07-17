@@ -206,6 +206,10 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   // cartacei compilati ("moduli_cartacei") o compilare il form online a nome
   // del cliente ("form_online").
   const [documentiMode, setDocumentiMode] = useState<"moduli_cartacei" | "form_online" | null>(null);
+  // Solo per "documenti_forniti": con questo servizio il cliente non viene mai
+  // contattato, ma il rivenditore può volere che la pratica conclusa gli venga
+  // comunque inviata. null = non ha ancora risposto (la domanda è obbligatoria).
+  const [inviaPraticaCliente, setInviaPraticaCliente] = useState<boolean | null>(null);
   const [tipoProdotto, setTipoProdotto] = useState<TipoProdotto | null>(null);
   const [tipoSoggetto, setTipoSoggetto] = useState<TipoSoggetto | null>(null);
   const [tipoFatturazione, setTipoFatturazione] = useState<TipoFatturazione | null>(null);
@@ -305,6 +309,13 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     // I moduli di raccolta dati sono obbligatori SOLO se si è scelto il cartaceo.
     if (tipoServizio === "documenti_forniti" && documentiMode === "moduli_cartacei" && moduliRaccoltaFiles.length === 0)
       e.moduliRaccolta = "I moduli di raccolta dati compilati sono obbligatori";
+    // Contattare o no il cliente è una decisione di chi compila: niente default.
+    if (tipoServizio === "documenti_forniti" && inviaPraticaCliente === null)
+      e.inviaPraticaCliente = "Rispondi se dobbiamo mandare la pratica al cliente";
+    // "Sì" senza email = promessa che non possiamo mantenere: la pratica si
+    // consegna via email, quindi qui l'email diventa obbligatoria.
+    if (tipoServizio === "documenti_forniti" && inviaPraticaCliente === true && !email.trim())
+      e.email = "Serve l'email del cliente per potergli inviare la pratica";
     // Pompe di calore: libretto obbligatorio
     if (tipoProdotto === "pompe_calore" && docExtra2.length === 0)
       e.libretto = "Il libretto dell'impianto è obbligatorio";
@@ -337,6 +348,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           // Sotto-modalità documenti_forniti: cartacei (tutto allegato → pronte
           // da fare) vs form online (il rivenditore compila lui il /form).
           documenti_mode: tipoServizio === "documenti_forniti" ? documentiMode : undefined,
+          // Solo documenti_forniti: il rivenditore ha scelto se farci inviare la
+          // pratica conclusa al suo cliente.
+          invia_pratica_al_cliente: tipoServizio === "documenti_forniti" && inviaPraticaCliente === true,
           tipo_fatturazione: tipoFatturazione,
           tipo_soggetto: tipoSoggetto,
           azienda: {
@@ -431,6 +445,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           brand: "enea",
           current_stage_id: initialStage?.id ?? null,
           tipo_servizio: tipoServizio === "documenti_forniti" ? "documenti_forniti" : "servizio_completo",
+          // Ha senso solo con documenti_forniti: nel servizio completo il
+          // cliente riceve la pratica comunque.
+          invia_pratica_al_cliente: tipoServizio === "documenti_forniti" && inviaPraticaCliente === true,
           tipo_fatturazione: tipoFatturazione,
           tipo_soggetto: tipoSoggetto,
           prodotto_installato: prodottoLabel,
@@ -928,8 +945,10 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="email" className="text-sm">Email</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-              placeholder="mario@esempio.it" />
+            <Input id="email" type="email" value={email}
+              onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
+              placeholder="mario@esempio.it" className={errors.email ? "border-destructive" : ""} />
+            {errors.email && <p className="text-xs text-destructive" data-error>{errors.email}</p>}
           </div>
         </div>
 
@@ -972,6 +991,55 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
             </Popover>
           </div>
         </div>
+
+        {/* Invio della pratica conclusa al cliente — solo "Documenti Forniti".
+            Con questo servizio il cliente non viene mai contattato, quindi
+            l'invio della pratica finita dev'essere una scelta esplicita di chi
+            compila: non c'è un default sensato al posto suo. */}
+        {tipoServizio === "documenti_forniti" && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-900/40 dark:bg-blue-950/20 p-4 space-y-3">
+            <div>
+              <p className="text-sm font-medium">
+                Vuoi che mandiamo la pratica ENEA al cliente una volta conclusa? *
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Con «Documenti Forniti» il cliente non viene mai contattato. Se rispondi sì, a
+                lavorazione conclusa gli inviamo la pratica come facciamo con il Servizio Completo.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => { setInviaPraticaCliente(true); setErrors((p) => ({ ...p, inviaPraticaCliente: "" })); }}
+                className={cn(
+                  "rounded-lg border-2 px-4 py-2.5 text-sm font-medium transition-all",
+                  inviaPraticaCliente === true ? "border-primary bg-primary/5" : "border-border hover:border-primary/40",
+                )}
+              >
+                Sì, inviatela al cliente
+              </button>
+              <button
+                type="button"
+                onClick={() => { setInviaPraticaCliente(false); setErrors((p) => ({ ...p, inviaPraticaCliente: "" })); }}
+                className={cn(
+                  "rounded-lg border-2 px-4 py-2.5 text-sm font-medium transition-all",
+                  inviaPraticaCliente === false ? "border-primary bg-primary/5" : "border-border hover:border-primary/40",
+                )}
+              >
+                No, non contattatelo
+              </button>
+            </div>
+            {inviaPraticaCliente === true && !email.trim() && (
+              <p className="text-xs text-amber-700 dark:text-amber-400 flex items-start gap-1.5">
+                <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                Serve l'email del cliente qui sopra: è lì che inviamo la pratica.
+              </p>
+            )}
+            {errors.inviaPraticaCliente && (
+              <p className="text-xs text-destructive" data-error>{errors.inviaPraticaCliente}</p>
+            )}
+          </div>
+        )}
       </Section>
 
       {/* ── 6. Documenti ────────────────────────────────────────────────── */}

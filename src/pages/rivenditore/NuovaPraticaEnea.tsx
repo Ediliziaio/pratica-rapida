@@ -1004,7 +1004,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 Con «Documenti Forniti» il cliente non viene mai contattato. Se rispondi sì, a
-                lavorazione conclusa gli inviamo la pratica come facciamo con il Servizio Completo.
+                lavorazione conclusa gli inviamo la pratica tramite mail.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">

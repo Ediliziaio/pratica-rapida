@@ -271,11 +271,16 @@ serve(async (req) => {
       // Per "documenti forniti" il cliente finale non va contattato: ha fatto
       // tutto il rivenditore. UNICA eccezione, scelta da lui nel form: se ha
       // risposto sì a "mandiamo la pratica ENEA al cliente una volta conclusa?"
-      // (invia_pratica_al_cliente), qui il cliente riceve la pratica come nel
-      // servizio completo. Il default della colonna è false, quindi le pratiche
-      // già a sistema e chi non ha risposto restano al comportamento storico.
+      // (invia_pratica_al_cliente), gli arriva la mail con la pratica allegata.
+      // Il default della colonna è false, quindi le pratiche già a sistema e chi
+      // non ha risposto restano al comportamento storico.
       const skipClientMessages =
         practice.tipo_servizio === "documenti_forniti" && !practice.invia_pratica_al_cliente;
+      // In quell'eccezione gli mandiamo SOLO la mail con la pratica allegata:
+      // è quello che il form promette al rivenditore ("gli inviamo la pratica
+      // tramite mail"), niente WhatsApp.
+      const soloMailAlCliente =
+        practice.tipo_servizio === "documenti_forniti" && practice.invia_pratica_al_cliente === true;
 
       // Email al cliente finale (gated by stage_changed/email; no such rule in DB → defaults to enabled).
       // CON ALLEGATI: recupera tutti i documenti della pratica e li allega base64.
@@ -297,8 +302,11 @@ serve(async (req) => {
         });
       }
 
-      // WA al cliente finale (gated by stage_changed/whatsapp — recensione rule)
-      if (!skipClientMessages && stageWhatsappEnabled && practice.cliente_telefono) {
+      // WA al cliente finale (gated by stage_changed/whatsapp — recensione rule).
+      // Escluso il caso "documenti forniti + invia_pratica_al_cliente": lì il
+      // form promette al rivenditore la sola mail, e il suo cliente non è mai
+      // stato contattato prima — un WhatsApp a sorpresa sarebbe fuori posto.
+      if (!skipClientMessages && !soloMailAlCliente && stageWhatsappEnabled && practice.cliente_telefono) {
         clientWaOk = await invoke("send-whatsapp", {
           to: normalizePhone(practice.cliente_telefono),
           template_name: "pratica_completata",

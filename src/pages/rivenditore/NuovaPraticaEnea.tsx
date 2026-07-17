@@ -876,8 +876,11 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
             )}
           >
             <p className="font-semibold text-sm">A carico mio (rivenditore)</p>
+            {/* Nessun prezzo qui: ogni azienda ha condizioni sue
+                (company_pricing), quindi una cifra fissa a schermo sarebbe
+                sbagliata per la maggior parte dei rivenditori. */}
             <p className="text-xs text-muted-foreground mt-1">
-              <strong className="text-foreground">€ 65 + IVA 22%</strong> — fatturazione mensile posticipata tramite bonifico
+              Fatturazione mensile posticipata tramite bonifico, secondo le condizioni concordate.
             </p>
           </button>
           <button
@@ -1105,9 +1108,10 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       <div className="sticky bottom-4">
         <div className="rounded-xl border bg-card/95 backdrop-blur p-4 shadow-lg flex items-center justify-between gap-4">
           <div className="text-sm text-muted-foreground hidden sm:block">
+            {/* Riepilogo senza importi: il prezzo varia da azienda ad azienda. */}
             {[tipoServizio && (tipoServizio === "servizio_completo" ? "Servizio Completo" : "Documenti Forniti"),
               PRODOTTI.find((p) => p.id === tipoProdotto)?.short,
-              tipoFatturazione === "cliente_finale" ? "CF" : tipoFatturazione === "rivenditore" ? "€65" : undefined,
+              tipoFatturazione === "cliente_finale" ? "CF" : tipoFatturazione === "rivenditore" ? "A carico mio" : undefined,
             ].filter(Boolean).join(" · ")}
           </div>
           <Button

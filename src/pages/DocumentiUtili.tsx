@@ -35,8 +35,8 @@ const DOCUMENT_TEMPLATES: DocumentTemplate[] = [
   {
     id: "asseverazione-neutra",
     title: "Dichiarazione Requisiti Tecnici (modello in bianco)",
-    description: "Asseverazione tecnica neutra da compilare a mano e firmare.",
-    use_case: "Da usare quando serve il modello vuoto. Sulle pratiche che ci affidi, la stessa dichiarazione la trovi già precompilata nella scheda del cliente a lavorazione conclusa.",
+    description: "Modello neutro da compilare a mano e firmare.",
+    use_case: "Da usare quando serve il modello vuoto. Sulle pratiche che ci affidi, la stessa Dichiarazione Requisiti Tecnici la trovi già precompilata nella scheda del cliente a lavorazione conclusa.",
     component: AsseverazioneNeutraTemplate,
   },
 ];

@@ -77,7 +77,7 @@ g1_pointer = f'''<section class="page">
     </div>
     <div class="info-card">
       <h3>▦ Dichiarazione Requisiti Tecnici</h3>
-      <p>L'<strong>asseverazione tecnica già precompilata</strong> con i dati del cliente e della tua azienda. La scarichi, la controlli, la firmi.</p>
+      <p>La <strong>Dichiarazione Requisiti Tecnici già precompilata</strong> con i dati del cliente e della tua azienda. La scarichi, la controlli, la firmi.</p>
     </div>
   </div>
   <div class="callout tip"><div class="ci">💡</div><div>Il dettaglio su come scaricarli è nella guida <strong>«Documenti da scaricare»</strong>, nel menu «Come usare il portale».</div></div>
@@ -186,7 +186,7 @@ g2_archivio = f'''<section class="page">
     </div>
     <div class="info-card">
       <h3>↓ Documenti utili</h3>
-      <p>I <strong>modelli pronti</strong> da scaricare e far firmare al cliente — come la dichiarazione sostitutiva del beneficiario e l'asseverazione tecnica in bianco.</p>
+      <p>I <strong>modelli pronti</strong> da scaricare e far firmare al cliente — come la dichiarazione sostitutiva del beneficiario e la Dichiarazione Requisiti Tecnici in bianco.</p>
     </div>
   </div>
   <div class="callout info"><div class="ci">ⓘ</div><div>Differenza rapida: in <strong>«Le mie Pratiche»</strong> segui le pratiche in corso; in <strong>«Archivio ENEA»</strong> ritrovi quelle già chiuse.</div></div>
@@ -215,7 +215,7 @@ G3 = "Documenti da scaricare"
 g3_cover = cover(
     "GUIDA RAPIDA · AREA RISERVATA",
     "Documenti<br/>da scaricare",
-    "A pratica conclusa trovi la pratica ENEA e l'asseverazione tecnica già precompilata nella scheda del cliente. Ecco dove.",
+    "A pratica conclusa trovi la pratica ENEA e la Dichiarazione Requisiti Tecnici già precompilata nella scheda del cliente. Ecco dove.",
     ["▣ Pratica conclusa", "▦ Asseverazione precompilata"])
 
 g3_where = f'''<section class="page">

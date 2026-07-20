@@ -202,11 +202,39 @@ function FileDownloadLink({ label, path }: { label: string; path: string }) {
     );
   }
 
+  // I documenti generati (dichiarazione tecnica) sono file .html. Supabase
+  // Storage li serve come testo, non come text/html: aperti diretti, Chrome
+  // mostra il sorgente grezzo con i caratteri UTF-8 sballati invece del
+  // documento. Per gli .html quindi scarichiamo il contenuto e lo riapriamo
+  // come Blob text/html — così il browser lo renderizza e i caratteri (—, €,
+  // à…) tornano corretti. Gli altri file (PDF, foto) restano link diretti.
+  const isHtml = /\.html?$/i.test(path);
+
+  const openHtml = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Apriamo la scheda SUBITO (nel gesto del click) per non farla bloccare dal
+    // popup blocker; la riempiamo dopo il fetch.
+    const win = window.open("", "_blank", "noopener,noreferrer");
+    try {
+      const res = await fetch(url);
+      const html = await res.text(); // Response.text() decodifica sempre come UTF-8
+      const blobUrl = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
+      if (win) win.location.href = blobUrl;
+      else window.open(blobUrl, "_blank", "noopener,noreferrer");
+      // Rilascia l'URL dopo che la scheda ha caricato.
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    } catch (err) {
+      console.warn("[FileDownloadLink] apertura html fallita, fallback al link diretto:", err);
+      if (win) win.location.href = url;
+    }
+  };
+
   return (
     <a
       href={url}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={isHtml ? openHtml : undefined}
       className="flex items-center gap-2 text-xs text-primary hover:underline py-0.5"
     >
       <Download className="h-3.5 w-3.5 shrink-0" />

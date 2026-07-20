@@ -213,15 +213,17 @@ function FileDownloadLink({ label, path }: { label: string; path: string }) {
   const openHtml = async (e: React.MouseEvent) => {
     e.preventDefault();
     // Apriamo la scheda SUBITO (nel gesto del click) per non farla bloccare dal
-    // popup blocker; la riempiamo dopo il fetch.
-    const win = window.open("", "_blank", "noopener,noreferrer");
+    // popup blocker; la riempiamo dopo il fetch. NB: niente "noopener" nelle
+    // opzioni, altrimenti window.open ritorna null e non potremmo navigarla
+    // (resterebbe about:blank). Severiamo l'opener a mano per sicurezza.
+    const win = window.open("", "_blank");
+    if (win) { try { win.opener = null; } catch { /* cross-origin, ignora */ } }
     try {
       const res = await fetch(url);
       const html = await res.text(); // Response.text() decodifica sempre come UTF-8
       const blobUrl = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
       if (win) win.location.href = blobUrl;
-      else window.open(blobUrl, "_blank", "noopener,noreferrer");
-      // Rilascia l'URL dopo che la scheda ha caricato.
+      else window.open(blobUrl, "_blank"); // popup bloccato in apertura: riprova
       setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
     } catch (err) {
       console.warn("[FileDownloadLink] apertura html fallita, fallback al link diretto:", err);

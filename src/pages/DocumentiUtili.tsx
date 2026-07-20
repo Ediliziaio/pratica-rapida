@@ -65,15 +65,40 @@ function DocumentRow({ template }: { template: DocumentTemplate }) {
   const Component = template.component;
 
   /**
-   * Stampa solo il documento in print mode usando una @media print rule che
-   * nasconde tutto tranne `.printable-area`. Vedi index.css.
+   * Stampa il documento in una finestra ISOLATA.
+   *
+   * Il vecchio metodo (classe `.printing-document` + `.printable-area` in
+   * position:absolute su @media print) tagliava i documenti di più pagine a
+   * una sola: gli elementi assoluti non si spezzano tra le pagine in Chrome.
+   * Qui apriamo una finestra pulita col SOLO documento, copiando i fogli di
+   * stile dell'app (così i template Tailwind restano formattati), e stampiamo
+   * quella: il contenuto fluisce naturalmente su tutte le pagine.
    */
   const handlePrint = () => {
-    document.body.classList.add("printing-document");
-    window.print();
-    // cleanup dopo che il print dialog è chiuso (timeout perché afterprint
-    // non è universalmente supportato)
-    setTimeout(() => document.body.classList.remove("printing-document"), 500);
+    const node = printRef.current;
+    if (!node) return;
+    const win = window.open("", "_blank", "width=900,height=1200");
+    if (!win) return; // popup bloccato
+
+    // Copia <style> e <link rel=stylesheet> dell'app: in dev Vite inietta
+    // <style>, in produzione c'è il CSS linkato — prendiamo entrambi.
+    const styles = Array.from(
+      document.querySelectorAll('style, link[rel="stylesheet"]'),
+    ).map((el) => el.outerHTML).join("\n");
+
+    win.document.open();
+    win.document.write(
+      `<!doctype html><html lang="it"><head><meta charset="utf-8">
+${styles}
+<style>@page { size: A4; margin: 0; } html,body { margin: 0; background: #fff; }</style>
+</head><body>${node.innerHTML}</body></html>`,
+    );
+    win.document.close();
+
+    // Stampa dopo che i CSS linkati sono caricati, altrimenti esce senza stile.
+    const doPrint = () => { win.focus(); win.print(); };
+    if (win.document.readyState === "complete") setTimeout(doPrint, 350);
+    else win.addEventListener("load", () => setTimeout(doPrint, 350));
   };
 
   return (

@@ -1,47 +1,52 @@
 # Tutorial — sorgenti
 
-Sorgenti delle due guide PDF. **Modifica questi HTML, mai i PDF**: i PDF sono generati.
+Sorgenti delle guide PDF. **Modifica gli HTML, mai i PDF**: i PDF sono generati.
 
-Prima d'ora il sorgente viveva solo sul Mac di chi l'aveva fatto e nel repo c'era il solo PDF:
-per cambiare una riga bisognava ricostruire il documento da zero. Adesso sta qui.
+## Le guide
 
 | Sorgente | PDF generato | Dove appare |
 |---|---|---|
 | `sito-web.html` | `public/guida-pratica-enea-sito.pdf` | Sito pubblico, accanto al form di `/area-riservata-vecchia/pratica-enea` |
-| `area-riservata.html` | `public/tutorial-area-riservata.pdf` | Area riservata, ultima voce del menu ("Come usare il portale") |
+| `area-riservata.html` | *(non pubblicato — è la fonte delle pagine)* | Master da cui `build_guide.py` ricava le tre guide dell'area riservata |
+| ↳ `area-riservata-inserire.html` | `public/guida-inserire-pratica-enea.pdf` | Area riservata → menu «Come usare il portale» → *Inserire una pratica ENEA* |
+| ↳ `area-riservata-portale.html` | `public/guida-come-funziona-portale.pdf` | Area riservata → menu «Come usare il portale» → *Come funziona il portale* |
+| ↳ `area-riservata-documenti.html` | `public/guida-documenti-da-scaricare.pdf` | Area riservata → menu «Come usare il portale» → *Documenti da scaricare* |
 
-Le due guide sono separate di proposito: chi arriva dal sito non ha un account e non deve
-leggere della pipeline; chi è nel portale non deve leggere dei campi azienda, che lì non esistono.
+Nell'area riservata «Come usare il portale» è un **sottomenu a tendina** (AppSidebar.tsx,
+`TUTORIAL_NAV_ITEM`) con le tre guide sopra. La guida del sito pubblico è separata.
 
 ## Rigenerare i PDF
 
 Serve solo Google Chrome. Da questa cartella:
 
 ```bash
+python3 build_guide.py   # ricompone le 3 guide area-riservata-*.html da area-riservata.html
+
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-"$CHROME" --headless=new --no-pdf-header-footer --virtual-time-budget=4000 \
-  --print-to-pdf="../public/guida-pratica-enea-sito.pdf" "sito-web.html"
-"$CHROME" --headless=new --no-pdf-header-footer --virtual-time-budget=4000 \
-  --print-to-pdf="../public/tutorial-area-riservata.pdf" "area-riservata.html"
+gen() { "$CHROME" --headless=new --no-pdf-header-footer --virtual-time-budget=4000 --print-to-pdf="$2" "$1"; }
+gen sito-web.html                 ../public/guida-pratica-enea-sito.pdf
+gen area-riservata-inserire.html  ../public/guida-inserire-pratica-enea.pdf
+gen area-riservata-portale.html   ../public/guida-come-funziona-portale.pdf
+gen area-riservata-documenti.html ../public/guida-documenti-da-scaricare.pdf
 ```
 
-Poi committa sia gli HTML sia i PDF: sono i PDF che vengono serviti.
+Poi committa gli HTML e i PDF: sono i PDF che vengono serviti.
 
 ## Come sono fatti
 
+- Le tre guide dell'area riservata sono **composte** da `build_guide.py`: riusa le pagine di
+  `area-riservata.html` (byte-esatte) e aggiunge le pagine nuove (copertine, panoramiche,
+  dashboard, archivio) definite nello script. Piè di pagina e numerazione li ricalcola lui.
+  Quindi: per cambiare un passo condiviso → modifica `area-riservata.html`; per cambiare la
+  struttura o le pagine nuove di una guida → modifica `build_guide.py`.
 - Una `<section class="page">` = una pagina A4 (`@page { size: A4; margin: 0 }`).
-- I mockup del portale sono **HTML/CSS, non screenshot**: si aggiornano modificando il markup.
-  Il CSS sta nel `<head>` di ciascun file — `sito-web.html` nasce come copia di quello di
-  `area-riservata.html`, quindi se tocchi lo stile ricordati che sono due file.
-- I loghi sono i PNG di questa cartella, referenziati relativi: Chrome li carica dal disco,
-  quindi genera i PDF **da dentro questa cartella**.
-- I numeri di pagina nei footer sono scritti a mano: se aggiungi o togli una pagina, risistemali.
+- I mockup del portale sono **HTML/CSS, non screenshot**.
+- I loghi sono i PNG di questa cartella: genera i PDF **da dentro questa cartella**.
 
 ## Contenuti da tenere allineati all'app
 
-Se cambiano nel portale, vanno aggiornati qui:
-
-- Nomi delle colonne **lato rivenditore** (`pipeline_stages.name_reseller`), non quelli interni:
-  il rivenditore vede "Pratica inviata", non "Recensione".
+- Nomi delle colonne **lato rivenditore** (`pipeline_stages.name_reseller`): il rivenditore
+  vede "Pratica inviata", non "Recensione".
+- Sezioni della Dashboard, dell'Archivio e di Documenti utili, se cambiano nel portale.
 - Prodotti disponibili e documenti richiesti per prodotto.
-- Prezzo del servizio (oggi € 65 + IVA 22%) e sezioni del form pubblico.
+- Niente prezzi nelle guide dell'area riservata: il costo varia per ogni rivenditore.

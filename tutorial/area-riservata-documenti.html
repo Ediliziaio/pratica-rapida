@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>Documenti da scaricare — Guida rivenditori</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body { margin: 0; padding: 0; font-family: -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif; color: #111827; }
+  :root {
+    --green: #00843D;
+    --green-dark: #076430;
+    --green-50: #E6F3EC;
+    --green-100: #CFE7DA;
+    --border: #E5E7EB;
+    --muted: #6B7280;
+    --amber: #F59E0B;
+    --amber-50: #FEF3C7;
+    --blue: #3B82F6;
+    --blue-50: #EFF6FF;
+    --purple: #8B5CF6;
+  }
+  .page {
+    width: 210mm; height: 297mm; padding: 22mm 20mm;
+    page-break-after: always; position: relative; background: #fff;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  /* Cover */
+  .cover { background: linear-gradient(160deg, #076430 0%, #00843D 55%, #0d6b34 100%); color: #fff; padding: 22mm 20mm; }
+  .cover .logo img { height: 15mm; display: block; }
+  .cover .kicker { margin-top: 130mm; font-size: 9pt; letter-spacing: 3pt; color: rgba(255,255,255,0.85); text-transform: uppercase; }
+  .cover h1 { font-size: 40pt; line-height: 1.05; margin: 4mm 0 4mm; font-weight: 800; letter-spacing: -0.5pt; }
+  .cover .lead { font-size: 12pt; line-height: 1.5; max-width: 140mm; color: rgba(255,255,255,0.95); }
+  .cover .chips { margin-top: 8mm; display: flex; gap: 4mm; flex-wrap: wrap; }
+  .cover .chip { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 999px; padding: 2.5mm 5mm; font-size: 9.5pt; }
+  .cover .footer-row { position: absolute; bottom: 18mm; left: 20mm; right: 20mm; display: flex; justify-content: space-between; align-items: center; padding-top: 5mm; border-top: 1px solid rgba(255,255,255,0.3); font-size: 9pt; }
+
+  /* Common */
+  h2.section-title { font-size: 22pt; margin: 2mm 0 5mm; font-weight: 800; letter-spacing: -0.3pt; }
+  .kicker-box { background: var(--green-50); color: var(--green-dark); padding: 3mm 5mm; border-radius: 3mm; font-size: 9.5pt; font-weight: 600; letter-spacing: 1.2pt; text-transform: uppercase; display: flex; align-items: center; gap: 3mm; margin-bottom: 5mm; }
+  .kicker-box .dot { width: 5mm; height: 5mm; border-radius: 999px; background: var(--green); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 8pt; }
+  .lead-p { font-size: 11pt; line-height: 1.55; color: #1F2937; }
+  .lead-p strong { color: #111827; }
+
+  /* Step badge */
+  .step-header { display: flex; align-items: flex-start; gap: 5mm; margin-bottom: 5mm; }
+  .step-num { width: 12mm; height: 12mm; border-radius: 3mm; background: var(--green); color: #fff; font-weight: 800; font-size: 18pt; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-num.gray { background: #6B7280; }
+  .step-header .step-kicker { color: var(--muted); font-size: 9pt; letter-spacing: 1.5pt; text-transform: uppercase; margin-bottom: 1mm; }
+  .step-header h2 { margin: 0; font-size: 20pt; font-weight: 800; letter-spacing: -0.3pt; }
+
+  /* Step list block */
+  .step-list { display: flex; flex-direction: column; gap: 3mm; margin-top: 4mm; }
+  .step-row { display: flex; gap: 4mm; align-items: center; border: 1px solid var(--border); border-radius: 3mm; padding: 3.5mm 4mm; background: #fff; }
+  .step-row .num { width: 8mm; height: 8mm; border-radius: 2mm; background: var(--green); color: #fff; font-weight: 800; font-size: 12pt; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-row .icon { width: 8mm; height: 8mm; background: var(--green-50); border-radius: 2mm; display: flex; align-items: center; justify-content: center; color: var(--green); font-size: 12pt; }
+  .step-row .body { flex: 1; }
+  .step-row .body .title { font-weight: 700; font-size: 11pt; }
+  .step-row .body .sub { font-size: 9.5pt; color: var(--muted); margin-top: 0.5mm; }
+
+  /* Callout boxes */
+  .callout { padding: 4mm 5mm; border-radius: 3mm; font-size: 10pt; line-height: 1.5; margin-top: 4mm; display: flex; gap: 4mm; align-items: flex-start; }
+  .callout .ci { font-size: 12pt; margin-top: 0.5mm; }
+  .callout.tip { background: var(--green-50); color: #064E27; }
+  .callout.info { background: var(--blue-50); color: #1E3A8A; }
+  .callout.warn { background: var(--amber-50); color: #7A4A0B; }
+  .callout.success { background: var(--green-50); color: #064E27; }
+
+  /* Checklist */
+  .checklist { margin-top: 3mm; }
+  .checklist li { list-style: none; font-size: 10pt; line-height: 1.5; margin: 1.5mm 0; padding-left: 6mm; position: relative; }
+  .checklist li::before { content: "✓"; color: var(--green); font-weight: 800; position: absolute; left: 0; }
+  .checklist .chip-inline { background: #F3F4F6; border-radius: 1.5mm; padding: 0.3mm 2mm; font-weight: 600; }
+
+  /* Mockup screenshot */
+  .mockup { border: 1px solid var(--border); border-radius: 3mm; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); position: relative; margin: 3mm 0 5mm; background: #fff; }
+  .mock-shell { display: flex; }
+  .mock-side { width: 44mm; background: var(--green-dark); color: #fff; padding: 4mm 3mm; font-size: 8.5pt; flex-shrink: 0; min-height: 100mm; }
+  .mock-side .brand { padding-bottom: 3mm; border-bottom: 2px solid rgba(255,255,255,0.4); margin-bottom: 4mm; }
+  .mock-side .brand img { width: 36mm; height: auto; display: block; }
+  .mock-side .nav-item { padding: 2mm 3mm; border-radius: 1.5mm; margin: 1mm 0; display: flex; align-items: center; gap: 2mm; font-size: 8pt; }
+  .mock-side .nav-item.active { background: rgba(255,255,255,0.15); font-weight: 700; }
+  .mock-side .nav-item.highlight { border: 2px solid #FB923C; background: rgba(0,0,0,0.2); box-shadow: 0 0 0 2px rgba(251,146,60,0.4); position: relative; }
+  .mock-side .nav-item .ico { width: 4mm; height: 4mm; display: inline-block; }
+  .mock-side .user { position: absolute; bottom: 4mm; left: 3mm; right: 3mm; display: flex; align-items: center; gap: 2mm; font-size: 7.5pt; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 3mm; }
+  .mock-side .avatar { width: 6mm; height: 6mm; border-radius: 999px; background: #F59E0B; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 8pt; }
+
+  .mock-main { flex: 1; padding: 3mm; background: #F9FAFB; min-height: 100mm; }
+  .mock-header { display: flex; align-items: center; gap: 3mm; padding: 2mm 0 3mm; border-bottom: 1px solid var(--border); font-size: 8.5pt; color: #4B5563; }
+  .mock-header .crumb { color: var(--muted); }
+  .mock-header .crumb strong { color: #111827; }
+  .mock-header .crumb-sep { color: #9CA3AF; }
+
+  .mock-card { background: #fff; border: 1px solid var(--border); border-radius: 2mm; padding: 3mm; margin: 2mm 0; }
+  .mock-card .sec-head { display: flex; align-items: center; gap: 2mm; margin-bottom: 2mm; }
+  .mock-card .sec-num { width: 5mm; height: 5mm; border-radius: 999px; background: var(--green); color: #fff; font-size: 7pt; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
+  .mock-card .sec-name { font-weight: 700; font-size: 9pt; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2mm; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2mm; }
+  .btn-mock { border: 1px solid var(--border); border-radius: 2mm; padding: 2mm 3mm; font-size: 7.5pt; background: #fff; }
+  .btn-mock.selected { border-color: var(--green); background: #F0FDF4; }
+  .btn-mock.selected-dark { border-color: #6B7280; background: #F3F4F6; }
+  .btn-mock .title { font-weight: 700; font-size: 8pt; }
+  .btn-mock .sub { font-size: 7pt; color: var(--muted); margin-top: 0.5mm; line-height: 1.35; }
+  .badge-mock { display: inline-block; background: var(--green-50); color: var(--green-dark); font-size: 6.5pt; font-weight: 700; padding: 0.3mm 1.5mm; border-radius: 999px; margin-left: 1mm; }
+  .input-mock { border: 1px solid var(--border); border-radius: 1.5mm; padding: 1.5mm 2mm; font-size: 7.5pt; color: var(--muted); background: #fff; }
+  .label-mock { font-size: 7pt; font-weight: 600; color: #374151; display: block; margin-bottom: 0.7mm; }
+  .req { color: #DC2626; font-weight: 700; }
+
+  /* callout marker over mockup */
+  .marker { position: absolute; width: 7mm; height: 7mm; border-radius: 999px; background: #FB923C; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 10pt; box-shadow: 0 0 0 3px rgba(251,146,60,0.35); }
+  .highlight-box { border: 2px solid #FB923C; border-radius: 2mm; box-shadow: 0 0 0 3px rgba(251,146,60,0.25); }
+
+  /* Table */
+  table { border-collapse: collapse; width: 100%; margin-top: 4mm; font-size: 9.5pt; }
+  thead th { background: var(--green-50); color: var(--green-dark); font-weight: 700; padding: 3mm; text-align: left; border-bottom: 1px solid var(--green-100); }
+  tbody td { padding: 3mm; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.45; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 3mm; }
+  .info-card { border: 1px solid var(--border); border-radius: 3mm; padding: 4mm 5mm; }
+  .info-card.hero { border-color: var(--green); background: var(--green-50); }
+  .info-card h3 { margin: 0 0 2mm; font-size: 12pt; display: flex; align-items: center; gap: 2mm; }
+  .info-card p { margin: 0; font-size: 9.5pt; line-height: 1.5; color: #374151; }
+
+  /* Footer */
+  .foot { position: absolute; bottom: 12mm; left: 20mm; right: 20mm; display: flex; justify-content: space-between; font-size: 8.5pt; color: var(--muted); padding-top: 3mm; border-top: 1px solid var(--border); }
+  .foot .brand { color: var(--green); font-weight: 700; }
+
+  /* Pipeline mock */
+  .pipeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2mm; margin-top: 2mm; }
+  .col { background: #F3F4F6; border-radius: 2mm; padding: 2mm; }
+  .col .col-head { display: flex; align-items: center; justify-content: space-between; font-size: 7.5pt; font-weight: 700; margin-bottom: 2mm; }
+  .col .col-head .dot { width: 2mm; height: 2mm; border-radius: 999px; display: inline-block; margin-right: 1.5mm; }
+  .col .col-count { background: #fff; border-radius: 999px; padding: 0.2mm 1.5mm; font-size: 6.5pt; color: var(--muted); }
+  .k-card { background: #fff; border-radius: 1.5mm; padding: 2mm; font-size: 7.5pt; box-shadow: 0 1px 1px rgba(0,0,0,0.05); margin: 1mm 0; }
+  .k-card .name { font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+  .k-card .prod { color: var(--muted); font-size: 6.5pt; margin: 0.5mm 0; }
+  .k-card .status { font-size: 6.5pt; }
+  .k-card .status .dot { width: 1.5mm; height: 1.5mm; border-radius: 999px; display: inline-block; margin-right: 1mm; vertical-align: middle; }
+  .k-card .brand-tag { font-size: 6pt; font-weight: 800; padding: 0.2mm 1mm; border-radius: 1mm; background: #DBEAFE; color: #1D4ED8; }
+
+  /* Success screen */
+  .success-page { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6mm; text-align: center; height: 105mm; }
+  .success-icon { width: 22mm; height: 22mm; background: var(--green-50); border-radius: 999px; display: flex; align-items: center; justify-content: center; color: var(--green); font-size: 28pt; margin-bottom: 4mm; }
+
+  /* Final page */
+  .final-hero { text-align: center; margin-top: 90mm; }
+  .final-hero .icon { width: 26mm; height: 26mm; background: var(--green-50); color: var(--green); border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 34pt; margin-bottom: 6mm; }
+  .final-hero h1 { font-size: 34pt; margin: 0 0 5mm; font-weight: 800; letter-spacing: -0.5pt; }
+  .final-hero p { font-size: 11pt; line-height: 1.6; color: #374151; max-width: 120mm; margin: 0 auto; }
+  .contact-card { max-width: 130mm; margin: 10mm auto 0; border: 1px solid var(--border); border-radius: 3mm; padding: 5mm 8mm; display: flex; gap: 12mm; justify-content: center; }
+  .contact-card .col-c .label { font-size: 8pt; letter-spacing: 1.5pt; color: var(--muted); text-transform: uppercase; margin-bottom: 1mm; }
+  .contact-card .col-c .val { font-size: 11pt; font-weight: 700; }
+  .final-logo { position: absolute; bottom: 32mm; left: 0; right: 0; text-align: center; }
+  .final-logo img { height: 12mm; display: inline-block; }
+
+  .highlight-inline { background: #FEF3C7; padding: 0 1mm; border-radius: 1mm; }
+
+  /* utility */
+  .flex { display: flex; }
+  .between { justify-content: space-between; }
+  .center { align-items: center; }
+  .gap-2 { gap: 2mm; }
+  .gap-3 { gap: 3mm; }
+  .mt-3 { margin-top: 3mm; }
+  .mt-5 { margin-top: 5mm; }
+  .small { font-size: 9.5pt; }
+  .muted { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<section class="page cover">
+  <div class="logo"><img src="logo-white-1200.png" alt="Pratica Rapida"></div>
+  <div class="kicker">GUIDA RAPIDA · AREA RISERVATA</div>
+  <h1>Documenti<br/>da scaricare</h1>
+  <p class="lead">A pratica conclusa trovi la pratica ENEA e l'asseverazione tecnica già precompilata nella scheda del cliente. Ecco dove.</p>
+  <div class="chips"><span class="chip">▣ Pratica conclusa</span><span class="chip">▦ Asseverazione precompilata</span></div>
+  <div class="footer-row"><div>Area riservata · Portale ENEA</div><div><strong>app.praticarapida.it</strong></div></div>
+</section>
+
+<section class="page">
+  <div class="kicker-box"><span class="dot">▦</span>LA SCHEDA DEL CLIENTE</div>
+  <h2 class="section-title">I documenti pronti da scaricare</h2>
+  <p class="lead-p">Quando la lavorazione è conclusa non devi chiedere niente a nessuno: apri la <strong>card del cliente</strong> da «Le mie Pratiche» e nella sezione <strong>Documenti</strong> trovi tutto già pronto, da scaricare e stampare.</p>
+
+  <div class="mockup" style="position:relative">
+    <div style="padding:4mm 4mm 5mm">
+      <div style="border-bottom:1px solid var(--border);padding-bottom:2.5mm;margin-bottom:3mm">
+        <div style="font-size:10pt;font-weight:800">Mario Rossi</div>
+        <div style="font-size:7.5pt;color:var(--muted);margin-top:0.5mm">Infissi / Serramenti · <span style="color:#10B981;font-weight:700">Pratica inviata</span></div>
+      </div>
+
+      <div style="font-size:7pt;font-weight:700;color:var(--muted);letter-spacing:1.2pt;margin-bottom:2mm">DOCUMENTI</div>
+
+      <div style="font-size:8pt;font-weight:700;margin:2mm 0 1mm">Fatture</div>
+      <div class="mock-card" style="display:flex;align-items:center;gap:2mm;padding:2mm 3mm;margin:1mm 0">
+        <span style="color:var(--muted)">▤</span><span style="font-size:7.5pt">Fattura 1</span>
+        <span style="margin-left:auto;color:var(--green);font-size:7pt">↓ Scarica</span>
+      </div>
+
+      <div style="font-size:8pt;font-weight:700;margin:3mm 0 1mm">Documenti precompilati</div>
+      <div class="mock-card highlight-box" style="display:flex;align-items:center;gap:2mm;padding:2mm 3mm;margin:1mm 0">
+        <span style="color:var(--green)">▦</span><span style="font-size:7.5pt">Dichiarazione Requisiti Tecnici — Mario Rossi</span>
+        <span style="margin-left:auto;color:var(--green);font-size:7pt">↓ Scarica</span>
+      </div>
+
+      <div style="font-size:8pt;font-weight:700;margin:3mm 0 1mm">Pratica ENEA conclusa</div>
+      <div class="mock-card highlight-box" style="display:flex;align-items:center;gap:2mm;padding:2mm 3mm;margin:1mm 0">
+        <span style="color:var(--green)">▣</span><span style="font-size:7.5pt">Pratica conclusa 1</span>
+        <span style="margin-left:auto;color:var(--green);font-size:7pt">↓ Scarica</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="cards-row" style="margin-top:4mm">
+    <div class="info-card hero">
+      <h3>▣ Pratica ENEA conclusa</h3>
+      <p>La <strong>ricevuta della pratica inviata ad ENEA</strong>. Compare qui appena la lavorazione è completata: è il documento che il cliente conserva per la detrazione.</p>
+    </div>
+    <div class="info-card">
+      <h3>▦ Dichiarazione Requisiti Tecnici</h3>
+      <p>L'<strong>asseverazione tecnica già precompilata</strong> con i dati del cliente e della tua azienda. La scarichi, la controlli, la <strong>timbri e firmi</strong>.</p>
+    </div>
+  </div>
+<div class="foot"><div>Guida rapida — Documenti da scaricare</div><div><span class="brand">app.praticarapida.it</span> · Pag. 2</div></div>
+</section>
+
+<section class="page">
+  <div class="kicker-box"><span class="dot">▦</span>PASSO PASSO</div>
+  <h2 class="section-title">Come arrivarci in 3 passi</h2>
+  <div class="step-list">
+    <div class="step-row"><div class="num">1</div><div class="body"><div class="title">Apri «Le mie Pratiche»</div><div class="sub">Dal menu a sinistra del portale.</div></div></div>
+    <div class="step-row"><div class="num">2</div><div class="body"><div class="title">Clicca sulla card del cliente</div><div class="sub">La pratica conclusa è nella colonna «Pratica inviata».</div></div></div>
+    <div class="step-row"><div class="num">3</div><div class="body"><div class="title">Scorri fino a «Documenti»</div><div class="sub">Lì trovi i file pronti, ognuno col suo pulsante «Scarica».</div></div></div>
+  </div>
+  <div class="callout warn"><div class="ci">⚠</div><div>Se sulla card non vedi ancora i documenti, la pratica non è ancora stata chiusa da noi: compaiono appena la lavorazione è completata.</div></div>
+  <div class="foot"><div>Guida rapida — Documenti da scaricare</div><div><span class="brand">app.praticarapida.it</span> · Pag. 3</div></div>
+</section>
+
+<section class="page">
+  <div class="final-hero">
+    <div class="icon">✓</div>
+    <h1>Tutto a portata di click</h1>
+    <p>I documenti restano sempre nella scheda del cliente: puoi riscaricarli quando vuoi. Per caricare una nuova pratica o capire il portale, vedi le altre guide.</p>
+    <div class="contact-card">
+      <div class="col-c"><div class="label">PORTALE</div><div class="val" style="color:#111">app.praticarapida.it</div></div>
+      <div class="col-c"><div class="label">ALTRE GUIDE</div><div class="val" style="color:var(--green)">Menu «Come usare il portale»</div></div>
+    </div>
+  </div>
+  <div class="final-logo"><img src="logo-green-1200.png" alt="Pratica Rapida"></div>
+  <div class="foot"><div>Guida rapida — Documenti da scaricare</div><div><span class="brand">app.praticarapida.it</span> · Pag. 4</div></div>
+</section>
+
+</body>
+</html>

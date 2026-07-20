@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Download, FileText, Printer } from "lucide-react";
 import AttoNotorioTemplate from "@/components/documenti/AttoNotorioTemplate";
+import AsseverazioneNeutraTemplate from "@/components/documenti/AsseverazioneNeutraTemplate";
 
 interface DocumentTemplate {
   id: string;
@@ -30,6 +31,13 @@ const DOCUMENT_TEMPLATES: DocumentTemplate[] = [
     description: "Da far firmare al cliente finale beneficiario della detrazione fiscale.",
     use_case: "Vale per tutti gli interventi: serramenti, schermature solari, pompe di calore, ecc. Da scaricare prima di consegnare la pratica.",
     component: AttoNotorioTemplate,
+  },
+  {
+    id: "asseverazione-neutra",
+    title: "Dichiarazione Requisiti Tecnici (modello in bianco)",
+    description: "Asseverazione tecnica neutra da compilare a mano e firmare.",
+    use_case: "Da usare quando serve il modello vuoto. Sulle pratiche che ci affidi, la stessa dichiarazione la trovi già precompilata nella scheda del cliente a lavorazione conclusa.",
+    component: AsseverazioneNeutraTemplate,
   },
 ];
 

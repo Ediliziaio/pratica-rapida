@@ -49,6 +49,23 @@ type NavItem = {
   badge?: number;
   /** If true, render as external anchor opening in a new tab (used for static PDFs). */
   external?: boolean;
+  /** If present, the row is a toggle that expands to show these sub-items
+   *  (used for "Come usare il portale" → le tre guide). Il parent non naviga. */
+  subItems?: NavItem[];
+};
+
+// Voce "Come usare il portale": una tendina con le tre guide PDF (statiche in
+// /public, aperte in scheda nuova). Definita una volta e riusata nei due rami
+// di menu (rivenditore standalone / azienda).
+const TUTORIAL_NAV_ITEM: NavItem = {
+  title: "Come usare il portale",
+  url: "#tutorial",
+  icon: BookOpen,
+  subItems: [
+    { title: "Inserire una pratica ENEA", url: "/guida-inserire-pratica-enea.pdf", icon: FilePlus, external: true },
+    { title: "Come funziona il portale", url: "/guida-come-funziona-portale.pdf", icon: BookOpen, external: true },
+    { title: "Documenti da scaricare", url: "/guida-documenti-da-scaricare.pdf", icon: Download, external: true },
+  ],
 };
 
 type NavGroup = {
@@ -62,6 +79,12 @@ type NavGroup = {
 
 function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   const { pathname } = useLocation();
+
+  // Voce con sotto-guide (es. "Come usare il portale"): è un toggle, non un
+  // link. Delegata a un componente dedicato per non appesantire il caso comune.
+  if (item.subItems && item.subItems.length > 0) {
+    return <NavItemWithSub item={item} collapsed={collapsed} />;
+  }
 
   // Explicit active logic: with end=true → exact match, else prefix match
   const isActive = item.end
@@ -118,6 +141,49 @@ function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
   }
 
   return link;
+}
+
+// ── Nav item with expandable sub-items (dropdown a tendina) ────────────────────
+
+function NavItemWithSub({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
+  const [open, setOpen] = useState(false);
+
+  // In modalità compatta il parent non ha dove espandersi: mostriamo solo le
+  // sotto-guide come icone (stesso approccio del CollapsibleGroup compatto).
+  if (collapsed) {
+    return (
+      <>
+        {item.subItems!.map((sub) => (
+          <NavItemRow key={sub.url + sub.title} item={sub} collapsed />
+        ))}
+      </>
+    );
+  }
+
+  const rowClassName =
+    "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-white hover:bg-white/[0.15] hover:text-white";
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger asChild>
+        <button className={rowClassName}>
+          <item.icon className="h-[1.05rem] w-[1.05rem] shrink-0 transition-all duration-200 group-hover:scale-110" />
+          <span className="truncate flex-1 text-left">{item.title}</span>
+          <ChevronDown
+            className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${open ? "rotate-0" : "-rotate-90"}`}
+          />
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        {/* Sotto-guide rientrate, con una guida verticale sul bordo sinistro. */}
+        <div className="ml-4 mt-0.5 border-l border-white/15 pl-2">
+          {item.subItems!.map((sub) => (
+            <NavItemRow key={sub.url + sub.title} item={sub} collapsed={false} />
+          ))}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
 }
 
 // ── Plain group (no label, no collapsible) ─────────────────────────────────────
@@ -289,12 +355,8 @@ export function AppSidebar() {
         ],
       });
     }
-    // Tutorial rivenditori — sempre come ultima voce, standalone senza label
-    groups.push({
-      items: [
-        { title: "Come usare il portale", url: "/tutorial-area-riservata.pdf", icon: BookOpen, external: true },
-      ],
-    });
+    // Tutorial rivenditori — voce a tendina con le tre guide (ultima voce).
+    groups.push({ items: [TUTORIAL_NAV_ITEM] });
   } else {
     // Aziende E rivenditori legacy condividono lo STESSO menu — la doppia
     // diramazione precedente era un bug: il branch `isReseller(roles)` veniva
@@ -312,7 +374,7 @@ export function AppSidebar() {
           { title: "Nuova Pratica ENEA", url: "/enea/nuova", icon: FilePlus, end: true },
           { title: "Archivio ENEA", url: "/enea/archivio", icon: Archive },
           { title: "Documenti utili", url: "/documenti-utili", icon: Download },
-          { title: "Come usare il portale", url: "/tutorial-area-riservata.pdf", icon: BookOpen, external: true },
+          TUTORIAL_NAV_ITEM,
         ],
       },
     ];

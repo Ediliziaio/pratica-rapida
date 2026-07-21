@@ -56,6 +56,7 @@ const Automazioni = lazy(() => import("./pages/admin/Automazioni"));
 const EneaDashboard = lazy(() => import("./pages/EneaDashboard"));
 const ComunicazioniLog = lazy(() => import("./pages/ComunicazioniLog"));
 const CalendarioChiamate = lazy(() => import("./pages/CalendarioChiamate"));
+const ChiamateDaFare = lazy(() => import("./pages/ChiamateDaFare"));
 const ImpostazioniCampi = lazy(() => import("./pages/admin/ImpostazioniCampi"));
 const PromoManager = lazy(() => import("./pages/admin/PromoManager"));
 const AdminNews = lazy(() => import("./pages/AdminNews"));
@@ -328,6 +329,7 @@ const App = () => (
                 <Route path="/admin/automazioni" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><Automazioni /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/comunicazioni" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><ComunicazioniLog /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/calendario" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><CalendarioChiamate /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/chiamate" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><ChiamateDaFare /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/promo" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><PromoManager /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/news" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><AdminNews /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/clienti" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><ClientiAdmin /></RoleGuard></ProtectedRoute>} />

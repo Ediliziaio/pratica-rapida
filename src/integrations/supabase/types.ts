@@ -1164,6 +1164,8 @@ export interface EneaPractice {
   pagamento_stato: "non_pagata" | "pagata" | "in_verifica" | "rimborsata" | null
   data_incasso: string | null
   dati_form: Record<string, unknown> | null  // dati estesi compilati dal cliente nel form pubblico
+  // Coda "Chiamate": chiamante assegnato ('samuele' | 'giuliano' | null). Solo interno.
+  chiamate_assegnato_a: string | null
   created_at: string
   updated_at: string
 }

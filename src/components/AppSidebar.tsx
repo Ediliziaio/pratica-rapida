@@ -22,6 +22,7 @@ import {
   Download,
   Activity,
   BookOpen,
+  PhoneCall,
 } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
@@ -286,6 +287,32 @@ export function AppSidebar() {
     },
   });
 
+  // Conteggio clienti "da chiamare": pratiche nelle prime due stage
+  // (inviata / attesa_compilazione) col form non ancora compilato. Badge sulla
+  // voce "Chiamate". Polling 5min: è informativo, non richiede freschezza live.
+  const { data: daChiamare = 0 } = useQuery({
+    queryKey: ["chiamate-da-fare-count"],
+    enabled: internal,
+    refetchInterval: 5 * 60_000,
+    staleTime: 2 * 60_000,
+    queryFn: async () => {
+      const { data: stages, error: stErr } = await supabase
+        .from("pipeline_stages")
+        .select("id")
+        .in("stage_type", ["inviata", "attesa_compilazione"]);
+      if (stErr || !stages?.length) return 0;
+      const stageIds = stages.map((s) => s.id);
+      const { count, error } = await supabase
+        .from("enea_practices")
+        .select("id", { count: "exact", head: true })
+        .in("current_stage_id", stageIds)
+        .is("form_compilato_at", null)
+        .is("archived_at", null);
+      if (error) return 0;
+      return count ?? 0;
+    },
+  });
+
   // Initials for avatar
   const initials = user?.email?.slice(0, 2).toUpperCase() ?? "PR";
 
@@ -305,6 +332,7 @@ export function AppSidebar() {
         items: [
           { title: "Pratiche", url: "/kanban", icon: Kanban },
           { title: "Attività", url: "/coda-pratiche", icon: ListChecks },
+          { title: "Chiamate", url: "/admin/chiamate", icon: PhoneCall, badge: daChiamare },
           { title: "Automazioni", url: "/admin/automazioni", icon: Zap },
         ],
       },

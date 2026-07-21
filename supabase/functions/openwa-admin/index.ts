@@ -17,6 +17,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { reportError } from "../_shared/error.ts";
+import { getOpenWAConfig, resolveSessionId } from "../_shared/openwa.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -50,16 +51,12 @@ async function requireSuperAdmin(req: Request): Promise<string | null> {
   return hasRole ? user.id : null;
 }
 
-function getCfg() {
-  const baseUrl = Deno.env.get("OPENWA_BASE_URL")?.replace(/\/+$/, "");
-  const apiKey = Deno.env.get("OPENWA_API_KEY");
-  const sessionId = Deno.env.get("OPENWA_SESSION_ID");
-  if (!baseUrl || !apiKey || !sessionId) return null;
-  return { baseUrl, apiKey, sessionId };
-}
+// Config OpenWA: usa lo stesso getter del percorso di invio (include
+// sessionName, necessario per risolvere la sessione per nome).
+type OpenWACfg = NonNullable<ReturnType<typeof getOpenWAConfig>>;
 
 async function callOpenWA(
-  cfg: NonNullable<ReturnType<typeof getCfg>>,
+  cfg: OpenWACfg,
   method: "GET" | "POST",
   path: string,
 ): Promise<{ ok: boolean; status: number; body: Record<string, unknown> }> {
@@ -100,7 +97,14 @@ serve(async (req) => {
     OPENWA_SESSION_ID: !!Deno.env.get("OPENWA_SESSION_ID"),
     OPENWA_WEBHOOK_SECRET: !!Deno.env.get("OPENWA_WEBHOOK_SECRET"),
   };
-  const cfg = getCfg();
+  const cfg = getOpenWAConfig();
+
+  // L'ID sessione in OPENWA_SESSION_ID cambia a ogni riavvio del container
+  // OpenWA: usarlo fisso fa fallire status/qr/restart con 404 "not found"
+  // (è la causa dell'errore "Errore riavvio: not found"). Risolviamo l'ID
+  // REALE per nome, come fa già il percorso di invio (resolveSessionId).
+  // force=true: le azioni admin sono rare, meglio sempre fresco.
+  const sid = cfg ? await resolveSessionId(cfg, true) : "";
 
   try {
     switch (payload.action) {
@@ -108,14 +112,14 @@ serve(async (req) => {
         if (!cfg) {
           return json({ secrets, reachable: false, session: null, error: "Secrets OpenWA mancanti" });
         }
-        const res = await callOpenWA(cfg, "GET", `/sessions/${cfg.sessionId}`);
+        const res = await callOpenWA(cfg, "GET", `/sessions/${sid}`);
         // Auto-recovery: se la sessione risulta disconnessa (es. l'utente ha
         // scollegato il dispositivo dal telefono), riavviala subito così il
         // QR ricompare nel pannello senza intervento manuale. Lo start su
         // una sessione già in avvio risponde 400 → ignorato.
         const st = String(res.body.status ?? "").toLowerCase();
         if (res.ok && ["disconnected", "stopped", "failed", "auth_failed"].includes(st)) {
-          callOpenWA(cfg, "POST", `/sessions/${cfg.sessionId}/start`).catch(() => {});
+          callOpenWA(cfg, "POST", `/sessions/${sid}/start`).catch(() => {});
           (res.body as Record<string, unknown>).status = "initializing";
         }
         return json({
@@ -138,7 +142,7 @@ serve(async (req) => {
 
       case "qr": {
         if (!cfg) return json({ error: "Secrets OpenWA mancanti" }, 400);
-        const res = await callOpenWA(cfg, "GET", `/sessions/${cfg.sessionId}/qr`);
+        const res = await callOpenWA(cfg, "GET", `/sessions/${sid}/qr`);
         const qr = (res.body.qrCode as string | undefined)
           ?? ((res.body.data as { image?: string } | undefined)?.image);
         if (!qr) {
@@ -153,12 +157,20 @@ serve(async (req) => {
 
       case "restart": {
         if (!cfg) return json({ error: "Secrets OpenWA mancanti" }, 400);
-        await callOpenWA(cfg, "POST", `/sessions/${cfg.sessionId}/stop`);
-        const res = await callOpenWA(cfg, "POST", `/sessions/${cfg.sessionId}/start`);
+        await callOpenWA(cfg, "POST", `/sessions/${sid}/stop`);
+        const res = await callOpenWA(cfg, "POST", `/sessions/${sid}/start`);
+        // 404 anche sull'ID risolto = nessuna sessione con quel nome sul
+        // gateway (container ripartito senza sessione). Messaggio chiaro
+        // invece del criptico "not found".
+        const notFound = res.status === 404 || /not\s*found/i.test(String(res.body.error ?? res.body.message ?? ""));
         return json({
           success: res.ok,
           status: res.body.status ?? null,
-          error: res.ok ? null : ((res.body.error as string) ?? (res.body.message as string) ?? `HTTP ${res.status}`),
+          error: res.ok
+            ? null
+            : notFound
+              ? "Nessuna sessione WhatsApp attiva sul server (il gateway è ripartito senza sessione). Va ricreata sul server OpenWA."
+              : ((res.body.error as string) ?? (res.body.message as string) ?? `HTTP ${res.status}`),
         });
       }
 

@@ -25,7 +25,7 @@ import {
   PhoneCall,
 } from "lucide-react";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth, isSuperAdmin, isReseller } from "@/hooks/useAuth";
@@ -146,8 +146,39 @@ function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
 
 // ── Nav item with expandable sub-items (dropdown a tendina) ────────────────────
 
+// Evento pubblico (dispatchato dal pop-up di benvenuto alla chiusura): chiede
+// alla sidebar di rendersi visibile ed evidenziare la voce "Come usare il
+// portale". Gestito da AppSidebar, che è sempre montato.
+export const HIGHLIGHT_TUTORIAL_EVENT = "highlight-tutorial-nav";
+// Evento interno: emesso da AppSidebar DOPO aver aperto la sidebar/drawer, così
+// la voce tutorial (che su mobile monta solo a drawer aperto) è già presente e
+// può espandersi + evidenziarsi.
+const TUTORIAL_EXPAND_EVENT = "highlight-tutorial-nav-inner";
+
 function NavItemWithSub({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   const [open, setOpen] = useState(false);
+  const [highlight, setHighlight] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  // Solo la voce tutorial reagisce all'evento di evidenziazione.
+  const isTutorial = item.url === "#tutorial";
+
+  useEffect(() => {
+    if (!isTutorial) return;
+    const onHighlight = () => {
+      setOpen(true);
+      setHighlight(true);
+      // Scroll in vista dopo che il ramo espanso è stato renderizzato
+      // (setTimeout, non requestAnimationFrame: il btnRef nasce col re-render).
+      window.setTimeout(() => {
+        btnRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 180);
+      // Durata = animazione (2s) + il piccolo ritardo di scroll iniziale.
+      window.setTimeout(() => setHighlight(false), 2200);
+    };
+    window.addEventListener(TUTORIAL_EXPAND_EVENT, onHighlight);
+    return () => window.removeEventListener(TUTORIAL_EXPAND_EVENT, onHighlight);
+  }, [isTutorial]);
 
   // In modalità compatta il parent non ha dove espandersi: mostriamo solo le
   // sotto-guide come icone (stesso approccio del CollapsibleGroup compatto).
@@ -161,13 +192,15 @@ function NavItemWithSub({ item, collapsed }: { item: NavItem; collapsed: boolean
     );
   }
 
-  const rowClassName =
-    "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-white hover:bg-white/[0.15] hover:text-white";
+  const rowClassName = [
+    "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-white hover:bg-white/[0.15] hover:text-white",
+    highlight ? "tutorial-highlight" : "",
+  ].join(" ").trim();
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger asChild>
-        <button className={rowClassName}>
+        <button ref={btnRef} className={rowClassName}>
           <item.icon className="h-[1.05rem] w-[1.05rem] shrink-0 transition-all duration-200 group-hover:scale-110" />
           <span className="truncate flex-1 text-left">{item.title}</span>
           <ChevronDown
@@ -256,9 +289,24 @@ function NavGroups({ groups, collapsed }: { groups: NavGroup[]; collapsed: boole
 
 export function AppSidebar() {
   const { roles, user, signOut } = useAuth();
-  const { state } = useSidebar();
+  const { state, setOpen: setSidebarOpen, setOpenMobile, isMobile } = useSidebar();
   const { isImpersonating } = useCompany();
   const collapsed = state === "collapsed";
+
+  // Pop-up guide → rendi visibile la sidebar, poi (a contenuto montato) chiedi
+  // alla voce tutorial di espandersi/evidenziarsi. Sta qui, non nella voce,
+  // perché su mobile il contenuto del drawer non è montato finché è chiuso.
+  useEffect(() => {
+    const onHighlight = () => {
+      if (isMobile) setOpenMobile(true);
+      else setSidebarOpen(true);
+      window.setTimeout(() => {
+        window.dispatchEvent(new Event(TUTORIAL_EXPAND_EVENT));
+      }, 260);
+    };
+    window.addEventListener(HIGHLIGHT_TUTORIAL_EVENT, onHighlight);
+    return () => window.removeEventListener(HIGHLIGHT_TUTORIAL_EVENT, onHighlight);
+  }, [isMobile, setSidebarOpen, setOpenMobile]);
 
   const superAdmin = isSuperAdmin(roles);
   // admin_interno = company admin → should see the azienda view, NOT the internal staff view

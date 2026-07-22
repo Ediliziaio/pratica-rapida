@@ -257,10 +257,15 @@ function escapeHtml(s: string | null | undefined): string {
     .replace(/'/g, "&#39;");
 }
 
-/** Valore mancante → filetto da riempire a penna. */
-function v(s: string | null | undefined, placeholder = "_______________"): string {
+/**
+ * Valore mancante → riga vuota da riempire a penna, di lunghezza controllata.
+ * `size` ("sm" | "md" | "lg") dimensiona la riga: via/città/ragione sociale
+ * hanno bisogno di più spazio di provincia/civico/CAP.
+ */
+function v(s: string | null | undefined, size: "sm" | "md" | "lg" = "md"): string {
   const t = (s ?? "").trim();
-  return t ? escapeHtml(t) : placeholder;
+  if (t) return escapeHtml(t);
+  return `<span class="blank blank-${size}"></span>`;
 }
 
 function cb(checked: boolean, label: string): string {
@@ -311,8 +316,12 @@ const CSS = `
 .dichiarazione-doc h1 { font-size: 14pt; text-align: center; font-weight: bold; margin: 0 0 4px; }
 .dichiarazione-doc h2 { font-size: 13pt; text-align: center; font-weight: bold; margin: 24px 0; }
 .dichiarazione-doc .subtitle { text-align: center; font-style: italic; font-size: 9pt; margin-bottom: 24px; line-height: 1.4; }
-.dichiarazione-doc p { margin: 0 0 12px; line-height: 1.5; }
+.dichiarazione-doc p { margin: 0 0 12px; line-height: 1.8; }
 .dichiarazione-doc strong { font-weight: bold; }
+.dichiarazione-doc .blank { display: inline-block; border-bottom: 1px solid #000; min-width: 40mm; vertical-align: baseline; }
+.dichiarazione-doc .blank-sm { min-width: 14mm; }
+.dichiarazione-doc .blank-md { min-width: 42mm; }
+.dichiarazione-doc .blank-lg { min-width: 72mm; }
 .dichiarazione-doc .section-title { font-weight: 600; margin: 12px 0 8px; }
 .dichiarazione-doc .cb { display: flex; align-items: flex-start; gap: 8px; padding: 4px 0; }
 .dichiarazione-doc .cb .box { display: inline-block; width: 14px; height: 14px; border: 1px solid #000; text-align: center; font-size: 10px; line-height: 13px; font-weight: bold; flex-shrink: 0; margin-top: 3px; }
@@ -325,6 +334,16 @@ const CSS = `
 .dichiarazione-doc .tbl-mass .sub { background: #f7f7f7; color: #555; }
 .dichiarazione-doc .firma { margin-top: 56px; }
 .dichiarazione-doc .firma .riga { border-top: 1px solid #000; width: 60mm; margin-top: 28px; }
+
+/* ── Impaginazione stampa: evita che elementi coerenti vengano spezzati a
+   metà pagina. Attivo sia in stampa reale sia nell'anteprima paginata. */
+.dichiarazione-doc p { orphans: 3; widows: 3; }
+.dichiarazione-doc h1, .dichiarazione-doc h2, .dichiarazione-doc .section-title { break-after: avoid; page-break-after: avoid; }
+.dichiarazione-doc .tbl, .dichiarazione-doc .cb, .dichiarazione-doc .firma { break-inside: avoid; page-break-inside: avoid; }
+.dichiarazione-doc .tbl tr, .dichiarazione-doc .tbl td { break-inside: avoid; page-break-inside: avoid; }
+/* La casella + tabella trasmittanza e la casella importo + tabella massimali
+   devono restare col titolo che le introduce: raggruppate anche loro. */
+.dichiarazione-doc .section-title + .cb { break-before: avoid; page-break-before: avoid; }
 `.trim();
 
 /**
@@ -340,9 +359,9 @@ export function renderDichiarazioneBody(data: DichiarazioneTecnicaData): string 
 <h1>DICHIARAZIONE REQUISITI TECNICI</h1>
 <p class="subtitle">Dichiarazione sostitutiva di atto di notorietà (articoli 47, 75, 76 del D.P.R. n. 445 del 28 Dicembre 2000) resa in sostituzione del tecnico abilitato (art. 8 comma 1 e all'allegato A, punto 2.1 Decreto requisiti tecnici anno 2020).</p>
 
-<p>La <strong>${v(data.azienda_nome)}</strong> con sede legale a <strong>${v(data.azienda_citta, "______")} (${v(data.azienda_provincia, "__")})</strong> in <strong>${v(data.azienda_via, "______")}</strong> numero <strong>${v(data.azienda_civico, "__")}</strong>, Partita IVA <strong>${v(data.azienda_piva)}</strong>.</p>
+<p>La <strong>${v(data.azienda_nome, "lg")}</strong> con sede legale a <strong>${v(data.azienda_citta, "md")} (${v(data.azienda_provincia, "sm")})</strong> in <strong>${v(data.azienda_via, "lg")}</strong> numero <strong>${v(data.azienda_civico, "sm")}</strong>, Partita IVA <strong>${v(data.azienda_piva, "md")}</strong>.</p>
 
-<p>Dichiara che ha eseguito un intervento di fornitura e/o installazione di infissi e accessori e/o fornitura e/o installazione di schermature solari e accessori presso l'immobile sito a <strong>${v(data.immobile_citta, "______")} (${v(data.immobile_provincia, "__")})</strong> Cap <strong>${v(data.immobile_cap, "_____")}</strong>, in <strong>${v(data.immobile_via, "______")}</strong> numero <strong>${v(data.immobile_civico, "__")}</strong>, su richiesta del/della Sig./Sig.ra <strong>${cliente ? escapeHtml(cliente) : "_______________"}</strong>, residente a <strong>${v(data.cliente_citta, "______")}</strong> in <strong>${v(data.cliente_via, "______")}</strong> numero <strong>${v(data.cliente_civico, "__")}</strong>, C.F. <strong>${v(data.cliente_cf)}</strong>.</p>
+<p>Dichiara che ha eseguito un intervento di fornitura e/o installazione di infissi e accessori e/o fornitura e/o installazione di schermature solari e accessori presso l'immobile sito a <strong>${v(data.immobile_citta, "md")} (${v(data.immobile_provincia, "sm")})</strong> Cap <strong>${v(data.immobile_cap, "sm")}</strong>, in <strong>${v(data.immobile_via, "lg")}</strong> numero <strong>${v(data.immobile_civico, "sm")}</strong>, su richiesta del/della Sig./Sig.ra <strong>${cliente ? escapeHtml(cliente) : `<span class="blank blank-lg"></span>`}</strong>, residente a <strong>${v(data.cliente_citta, "md")}</strong> in <strong>${v(data.cliente_via, "lg")}</strong> numero <strong>${v(data.cliente_civico, "sm")}</strong>, C.F. <strong>${v(data.cliente_cf, "md")}</strong>.</p>
 
 <h2>DICHIARA CHE</h2>
 

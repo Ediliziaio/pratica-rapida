@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { NotificationBell } from "@/components/NotificationBell";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { DisclaimerBanner } from "@/components/DisclaimerBanner";
+import { GuideWelcomeDialog } from "@/components/GuideWelcomeDialog";
 import { useCompany } from "@/hooks/useCompany";
 import { Building2, X, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -69,6 +70,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
           <DisclaimerBanner />
         </main>
+        <GuideWelcomeDialog />
       </div>
     </SidebarProvider>
   );

@@ -162,6 +162,18 @@
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
 }
 
+/* Evidenziazione voce "Come usare il portale": una singola accensione/
+   spegnimento graduale (~2s), niente lampeggio ripetuto. */
+@keyframes tutorial-glow {
+  0%   { box-shadow: 0 0 0 0 rgba(110, 231, 183, 0);   background-color: rgba(255, 255, 255, 0); }
+  50%  { box-shadow: 0 0 0 2px rgba(110, 231, 183, 0.9); background-color: rgba(255, 255, 255, 0.16); }
+  100% { box-shadow: 0 0 0 0 rgba(110, 231, 183, 0);   background-color: rgba(255, 255, 255, 0); }
+}
+.tutorial-highlight {
+  animation: tutorial-glow 2s ease-in-out 1;
+  border-radius: 0.75rem;
+}
+
 /* Bell wiggle animation for new notifications */
 @keyframes wiggle {
   0%, 100% { transform: rotate(0deg); }

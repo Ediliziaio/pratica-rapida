@@ -56,9 +56,19 @@ export async function resolveSessionId(cfg: OpenWAConfig, force = false): Promis
   const now = Date.now();
   if (!force && _resolvedSid && now - _resolvedAt < 60_000) return _resolvedSid;
   try {
-    const res = await fetch(`${cfg.baseUrl}/api/sessions`, {
-      headers: { "X-API-Key": cfg.apiKey },
-    });
+    // Timeout: se il gateway è giù/lento questa è la PRIMA fetch → senza bound
+    // appende la function fino al 546. Scaduto → fallback all'ID configurato.
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    let res: Response;
+    try {
+      res = await fetch(`${cfg.baseUrl}/api/sessions`, {
+        headers: { "X-API-Key": cfg.apiKey },
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(t);
+    }
     if (res.ok) {
       const list = (await res.json().catch(() => [])) as Array<{ id?: string; name?: string; status?: string }>;
       if (Array.isArray(list) && list.length > 0) {
@@ -93,23 +103,49 @@ export interface OpenWASendResult {
   raw: Record<string, unknown>;
 }
 
+// Timeout DURO sull'invio: se il gateway è lento o l'origine dietro il tunnel
+// Cloudflare è giù, la fetch resta appesa finché Supabase killa la function
+// (HTTP 546 WORKER_RESOURCE_LIMIT). Con AbortController ritorna invece un
+// errore pulito e loggabile. 25s è ben sotto il limite wall-clock dell'edge.
+const SEND_TIMEOUT_MS = 25000;
+
 async function postOnce(
   cfg: OpenWAConfig,
   sid: string,
   endpoint: string,
   body: Record<string, unknown>,
 ): Promise<OpenWASendResult> {
-  const res = await fetch(
-    `${cfg.baseUrl}/api/sessions/${sid}/messages/${endpoint}`,
-    {
-      method: "POST",
-      headers: {
-        "X-API-Key": cfg.apiKey,
-        "Content-Type": "application/json",
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), SEND_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(
+      `${cfg.baseUrl}/api/sessions/${sid}/messages/${endpoint}`,
+      {
+        method: "POST",
+        headers: {
+          "X-API-Key": cfg.apiKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+        signal: ctrl.signal,
       },
-      body: JSON.stringify(body),
-    },
-  );
+    );
+  } catch (e) {
+    // timeout (abort) o errore rete → errore chiaro invece di hang/546
+    const aborted = e instanceof Error && e.name === "AbortError";
+    return {
+      success: false,
+      messageId: null,
+      error: aborted
+        ? `OpenWA timeout: il gateway non ha risposto entro ${SEND_TIMEOUT_MS / 1000}s (container giù o tunnel non raggiungibile).`
+        : `OpenWA unreachable: ${e instanceof Error ? e.message : String(e)}`,
+      status: 0,
+      raw: {},
+    };
+  } finally {
+    clearTimeout(t);
+  }
   const raw = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   // OpenWA risponde sia { messageId } top-level (versioni recenti) che
   // { data: { messageId } } (formato documentato) — supporta entrambi.
@@ -200,12 +236,24 @@ export async function resolveSendTarget(cfg: OpenWAConfig, phone: string): Promi
       return { chatId: cached.chatId, notOnWhatsApp: cached.chatId === null, verified: true };
     }
   }
+  // Timeout DURO sulla check: getNumberId su Baileys interroga i server
+  // WhatsApp e può essere lento/appendersi. Senza AbortController la fetch
+  // resta appesa finché Supabase killa la function (HTTP 546
+  // WORKER_RESOURCE_LIMIT). Se scade → fallback all'invio non verificato.
+  const CHECK_TIMEOUT_MS = 7000;
   try {
     const sid = await resolveSessionId(cfg);
-    const res = await fetch(
-      `${cfg.baseUrl}/api/sessions/${sid}/contacts/check/${digits}`,
-      { headers: { "X-API-Key": cfg.apiKey } },
-    );
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), CHECK_TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await fetch(
+        `${cfg.baseUrl}/api/sessions/${sid}/contacts/check/${digits}`,
+        { headers: { "X-API-Key": cfg.apiKey }, signal: ctrl.signal },
+      );
+    } finally {
+      clearTimeout(t);
+    }
     if (res.ok) {
       const body = (await res.json().catch(() => ({}))) as { exists?: boolean; whatsappId?: string | null };
       // Numero su WA → usa whatsappId canonico (fallback al @c.us ingenuo se
@@ -215,7 +263,7 @@ export async function resolveSendTarget(cfg: OpenWAConfig, phone: string): Promi
       return { chatId, notOnWhatsApp: !body.exists, verified: true };
     }
   } catch {
-    // rete/parse KO → fallback non verificato sotto
+    // timeout/rete/parse KO → fallback non verificato sotto
   }
   return { chatId: toChatId(phone), notOnWhatsApp: false, verified: false };
 }

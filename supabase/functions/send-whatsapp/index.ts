@@ -287,9 +287,19 @@ serve(async (req) => {
     if (!success) {
       try {
         const sid = await resolveSessionId(cfg);
-        const statusRes = await fetch(`${cfg.baseUrl}/api/sessions/${sid}`, {
-          headers: { "X-API-Key": cfg.apiKey },
-        });
+        // Timeout: evita di riappendere la function proprio nel ramo di errore
+        // (gateway giù → questa fetch senza bound porterebbe al 546).
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 6000);
+        let statusRes: Response;
+        try {
+          statusRes = await fetch(`${cfg.baseUrl}/api/sessions/${sid}`, {
+            headers: { "X-API-Key": cfg.apiKey },
+            signal: ctrl.signal,
+          });
+        } finally {
+          clearTimeout(t);
+        }
         const sess = await statusRes.json().catch(() => ({})) as { status?: string };
         const st = String(sess.status ?? "").toLowerCase();
         if (st && !["connected", "ready", "authenticated", "working"].includes(st)) {

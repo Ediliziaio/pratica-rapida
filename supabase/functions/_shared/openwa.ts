@@ -153,22 +153,105 @@ async function callOpenWA(
   }
 }
 
-export function sendOpenWAText(cfg: OpenWAConfig, phone: string, text: string) {
-  return callOpenWA(cfg, "send-text", { chatId: toChatId(phone), text });
+// ============================================================
+// Risoluzione/validazione numero PRIMA dell'invio.
+//
+// Baileys (motore del gateway rmyndharis/OpenWA) NON garantisce che il
+// `numero@c.us` costruito a mano da toChatId() sia il chatId reale del
+// contatto: per i numeri "freddi" (mai avuta una chat col numero business)
+// l'invio FALLISCE o non consegna in silenzio. Il send endpoint accetta
+// anche numeri non-WhatsApp (risponde comunque 2xx/500 opaco senza
+// messageId), quindi l'unico modo affidabile è validare prima con
+//   GET /api/sessions/{sid}/contacts/check/{numero}
+// che restituisce { number, exists, whatsappId } dove whatsappId è l'id
+// canonico nel formato nativo del motore → è ciò che va usato come chatId.
+// È il metodo raccomandato dalla doc del gateway stesso.
+// ============================================================
+
+/** Cache in-memory dei check numero: getNumberId interroga i server WhatsApp
+ * ed è rate-limited. Positivi validi a lungo (un numero raramente lascia WA),
+ * negativi più brevi (un numero può iscriversi dopo). L'isolate Supabase è
+ * effimero → best-effort per ridurre check ripetuti sullo stesso numero. */
+const _numCache = new Map<string, { chatId: string | null; at: number }>();
+const NUM_TTL_OK = 24 * 60 * 60 * 1000;
+const NUM_TTL_NO = 60 * 60 * 1000;
+
+export interface ResolvedTarget {
+  /** chatId canonico da usare per l'invio, o null se il numero non è su WhatsApp */
+  chatId: string | null;
+  /** true = numero confermato NON su WhatsApp → NON inviare */
+  notOnWhatsApp: boolean;
+  /** true = il gateway ha risposto al check; false = endpoint assente/irraggiungibile → fallback non verificato */
+  verified: boolean;
 }
 
-export function sendOpenWAMedia(
+/**
+ * Valida/risolve il numero col gateway prima dell'invio. Difensivo: se
+ * l'endpoint contacts/check non esiste (gateway più vecchio) o è
+ * irraggiungibile, ricade sul chatId ingenuo (verified=false) per non
+ * regredire rispetto al comportamento attuale.
+ */
+export async function resolveSendTarget(cfg: OpenWAConfig, phone: string): Promise<ResolvedTarget> {
+  const digits = phone.replace(/\D/g, "");
+  const cached = _numCache.get(digits);
+  if (cached) {
+    const ttl = cached.chatId ? NUM_TTL_OK : NUM_TTL_NO;
+    if (Date.now() - cached.at < ttl) {
+      return { chatId: cached.chatId, notOnWhatsApp: cached.chatId === null, verified: true };
+    }
+  }
+  try {
+    const sid = await resolveSessionId(cfg);
+    const res = await fetch(
+      `${cfg.baseUrl}/api/sessions/${sid}/contacts/check/${digits}`,
+      { headers: { "X-API-Key": cfg.apiKey } },
+    );
+    if (res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { exists?: boolean; whatsappId?: string | null };
+      // Numero su WA → usa whatsappId canonico (fallback al @c.us ingenuo se
+      // il gateway non lo restituisce). Non su WA → chatId null (blocca invio).
+      const chatId = body.exists ? (body.whatsappId ?? toChatId(phone)) : null;
+      _numCache.set(digits, { chatId, at: Date.now() });
+      return { chatId, notOnWhatsApp: !body.exists, verified: true };
+    }
+  } catch {
+    // rete/parse KO → fallback non verificato sotto
+  }
+  return { chatId: toChatId(phone), notOnWhatsApp: false, verified: false };
+}
+
+/** Risultato standard per numero confermato non su WhatsApp: fallimento
+ * chiaro invece del 500 opaco del gateway. */
+function notOnWhatsAppResult(phone: string): OpenWASendResult {
+  const digits = phone.replace(/\D/g, "");
+  return {
+    success: false,
+    messageId: null,
+    error: `Numero non su WhatsApp: ${digits} non risulta un account WhatsApp registrato (verificato via contacts/check).`,
+    status: 422,
+    raw: { code: "NUMBER_NOT_ON_WHATSAPP", number: digits },
+  };
+}
+
+export async function sendOpenWAText(cfg: OpenWAConfig, phone: string, text: string): Promise<OpenWASendResult> {
+  const target = await resolveSendTarget(cfg, phone);
+  if (target.notOnWhatsApp) return notOnWhatsAppResult(phone);
+  return callOpenWA(cfg, "send-text", { chatId: target.chatId, text });
+}
+
+export async function sendOpenWAMedia(
   cfg: OpenWAConfig,
   phone: string,
   mediaType: "image" | "document" | "audio" | "video",
   mediaUrl: string,
   opts: { caption?: string; filename?: string } = {},
 ): Promise<OpenWASendResult> {
-  const chatId = toChatId(phone);
+  const target = await resolveSendTarget(cfg, phone);
+  if (target.notOnWhatsApp) return notOnWhatsAppResult(phone);
   // OpenWA SendMediaMessageDto è PIATTO: { chatId, url, caption?, filename? }
   // — NON il formato annidato { image: { url } } dei docs.
   const endpoint = `send-${mediaType}`;
-  const body: Record<string, unknown> = { chatId, url: mediaUrl };
+  const body: Record<string, unknown> = { chatId: target.chatId, url: mediaUrl };
   if (opts.caption && mediaType !== "audio") body.caption = opts.caption;
   if (opts.filename && mediaType === "document") body.filename = opts.filename;
   return callOpenWA(cfg, endpoint, body);

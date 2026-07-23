@@ -496,7 +496,7 @@ export default function PraticaDetail() {
   const brandLabel = brand === "conto_termico" ? "Conto Termico" : "ENEA";
   const brandBadgeClass = brand === "conto_termico" ? "bg-orange-100 text-orange-700" : "bg-blue-100 text-blue-700";
   const cliente = pratica.clienti_finali as ClienteFinale | null;
-  const serviceName = (pratica.service_catalog as any)?.nome;
+  const serviceName = (pratica.service_catalog as { nome?: string } | null)?.nome;
   const pagamentoBadge = PAGAMENTO_BADGE?.[pratica.pagamento_stato as string];
 
   // Only show valid target states for internal users

@@ -168,11 +168,16 @@ serve(async (req) => {
       });
     }
 
-    const pratica = token.pratiche as any;
-    const cliente = pratica?.clienti_finali as any;
-    const nome = cliente ? `${cliente.nome} ${cliente.cognome}`.trim() : "Cliente";
-    const email = cliente?.email as string | null;
-    const telefono = cliente?.telefono as string | null;
+    const pratica = token.pratiche as {
+      clienti_finali?: {
+        nome?: string | null; cognome?: string | null;
+        email?: string | null; telefono?: string | null;
+      } | null;
+    } | null;
+    const cliente = pratica?.clienti_finali ?? null;
+    const nome = cliente ? `${cliente.nome ?? ""} ${cliente.cognome ?? ""}`.trim() : "Cliente";
+    const email = cliente?.email ?? null;
+    const telefono = cliente?.telefono ?? null;
     const tipoPath = TIPO_PATH[token.tipo_modulo] ?? "modulo";
     const moduloUrl = `${APP_URL}/${tipoPath}/${token.token}`;
     const results: Record<string, unknown> = {};

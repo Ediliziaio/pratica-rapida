@@ -171,7 +171,7 @@ async function collectPracticeAttachments(
 }
 
 async function isRuleEnabled(
-  supabase: any,
+  supabase: ReturnType<typeof createClient>,
   triggerEvent: string,
   channel: "email" | "whatsapp",
 ): Promise<boolean> {

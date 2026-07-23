@@ -198,7 +198,7 @@ function OperatorPermissionsPanel({
     mutationFn: async (perms: OperatorPermissions) => {
       const { error } = await supabase
         .from("profiles")
-        .update({ operator_permissions: perms as any })
+        .update({ operator_permissions: perms } as Database["public"]["Tables"]["profiles"]["Update"])
         .eq("id", userId);
       if (error) throw error;
     },
@@ -634,7 +634,7 @@ export default function Utenti() {
                 const isOperatore = roles.some(r => r.role === "operatore");
                 const perms: OperatorPermissions = {
                   ...DEFAULT_OPERATOR_PERMISSIONS,
-                  ...((profile as any).operator_permissions ?? {}),
+                  ...((profile as { operator_permissions?: OperatorPermissions }).operator_permissions ?? {}),
                 };
 
                 return (

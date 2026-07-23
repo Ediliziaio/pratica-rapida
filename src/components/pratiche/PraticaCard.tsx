@@ -7,16 +7,17 @@ import { STATO_CONFIG, PAGAMENTO_BADGE, getAgingDot } from "@/lib/pratiche-confi
 import type { PraticaStato } from "@/lib/pratiche-config";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
+import type { PraticaUI } from "@/types/pratica";
 
 interface ListViewProps {
-  pratiche: any[];
+  pratiche: PraticaUI[];
   navigate: (path: string) => void;
   selectable?: boolean;
   selectedIds?: Set<string>;
   onToggle?: (id: string) => void;
   onDelete?: (id: string) => void;
-  canDelete?: (pratica: any) => boolean;
-  onDuplicate?: (pratica: any) => void;
+  canDelete?: (pratica: PraticaUI) => boolean;
+  onDuplicate?: (pratica: PraticaUI) => void;
   isLoading?: boolean;
 }
 
@@ -81,7 +82,7 @@ export function ListView({
         const pagamento = PAGAMENTO_BADGE[p.pagamento_stato] || PAGAMENTO_BADGE.non_pagata;
         const isSelected = selectedIds?.has(p.id) ?? false;
         const deletable = canDelete ? canDelete(p) : false;
-        const isCT = (p.dati_pratica as any)?.brand === "conto_termico";
+        const isCT = (p.dati_pratica as { brand?: string } | null)?.brand === "conto_termico";
 
         return (
           <div
@@ -128,7 +129,7 @@ export function ListView({
               </div>
               <p className="text-xs text-muted-foreground truncate mt-0.5">
                 {p.clienti_finali
-                  ? `${(p.clienti_finali as any).nome} ${(p.clienti_finali as any).cognome} · `
+                  ? `${p.clienti_finali.nome} ${p.clienti_finali.cognome} · `
                   : ""}
                 {formatDistanceToNow(new Date(p.created_at), { addSuffix: true, locale: it })}
               </p>

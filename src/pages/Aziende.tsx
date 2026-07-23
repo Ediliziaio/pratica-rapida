@@ -115,7 +115,7 @@ export default function Aziende() {
         // Extract actual error message from function response body
         let msg = response.error.message;
         try {
-          const ctx = (response.error as any).context;
+          const ctx = (response.error as { context?: { json: () => Promise<{ error?: string }> } }).context;
           if (ctx) {
             const json = await ctx.json();
             if (json?.error) msg = json.error;

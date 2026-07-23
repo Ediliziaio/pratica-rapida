@@ -18,6 +18,21 @@ import { Plus, Gift, Users, BarChart3, Edit2 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 
+/**
+ * Riga di assegnazione promo come consumata dalla UI. La tabella `client_promos`
+ * non è nei tipi generati (query joinata con `promo_types` e `profiles`), quindi
+ * definiamo qui il subset di campi effettivamente usato invece di ricorrere a `any`.
+ */
+interface ClientPromoRow {
+  id: string;
+  status: string;
+  pratiche_used?: number | null;
+  pratiche_free_remaining?: number | null;
+  expires_at?: string | null;
+  profiles?: { nome?: string | null; cognome?: string | null; email?: string | null } | null;
+  promo_types?: { name?: string | null } | null;
+}
+
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   active:    { label: "Attiva",    className: "bg-green-100 text-green-700 border-green-200" },
   expired:   { label: "Scaduta",   className: "bg-gray-100 text-gray-600 border-gray-200" },
@@ -353,7 +368,7 @@ function AssegnazioniTab() {
             <TableBody>
               {assegnazioni.length === 0 ? (
                 <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nessuna assegnazione</TableCell></TableRow>
-              ) : assegnazioni.map((a: any) => (
+              ) : assegnazioni.map((a: ClientPromoRow) => (
                 <TableRow key={a.id}>
                   <TableCell>
                     <div className="font-medium">{a.profiles?.nome} {a.profiles?.cognome}</div>
@@ -387,9 +402,9 @@ function AssegnazioniTab() {
 function ReportTab() {
   const { data: assegnazioni = [] } = useClientPromos();
 
-  const totFree = assegnazioni.reduce((s: number, a: any) => s + (a.pratiche_used ?? 0), 0);
-  const totActive = assegnazioni.filter((a: any) => a.status === "active").length;
-  const totExhausted = assegnazioni.filter((a: any) => a.status === "exhausted").length;
+  const totFree = assegnazioni.reduce((s: number, a: ClientPromoRow) => s + (a.pratiche_used ?? 0), 0);
+  const totActive = assegnazioni.filter((a: ClientPromoRow) => a.status === "active").length;
+  const totExhausted = assegnazioni.filter((a: ClientPromoRow) => a.status === "exhausted").length;
 
   return (
     <div className="space-y-6">
@@ -421,9 +436,9 @@ function ReportTab() {
             </TableHeader>
             <TableBody>
               {[...assegnazioni]
-                .sort((a: any, b: any) => (b.pratiche_used ?? 0) - (a.pratiche_used ?? 0))
+                .sort((a: ClientPromoRow, b: ClientPromoRow) => (b.pratiche_used ?? 0) - (a.pratiche_used ?? 0))
                 .slice(0, 10)
-                .map((a: any) => (
+                .map((a: ClientPromoRow) => (
                   <TableRow key={a.id}>
                     <TableCell>{a.profiles?.nome} {a.profiles?.cognome}</TableCell>
                     <TableCell>{a.pratiche_used ?? 0}</TableCell>

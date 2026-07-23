@@ -23,7 +23,9 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useOperatorPermissions } from "@/hooks/useOperatorPermissions";
 import { STATO_CONFIG, STATO_ORDER, PAGAMENTO_BADGE, getAgingDot } from "@/lib/pratiche-config";
-import type { PraticaStato } from "@/lib/pratiche-config";
+import type { PraticaStato, StatoConfigItem } from "@/lib/pratiche-config";
+import type { PraticaUI } from "@/types/pratica";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import { BulkActionsBar } from "@/components/pratiche/BulkActionsBar";
 import {
   DndContext, DragEndEvent, DragOverlay, DragStartEvent,
@@ -66,6 +68,12 @@ import {
 
 type ViewMode = "list" | "pipeline" | "table";
 
+/** Operatore interno (subset di profiles usato nella UI). */
+type OperatorRef = { id: string; nome: string; cognome: string };
+
+/** Oggetto mutation minimale: basta `mutate` per invocare l'azione. */
+type MutationLike<TVars> = { mutate: (vars: TVars) => void };
+
 interface FiltersState {
   search: string;
   stato: string;
@@ -96,7 +104,7 @@ function DraggableCard({
   assigneeMap,
   showPricing = true,
 }: {
-  pratica: any;
+  pratica: PraticaUI;
   navigate: (path: string) => void;
   assigneeMap: Record<string, { nome: string; cognome: string }>;
   showPricing?: boolean;
@@ -120,7 +128,7 @@ function DraggableCard({
   const assignee = pratica.assegnatario_id ? assigneeMap[pratica.assegnatario_id] : null;
   const aging = getAgingDot(pratica);
   const pagamento = PAGAMENTO_BADGE[pratica.pagamento_stato] || PAGAMENTO_BADGE.non_pagata;
-  const brandDati = (pratica.dati_pratica as any)?.brand;
+  const brandDati = (pratica.dati_pratica as { brand?: string } | null)?.brand;
 
   return (
     <Card
@@ -150,7 +158,7 @@ function DraggableCard({
         {/* Azienda */}
         <div className="flex items-center gap-1 text-[10px] text-muted-foreground truncate">
           <Building2 className="h-2.5 w-2.5 shrink-0" />
-          <span className="truncate">{(pratica.companies as any)?.ragione_sociale}</span>
+          <span className="truncate">{pratica.companies?.ragione_sociale}</span>
         </div>
         {/* Footer: price + assignee */}
         <div className="flex items-center justify-between gap-1 pt-1 border-t border-border/40">
@@ -205,7 +213,7 @@ function PipelineView({
   showPricing = true,
   cacheKey,
 }: {
-  filtered: any[];
+  filtered: PraticaUI[];
   assigneeMap: Record<string, { nome: string; cognome: string }>;
   navigate: (p: string) => void;
   showPricing?: boolean;
@@ -231,11 +239,11 @@ function PipelineView({
     if (!over) return;
     const praticaId = active.id as string;
     const newStato = over.id as PraticaStato;
-    const oldStato = (active.data.current as any)?.stato as PraticaStato;
+    const oldStato = (active.data.current as { stato?: PraticaStato } | undefined)?.stato as PraticaStato;
     if (oldStato === newStato) return;
 
     // Optimistic update on the server-query cache
-    const patchItems = (items: any[], stato: string) =>
+    const patchItems = (items: PraticaUI[], stato: PraticaStato) =>
       items.map((p) => (p.id === praticaId ? { ...p, stato } : p));
 
     queryClient.setQueryData(cacheKey, (old: AllResult | undefined) =>
@@ -304,7 +312,7 @@ function PipelineView({
               <p className="text-sm font-semibold truncate">{activePratica.titolo}</p>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Building2 className="h-3 w-3 shrink-0" />
-                <span className="truncate">{(activePratica.companies as any)?.ragione_sociale}</span>
+                <span className="truncate">{activePratica.companies?.ragione_sociale}</span>
               </div>
               <p className="text-sm font-bold text-primary">€ {(activePratica.prezzo ?? 0).toFixed(2)}</p>
             </CardContent>
@@ -332,12 +340,12 @@ function ColumnWithDroppable({
   showPricing = true,
 }: {
   stato: string;
-  items: any[];
+  items: PraticaUI[];
   allItemsCount: number;
   remaining: number;
   totalRevenue: number;
   Icon: React.ComponentType<{ className?: string }>;
-  conf: any;
+  conf: StatoConfigItem;
   navigate: (p: string) => void;
   assigneeMap: Record<string, { nome: string; cognome: string }>;
   onLoadMore: () => void;
@@ -653,13 +661,25 @@ function ListCard({
   assignOperator,
   bulkDelete,
   showPricing = true,
-}: any) {
-  const conf = STATO_CONFIG[p.stato];
+}: {
+  p: PraticaUI;
+  isSelected: boolean;
+  onToggle: (id: string) => void;
+  onNavigate: (path: string) => void;
+  assigneeMap: Record<string, { nome: string; cognome: string }>;
+  internalOperators: OperatorRef[];
+  quickChangeStato: MutationLike<{ praticaId: string; stato: PraticaStato }>;
+  quickChangePagamento: MutationLike<{ praticaId: string; pagamentoStato: string }>;
+  assignOperator: MutationLike<{ praticaId: string; assegnatarioId: string | null }>;
+  bulkDelete: MutationLike<string[]>;
+  showPricing?: boolean;
+}) {
+  const conf = STATO_CONFIG[p.stato as PraticaStato];
   const Icon = conf.icon;
   const aging = getAgingDot(p);
   const pagamento = PAGAMENTO_BADGE[p.pagamento_stato] || PAGAMENTO_BADGE.non_pagata;
   const assignee = p.assegnatario_id ? assigneeMap[p.assegnatario_id] : null;
-  const brandDati = (p.dati_pratica as any)?.brand;
+  const brandDati = (p.dati_pratica as { brand?: string } | null)?.brand;
 
   return (
     <Card className={`transition-all ${isSelected ? "ring-2 ring-primary bg-primary/5" : "hover:bg-accent/30"}`}>
@@ -685,8 +705,8 @@ function ListCard({
             )}
           </div>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0 text-xs text-muted-foreground mt-0.5">
-            <span className="flex items-center gap-1"><Building2 className="h-3 w-3" />{(p.companies as any)?.ragione_sociale}</span>
-            {p.clienti_finali && <span>{(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}</span>}
+            <span className="flex items-center gap-1"><Building2 className="h-3 w-3" />{p.companies?.ragione_sociale}</span>
+            {p.clienti_finali && <span>{p.clienti_finali.nome} {p.clienti_finali.cognome}</span>}
             {assignee && <span className="text-primary flex items-center gap-1"><User className="h-3 w-3" />{assignee.nome} {assignee.cognome}</span>}
             <span>{formatDistanceToNow(new Date(p.created_at), { addSuffix: true, locale: it })}</span>
           </div>
@@ -728,7 +748,7 @@ function ListCard({
               <DropdownMenuItem onClick={() => assignOperator.mutate({ praticaId: p.id, assegnatarioId: null })} className="text-sm text-muted-foreground">
                 Nessuno
               </DropdownMenuItem>
-              {internalOperators.map((op: any) => (
+              {internalOperators.map((op) => (
                 <DropdownMenuItem key={op.id} onClick={() => assignOperator.mutate({ praticaId: p.id, assegnatarioId: op.id })} className={`text-sm ${p.assegnatario_id === op.id ? "bg-muted font-medium" : ""}`}>
                   {op.nome} {op.cognome}
                 </DropdownMenuItem>
@@ -876,7 +896,7 @@ export default function AdminPratiche() {
 
   const quickChangePagamento = useMutation({
     mutationFn: async ({ praticaId, pagamentoStato }: { praticaId: string; pagamentoStato: string }) => {
-      const { error } = await supabase.from("pratiche").update({ pagamento_stato: pagamentoStato as any }).eq("id", praticaId);
+      const { error } = await supabase.from("pratiche").update({ pagamento_stato: pagamentoStato as TablesUpdate<"pratiche">["pagamento_stato"] }).eq("id", praticaId);
       if (error) throw error;
     },
     onSuccess: invalidateAll,
@@ -901,7 +921,7 @@ export default function AdminPratiche() {
 
   const bulkChangeStato = useMutation({
     mutationFn: async ({ ids, stato }: { ids: string[]; stato: string }) => {
-      const { error } = await supabase.from("pratiche").update({ stato: stato as any }).in("id", ids);
+      const { error } = await supabase.from("pratiche").update({ stato: stato as TablesUpdate<"pratiche">["stato"] }).in("id", ids);
       if (error) throw error;
     },
     onSuccess: () => { invalidateAll(); clearSelection(); toast({ title: "Stato aggiornato" }); },
@@ -909,7 +929,7 @@ export default function AdminPratiche() {
 
   const bulkChangePagamento = useMutation({
     mutationFn: async ({ ids, pagamento }: { ids: string[]; pagamento: string }) => {
-      const { error } = await supabase.from("pratiche").update({ pagamento_stato: pagamento as any }).in("id", ids);
+      const { error } = await supabase.from("pratiche").update({ pagamento_stato: pagamento as TablesUpdate<"pratiche">["pagamento_stato"] }).in("id", ids);
       if (error) throw error;
     },
     onSuccess: () => { invalidateAll(); clearSelection(); toast({ title: "Pagamento aggiornato" }); },
@@ -942,8 +962,8 @@ export default function AdminPratiche() {
           onClick={() => exportToCSV(
             filtered.map((p) => ({
               titolo: p.titolo,
-              azienda: (p.companies as any)?.ragione_sociale || "",
-              cliente: p.clienti_finali ? `${(p.clienti_finali as any).nome} ${(p.clienti_finali as any).cognome}` : "",
+              azienda: p.companies?.ragione_sociale || "",
+              cliente: p.clienti_finali ? `${p.clienti_finali.nome} ${p.clienti_finali.cognome}` : "",
               stato: p.stato,
               pagamento: p.pagamento_stato,
               prezzo: p.prezzo,

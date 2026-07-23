@@ -123,6 +123,27 @@ type PracticeWithRelations = EneaPractice & {
   companies: { id: string; ragione_sociale: string } | null;
 };
 
+// La tabella `enea_practices` NON è presente nei tipi generati di Supabase
+// (`@/integrations/supabase/types` la modella solo come interfaccia `EneaPractice`
+// ed espone la sola view di lettura `enea_practices_public`). Per gli UPDATE
+// staff-only usiamo quindi un cast mirato — NON `any` — che tipizza esattamente
+// il payload e i metodi realmente usati, mantenendo il type-checking sui campi.
+type EneaPracticeUpdate = {
+  current_stage_id?: string;
+  archived_at?: string | null;
+  pagamento_stato?: string;
+  data_incasso?: string | null;
+};
+interface EneaPracticeMutationClient {
+  from(table: "enea_practices"): {
+    update(values: EneaPracticeUpdate): {
+      in(column: "id", values: string[]): PromiseLike<{ error: { message?: string } | null }>;
+      eq(column: "id", value: string): PromiseLike<{ error: { message?: string } | null }>;
+    };
+  };
+}
+const eneaPracticesDb = () => supabase as unknown as EneaPracticeMutationClient;
+
 type SortOption = "recenti" | "vecchie" | "stage";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -2150,7 +2171,7 @@ export default function KanbanBoard() {
 
   const bulkMoveMutation = useMutation({
     mutationFn: async (args: { ids: string[]; stageId: string }) => {
-      const { error } = await (supabase as any)
+      const { error } = await eneaPracticesDb()
         .from("enea_practices")
         .update({ current_stage_id: args.stageId })
         .in("id", args.ids);
@@ -2173,7 +2194,7 @@ export default function KanbanBoard() {
 
   const bulkArchiveMutation = useMutation({
     mutationFn: async (args: { ids: string[] }) => {
-      const { error } = await (supabase as any)
+      const { error } = await eneaPracticesDb()
         .from("enea_practices")
         .update({ archived_at: new Date().toISOString() })
         .in("id", args.ids);
@@ -2462,7 +2483,7 @@ export default function KanbanBoard() {
   // Inline pagamento_stato update (staff only)
   const updatePagamentoMutation = useMutation({
     mutationFn: async (args: { id: string; pagamento_stato: string }) => {
-      const { error } = await (supabase as any)
+      const { error } = await eneaPracticesDb()
         .from("enea_practices")
         .update({
           pagamento_stato: args.pagamento_stato,

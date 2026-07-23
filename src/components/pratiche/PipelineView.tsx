@@ -10,6 +10,10 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { STATO_ORDER, STATO_CONFIG, canTransition } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
+import type { PraticaUI } from "@/types/pratica";
+
+/** Shape della cache React-Query: lista semplice oppure paginata con `items`. */
+type PraticaCache = PraticaUI[] | { items?: PraticaUI[] } | undefined;
 
 function DroppableColumn({ stato, children, isValidTarget }: { stato: string; children: React.ReactNode; isValidTarget?: boolean }) {
   const { isOver, setNodeRef } = useDroppable({ id: stato });
@@ -30,7 +34,7 @@ function DroppableColumn({ stato, children, isValidTarget }: { stato: string; ch
   );
 }
 
-function DraggableCard({ pratica, navigate }: { pratica: any; navigate: (path: string) => void }) {
+function DraggableCard({ pratica, navigate }: { pratica: PraticaUI; navigate: (path: string) => void }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: pratica.id,
     data: { stato: pratica.stato },
@@ -67,7 +71,7 @@ function DraggableCard({ pratica, navigate }: { pratica: any; navigate: (path: s
         <p className="text-sm font-medium truncate">{pratica.titolo}</p>
         {pratica.clienti_finali && (
           <p className="text-xs text-muted-foreground truncate">
-            {(pratica.clienti_finali as any).nome} {(pratica.clienti_finali as any).cognome}
+            {pratica.clienti_finali?.nome} {pratica.clienti_finali?.cognome}
           </p>
         )}
       </CardContent>
@@ -80,7 +84,7 @@ export function PipelineView({
   navigate,
   cacheKey,
 }: {
-  pratiche: any[];
+  pratiche: PraticaUI[];
   navigate: (path: string) => void;
   /** React-Query cache key used for optimistic updates. Defaults to ["pratiche-server"]. */
   cacheKey?: unknown[];
@@ -99,7 +103,7 @@ export function PipelineView({
   const allByStato = STATO_ORDER.reduce((acc, stato) => {
     acc[stato] = pratiche.filter(p => p.stato === stato);
     return acc;
-  }, {} as Record<PraticaStato, any[]>);
+  }, {} as Record<PraticaStato, PraticaUI[]>);
 
   const activePratica = activeId ? pratiche.find(p => p.id === activeId) : null;
   const activeStato = activePratica?.stato as PraticaStato | undefined;
@@ -115,7 +119,7 @@ export function PipelineView({
 
     const praticaId = active.id as string;
     const newStato = over.id as PraticaStato;
-    const oldStato = (active.data.current as any)?.stato as PraticaStato;
+    const oldStato = (active.data.current as { stato?: PraticaStato } | undefined)?.stato as PraticaStato;
 
     if (oldStato === newStato) return;
 
@@ -126,13 +130,13 @@ export function PipelineView({
     }
 
     // Optimistic update on the correct cache entry
-    queryClient.setQueryData(resolvedCacheKey, (old: any) => {
+    queryClient.setQueryData(resolvedCacheKey, (old: PraticaCache) => {
       if (!old) return old;
       // Support both plain array and { items, ... } shape
       if (Array.isArray(old)) {
-        return old.map((p: any) => p.id === praticaId ? { ...p, stato: newStato } : p);
+        return old.map((p) => p.id === praticaId ? { ...p, stato: newStato } : p);
       }
-      return { ...old, items: old.items?.map((p: any) => p.id === praticaId ? { ...p, stato: newStato } : p) };
+      return { ...old, items: old.items?.map((p) => p.id === praticaId ? { ...p, stato: newStato } : p) };
     });
 
     const { error } = await supabase
@@ -142,12 +146,12 @@ export function PipelineView({
 
     if (error) {
       // Revert on failure
-      queryClient.setQueryData(resolvedCacheKey, (old: any) => {
+      queryClient.setQueryData(resolvedCacheKey, (old: PraticaCache) => {
         if (!old) return old;
         if (Array.isArray(old)) {
-          return old.map((p: any) => p.id === praticaId ? { ...p, stato: oldStato } : p);
+          return old.map((p) => p.id === praticaId ? { ...p, stato: oldStato } : p);
         }
-        return { ...old, items: old.items?.map((p: any) => p.id === praticaId ? { ...p, stato: oldStato } : p) };
+        return { ...old, items: old.items?.map((p) => p.id === praticaId ? { ...p, stato: oldStato } : p) };
       });
       toast.error("Errore nello spostamento della pratica");
     } else {

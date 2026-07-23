@@ -14,6 +14,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { STATO_CONFIG } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
+import type { CompanyRef, ClienteFinaleRef } from "@/types/pratica";
 import { useSLASettings } from "@/hooks/usePlatformSettings";
 import { formatDistanceToNow, differenceInHours } from "date-fns";
 import { it } from "date-fns/locale";
@@ -131,7 +132,7 @@ export default function CodaPratiche() {
   const statoOrder: PraticaStato[] = ["inviata", "in_lavorazione", "in_attesa_documenti"];
 
   const filtered = pratiche.filter(p => {
-    const matchSearch = `${p.titolo} ${(p.companies as any)?.ragione_sociale || ""}`.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = `${p.titolo} ${(p.companies as CompanyRef)?.ragione_sociale || ""}`.toLowerCase().includes(search.toLowerCase());
     const matchStato = filterStato === "all" || p.stato === filterStato;
     return matchSearch && matchStato;
   });
@@ -238,10 +239,10 @@ export default function CodaPratiche() {
                       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mt-0.5">
                         <span className="flex items-center gap-1">
                           <Building2 className="h-3 w-3" />
-                          {(p.companies as any)?.ragione_sociale}
+                          {(p.companies as CompanyRef)?.ragione_sociale}
                         </span>
                         {p.clienti_finali && (
-                          <span>{(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}</span>
+                          <span>{(p.clienti_finali as ClienteFinaleRef)?.nome} {(p.clienti_finali as ClienteFinaleRef)?.cognome}</span>
                         )}
                         {assignee ? (
                           <span className="flex items-center gap-1 text-primary">

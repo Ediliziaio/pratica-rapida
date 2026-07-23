@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+import type { ClienteFinaleRef } from "@/types/pratica";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -99,7 +101,7 @@ export function ModuloCliente({ praticaId }: ModuloClienteProps) {
         .select("clienti_finali(nome, cognome)")
         .eq("id", praticaId)
         .maybeSingle();
-      const cliente = (pratica?.clienti_finali as any);
+      const cliente = pratica?.clienti_finali as ClienteFinaleRef;
       const tokenValue = buildToken(cliente?.nome ?? "", cliente?.cognome ?? "");
 
       const { data, error } = await supabase
@@ -152,8 +154,8 @@ export function ModuloCliente({ praticaId }: ModuloClienteProps) {
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["client-form-tokens", praticaId] });
       toast({ title: "Email inviata al cliente" });
-    } catch (e: any) {
-      toast({ title: "Errore invio email", description: e.message, variant: "destructive" });
+    } catch (e) {
+      toast({ title: "Errore invio email", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
     }
   };
 
@@ -165,8 +167,8 @@ export function ModuloCliente({ praticaId }: ModuloClienteProps) {
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["client-form-tokens", praticaId] });
       toast({ title: "WhatsApp inviato al cliente" });
-    } catch (e: any) {
-      toast({ title: "Errore invio WhatsApp", description: e.message, variant: "destructive" });
+    } catch (e) {
+      toast({ title: "Errore invio WhatsApp", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
     }
   };
 
@@ -315,17 +317,22 @@ export function ModuloCliente({ praticaId }: ModuloClienteProps) {
 }
 
 function CompiledDataPreview({ tokenId, tipoModulo }: { tokenId: string; tipoModulo: TipoModulo }) {
-  const tableMap: Record<TipoModulo, string> = {
+  const tableMap: Record<
+    TipoModulo,
+    "client_form_schermature" | "client_form_infissi" | "client_form_impianto_termico" | "client_form_vepa"
+  > = {
     "schermature-solari": "client_form_schermature",
     "infissi": "client_form_infissi",
     "impianto-termico": "client_form_impianto_termico",
+    "vepa": "client_form_vepa",
   };
 
   const { data } = useQuery({
     queryKey: ["compiled-form", tokenId, tipoModulo],
     queryFn: async () => {
       const table = tableMap[tipoModulo];
-      const { data, error } = await (supabase.from(table as any) as any)
+      const { data, error } = await supabase
+        .from(table)
         .select("*")
         .eq("token_id", tokenId)
         .maybeSingle();

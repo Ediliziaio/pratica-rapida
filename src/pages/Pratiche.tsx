@@ -22,6 +22,7 @@ import {
   useCompanyPraticheKpi,
   type PraticheServerFilters,
 } from "@/hooks/usePraticheServerQuery";
+import type { PraticaUI } from "@/types/pratica";
 import { exportToCSV } from "@/lib/csv-export";
 import { useToast } from "@/hooks/use-toast";
 
@@ -96,7 +97,7 @@ export default function Pratiche() {
       // Deduplicate by client id
       const seen = new Set<string>();
       const unique: { id: string; nome: string; cognome: string }[] = [];
-      data.forEach((row: any) => {
+      data.forEach((row) => {
         const c = row.clienti_finali;
         if (c && !seen.has(c.id)) { seen.add(c.id); unique.push(c); }
       });
@@ -126,7 +127,7 @@ export default function Pratiche() {
     exportToCSV(
       items.map((p) => ({
         titolo:   p.titolo,
-        cliente:  p.clienti_finali ? `${(p.clienti_finali as any).nome} ${(p.clienti_finali as any).cognome}` : "",
+        cliente:  p.clienti_finali ? `${p.clienti_finali.nome} ${p.clienti_finali.cognome}` : "",
         stato:    p.stato,
         pagamento: p.pagamento_stato,
         prezzo:   p.prezzo,
@@ -188,10 +189,10 @@ export default function Pratiche() {
 
   const handleSingleDelete = (id: string) => bulkDelete.mutate([id]);
 
-  const canDelete = (p: any) => p.stato === "bozza";
+  const canDelete = (p: PraticaUI) => p.stato === "bozza";
 
   const duplicatePratica = useMutation({
-    mutationFn: async (pratica: any) => {
+    mutationFn: async (pratica: PraticaUI) => {
       const { data, error } = await supabase.from("pratiche").insert({
         company_id:        pratica.company_id,
         service_id:        pratica.service_id ?? null,
@@ -220,7 +221,7 @@ export default function Pratiche() {
 
   const bulkChangeStato = useMutation({
     mutationFn: async ({ ids, stato }: { ids: string[]; stato: string }) => {
-      const { error } = await supabase.from("pratiche").update({ stato: stato as any }).in("id", ids);
+      const { error } = await supabase.from("pratiche").update({ stato: stato as PraticaStato }).in("id", ids);
       if (error) throw error;
     },
     onSuccess: () => { invalidate(); clearSelection(); toast({ title: "Stato aggiornato" }); },

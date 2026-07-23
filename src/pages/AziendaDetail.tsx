@@ -17,6 +17,8 @@ import {
   Building2, ArrowLeft, FolderOpen, Receipt, Users, FileText, TrendingUp,
   Mail, Phone, MapPin, Download, Tag, RotateCcw, Check, Gift, KeyRound,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import { CompanyPromoManager } from "@/pages/admin/CompanyPromoManager";
 import ChangeCompanyPasswordDialog from "@/components/aziende/ChangeCompanyPasswordDialog";
 import { exportToCSV } from "@/lib/csv-export";
@@ -328,7 +330,7 @@ export default function AziendaDetail() {
   // ── Mutations ────────────────────────────────────────────────────────────────
   const changePagamentoStato = useMutation({
     mutationFn: async ({ praticaId, stato }: { praticaId: string; stato: string }) => {
-      const { error } = await supabase.from("pratiche").update({ pagamento_stato: stato as any }).eq("id", praticaId);
+      const { error } = await supabase.from("pratiche").update({ pagamento_stato: stato as TablesUpdate<"pratiche">["pagamento_stato"] }).eq("id", praticaId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -795,7 +797,7 @@ export default function AziendaDetail() {
   );
 }
 
-function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value: string | null | undefined }) {
+function InfoRow({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string | null | undefined }) {
   return (
     <div className="flex items-start gap-3">
       <Icon className="h-4 w-4 text-muted-foreground mt-0.5" />

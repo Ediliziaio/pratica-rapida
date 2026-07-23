@@ -34,6 +34,24 @@ const WA_STATUS: Record<string, string> = {
   failed:    "bg-red-100 text-red-700",
 };
 
+// Le tabelle `email_logs` e `whatsapp_logs` non sono nei tipi generati:
+// definiamo qui il subset di campi usato nella UI invece di usare `any`.
+interface EmailLogRow {
+  id: string;
+  subject?: string | null;
+  sent_at: string;
+  status: string;
+}
+
+interface WaLogRow {
+  id: string;
+  template_name?: string | null;
+  body?: string | null;
+  phone?: string | null;
+  sent_at: string;
+  status: string;
+}
+
 export default function ClienteDettaglio() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -138,8 +156,8 @@ export default function ClienteDettaglio() {
   if (!profile) return <div className="p-6 text-muted-foreground">Cliente non trovato</div>;
 
   const totPratiche = pratiche.length;
-  const completate = pratiche.filter((p: any) => p.stato === "completata").length;
-  const ltv = pratiche.filter((p: any) => p.stato === "completata").reduce((s: number, p: any) => s + (p.prezzo ?? 0), 0);
+  const completate = pratiche.filter((p) => p.stato === "completata").length;
+  const ltv = pratiche.filter((p) => p.stato === "completata").reduce((s: number, p) => s + (p.prezzo ?? 0), 0);
   const initials = `${profile.nome?.[0] ?? ""}${profile.cognome?.[0] ?? ""}`.toUpperCase() || "?";
 
   return (
@@ -196,7 +214,7 @@ export default function ClienteDettaglio() {
         <Card>
           <CardHeader><CardTitle className="text-sm flex items-center gap-2"><FileText className="h-4 w-4" />Pratiche recenti</CardTitle></CardHeader>
           <CardContent className="space-y-2">
-            {pratiche.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">Nessuna pratica</p> : pratiche.map((p: any) => (
+            {pratiche.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">Nessuna pratica</p> : pratiche.map((p) => (
               <div key={p.id} className="flex items-center justify-between text-sm py-1.5 border-b last:border-0">
                 <div className="min-w-0">
                   <p className="font-medium truncate">{p.titolo}</p>
@@ -216,7 +234,7 @@ export default function ClienteDettaglio() {
               <p className="text-sm text-muted-foreground text-center py-4">Nessuna promo attiva</p>
             ) : (
               <div className="space-y-3">
-                <p className="font-semibold">{(promo as any).promo_types?.name}</p>
+                <p className="font-semibold">{(promo as { promo_types?: { name?: string } | null }).promo_types?.name}</p>
                 {promo.pratiche_free_remaining != null && (
                   <div>
                     <div className="flex justify-between text-sm mb-1">
@@ -239,7 +257,7 @@ export default function ClienteDettaglio() {
         <Card>
           <CardHeader><CardTitle className="text-sm flex items-center gap-2"><Mail className="h-4 w-4" />Email inviate</CardTitle></CardHeader>
           <CardContent className="space-y-2">
-            {emailLogs.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">Nessuna email</p> : emailLogs.map((e: any) => (
+            {emailLogs.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">Nessuna email</p> : emailLogs.map((e: EmailLogRow) => (
               <div key={e.id} className="flex items-start justify-between text-sm py-1.5 border-b last:border-0">
                 <div className="min-w-0">
                   <p className="font-medium truncate">{e.subject}</p>
@@ -255,7 +273,7 @@ export default function ClienteDettaglio() {
         <Card>
           <CardHeader><CardTitle className="text-sm flex items-center gap-2"><MessageCircle className="h-4 w-4" />WhatsApp</CardTitle></CardHeader>
           <CardContent className="space-y-2">
-            {waLogs.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">Nessun messaggio</p> : waLogs.map((w: any) => (
+            {waLogs.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">Nessun messaggio</p> : waLogs.map((w: WaLogRow) => (
               <div key={w.id} className="flex items-start justify-between text-sm py-1.5 border-b last:border-0">
                 <div className="min-w-0">
                   <p className="font-medium truncate">{w.template_name ?? w.body ?? "Messaggio"}</p>

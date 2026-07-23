@@ -14,9 +14,10 @@ import { STATO_CONFIG, STATO_ORDER, PAGAMENTO_BADGE, getAgingDot } from "@/lib/p
 import type { PraticaStato } from "@/lib/pratiche-config";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
+import type { PraticaUI } from "@/types/pratica";
 
 interface PraticheTableViewProps {
-  pratiche: any[];
+  pratiche: PraticaUI[];
   selectedIds: Set<string>;
   toggleSelect: (id: string) => void;
   toggleSelectAll: () => void;
@@ -102,13 +103,13 @@ export function PraticheTableView({
                 <TableCell onClick={() => navigate(`/pratiche/${p.id}`)}>
                   <span className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Building2 className="h-3 w-3" />
-                    <span className="truncate max-w-[140px]">{(p.companies as any)?.ragione_sociale}</span>
+                    <span className="truncate max-w-[140px]">{p.companies?.ragione_sociale}</span>
                   </span>
                 </TableCell>
                 <TableCell onClick={() => navigate(`/pratiche/${p.id}`)}>
                   {p.clienti_finali ? (
                     <span className="text-sm">
-                      {(p.clienti_finali as any).nome} {(p.clienti_finali as any).cognome}
+                      {p.clienti_finali.nome} {p.clienti_finali.cognome}
                     </span>
                   ) : (
                     <span className="text-sm text-muted-foreground">—</span>

@@ -11,6 +11,17 @@
  */
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { PraticaUI } from "@/types/pratica";
+
+/**
+ * Tipo del query builder di Supabase per le query su `pratiche`.
+ * Nota: qui il `.select()` riceve una STRINGA DINAMICA (il parametro `select`),
+ * caso che supabase-js non riesce a tipizzare — il builder risultante è opaco.
+ * È un limite noto della libreria: manteniamo `any` SOLO in questo alias, con
+ * disable mirato, per poter tipizzare `applyFilters`/`scope` in modo coerente.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PraticheQuery = any;
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -44,13 +55,13 @@ export interface PraticheServerFilters {
 // ── Result shapes ──────────────────────────────────────────────────────────────
 
 export interface PagedResult {
-  items: any[];
+  items: PraticaUI[];
   total: number;
   pageCount: number;
 }
 
 export interface AllResult {
-  items: any[];
+  items: PraticaUI[];
   total: number;
   /** true when the DB has more rows than PIPELINE_CAP */
   capped: boolean;
@@ -96,8 +107,7 @@ function filterKey(f: PraticheServerFilters): string {
   return JSON.stringify(obj);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function applyFilters(q: any, f: PraticheServerFilters): any {
+function applyFilters(q: PraticheQuery, f: PraticheServerFilters): PraticheQuery {
   if (f.companyId)         q = q.eq("company_id", f.companyId);
   if (f.restrictToUserId)  q = q.eq("assegnatario_id", f.restrictToUserId);
 
@@ -140,7 +150,7 @@ export function usePratichePagedQuery(
       const from = page * PAGE_SIZE;
       const to   = from + PAGE_SIZE - 1;
 
-      let q: any = supabase
+      let q: PraticheQuery = supabase
         .from("pratiche")
         .select(select, { count: "exact" })
         .order("created_at", { ascending: false })
@@ -152,7 +162,7 @@ export function usePratichePagedQuery(
       if (error) throw error;
 
       return {
-        items:     data ?? [],
+        items:     (data as PraticaUI[] | null) ?? [],
         total:     count ?? 0,
         pageCount: Math.ceil((count ?? 0) / PAGE_SIZE),
       };
@@ -172,7 +182,7 @@ export function usePraticheAllQuery(
   return useQuery<AllResult>({
     queryKey: ["pratiche-server", "all", filterKey(filters), select],
     queryFn: async () => {
-      let q: any = supabase
+      let q: PraticheQuery = supabase
         .from("pratiche")
         .select(select, { count: "exact" })
         .order("created_at", { ascending: false })
@@ -184,7 +194,7 @@ export function usePraticheAllQuery(
       if (error) throw error;
 
       return {
-        items:  data ?? [],
+        items:  (data as PraticaUI[] | null) ?? [],
         total:  count ?? 0,
         capped: (count ?? 0) > PIPELINE_CAP,
       };
@@ -244,7 +254,7 @@ export function useAdminPraticheKpi(seeAll: boolean, userId: string | null) {
   return useQuery<AdminKpi>({
     queryKey: ["pratiche-kpi", "admin", seeAll, userId],
     queryFn: async () => {
-      const scope = (q: any) =>
+      const scope = (q: PraticheQuery) =>
         !seeAll && userId ? q.eq("assegnatario_id", userId) : q;
 
       const [tot, att, comp] = await Promise.all([
@@ -261,7 +271,7 @@ export function useAdminPraticheKpi(seeAll: boolean, userId: string | null) {
       ).eq("stato", "completata").eq("pagamento_stato", "non_pagata");
 
       const daFatturare = (dfData ?? []).reduce(
-        (s: number, p: any) => s + (p.prezzo || 0),
+        (s: number, p) => s + (p.prezzo || 0),
         0,
       );
 

@@ -1,11 +1,11 @@
 export interface CsvColumn {
   key: string;
   label: string;
-  format?: (value: any) => string;
+  format?: (value: unknown) => string;
 }
 
 export function exportToCSV(
-  data: Record<string, any>[],
+  data: Record<string, unknown>[],
   filename: string,
   columns: CsvColumn[]
 ) {

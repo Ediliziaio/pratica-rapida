@@ -46,7 +46,7 @@ async function invoke(fnName: string, body: unknown) {
 }
 
 async function isRuleEnabled(
-  supabase: any,
+  supabase: ReturnType<typeof createClient>,
   triggerEvent: string,
   channel: "email" | "whatsapp",
 ): Promise<boolean> {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert } from "@/integrations/supabase/types";
 import { useCompanyPromos, getPromoDisplayInfo, computeNextIsFree } from "@/hooks/useCompanyPromo";
 import type { CompanyPromo } from "@/hooks/useCompanyPromo";
 import { useAuth } from "@/hooks/useAuth";
@@ -225,7 +226,7 @@ export function CompanyPromoManager({ companyId }: { companyId: string }) {
 
       const { error } = await supabase
         .from("company_promos")
-        .upsert(payload, { onConflict: "company_id,promo_type_id" });
+        .upsert(payload as unknown as TablesInsert<"company_promos">, { onConflict: "company_id,promo_type_id" });
       if (error) throw error;
     },
     onSuccess: () => {

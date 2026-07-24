@@ -41,7 +41,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Settings, Clock, Building2, Users, FolderOpen, Save, Plus, Pencil, Trash2, GripVertical, X, Mail, Puzzle, Eye, EyeOff, Layers, Shield, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import type { CustomField, CustomFieldType, CustomFieldEntity } from "@/integrations/supabase/types";
+import type { CustomField, CustomFieldType, CustomFieldEntity, Json } from "@/integrations/supabase/types";
 import UtentiPage from "./Utenti";
 import ListinoPage from "./Listino";
 import AuditLogPage from "./AuditLog";
@@ -212,6 +212,9 @@ const FIELD_TYPE_COLORS: Record<CustomFieldType, string> = {
 };
 
 const ENTITY_LABELS: Record<CustomFieldEntity, string> = {
+  contatto: "Contatti",
+  azienda: "Imprese",
+  pratica: "Pratiche",
   enea_practice: "Pratiche ENEA",
   reseller: "Rivenditori",
   cliente: "Clienti",
@@ -319,7 +322,7 @@ function CampiPersonalizzati() {
             description: data.description || null,
             is_required: data.is_required,
             is_visible_reseller: data.is_visible_reseller,
-            options: data.options,
+            options: data.options as unknown as Json,
           })
           .eq("id", editingField.id);
         if (error) throw error;
@@ -337,7 +340,7 @@ function CampiPersonalizzati() {
           is_required: data.is_required,
           is_visible_reseller: data.is_visible_reseller,
           is_visible_admin: true,
-          options: data.options,
+          options: data.options as unknown as Json,
           order_index: maxOrder + 1,
         });
         if (error) throw error;

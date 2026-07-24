@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useCompany } from "./useCompany";
-import type { EneaPractice, PipelineStage } from "@/integrations/supabase/types";
+import type { EneaPractice, PipelineStage, TablesUpdate } from "@/integrations/supabase/types";
 
 export function usePipelineStages(brand?: string) {
   const { resellerId, isInternal } = useAuth();
@@ -75,7 +75,7 @@ export function useEneaPractices(filters?: {
         q = q.order("created_at", { ascending: false });
       }
 
-      if (filters?.brand) q = q.eq("brand", filters.brand);
+      if (filters?.brand) q = q.eq("brand", filters.brand as "enea" | "conto_termico");
       if (filters?.operatoreId) q = q.eq("operatore_id", filters.operatoreId);
 
       if (archivedOnly) {
@@ -116,7 +116,7 @@ export function useEneaPractices(filters?: {
 
       const { data, error } = await q;
       if (error) throw error;
-      return data as (EneaPractice & {
+      return data as unknown as (EneaPractice & {
         pipeline_stages: PipelineStage | null;
         companies: { id: string; ragione_sociale: string } | null;
       })[];
@@ -245,7 +245,7 @@ export function useUpdateEneaPractice() {
       // Senza questo, il caller riceve success ma in DB nulla è cambiato.
       const { data, error } = await supabase
         .from("enea_practices")
-        .update(updates)
+        .update(updates as unknown as TablesUpdate<"enea_practices">)
         .eq("id", id)
         .select("id")
         .single();

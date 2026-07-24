@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -234,10 +235,10 @@ export default function EmailTemplates() {
     mutationFn: async (data: typeof EMPTY_FORM & { id?: string }) => {
       if (data.id) {
         const { id, ...rest } = data;
-        const { error } = await supabase.from("email_templates").update(rest).eq("id", id);
+        const { error } = await supabase.from("email_templates").update(rest as unknown as TablesUpdate<"email_templates">).eq("id", id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("email_templates").insert(data);
+        const { error } = await supabase.from("email_templates").insert(data as unknown as TablesInsert<"email_templates">);
         if (error) throw error;
       }
     },
@@ -757,7 +758,7 @@ export default function EmailTemplates() {
               subject: builderTpl.subject,
               html_body: builderTpl.html_body,
               // passa il design_json salvato per non perdere l'impaginazione precedente
-              design_json: (builderTpl.design_json ?? null) as EmailTmplRow["design_json"],
+              design_json: (builderTpl.design_json ?? null) as unknown as EmailTmplRow["design_json"],
               is_active: builderTpl.is_active,
               trigger_event: builderTpl.trigger_event,
             } as EmailTmplRow

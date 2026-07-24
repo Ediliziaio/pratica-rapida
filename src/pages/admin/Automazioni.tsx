@@ -48,7 +48,7 @@ import {
   GripVertical,
   PlayCircle,
 } from "lucide-react";
-import type { AutomationRule } from "@/integrations/supabase/types";
+import type { AutomationRule, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -922,7 +922,7 @@ function EmailModuliClienteSection() {
         .select("*")
         .in("trigger_event", ["modulo_cliente_invio", "modulo_cliente_reminder"]);
       if (error) throw error;
-      return data as EmailTmpl[];
+      return data as unknown as EmailTmpl[];
     },
   });
 
@@ -1811,7 +1811,7 @@ export default function Automazioni() {
       if (editingRule) {
         const { error } = await supabase
           .from("automation_rules")
-          .update(payload)
+          .update(payload as unknown as TablesUpdate<"automation_rules">)
           .eq("id", editingRule.id);
         if (error) throw error;
       } else {
@@ -1830,7 +1830,7 @@ export default function Automazioni() {
           ...payload,
           category: "custom",
           order_index: maxOrder,
-        });
+        } as unknown as TablesInsert<"automation_rules">);
         if (error) throw error;
       }
     },
@@ -1871,7 +1871,7 @@ export default function Automazioni() {
         template_body: rule.template_body,
         is_enabled: false,
         order_index: maxOrder,
-      });
+      } as unknown as TablesInsert<"automation_rules">);
       if (error) throw error;
     },
     onSuccess: () => {

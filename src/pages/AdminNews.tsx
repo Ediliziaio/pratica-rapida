@@ -20,6 +20,7 @@ import { useCallback, useEffect, useMemo, useState, lazy, Suspense } from "react
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -235,7 +236,7 @@ export default function AdminNews() {
         const { data: { user } } = await supabase.auth.getUser();
         const { data, error } = await supabase
           .from("news_articles")
-          .insert({ ...payload, created_by: user?.id ?? null })
+          .insert({ ...payload, created_by: user?.id ?? null } as unknown as TablesInsert<"news_articles">)
           .select("id, created_at, updated_at, view_count")
           .single();
         if (error) throw error;

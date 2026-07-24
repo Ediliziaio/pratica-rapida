@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert } from "@/integrations/supabase/types";
 import { usePromoTypes, useClientPromos, type PromoType } from "@/hooks/usePromo";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -111,7 +112,7 @@ function CatalogoTab() {
         const { error } = await supabase.from("promo_types").update(payload).eq("id", editing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("promo_types").insert(payload);
+        const { error } = await supabase.from("promo_types").insert(payload as unknown as TablesInsert<"promo_types">);
         if (error) throw error;
       }
     },
@@ -242,7 +243,8 @@ function CatalogoTab() {
                   </div>
                   <p className="text-sm text-muted-foreground">{p.description}</p>
                   <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
-                    {p.type === "periodic_free" ? (
+                    {/* FIXME: 'periodic_free' non nel tipo enum promo_type — verificare (tipi Supabase da rigenerare o valore enum mancante) */}
+                    {(p.type as string) === "periodic_free" ? (
                       <>
                         {(p as unknown as { ciclo_pratiche?: number }).ciclo_pratiche != null && (p as unknown as { free_per_ciclo?: number }).free_per_ciclo != null && (
                           <span>Ogni {(p as unknown as { ciclo_pratiche?: number }).ciclo_pratiche} pratiche, {(p as unknown as { free_per_ciclo?: number }).free_per_ciclo} gratis</span>

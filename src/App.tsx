@@ -167,7 +167,8 @@ function useOnboardingCheck() {
     if (!user || !isAzienda) { setNeedsOnboarding(false); return; }
     // Cancellation guard per evitare setState dopo unmount (es. logout veloce)
     let cancelled = false;
-    supabase.from("profiles").select("onboarding_completed").eq("id", user.id).single()
+    Promise.resolve(
+      supabase.from("profiles").select("onboarding_completed").eq("id", user.id).single()
       .then(({ data, error }) => {
         if (cancelled) return;
         if (error) {
@@ -180,6 +181,7 @@ function useOnboardingCheck() {
         }
         setNeedsOnboarding(data?.onboarding_completed === false);
       })
+    )
       .catch((err) => {
         if (cancelled) return;
         console.warn("[useOnboardingCheck] threw:", err);

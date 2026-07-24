@@ -1107,7 +1107,7 @@ function QuickReplyPicker({ onPick, disabled }: { onPick: (body: string) => void
     setSearch("");
     // Fire-and-forget: incrementa usage_count (per ordering smart futuro)
     try {
-      await supabase.rpc("increment_quick_reply_usage" as never, { _id: r.id });
+      await supabase.rpc("increment_quick_reply_usage" as never, { _id: r.id } as never);
     } catch {
       // non-blocking
     }

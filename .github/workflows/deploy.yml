@@ -12,8 +12,8 @@ name: Deploy to Cloudflare Pages + Supabase Functions
 #   - VITE_SENTRY_DSN                : Frontend Sentry DSN
 #
 # Tolleranza di fallimento:
-#   - typecheck: BLOCCANTE (se TS errors, deploy stop)
-#   - lint:      NON bloccante (99 errori pregressi, da ripulire gradualmente)
+#   - typecheck: BLOCCANTE (tsc -p tsconfig.app.json: se TS errors, deploy stop)
+#   - lint:      NON bloccante (0 errori oggi, restano solo warning; promuovibile a bloccante)
 #   - test:      NON bloccante (solo test dummy oggi)
 #   - db-migrate: NON bloccante (se SUPABASE_DB_PASSWORD non settato, skip)
 
@@ -32,7 +32,9 @@ jobs:
         with:
           bun-version: latest
       - run: bun install
-      - run: bunx tsc --noEmit
+      # `tsc --noEmit` senza -p è un NO-OP in questo repo (tsconfig root con
+      # files:[] + project references): controlla il progetto app vero.
+      - run: bunx tsc -p tsconfig.app.json --noEmit
 
   lint:
     name: Lint (advisory — non-blocking)

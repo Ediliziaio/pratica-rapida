@@ -48,7 +48,11 @@ export function useOperatorPermissions(): OperatorPermissions {
         .select("operator_permissions")
         .eq("id", user!.id)
         .single();
-      return data?.operator_permissions as OperatorPermissions | null;
+      // La colonna operator_permissions esiste in prod (migrazione 20260328000004)
+      // ma il regen dei tipi Supabase l'ha saltata: tipizziamo localmente il
+      // risultato per accedervi senza mascherare (la colonna è reale).
+      const row = data as { operator_permissions?: OperatorPermissions | null } | null;
+      return row?.operator_permissions ?? null;
     },
   });
 

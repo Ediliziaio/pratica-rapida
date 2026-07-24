@@ -967,7 +967,7 @@ function TemplatesTab() {
         .select("*")
         .order("meta_template_name");
       if (error) throw error;
-      return (data as WhatsappTemplate[]) ?? [];
+      return (data as unknown as WhatsappTemplate[]) ?? [];
     },
   });
 

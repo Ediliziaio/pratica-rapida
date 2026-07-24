@@ -37,7 +37,7 @@ import {
 // `xlsx` viene importato dinamicamente nell'handler di export per evitare
 // di caricarlo nel chunk principale (libreria ~420 KB minified). Vedi
 // handleExportCSV più sotto.
-import type { CommunicationLog, CommChannel, CommStatus } from "@/integrations/supabase/types";
+import type { CommunicationLog, CommChannel, CommStatus, TablesInsert } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
 const CHANNEL_CONFIG: Record<CommChannel, { label: string; color: string; icon: React.ReactNode }> = {
@@ -97,7 +97,7 @@ export default function ComunicazioniLog() {
         .order("sent_at", { ascending: false })
         .limit(500);
       if (error) throw error;
-      return (data ?? []) as CommunicationLog[];
+      return (data ?? []) as unknown as CommunicationLog[];
     },
   });
 
@@ -131,7 +131,7 @@ export default function ComunicazioniLog() {
         body_preview: form.body.substring(0, 200),
         status: "sent",
         sent_at: new Date().toISOString(),
-      });
+      } as unknown as TablesInsert<"communication_log">);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["communication_log_full"] });

@@ -34,7 +34,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Copy, Check, FolderOpen, Plus, Pencil, Trash2, Search, Tag, Database, X,
 } from "lucide-react";
-import type { CustomField, CustomFieldType, CustomFieldEntity } from "@/integrations/supabase/types";
+import type { CustomField, CustomFieldType, CustomFieldEntity, Json } from "@/integrations/supabase/types";
 
 // ─── Entity config ────────────────────────────────────────────────────────────
 
@@ -107,7 +107,7 @@ const SYSTEM_FIELDS: SystemField[] = [
   { id: "sys_res_name",             entity: "reseller", field_label: "Ragione Sociale", field_key: "reseller.name",           folder: "Rivenditore Info" },
   { id: "sys_res_email",            entity: "reseller", field_label: "Email",           field_key: "reseller.email",          folder: "Rivenditore Info" },
   { id: "sys_res_phone",            entity: "reseller", field_label: "Telefono",        field_key: "reseller.phone",          folder: "Rivenditore Info" },
-].map(f => ({ ...f, is_system: true as const }));
+].map(f => ({ ...f, is_system: true as const })) as unknown as SystemField[];
 
 // ─── Field type helpers ───────────────────────────────────────────────────────
 
@@ -295,7 +295,7 @@ export default function ImpostazioniCampi() {
             description: data.description || null,
             is_required: data.is_required,
             is_visible_reseller: data.is_visible_reseller,
-            options: data.options,
+            options: data.options as unknown as Json,
           })
           .eq("id", editingField.id);
         if (error) throw error;
@@ -317,7 +317,7 @@ export default function ImpostazioniCampi() {
           is_visible_reseller: data.is_visible_reseller,
           is_visible_admin: true,
           is_system: false,
-          options: data.options,
+          options: data.options as unknown as Json,
           order_index: maxOrder + 1,
         });
         if (error) throw error;

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import type { EneaPractice } from "@/integrations/supabase/types";
+import type { EneaPractice, Json } from "@/integrations/supabase/types";
 
 import {
   detectProdottoTipo,
@@ -287,7 +287,7 @@ export default function FormPubblico() {
       try {
         const { error } = await supabase.rpc("save_form_draft_by_token", {
           p_token: token,
-          p_dati_form: payload,
+          p_dati_form: payload as unknown as Json,
         });
         if (error) throw error;
       } catch (err) {
@@ -431,7 +431,7 @@ export default function FormPubblico() {
         p_cliente_indirizzo: indirizzo,
         p_cliente_cf: r.cf,
         p_note: "",
-        p_dati_form: dynamicData,
+        p_dati_form: dynamicData as unknown as Json,
       });
 
       if (submitError) {
@@ -479,7 +479,7 @@ export default function FormPubblico() {
       p_cliente_indirizzo: indirizzoCompleto,
       p_cliente_cf: r.cf,
       p_note: "",
-      p_dati_form: formData as unknown as Record<string, unknown>,
+      p_dati_form: formData as unknown as Json,
     });
 
     if (submitError) {

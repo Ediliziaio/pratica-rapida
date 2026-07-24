@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,7 +87,7 @@ const SOURCE_BADGE: Record<string, { label: string; bg: string; color: string }>
 async function upsertSetting(key: string, value: unknown) {
   const { error } = await supabase
     .from("platform_settings")
-    .upsert({ key, value }, { onConflict: "key" });
+    .upsert({ key, value: value as Json }, { onConflict: "key" });
   if (error) throw error;
 }
 
@@ -121,7 +122,7 @@ export default function AziendePipeline() {
     queryFn: async () => {
       const { data } = await supabase.from("platform_settings")
         .select("value").eq("key", KEY_STAGES).single();
-      return (data?.value as CrmStage[]) ?? DEFAULT_STAGES;
+      return (data?.value as unknown as CrmStage[]) ?? DEFAULT_STAGES;
     },
     staleTime: 10 * 60 * 1000, // 10min
   });

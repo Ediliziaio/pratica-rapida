@@ -207,7 +207,7 @@ function ModuliList({ onEdit }: { onEdit: (id: string) => void }) {
         .select("id")
         .single();
       if (error) throw error;
-      return data as { id: string };
+      return data as unknown as { id: string };
     },
     onSuccess: (created) => {
       qc.invalidateQueries({ queryKey: ["form-modules"] });

@@ -6,6 +6,7 @@ import { useState, useCallback, useRef } from "react";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -981,7 +982,7 @@ export function EmailBuilder({
       // Salva prima così la versione su DB è quella che invieremo (DB-first nell'edge)
       const { error: updErr } = await supabase
         .from("email_templates")
-        .update({ subject, html_body: html, design_json: design as unknown as Record<string, unknown> })
+        .update({ subject, html_body: html, design_json: design as unknown as Json })
         .eq("id", tmpl.id);
       if (updErr) throw updErr;
       const { error } = await supabase.functions.invoke("send-email", {
@@ -1000,7 +1001,7 @@ export function EmailBuilder({
     mutationFn: async () => {
       const { error } = await supabase
         .from("email_templates")
-        .update({ subject, html_body: html, design_json: design as unknown as Record<string, unknown> })
+        .update({ subject, html_body: html, design_json: design as unknown as Json })
         .eq("id", tmpl.id);
       if (error) throw error;
     },

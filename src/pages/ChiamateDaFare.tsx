@@ -42,6 +42,7 @@ const CALLER_LABEL: Record<string, string> = {
 };
 
 type AssignFilter = "tutti" | "samuele" | "giuliano" | "non_assegnati";
+type OutcomeFilter = "tutti" | "risposto" | "mai";
 
 // ── Tipi ──────────────────────────────────────────────────────────────────────
 
@@ -56,6 +57,7 @@ interface CallStats {
   count: number;
   lastAt: string | null;
   lastOutcome: string | null;
+  everResponded: boolean;
 }
 
 // ── Pagina ────────────────────────────────────────────────────────────────────
@@ -66,9 +68,13 @@ export default function ChiamateDaFare() {
 
   const [search, setSearch] = useState("");
   const [assignFilter, setAssignFilter] = useState<AssignFilter>("tutti");
+  const [outcomeFilter, setOutcomeFilter] = useState<OutcomeFilter>("tutti");
   const [onlyDue, setOnlyDue] = useState(false);
   const [callTarget, setCallTarget] = useState<null | {
     id: string; nome: string;
+    currentStageId: string | null;
+    currentStageType: string | undefined;
+    brand: string;
   }>(null);
 
   // Tutte le pratiche attive (non archiviate), tutti i brand. Il filtro sulle
@@ -113,12 +119,16 @@ export default function ChiamateDaFare() {
   const statsByPractice = useMemo(() => {
     const map = new Map<string, CallStats>();
     for (const row of phoneLog) {
+      const responded = row.outcome === "risposta_ottenuta";
       const s = map.get(row.practice_id);
       if (!s) {
         // phoneLog è ordinato desc → la prima riga vista è la più recente.
-        map.set(row.practice_id, { count: 1, lastAt: row.sent_at, lastOutcome: row.outcome });
+        map.set(row.practice_id, {
+          count: 1, lastAt: row.sent_at, lastOutcome: row.outcome, everResponded: responded,
+        });
       } else {
         s.count += 1;
+        if (responded) s.everResponded = true;
       }
     }
     return map;
@@ -134,17 +144,19 @@ export default function ChiamateDaFare() {
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
     const enriched = queue.map((p) => {
-      const stats = statsByPractice.get(p.id) ?? { count: 0, lastAt: null, lastOutcome: null };
+      const stats = statsByPractice.get(p.id) ?? { count: 0, lastAt: null, lastOutcome: null, everResponded: false };
       const days = daysSince(stats.lastAt);
       const isDue = stats.lastAt == null || (days != null && days >= RICHIAMO_GIORNI);
       return { p, stats, days, isDue };
     });
 
     return enriched
-      .filter(({ p, isDue }) => {
+      .filter(({ p, stats, isDue }) => {
         if (assignFilter === "non_assegnati" && p.chiamate_assegnato_a) return false;
         if (assignFilter === "samuele" && p.chiamate_assegnato_a !== "samuele") return false;
         if (assignFilter === "giuliano" && p.chiamate_assegnato_a !== "giuliano") return false;
+        if (outcomeFilter === "risposto" && !stats.everResponded) return false;
+        if (outcomeFilter === "mai" && stats.everResponded) return false;
         if (onlyDue && !isDue) return false;
         if (term) {
           const hay = `${p.cliente_nome} ${p.cliente_cognome} ${p.cliente_telefono ?? ""} ${p.companies?.ragione_sociale ?? ""}`.toLowerCase();
@@ -158,7 +170,7 @@ export default function ChiamateDaFare() {
         const db = b.days == null ? Number.MAX_SAFE_INTEGER : b.days;
         return db - da;
       });
-  }, [queue, statsByPractice, search, assignFilter, onlyDue]);
+  }, [queue, statsByPractice, search, assignFilter, outcomeFilter, onlyDue]);
 
   const dueCount = useMemo(
     () => rows.filter((r) => r.isDue).length,
@@ -182,6 +194,9 @@ export default function ChiamateDaFare() {
 
   function refetchAll() {
     queryClient.invalidateQueries({ queryKey: ["chiamate-phone-log"] });
+    // Anche le pratiche: se l'esito ha spostato lo stage (inviata →
+    // attesa_compilazione), il badge fase va riaggiornato.
+    queryClient.invalidateQueries({ queryKey: ["enea_practices"] });
   }
 
   return (
@@ -244,6 +259,16 @@ export default function ChiamateDaFare() {
             <SelectItem value="samuele">Samuele</SelectItem>
             <SelectItem value="giuliano">Giuliano</SelectItem>
             <SelectItem value="non_assegnati">Non assegnati</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={outcomeFilter} onValueChange={(v) => setOutcomeFilter(v as OutcomeFilter)}>
+          <SelectTrigger className="w-full sm:w-44">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="tutti">Tutti gli esiti</SelectItem>
+            <SelectItem value="risposto">Hanno risposto</SelectItem>
+            <SelectItem value="mai">Mai risposto</SelectItem>
           </SelectContent>
         </Select>
         <Button
@@ -352,7 +377,13 @@ export default function ChiamateDaFare() {
                 <Button
                   size="sm"
                   className="gap-1.5"
-                  onClick={() => setCallTarget({ id: p.id, nome: `${p.cliente_nome} ${p.cliente_cognome}` })}
+                  onClick={() => setCallTarget({
+                    id: p.id,
+                    nome: `${p.cliente_nome} ${p.cliente_cognome}`,
+                    currentStageId: p.current_stage_id ?? null,
+                    currentStageType: p.pipeline_stages?.stage_type,
+                    brand: p.brand,
+                  })}
                 >
                   <Phone className="h-3.5 w-3.5" />
                   Registra
@@ -407,7 +438,12 @@ function StatCard({
 function RegistraChiamataDialog({
   target, onClose, onSaved,
 }: {
-  target: null | { id: string; nome: string };
+  target: null | {
+    id: string; nome: string;
+    currentStageId: string | null;
+    currentStageType: string | undefined;
+    brand: string;
+  };
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -415,6 +451,39 @@ function RegistraChiamataDialog({
   const [outcome, setOutcome] = useState("non_risposto");
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Se il cliente risponde mentre è ancora in "Inviato da chiamare"
+  // (stage_type = "inviata"), lo spostiamo in "Chiamati in attesa"
+  // (attesa_compilazione): ha risposto ma non ha ancora compilato il form.
+  // Risolve lo stage di destinazione restando nella stessa pipeline
+  // (stesso reseller_id + brand dello stage corrente).
+  async function moveToAttesaCompilazione() {
+    if (!target?.currentStageId) return;
+    // reseller_id + brand dello stage attuale
+    const { data: cur } = await supabase
+      .from("pipeline_stages")
+      .select("reseller_id, brand")
+      .eq("id", target.currentStageId)
+      .maybeSingle();
+    const resellerId = cur?.reseller_id ?? null;
+    const stageBrand = cur?.brand ?? target.brand;
+    const { data: candidates } = await supabase
+      .from("pipeline_stages")
+      .select("id, reseller_id, brand")
+      .eq("stage_type", "attesa_compilazione");
+    if (!candidates?.length) return;
+    const pick =
+      candidates.find((s) => s.reseller_id === resellerId && s.brand === stageBrand) ??
+      candidates.find((s) => s.reseller_id === null && s.brand === stageBrand) ??
+      candidates.find((s) => s.brand === stageBrand) ??
+      candidates.find((s) => s.reseller_id === resellerId) ??
+      candidates[0];
+    if (!pick || pick.id === target.currentStageId) return;
+    await supabase
+      .from("enea_practices")
+      .update({ current_stage_id: pick.id })
+      .eq("id", target.id);
+  }
 
   async function save() {
     if (!target) return;
@@ -433,6 +502,15 @@ function RegistraChiamataDialog({
         notes: notes.trim() || null,
       });
       if (error) throw error;
+      // Esito positivo + ancora in prima fase → avanza a "Chiamati in attesa".
+      if (outcome === "risposta_ottenuta" && target.currentStageType === "inviata") {
+        try {
+          await moveToAttesaCompilazione();
+        } catch (moveErr) {
+          // Non bloccare la registrazione chiamata se lo spostamento fallisce.
+          console.error("[chiamate] spostamento stage fallito:", moveErr);
+        }
+      }
       toast({ title: "Chiamata registrata" });
       setOutcome("non_risposto");
       setNotes("");

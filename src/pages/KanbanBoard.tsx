@@ -503,10 +503,15 @@ function PracticeDetailSheet({
   const [uploadingConclusa, setUploadingConclusa] = useState(false);
   const [deleteConclusaPath, setDeleteConclusaPath] = useState<string | null>(null);
   const [uploadingAggiuntivo, setUploadingAggiuntivo] = useState(false);
-  const [deleteAggiuntivoPath, setDeleteAggiuntivoPath] = useState<string | null>(null);
+  const [uploadingFattura, setUploadingFattura] = useState(false);
+  // path in attesa di conferma eliminazione: teniamo anche la colonna di appartenenza
+  const [deleteExtraFile, setDeleteExtraFile] = useState<
+    { path: string; column: "fatture_urls" | "documenti_aggiuntivi_urls" } | null
+  >(null);
   const [showDichiarazione, setShowDichiarazione] = useState(false);
   const conclusaInputRef = useRef<HTMLInputElement>(null);
   const aggiuntivoInputRef = useRef<HTMLInputElement>(null);
+  const fatturaInputRef = useRef<HTMLInputElement>(null);
 
   // Eliminazione pratica — solo super_admin.
   const { roles } = useAuth();
@@ -831,18 +836,26 @@ function PracticeDetailSheet({
     }
   }
 
-  // Upload di file aggiuntivi richiesti al cliente — solo super_admin.
-  // Salva in `documenti_aggiuntivi_urls` (stesso gruppo "Documenti aggiuntivi").
-  async function handleUploadAggiuntivo(e: React.ChangeEvent<HTMLInputElement>) {
+  // Upload di file sul cliente — solo super_admin. Parametrico sulla colonna
+  // destinazione: "fatture_urls" (gruppo Fatture) oppure
+  // "documenti_aggiuntivi_urls" (gruppo Documenti aggiuntivi). I due flussi
+  // restano SEPARATI: le fatture non finiscono tra i documenti aggiuntivi.
+  async function handleUploadExtra(
+    e: React.ChangeEvent<HTMLInputElement>,
+    column: "fatture_urls" | "documenti_aggiuntivi_urls",
+    subfolder: string,
+    setUploading: (b: boolean) => void,
+    inputRef: React.RefObject<HTMLInputElement>,
+  ) {
     if (!practice || !e.target.files?.length) return;
-    setUploadingAggiuntivo(true);
+    setUploading(true);
     const files = Array.from(e.target.files);
     const newPaths: string[] = [];
     const failed: { name: string; reason: string }[] = [];
 
     for (const file of files) {
       const ext = file.name.split(".").pop() ?? "bin";
-      const path = `${practice.id}/aggiuntivi/${crypto.randomUUID()}.${ext}`;
+      const path = `${practice.id}/${subfolder}/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage.from("enea-documents").upload(path, file, { upsert: false });
       if (error) {
         console.error(`Upload failed for ${file.name}:`, error);
@@ -853,11 +866,11 @@ function PracticeDetailSheet({
     }
 
     if (newPaths.length) {
-      const existing = practice.documenti_aggiuntivi_urls ?? [];
+      const existing = (practice[column] ?? []) as string[];
       try {
         await updatePractice.mutateAsync({
           id: practice.id,
-          updates: { documenti_aggiuntivi_urls: [...existing, ...newPaths] },
+          updates: { [column]: [...existing, ...newPaths] },
         });
         toast({
           title: `${newPaths.length} file caricati`,
@@ -881,26 +894,29 @@ function PracticeDetailSheet({
       });
     }
 
-    setUploadingAggiuntivo(false);
-    if (aggiuntivoInputRef.current) aggiuntivoInputRef.current.value = "";
+    setUploading(false);
+    if (inputRef.current) inputRef.current.value = "";
   }
 
-  async function handleDeleteAggiuntivo(path: string) {
+  async function handleDeleteExtra(
+    path: string,
+    column: "fatture_urls" | "documenti_aggiuntivi_urls",
+  ) {
     if (!practice) return;
     try {
       const { error: storageErr } = await supabase.storage
         .from("enea-documents").remove([path]);
-      if (storageErr) console.warn("[handleDeleteAggiuntivo] storage remove warning:", storageErr.message);
-      const updated = (practice.documenti_aggiuntivi_urls ?? []).filter((p) => p !== path);
+      if (storageErr) console.warn("[handleDeleteExtra] storage remove warning:", storageErr.message);
+      const updated = ((practice[column] ?? []) as string[]).filter((p) => p !== path);
       await updatePractice.mutateAsync({
         id: practice.id,
-        updates: { documenti_aggiuntivi_urls: updated },
+        updates: { [column]: updated },
       });
       toast({ title: "File rimosso" });
     } catch (err) {
       const msg = (err as { message?: string })?.message ?? "Errore imprevisto";
       toast({ title: "Rimozione fallita", description: msg, variant: "destructive" });
-      console.error("[KanbanBoard handleDeleteAggiuntivo]", err);
+      console.error("[KanbanBoard handleDeleteExtra]", err);
     }
   }
 
@@ -1487,15 +1503,36 @@ function PracticeDetailSheet({
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Documenti
                     </h3>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap justify-end">
                       {isSuperAdmin && (
                         <>
+                          <input
+                            ref={fatturaInputRef}
+                            type="file"
+                            multiple
+                            className="hidden"
+                            onChange={(e) =>
+                              handleUploadExtra(e, "fatture_urls", "fattura", setUploadingFattura, fatturaInputRef)
+                            }
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs gap-1"
+                            disabled={uploadingFattura}
+                            onClick={() => fatturaInputRef.current?.click()}
+                          >
+                            <Plus className="h-3 w-3" />
+                            {uploadingFattura ? "Caricamento…" : "Carica fattura"}
+                          </Button>
                           <input
                             ref={aggiuntivoInputRef}
                             type="file"
                             multiple
                             className="hidden"
-                            onChange={handleUploadAggiuntivo}
+                            onChange={(e) =>
+                              handleUploadExtra(e, "documenti_aggiuntivi_urls", "aggiuntivi", setUploadingAggiuntivo, aggiuntivoInputRef)
+                            }
                           />
                           <Button
                             variant="outline"
@@ -1505,7 +1542,7 @@ function PracticeDetailSheet({
                             onClick={() => aggiuntivoInputRef.current?.click()}
                           >
                             <Plus className="h-3 w-3" />
-                            {uploadingAggiuntivo ? "Caricamento…" : "Carica file"}
+                            {uploadingAggiuntivo ? "Caricamento…" : "Carica documento"}
                           </Button>
                         </>
                       )}
@@ -1545,7 +1582,11 @@ function PracticeDetailSheet({
                       (practice.dati_form as { documenti?: { fattura_url?: string; bonifico_url?: string } } | null)
                         ?.documenti
                     ) ?? {};
-                    const fatturePaths = [...(practice.fatture_urls ?? [])];
+                    // fatture_urls: eliminabili dal super_admin (upload manuale /
+                    // rivenditore). La fattura del form cliente vive nel jsonb
+                    // dati_form → la mostriamo ma NON è eliminabile da qui.
+                    const fattureColPaths = practice.fatture_urls ?? [];
+                    const fatturePaths = [...fattureColPaths];
                     if (documenti.fattura_url && !fatturePaths.includes(documenti.fattura_url)) {
                       fatturePaths.push(documenti.fattura_url);
                     }
@@ -1555,6 +1596,10 @@ function PracticeDetailSheet({
                         files: fatturePaths.map((p, i) => ({
                           label: `Fattura ${i + 1}`,
                           path: p,
+                          onDelete:
+                            isSuperAdmin && fattureColPaths.includes(p)
+                              ? () => setDeleteExtraFile({ path: p, column: "fatture_urls" })
+                              : undefined,
                         })),
                       },
                       {
@@ -1568,7 +1613,9 @@ function PracticeDetailSheet({
                         files: (practice.documenti_aggiuntivi_urls ?? []).map((p, i) => ({
                           label: `Doc. aggiuntivo ${i + 1}`,
                           path: p,
-                          onDelete: isSuperAdmin ? () => setDeleteAggiuntivoPath(p) : undefined,
+                          onDelete: isSuperAdmin
+                            ? () => setDeleteExtraFile({ path: p, column: "documenti_aggiuntivi_urls" })
+                            : undefined,
                         })),
                       },
                       {
@@ -1679,10 +1726,10 @@ function PracticeDetailSheet({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Confirm delete file aggiuntivo — solo super_admin */}
+      {/* Confirm delete file caricato (fattura o documento aggiuntivo) — super_admin */}
       <AlertDialog
-        open={!!deleteAggiuntivoPath}
-        onOpenChange={(o) => !o && setDeleteAggiuntivoPath(null)}
+        open={!!deleteExtraFile}
+        onOpenChange={(o) => !o && setDeleteExtraFile(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -1695,8 +1742,8 @@ function PracticeDetailSheet({
             <AlertDialogCancel>Annulla</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                if (deleteAggiuntivoPath) handleDeleteAggiuntivo(deleteAggiuntivoPath);
-                setDeleteAggiuntivoPath(null);
+                if (deleteExtraFile) handleDeleteExtra(deleteExtraFile.path, deleteExtraFile.column);
+                setDeleteExtraFile(null);
               }}
             >
               Elimina

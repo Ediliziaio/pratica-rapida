@@ -1435,14 +1435,35 @@ function PracticeDetailSheet({
                     )}
                   </div>
                   {(() => {
+                    // Le fatture possono trovarsi in DUE posti:
+                    //  - `fatture_urls`: percorso rivenditore (richiesta-pubblica)
+                    //  - `dati_form.documenti.fattura_url` / `bonifico_url`:
+                    //    percorso FORM PUBBLICO cliente (edge fn form-upload).
+                    // Storicamente il Kanban leggeva solo `fatture_urls`, quindi le
+                    // fatture caricate dai clienti risultavano invisibili qui.
+                    // Uniamo entrambe le sorgenti (dedup sui path già presenti).
+                    const documenti = (
+                      (practice.dati_form as { documenti?: { fattura_url?: string; bonifico_url?: string } } | null)
+                        ?.documenti
+                    ) ?? {};
+                    const fatturePaths = [...(practice.fatture_urls ?? [])];
+                    if (documenti.fattura_url && !fatturePaths.includes(documenti.fattura_url)) {
+                      fatturePaths.push(documenti.fattura_url);
+                    }
                     const groups: { title: string; files: { label: string; path: string; canDelete: boolean }[] }[] = [
                       {
                         title: "Fatture",
-                        files: (practice.fatture_urls ?? []).map((p, i) => ({
+                        files: fatturePaths.map((p, i) => ({
                           label: `Fattura ${i + 1}`,
                           path: p,
                           canDelete: false,
                         })),
+                      },
+                      {
+                        title: "Bonifico",
+                        files: documenti.bonifico_url
+                          ? [{ label: "Bonifico", path: documenti.bonifico_url, canDelete: false }]
+                          : [],
                       },
                       {
                         title: "Documenti aggiuntivi",

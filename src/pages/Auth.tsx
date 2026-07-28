@@ -415,7 +415,7 @@ export default function Auth() {
                   Non hai le credenziali?
                 </p>
                 <a
-                  href={`https://wa.me/390398682692?text=${encodeURIComponent(
+                  href={`https://wa.me/390398682691?text=${encodeURIComponent(
                     "Ciao! Sono un rivenditore e vorrei richiedere le credenziali di accesso al portale Pratica Rapida.",
                   )}`}
                   target="_blank"

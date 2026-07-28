@@ -502,8 +502,11 @@ function PracticeDetailSheet({
   const [newDoc, setNewDoc] = useState("");
   const [uploadingConclusa, setUploadingConclusa] = useState(false);
   const [deleteConclusaPath, setDeleteConclusaPath] = useState<string | null>(null);
+  const [uploadingAggiuntivo, setUploadingAggiuntivo] = useState(false);
+  const [deleteAggiuntivoPath, setDeleteAggiuntivoPath] = useState<string | null>(null);
   const [showDichiarazione, setShowDichiarazione] = useState(false);
   const conclusaInputRef = useRef<HTMLInputElement>(null);
+  const aggiuntivoInputRef = useRef<HTMLInputElement>(null);
 
   // Eliminazione pratica — solo super_admin.
   const { roles } = useAuth();
@@ -825,6 +828,79 @@ function PracticeDetailSheet({
         variant: "destructive",
       });
       console.error("[KanbanBoard handleDeleteConclusa]", err);
+    }
+  }
+
+  // Upload di file aggiuntivi richiesti al cliente — solo super_admin.
+  // Salva in `documenti_aggiuntivi_urls` (stesso gruppo "Documenti aggiuntivi").
+  async function handleUploadAggiuntivo(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!practice || !e.target.files?.length) return;
+    setUploadingAggiuntivo(true);
+    const files = Array.from(e.target.files);
+    const newPaths: string[] = [];
+    const failed: { name: string; reason: string }[] = [];
+
+    for (const file of files) {
+      const ext = file.name.split(".").pop() ?? "bin";
+      const path = `${practice.id}/aggiuntivi/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("enea-documents").upload(path, file, { upsert: false });
+      if (error) {
+        console.error(`Upload failed for ${file.name}:`, error);
+        failed.push({ name: file.name, reason: error.message });
+      } else {
+        newPaths.push(path);
+      }
+    }
+
+    if (newPaths.length) {
+      const existing = practice.documenti_aggiuntivi_urls ?? [];
+      try {
+        await updatePractice.mutateAsync({
+          id: practice.id,
+          updates: { documenti_aggiuntivi_urls: [...existing, ...newPaths] },
+        });
+        toast({
+          title: `${newPaths.length} file caricati`,
+          description: failed.length > 0 ? `${failed.length} file non caricati (vedi console)` : undefined,
+        });
+      } catch (err) {
+        console.error("DB update failed:", err);
+        toast({
+          variant: "destructive",
+          title: "File caricati ma DB non aggiornato",
+          description: "I file sono nel bucket ma l'associazione alla pratica è fallita. Ricarica la pagina.",
+        });
+      }
+    }
+
+    if (failed.length > 0 && newPaths.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Upload fallito",
+        description: `Nessun file caricato. Errore: ${failed[0].reason}`,
+      });
+    }
+
+    setUploadingAggiuntivo(false);
+    if (aggiuntivoInputRef.current) aggiuntivoInputRef.current.value = "";
+  }
+
+  async function handleDeleteAggiuntivo(path: string) {
+    if (!practice) return;
+    try {
+      const { error: storageErr } = await supabase.storage
+        .from("enea-documents").remove([path]);
+      if (storageErr) console.warn("[handleDeleteAggiuntivo] storage remove warning:", storageErr.message);
+      const updated = (practice.documenti_aggiuntivi_urls ?? []).filter((p) => p !== path);
+      await updatePractice.mutateAsync({
+        id: practice.id,
+        updates: { documenti_aggiuntivi_urls: updated },
+      });
+      toast({ title: "File rimosso" });
+    } catch (err) {
+      const msg = (err as { message?: string })?.message ?? "Errore imprevisto";
+      toast({ title: "Rimozione fallita", description: msg, variant: "destructive" });
+      console.error("[KanbanBoard handleDeleteAggiuntivo]", err);
     }
   }
 
@@ -1411,28 +1487,51 @@ function PracticeDetailSheet({
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Documenti
                     </h3>
-                    {isInternal && (
-                      <>
-                        <input
-                          ref={conclusaInputRef}
-                          type="file"
-                          accept=".pdf,.p7m,.zip"
-                          multiple
-                          className="hidden"
-                          onChange={handleUploadConclusa}
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs gap-1"
-                          disabled={uploadingConclusa}
-                          onClick={() => conclusaInputRef.current?.click()}
-                        >
-                          <Plus className="h-3 w-3" />
-                          {uploadingConclusa ? "Caricamento…" : "Carica pratica conclusa"}
-                        </Button>
-                      </>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {isSuperAdmin && (
+                        <>
+                          <input
+                            ref={aggiuntivoInputRef}
+                            type="file"
+                            multiple
+                            className="hidden"
+                            onChange={handleUploadAggiuntivo}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs gap-1"
+                            disabled={uploadingAggiuntivo}
+                            onClick={() => aggiuntivoInputRef.current?.click()}
+                          >
+                            <Plus className="h-3 w-3" />
+                            {uploadingAggiuntivo ? "Caricamento…" : "Carica file"}
+                          </Button>
+                        </>
+                      )}
+                      {isInternal && (
+                        <>
+                          <input
+                            ref={conclusaInputRef}
+                            type="file"
+                            accept=".pdf,.p7m,.zip"
+                            multiple
+                            className="hidden"
+                            onChange={handleUploadConclusa}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs gap-1"
+                            disabled={uploadingConclusa}
+                            onClick={() => conclusaInputRef.current?.click()}
+                          >
+                            <Plus className="h-3 w-3" />
+                            {uploadingConclusa ? "Caricamento…" : "Carica pratica conclusa"}
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
                   {(() => {
                     // Le fatture possono trovarsi in DUE posti:
@@ -1450,19 +1549,18 @@ function PracticeDetailSheet({
                     if (documenti.fattura_url && !fatturePaths.includes(documenti.fattura_url)) {
                       fatturePaths.push(documenti.fattura_url);
                     }
-                    const groups: { title: string; files: { label: string; path: string; canDelete: boolean }[] }[] = [
+                    const groups: { title: string; files: { label: string; path: string; onDelete?: () => void }[] }[] = [
                       {
                         title: "Fatture",
                         files: fatturePaths.map((p, i) => ({
                           label: `Fattura ${i + 1}`,
                           path: p,
-                          canDelete: false,
                         })),
                       },
                       {
                         title: "Bonifico",
                         files: documenti.bonifico_url
-                          ? [{ label: "Bonifico", path: documenti.bonifico_url, canDelete: false }]
+                          ? [{ label: "Bonifico", path: documenti.bonifico_url }]
                           : [],
                       },
                       {
@@ -1470,7 +1568,7 @@ function PracticeDetailSheet({
                         files: (practice.documenti_aggiuntivi_urls ?? []).map((p, i) => ({
                           label: `Doc. aggiuntivo ${i + 1}`,
                           path: p,
-                          canDelete: false,
+                          onDelete: isSuperAdmin ? () => setDeleteAggiuntivoPath(p) : undefined,
                         })),
                       },
                       {
@@ -1478,7 +1576,6 @@ function PracticeDetailSheet({
                         files: (practice.documenti_enea_urls ?? []).map((p, i) => ({
                           label: `Doc. ENEA ${i + 1}`,
                           path: p,
-                          canDelete: false,
                         })),
                       },
                       {
@@ -1486,7 +1583,6 @@ function PracticeDetailSheet({
                         files: precompiledDocs.map((d) => ({
                           label: d.nome_file.replace(/\.html$/i, ""),
                           path: d.storage_path,
-                          canDelete: false,
                         })),
                       },
                       {
@@ -1494,7 +1590,7 @@ function PracticeDetailSheet({
                         files: (practice.pratica_enea_conclusa_urls ?? []).map((p, i) => ({
                           label: `Pratica conclusa ${i + 1}`,
                           path: p,
-                          canDelete: true,
+                          onDelete: isInternal ? () => setDeleteConclusaPath(p) : undefined,
                         })),
                       },
                     ];
@@ -1520,10 +1616,10 @@ function PracticeDetailSheet({
                                     <div className="flex-1 min-w-0">
                                       <FileDownloadLink label={f.label} path={f.path} />
                                     </div>
-                                    {isInternal && f.canDelete && (
+                                    {f.onDelete && (
                                       <button
                                         type="button"
-                                        onClick={() => setDeleteConclusaPath(f.path)}
+                                        onClick={f.onDelete}
                                         className="text-muted-foreground hover:text-destructive transition-colors p-0.5 rounded shrink-0"
                                         title="Rimuovi file"
                                         aria-label="Rimuovi file"
@@ -1575,6 +1671,32 @@ function PracticeDetailSheet({
               onClick={() => {
                 if (deleteConclusaPath) handleDeleteConclusa(deleteConclusaPath);
                 setDeleteConclusaPath(null);
+              }}
+            >
+              Elimina
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm delete file aggiuntivo — solo super_admin */}
+      <AlertDialog
+        open={!!deleteAggiuntivoPath}
+        onOpenChange={(o) => !o && setDeleteAggiuntivoPath(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Rimuovere il file?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Il file verrà eliminato definitivamente dall'archivio. L'operazione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteAggiuntivoPath) handleDeleteAggiuntivo(deleteAggiuntivoPath);
+                setDeleteAggiuntivoPath(null);
               }}
             >
               Elimina

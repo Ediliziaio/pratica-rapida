@@ -775,7 +775,7 @@ export default function NuovaPratica() {
               </div>
 
               <div className="space-y-2">
-                <Label>Data fine lavori</Label>
+                <Label>Data fine lavori *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -1048,7 +1048,18 @@ export default function NuovaPratica() {
             </Button>
           ) : (
             <Button
-              onClick={() => { setPendingAction("invia"); submitPratica.mutate(false); }}
+              onClick={() => {
+                if (!dataFineLavori) {
+                  toast({
+                    title: "Data di fine lavori obbligatoria",
+                    description: "Seleziona la data di fine lavori prima di inviare la pratica.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                setPendingAction("invia");
+                submitPratica.mutate(false);
+              }}
               disabled={submitPratica.isPending || !accettazionePrezzo}
               title={!accettazionePrezzo ? "Accetta le condizioni economiche per procedere" : undefined}
             >

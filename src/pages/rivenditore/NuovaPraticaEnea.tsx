@@ -302,6 +302,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     if (!nome.trim())      e.nome = "Nome obbligatorio";
     if (!cognome.trim())   e.cognome = "Cognome obbligatorio";
     if (!telefono.trim())  e.telefono = "Telefono obbligatorio";
+    if (!dataFineLavori)   e.dataFineLavori = "La data di fine lavori è obbligatoria";
     if (fatturaFiles.length === 0) e.fattura = "La fattura è obbligatoria";
     // Documenti forniti: i moduli di raccolta dati compilati sono obbligatori per ogni prodotto
     if (tipoServizio === "documenti_forniti" && !documentiMode)
@@ -969,7 +970,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label htmlFor="data-fine-lavori" className="text-sm">Data di fine lavori</Label>
+            <Label htmlFor="data-fine-lavori" className="text-sm">Data di fine lavori *</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -979,6 +980,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                   className={cn(
                     "w-full h-10 justify-start text-left font-normal",
                     !dataFineLavori && "text-muted-foreground",
+                    errors.dataFineLavori && "border-destructive",
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -989,6 +991,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                 <Calendar mode="single" selected={dataFineLavori} onSelect={setDataFineLavori} locale={it} />
               </PopoverContent>
             </Popover>
+            {errors.dataFineLavori && <p className="text-xs text-destructive" data-error>{errors.dataFineLavori}</p>}
           </div>
         </div>
 

@@ -59,13 +59,13 @@ async function callOpenWA(
   cfg: OpenWACfg,
   method: "GET" | "POST" | "DELETE",
   path: string,
-  body?: Record<string, unknown>,
+  reqBody?: Record<string, unknown>,
 ): Promise<{ ok: boolean; status: number; body: Record<string, unknown> }> {
   try {
     const res = await fetch(`${cfg.baseUrl}/api${path}`, {
       method,
       headers: { "X-API-Key": cfg.apiKey, "Content-Type": "application/json" },
-      ...(body ? { body: JSON.stringify(body) } : {}),
+      ...(reqBody ? { body: JSON.stringify(reqBody) } : {}),
     });
     const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
     return { ok: res.ok, status: res.status, body };

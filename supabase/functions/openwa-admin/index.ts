@@ -57,13 +57,15 @@ type OpenWACfg = NonNullable<ReturnType<typeof getOpenWAConfig>>;
 
 async function callOpenWA(
   cfg: OpenWACfg,
-  method: "GET" | "POST",
+  method: "GET" | "POST" | "DELETE",
   path: string,
+  body?: Record<string, unknown>,
 ): Promise<{ ok: boolean; status: number; body: Record<string, unknown> }> {
   try {
     const res = await fetch(`${cfg.baseUrl}/api${path}`, {
       method,
       headers: { "X-API-Key": cfg.apiKey, "Content-Type": "application/json" },
+      ...(body ? { body: JSON.stringify(body) } : {}),
     });
     const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
     return { ok: res.ok, status: res.status, body };
@@ -171,6 +173,24 @@ serve(async (req) => {
             : notFound
               ? "Nessuna sessione WhatsApp attiva sul server (il gateway è ripartito senza sessione). Va ricreata sul server OpenWA."
               : ((res.body.error as string) ?? (res.body.message as string) ?? `HTTP ${res.status}`),
+        });
+      }
+
+      case "logout": {
+        // Scollega il numero attuale per poterne collegare un altro:
+        // stop → DELETE (rimuove le credenziali del dispositivo) → ricrea la
+        // sessione vuota con lo stesso nome → start → riappare il QR pulito.
+        if (!cfg) return json({ error: "Secrets OpenWA mancanti" }, 400);
+        await callOpenWA(cfg, "POST", `/sessions/${sid}/stop`);
+        await callOpenWA(cfg, "DELETE", `/sessions/${sid}`);
+        const created = await callOpenWA(cfg, "POST", `/sessions`, { name: cfg.sessionName });
+        const newSid = (created.body.id as string | undefined) ?? sid;
+        await callOpenWA(cfg, "POST", `/sessions/${newSid}/start`);
+        return json({
+          success: created.ok,
+          error: created.ok
+            ? null
+            : ((created.body.error as string) ?? (created.body.message as string) ?? `HTTP ${created.status}`),
         });
       }
 

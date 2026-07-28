@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import {
   CheckCircle2, XCircle, AlertTriangle, RefreshCw, Smartphone,
-  QrCode, Loader2, Power,
+  QrCode, Loader2, Power, Unlink,
 } from "lucide-react";
 
 interface OpenWAStatus {
@@ -126,6 +126,26 @@ export default function OpenWAPanel() {
     },
     onError: (e) => {
       toast({ title: "Errore riavvio", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
+    },
+  });
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("openwa-admin", {
+        body: { action: "logout" },
+      });
+      if (error) throw new Error(error.message);
+      const res = data as { success: boolean; error?: string };
+      if (!res.success) throw new Error(res.error ?? "Scollegamento fallito");
+      return res;
+    },
+    onSuccess: () => {
+      toast({ title: "Numero scollegato", description: "Tra qualche secondo apparirà un nuovo QR: scansionalo col numero da collegare." });
+      queryClient.invalidateQueries({ queryKey: ["openwa-status"] });
+      queryClient.invalidateQueries({ queryKey: ["openwa-qr"] });
+    },
+    onError: (e) => {
+      toast({ title: "Errore scollegamento", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
     },
   });
 
@@ -248,6 +268,24 @@ export default function OpenWAPanel() {
               : <Power className="h-3.5 w-3.5" />}
             Riavvia sessione
           </Button>
+          {isConnected && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (window.confirm("Scollegare il numero attuale? Il numero verrà sganciato e apparirà un nuovo QR per collegarne uno (anche diverso).")) {
+                  logoutMutation.mutate();
+                }
+              }}
+              disabled={logoutMutation.isPending || !status?.reachable}
+              className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+            >
+              {logoutMutation.isPending
+                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                : <Unlink className="h-3.5 w-3.5" />}
+              Scollega numero
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

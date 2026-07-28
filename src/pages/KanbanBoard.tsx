@@ -504,6 +504,7 @@ function PracticeDetailSheet({
   const [deleteConclusaPath, setDeleteConclusaPath] = useState<string | null>(null);
   const [uploadingAggiuntivo, setUploadingAggiuntivo] = useState(false);
   const [uploadingFattura, setUploadingFattura] = useState(false);
+  const [dragOverTarget, setDragOverTarget] = useState<"fattura" | "documento" | null>(null);
   // path in attesa di conferma eliminazione: teniamo anche la colonna di appartenenza
   const [deleteExtraFile, setDeleteExtraFile] = useState<
     { path: string; column: "fatture_urls" | "documenti_aggiuntivi_urls" } | null
@@ -840,16 +841,16 @@ function PracticeDetailSheet({
   // destinazione: "fatture_urls" (gruppo Fatture) oppure
   // "documenti_aggiuntivi_urls" (gruppo Documenti aggiuntivi). I due flussi
   // restano SEPARATI: le fatture non finiscono tra i documenti aggiuntivi.
-  async function handleUploadExtra(
-    e: React.ChangeEvent<HTMLInputElement>,
+  async function uploadExtraFiles(
+    fileList: FileList | File[] | null,
     column: "fatture_urls" | "documenti_aggiuntivi_urls",
     subfolder: string,
     setUploading: (b: boolean) => void,
-    inputRef: React.RefObject<HTMLInputElement>,
+    inputRef?: React.RefObject<HTMLInputElement>,
   ) {
-    if (!practice || !e.target.files?.length) return;
+    if (!practice || !fileList || fileList.length === 0) return;
     setUploading(true);
-    const files = Array.from(e.target.files);
+    const files = Array.from(fileList);
     const newPaths: string[] = [];
     const failed: { name: string; reason: string }[] = [];
 
@@ -895,7 +896,7 @@ function PracticeDetailSheet({
     }
 
     setUploading(false);
-    if (inputRef.current) inputRef.current.value = "";
+    if (inputRef?.current) inputRef.current.value = "";
   }
 
   async function handleDeleteExtra(
@@ -1512,38 +1513,18 @@ function PracticeDetailSheet({
                             multiple
                             className="hidden"
                             onChange={(e) =>
-                              handleUploadExtra(e, "fatture_urls", "fattura", setUploadingFattura, fatturaInputRef)
+                              uploadExtraFiles(e.target.files, "fatture_urls", "fattura", setUploadingFattura, fatturaInputRef)
                             }
                           />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs gap-1"
-                            disabled={uploadingFattura}
-                            onClick={() => fatturaInputRef.current?.click()}
-                          >
-                            <Plus className="h-3 w-3" />
-                            {uploadingFattura ? "Caricamento…" : "Carica fattura"}
-                          </Button>
                           <input
                             ref={aggiuntivoInputRef}
                             type="file"
                             multiple
                             className="hidden"
                             onChange={(e) =>
-                              handleUploadExtra(e, "documenti_aggiuntivi_urls", "aggiuntivi", setUploadingAggiuntivo, aggiuntivoInputRef)
+                              uploadExtraFiles(e.target.files, "documenti_aggiuntivi_urls", "aggiuntivi", setUploadingAggiuntivo, aggiuntivoInputRef)
                             }
                           />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs gap-1"
-                            disabled={uploadingAggiuntivo}
-                            onClick={() => aggiuntivoInputRef.current?.click()}
-                          >
-                            <Plus className="h-3 w-3" />
-                            {uploadingAggiuntivo ? "Caricamento…" : "Carica documento"}
-                          </Button>
                         </>
                       )}
                       {isInternal && (
@@ -1570,6 +1551,52 @@ function PracticeDetailSheet({
                       )}
                     </div>
                   </div>
+                  {isSuperAdmin && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => fatturaInputRef.current?.click()}
+                        onDragOver={(e) => { e.preventDefault(); setDragOverTarget("fattura"); }}
+                        onDragLeave={() => setDragOverTarget(null)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setDragOverTarget(null);
+                          uploadExtraFiles(e.dataTransfer.files, "fatture_urls", "fattura", setUploadingFattura, fatturaInputRef);
+                        }}
+                        className={cn(
+                          "flex items-center justify-center gap-1.5 rounded-lg border border-dashed px-3 py-3 text-xs text-center cursor-pointer transition-colors",
+                          dragOverTarget === "fattura"
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-input text-muted-foreground hover:bg-accent",
+                        )}
+                      >
+                        <Plus className="h-3.5 w-3.5 shrink-0" />
+                        {uploadingFattura ? "Caricamento…" : "Trascina o clicca per caricare fatture"}
+                      </div>
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => aggiuntivoInputRef.current?.click()}
+                        onDragOver={(e) => { e.preventDefault(); setDragOverTarget("documento"); }}
+                        onDragLeave={() => setDragOverTarget(null)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setDragOverTarget(null);
+                          uploadExtraFiles(e.dataTransfer.files, "documenti_aggiuntivi_urls", "aggiuntivi", setUploadingAggiuntivo, aggiuntivoInputRef);
+                        }}
+                        className={cn(
+                          "flex items-center justify-center gap-1.5 rounded-lg border border-dashed px-3 py-3 text-xs text-center cursor-pointer transition-colors",
+                          dragOverTarget === "documento"
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-input text-muted-foreground hover:bg-accent",
+                        )}
+                      >
+                        <Plus className="h-3.5 w-3.5 shrink-0" />
+                        {uploadingAggiuntivo ? "Caricamento…" : "Trascina o clicca per caricare documenti"}
+                      </div>
+                    </div>
+                  )}
                   {(() => {
                     // Le fatture possono trovarsi in DUE posti:
                     //  - `fatture_urls`: percorso rivenditore (richiesta-pubblica)

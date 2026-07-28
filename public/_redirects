@@ -1,12 +1,16 @@
 # Cloudflare Pages _redirects — order matters (first match wins)
 
 # ────────────────────────────────────────────────────────────────
-# SEO: sitemap + RSS dinamici (servito da Supabase Edge Function).
-# Status 200 = rewrite (URL bar resta /sitemap.xml).
+# SEO: sitemap + RSS dinamici.
+# Serviti dalle Cloudflare Pages Functions in functions/ (stesso dominio,
+# Content-Type corretto). Queste righe sono solo una RETE DI SICUREZZA se
+# le Functions non venissero deployate: 302 (redirect) — NON 200, perché il
+# rewrite/proxy 200 verso URL ESTERNI (supabase.co) NON è supportato da
+# Cloudflare Pages e faceva servire l'HTML della SPA al posto del sitemap.
 # ────────────────────────────────────────────────────────────────
-/sitemap.xml         https://xmkjrhwmmuzaqjqlvzxm.supabase.co/functions/v1/seo-sitemap  200
-/feed.xml            https://xmkjrhwmmuzaqjqlvzxm.supabase.co/functions/v1/seo-rss      200
-/rss.xml             https://xmkjrhwmmuzaqjqlvzxm.supabase.co/functions/v1/seo-rss      200
+/sitemap.xml         https://xmkjrhwmmuzaqjqlvzxm.supabase.co/functions/v1/seo-sitemap  302
+/feed.xml            https://xmkjrhwmmuzaqjqlvzxm.supabase.co/functions/v1/seo-rss      302
+/rss.xml             /feed.xml                                                          301
 /rss                 /feed.xml                                                          301
 /feed                /feed.xml                                                          301
 

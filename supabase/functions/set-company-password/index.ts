@@ -78,30 +78,40 @@ Deno.serve(async (req) => {
   }
 
   // ── 3. Trova target user (azienda_admin per quel company_id) ──────────────
+  // NB: NON usiamo l'embedding PostgREST `user_roles!inner(role)` perché tra
+  // `user_company_assignments` e `user_roles` non esiste una foreign key
+  // (condividono solo `user_id`). L'embedding falliva la risoluzione della
+  // relazione → PostgREST tornava errore → la function rispondeva 500.
+  // Facciamo invece due lookup espliciti su `user_id`.
   const { data: assignments, error: assignErr } = await admin
     .from("user_company_assignments")
-    .select("user_id, user_roles!inner(role)")
+    .select("user_id")
     .eq("company_id", company_id);
   if (assignErr) return json({ error: "Errore lookup utente: " + assignErr.message }, 500);
 
-  type Row = { user_id: string; user_roles: Array<{ role: string }> | { role: string } };
-  const rows = (assignments ?? []) as unknown as Row[];
+  const userIds = ((assignments ?? []) as Array<{ user_id: string }>)
+    .map((a) => a.user_id)
+    .filter(Boolean);
+  if (!userIds.length) {
+    return json({ error: "Nessun utente collegato a questa azienda" }, 404);
+  }
+
+  const { data: roleRows, error: rolesErr } = await admin
+    .from("user_roles")
+    .select("user_id, role")
+    .in("user_id", userIds);
+  if (rolesErr) return json({ error: "Errore lookup ruoli: " + rolesErr.message }, 500);
+
+  const rows = (roleRows ?? []) as Array<{ user_id: string; role: string }>;
 
   // Preferenza: azienda_admin → fallback azienda_user
-  const targetRow =
-    rows.find((r) => {
-      const roles = Array.isArray(r.user_roles) ? r.user_roles : [r.user_roles];
-      return roles.some((x) => x.role === "azienda_admin");
-    }) ??
-    rows.find((r) => {
-      const roles = Array.isArray(r.user_roles) ? r.user_roles : [r.user_roles];
-      return roles.some((x) => x.role === "azienda_user");
-    });
+  const target_user_id =
+    rows.find((r) => r.role === "azienda_admin")?.user_id ??
+    rows.find((r) => r.role === "azienda_user")?.user_id;
 
-  if (!targetRow) {
+  if (!target_user_id) {
     return json({ error: "Nessun utente azienda_admin/azienda_user trovato per questa azienda" }, 404);
   }
-  const target_user_id = targetRow.user_id;
 
   // ── 4. Update password tramite admin API ──────────────────────────────────
   const { data: updated, error: updErr } = await admin.auth.admin.updateUserById(

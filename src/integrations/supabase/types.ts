@@ -1157,6 +1157,57 @@ export type Database = {
           },
         ]
       }
+      cruscotto_sync_queue: {
+        Row: {
+          cliente_cognome: string
+          cliente_nome: string
+          closed_at: string
+          consumed_at: string | null
+          created_at: string
+          id: string
+          practice_id: string
+          reseller_id: string
+          reseller_nome: string
+        }
+        Insert: {
+          cliente_cognome: string
+          cliente_nome: string
+          closed_at?: string
+          consumed_at?: string | null
+          created_at?: string
+          id?: string
+          practice_id: string
+          reseller_id: string
+          reseller_nome: string
+        }
+        Update: {
+          cliente_cognome?: string
+          cliente_nome?: string
+          closed_at?: string
+          consumed_at?: string | null
+          created_at?: string
+          id?: string
+          practice_id?: string
+          reseller_id?: string
+          reseller_nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cruscotto_sync_queue_practice_id_fkey"
+            columns: ["practice_id"]
+            isOneToOne: true
+            referencedRelation: "enea_practices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cruscotto_sync_queue_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_field_values: {
         Row: {
           created_at: string | null

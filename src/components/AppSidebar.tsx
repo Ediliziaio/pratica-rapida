@@ -23,6 +23,7 @@ import {
   Activity,
   BookOpen,
   PhoneCall,
+  Gauge,
 } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -30,6 +31,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth, isSuperAdmin, isReseller } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
+import { useCruscottoHandoff } from "@/hooks/useCruscottoHandoff";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
@@ -50,6 +52,9 @@ type NavItem = {
   badge?: number;
   /** If true, render as external anchor opening in a new tab (used for static PDFs). */
   external?: boolean;
+  /** If present, la voce è un bottone e non naviga (es. "Cruscotto", che
+   *  apre l'app esterna passandole le pratiche via postMessage). */
+  onClick?: () => void;
   /** If present, the row is a toggle that expands to show these sub-items
    *  (used for "Come usare il portale" → le tre guide). Il parent non naviga. */
   subItems?: NavItem[];
@@ -120,7 +125,11 @@ function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
     </>
   );
 
-  const link = item.external ? (
+  const link = item.onClick ? (
+    <button type="button" onClick={item.onClick} className={`${linkClassName} w-full text-left`}>
+      {linkContent}
+    </button>
+  ) : item.external ? (
     <a href={item.url} target="_blank" rel="noopener noreferrer" className={linkClassName}>
       {linkContent}
     </a>
@@ -292,6 +301,7 @@ export function AppSidebar() {
   const { state, setOpen: setSidebarOpen, setOpenMobile, isMobile } = useSidebar();
   const { isImpersonating } = useCompany();
   const collapsed = state === "collapsed";
+  const apriCruscotto = useCruscottoHandoff();
 
   // Pop-up guide → rendi visibile la sidebar, poi (a contenuto montato) chiedi
   // alla voce tutorial di espandersi/evidenziarsi. Sta qui, non nella voce,
@@ -382,6 +392,9 @@ export function AppSidebar() {
           { title: "Attività", url: "/coda-pratiche", icon: ListChecks },
           { title: "Chiamate", url: "/admin/chiamate", icon: PhoneCall, badge: daChiamare },
           { title: "Automazioni", url: "/admin/automazioni", icon: Zap },
+          // Apre il cruscotto esterno e gli passa le pratiche chiuse via
+          // postMessage: il cruscotto non ha login né accesso al DB.
+          { title: "Cruscotto", url: "#cruscotto", icon: Gauge, onClick: apriCruscotto },
         ],
       },
       {

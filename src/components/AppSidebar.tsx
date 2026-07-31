@@ -23,6 +23,7 @@ import {
   Activity,
   BookOpen,
   PhoneCall,
+  Gauge,
 } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -40,6 +41,10 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
+// Cruscotto di cassa e produzione: applicazione separata, con repository e
+// deploy propri. Qui serve solo l'indirizzo per la voce di menu.
+const CRUSCOTTO_URL = "https://ulberetaway.vercel.app";
 
 type NavItem = {
   title: string;
@@ -428,6 +433,15 @@ export function AppSidebar() {
           { title: "Moduli Form", url: "/admin/moduli", icon: FormInput },
           { title: "Integrazioni (Health)", url: "/admin/integrazioni", icon: Activity },
           { title: "WhatsApp Setup", url: "/admin/whatsapp-config", icon: MessageCircle },
+        ],
+      });
+    }
+    // Cruscotto — app separata (repository e deploy propri), riservata al
+    // titolare. Link esterno: si apre in scheda nuova e non passa dal router.
+    if (superAdmin) {
+      groups.push({
+        items: [
+          { title: "Cruscotto", url: CRUSCOTTO_URL, icon: Gauge, external: true },
         ],
       });
     }

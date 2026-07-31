@@ -1598,25 +1598,71 @@ function PracticeDetailSheet({
                     </div>
                   )}
                   {(() => {
-                    // Le fatture possono trovarsi in DUE posti:
-                    //  - `fatture_urls`: percorso rivenditore (richiesta-pubblica)
-                    //  - `dati_form.documenti.fattura_url` / `bonifico_url`:
-                    //    percorso FORM PUBBLICO cliente (edge fn form-upload).
-                    // Storicamente il Kanban leggeva solo `fatture_urls`, quindi le
-                    // fatture caricate dai clienti risultavano invisibili qui.
-                    // Uniamo entrambe le sorgenti (dedup sui path già presenti).
-                    const documenti = (
-                      (practice.dati_form as { documenti?: { fattura_url?: string; bonifico_url?: string } } | null)
-                        ?.documenti
-                    ) ?? {};
+                    // I file caricati dal cliente stanno nel jsonb `dati_form`, in
+                    // punti che dipendono dal modulo compilato:
+                    //  - form classico  → documenti.fattura_url / bonifico_url
+                    //  - moduli dinamici → fatture.fattura, prodotto.libretto_url, …
+                    //    e il valore è una STRINGA se ha caricato un file solo,
+                    //    un ELENCO se ne ha caricati più d'uno.
+                    // Cercare percorsi fissi scritti a mano lasciava invisibili le
+                    // fatture dei moduli dinamici. Li raccogliamo invece per come
+                    // sono fatti: ogni file caricato vive sotto `<id pratica>/`,
+                    // quindi si riconosce senza sapere nulla dello schema del
+                    // modulo — e i moduli nuovi funzionano da soli.
+                    type FileForm = { label: string; path: string; chiave: string };
+
+                    const raccogliFile = (
+                      nodo: unknown,
+                      chiave: string,
+                      dentro: FileForm[],
+                    ) => {
+                      if (typeof nodo === "string") {
+                        if (nodo.startsWith(`${practice.id}/`)) {
+                          dentro.push({ label: chiave, path: nodo, chiave });
+                        }
+                        return;
+                      }
+                      if (Array.isArray(nodo)) {
+                        nodo.forEach((v) => raccogliFile(v, chiave, dentro));
+                        return;
+                      }
+                      if (nodo && typeof nodo === "object") {
+                        Object.entries(nodo as Record<string, unknown>).forEach(
+                          ([k, v]) => raccogliFile(v, k, dentro),
+                        );
+                      }
+                    };
+
+                    const fileDalForm: FileForm[] = [];
+                    raccogliFile(practice.dati_form, "documento", fileDalForm);
+
+                    const etichetta = (chiave: string, i: number, totale: number) => {
+                      const nome = chiave
+                        .replace(/_url$/i, "")
+                        .replace(/_/g, " ")
+                        .trim();
+                      const titolo = nome.charAt(0).toUpperCase() + nome.slice(1);
+                      return totale > 1 ? `${titolo} ${i + 1}` : titolo;
+                    };
+
+                    const perGruppo = (test: RegExp) =>
+                      fileDalForm.filter((f) => test.test(f.chiave));
+
+                    const fattureDalForm = perGruppo(/fattur/i);
+                    const bonificiDalForm = perGruppo(/bonific/i);
+                    const altriDalForm = fileDalForm.filter(
+                      (f) => !/fattur/i.test(f.chiave) && !/bonific/i.test(f.chiave),
+                    );
+
                     // fatture_urls: eliminabili dal super_admin (upload manuale /
-                    // rivenditore). La fattura del form cliente vive nel jsonb
-                    // dati_form → la mostriamo ma NON è eliminabile da qui.
+                    // rivenditore). Quelle caricate dal cliente vivono nel jsonb
+                    // dati_form → le mostriamo ma NON sono eliminabili da qui.
                     const fattureColPaths = practice.fatture_urls ?? [];
                     const fatturePaths = [...fattureColPaths];
-                    if (documenti.fattura_url && !fatturePaths.includes(documenti.fattura_url)) {
-                      fatturePaths.push(documenti.fattura_url);
-                    }
+                    fattureDalForm.forEach((f) => {
+                      if (!fatturePaths.includes(f.path)) fatturePaths.push(f.path);
+                    });
+
                     const groups: { title: string; files: { label: string; path: string; onDelete?: () => void }[] }[] = [
                       {
                         title: "Fatture",
@@ -1631,9 +1677,17 @@ function PracticeDetailSheet({
                       },
                       {
                         title: "Bonifico",
-                        files: documenti.bonifico_url
-                          ? [{ label: "Bonifico", path: documenti.bonifico_url }]
-                          : [],
+                        files: bonificiDalForm.map((f, i) => ({
+                          label: etichetta(f.chiave, i, bonificiDalForm.length),
+                          path: f.path,
+                        })),
+                      },
+                      {
+                        title: "Altri documenti dal modulo",
+                        files: altriDalForm.map((f, i) => ({
+                          label: etichetta(f.chiave, i, altriDalForm.length),
+                          path: f.path,
+                        })),
                       },
                       {
                         title: "Documenti aggiuntivi",

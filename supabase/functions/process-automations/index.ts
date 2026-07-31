@@ -285,6 +285,28 @@ serve(async () => {
   let processed = 0;
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
+  // Una pratica puo stare nella colonna "Archiviate" senza avere
+  // archived_at valorizzato: il flag lo mette l'auto-archiviazione, ma
+  // chi trascina la card a mano lo lascia vuoto. Sono due cose diverse
+  // (archived_at sposta la pratica in una vista separata, la colonna no).
+  //
+  // Filtrare solo su archived_at faceva quindi continuare i solleciti a
+  // clienti la cui pratica era gia stata chiusa e messa in Archiviate.
+  // Qui raccogliamo quelle colonne per escluderle anche quando il flag
+  // manca: per non disturbare nessuno bastano entrambe le condizioni.
+  const { data: stagesArchiviate } = await supabase
+    .from("pipeline_stages")
+    .select("id")
+    .eq("stage_type", "archiviate");
+
+  const idColonneArchiviate = (stagesArchiviate ?? []).map((s) => s.id);
+
+  // Lista pronta per il filtro `not in`, oppure null se non ci sono
+  // colonne di tipo archiviate (allora non si filtra nulla).
+  const colonneArchiviateIn = idColonneArchiviate.length > 0
+    ? `(${idColonneArchiviate.join(",")})`
+    : null;
+
   for (const rule of rules) {
     try {
       const romeHour = parseInt(
@@ -302,13 +324,17 @@ serve(async () => {
       switch (rule.trigger_event) {
 
         case "days_waiting_7": {
-          const { data: practices } = await supabase
+          let qPrivato = supabase
             .from("enea_practices")
             .select("*, companies:reseller_id(ragione_sociale)")
             .eq("tipo_servizio", "servizio_completo")
             .is("archived_at", null)
             .is("form_compilato_at", null)
             .or(`ultimo_sollecito_privato.is.null,ultimo_sollecito_privato.lt.${sevenDaysAgo}`);
+          if (colonneArchiviateIn) {
+            qPrivato = qPrivato.not("current_stage_id", "in", colonneArchiviateIn);
+          }
+          const { data: practices } = await qPrivato;
 
           for (const p of practices ?? []) {
             // Applica filtri condition della rule (es. solo infissi, solo ENEA, ecc.).
@@ -384,13 +410,17 @@ serve(async () => {
           // Idempotency: require that either no fornitore sollecito has ever been sent,
           // OR the last one is older than `days` — so a second cron tick in the same
           // hour/day won't re-send for practices that already received a reminder.
-          const { data: practices } = await supabase
+          let qFornitore = supabase
             .from("enea_practices")
             .select("*, companies:reseller_id(ragione_sociale, email)")
             .is("archived_at", null)
             .is("form_compilato_at", null)
             .lt("created_at", cutoff)
             .or(`ultimo_sollecito_fornitore.is.null,ultimo_sollecito_fornitore.lt.${cutoff}`);
+          if (colonneArchiviateIn) {
+            qFornitore = qFornitore.not("current_stage_id", "in", colonneArchiviateIn);
+          }
+          const { data: practices } = await qFornitore;
 
           for (const p of practices ?? []) {
             // Applica filtri condition della rule (es. solo infissi, solo ENEA, ecc.).
@@ -435,12 +465,16 @@ serve(async () => {
         }
 
         case "recensione_7d_followup": {
-          const { data: practices } = await supabase
+          let qRecensione = supabase
             .from("enea_practices")
             .select("*")
             .is("archived_at", null)
             .is("recensione_ricevuta_at", null)
             .lt("recensione_richiesta_at", sevenDaysAgo);
+          if (colonneArchiviateIn) {
+            qRecensione = qRecensione.not("current_stage_id", "in", colonneArchiviateIn);
+          }
+          const { data: practices } = await qRecensione;
 
           for (const p of practices ?? []) {
             // Applica filtri condition della rule (es. solo infissi, solo ENEA, ecc.).

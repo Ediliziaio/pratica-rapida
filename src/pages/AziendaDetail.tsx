@@ -16,11 +16,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import {
   Building2, ArrowLeft, FolderOpen, Receipt, Users, FileText, TrendingUp,
   Mail, Phone, MapPin, Download, Tag, RotateCcw, Check, Gift, KeyRound,
+  Pencil,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import { CompanyPromoManager } from "@/pages/admin/CompanyPromoManager";
 import ChangeCompanyPasswordDialog from "@/components/aziende/ChangeCompanyPasswordDialog";
+import ModificaAnagraficaDialog from "@/components/aziende/ModificaAnagraficaDialog";
 import { exportToCSV } from "@/lib/csv-export";
 import { STATO_CONFIG, PAGAMENTO_BADGE } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
@@ -204,6 +206,7 @@ export default function AziendaDetail() {
   const queryClient = useQueryClient();
   const isAdmin = isSuperAdmin(roles);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [showAnagraficaDialog, setShowAnagraficaDialog] = useState(false);
 
   const { data: company, isLoading } = useQuery({
     queryKey: ["company-detail", id],
@@ -481,6 +484,13 @@ export default function AziendaDetail() {
           <TabsContent value="info" className="space-y-4">
             <Card>
               <CardContent className="pt-6">
+                {isAdmin && (
+                  <div className="mb-4 flex justify-end">
+                    <Button variant="outline" size="sm" onClick={() => setShowAnagraficaDialog(true)}>
+                      <Pencil className="mr-2 h-3.5 w-3.5" />Modifica anagrafica
+                    </Button>
+                  </div>
+                )}
                 <div className="grid gap-4 sm:grid-cols-2">
                   <InfoRow icon={Building2} label="Ragione Sociale" value={company.ragione_sociale} />
                   <InfoRow icon={FileText} label="P.IVA" value={company.piva} />
@@ -489,6 +499,28 @@ export default function AziendaDetail() {
                   <InfoRow icon={Phone} label="Telefono" value={company.telefono} />
                   <InfoRow icon={MapPin} label="Indirizzo" value={[company.indirizzo, company.cap, company.citta, company.provincia].filter(Boolean).join(", ")} />
                 </div>
+
+                {/* I documenti automatici (Dichiarazione Tecnica) leggono da
+                    companies: ragione_sociale, piva, indirizzo, citta,
+                    provincia, cap. Se manca qualcosa il documento esce con i
+                    buchi, quindi conviene dirlo qui invece di scoprirlo dopo. */}
+                {isAdmin && (() => {
+                  const mancanti = [
+                    ["P.IVA", company.piva],
+                    ["Indirizzo", company.indirizzo],
+                    ["Città", company.citta],
+                    ["CAP", company.cap],
+                    ["Provincia", company.provincia],
+                  ].filter(([, v]) => !v).map(([k]) => k);
+
+                  if (mancanti.length === 0) return null;
+
+                  return (
+                    <p className="mt-4 text-xs text-muted-foreground">
+                      Mancano per i documenti automatici: <strong>{mancanti.join(", ")}</strong>
+                    </p>
+                  );
+                })()}
               </CardContent>
             </Card>
 
@@ -790,6 +822,14 @@ export default function AziendaDetail() {
             open={showPasswordDialog}
             onOpenChange={setShowPasswordDialog}
             company={{ id: company.id, ragione_sociale: company.ragione_sociale, email: company.email }}
+          />
+        )}
+
+        {isAdmin && company && (
+          <ModificaAnagraficaDialog
+            open={showAnagraficaDialog}
+            onOpenChange={setShowAnagraficaDialog}
+            company={company}
           />
         )}
       </div>

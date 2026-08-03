@@ -176,7 +176,7 @@ export function StepRecap({ data, prodottoTipo }: Props) {
         )}
         {prodottoTipo === "impianto_termico" && (
           <Row
-            label="Libretto impianto"
+            label="Certificato F-GAS"
             value={i.libretto_url ? "Caricato" : "—"}
           />
         )}

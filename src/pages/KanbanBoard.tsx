@@ -1636,8 +1636,14 @@ function PracticeDetailSheet({
                     const fileDalForm: FileForm[] = [];
                     raccogliFile(practice.dati_form, "documento", fileDalForm);
 
+                    // Nomi da mostrare per i campi il cui identificativo tecnico
+                    // non coincide col nome del documento richiesto.
+                    const NOMI_DOCUMENTI: Record<string, string> = {
+                      libretto_url: "Certificato F-GAS",
+                    };
+
                     const etichetta = (chiave: string, i: number, totale: number) => {
-                      const nome = chiave
+                      const nome = NOMI_DOCUMENTI[chiave] ?? chiave
                         .replace(/_url$/i, "")
                         .replace(/_/g, " ")
                         .trim();
@@ -2139,9 +2145,9 @@ function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
             {prodottoTipo === "impianto_termico" && (
               <div>
                 {prodotto.libretto_url ? (
-                  <FileDownloadLink label="📄 Libretto impianto" path={prodotto.libretto_url as string} />
+                  <FileDownloadLink label="📄 Certificato F-GAS" path={prodotto.libretto_url as string} />
                 ) : (
-                  <p className="text-xs text-muted-foreground italic">Libretto non caricato dal cliente.</p>
+                  <p className="text-xs text-muted-foreground italic">Certificato F-GAS non caricato dal cliente.</p>
                 )}
               </div>
             )}
@@ -3827,7 +3833,7 @@ export default function KanbanBoard() {
             <Textarea
               value={docMissText}
               onChange={(e) => setDocMissText(e.target.value)}
-              placeholder="Es. Certificato di trasmittanza, libretto impianto, scheda tecnica prodotto..."
+              placeholder="Es. Certificato di trasmittanza, certificato F-GAS, scheda tecnica prodotto..."
               rows={4}
               className="resize-none"
             />

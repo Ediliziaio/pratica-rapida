@@ -169,7 +169,7 @@ export function validateProdotto(d: FormClienteData, tipo: ProdottoTipo): ErrorM
   }
   if (tipo === "impianto_termico" && p.tipo === "impianto_termico") {
     if (!d.impianto.libretto_url) {
-      e["prodotto.libretto"] = "Carica il libretto dell'impianto";
+      e["prodotto.libretto"] = "Carica il certificato F-GAS";
     }
   }
   return e;

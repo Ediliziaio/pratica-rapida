@@ -319,7 +319,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       e.email = "Serve l'email del cliente per potergli inviare la pratica";
     // Pompe di calore: libretto obbligatorio
     if (tipoProdotto === "pompe_calore" && docExtra2.length === 0)
-      e.libretto = "Il libretto dell'impianto è obbligatorio";
+      e.libretto = "Il certificato F-GAS è obbligatorio";
     // Prodotti con flag: se NO → doc extra obbligatorio
     if (docConfig?.hasExtra && flagDocCompleto === false && docExtra1.length === 0)
       e.docExtra1 = "Il documento aggiuntivo è obbligatorio";
@@ -1125,7 +1125,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
               </p>
             )}
             <FileDropzone
-              label="Libretto dell'impianto (marca e modello)"
+              label="Certificato F-GAS (marca e modello)"
               required
               files={docExtra2}
               onAdd={(f) => setDocExtra2((p) => [...p, ...f])}

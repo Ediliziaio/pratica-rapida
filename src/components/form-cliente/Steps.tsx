@@ -889,8 +889,8 @@ function ProdottoImpianto({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Per le pratiche di impianto termico (es. pompe di calore) è necessario il libretto
-        dell'impianto. Carica un file PDF, JPG o PNG (max 20MB).
+        Per le pratiche di impianto termico (es. pompe di calore) è necessario il
+        certificato F-GAS. Carica un file PDF, JPG o PNG (max 20MB).
       </p>
 
       <input
@@ -908,7 +908,7 @@ function ProdottoImpianto({
       {libretto ? (
         <div className="rounded-md border p-3 flex items-center justify-between">
           <div className="text-sm">
-            <p className="font-medium">Libretto caricato</p>
+            <p className="font-medium">Certificato F-GAS caricato</p>
             <p className="text-xs text-muted-foreground break-all">{libretto.split("/").pop()}</p>
           </div>
           <Button
@@ -934,7 +934,7 @@ function ProdottoImpianto({
           ) : (
             <Upload className="h-4 w-4 mr-2" />
           )}
-          Carica libretto impianto
+          Carica certificato F-GAS
         </Button>
       )}
       <FieldError errors={errors} field="prodotto.libretto" />

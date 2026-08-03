@@ -1444,6 +1444,8 @@ export type Database = {
           cliente_nome: string
           cliente_telefono: string | null
           conteggio_solleciti: number | null
+          contratto_accettato_at: string | null
+          contratto_versione: string | null
           created_at: string | null
           current_stage_entered_at: string
           current_stage_id: string | null
@@ -1497,6 +1499,8 @@ export type Database = {
           cliente_nome: string
           cliente_telefono?: string | null
           conteggio_solleciti?: number | null
+          contratto_accettato_at?: string | null
+          contratto_versione?: string | null
           created_at?: string | null
           current_stage_entered_at?: string
           current_stage_id?: string | null
@@ -1552,6 +1556,8 @@ export type Database = {
           cliente_nome?: string
           cliente_telefono?: string | null
           conteggio_solleciti?: number | null
+          contratto_accettato_at?: string | null
+          contratto_versione?: string | null
           created_at?: string | null
           current_stage_entered_at?: string
           current_stage_id?: string | null

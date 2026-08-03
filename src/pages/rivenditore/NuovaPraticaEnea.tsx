@@ -170,6 +170,12 @@ async function uploadFiles(
  *    login → invio via edge function `richiesta-pubblica`, con in più i
  *    campi azienda (ragione sociale, email, telefono).
  */
+// Contratto di servizio: da oggi ogni pratica richiede l'accettazione del
+// rivenditore. Il PDF sta in /public; la versione viene registrata sulla
+// pratica come prova di quale testo e stato accettato.
+const CONTRATTO_URL = "/contratto-di-servizio.pdf";
+const CONTRATTO_VERSIONE = "2026-08-03";
+
 export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: boolean } = {}) {
   const { resellerId, isInternal } = useAuth();
   const { toast } = useToast();
@@ -182,6 +188,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   const [aziendaTelefono, setAziendaTelefono] = useState("");
   // Consenso condizioni di pagamento (publicMode, solo se paga il rivenditore)
   const [accettoPagamento, setAccettoPagamento] = useState(false);
+  // Accettazione del contratto di servizio: obbligatoria per ogni pratica.
+  const [accettoContratto, setAccettoContratto] = useState(false);
 
   // For staff (super_admin/operatore) who don't have a resellerId, let them pick
   // the company (reseller) that will own the practice. Direct-channel clients.
@@ -295,6 +303,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       if (aziendaTelefono.replace(/\D/g, "").length < 8) e.aziendaTelefono = "Telefono azienda obbligatorio";
       if (!accettoPagamento) e.accettoPagamento = "Devi accettare le condizioni per inviare la richiesta";
     }
+    // Contratto di servizio: obbligatorio per ogni pratica, in ogni modalità.
+    if (!accettoContratto) e.accettoContratto = "Devi accettare le condizioni di servizio per inviare la pratica";
     if (!tipoServizio)     e.tipoServizio = "Seleziona il tipo di servizio";
     if (!tipoProdotto)     e.tipoProdotto = "Seleziona il prodotto";
     if (!tipoSoggetto)     e.tipoSoggetto = "Seleziona il tipo di soggetto";
@@ -460,6 +470,10 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           cliente_indirizzo: indirizzo.trim() || null,
           data_fine_lavori: dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : null,
           note: note.trim() || null,
+          // Prova dell'accettazione del contratto di servizio da parte del
+          // rivenditore che sta inserendo questa pratica.
+          contratto_accettato_at: new Date().toISOString(),
+          contratto_versione: CONTRATTO_VERSIONE,
           fatture_urls: [],
           documenti_enea_urls: [],
           documenti_aggiuntivi_urls: [],
@@ -539,6 +553,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     setFatturaFiles([]); setDocExtra1([]); setDocExtra2([]);
     setModuliRaccoltaFiles([]);
     setFlagDocCompleto(null); setErrors({});
+    setAccettoContratto(false);
     setSubmitted(null);
   };
 
@@ -1174,6 +1189,29 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           </span>
         </label>
       )}
+
+      {/* ── Accettazione contratto di servizio (obbligatoria, ogni pratica) ── */}
+      <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer select-none rounded-lg border bg-muted/20 p-3">
+        <input
+          type="checkbox"
+          checked={accettoContratto}
+          onChange={(e) => { setAccettoContratto(e.target.checked); setErrors((p) => ({ ...p, accettoContratto: "" })); }}
+          className="mt-0.5 accent-primary"
+        />
+        <span>
+          Inviando la pratica accetto le{" "}
+          <a
+            href={CONTRATTO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="font-medium text-primary underline underline-offset-2"
+          >
+            condizioni di servizio di Pratica Rapida
+          </a>.
+          {errors.accettoContratto && <span className="block text-destructive mt-0.5" data-error>{errors.accettoContratto}</span>}
+        </span>
+      </label>
 
       {/* ── Submit ───────────────────────────────────────────────────────── */}
       <div className="sticky bottom-4">

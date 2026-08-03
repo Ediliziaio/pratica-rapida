@@ -12,9 +12,28 @@
 import { useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, FileText, Printer } from "lucide-react";
+import { Download, FileText, Printer, ExternalLink } from "lucide-react";
 import AttoNotorioTemplate from "@/components/documenti/AttoNotorioTemplate";
 import AsseverazioneNeutraTemplate from "@/components/documenti/AsseverazioneNeutraTemplate";
+
+// Documenti serviti come PDF statico (in /public), non come template stampabile.
+interface StaticDoc {
+  id: string;
+  title: string;
+  description: string;
+  use_case: string;
+  file: string;
+}
+
+const STATIC_DOCUMENTS: StaticDoc[] = [
+  {
+    id: "contratto-di-servizio",
+    title: "Contratto di servizio",
+    description: "Condizioni di servizio di Pratica Rapida per la gestione delle pratiche.",
+    use_case: "Le stesse condizioni che accetti a ogni invio di una pratica dal portale. Qui puoi rileggerle e scaricarle quando vuoi.",
+    file: "/contratto-di-servizio.pdf",
+  },
+];
 
 interface DocumentTemplate {
   id: string;
@@ -52,11 +71,47 @@ export default function DocumentiUtili() {
       </div>
 
       <div className="grid gap-4">
+        {STATIC_DOCUMENTS.map((doc) => (
+          <StaticDocRow key={doc.id} doc={doc} />
+        ))}
         {DOCUMENT_TEMPLATES.map((tpl) => (
           <DocumentRow key={tpl.id} template={tpl} />
         ))}
       </div>
     </div>
+  );
+}
+
+function StaticDocRow({ doc }: { doc: StaticDoc }) {
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <FileText className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-base">{doc.title}</CardTitle>
+              <CardDescription className="mt-1">{doc.description}</CardDescription>
+              <p className="text-xs text-muted-foreground mt-2">{doc.use_case}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button variant="outline" size="sm" asChild>
+              <a href={doc.file} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4 mr-1.5" />Apri
+              </a>
+            </Button>
+            <Button size="sm" asChild>
+              <a href={doc.file} download>
+                <Download className="h-4 w-4 mr-1.5" />Scarica PDF
+              </a>
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+    </Card>
   );
 }
 

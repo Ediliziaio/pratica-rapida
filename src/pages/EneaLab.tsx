@@ -13,6 +13,7 @@ import {
   Loader2,
   LockKeyhole,
   RefreshCw,
+  RotateCcw,
   Search,
   ShieldCheck,
 } from "lucide-react";
@@ -35,6 +36,10 @@ import type {
 import { useReadOnlyEneaQueue } from "@/features/enea-lab/useReadOnlyQueue";
 import { useDocumentAnalysis } from "@/features/enea-lab/useDocumentAnalysis";
 import { cn } from "@/lib/utils";
+import {
+  loadEneaLabDraft,
+  saveEneaLabDraft,
+} from "@/features/enea-lab/draftStorage";
 
 const ENEA_PORTAL_URL = "https://bonusfiscali.enea.it/";
 const EMPTY_OVERRIDES: EneaLabOverrides = {};
@@ -130,9 +135,10 @@ export default function EneaLab() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
   const [queueFilter, setQueueFilter] = useState<"all" | EneaLabQueueStatus>("all");
-  const [overridesByPractice, setOverridesByPractice] = useState<Record<string, EneaLabOverrides>>({});
-  const [confirmedByPractice, setConfirmedByPractice] = useState<Record<string, string[]>>({});
-  const [preparedIds, setPreparedIds] = useState<string[]>([]);
+  const [initialDraft] = useState(() => loadEneaLabDraft(window.sessionStorage));
+  const [overridesByPractice, setOverridesByPractice] = useState<Record<string, EneaLabOverrides>>(initialDraft.overridesByPractice);
+  const [confirmedByPractice, setConfirmedByPractice] = useState<Record<string, string[]>>(initialDraft.confirmedByPractice);
+  const [preparedIds, setPreparedIds] = useState<string[]>(initialDraft.preparedIds);
   const [copied, setCopied] = useState(false);
 
   const visibleSourcePractices = useMemo(() => {
@@ -188,6 +194,14 @@ export default function EneaLab() {
   useEffect(() => {
     setCopied(false);
   }, [selectedId, selectedOverrides, selectedConfirmations]);
+
+  useEffect(() => {
+    saveEneaLabDraft(window.sessionStorage, {
+      overridesByPractice,
+      confirmedByPractice,
+      preparedIds,
+    });
+  }, [confirmedByPractice, overridesByPractice, preparedIds]);
 
   if (isPending) {
     return (
@@ -258,6 +272,25 @@ export default function EneaLab() {
     setPreparedIds((current) => current.includes(selected.source.id) ? current : [...current, selected.source.id]);
   };
 
+  const hasLocalDraft = Object.keys(selectedOverrides).length > 0
+    || selectedConfirmations.size > 0
+    || isPrepared;
+
+  const resetLocalDraft = () => {
+    if (!window.confirm("Cancellare correzioni, conferme e pacchetto di prova di questa pratica?")) return;
+    setOverridesByPractice((current) => {
+      const next = { ...current };
+      delete next[selected.source.id];
+      return next;
+    });
+    setConfirmedByPractice((current) => {
+      const next = { ...current };
+      delete next[selected.source.id];
+      return next;
+    });
+    setPreparedIds((current) => current.filter((id) => id !== selected.source.id));
+  };
+
   const copyPayload = async () => {
     await navigator.clipboard.writeText(JSON.stringify(testPayload, null, 2));
     setCopied(true);
@@ -294,7 +327,7 @@ export default function EneaLab() {
           <CircleDashed className="h-4 w-4 text-violet-700" />
           <AlertTitle>Ambiente controllato</AlertTitle>
           <AlertDescription className="text-violet-800">
-            Il CRM viene interrogato solo in lettura. Le correzioni restano nella memoria della pagina; non cambiano stati, file, email, WhatsApp o automazioni. I valori convenzionali sono inclusi soltanto nel pacchetto di prova.
+            Il CRM viene interrogato solo in lettura. Le correzioni restano in questa scheda anche dopo un aggiornamento e vengono eliminate alla chiusura; non cambiano stati, file, email, WhatsApp o automazioni. I valori convenzionali sono inclusi soltanto nel pacchetto di prova.
           </AlertDescription>
         </Alert>
 
@@ -408,6 +441,11 @@ export default function EneaLab() {
                   <CardDescription className="mt-1">{selected.source.prodottoInstallato} · {selected.source.reseller}</CardDescription>
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  {hasLocalDraft && (
+                    <Button variant="ghost" onClick={resetLocalDraft} className="gap-2 text-slate-600">
+                      <RotateCcw className="h-4 w-4" /> Azzera correzioni locali
+                    </Button>
+                  )}
                   <Button variant="outline" onClick={openEnea} disabled={!isPrepared} className="gap-2">
                     <ExternalLink className="h-4 w-4" /> Apri ENEA per prova
                   </Button>

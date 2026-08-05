@@ -1,7 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import EneaLab from "./EneaLab";
-import { ENEA_LAB_MOCK_PRACTICES } from "@/features/enea-lab/mockPractices";
+import {
+  ENEA_LAB_MOCK_ANALYSIS,
+  ENEA_LAB_MOCK_PRACTICES,
+} from "@/features/enea-lab/mockPractices";
 
 vi.mock("@/features/enea-lab/useReadOnlyQueue", () => ({
   useReadOnlyEneaQueue: () => ({
@@ -13,6 +16,14 @@ vi.mock("@/features/enea-lab/useReadOnlyQueue", () => ({
   }),
 }));
 
+vi.mock("@/features/enea-lab/useDocumentAnalysis", () => ({
+  useDocumentAnalysis: (practice: { id: string } | undefined) => ({
+    data: practice ? ENEA_LAB_MOCK_ANALYSIS[practice.id] : undefined,
+    error: null,
+    isPending: false,
+  }),
+}));
+
 describe("EneaLab", () => {
   it("mostra la coda ombra e prepara una scheda senza chiamate esterne", () => {
     render(<EneaLab />);
@@ -21,9 +32,24 @@ describe("EneaLab", () => {
     expect(screen.getAllByText("Cliente Demo Uno")).toHaveLength(2);
     expect(screen.getByText("Cliente Demo Due")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Prepara scheda" }));
+    fireEvent.click(screen.getByRole("button", { name: "Genera pacchetto prova" }));
 
-    expect(screen.getByText("Scheda di prova preparata")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Scheda pronta" })).toBeDisabled();
+    expect(screen.getByText("Pacchetto di prova pronto")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Apri ENEA per prova" })).toBeEnabled();
+    expect(screen.getByText("PROVA")).toBeInTheDocument();
+    expect(screen.getByText("nota-credito.pdf")).toBeInTheDocument();
+  });
+
+  it("filtra la coda e mostra correttamente una ricerca senza risultati", () => {
+    render(<EneaLab />);
+
+    fireEvent.click(screen.getByRole("button", { name: "In attesa" }));
+    expect(screen.getAllByText("Cliente Demo Due")).toHaveLength(2);
+    expect(screen.queryByText("Cliente Demo Uno")).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Cerca pratica" }), {
+      target: { value: "codice inesistente" },
+    });
+    expect(screen.getByText(/Nessuna schermatura corrisponde ai filtri correnti\./)).toBeInTheDocument();
   });
 });

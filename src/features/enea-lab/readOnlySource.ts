@@ -1,13 +1,20 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { detectProdottoTipo, emptyFormData } from "@/types/form-cliente";
-import type { FormClienteData } from "@/types/form-cliente";
+import type { FormClienteData, ProdottoData, SchermaturaItem } from "@/types/form-cliente";
 import type { Database, Json } from "@/integrations/supabase/types";
-import type { EneaLabSourcePractice } from "./types";
+import type {
+  EneaLabDocumentKind,
+  EneaLabDocumentPath,
+  EneaLabSourcePractice,
+} from "./types";
 
 type QueueRow = {
   id: string | null;
   cliente_nome: string | null;
   cliente_cognome: string | null;
+  cliente_email: string | null;
+  cliente_telefono: string | null;
+  cliente_cf: string | null;
   prodotto_installato: string | null;
   data_fine_lavori: string | null;
   fatture_urls: string[] | null;
@@ -19,6 +26,30 @@ type QueueRow = {
   pipeline_stages: { stage_type: string } | null;
   companies: { ragione_sociale: string } | null;
 };
+
+function normalizeSchermaturaItem(value: unknown): SchermaturaItem | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const item = value as Record<string, unknown>;
+  const tipo = typeof item.tipo === "string" ? item.tipo : item.tipo_prodotto;
+  const direzione = item.direzione;
+  return {
+    tipo: typeof tipo === "string" ? tipo as SchermaturaItem["tipo"] : "",
+    direzione: typeof direzione === "string" ? direzione as SchermaturaItem["direzione"] : "",
+  };
+}
+
+function normalizeProduct(value: unknown, fallback: ProdottoData): ProdottoData {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return fallback;
+  const product = value as Record<string, unknown>;
+  const legacyItems = Array.isArray(product.schermature) ? product.schermature : [];
+  const currentItems = Array.isArray(product.items) ? product.items : [];
+  const items = (currentItems.length ? currentItems : legacyItems)
+    .map(normalizeSchermaturaItem)
+    .filter((item): item is SchermaturaItem => item !== null);
+
+  if (product.tipo === "schermature" || items.length) return { tipo: "schermature", items };
+  return value as ProdottoData;
+}
 
 function mergeForm(base: FormClienteData, raw: Json | null): FormClienteData {
   if (!raw || Array.isArray(raw) || typeof raw !== "object") return base;
@@ -34,47 +65,43 @@ function mergeForm(base: FormClienteData, raw: Json | null): FormClienteData {
     catastali: { ...base.catastali, ...(draft.catastali ?? {}) },
     edificio: { ...base.edificio, ...(draft.edificio ?? {}) },
     impianto: { ...base.impianto, ...(draft.impianto ?? {}) },
-    prodotto: draft.prodotto && typeof draft.prodotto === "object"
-      ? draft.prodotto
-      : base.prodotto,
+    prodotto: normalizeProduct(draft.prodotto, base.prodotto),
     documenti: { ...base.documenti, ...(draft.documenti ?? {}) },
   };
 }
 
-function countFormFiles(
+function documentKind(fieldKey: string): EneaLabDocumentKind {
+  if (/fattur/i.test(fieldKey)) return "invoice";
+  if (/bonific/i.test(fieldKey)) return "bank_transfer";
+  if (/librett/i.test(fieldKey)) return "plant_book";
+  return "additional";
+}
+
+function collectFormFiles(
   node: unknown,
   practiceId: string,
   fieldKey = "",
-): { invoices: number; documents: number } {
+): EneaLabDocumentPath[] {
   if (typeof node === "string") {
-    if (!node.startsWith(`${practiceId}/`)) return { invoices: 0, documents: 0 };
-    return /fattur/i.test(fieldKey)
-      ? { invoices: 1, documents: 0 }
-      : { invoices: 0, documents: 1 };
+    if (!node.startsWith(`${practiceId}/`)) return [];
+    return [{ kind: documentKind(fieldKey), path: node }];
   }
   if (Array.isArray(node)) {
-    return node.reduce(
-      (total, item) => {
-        const current = countFormFiles(item, practiceId, fieldKey);
-        return {
-          invoices: total.invoices + current.invoices,
-          documents: total.documents + current.documents,
-        };
-      },
-      { invoices: 0, documents: 0 },
-    );
+    return node.flatMap((item) => collectFormFiles(item, practiceId, fieldKey));
   }
-  if (!node || typeof node !== "object") return { invoices: 0, documents: 0 };
-  return Object.entries(node).reduce(
-    (total, [key, item]) => {
-      const current = countFormFiles(item, practiceId, key);
-      return {
-        invoices: total.invoices + current.invoices,
-        documents: total.documents + current.documents,
-      };
-    },
-    { invoices: 0, documents: 0 },
+  if (!node || typeof node !== "object") return [];
+  return Object.entries(node).flatMap(([key, item]) =>
+    collectFormFiles(item, practiceId, key),
   );
+}
+
+function uniquePaths(paths: EneaLabDocumentPath[]): EneaLabDocumentPath[] {
+  const seen = new Set<string>();
+  return paths.filter(({ path }) => {
+    if (seen.has(path)) return false;
+    seen.add(path);
+    return true;
+  });
 }
 
 export function mapQueueRow(row: QueueRow): EneaLabSourcePractice | null {
@@ -82,11 +109,22 @@ export function mapQueueRow(row: QueueRow): EneaLabSourcePractice | null {
   if (detectProdottoTipo(row.prodotto_installato) !== "schermature") return null;
 
   const form = mergeForm(emptyFormData(), row.dati_form);
+  if (!form.richiedente.nome) form.richiedente.nome = row.cliente_nome ?? "";
+  if (!form.richiedente.cognome) form.richiedente.cognome = row.cliente_cognome ?? "";
+  if (!form.richiedente.email) form.richiedente.email = row.cliente_email ?? "";
+  if (!form.richiedente.telefono) form.richiedente.telefono = row.cliente_telefono ?? "";
+  if (!form.richiedente.cf) form.richiedente.cf = row.cliente_cf ?? "";
   const createdAt = row.created_at ?? new Date(0).toISOString();
   const receivedAt = row.form_compilato_at ?? row.updated_at ?? createdAt;
   const stageType = row.pipeline_stages?.stage_type;
   const isReady = stageType === "pronte_da_fare" && Boolean(row.form_compilato_at);
-  const formFiles = countFormFiles(row.dati_form, row.id);
+  const formFiles = collectFormFiles(row.dati_form, row.id);
+  const documentPaths = uniquePaths([
+    ...(row.fatture_urls ?? []).map((path) => ({ kind: "invoice" as const, path })),
+    ...(row.documenti_aggiuntivi_urls ?? []).map((path) => ({ kind: "additional" as const, path })),
+    ...formFiles,
+  ]).filter(({ path }) => path.startsWith(`${row.id}/`));
+  const invoiceCount = documentPaths.filter(({ kind }) => kind === "invoice").length;
 
   return {
     id: row.id,
@@ -97,9 +135,9 @@ export function mapQueueRow(row: QueueRow): EneaLabSourcePractice | null {
     prodottoInstallato: row.prodotto_installato ?? "Schermature solari",
     ricevutaAt: receivedAt,
     dataFineLavori: row.data_fine_lavori,
-    fattureCount: (row.fatture_urls?.length ?? 0) + formFiles.invoices,
-    documentiCount:
-      (row.documenti_aggiuntivi_urls?.length ?? 0) + formFiles.documents,
+    fattureCount: invoiceCount,
+    documentiCount: documentPaths.length - invoiceCount,
+    documentPaths,
     queueStatus: isReady ? "ready" : "waiting_client",
     form,
   };
@@ -118,6 +156,9 @@ export async function loadReadOnlyEneaQueue(
       id,
       cliente_nome,
       cliente_cognome,
+      cliente_email,
+      cliente_telefono,
+      cliente_cf,
       prodotto_installato,
       data_fine_lavori,
       fatture_urls,

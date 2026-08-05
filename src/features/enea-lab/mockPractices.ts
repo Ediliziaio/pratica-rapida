@@ -1,5 +1,5 @@
 import type { FormClienteData } from "@/types/form-cliente";
-import type { EneaLabSourcePractice } from "./types";
+import type { EneaLabDocumentAnalysis, EneaLabSourcePractice } from "./types";
 
 const completeForm: FormClienteData = {
   richiedente: {
@@ -117,6 +117,11 @@ export const ENEA_LAB_MOCK_PRACTICES: EneaLabSourcePractice[] = [
     dataFineLavori: "2026-07-31",
     fattureCount: 2,
     documentiCount: 1,
+    documentPaths: [
+      { kind: "invoice", path: "lab-schermature-001/fattura/fattura-01.pdf" },
+      { kind: "invoice", path: "lab-schermature-001/fattura/nota-credito.pdf" },
+      { kind: "bank_transfer", path: "lab-schermature-001/bonifico/bonifico.pdf" },
+    ],
     queueStatus: "ready",
     form: completeForm,
   },
@@ -131,7 +136,57 @@ export const ENEA_LAB_MOCK_PRACTICES: EneaLabSourcePractice[] = [
     dataFineLavori: null,
     fattureCount: 0,
     documentiCount: 0,
+    documentPaths: [],
     queueStatus: "waiting_client",
     form: incompleteForm,
   },
 ];
+
+export const ENEA_LAB_MOCK_ANALYSIS: Record<string, EneaLabDocumentAnalysis> = {
+  "lab-schermature-001": {
+    items: [
+      {
+        widthMm: 2900,
+        heightMm: 1300,
+        surfaceM2: 3.7,
+        gTot: 0.13,
+        description: "Tenda da sole dimostrativa",
+        sourcePath: "lab-schermature-001/fattura/fattura-01.pdf",
+      },
+      {
+        widthMm: 4100,
+        heightMm: 2750,
+        surfaceM2: 11.3,
+        gTot: 0.13,
+        description: "Tenda da sole dimostrativa",
+        sourcePath: "lab-schermature-001/fattura/fattura-01.pdf",
+      },
+    ],
+    invoiceTotal: 14_124,
+    creditTotal: 200,
+    eligibleExpense: 13_924,
+    firstInvoiceDate: "2026-07-01",
+    documents: [
+      {
+        path: "lab-schermature-001/fattura/fattura-01.pdf",
+        status: "parsed",
+        documentType: "invoice",
+        total: 14_124,
+        itemCount: 2,
+        documentNumber: "DEMO-001",
+        documentDate: "2026-07-01",
+      },
+      {
+        path: "lab-schermature-001/fattura/nota-credito.pdf",
+        status: "parsed",
+        documentType: "credit_note",
+        total: 200,
+        itemCount: 0,
+        documentNumber: "DEMO-NC-001",
+        documentDate: "2026-07-15",
+      },
+    ],
+    blockers: [],
+    warnings: [],
+  },
+};

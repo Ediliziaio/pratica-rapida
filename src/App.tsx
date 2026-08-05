@@ -294,6 +294,12 @@ const App = () => (
                       : <Navigate to="/" replace />
                   }
                 />
+                {/* Anteprima isolata con soli dati fittizi per il collaudo locale.
+                    Non è inclusa come funzione raggiungibile nella build di produzione. */}
+                <Route
+                  path="/admin/enea-lab-preview"
+                  element={import.meta.env.DEV ? <EneaLab /> : <Navigate to="/" replace />}
+                />
                 <Route path="/schermature-solari/:token" element={<ModuloClientePage />} />
                 <Route path="/modulo-infissi/:token" element={<ModuloClientePage />} />
                 <Route path="/impianto-termico/:token" element={<ModuloClientePage />} />

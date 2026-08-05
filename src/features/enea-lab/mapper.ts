@@ -8,9 +8,12 @@ import {
   TIPOLOGIA_LABELS,
   TITOLO_LABELS,
 } from "@/types/form-cliente";
+import { getGeneratorTestConvention } from "./conventions";
 import type {
+  EneaLabDocumentAnalysis,
   EneaLabField,
   EneaLabFieldStatus,
+  EneaLabMapOptions,
   EneaLabMappedPractice,
   EneaLabSection,
   EneaLabSourcePractice,
@@ -26,25 +29,24 @@ function mappedField(
   id: string,
   label: string,
   value: string | boolean | null | undefined,
-  options?: Partial<Pick<EneaLabField, "source" | "status" | "note">>,
+  options?: Partial<Pick<
+    EneaLabField,
+    "source" | "status" | "note" | "required" | "editable" | "testOnly"
+  >>,
 ): EneaLabField {
   const renderedValue = display(value);
+  const required = options?.required ?? true;
   return {
     id,
     label,
-    value: renderedValue || "Non disponibile",
+    value: renderedValue || (required ? "Intervento umano richiesto" : "Non indicato"),
     source: options?.source ?? "Modulo cliente",
-    status: options?.status ?? (renderedValue ? "ready" : "missing"),
+    status: options?.status ?? (renderedValue ? "ready" : required ? "missing" : "ready"),
+    required,
+    editable: options?.editable ?? required,
+    testOnly: options?.testOnly ?? false,
     note: options?.note,
   };
-}
-
-function invoiceField(id: string, label: string, note: string): EneaLabField {
-  return mappedField(id, label, "Da estrarre", {
-    source: "Fattura",
-    status: "missing",
-    note,
-  });
 }
 
 function section(
@@ -56,9 +58,75 @@ function section(
   return { id, title, description, fields };
 }
 
-export function mapSchermaturaPractice(source: EneaLabSourcePractice): EneaLabMappedPractice {
+function formatNumber(value: number, digits = 1): string {
+  return new Intl.NumberFormat("it-IT", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(value);
+}
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(value);
+}
+
+function formatDate(value: string | null | undefined): string {
+  if (!value) return "";
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return match ? `${match[3]}/${match[2]}/${match[1]}` : value;
+}
+
+function inferredDestination(tipologia: string): string {
+  return tipologia === "edificio_industriale_o_commerciale"
+    ? "Non residenziale"
+    : tipologia
+      ? "Residenziale"
+      : "";
+}
+
+function sexFromItalianFiscalCode(value: string): string {
+  const normalized = value.trim().toUpperCase();
+  const match = normalized.match(/^[A-Z]{6}\d{2}[A-Z](\d{2})[A-Z]\d{3}[A-Z]$/);
+  if (!match) return "";
+  return Number(match[1]) > 40 ? "F" : "M";
+}
+
+function applyOperatorState(sections: EneaLabSection[], options?: EneaLabMapOptions): EneaLabSection[] {
+  return sections.map((currentSection) => ({
+    ...currentSection,
+    fields: currentSection.fields.map((field) => {
+      const override = options?.overrides?.[field.id]?.trim();
+      if (override) {
+        return {
+          ...field,
+          value: override,
+          source: "Inserimento operatore",
+          status: "ready",
+          testOnly: false,
+          note: "Valore inserito localmente nel laboratorio; il CRM non è stato modificato.",
+        };
+      }
+      if (field.status === "review" && options?.confirmedFieldIds?.has(field.id)) {
+        return {
+          ...field,
+          status: "ready",
+          note: field.note ? `${field.note} Controllo confermato dall'operatore.` : "Controllo confermato dall'operatore.",
+        };
+      }
+      return field;
+    }),
+  }));
+}
+
+export function mapSchermaturaPractice(
+  source: EneaLabSourcePractice,
+  analysis?: EneaLabDocumentAnalysis,
+  options?: EneaLabMapOptions,
+): EneaLabMappedPractice {
   const form = source.form;
   const prodotto = form.prodotto.tipo === "schermature" ? form.prodotto : null;
+  const convention = getGeneratorTestConvention(source.id);
+  const includeTestConventions = options?.includeTestConventions ?? true;
+  const inferredSex = sexFromItalianFiscalCode(form.richiedente.cf);
   const worksAddress = form.residenza.stesso_indirizzo_lavori
     ? {
         comune: form.residenza.comune,
@@ -69,22 +137,109 @@ export function mapSchermaturaPractice(source: EneaLabSourcePractice): EneaLabMa
       }
     : form.appartamento_lavori;
 
-  const sections: EneaLabSection[] = [
+  const screeningFields = (analysis?.items ?? []).flatMap((item, index) => {
+    const declared = prodotto?.items[index];
+    const validGTot = item.gTot !== null && item.gTot > 0 && item.gTot <= 0.35;
+    return [
+      mappedField(
+        `schermature.${index}.tipo`,
+        `Elemento ${index + 1} · tipo schermatura`,
+        declared?.tipo ? SCHERMATURA_TIPO_LABELS[declared.tipo] : "",
+      ),
+      mappedField(
+        `schermature.${index}.installazione`,
+        `Elemento ${index + 1} · installazione`,
+        declared?.tipo ? "Esterna" : "",
+        {
+          source: "Regola controllata",
+          status: declared?.tipo ? "review" : "missing",
+          note: "Ipotesi coerente con tende e pergole; confermare sul prodotto reale.",
+        },
+      ),
+      mappedField(
+        `schermature.${index}.dimensioni`,
+        `Elemento ${index + 1} · dimensioni`,
+        `${item.widthMm} × ${item.heightMm} mm`,
+        { source: "Fattura", editable: false },
+      ),
+      mappedField(
+        `schermature.${index}.superficie`,
+        `Elemento ${index + 1} · superficie schermatura`,
+        `${formatNumber(item.surfaceM2)} m²`,
+        { source: "Calcolo ENEA" },
+      ),
+      mappedField(
+        `schermature.${index}.superficie_finestrata`,
+        `Elemento ${index + 1} · superficie finestrata protetta`,
+        "",
+        {
+          source: "Calcolo ENEA",
+          note: "Non si può dedurre dalla misura della tenda: inserire la superficie vetrata verificata.",
+        },
+      ),
+      mappedField(
+        `schermature.${index}.rsupp`,
+        `Elemento ${index + 1} · resistenza termica supplementare`,
+        "",
+        { note: "Inserire il valore dichiarato nella documentazione tecnica applicabile." },
+      ),
+      mappedField(
+        `schermature.${index}.esposizione`,
+        `Elemento ${index + 1} · esposizione`,
+        declared?.direzione ? SCHERMATURA_DIREZIONE_LABELS[declared.direzione] : "",
+      ),
+      mappedField(
+        `schermature.${index}.modalita_calcolo`,
+        `Elemento ${index + 1} · modalità di calcolo`,
+        item.gTot !== null ? "Dichiarato dal fornitore" : "",
+        { source: "Fattura", status: item.gTot !== null ? "review" : "missing" },
+      ),
+      mappedField(
+        `schermature.${index}.gtot`,
+        `Elemento ${index + 1} · gTot`,
+        item.gTot === null ? "" : formatNumber(item.gTot, 2),
+        {
+          source: "Fattura",
+          status: validGTot ? "ready" : "missing",
+          note: validGTot ? "Requisito automatico verificato: gTot ≤ 0,35." : "Il valore deve essere documentato e non superiore a 0,35.",
+        },
+      ),
+      mappedField(
+        `schermature.${index}.materiale`,
+        `Elemento ${index + 1} · materiale`,
+        "",
+        { note: "Selezionare il materiale dichiarato dal produttore." },
+      ),
+      mappedField(
+        `schermature.${index}.regolazione`,
+        `Elemento ${index + 1} · meccanismo di regolazione`,
+        "",
+        { note: "Indicare manuale o automatico in base al prodotto installato." },
+      ),
+    ];
+  });
+
+  const rawSections: EneaLabSection[] = [
     section("beneficiario", "1. Beneficiario", "Anagrafica e titolo del richiedente", [
       mappedField("beneficiario.nome", "Nome", form.richiedente.nome),
       mappedField("beneficiario.cognome", "Cognome", form.richiedente.cognome),
       mappedField("beneficiario.cf", "Codice fiscale", form.richiedente.cf),
-      mappedField("beneficiario.data_nascita", "Data di nascita", form.richiedente.data_nascita),
+      mappedField("beneficiario.data_nascita", "Data di nascita", formatDate(form.richiedente.data_nascita)),
       mappedField("beneficiario.comune_nascita", "Comune di nascita", form.richiedente.comune_nascita),
       mappedField("beneficiario.provincia_nascita", "Provincia di nascita", form.richiedente.provincia_nascita),
+      mappedField("beneficiario.sesso", "Sesso", inferredSex, {
+        source: "Regola controllata",
+        status: inferredSex ? "ready" : "missing",
+        note: inferredSex
+          ? "Ricavato dal giorno di nascita codificato nel codice fiscale italiano."
+          : "Non ricavabile con sicurezza dal codice fiscale disponibile.",
+      }),
       mappedField("beneficiario.email", "Email", form.richiedente.email),
       mappedField("beneficiario.telefono", "Telefono", form.richiedente.telefono),
       mappedField(
         "beneficiario.titolo",
         "Titolo sull'immobile",
-        form.edificio.titolo_richiedente
-          ? TITOLO_LABELS[form.edificio.titolo_richiedente]
-          : "",
+        form.edificio.titolo_richiedente ? TITOLO_LABELS[form.edificio.titolo_richiedente] : "",
       ),
       mappedField("beneficiario.abitazione_principale", "Abitazione principale", form.richiedente.abitazione_principale),
       mappedField("beneficiario.cointestazione", "Cointestazione", form.cointestazione.presente),
@@ -96,75 +251,179 @@ export function mapSchermaturaPractice(source: EneaLabSourcePractice): EneaLabMa
           ]
         : []),
     ]),
-    section("residenza", "2. Residenza", "Indirizzo anagrafico del beneficiario", [
-      mappedField("residenza.comune", "Comune", form.residenza.comune),
-      mappedField("residenza.provincia", "Provincia", form.residenza.provincia),
-      mappedField("residenza.indirizzo", "Indirizzo", form.residenza.indirizzo),
-      mappedField("residenza.civico", "Civico", form.residenza.civico),
-      mappedField("residenza.cap", "CAP", form.residenza.cap),
-    ]),
-    section("immobile", "3. Immobile", "Ubicazione, catasto e caratteristiche dell'edificio", [
+    section("immobile", "2. Immobile", "Ubicazione, catasto e caratteristiche dell'edificio", [
       mappedField("immobile.comune", "Comune lavori", worksAddress.comune),
       mappedField("immobile.provincia", "Provincia lavori", worksAddress.provincia),
       mappedField("immobile.indirizzo", "Indirizzo lavori", worksAddress.indirizzo),
       mappedField("immobile.civico", "Civico lavori", worksAddress.numero),
       mappedField("immobile.cap", "CAP lavori", worksAddress.cap),
+      mappedField("immobile.codice_comune", "Codice nazionale del Comune", "", {
+        note: "Recuperare il codice catastale del Comune da una fonte ufficiale.",
+      }),
       mappedField("immobile.foglio", "Foglio", form.catastali.foglio),
-      mappedField("immobile.mappale", "Mappale", form.catastali.mappale),
-      mappedField("immobile.subalterno", "Subalterno", form.catastali.subalterno),
-      mappedField("immobile.proprietario_nome", "Nome proprietario", form.catastali.proprietario_nome),
-      mappedField("immobile.proprietario_cognome", "Cognome proprietario", form.catastali.proprietario_cognome),
-      mappedField("immobile.proprietario_cf", "CF proprietario", form.catastali.proprietario_cf),
+      mappedField("immobile.mappale", "Particella / mappale", form.catastali.mappale),
+      mappedField("immobile.subalterno", "Subalterno", form.catastali.subalterno, { required: false }),
       mappedField("immobile.anno", "Anno di costruzione", form.edificio.anno_costruzione),
       mappedField("immobile.superficie", "Superficie utile", form.edificio.superficie_mq ? `${form.edificio.superficie_mq} m²` : ""),
       mappedField("immobile.unita", "Numero unità immobiliari", form.edificio.numero_appartamenti),
       mappedField(
+        "immobile.destinazione_generale",
+        "Destinazione d'uso generale",
+        inferredDestination(form.edificio.tipologia),
+        {
+          source: "Regola controllata",
+          status: form.edificio.tipologia ? "review" : "missing",
+          note: "Inferita dalla tipologia dichiarata; confermare prima dell'invio.",
+        },
+      ),
+      mappedField(
         "immobile.tipologia",
-        "Tipologia edificio",
+        "Tipologia edilizia",
         form.edificio.tipologia ? TIPOLOGIA_LABELS[form.edificio.tipologia] : "",
       ),
-    ]),
-    section("impianto", "4. Impianto esistente", "Caratteristiche dichiarate dal cliente", [
-      mappedField("impianto.tipo", "Tipo impianto", form.impianto.tipo ? IMPIANTO_TIPO_LABELS[form.impianto.tipo] : ""),
-      mappedField("impianto.terminali", "Terminali", form.impianto.terminali ? TERMINALI_LABELS[form.impianto.terminali] : ""),
-      mappedField("impianto.combustibile", "Combustibile", form.impianto.combustibile ? COMBUSTIBILE_LABELS[form.impianto.combustibile] : ""),
-      mappedField("impianto.caldaia", "Generatore", form.impianto.tipo_caldaia ? CALDAIA_LABELS[form.impianto.tipo_caldaia] : ""),
-      mappedField("impianto.condizionamento", "Aria condizionata", form.impianto.aria_condizionata),
-      mappedField("impianto.libretto", "Libretto impianto", form.impianto.libretto_url ? "Presente" : "", {
-        status: form.impianto.libretto_url ? "review" : "missing",
-        note: "Il documento deve essere aperto e verificato prima della compilazione.",
+      mappedField("immobile.zona_climatica", "Zona climatica", "", {
+        note: "Recuperare dal Comune dell'intervento.",
+      }),
+      mappedField("immobile.gradi_giorno", "Gradi giorno", "", {
+        note: "Recuperare dal Comune dell'intervento.",
+      }),
+      mappedField("immobile.fascia_solare", "Fascia solare", "", {
+        note: "Verificare il valore proposto dal portale ENEA.",
       }),
     ]),
-    section("schermature", "5. Schermature solari", "Dati prodotto già dichiarati e valori tecnici da fattura", [
-      ...(prodotto?.items ?? []).flatMap((item, index) => [
-        mappedField(
-          `schermature.${index}.tipo`,
-          `Schermatura ${index + 1} · tipo`,
-          item.tipo ? SCHERMATURA_TIPO_LABELS[item.tipo] : "",
-        ),
-        mappedField(
-          `schermature.${index}.direzione`,
-          `Schermatura ${index + 1} · orientamento`,
-          item.direzione ? SCHERMATURA_DIREZIONE_LABELS[item.direzione] : "",
-        ),
-      ]),
-      invoiceField("schermature.numero", "Numero totale schermature", "Ricavare quantità e corrispondenza delle righe dalla fattura."),
-      invoiceField("schermature.superficie", "Superficie totale", "Calcolare larghezza × altezza per ogni elemento e sommare."),
-      invoiceField("schermature.marca_modello", "Marca e modello", "Estrarre descrizione commerciale e produttore."),
-      invoiceField("schermature.gtot", "Valore gTot", "Individuare il valore tecnico corretto o richiedere la scheda prodotto."),
-      invoiceField("schermature.spesa", "Spesa sostenuta", "Somma delle fatture ammissibili, IVA compresa."),
-      mappedField("schermature.data_fine_lavori", "Data fine lavori", source.dataFineLavori, {
+    section("intervento", "3. Intervento", "Unità interessate e date dei lavori", [
+      mappedField(
+        "intervento.ambito",
+        "Intervento su",
+        form.edificio.numero_appartamenti ? "Singola unità immobiliare" : "",
+        {
+          source: "Regola controllata",
+          status: form.edificio.numero_appartamenti ? "review" : "missing",
+          note: "Confermare se l'intervento riguarda una singola unità o parti comuni.",
+        },
+      ),
+      mappedField("intervento.unita_totali", "Unità immobiliari totali", form.edificio.numero_appartamenti),
+      mappedField("intervento.unita_oggetto", "Unità oggetto della detrazione", "", {
+        note: "Dato distinto dal numero totale di appartamenti dell'edificio.",
+      }),
+      mappedField("intervento.accorpamenti", "Accorpamenti di unità immobiliari", "", {
+        note: "Il modulo cliente non raccoglie questa informazione.",
+      }),
+      mappedField("intervento.data_inizio", "Data inizio lavori", formatDate(analysis?.firstInvoiceDate), {
+        source: "Fattura",
+        status: analysis?.firstInvoiceDate ? "review" : "missing",
+        note: analysis?.firstInvoiceDate
+          ? "Proposta dalla prima data fattura riconosciuta; confermare che coincida con l'inizio lavori."
+          : "Non ricavata con sicurezza.",
+      }),
+      mappedField("intervento.data_fine", "Data fine lavori", formatDate(source.dataFineLavori), {
         source: "Pratica CRM",
       }),
     ]),
-    section("documenti", "6. Documenti", "Presenza degli allegati necessari al controllo", [
+    section("impianto", "4. Impianto esistente", "Caratteristiche dell'impianto prima dei lavori", [
+      mappedField("impianto.tipo", "Tipo impianto", form.impianto.tipo ? IMPIANTO_TIPO_LABELS[form.impianto.tipo] : ""),
+      mappedField("impianto.terminali", "Terminali", form.impianto.terminali ? TERMINALI_LABELS[form.impianto.terminali] : ""),
+      mappedField("impianto.distribuzione", "Tipo di distribuzione", "", {
+        note: "Dato non raccolto dal modulo cliente.",
+      }),
+      mappedField("impianto.regolazione", "Tipo di regolazione", "", {
+        note: "Dato non raccolto dal modulo cliente.",
+      }),
+      mappedField("impianto.generatore", "Tipo generatore", form.impianto.tipo_caldaia ? CALDAIA_LABELS[form.impianto.tipo_caldaia] : ""),
+      mappedField("impianto.numero_generatori", "Numero generatori", form.impianto.tipo_caldaia ? "1" : "", {
+        source: "Regola controllata",
+        status: form.impianto.tipo_caldaia ? "review" : "missing",
+      }),
+      mappedField(
+        "impianto.rendimento",
+        "Rendimento al 100%",
+        includeTestConventions ? `${formatNumber(convention.usefulEfficiencyPercent)}%` : "",
+        {
+          source: includeTestConventions ? "Convenzione di prova" : "Calcolo ENEA",
+          status: "missing",
+          testOnly: includeTestConventions,
+          note: "Valore convenzionale 96,8%-98,9% utilizzabile soltanto per prove; per l'invio serve un dato verificato.",
+        },
+      ),
+      mappedField(
+        "impianto.potenza",
+        "Potenza utile nominale",
+        includeTestConventions ? `${formatNumber(convention.nominalPowerKw)} kW` : "",
+        {
+          source: includeTestConventions ? "Convenzione di prova" : "Calcolo ENEA",
+          status: "missing",
+          testOnly: includeTestConventions,
+          note: "Valore convenzionale 26,4-32,8 kW utilizzabile soltanto per prove; per l'invio serve un dato verificato.",
+        },
+      ),
+      mappedField("impianto.combustibile", "Vettore energetico", form.impianto.combustibile ? COMBUSTIBILE_LABELS[form.impianto.combustibile] : ""),
+      mappedField("impianto.condizionamento", "Climatizzazione estiva", form.impianto.aria_condizionata),
+      mappedField("impianto.manutenzione", "Manutenzioni straordinarie", "", {
+        required: false,
+        note: "Compilare solo se presenti interventi pertinenti sull'impianto.",
+      }),
+    ]),
+    section("schermature", "5. Schermature solari", "Dati tecnici, spese e risparmio energetico", [
+      ...screeningFields,
+      mappedField(
+        "schermature.numero",
+        "Numero totale schermature",
+        analysis?.items.length ? String(analysis.items.length) : "",
+        {
+          source: "Fattura",
+          status: analysis?.items.length ? "ready" : "missing",
+          note: analysis ? undefined : "Analisi automatica delle fatture non ancora eseguita.",
+        },
+      ),
+      mappedField(
+        "schermature.superficie_totale",
+        "Superficie totale schermature",
+        analysis?.items.length
+          ? `${formatNumber(analysis.items.reduce((sum, item) => sum + item.surfaceM2, 0))} m²`
+          : "",
+        { source: "Calcolo ENEA" },
+      ),
+      mappedField(
+        "schermature.spesa",
+        "Spese congrue sostenute",
+        analysis?.eligibleExpense === null || analysis?.eligibleExpense === undefined
+          ? ""
+          : formatCurrency(analysis.eligibleExpense),
+        {
+          source: "Calcolo ENEA",
+          note: analysis?.creditTotal ? `Sottratte note di credito per ${formatCurrency(analysis.creditTotal)}.` : undefined,
+        },
+      ),
+      mappedField(
+        "schermature.risparmio_energia",
+        "Risparmio energia primaria non rinnovabile",
+        form.impianto.aria_condizionata === false ? "0 kWh/anno" : "",
+        {
+          source: "Calcolo ENEA",
+          status: form.impianto.aria_condizionata === false ? "ready" : "missing",
+          note: form.impianto.aria_condizionata === false
+            ? "ENEA consente 0 in assenza di climatizzazione estiva."
+            : "Con climatizzazione estiva presente deve essere calcolato con ShadoWindow o metodo equivalente.",
+        },
+      ),
+      mappedField("schermature.spese_professionali", "Spese professionali", "", {
+        required: false,
+        note: "Compilare soltanto se comprese nella spesa comunicata.",
+      }),
+    ]),
+    section("documenti", "6. Controllo documenti", "Allegati da verificare prima dell'invio", [
       mappedField("documenti.fatture", "Fatture", source.fattureCount ? `${source.fattureCount} file` : "", {
         source: "Pratica CRM",
         status: source.fattureCount ? "review" : "missing",
-        note: "I file restano in sola lettura durante il laboratorio.",
+        note: "Download e analisi avvengono in sola lettura.",
       }),
-      mappedField("documenti.bonifico", "Bonifico", form.documenti.bonifico_url ? "Presente" : "", {
+      mappedField("documenti.bonifico", "Bonifico parlante", form.documenti.bonifico_url ? "Presente" : "", {
         status: form.documenti.bonifico_url ? "review" : "missing",
+      }),
+      mappedField("documenti.tecnici", "Scheda tecnica / attestazione gTot", source.documentiCount ? `${source.documentiCount} file da controllare` : "", {
+        source: "Pratica CRM",
+        status: source.documentiCount ? "review" : "missing",
+        note: "Verificare marcatura CE, dichiarazione di prestazione e attestazione gTot applicabile.",
       }),
       mappedField("documenti.finanziamento", "Finanziamento", form.documenti.finanziamento === "si"
         ? "Sì"
@@ -172,17 +431,16 @@ export function mapSchermaturaPractice(source: EneaLabSourcePractice): EneaLabMa
           ? "In parte"
           : form.documenti.finanziamento === "no"
             ? "No"
-            : ""),
-      mappedField("documenti.aggiuntivi", "Documenti aggiuntivi", source.documentiCount ? `${source.documentiCount} file` : "", {
-        source: "Pratica CRM",
-        status: source.documentiCount ? "review" : "missing",
-      }),
+            : "", { required: false }),
     ]),
   ];
 
+  const sections = applyOperatorState(rawSections, options);
   const summary: Record<EneaLabFieldStatus, number> = { ready: 0, review: 0, missing: 0 };
   for (const currentSection of sections) {
-    for (const currentField of currentSection.fields) summary[currentField.status] += 1;
+    for (const currentField of currentSection.fields) {
+      if (currentField.required) summary[currentField.status] += 1;
+    }
   }
 
   return { source, sections, summary };

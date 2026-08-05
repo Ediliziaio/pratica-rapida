@@ -24,7 +24,24 @@ function toIsoDate(value: string): string | undefined {
   if (!match) return undefined;
   const iso = `${match[3]}-${match[2]}-${match[1]}`;
   const parsed = new Date(`${iso}T12:00:00Z`);
-  return Number.isNaN(parsed.getTime()) ? undefined : iso;
+  if (Number.isNaN(parsed.getTime())) return undefined;
+  return parsed.getUTCFullYear() === Number(match[3])
+    && parsed.getUTCMonth() + 1 === Number(match[2])
+    && parsed.getUTCDate() === Number(match[1])
+    ? iso
+    : undefined;
+}
+
+function documentIdentity(document: EneaLabDocumentResult): string | null {
+  if (document.documentType === "unknown" || !document.documentNumber || !document.documentDate || document.total === null) {
+    return null;
+  }
+  return [
+    document.documentType,
+    document.documentNumber.replace(/\s+/g, "").toLocaleUpperCase("it"),
+    document.documentDate,
+    document.total.toFixed(2),
+  ].join("|");
 }
 
 function extractDocumentIdentity(text: string): {
@@ -127,6 +144,9 @@ export function combineDocumentResults(
     .sort()[0] ?? null;
   const blockers: string[] = [];
   const warnings: string[] = [];
+  const identities = documents.map(documentIdentity).filter((identity): identity is string => identity !== null);
+  const duplicateIdentities = identities.filter((identity, index) => identities.indexOf(identity) !== index);
+  const hasDuplicateDocuments = duplicateIdentities.length > 0;
 
   if (!invoiceDocuments.length) blockers.push("Nessuna fattura riconosciuta tra i documenti fiscali.");
   if (!items.length) blockers.push("Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.");
@@ -142,6 +162,9 @@ export function combineDocumentResults(
   if (invoiceTotal > 0 && creditTotal > invoiceTotal) {
     blockers.push("Le note di credito superano il totale delle fatture.");
   }
+  if (hasDuplicateDocuments) {
+    blockers.push("Possibile documento fiscale duplicato: verificare numero, data e importo prima di calcolare la spesa.");
+  }
   if (items.some(({ widthMm, heightMm }) => widthMm < 100 || heightMm < 100)) {
     warnings.push("Almeno una schermatura ha dimensioni inferiori a 100 mm: verificare l'unità di misura.");
   }
@@ -150,7 +173,7 @@ export function combineDocumentResults(
   }
 
   const totalsComplete = documents.length > 0 && !documents.some(({ total }) => total === null);
-  const eligibleExpense = totalsComplete ? invoiceTotal - creditTotal : null;
+  const eligibleExpense = totalsComplete && !hasDuplicateDocuments ? invoiceTotal - creditTotal : null;
 
   return {
     items,

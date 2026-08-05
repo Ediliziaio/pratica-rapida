@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import EneaLab from "./EneaLab";
 import {
   ENEA_LAB_MOCK_ANALYSIS,
@@ -25,6 +25,10 @@ vi.mock("@/features/enea-lab/useDocumentAnalysis", () => ({
 }));
 
 describe("EneaLab", () => {
+  beforeEach(() => {
+    window.sessionStorage.clear();
+  });
+
   it("mostra la coda ombra e prepara una scheda senza chiamate esterne", () => {
     render(<EneaLab />);
 
@@ -51,5 +55,20 @@ describe("EneaLab", () => {
       target: { value: "codice inesistente" },
     });
     expect(screen.getByText(/Nessuna schermatura corrisponde ai filtri correnti\./)).toBeInTheDocument();
+  });
+
+  it("mantiene le correzioni durante il refresh e permette di azzerarle", () => {
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const firstRender = render(<EneaLab />);
+    const input = screen.getByRole("textbox", { name: "Correzione Sesso" });
+    fireEvent.change(input, { target: { value: "F" } });
+
+    firstRender.unmount();
+    render(<EneaLab />);
+
+    expect(screen.getByText("F")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Azzera correzioni locali" }));
+    expect(screen.getByRole("textbox", { name: "Correzione Sesso" })).toBeInTheDocument();
+    expect(confirm).toHaveBeenCalledOnce();
   });
 });

@@ -37,6 +37,13 @@ const STORAGE_BUCKET = "enea-documents";
 // Link moduli raccolta dati
 const MODULI_URL = "https://drive.google.com/file/d/1ZZit5BsW1X0IkQ2_Xit5Jd8YRUuU6jrQ/view?usp=sharing";
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+/** Centesimi → "€ 183,00". Gli importi girano sempre in centesimi: 150 * 1.22
+ *  in floating point non fa esattamente 183. */
+const euro = (cents: number) =>
+  (cents / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" });
+
 type TipoProdotto = "schermature_solari" | "infissi" | "vepa" | "pompe_calore" | "insufflaggio_tetti";
 
 // ── Config prodotti ───────────────────────────────────────────────────────────
@@ -182,7 +189,15 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   const navigate = useNavigate();
   const { data: stages = [] } = usePipelineStages("enea");
 
-  // ── Campi azienda (solo publicMode) ──
+  // ── Chi sta compilando (solo publicMode) ──
+  // Sul sito il modulo è aperto a due pubblici diversi: il rivenditore che
+  // carica la pratica per un suo cliente (paga a fine mese, condizioni
+  // concordate) e il privato che vuole la pratica per casa propria (paga
+  // subito con carta). Cambiano i campi richiesti e il flusso di invio.
+  const [richiedenteTipo, setRichiedenteTipo] = useState<"rivenditore" | "privato" | null>(null);
+  const isPrivato = publicMode && richiedenteTipo === "privato";
+
+  // ── Campi azienda (solo publicMode + rivenditore) ──
   const [ragioneSociale, setRagioneSociale] = useState("");
   const [aziendaEmail, setAziendaEmail] = useState("");
   const [aziendaTelefono, setAziendaTelefono] = useState("");
@@ -190,6 +205,39 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   const [accettoPagamento, setAccettoPagamento] = useState(false);
   // Accettazione del contratto di servizio: obbligatoria per ogni pratica.
   const [accettoContratto, setAccettoContratto] = useState(false);
+
+  // Prezzo per il cliente privato: sta in platform_settings così lo staff può
+  // cambiarlo senza un deploy. Qui serve solo per MOSTRARLO: la cifra che
+  // finisce su Stripe la rilegge `stripe-checkout` dal DB, altrimenti
+  // basterebbe modificare la richiesta dal browser per pagare meno.
+  const { data: prezzoPrivato } = useQuery({
+    queryKey: ["prezzo-privato-enea"],
+    enabled: publicMode,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("platform_settings")
+        .select("value")
+        .eq("key", "prezzo_privato_enea")
+        .maybeSingle();
+      const v = (data?.value ?? {}) as {
+        imponibile_cents?: number;
+        iva_percent?: number;
+        attivo?: boolean;
+      };
+      // Nessun default di comodo: se il prezzo non è configurato il percorso
+      // privato resta chiuso, invece di addebitare una cifra inventata.
+      const imponibile = v.imponibile_cents ?? 0;
+      const iva = v.iva_percent ?? 0;
+      return {
+        imponibileCents: imponibile,
+        ivaPercent: iva,
+        totaleCents: Math.round(imponibile * (1 + iva / 100)),
+        attivo: v.attivo !== false && imponibile > 0,
+      };
+    },
+  });
+  const privatoDisponibile = prezzoPrivato ? prezzoPrivato.attivo : true;
 
   // For staff (super_admin/operatore) who don't have a resellerId, let them pick
   // the company (reseller) that will own the practice. Direct-channel clients.
@@ -298,9 +346,19 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   const validate = () => {
     const e: Record<string, string> = {};
     if (publicMode) {
-      if (ragioneSociale.trim().length < 2) e.ragioneSociale = "Ragione sociale obbligatoria";
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(aziendaEmail.trim())) e.aziendaEmail = "Email aziendale non valida";
-      if (aziendaTelefono.replace(/\D/g, "").length < 8) e.aziendaTelefono = "Telefono azienda obbligatorio";
+      if (!richiedenteTipo) e.richiedenteTipo = "Indica se sei un rivenditore o un cliente privato";
+      // I dati azienda li chiediamo solo al rivenditore: il privato un'azienda
+      // non ce l'ha, e obbligarlo a inventarsi una ragione sociale lo blocca.
+      if (richiedenteTipo === "rivenditore") {
+        if (ragioneSociale.trim().length < 2) e.ragioneSociale = "Ragione sociale obbligatoria";
+        if (!EMAIL_RE.test(aziendaEmail.trim())) e.aziendaEmail = "Email aziendale non valida";
+        if (aziendaTelefono.replace(/\D/g, "").length < 8) e.aziendaTelefono = "Telefono azienda obbligatorio";
+      }
+      // Al privato l'email non è facoltativa: è lì che arrivano la ricevuta
+      // Stripe e il link per completare i dati della pratica.
+      if (isPrivato && !EMAIL_RE.test(email.trim())) {
+        e.email = "Email obbligatoria: ci serve per la ricevuta e per farti completare la pratica";
+      }
       if (!accettoPagamento) e.accettoPagamento = "Devi accettare le condizioni per inviare la richiesta";
     }
     // Contratto di servizio: obbligatorio per ogni pratica, in ogni modalità.
@@ -355,6 +413,11 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         const payload = {
           modulo: "pratica-enea",
           prodotto: prodottoLabel,
+          richiedente_tipo: richiedenteTipo ?? "rivenditore",
+          // Il privato paga prima che la pratica entri in lavorazione: niente
+          // messaggio "completa i tuoi dati" adesso, lo mandiamo noi al
+          // /form/:token subito dopo il pagamento.
+          requires_payment: isPrivato,
           tipo_servizio: tipoServizio,
           // Sotto-modalità documenti_forniti: cartacei (tutto allegato → pronte
           // da fare) vs form online (il rivenditore compila lui il /form).
@@ -364,11 +427,13 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           invia_pratica_al_cliente: tipoServizio === "documenti_forniti" && inviaPraticaCliente === true,
           tipo_fatturazione: tipoFatturazione,
           tipo_soggetto: tipoSoggetto,
-          azienda: {
-            ragione_sociale: ragioneSociale.trim(),
-            email: aziendaEmail.trim(),
-            telefono: aziendaTelefono.trim(),
-          },
+          azienda: isPrivato
+            ? undefined
+            : {
+                ragione_sociale: ragioneSociale.trim(),
+                email: aziendaEmail.trim(),
+                telefono: aziendaTelefono.trim(),
+              },
           cliente: {
             nome: nome.trim(),
             cognome: cognome.trim(),
@@ -389,8 +454,40 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
 
         const { data, error: fnErr } = await supabase.functions.invoke("richiesta-pubblica", { body: fd });
         if (fnErr) throw new Error(fnErr.message);
-        const res = data as { success: boolean; error?: string; form_token?: string | null };
+        const res = data as {
+          success: boolean;
+          error?: string;
+          form_token?: string | null;
+          practice_id?: string;
+        };
         if (!res.success) throw new Error(res.error ?? "Invio fallito");
+
+        // ── Cliente privato: si passa dalla cassa ──
+        // La pratica esiste già ma resta non pagata finché Stripe non conferma
+        // (stripe-webhook → pagamento_stato='pagata'). A pagamento riuscito
+        // Stripe riporta l'utente sul suo /form/:token per i dati tecnici.
+        if (isPrivato) {
+          if (!res.practice_id) {
+            throw new Error(
+              "Richiesta registrata ma senza riferimento per il pagamento. Scrivici su WhatsApp e la completiamo noi.",
+            );
+          }
+          const { data: checkout, error: checkoutErr } = await supabase.functions.invoke("stripe-checkout", {
+            body: {
+              practice_id: res.practice_id,
+              // L'importo NON lo passiamo da qui: lo legge la function dal DB.
+              pricing_key: "prezzo_privato_enea",
+              success: "form",
+              email: email.trim(),
+              descrizione: `Pratica ENEA — ${prodottoLabel}`,
+            },
+          });
+          if (checkoutErr) throw new Error(checkoutErr.message);
+          const co = checkout as { url?: string; error?: string };
+          if (!co?.url) throw new Error(co?.error ?? "Impossibile avviare il pagamento. Riprova.");
+          window.location.href = co.url;
+          return;
+        }
 
         // SOLO con "form online" il rivenditore viene mandato a compilare il
         // modulo. Con i moduli cartacei ci ha già dato tutto → conferma e basta
@@ -546,6 +643,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   };
 
   const resetForm = () => {
+    setRichiedenteTipo(null);
     setTipoServizio(null); setDocumentiMode(null); setTipoProdotto(null);
     setTipoSoggetto(null); setTipoFatturazione(null);
     setNome(""); setCognome(""); setEmail(""); setTelefono("");
@@ -556,6 +654,36 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     setAccettoContratto(false);
     setSubmitted(null);
   };
+
+  // ── Scelta rivenditore / privato ───────────────────────────────────────────
+  const scegliRivenditore = () => {
+    setRichiedenteTipo("rivenditore");
+    // Il rivenditore sceglie da sé servizio, soggetto e fatturazione.
+    setTipoServizio(null); setTipoSoggetto(null); setTipoFatturazione(null);
+    setErrors((p) => ({ ...p, richiedenteTipo: "" }));
+  };
+
+  const scegliPrivato = () => {
+    setRichiedenteTipo("privato");
+    // Per un privato queste tre domande hanno una sola risposta possibile:
+    // le impostiamo noi e nascondiamo le sezioni, invece di fargli scegliere
+    // fra opzioni scritte per i rivenditori (es. "Documenti Forniti", che
+    // presuppone i moduli cartacei di raccolta dati).
+    setTipoServizio("servizio_completo");
+    setTipoSoggetto("persona_fisica");
+    setTipoFatturazione("cliente_finale");
+    setDocumentiMode(null);
+    setInviaPraticaCliente(null);
+    setRagioneSociale(""); setAziendaEmail(""); setAziendaTelefono("");
+    setErrors((p) => ({ ...p, richiedenteTipo: "" }));
+  };
+
+  // Numeri delle sezioni: al privato ne mostriamo 4 invece di 7, quindi la
+  // numerazione va ricalcolata o si vedrebbe "2, 5, 6, 7".
+  // (le sezioni nascoste restano a 0: non vengono renderizzate)
+  const S = isPrivato
+    ? { servizio: 0, prodotto: 1, soggetto: 0, fatturazione: 0, dati: 2, documenti: 3, note: 4 }
+    : { servizio: 1, prodotto: 2, soggetto: 3, fatturazione: 4, dati: 5, documenti: 6, note: 7 };
 
   // ── Success screen ─────────────────────────────────────────────────────────
   if (submitted) {
@@ -591,8 +719,89 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         </p>
       </div>
 
-      {/* ── Dati azienda (solo modalità pubblica dal sito) ── */}
+      {/* ── Chi compila: rivenditore o cliente privato (solo dal sito) ──
+          Prima domanda di tutte perché decide sia i campi richiesti sia il
+          pagamento: il privato passa dalla cassa, il rivenditore no. */}
       {publicMode && (
+        <div className="rounded-xl border bg-card p-5 space-y-4">
+          <div>
+            <h2 className="font-semibold">Chi sta compilando questo modulo?</h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              Da questa scelta dipendono i dati che ti chiediamo e come viene pagato il servizio.
+            </p>
+          </div>
+          {errors.richiedenteTipo && (
+            <p className="text-xs text-destructive flex items-center gap-1" data-error>
+              <AlertCircle className="h-3.5 w-3.5" />{errors.richiedenteTipo}
+            </p>
+          )}
+          <div className="grid sm:grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={scegliRivenditore}
+              className={cn(
+                "rounded-xl border-2 p-4 text-left transition-all hover:shadow-sm focus:outline-none",
+                richiedenteTipo === "rivenditore"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/40",
+              )}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className={cn(
+                  "flex h-9 w-9 items-center justify-center rounded-lg shrink-0 transition-colors",
+                  richiedenteTipo === "rivenditore" ? "bg-primary text-white" : "bg-muted text-muted-foreground",
+                )}>
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <p className="font-semibold text-sm leading-tight">Sono un rivenditore<br />o installatore</p>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Carico la pratica per un mio cliente. <strong className="text-foreground">Nessun pagamento adesso</strong>:
+                vale la fatturazione concordata.
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={scegliPrivato}
+              disabled={!privatoDisponibile}
+              className={cn(
+                "rounded-xl border-2 p-4 text-left transition-all hover:shadow-sm focus:outline-none",
+                richiedenteTipo === "privato"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/40",
+                !privatoDisponibile && "opacity-50 cursor-not-allowed hover:shadow-none hover:border-border",
+              )}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className={cn(
+                  "flex h-9 w-9 items-center justify-center rounded-lg shrink-0 transition-colors",
+                  richiedenteTipo === "privato" ? "bg-primary text-white" : "bg-muted text-muted-foreground",
+                )}>
+                  <User className="h-5 w-5" />
+                </div>
+                <p className="font-semibold text-sm leading-tight">Sono un cliente<br />privato</p>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {privatoDisponibile ? (
+                  <>
+                    Voglio la pratica ENEA per casa mia. Il servizio{" "}
+                    <strong className="text-foreground">si paga subito con carta</strong>
+                    {prezzoPrivato && (
+                      <> — {euro(prezzoPrivato.totaleCents)} IVA inclusa</>
+                    )}.
+                  </>
+                ) : (
+                  <>Al momento non disponibile online: scrivici e ti seguiamo noi.</>
+                )}
+              </p>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Dati azienda (solo modalità pubblica dal sito, solo rivenditore) ── */}
+      {publicMode && richiedenteTipo === "rivenditore" && (
         <div className="rounded-xl border bg-card p-5 space-y-4">
           <div className="flex items-center gap-3">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
@@ -656,8 +865,12 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         </div>
       )}
 
-      {/* ── 1. Tipo di Servizio ──────────────────────────────────────────── */}
-      <Section number={1} title="Tipo di servizio">
+      {/* ── 1. Tipo di Servizio ────────────────────────────────────────────
+          Nascosta al privato: "Documenti Forniti" presuppone i moduli
+          cartacei di raccolta dati che compila il rivenditore. Per lui vale
+          sempre il servizio completo (impostato in scegliPrivato). */}
+      {!isPrivato && (
+      <Section number={S.servizio} title="Tipo di servizio">
         {errors.tipoServizio && (
           <p className="text-xs text-destructive flex items-center gap-1" data-error>
             <AlertCircle className="h-3.5 w-3.5" />{errors.tipoServizio}
@@ -811,9 +1024,10 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           </div>
         )}
       </Section>
+      )}
 
       {/* ── 2. Tipo di Prodotto ──────────────────────────────────────────── */}
-      <Section number={2} title="Tipo di prodotto installato">
+      <Section number={S.prodotto} title="Tipo di prodotto installato">
         {errors.tipoProdotto && (
           <p className="text-xs text-destructive flex items-center gap-1" data-error>
             <AlertCircle className="h-3.5 w-3.5" />{errors.tipoProdotto}
@@ -856,8 +1070,10 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         </div>
       </Section>
 
-      {/* ── 3. Tipo di Soggetto ──────────────────────────────────────────── */}
-      <Section number={3} title="Tipo di soggetto">
+      {/* ── 3. Tipo di Soggetto ────────────────────────────────────────────
+          Nascosta al privato: per definizione è persona fisica. */}
+      {!isPrivato && (
+      <Section number={S.soggetto} title="Tipo di soggetto">
         {errors.tipoSoggetto && (
           <p className="text-xs text-destructive flex items-center gap-1" data-error>
             <AlertCircle className="h-3.5 w-3.5" />{errors.tipoSoggetto}
@@ -891,9 +1107,12 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           ))}
         </div>
       </Section>
+      )}
 
-      {/* ── 4. Fatturazione ──────────────────────────────────────────────── */}
-      <Section number={4} title="Fatturazione del servizio">
+      {/* ── 4. Fatturazione ────────────────────────────────────────────────
+          Nascosta al privato: paga lui, non c'è alternativa da scegliere. */}
+      {!isPrivato && (
+      <Section number={S.fatturazione} title="Fatturazione del servizio">
         {errors.tipoFatturazione && (
           <p className="text-xs text-destructive flex items-center gap-1" data-error>
             <AlertCircle className="h-3.5 w-3.5" />{errors.tipoFatturazione}
@@ -934,9 +1153,10 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           </button>
         </div>
       </Section>
+      )}
 
       {/* ── 5. Dati Cliente Finale ───────────────────────────────────────── */}
-      <Section number={5} title="Dati del cliente finale">
+      <Section number={S.dati} title={isPrivato ? "I tuoi dati" : "Dati del cliente finale"}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label htmlFor="nome" className="text-sm">Nome *</Label>
@@ -960,7 +1180,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
             {errors.telefono && <p className="text-xs text-destructive" data-error>{errors.telefono}</p>}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="email" className="text-sm">Email</Label>
+            {/* Al privato l'email è obbligatoria: ricevuta Stripe + link al
+                modulo da completare dopo il pagamento. */}
+            <Label htmlFor="email" className="text-sm">Email {isPrivato && "*"}</Label>
             <Input id="email" type="email" value={email}
               onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
               placeholder="mario@esempio.it" className={errors.email ? "border-destructive" : ""} />
@@ -1061,7 +1283,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       </Section>
 
       {/* ── 6. Documenti ────────────────────────────────────────────────── */}
-      <Section number={6} title="Documenti da allegare">
+      <Section number={S.documenti} title="Documenti da allegare">
         {/* Fattura — sempre obbligatoria */}
         {errors.fattura && (
           <p className="text-xs text-destructive flex items-center gap-1" data-error>
@@ -1152,13 +1374,13 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         {!tipoProdotto && (
           <div className="flex items-center gap-2 rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
             <Info className="h-4 w-4 shrink-0" />
-            Seleziona il prodotto nella sezione 2 per vedere i documenti richiesti.
+            Seleziona il prodotto nella sezione {S.prodotto} per vedere i documenti richiesti.
           </div>
         )}
       </Section>
 
       {/* ── 7. Note aggiuntive ───────────────────────────────────────────── */}
-      <Section number={7} title="Note aggiuntive (opzionale)">
+      <Section number={S.note} title="Note aggiuntive (opzionale)">
         <Textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
@@ -1180,10 +1402,22 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
             className="mt-0.5 accent-primary"
           />
           <span>
-            Dichiaro di aver informato il cliente finale e acconsento al trattamento dei dati (GDPR)
-            per la gestione della pratica.
-            {tipoFatturazione === "rivenditore" && (
-              <> In qualità di soggetto pagante, <strong>accetto di corrispondere a Pratica Rapida S.r.l.s. il compenso pattuito a pratica completata</strong>.</>
+            {isPrivato ? (
+              <>
+                Acconsento al trattamento dei miei dati (GDPR) per la gestione della pratica ENEA.
+                {prezzoPrivato && (
+                  <> Proseguendo <strong>pago {euro(prezzoPrivato.totaleCents)} (IVA inclusa)</strong> con carta:
+                  al termine del pagamento ti facciamo completare i dati tecnici della pratica.</>
+                )}
+              </>
+            ) : (
+              <>
+                Dichiaro di aver informato il cliente finale e acconsento al trattamento dei dati (GDPR)
+                per la gestione della pratica.
+                {tipoFatturazione === "rivenditore" && (
+                  <> In qualità di soggetto pagante, <strong>accetto di corrispondere a Pratica Rapida S.r.l.s. il compenso pattuito a pratica completata</strong>.</>
+                )}
+              </>
             )}
             {errors.accettoPagamento && <span className="block text-destructive mt-0.5" data-error>{errors.accettoPagamento}</span>}
           </span>
@@ -1217,11 +1451,16 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       <div className="sticky bottom-4">
         <div className="rounded-xl border bg-card/95 backdrop-blur p-4 shadow-lg flex items-center justify-between gap-4">
           <div className="text-sm text-muted-foreground hidden sm:block">
-            {/* Riepilogo senza importi: il prezzo varia da azienda ad azienda. */}
-            {[tipoServizio && (tipoServizio === "servizio_completo" ? "Servizio Completo" : "Documenti Forniti"),
-              PRODOTTI.find((p) => p.id === tipoProdotto)?.short,
-              tipoFatturazione === "cliente_finale" ? "CF" : tipoFatturazione === "rivenditore" ? "A carico mio" : undefined,
-            ].filter(Boolean).join(" · ")}
+            {/* Al rivenditore niente importi: il prezzo varia da azienda ad
+                azienda. Al privato il totale va invece SEMPRE in chiaro. */}
+            {isPrivato
+              ? [PRODOTTI.find((p) => p.id === tipoProdotto)?.short,
+                 prezzoPrivato ? `${euro(prezzoPrivato.totaleCents)} IVA inclusa` : undefined,
+                ].filter(Boolean).join(" · ")
+              : [tipoServizio && (tipoServizio === "servizio_completo" ? "Servizio Completo" : "Documenti Forniti"),
+                 PRODOTTI.find((p) => p.id === tipoProdotto)?.short,
+                 tipoFatturazione === "cliente_finale" ? "CF" : tipoFatturazione === "rivenditore" ? "A carico mio" : undefined,
+                ].filter(Boolean).join(" · ")}
           </div>
           <Button
             type="submit"
@@ -1230,7 +1469,12 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
             size="lg"
           >
             {submitting ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Invio in corso...</>
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isPrivato ? "Vado al pagamento..." : "Invio in corso..."}
+              </>
+            ) : isPrivato ? (
+              prezzoPrivato ? `Vai al pagamento — ${euro(prezzoPrivato.totaleCents)}` : "Vai al pagamento"
             ) : (
               "Invia Pratica ENEA"
             )}

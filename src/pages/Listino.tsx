@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -176,6 +176,8 @@ export default function Listino() {
         </Dialog>
       </div>
 
+      <PrezzoPrivatoCard />
+
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -247,5 +249,152 @@ export default function Listino() {
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Prezzo della pratica ENEA per i CLIENTI PRIVATI che la richiedono dal sito
+ * (/area-riservata-vecchia/pratica-enea) e la pagano subito con carta.
+ *
+ * Sta in `platform_settings` e non nel codice così si cambia senza un deploy.
+ * Il form pubblico legge questi valori solo per MOSTRARE l'importo: la cifra
+ * che finisce davvero su Stripe la rilegge `stripe-checkout` dal DB, altrimenti
+ * basterebbe modificare la richiesta dal browser per pagare meno.
+ *
+ * Gli importi sono in centesimi: 150.00 * 1.22 in floating point non fa 183.
+ */
+function PrezzoPrivatoCard() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [imponibile, setImponibile] = useState("");
+  const [iva, setIva] = useState("");
+  const [attivo, setAttivo] = useState(true);
+  // Finché l'admin sta scrivendo non sovrascriviamo i campi col valore del
+  // server (un refetch in mezzo alla digitazione cancellerebbe le modifiche).
+  const [dirty, setDirty] = useState(false);
+
+  const { data: row } = useQuery({
+    queryKey: ["platform-settings", "prezzo_privato_enea"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("platform_settings")
+        .select("id, value")
+        .eq("key", "prezzo_privato_enea")
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  useEffect(() => {
+    if (!row?.value || dirty) return;
+    const v = row.value as { imponibile_cents?: number; iva_percent?: number; attivo?: boolean };
+    setImponibile(((v.imponibile_cents ?? 0) / 100).toFixed(2));
+    setIva(String(v.iva_percent ?? 22));
+    setAttivo(v.attivo !== false);
+  }, [row, dirty]);
+
+  const imponibileCents = Math.round(parseFloat(imponibile.replace(",", ".")) * 100);
+  const ivaPercent = parseFloat(iva.replace(",", "."));
+  const valido =
+    Number.isFinite(imponibileCents) && imponibileCents >= 100 &&
+    Number.isFinite(ivaPercent) && ivaPercent >= 0 && ivaPercent <= 100;
+  const totaleCents = valido ? Math.round(imponibileCents * (1 + ivaPercent / 100)) : 0;
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const value = { imponibile_cents: imponibileCents, iva_percent: ivaPercent, attivo };
+      if (row?.id) {
+        const { error } = await supabase
+          .from("platform_settings")
+          .update({ value: value as unknown as Record<string, never>, updated_at: new Date().toISOString() })
+          .eq("id", row.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("platform_settings")
+          .insert([{ key: "prezzo_privato_enea", value: value as unknown as Record<string, never> }]);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      setDirty(false);
+      queryClient.invalidateQueries({ queryKey: ["platform-settings", "prezzo_privato_enea"] });
+      toast({ title: "Prezzo aggiornato" });
+    },
+    onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  return (
+    <Card>
+      <CardContent className="pt-6 space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="font-semibold flex items-center gap-2">
+              <Euro className="h-4 w-4 text-primary" />
+              Pratica ENEA — cliente privato dal sito
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Quanto paga con carta il privato che richiede la pratica per sé. Non tocca i
+              rivenditori, che continuano con la fatturazione concordata.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Switch
+              checked={attivo}
+              onCheckedChange={(v) => { setAttivo(v); setDirty(true); }}
+            />
+            <span className="text-sm text-muted-foreground">{attivo ? "Attivo" : "Sospeso"}</span>
+          </div>
+        </div>
+
+        {!attivo && (
+          <p className="text-xs rounded-md border border-amber-200 bg-amber-50 p-2.5 text-amber-800">
+            Con il servizio sospeso il percorso "cliente privato" sparisce dal form pubblico:
+            dal sito possono inviare richieste solo i rivenditori.
+          </p>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <Label>Imponibile (€)</Label>
+            <Input
+              inputMode="decimal"
+              value={imponibile}
+              onChange={(e) => { setImponibile(e.target.value); setDirty(true); }}
+              placeholder="150.00"
+            />
+          </div>
+          <div>
+            <Label>IVA (%)</Label>
+            <Input
+              inputMode="decimal"
+              value={iva}
+              onChange={(e) => { setIva(e.target.value); setDirty(true); }}
+              placeholder="22"
+            />
+          </div>
+          <div>
+            <Label>Totale addebitato</Label>
+            <div className="h-10 flex items-center rounded-md border bg-muted/40 px-3 font-semibold">
+              {valido
+                ? (totaleCents / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" })
+                : "—"}
+            </div>
+          </div>
+        </div>
+
+        {!valido && (imponibile !== "" || iva !== "") && (
+          <p className="text-xs text-destructive">
+            Inserisci un imponibile di almeno 1,00 € e un'IVA fra 0 e 100.
+          </p>
+        )}
+
+        <div className="flex justify-end">
+          <Button onClick={() => save.mutate()} disabled={!valido || !dirty || save.isPending}>
+            {save.isPending ? "Salvo..." : "Salva prezzo"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

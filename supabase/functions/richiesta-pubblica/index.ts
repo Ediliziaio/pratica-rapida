@@ -28,7 +28,7 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { reportError } from "../_shared/error.ts";
 import { normalizePhone } from "../_shared/phone.ts";
-import { PLACEHOLDER_COMPANY } from "../_shared/reseller.ts";
+import { PLACEHOLDER_COMPANY, PRIVATI_COMPANY } from "../_shared/reseller.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -70,6 +70,11 @@ interface Payload {
   // Servizio a pagamento diretto (es. visura catastale): non invia il link
   // "completa i tuoi dati" al cliente — il cliente sta già pagando.
   requires_payment?: boolean;
+  // Chi sta compilando il form pubblico:
+  //  · "rivenditore" (default) → dichiara la sua azienda, paga a fine mese
+  //  · "privato" → è il cliente finale che chiede la pratica per sé e la paga
+  //    subito con carta. Niente ragione sociale, niente invito rivenditore.
+  richiedente_tipo?: "rivenditore" | "privato";
   tipo_fatturazione?: "rivenditore" | "cliente_finale";
   tipo_soggetto?: "persona_fisica" | "azienda_piva";
   azienda?: { ragione_sociale?: string; email?: string; telefono?: string };
@@ -113,12 +118,21 @@ serve(async (req) => {
   }
 
   // ── Validazione ──
+  // Il privato richiede la pratica per sé: non ha un'azienda da dichiarare,
+  // quindi la ragione sociale non è obbligatoria (e non va cercata in anagrafica).
+  const isPrivato = p.richiedente_tipo === "privato";
   const ragione = p.azienda?.ragione_sociale?.trim() ?? "";
-  const aziendaEmail = p.azienda?.email?.trim().toLowerCase() ?? "";
+  const aziendaEmail = isPrivato ? "" : (p.azienda?.email?.trim().toLowerCase() ?? "");
   const nome = p.cliente?.nome?.trim() ?? "";
   const cognome = p.cliente?.cognome?.trim() ?? "";
   const telefono = p.cliente?.telefono?.trim() ?? "";
-  if (ragione.length < 2) return json({ success: false, error: "Ragione sociale obbligatoria" }, 400);
+  const clienteEmail = p.cliente?.email?.trim() ?? "";
+  if (!isPrivato && ragione.length < 2) return json({ success: false, error: "Ragione sociale obbligatoria" }, 400);
+  // Al privato la ricevuta Stripe e il link per completare i dati arrivano via
+  // email: senza, il pagamento sarebbe un vicolo cieco.
+  if (isPrivato && !EMAIL_RE.test(clienteEmail)) {
+    return json({ success: false, error: "Email obbligatoria per i clienti privati" }, 400);
+  }
   // Email aziendale opzionale per clienti privati (campo vuoto ammesso).
   if (aziendaEmail && !EMAIL_RE.test(aziendaEmail)) return json({ success: false, error: "Email aziendale non valida" }, 400);
   if (nome.length < 2 || cognome.length < 2) return json({ success: false, error: "Nome e cognome del cliente obbligatori" }, 400);
@@ -135,9 +149,35 @@ serve(async (req) => {
   try {
     // ── 1. Abbinamento azienda: email → ragione sociale → crea ──
     let companyId: string | null = null;
-    let matchType: "email" | "telefono" | "ragione_sociale" | "creata" = "creata";
+    let matchType: "email" | "telefono" | "ragione_sociale" | "creata" | "privato" = "creata";
 
-    if (aziendaEmail) {
+    // Contenitore di sistema (segnaposto / privati): lo riusiamo se esiste,
+    // altrimenti lo creiamo al volo. Nessuna credenziale di accesso.
+    const ensureSystemCompany = async (nome: string): Promise<string> => {
+      const { data: existing } = await supabase
+        .from("companies")
+        .select("id")
+        .eq("ragione_sociale", nome)
+        .limit(1)
+        .maybeSingle();
+      if (existing) return existing.id;
+      const { data: created, error: createErr } = await supabase
+        .from("companies")
+        .insert({ ragione_sociale: nome, settore: "sistema" })
+        .select("id")
+        .single();
+      if (createErr || !created) throw createErr ?? new Error("Creazione contenitore fallita");
+      return created.id;
+    };
+
+    // Cliente privato: non c'è nessun rivenditore da cercare in anagrafica.
+    // La pratica va nel contenitore dedicato ai privati.
+    if (isPrivato) {
+      matchType = "privato";
+      companyId = await ensureSystemCompany(PRIVATI_COMPANY);
+    }
+
+    if (!companyId && aziendaEmail) {
       const { data: byEmail } = await supabase
         .from("companies")
         .select("id, ragione_sociale")
@@ -185,23 +225,7 @@ serve(async (req) => {
       // automatici. La pratica va nel contenitore di sistema "Da abbinare":
       // lo staff verifica e la riassegna (o crea l'azienda manualmente).
       matchType = "creata"; // "da abbinare"
-      const { data: holder } = await supabase
-        .from("companies")
-        .select("id")
-        .eq("ragione_sociale", PLACEHOLDER_COMPANY)
-        .limit(1)
-        .maybeSingle();
-      if (holder) {
-        companyId = holder.id;
-      } else {
-        const { data: created, error: createErr } = await supabase
-          .from("companies")
-          .insert({ ragione_sociale: PLACEHOLDER_COMPANY, settore: "sistema" })
-          .select("id")
-          .single();
-        if (createErr || !created) throw createErr ?? new Error("Creazione contenitore fallita");
-        companyId = created.id;
-      }
+      companyId = await ensureSystemCompany(PLACEHOLDER_COMPANY);
     }
 
     // ── 2. Stage iniziale (stage di sistema, come il form interno) ──
@@ -236,11 +260,14 @@ serve(async (req) => {
       telefono: "✅ Abbinata per telefono",
       ragione_sociale: "✅ Abbinata per ragione sociale",
       creata: "⚠️ AZIENDA NON TROVATA — pratica DA ABBINARE (invito registrazione inviato al rivenditore)",
+      privato: "👤 CLIENTE PRIVATO — nessun rivenditore, paga direttamente con carta",
     }[matchType];
     const declared = [
-      `📥 RICHIESTA DAL SITO (modulo: ${p.modulo ?? "?"})`,
-      `Azienda dichiarata: ${ragione} · ${aziendaEmail}`,
-      p.azienda?.telefono ? `Telefono azienda: ${p.azienda.telefono}` : null,
+      isPrivato
+        ? `📥 RICHIESTA DAL SITO — CLIENTE PRIVATO (modulo: ${p.modulo ?? "?"})`
+        : `📥 RICHIESTA DAL SITO (modulo: ${p.modulo ?? "?"})`,
+      isPrivato ? null : `Azienda dichiarata: ${ragione} · ${aziendaEmail}`,
+      isPrivato ? null : (p.azienda?.telefono ? `Telefono azienda: ${p.azienda.telefono}` : null),
       matchLabel,
       p.note?.trim() ? `Note: ${p.note.trim()}` : null,
     ].filter(Boolean).join("\n");
@@ -263,7 +290,9 @@ serve(async (req) => {
         // Ragione sociale dichiarata dal rivenditore: sul segnaposto "Da
         // abbinare" è questo il nome che i template mostrano al cliente finale
         // (vedi _shared/reseller.ts) e che il CRM affianca al badge.
-        azienda_dichiarata: ragione,
+        // Per il privato resta vuota: non c'è nessuna azienda che ci ha
+        // incaricato, è lui stesso il committente.
+        azienda_dichiarata: isPrivato ? null : ragione,
         cliente_nome: nome,
         cliente_cognome: cognome,
         cliente_telefono: normalizePhone(telefono),
@@ -356,10 +385,12 @@ serve(async (req) => {
           admins.map((a) => ({
             user_id: a.user_id,
             tipo: "richiesta_pubblica",
-            titolo: matchType === "creata"
-              ? `⚠️ Richiesta dal sito — azienda DA ABBINARE (${ragione})`
-              : `📥 Nuova richiesta dal sito — ${ragione}`,
-            messaggio: `${nome} ${cognome} · ${p.prodotto ?? p.modulo ?? ""}${allFiles.length ? ` · ${allFiles.length} file` : ""}${matchType === "creata" ? " — azienda non trovata: invito inviato al rivenditore, verifica e abbina la pratica" : ""}`,
+            titolo: matchType === "privato"
+              ? `👤 Richiesta dal sito — CLIENTE PRIVATO (${nome} ${cognome})`
+              : matchType === "creata"
+                ? `⚠️ Richiesta dal sito — azienda DA ABBINARE (${ragione})`
+                : `📥 Nuova richiesta dal sito — ${ragione}`,
+            messaggio: `${nome} ${cognome} · ${p.prodotto ?? p.modulo ?? ""}${allFiles.length ? ` · ${allFiles.length} file` : ""}${matchType === "creata" ? " — azienda non trovata: invito inviato al rivenditore, verifica e abbina la pratica" : ""}${matchType === "privato" ? " — in attesa del pagamento con carta" : ""}`,
             link: `/pratiche/${practice.id}`,
           })),
         );
@@ -377,7 +408,11 @@ serve(async (req) => {
       practice_id: practice.id,
       // Con documenti_forniti il frontend reindirizza l'azienda al modulo
       // completo da compilare subito (pagina pubblica tokenizzata).
-      form_token: tipoServizio === "documenti_forniti" ? (practice.form_token ?? null) : null,
+      // Al privato il token serve dopo il pagamento: `stripe-checkout` lo
+      // rilegge da sé per costruire la success_url, qui lo restituiamo solo
+      // perché il frontend possa mostrare un fallback se Stripe non parte.
+      form_token:
+        tipoServizio === "documenti_forniti" || isPrivato ? (practice.form_token ?? null) : null,
     });
   } catch (err) {
     await reportError(err, { fn: "richiesta-pubblica", modulo: p.modulo });

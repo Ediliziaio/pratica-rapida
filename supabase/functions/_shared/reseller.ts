@@ -12,10 +12,20 @@
 // Azienda-contenitore di sistema per le richieste con azienda non riconosciuta.
 export const PLACEHOLDER_COMPANY = "⚠️ Da abbinare — richieste sito";
 
-/** True se la company è il segnaposto "da abbinare" (match tollerante: il
- *  nome esatto è cambiato in passato, il CRM usa lo stesso `includes`). */
+// Contenitore di sistema per i clienti PRIVATI che richiedono la pratica per
+// sé dal sito (e la pagano con carta): dietro non c'è nessun rivenditore, ma
+// enea_practices.reseller_id è NOT NULL, quindi serve una company a cui
+// appenderle. Non è un'azienda vera: non va mai mostrata al cliente.
+export const PRIVATI_COMPANY = "👤 Clienti privati — sito";
+
+/** True se la company è un contenitore di SISTEMA (segnaposto "da abbinare"
+ *  oppure raccolta clienti privati) e non un rivenditore reale. Il match è
+ *  tollerante perché il nome esatto è cambiato in passato e il CRM usa lo
+ *  stesso `includes`. Serve a non far MAI finire questi nomi interni nei
+ *  messaggi al cliente finale. */
 export function isPlaceholderCompany(ragioneSociale?: string | null): boolean {
-  return !!ragioneSociale?.includes("Da abbinare");
+  if (!ragioneSociale) return false;
+  return ragioneSociale.includes("Da abbinare") || ragioneSociale.includes("Clienti privati");
 }
 
 // Ultima spiaggia: pratiche messe sul segnaposto a mano, senza passare dal form

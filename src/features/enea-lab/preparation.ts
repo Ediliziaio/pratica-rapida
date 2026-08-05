@@ -105,19 +105,24 @@ export function buildEneaPayload(
   now = new Date(),
 ): EneaLabPayload {
   const fields = mapped.sections.flatMap((section) => section.fields);
-  const selectedFields = mode === "test" ? fields : fields.filter((field) => !field.testOnly);
+  const blockers = issues.filter((issue) => issue.severity === "blocker");
+  const selectedFields = mode === "test"
+    ? fields
+    : fields.filter((field) => !field.testOnly && field.status === "ready");
 
   return {
     schemaVersion: 1,
     mode,
+    readyForOfficialSubmission: mode === "official" && blockers.length === 0,
     generatedAt: now.toISOString(),
     practiceCode: mapped.source.code,
     fields: Object.fromEntries(selectedFields.map((field) => [field.id, field.value])),
     excludedTestFields: mode === "official"
       ? fields.filter((field) => field.testOnly).map((field) => field.id)
       : [],
-    interventionRequired: issues
-      .filter((issue) => issue.severity === "blocker")
-      .map((issue) => issue.message),
+    excludedUnverifiedFields: mode === "official"
+      ? fields.filter((field) => !field.testOnly && field.status !== "ready").map((field) => field.id)
+      : [],
+    interventionRequired: blockers.map((issue) => issue.message),
   };
 }

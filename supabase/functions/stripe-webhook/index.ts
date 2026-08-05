@@ -45,12 +45,51 @@ Deno.serve(async (req) => {
   const practiceId = session.metadata?.practice_id;
   if (!practiceId) return Response.json({ received: true, no_practice: true });
 
-  const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+  const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const admin = createClient(SUPABASE_URL, SERVICE_KEY);
   try {
     await admin
       .from("enea_practices")
       .update({ pagamento_stato: "pagata", data_incasso: new Date().toISOString() })
       .eq("id", practiceId);
+
+    // ── Email col link al modulo (pratica ENEA comprata da un privato) ──
+    // Il cliente ha pagato ma i dati tecnici non ce li ha ancora dati. Stripe
+    // lo rimanda al suo /form/:token, però se chiude la scheda quel link se lo
+    // perde: qui glielo mandiamo anche via email, che è la sua copia
+    // permanente. Non blocca il 200 al webhook — se l'email fallisce, Stripe
+    // non deve riprovare tutto l'evento.
+    if (session.metadata?.post_payment === "form") {
+      try {
+        const { data: p } = await admin
+          .from("enea_practices")
+          .select("cliente_nome, cliente_email, form_token, prodotto_installato")
+          .eq("id", practiceId)
+          .maybeSingle();
+        if (p?.cliente_email && p.form_token) {
+          await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              to: p.cliente_email,
+              template: "pagamento_privato_ok",
+              data: {
+                nome: p.cliente_nome ?? "",
+                prodotto: p.prodotto_installato ?? "l'intervento",
+                importo: `€ ${((session.amount_total ?? 0) / 100).toFixed(2)}`,
+                link: `https://app.praticarapida.it/form/${p.form_token}`,
+                practice_id: practiceId,
+              },
+            }),
+          });
+        } else {
+          console.error("[stripe-webhook] pagata ma niente email/token:", practiceId);
+        }
+      } catch (e) {
+        console.error("[stripe-webhook] email post-pagamento fallita:", e);
+      }
+    }
 
     // Notifica staff: pratica pagata online.
     const { data: admins } = await admin.from("user_roles").select("user_id").eq("role", "super_admin");

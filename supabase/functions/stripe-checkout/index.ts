@@ -113,7 +113,13 @@ Deno.serve(async (req) => {
       }],
       customer_email: body.email?.trim() || practice.cliente_email || undefined,
       // Colleghiamo la sessione alla pratica: il webhook usa questi metadata.
-      metadata: { practice_id: practiceId },
+      // `post_payment: "form"` dice al webhook di mandare al cliente l'email
+      // col link al modulo: la success_url da sola non basta, chi chiude la
+      // scheda su Stripe resterebbe senza nessun modo di tornare al form.
+      metadata: {
+        practice_id: practiceId,
+        ...(body.success === "form" ? { post_payment: "form" } : {}),
+      },
       payment_intent_data: { metadata: { practice_id: practiceId } },
       success_url: successUrl,
       cancel_url: `${siteUrl}/area-riservata-vecchia/servizi?pagamento=annullato`,

@@ -482,9 +482,27 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
               descrizione: `Pratica ENEA — ${prodottoLabel}`,
             },
           });
-          if (checkoutErr) throw new Error(checkoutErr.message);
+          // Attenzione ai messaggi da qui in giù: la pratica È GIÀ STATA
+          // CREATA. Dire "riprova" farebbe ricompilare tutto e creerebbe un
+          // doppione non pagato, quindi rimandiamo al supporto.
+          if (checkoutErr) {
+            // supabase-js sugli status non-2xx non espone il body: senza
+            // leggerlo dal Response allegato l'utente vedrebbe solo
+            // "Edge Function returned a non-2xx status code".
+            let msg = checkoutErr.message;
+            const ctx = (checkoutErr as { context?: Response }).context;
+            if (ctx && typeof ctx.json === "function") {
+              try { msg = (await ctx.json())?.error ?? msg; } catch { /* body non JSON */ }
+            }
+            throw new Error(`${msg} — la tua richiesta è stata registrata: scrivici e completiamo noi il pagamento, non ricompilare il modulo.`);
+          }
           const co = checkout as { url?: string; error?: string };
-          if (!co?.url) throw new Error(co?.error ?? "Impossibile avviare il pagamento. Riprova.");
+          if (!co?.url) {
+            throw new Error(
+              co?.error ??
+                "Non riusciamo ad aprire la pagina di pagamento. La tua richiesta è stata registrata: scrivici e la completiamo noi.",
+            );
+          }
           window.location.href = co.url;
           return;
         }

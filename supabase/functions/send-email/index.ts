@@ -36,6 +36,7 @@ const TEMPLATE_RECIPIENT: Record<string, RecipientType | "internal"> = {
   recensione:              "client",
   richiesta_form:          "client",
   sollecito_privato:       "client",
+  pagamento_privato_ok:    "client",
 
   // Rivenditore / azienda
   benvenuto_azienda:           "reseller",
@@ -154,6 +155,7 @@ const HARDCODED_TEMPLATES = new Set<string>([
   "chat_messaggio_diretto", // email libera dall'area /admin/chat
   "whatsapp_disconnesso",   // alert interno: sessione OpenWA caduta/bannata
   "rivenditore_invito",     // richiesta dal sito, azienda non registrata
+  "pagamento_privato_ok",   // privato che ha pagato la pratica ENEA dal sito
 ]);
 
 function renderTemplate(template: string, data: Record<string, string>): { subject: string; html: string } {
@@ -371,6 +373,28 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
           <p style="color:#888;font-size:13px;">
             Per assistenza scrivi a <a href="mailto:modulistica@praticarapida.it" style="color:#888;">modulistica@praticarapida.it</a><br>
             oppure su WhatsApp (solo messaggi, no chiamate vocali).
+          </p>
+        `),
+      };
+
+    case "pagamento_privato_ok":
+      // Cliente PRIVATO che ha comprato la pratica ENEA dal sito e ha appena
+      // pagato con carta. Diverso da `richiesta_form`: lì è il rivenditore ad
+      // averci incaricati, qui il committente è il cliente stesso — dirgli che
+      // "l'azienda installatrice ci ha incaricati" sarebbe falso.
+      //
+      // Questa email è anche la sua unica ancora: se chiude la scheda sulla
+      // pagina di Stripe, il link al modulo lo ritrova solo qui.
+      return {
+        subject: r("Pagamento ricevuto — completa la tua pratica ENEA"),
+        html: base(`
+          <h2>Grazie ${r("{{nome}}")},</h2>
+          <p>Abbiamo ricevuto il tuo pagamento di <strong>${r("{{importo}}")}</strong>.</p>
+          <p>Per preparare la pratica ENEA relativa a <strong>${r("{{prodotto}}")}</strong> ci servono ancora alcuni dati sull'immobile e sull'impianto. Sono circa 5 minuti.</p>
+          ${cta("Completa la pratica", r("{{link}}"))}
+          <p style="color:#888;font-size:13px;">
+            Conserva questa email: da qui puoi riaprire il modulo quando vuoi e riprendere da dove eri rimasto.<br>
+            Per assistenza scrivi a <a href="mailto:modulistica@praticarapida.it" style="color:#888;">modulistica@praticarapida.it</a>.
           </p>
         `),
       };

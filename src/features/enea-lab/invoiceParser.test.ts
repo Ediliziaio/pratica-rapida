@@ -80,4 +80,20 @@ describe("parseScreeningInvoiceText", () => {
     expect(analysis.blockers).toContain("Nessuna fattura riconosciuta tra i documenti fiscali.");
     expect(analysis.blockers).toContain("Almeno un documento non è stato riconosciuto come fattura o nota di credito.");
   });
+
+  it("non usa una data calendario impossibile", () => {
+    const parsed = parseScreeningInvoiceText(invoice.replace("09/04/2026", "31/02/2026"), "fattura.pdf");
+
+    expect(parsed.result.documentDate).toBeUndefined();
+    expect(combineDocumentResults([parsed]).warnings).toContain("La data non è stata riconosciuta in almeno una fattura.");
+  });
+
+  it("blocca il calcolo quando lo stesso documento risulta caricato due volte", () => {
+    const first = parseScreeningInvoiceText(invoice, "fattura.pdf");
+    const duplicate = parseScreeningInvoiceText(invoice, "copia-fattura.pdf");
+    const analysis = combineDocumentResults([first, duplicate]);
+
+    expect(analysis.eligibleExpense).toBeNull();
+    expect(analysis.blockers).toContain("Possibile documento fiscale duplicato: verificare numero, data e importo prima di calcolare la spesa.");
+  });
 });

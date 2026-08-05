@@ -801,13 +801,16 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                 <p className="font-semibold text-sm leading-tight">Sono un cliente<br />privato</p>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
+                {/* Tono volutamente piano: il prezzo si dice, non si impone.
+                    Resta comunque in chiaro — nascondere il costo prima del
+                    checkout sarebbe peggio che dirlo. */}
                 {privatoDisponibile ? (
                   <>
-                    Voglio la pratica ENEA per casa mia. Il servizio{" "}
-                    <strong className="text-foreground">si paga subito con carta</strong>
+                    Voglio la pratica ENEA per casa mia.
                     {prezzoPrivato && (
-                      <> — {euro(prezzoPrivato.totaleCents)} IVA inclusa</>
-                    )}.
+                      <> Il servizio ha un costo di{" "}
+                      <strong className="text-foreground">{euro(prezzoPrivato.totaleCents)}</strong> IVA inclusa.</>
+                    )}
                   </>
                 ) : (
                   <>Al momento non disponibile online: scrivici e ti seguiamo noi.</>
@@ -1422,11 +1425,11 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           <span>
             {isPrivato ? (
               <>
-                Acconsento al trattamento dei miei dati (GDPR) per la gestione della pratica ENEA.
+                Acconsento al trattamento dei miei dati (GDPR) per la gestione della pratica ENEA
                 {prezzoPrivato && (
-                  <> Proseguendo <strong>pago {euro(prezzoPrivato.totaleCents)} (IVA inclusa)</strong> con carta:
-                  al termine del pagamento ti facciamo completare i dati tecnici della pratica.</>
-                )}
+                  <> e ho preso visione del costo del servizio, <strong>{euro(prezzoPrivato.totaleCents)}</strong> IVA
+                  inclusa. Dopo la conferma potrò completare con calma i dati tecnici della pratica</>
+                )}.
               </>
             ) : (
               <>
@@ -1489,10 +1492,12 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
             {submitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isPrivato ? "Vado al pagamento..." : "Invio in corso..."}
+                {isPrivato ? "Un momento..." : "Invio in corso..."}
               </>
             ) : isPrivato ? (
-              prezzoPrivato ? `Vai al pagamento — ${euro(prezzoPrivato.totaleCents)}` : "Vai al pagamento"
+              // "Prosegui" invece di "Vai al pagamento": l'importo accanto
+              // basta a far capire dove si sta andando, senza incalzare.
+              prezzoPrivato ? `Prosegui — ${euro(prezzoPrivato.totaleCents)}` : "Prosegui"
             ) : (
               "Invia Pratica ENEA"
             )}

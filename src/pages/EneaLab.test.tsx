@@ -27,6 +27,7 @@ vi.mock("@/features/enea-lab/useDocumentAnalysis", () => ({
 describe("EneaLab", () => {
   beforeEach(() => {
     window.sessionStorage.clear();
+    window.localStorage.clear();
   });
 
   it("mostra la coda ombra e prepara una scheda senza chiamate esterne", () => {
@@ -41,6 +42,7 @@ describe("EneaLab", () => {
     expect(screen.getByText("Pacchetto di prova pronto")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Apri ENEA per prova" })).toBeEnabled();
     expect(screen.getByText("PROVA")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Scarica bozza incompleta" })).toBeInTheDocument();
     expect(screen.getByText("nota-credito.pdf")).toBeInTheDocument();
   });
 
@@ -71,4 +73,30 @@ describe("EneaLab", () => {
     expect(screen.getByRole("textbox", { name: "Correzione Sesso" })).toBeInTheDocument();
     expect(confirm).toHaveBeenCalledOnce();
   });
+
+  it("mantiene modificabile una correzione e invalida il pacchetto precedente", () => {
+    render(<EneaLab />);
+    fireEvent.click(screen.getByRole("button", { name: "Genera pacchetto prova" }));
+    expect(screen.getByRole("button", { name: "Apri ENEA per prova" })).toBeEnabled();
+
+    const input = screen.getByRole("textbox", { name: "Correzione Sesso" });
+    fireEvent.change(input, { target: { value: "F" } });
+
+    expect(screen.getByRole("textbox", { name: "Correzione Sesso" })).toHaveValue("F");
+    expect(screen.getByRole("button", { name: "Ripristina valore" })).toBeInTheDocument();
+    expect(screen.getByText("Il pacchetto precedente non è più aggiornato")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Apri ENEA per prova" })).toBeDisabled();
+  });
+
+  it("porta l'operatore dal blocco al campo da correggere", () => {
+    render(<EneaLab />);
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Codice nazionale del Comune: Intervento umano richiesto.",
+    }));
+
+    expect(screen.getByRole("tab", { name: "2. Immobile" })).toHaveAttribute("data-state", "active");
+    expect(screen.getByRole("textbox", { name: "Correzione Codice nazionale del Comune" })).toBeInTheDocument();
+  });
+
 });

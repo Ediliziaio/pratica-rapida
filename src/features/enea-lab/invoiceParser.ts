@@ -138,7 +138,7 @@ export function combineDocumentResults(
   const invoiceTotal = invoiceDocuments.reduce((sum, document) => sum + (document.total ?? 0), 0);
   const creditTotal = documents
     .filter(({ documentType }) => documentType === "credit_note")
-    .reduce((sum, document) => sum + (document.total ?? 0), 0);
+    .reduce((sum, document) => sum + Math.abs(document.total ?? 0), 0);
   const firstInvoiceDate = invoiceDocuments
     .flatMap(({ documentDate }) => documentDate ? [documentDate] : [])
     .sort()[0] ?? null;

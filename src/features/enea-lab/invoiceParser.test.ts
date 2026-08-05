@@ -71,6 +71,18 @@ describe("parseScreeningInvoiceText", () => {
     expect(analysis.creditTotal).toBe(200);
   });
 
+  it("sottrae la nota di credito anche quando il PDF espone un totale negativo", () => {
+    const negativeCredit = parseScreeningInvoiceText(credit, "nota-credito.pdf");
+    negativeCredit.result.total = -200;
+    const analysis = combineDocumentResults([
+      parseScreeningInvoiceText(invoice, "fattura.pdf"),
+      negativeCredit,
+    ]);
+
+    expect(analysis.creditTotal).toBe(200);
+    expect(analysis.eligibleExpense).toBe(13924);
+  });
+
   it("segnala documenti sconosciuti e totali non leggibili", () => {
     const analysis = combineDocumentResults([
       parseScreeningInvoiceText("documento generico senza importi", "altro.pdf"),

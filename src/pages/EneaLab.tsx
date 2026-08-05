@@ -6,6 +6,7 @@ import {
   ChevronRight,
   CircleDashed,
   Clipboard,
+  Download,
   ExternalLink,
   FileJson,
   FileSearch,
@@ -26,7 +27,11 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mapSchermaturaPractice } from "@/features/enea-lab/mapper";
-import { buildEneaPayload, validatePreparedPractice } from "@/features/enea-lab/preparation";
+import {
+  buildEneaPayload,
+  fingerprintPreparedPractice,
+  validatePreparedPractice,
+} from "@/features/enea-lab/preparation";
 import type {
   EneaLabField,
   EneaLabFieldStatus,
@@ -80,19 +85,26 @@ function FieldRow({
   field,
   overrideValue,
   onOverride,
-  onConfirm,
+  onClearOverride,
+  isConfirmed,
+  onToggleConfirm,
 }: {
   field: EneaLabField;
   overrideValue: string;
   onOverride: (value: string) => void;
-  onConfirm: () => void;
+  onClearOverride: () => void;
+  isConfirmed: boolean;
+  onToggleConfirm: () => void;
 }) {
   const meta = STATUS_META[field.status];
   const Icon = meta.icon;
-  const needsAction = field.editable && field.status !== "ready";
+  const needsAction = field.editable && (field.status !== "ready" || Boolean(overrideValue));
 
   return (
-    <div className="grid gap-3 border-b border-border/60 py-4 last:border-0 md:grid-cols-[minmax(170px,0.9fr)_minmax(260px,1.35fr)_150px_170px] md:items-start">
+    <div
+      id={`enea-field-${field.id}`}
+      className="grid scroll-mt-6 gap-3 border-b border-border/60 py-4 last:border-0 md:grid-cols-[minmax(170px,0.9fr)_minmax(260px,1.35fr)_150px_170px] md:items-start"
+    >
       <div className="text-sm font-medium text-foreground">{field.label}</div>
       <div>
         <div className={cn("text-sm", field.status === "missing" ? "italic text-muted-foreground" : "text-foreground")}>
@@ -113,12 +125,22 @@ function FieldRow({
               placeholder="Inserisci un valore verificato"
               className="h-8 text-xs"
             />
-            {field.status === "review" && !overrideValue && (
-              <Button type="button" variant="outline" size="sm" className="h-8 shrink-0" onClick={onConfirm}>
+            {overrideValue && (
+              <Button type="button" variant="ghost" size="sm" className="h-8 shrink-0" onClick={onClearOverride}>
+                Ripristina valore
+              </Button>
+            )}
+            {field.status === "review" && !overrideValue && !isConfirmed && (
+              <Button type="button" variant="outline" size="sm" className="h-8 shrink-0" onClick={onToggleConfirm}>
                 Conferma controllo
               </Button>
             )}
           </div>
+        )}
+        {isConfirmed && !overrideValue && (
+          <Button type="button" variant="ghost" size="sm" className="mt-2 h-8 px-2 text-xs" onClick={onToggleConfirm}>
+            Annulla conferma
+          </Button>
         )}
       </div>
       <div className="text-xs text-muted-foreground">{field.source}</div>
@@ -135,11 +157,13 @@ export default function EneaLab() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
   const [queueFilter, setQueueFilter] = useState<"all" | EneaLabQueueStatus>("all");
-  const [initialDraft] = useState(() => loadEneaLabDraft(window.sessionStorage));
+  const [activeSectionId, setActiveSectionId] = useState("beneficiario");
+  const [initialDraft] = useState(() => loadEneaLabDraft(window.localStorage));
   const [overridesByPractice, setOverridesByPractice] = useState<Record<string, EneaLabOverrides>>(initialDraft.overridesByPractice);
   const [confirmedByPractice, setConfirmedByPractice] = useState<Record<string, string[]>>(initialDraft.confirmedByPractice);
   const [preparedIds, setPreparedIds] = useState<string[]>(initialDraft.preparedIds);
-  const [copied, setCopied] = useState(false);
+  const [preparedSnapshotsByPractice, setPreparedSnapshotsByPractice] = useState(initialDraft.preparedSnapshotsByPractice);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "test-copied" | "official-copied" | "error">("idle");
 
   const visibleSourcePractices = useMemo(() => {
     const query = searchText.trim().toLocaleLowerCase("it");
@@ -161,9 +185,13 @@ export default function EneaLab() {
     [visibleSourcePractices],
   );
   useEffect(() => {
-    if (!selectedId && mappedPractices[0]) setSelectedId(mappedPractices[0].source.id);
+    if (!selectedId && mappedPractices[0]) {
+      setSelectedId(mappedPractices[0].source.id);
+      setActiveSectionId("beneficiario");
+    }
     if (mappedPractices.length && selectedId && !mappedPractices.some((practice) => practice.source.id === selectedId)) {
       setSelectedId(mappedPractices[0]?.source.id ?? null);
+      setActiveSectionId("beneficiario");
     }
   }, [mappedPractices, selectedId]);
 
@@ -192,16 +220,17 @@ export default function EneaLab() {
   const warnings = issues.filter((issue) => issue.severity === "warning");
 
   useEffect(() => {
-    setCopied(false);
+    setCopyStatus("idle");
   }, [selectedId, selectedOverrides, selectedConfirmations]);
 
   useEffect(() => {
-    saveEneaLabDraft(window.sessionStorage, {
+    saveEneaLabDraft(window.localStorage, {
       overridesByPractice,
       confirmedByPractice,
       preparedIds,
+      preparedSnapshotsByPractice,
     });
-  }, [confirmedByPractice, overridesByPractice, preparedIds]);
+  }, [confirmedByPractice, overridesByPractice, preparedIds, preparedSnapshotsByPractice]);
 
   if (isPending) {
     return (
@@ -244,37 +273,53 @@ export default function EneaLab() {
 
   const totalFields = selected.summary.ready + selected.summary.review + selected.summary.missing;
   const completeness = totalFields ? Math.round((selected.summary.ready / totalFields) * 100) : 0;
-  const isPrepared = preparedIds.includes(selected.source.id);
   const testPayload = buildEneaPayload(selected, issues, "test");
+  const officialPayload = buildEneaPayload(selected, issues, "official");
+  const currentFingerprint = fingerprintPreparedPractice(selected, issues);
+  const preparedSnapshot = preparedSnapshotsByPractice[selected.source.id];
+  const wasPrepared = preparedIds.includes(selected.source.id);
+  const isPrepared = wasPrepared && preparedSnapshot?.fingerprint === currentFingerprint;
+  const isPreparedStale = wasPrepared && !isPrepared;
 
   const updateOverride = (fieldId: string, value: string) => {
-    setOverridesByPractice((current) => ({
-      ...current,
-      [selected.source.id]: {
-        ...(current[selected.source.id] ?? {}),
-        [fieldId]: value,
-      },
-    }));
-    setPreparedIds((current) => current.filter((id) => id !== selected.source.id));
+    setOverridesByPractice((current) => {
+      const practiceOverrides = { ...(current[selected.source.id] ?? {}) };
+      if (value) practiceOverrides[fieldId] = value;
+      else delete practiceOverrides[fieldId];
+      const next = { ...current };
+      if (Object.keys(practiceOverrides).length) next[selected.source.id] = practiceOverrides;
+      else delete next[selected.source.id];
+      return next;
+    });
   };
 
-  const confirmField = (fieldId: string) => {
+  const toggleFieldConfirmation = (fieldId: string) => {
     setConfirmedByPractice((current) => {
       const existing = current[selected.source.id] ?? [];
-      return existing.includes(fieldId)
-        ? current
-        : { ...current, [selected.source.id]: [...existing, fieldId] };
+      const nextIds = existing.includes(fieldId)
+        ? existing.filter((id) => id !== fieldId)
+        : [...existing, fieldId];
+      const next = { ...current };
+      if (nextIds.length) next[selected.source.id] = nextIds;
+      else delete next[selected.source.id];
+      return next;
     });
-    setPreparedIds((current) => current.filter((id) => id !== selected.source.id));
   };
 
   const preparePractice = () => {
     setPreparedIds((current) => current.includes(selected.source.id) ? current : [...current, selected.source.id]);
+    setPreparedSnapshotsByPractice((current) => ({
+      ...current,
+      [selected.source.id]: {
+        fingerprint: currentFingerprint,
+        generatedAt: new Date().toISOString(),
+      },
+    }));
   };
 
   const hasLocalDraft = Object.keys(selectedOverrides).length > 0
     || selectedConfirmations.size > 0
-    || isPrepared;
+    || wasPrepared;
 
   const resetLocalDraft = () => {
     if (!window.confirm("Cancellare correzioni, conferme e pacchetto di prova di questa pratica?")) return;
@@ -289,16 +334,53 @@ export default function EneaLab() {
       return next;
     });
     setPreparedIds((current) => current.filter((id) => id !== selected.source.id));
+    setPreparedSnapshotsByPractice((current) => {
+      const next = { ...current };
+      delete next[selected.source.id];
+      return next;
+    });
   };
 
-  const copyPayload = async () => {
-    await navigator.clipboard.writeText(JSON.stringify(testPayload, null, 2));
-    setCopied(true);
+  const copyPayload = async (mode: "test" | "official") => {
+    try {
+      const payload = mode === "test" ? testPayload : officialPayload;
+      await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+      setCopyStatus(mode === "test" ? "test-copied" : "official-copied");
+    } catch {
+      setCopyStatus("error");
+    }
+  };
+
+  const downloadPayload = (mode: "test" | "official") => {
+    const payload = mode === "test" ? testPayload : officialPayload;
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${selected.source.code.toLocaleLowerCase("it")}-enea-${mode}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const openEnea = () => {
     window.open(ENEA_PORTAL_URL, "_blank", "noopener,noreferrer");
   };
+
+  const goToField = (fieldId: string) => {
+    const targetSection = selected.sections.find((currentSection) =>
+      currentSection.fields.some((field) => field.id === fieldId),
+    );
+    if (!targetSection) return;
+    setActiveSectionId(targetSection.id);
+    window.setTimeout(() => {
+      document.getElementById(`enea-field-${fieldId}`)?.scrollIntoView?.({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 0);
+  };
+
+  const firstActionableIssue = blockers.find((issue) => issue.fieldId);
 
   return (
     <main className="min-h-screen bg-slate-50/70">
@@ -327,7 +409,7 @@ export default function EneaLab() {
           <CircleDashed className="h-4 w-4 text-violet-700" />
           <AlertTitle>Ambiente controllato</AlertTitle>
           <AlertDescription className="text-violet-800">
-            Il CRM viene interrogato solo in lettura. Le correzioni restano in questa scheda anche dopo un aggiornamento e vengono eliminate alla chiusura; non cambiano stati, file, email, WhatsApp o automazioni. I valori convenzionali sono inclusi soltanto nel pacchetto di prova.
+            Il CRM viene interrogato solo in lettura. Correzioni e conferme restano esclusivamente in questo browser per consentire il recupero dopo una chiusura accidentale e vengono eliminate automaticamente dopo 7 giorni; non cambiano stati, file, email, WhatsApp o automazioni. I valori convenzionali sono inclusi soltanto nel pacchetto di prova.
           </AlertDescription>
         </Alert>
 
@@ -385,7 +467,10 @@ export default function EneaLab() {
                     <button
                       key={practice.source.id}
                       type="button"
-                      onClick={() => setSelectedId(practice.source.id)}
+                      onClick={() => {
+                        setSelectedId(practice.source.id);
+                        setActiveSectionId("beneficiario");
+                      }}
                       className={cn(
                         "w-full rounded-xl border p-4 text-left transition",
                         active
@@ -436,7 +521,11 @@ export default function EneaLab() {
                   <div className="flex flex-wrap items-center gap-2">
                     <CardTitle className="text-xl">{selected.source.clienteNome} {selected.source.clienteCognome}</CardTitle>
                     <Badge variant="outline">{selected.source.code}</Badge>
-                    {isPrepared && <Badge className="gap-1 bg-emerald-600"><Check className="h-3 w-3" /> Pacchetto prova generato</Badge>}
+                    {isPrepared && <Badge className="gap-1 bg-emerald-600"><Check className="h-3 w-3" /> Pacchetto prova aggiornato</Badge>}
+                    {isPreparedStale && <Badge className="gap-1 bg-amber-600"><AlertTriangle className="h-3 w-3" /> Da rigenerare</Badge>}
+                    {officialPayload.readyForOfficialSubmission && (
+                      <Badge className="gap-1 bg-blue-600"><ShieldCheck className="h-3 w-3" /> Dati ufficiali completi</Badge>
+                    )}
                   </div>
                   <CardDescription className="mt-1">{selected.source.prodottoInstallato} · {selected.source.reseller}</CardDescription>
                 </div>
@@ -451,7 +540,7 @@ export default function EneaLab() {
                   </Button>
                   <Button onClick={preparePractice} disabled={documentAnalysis.isPending} className="gap-2">
                     {isPrepared ? <FileJson className="h-4 w-4" /> : <FileSearch className="h-4 w-4" />}
-                    {isPrepared ? "Rigenera pacchetto" : "Genera pacchetto prova"}
+                    {wasPrepared ? "Rigenera pacchetto" : "Genera pacchetto prova"}
                   </Button>
                 </div>
               </CardHeader>
@@ -476,6 +565,13 @@ export default function EneaLab() {
                   </div>
                   <div className="w-full sm:w-64"><Progress value={completeness} className="h-2.5" /></div>
                 </div>
+                {firstActionableIssue?.fieldId && (
+                  <div className="mt-4 flex justify-end">
+                    <Button type="button" variant="outline" onClick={() => goToField(firstActionableIssue.fieldId!)} className="gap-2">
+                      <ChevronRight className="h-4 w-4" /> Vai al prossimo dato da completare
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -501,7 +597,19 @@ export default function EneaLab() {
                 <AlertTitle>Intervento umano richiesto · {blockers.length}</AlertTitle>
                 <AlertDescription>
                   <ul className="mt-2 list-disc space-y-1 pl-5">
-                    {blockers.slice(0, 10).map((issue) => <li key={issue.code}>{issue.message}</li>)}
+                    {blockers.slice(0, 10).map((issue) => (
+                      <li key={issue.code}>
+                        {issue.fieldId ? (
+                          <button
+                            type="button"
+                            className="text-left underline decoration-amber-400 underline-offset-2 hover:text-amber-800"
+                            onClick={() => goToField(issue.fieldId!)}
+                          >
+                            {issue.message}
+                          </button>
+                        ) : issue.message}
+                      </li>
+                    ))}
                   </ul>
                   {blockers.length > 10 && <p className="mt-2 text-xs">Altri {blockers.length - 10} campi sono evidenziati nelle sezioni sottostanti.</p>}
                 </AlertDescription>
@@ -516,6 +624,16 @@ export default function EneaLab() {
               </Alert>
             )}
 
+            {isPreparedStale && (
+              <Alert className="border-amber-200 bg-amber-50 text-amber-950">
+                <RefreshCw className="h-4 w-4 text-amber-700" />
+                <AlertTitle>Il pacchetto precedente non è più aggiornato</AlertTitle>
+                <AlertDescription>
+                  Un dato, un documento o una conferma è cambiato. Rigenera il pacchetto prima di aprire ENEA.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {isPrepared && (
               <Card className="border-violet-200 shadow-sm">
                 <CardHeader className="gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -523,10 +641,23 @@ export default function EneaLab() {
                     <CardTitle className="text-base">Pacchetto di prova pronto</CardTitle>
                     <CardDescription>Contiene anche i due valori convenzionali, marcati come test. Nessun dato è stato inviato.</CardDescription>
                   </div>
-                  <Button type="button" variant="outline" onClick={() => void copyPayload()} className="gap-2">
-                    {copied ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
-                    {copied ? "Copiato" : "Copia pacchetto"}
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" variant="outline" onClick={() => void copyPayload("test")} className="gap-2">
+                      {copyStatus === "test-copied" ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
+                      {copyStatus === "test-copied" ? "Prova copiata" : copyStatus === "error" ? "Copia non riuscita" : "Copia prova"}
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => downloadPayload("test")} className="gap-2">
+                      <Download className="h-4 w-4" /> Scarica prova
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => void copyPayload("official")} className="gap-2">
+                      {copyStatus === "official-copied" ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
+                      {copyStatus === "official-copied" ? "Bozza copiata" : "Copia bozza ufficiale"}
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => downloadPayload("official")} className="gap-2">
+                      <Download className="h-4 w-4" />
+                      {officialPayload.readyForOfficialSubmission ? "Scarica bozza completa" : "Scarica bozza incompleta"}
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-3 sm:grid-cols-3">
@@ -534,6 +665,9 @@ export default function EneaLab() {
                     <div className="rounded-lg bg-rose-50 p-3"><div className="text-xs text-rose-700">Interventi umani</div><div className="text-xl font-semibold text-rose-800">{testPayload.interventionRequired.length}</div></div>
                     <div className="rounded-lg bg-violet-50 p-3"><div className="text-xs text-violet-700">Modalità</div><div className="text-xl font-semibold text-violet-800">PROVA</div></div>
                   </div>
+                  <p className="mt-3 text-xs text-slate-500">
+                    La bozza ufficiale esclude automaticamente valori di prova e campi non verificati. Stato dati ufficiali: {officialPayload.readyForOfficialSubmission ? "completi, pronti per il collaudo sul portale" : "incompleti, invio bloccato"}.
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -563,7 +697,7 @@ export default function EneaLab() {
                 <CardDescription>Correggi localmente i valori mancanti oppure conferma quelli che richiedono un controllo.</CardDescription>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue={selected.sections[0].id} key={selected.source.id}>
+                <Tabs value={activeSectionId} onValueChange={setActiveSectionId}>
                   <TabsList className="mb-4 h-auto w-full justify-start gap-1 overflow-x-auto bg-slate-100 p-1">
                     {selected.sections.map((currentSection) => (
                       <TabsTrigger key={currentSection.id} value={currentSection.id} className="whitespace-nowrap text-xs">{currentSection.title}</TabsTrigger>
@@ -584,7 +718,9 @@ export default function EneaLab() {
                           field={field}
                           overrideValue={selectedOverrides[field.id] ?? ""}
                           onOverride={(value) => updateOverride(field.id, value)}
-                          onConfirm={() => confirmField(field.id)}
+                          onClearOverride={() => updateOverride(field.id, "")}
+                          isConfirmed={selectedConfirmations.has(field.id)}
+                          onToggleConfirm={() => toggleFieldConfirmation(field.id)}
                         />
                       ))}
                     </TabsContent>

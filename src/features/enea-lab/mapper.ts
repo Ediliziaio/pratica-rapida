@@ -9,6 +9,7 @@ import {
   TITOLO_LABELS,
 } from "@/types/form-cliente";
 import { getGeneratorTestConvention } from "./conventions";
+import { validateOperatorOverride } from "./operatorValidation";
 import type {
   EneaLabDocumentAnalysis,
   EneaLabField,
@@ -96,13 +97,16 @@ function applyOperatorState(sections: EneaLabSection[], options?: EneaLabMapOpti
     fields: currentSection.fields.map((field) => {
       const override = options?.overrides?.[field.id]?.trim();
       if (override) {
+        const validation = validateOperatorOverride(field.id, override);
         return {
           ...field,
-          value: override,
+          value: validation.value,
           source: "Inserimento operatore",
-          status: "ready",
+          status: validation.valid ? "ready" : "missing",
           testOnly: false,
-          note: "Valore inserito localmente nel laboratorio; il CRM non è stato modificato.",
+          note: validation.valid
+            ? "Valore inserito localmente nel laboratorio; il CRM non è stato modificato."
+            : `${validation.message} Il CRM non è stato modificato.`,
         };
       }
       if (field.status === "review" && options?.confirmedFieldIds?.has(field.id)) {
@@ -115,6 +119,63 @@ function applyOperatorState(sections: EneaLabSection[], options?: EneaLabMapOpti
       return field;
     }),
   }));
+}
+
+function applyKnownFieldValidation(sections: EneaLabSection[]): EneaLabSection[] {
+  return sections.map((currentSection) => ({
+    ...currentSection,
+    fields: currentSection.fields.map((field) => {
+      if (field.status !== "ready" || field.testOnly) return field;
+      const validation = validateOperatorOverride(field.id, field.value);
+      if (validation.valid) return validation.value === field.value
+        ? field
+        : { ...field, value: validation.value };
+      return {
+        ...field,
+        status: "missing",
+        note: field.note
+          ? `${field.note} Formato non valido: ${validation.message}`
+          : `Formato non valido: ${validation.message}`,
+      };
+    }),
+  }));
+}
+
+function parseMappedNumber(value: string): number | null {
+  const normalized = value
+    .trim()
+    .replace(/\s/g, "")
+    .replace(/[^0-9,.-]/g, "")
+    .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+    .replace(",", ".");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function recalculateScreeningSummary(sections: EneaLabSection[]): EneaLabSection[] {
+  return sections.map((currentSection) => {
+    if (currentSection.id !== "schermature") return currentSection;
+    const surfaceFields = currentSection.fields.filter((field) =>
+      /^schermature\.\d+\.superficie$/.test(field.id),
+    );
+    const totalField = currentSection.fields.find((field) => field.id === "schermature.superficie_totale");
+    if (!surfaceFields.length || totalField?.source === "Inserimento operatore") return currentSection;
+    const surfaces = surfaceFields.map((field) => field.status === "ready" ? parseMappedNumber(field.value) : null);
+    if (surfaces.some((value) => value === null)) return currentSection;
+    const total = surfaces.reduce<number>((sum, value) => sum + (value ?? 0), 0);
+    return {
+      ...currentSection,
+      fields: currentSection.fields.map((field) => field.id === "schermature.superficie_totale"
+        ? {
+            ...field,
+            value: `${formatNumber(total)} m²`,
+            source: "Calcolo ENEA",
+            status: "ready",
+            note: "Ricalcolata dalle superfici dei singoli elementi verificati.",
+          }
+        : field),
+    };
+  });
 }
 
 export function mapSchermaturaPractice(
@@ -137,9 +198,16 @@ export function mapSchermaturaPractice(
       }
     : form.appartamento_lavori;
 
-  const screeningFields = (analysis?.items ?? []).flatMap((item, index) => {
+  const detectedItems = analysis?.items ?? [];
+  const declaredItems = prodotto?.items ?? [];
+  const screeningCount = Math.max(detectedItems.length, declaredItems.length);
+  const screeningFields = Array.from({ length: screeningCount }).flatMap((_, index) => {
+    const item = detectedItems[index];
     const declared = prodotto?.items[index];
-    const validGTot = item.gTot !== null && item.gTot > 0 && item.gTot <= 0.35;
+    const validGTot = item?.gTot !== null
+      && item?.gTot !== undefined
+      && item.gTot > 0
+      && item.gTot <= 0.35;
     return [
       mappedField(
         `schermature.${index}.tipo`,
@@ -159,14 +227,21 @@ export function mapSchermaturaPractice(
       mappedField(
         `schermature.${index}.dimensioni`,
         `Elemento ${index + 1} · dimensioni`,
-        `${item.widthMm} × ${item.heightMm} mm`,
-        { source: "Fattura", editable: false },
+        item ? `${item.widthMm} × ${item.heightMm} mm` : "",
+        {
+          source: item ? "Fattura" : "Modulo cliente",
+          editable: true,
+          note: item ? undefined : "Misure non estratte dalla fattura: inserirle dopo aver verificato il documento.",
+        },
       ),
       mappedField(
         `schermature.${index}.superficie`,
         `Elemento ${index + 1} · superficie schermatura`,
-        `${formatNumber(item.surfaceM2)} m²`,
-        { source: "Calcolo ENEA" },
+        item ? `${formatNumber(item.surfaceM2)} m²` : "",
+        {
+          source: "Calcolo ENEA",
+          note: item ? undefined : "Inserire la superficie calcolata dalle misure verificate.",
+        },
       ),
       mappedField(
         `schermature.${index}.superficie_finestrata`,
@@ -191,13 +266,13 @@ export function mapSchermaturaPractice(
       mappedField(
         `schermature.${index}.modalita_calcolo`,
         `Elemento ${index + 1} · modalità di calcolo`,
-        item.gTot !== null ? "Dichiarato dal fornitore" : "",
-        { source: "Fattura", status: item.gTot !== null ? "review" : "missing" },
+        item?.gTot !== null && item?.gTot !== undefined ? "Dichiarato dal fornitore" : "",
+        { source: "Fattura", status: item?.gTot !== null && item?.gTot !== undefined ? "review" : "missing" },
       ),
       mappedField(
         `schermature.${index}.gtot`,
         `Elemento ${index + 1} · gTot`,
-        item.gTot === null ? "" : formatNumber(item.gTot, 2),
+        item?.gTot === null || item?.gTot === undefined ? "" : formatNumber(item.gTot, 2),
         {
           source: "Fattura",
           status: validGTot ? "ready" : "missing",
@@ -368,11 +443,19 @@ export function mapSchermaturaPractice(
       mappedField(
         "schermature.numero",
         "Numero totale schermature",
-        analysis?.items.length ? String(analysis.items.length) : "",
+        screeningCount ? String(screeningCount) : "",
         {
-          source: "Fattura",
-          status: analysis?.items.length ? "ready" : "missing",
-          note: analysis ? undefined : "Analisi automatica delle fatture non ancora eseguita.",
+          source: detectedItems.length ? "Fattura" : "Modulo cliente",
+          status: detectedItems.length === declaredItems.length && detectedItems.length > 0
+            ? "ready"
+            : screeningCount
+              ? "review"
+              : "missing",
+          note: detectedItems.length && detectedItems.length !== declaredItems.length
+            ? `La fattura descrive ${detectedItems.length} elementi e il modulo cliente ${declaredItems.length}: confermare il numero corretto.`
+            : detectedItems.length
+              ? undefined
+              : "Numero ricavato dal modulo cliente: verificare sulle fatture.",
         },
       ),
       mappedField(
@@ -381,7 +464,13 @@ export function mapSchermaturaPractice(
         analysis?.items.length
           ? `${formatNumber(analysis.items.reduce((sum, item) => sum + item.surfaceM2, 0))} m²`
           : "",
-        { source: "Calcolo ENEA" },
+        {
+          source: "Calcolo ENEA",
+          status: detectedItems.length > 0 && detectedItems.length === screeningCount ? "ready" : "missing",
+          note: detectedItems.length > 0 && detectedItems.length !== screeningCount
+            ? "Totale parziale: almeno una schermatura non è stata riconosciuta nella fattura."
+            : undefined,
+        },
       ),
       mappedField(
         "schermature.spesa",
@@ -435,7 +524,9 @@ export function mapSchermaturaPractice(
     ]),
   ];
 
-  const sections = applyOperatorState(rawSections, options);
+  const sections = recalculateScreeningSummary(
+    applyKnownFieldValidation(applyOperatorState(rawSections, options)),
+  );
   const summary: Record<EneaLabFieldStatus, number> = { ready: 0, review: 0, missing: 0 };
   for (const currentSection of sections) {
     for (const currentField of currentSection.fields) {

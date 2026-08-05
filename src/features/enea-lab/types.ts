@@ -109,6 +109,11 @@ export interface EneaLabMapOptions {
   includeTestConventions?: boolean;
 }
 
+export interface EneaLabPreparedSnapshot {
+  fingerprint: string;
+  generatedAt: string;
+}
+
 export interface EneaLabPayload {
   schemaVersion: 1;
   mode: "test" | "official";

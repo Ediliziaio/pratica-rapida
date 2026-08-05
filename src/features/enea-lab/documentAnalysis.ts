@@ -7,6 +7,38 @@ import type {
   EneaLabSourcePractice,
 } from "./types";
 
+type PdfTextItemLike = {
+  str?: string;
+  hasEOL?: boolean;
+  transform?: number[];
+};
+
+/** Conserva le righe del PDF: importi e intestazioni non devono diventare un'unica frase. */
+export function pdfTextItemsToLines(items: PdfTextItemLike[]): string {
+  const lines: string[] = [];
+  let current: string[] = [];
+  let previousY: number | null = null;
+
+  const flush = () => {
+    const line = current.join(" ").replace(/\s+/g, " ").trim();
+    if (line) lines.push(line);
+    current = [];
+  };
+
+  for (const item of items) {
+    if (typeof item.str !== "string") continue;
+    const y = Array.isArray(item.transform) && typeof item.transform[5] === "number"
+      ? item.transform[5]
+      : null;
+    if (current.length && y !== null && previousY !== null && Math.abs(y - previousY) > 2) flush();
+    if (item.str.trim()) current.push(item.str);
+    if (item.hasEOL) flush();
+    if (y !== null) previousY = y;
+  }
+  flush();
+  return lines.join("\n");
+}
+
 async function extractPdfText(blob: Blob): Promise<string> {
   const [{ getDocument, GlobalWorkerOptions }, workerModule] = await Promise.all([
     import("pdfjs-dist/legacy/build/pdf.mjs"),
@@ -21,11 +53,7 @@ async function extractPdfText(blob: Blob): Promise<string> {
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
     const page = await pdf.getPage(pageNumber);
     const content = await page.getTextContent();
-    pages.push(
-      content.items
-        .map((item) => ("str" in item ? item.str : ""))
-        .join(" "),
-    );
+    pages.push(pdfTextItemsToLines(content.items));
   }
 
   await pdf.destroy();

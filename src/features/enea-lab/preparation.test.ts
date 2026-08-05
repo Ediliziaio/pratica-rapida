@@ -17,6 +17,9 @@ describe("preparazione pacchetto ENEA", () => {
       "impianto.potenza",
       "impianto.rendimento",
     ]));
+    expect(officialPayload.readyForOfficialSubmission).toBe(false);
+    expect(officialPayload.excludedUnverifiedFields).toContain("immobile.codice_comune");
+    expect(Object.values(officialPayload.fields)).not.toContain("Intervento umano richiesto");
     expect(officialPayload.interventionRequired.length).toBeGreaterThan(0);
   });
 

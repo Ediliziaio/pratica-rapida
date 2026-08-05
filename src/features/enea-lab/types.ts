@@ -112,9 +112,11 @@ export interface EneaLabMapOptions {
 export interface EneaLabPayload {
   schemaVersion: 1;
   mode: "test" | "official";
+  readyForOfficialSubmission: boolean;
   generatedAt: string;
   practiceCode: string;
   fields: Record<string, string>;
   excludedTestFields: string[];
+  excludedUnverifiedFields: string[];
   interventionRequired: string[];
 }

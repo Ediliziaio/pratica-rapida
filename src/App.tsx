@@ -70,6 +70,7 @@ const EmailTemplates = lazy(() => import("./pages/admin/EmailTemplates"));
 const WhatsappPanel = lazy(() => import("./pages/admin/WhatsappPanel"));
 const Moduli = lazy(() => import("./pages/admin/Moduli"));
 const ArchivioEnea = lazy(() => import("./pages/rivenditore/ArchivioEnea"));
+const EneaLab = lazy(() => import("./pages/EneaLab"));
 
 /**
  * QueryClient con default sensibili per ridurre carico backend e migliorare
@@ -283,6 +284,16 @@ const App = () => (
                 <Route path="/auth" element={<AuthRoute />} />
                 <Route path="/blocked" element={<Blocked />} />
                 <Route path="/form/:token" element={<FormPubblico />} />
+                {/* ENEA Lab è intenzionalmente disponibile solo nel server locale di sviluppo.
+                    Non compare nei menu e una build di produzione reindirizza alla home. */}
+                <Route
+                  path="/admin/enea-lab"
+                  element={
+                    import.meta.env.DEV
+                      ? <ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><EneaLab /></RoleGuard></ProtectedRoute>
+                      : <Navigate to="/" replace />
+                  }
+                />
                 <Route path="/schermature-solari/:token" element={<ModuloClientePage />} />
                 <Route path="/modulo-infissi/:token" element={<ModuloClientePage />} />
                 <Route path="/impianto-termico/:token" element={<ModuloClientePage />} />

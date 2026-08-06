@@ -144,16 +144,32 @@ describe("preparazione pacchetto ENEA", () => {
     const mapped = mapSchermaturaPractice(source, failedAnalysis, {
       overrides: {
         "schermature.0.dimensioni": "1200 × 1000 mm",
-        "schermature.0.superficie": "1,2 m²",
         "schermature.0.gtot": "0,20",
         "schermature.1.dimensioni": "1500 × 1000 mm",
-        "schermature.1.superficie": "1,5 m²",
         "schermature.1.gtot": "0,20",
       },
     });
 
     expect(validatePreparedPractice(source, mapped, failedAnalysis).some(
       ({ message }) => message.startsWith("Nessuna riga di schermatura"),
+    )).toBe(false);
+  });
+
+  it("ricostruisce manualmente l'elenco quando il modulo non contiene schermature", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.prodotto = { tipo: "schermature", items: [] };
+    const mapped = mapSchermaturaPractice(source, undefined, {
+      overrides: {
+        "schermature.numero": "1",
+        "schermature.0.dimensioni": "1200 × 1000 mm",
+        "schermature.0.gtot": "0,20",
+      },
+    });
+
+    expect(mapped.sections.flatMap((section) => section.fields)
+      .find((field) => field.id === "schermature.0.superficie")?.value).toBe("1,2 m²");
+    expect(validatePreparedPractice(source, mapped).some(
+      ({ code }) => code === "screening-list-empty",
     )).toBe(false);
   });
 

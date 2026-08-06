@@ -36,4 +36,10 @@ describe("validazione correzioni operatore", () => {
       value: "1200 × 1450 mm",
     });
   });
+
+  it("limita il numero di schermature per evitare una scheda ingestibile", () => {
+    expect(validateOperatorOverride("schermature.numero", "50")).toMatchObject({ valid: true, value: "50" });
+    expect(validateOperatorOverride("schermature.numero", "51")).toMatchObject({ valid: false });
+    expect(validateOperatorOverride("schermature.numero", "100000")).toMatchObject({ valid: false });
+  });
 });

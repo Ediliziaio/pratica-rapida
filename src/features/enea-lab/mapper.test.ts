@@ -153,4 +153,41 @@ describe("mapSchermaturaPractice", () => {
       status: "ready",
     });
   });
+
+  it("ricalcola superficie e totale quando l'operatore corregge le dimensioni", () => {
+    const result = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0], analysis, {
+      overrides: {
+        "schermature.0.dimensioni": "2100 × 1800 mm",
+        "schermature.1.dimensioni": "1500 × 1000 mm",
+      },
+    });
+    const fields = result.sections.flatMap((currentSection) => currentSection.fields);
+
+    expect(fields.find((field) => field.id === "schermature.0.superficie")).toMatchObject({
+      value: "3,7 m²",
+      source: "Calcolo ENEA",
+      status: "ready",
+    });
+    expect(fields.find((field) => field.id === "schermature.1.superficie")?.value).toBe("1,5 m²");
+    expect(fields.find((field) => field.id === "schermature.superficie_totale")?.value).toBe("5,2 m²");
+  });
+
+  it("usa il numero verificato per aggiungere o rimuovere le righe schermatura", () => {
+    const three = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0], analysis, {
+      overrides: { "schermature.numero": "3" },
+    });
+    const threeFields = three.sections.flatMap((currentSection) => currentSection.fields);
+    expect(threeFields.find((field) => field.id === "schermature.2.dimensioni")).toBeDefined();
+    expect(threeFields.find((field) => field.id === "schermature.numero")).toMatchObject({
+      value: "3",
+      source: "Inserimento operatore",
+      status: "ready",
+    });
+
+    const one = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0], analysis, {
+      overrides: { "schermature.numero": "1" },
+    });
+    expect(one.sections.flatMap((currentSection) => currentSection.fields)
+      .find((field) => field.id === "schermature.1.dimensioni")).toBeUndefined();
+  });
 });

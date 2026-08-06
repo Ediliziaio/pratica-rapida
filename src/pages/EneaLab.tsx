@@ -137,6 +137,18 @@ function FieldRow({
             )}
           </div>
         )}
+        {field.editable && field.status === "ready" && !overrideValue && !isConfirmed && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="mt-2 h-8 px-2 text-xs"
+            aria-label={`Correggi ${field.label}`}
+            onClick={() => onOverride(field.value)}
+          >
+            Correggi
+          </Button>
+        )}
         {isConfirmed && !overrideValue && (
           <Button type="button" variant="ghost" size="sm" className="mt-2 h-8 px-2 text-xs" onClick={onToggleConfirm}>
             Annulla conferma

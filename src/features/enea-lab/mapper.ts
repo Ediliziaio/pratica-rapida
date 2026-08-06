@@ -152,6 +152,37 @@ function parseMappedNumber(value: string): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function truncateOneDecimal(value: number): number {
+  return Math.floor((value + Number.EPSILON) * 10) / 10;
+}
+
+function recalculateScreeningSurfaces(sections: EneaLabSection[]): EneaLabSection[] {
+  return sections.map((currentSection) => {
+    if (currentSection.id !== "schermature") return currentSection;
+    const fieldsById = new Map(currentSection.fields.map((field) => [field.id, field]));
+
+    return {
+      ...currentSection,
+      fields: currentSection.fields.map((field) => {
+        const match = field.id.match(/^schermature\.(\d+)\.superficie$/);
+        if (!match || field.source === "Inserimento operatore") return field;
+        const dimensions = fieldsById.get(`schermature.${match[1]}.dimensioni`);
+        if (dimensions?.status !== "ready" || dimensions.source !== "Inserimento operatore") return field;
+        const size = dimensions.value.match(/^(\d{2,5})\s*[x×]\s*(\d{2,5})(?:\s*mm)?$/i);
+        if (!size) return field;
+        const surface = truncateOneDecimal((Number(size[1]) * Number(size[2])) / 1_000_000);
+        return {
+          ...field,
+          value: `${formatNumber(surface)} m²`,
+          source: "Calcolo ENEA",
+          status: "ready",
+          note: "Ricalcolata automaticamente dalle dimensioni verificate dall'operatore.",
+        };
+      }),
+    };
+  });
+}
+
 function recalculateScreeningSummary(sections: EneaLabSection[]): EneaLabSection[] {
   return sections.map((currentSection) => {
     if (currentSection.id !== "schermature") return currentSection;
@@ -200,7 +231,14 @@ export function mapSchermaturaPractice(
 
   const detectedItems = analysis?.items ?? [];
   const declaredItems = prodotto?.items ?? [];
-  const screeningCount = Math.max(detectedItems.length, declaredItems.length);
+  const proposedScreeningCount = Math.max(detectedItems.length, declaredItems.length);
+  const countOverride = options?.overrides?.["schermature.numero"];
+  const validatedCountOverride = countOverride
+    ? validateOperatorOverride("schermature.numero", countOverride)
+    : null;
+  const screeningCount = validatedCountOverride?.valid
+    ? Number(validatedCountOverride.value)
+    : proposedScreeningCount;
   const screeningFields = Array.from({ length: screeningCount }).flatMap((_, index) => {
     const item = detectedItems[index];
     const declared = prodotto?.items[index];
@@ -446,11 +484,13 @@ export function mapSchermaturaPractice(
         screeningCount ? String(screeningCount) : "",
         {
           source: detectedItems.length ? "Fattura" : "Modulo cliente",
-          status: detectedItems.length === declaredItems.length && detectedItems.length > 0
+          status: validatedCountOverride?.valid
             ? "ready"
-            : screeningCount
-              ? "review"
-              : "missing",
+            : detectedItems.length === declaredItems.length && detectedItems.length > 0
+              ? "ready"
+              : screeningCount
+                ? "review"
+                : "missing",
           note: detectedItems.length && detectedItems.length !== declaredItems.length
             ? `La fattura descrive ${detectedItems.length} elementi e il modulo cliente ${declaredItems.length}: confermare il numero corretto.`
             : detectedItems.length
@@ -525,7 +565,9 @@ export function mapSchermaturaPractice(
   ];
 
   const sections = recalculateScreeningSummary(
-    applyKnownFieldValidation(applyOperatorState(rawSections, options)),
+    recalculateScreeningSurfaces(
+      applyKnownFieldValidation(applyOperatorState(rawSections, options)),
+    ),
   );
   const summary: Record<EneaLabFieldStatus, number> = { ready: 0, review: 0, missing: 0 };
   for (const currentSection of sections) {

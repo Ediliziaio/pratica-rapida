@@ -100,12 +100,15 @@ export function validatePreparedPractice(
   }
 
   if (!productItems.length) {
-    issues.push({
-      code: "screening-list-empty",
-      severity: "blocker",
-      message: "Il modulo cliente non contiene l'elenco delle schermature.",
-      fieldId: "schermature.numero",
-    });
+    const screeningCount = fieldById(mapped, "schermature.numero");
+    if (screeningCount?.source !== "Inserimento operatore" || !allManualScreeningEssentialsReady(mapped)) {
+      issues.push({
+        code: "screening-list-empty",
+        severity: "blocker",
+        message: "Il modulo cliente non contiene l'elenco delle schermature.",
+        fieldId: "schermature.numero",
+      });
+    }
   }
 
   if (analysis) {
@@ -139,6 +142,7 @@ export function validatePreparedPractice(
     analysis.items.forEach((item, index) => {
       const fieldId = `schermature.${index}.gtot`;
       const mappedGTot = fieldById(mapped, fieldId);
+      if (!mappedGTot) return;
       if ((item.gTot === null || item.gTot <= 0 || item.gTot > 0.35) && mappedGTot?.status !== "ready") {
         issues.push({
           code: `invalid-gtot-${index}`,

@@ -99,4 +99,16 @@ describe("EneaLab", () => {
     expect(screen.getByRole("textbox", { name: "Correzione Codice nazionale del Comune" })).toBeInTheDocument();
   });
 
+  it("permette di correggere anche un dato estratto che risultava gia pronto", () => {
+    render(<EneaLab />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Correggi Nome" }));
+    const input = screen.getByRole("textbox", { name: "Correzione Nome" });
+    expect(input).toHaveValue("Cliente");
+
+    fireEvent.change(input, { target: { value: "Mario" } });
+    expect(input).toHaveValue("Mario");
+    expect(screen.getByRole("button", { name: "Ripristina valore" })).toBeInTheDocument();
+  });
+
 });

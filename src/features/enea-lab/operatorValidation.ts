@@ -155,7 +155,14 @@ export function validateOperatorOverride(
       : invalid(value, `Inserire un anno compreso tra 1000 e ${currentYear}.`);
   }
 
-  if (/^(?:immobile\.unita|intervento\.unita_totali|intervento\.unita_oggetto|schermature\.numero)$/.test(fieldId)) {
+  if (fieldId === "schermature.numero") {
+    const parsed = parseItalianNumber(value);
+    return parsed !== null && Number.isInteger(parsed) && parsed > 0 && parsed <= 50
+      ? { valid: true, value: String(parsed) }
+      : invalid(value, "Inserire un numero intero di schermature compreso tra 1 e 50.");
+  }
+
+  if (/^(?:immobile\.unita|intervento\.unita_totali|intervento\.unita_oggetto)$/.test(fieldId)) {
     const parsed = parseItalianNumber(value);
     return parsed !== null && Number.isInteger(parsed) && parsed > 0
       ? { valid: true, value }

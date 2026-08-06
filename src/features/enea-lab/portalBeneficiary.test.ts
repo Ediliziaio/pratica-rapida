@@ -61,7 +61,7 @@ describe("compilazione pagina beneficiario ENEA", () => {
     expect(preparation.script).not.toContain("CF-DEMO-001-NON-VALIDO");
   });
 
-  it("compila input e select in una pagina equivalente senza attivare Salva", () => {
+  it("compila input, select e Comuni in una pagina equivalente senza attivare Salva", async () => {
     const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
     source.form.richiedente.cf = "RSSMRA80A01H501U";
     const mapped = mapSchermaturaPractice(source, undefined, {
@@ -88,17 +88,26 @@ describe("compilazione pagina beneficiario ENEA", () => {
         <input id="id-telefono">
         <button id="salva" type="submit">Salva</button>
       </form>
+      <ul class="ui-autocomplete"></ul>
     `, {
       runScripts: "outside-only",
       url: "https://bonusfiscali.enea.it/beneficiario",
     });
     let submitCount = 0;
+    const list = dom.window.document.querySelector(".ui-autocomplete")!;
+    for (const id of ["id-comune_nascita", "id-comune_residenza"]) {
+      const input = dom.window.document.getElementById(id) as HTMLInputElement;
+      input.addEventListener("input", () => {
+        list.innerHTML = `<li><a>Comune Demo Nord (ZZ)</a></li>`;
+        list.querySelector("a")?.addEventListener("click", () => { input.value = "Comune Demo Nord"; });
+      });
+    }
     dom.window.document.getElementById("beneficiario")?.addEventListener("submit", (event) => {
       event.preventDefault();
       submitCount += 1;
     });
 
-    const result = dom.window.eval(script) as { compiled: string[] };
+    const result = await dom.window.eval(script) as { compiled: string[] };
 
     expect((dom.window.document.getElementById("id-nome") as HTMLInputElement).value).toBe("Cliente");
     expect((dom.window.document.getElementById("id-codice_fiscale") as HTMLInputElement).value).toBe("RSSMRA80A01H501U");

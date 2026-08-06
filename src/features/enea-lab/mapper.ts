@@ -84,6 +84,12 @@ function inferredDestination(tipologia: string): string {
       : "";
 }
 
+function inferredParticularDestination(tipologia: string): string {
+  return tipologia && tipologia !== "edificio_industriale_o_commerciale"
+    ? "Edifici adibiti a residenza e assimilabili (con carattere continuativo o saltuario)"
+    : "";
+}
+
 function sexFromItalianFiscalCode(value: string): string {
   const normalized = value.trim().toUpperCase();
   const match = normalized.match(/^[A-Z]{6}\d{2}[A-Z](\d{2})[A-Z]\d{3}[A-Z]$/);
@@ -395,11 +401,14 @@ export function mapSchermaturaPractice(
       mappedField("immobile.indirizzo", "Indirizzo lavori", worksAddress.indirizzo),
       mappedField("immobile.civico", "Civico lavori", worksAddress.numero),
       mappedField("immobile.cap", "CAP lavori", worksAddress.cap),
+      mappedField("immobile.scala", "Scala", "", { required: false }),
+      mappedField("immobile.interno", "Interno", "", { required: false }),
       mappedField("immobile.codice_comune", "Codice nazionale del Comune", "", {
         note: "Recuperare il codice catastale del Comune da una fonte ufficiale.",
       }),
       mappedField("immobile.foglio", "Foglio", form.catastali.foglio),
       mappedField("immobile.mappale", "Particella / mappale", form.catastali.mappale),
+      mappedField("immobile.sezione", "Sezione catastale", "", { required: false }),
       mappedField("immobile.subalterno", "Subalterno", form.catastali.subalterno, { required: false }),
       mappedField("immobile.anno", "Anno di costruzione", form.edificio.anno_costruzione),
       mappedField("immobile.superficie", "Superficie utile", form.edificio.superficie_mq ? `${form.edificio.superficie_mq} m²` : ""),
@@ -415,6 +424,18 @@ export function mapSchermaturaPractice(
         },
       ),
       mappedField(
+        "immobile.destinazione_particolare",
+        "Destinazione d'uso particolare",
+        inferredParticularDestination(form.edificio.tipologia),
+        {
+          source: "Regola controllata",
+          status: inferredParticularDestination(form.edificio.tipologia) ? "review" : "missing",
+          note: inferredParticularDestination(form.edificio.tipologia)
+            ? "Proposta residenziale dalla tipologia dichiarata; confermare prima della compilazione."
+            : "La categoria industriale o commerciale non permette di distinguere con sicurezza la destinazione DPR 412.",
+        },
+      ),
+      mappedField(
         "immobile.tipologia",
         "Tipologia edilizia",
         form.edificio.tipologia ? TIPOLOGIA_LABELS[form.edificio.tipologia] : "",
@@ -422,8 +443,11 @@ export function mapSchermaturaPractice(
       mappedField("immobile.zona_climatica", "Zona climatica", "", {
         note: "Recuperare dal Comune dell'intervento.",
       }),
-      mappedField("immobile.gradi_giorno", "Gradi giorno", "", {
-        note: "Recuperare dal Comune dell'intervento.",
+      mappedField("immobile.gradi_giorno", "Gradi giorno", "Automatici dal Comune ENEA", {
+        source: "Regola controllata",
+        required: false,
+        editable: false,
+        note: "Il portale li carica automaticamente dopo la selezione del Comune dall'elenco ENEA.",
       }),
       mappedField("immobile.fascia_solare", "Fascia solare", "", {
         note: "Verificare il valore proposto dal portale ENEA.",

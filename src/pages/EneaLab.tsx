@@ -41,6 +41,7 @@ import type {
 import { useReadOnlyEneaQueue } from "@/features/enea-lab/useReadOnlyQueue";
 import { useDocumentAnalysis } from "@/features/enea-lab/useDocumentAnalysis";
 import { buildEneaBeneficiaryPortalScript } from "@/features/enea-lab/portalBeneficiary";
+import { buildEneaBuildingPortalScript } from "@/features/enea-lab/portalBuilding";
 import { cn } from "@/lib/utils";
 import {
   loadEneaLabDraft,
@@ -176,7 +177,7 @@ export default function EneaLab() {
   const [confirmedByPractice, setConfirmedByPractice] = useState<Record<string, string[]>>(initialDraft.confirmedByPractice);
   const [preparedIds, setPreparedIds] = useState<string[]>(initialDraft.preparedIds);
   const [preparedSnapshotsByPractice, setPreparedSnapshotsByPractice] = useState(initialDraft.preparedSnapshotsByPractice);
-  const [copyStatus, setCopyStatus] = useState<"idle" | "test-copied" | "official-copied" | "beneficiary-copied" | "error">("idle");
+  const [copyStatus, setCopyStatus] = useState<"idle" | "test-copied" | "official-copied" | "beneficiary-copied" | "building-copied" | "error">("idle");
 
   const visibleSourcePractices = useMemo(() => {
     const query = searchText.trim().toLocaleLowerCase("it");
@@ -380,6 +381,16 @@ export default function EneaLab() {
       const preparation = buildEneaBeneficiaryPortalScript(selected);
       await navigator.clipboard.writeText(preparation.script);
       setCopyStatus("beneficiary-copied");
+    } catch {
+      setCopyStatus("error");
+    }
+  };
+
+  const copyBuildingCompilation = async () => {
+    try {
+      const preparation = buildEneaBuildingPortalScript(selected);
+      await navigator.clipboard.writeText(preparation.script);
+      setCopyStatus("building-copied");
     } catch {
       setCopyStatus("error");
     }
@@ -673,6 +684,10 @@ export default function EneaLab() {
                       {copyStatus === "beneficiary-copied" ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
                       {copyStatus === "beneficiary-copied" ? "Anagrafica copiata" : "Copia compilazione anagrafica"}
                     </Button>
+                    <Button type="button" variant="outline" onClick={() => void copyBuildingCompilation()} className="gap-2">
+                      {copyStatus === "building-copied" ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
+                      {copyStatus === "building-copied" ? "Immobile copiato" : "Copia compilazione immobile"}
+                    </Button>
                     <Button type="button" variant="outline" onClick={() => downloadPayload("test")} className="gap-2">
                       <Download className="h-4 w-4" /> Scarica prova
                     </Button>
@@ -696,7 +711,7 @@ export default function EneaLab() {
                     La bozza ufficiale esclude automaticamente valori di prova e campi non verificati. Stato dati ufficiali: {officialPayload.readyForOfficialSubmission ? "completi, pronti per il collaudo sul portale" : "incompleti, invio bloccato"}.
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    La compilazione anagrafica usa soltanto campi verificati della prima pagina ENEA: riempie il modulo ma non preme Salva e non invia la pratica.
+                    Le compilazioni Anagrafica e Immobile usano soltanto campi verificati: selezionano anche i Comuni dagli elenchi ENEA, ma non premono Salva e non inviano la pratica.
                   </p>
                 </CardContent>
               </Card>

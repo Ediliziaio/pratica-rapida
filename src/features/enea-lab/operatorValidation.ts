@@ -88,6 +88,17 @@ export function validateOperatorOverride(
   const labelSets: Record<string, readonly string[]> = {
     "beneficiario.titolo": Object.values(TITOLO_LABELS),
     "immobile.tipologia": Object.values(TIPOLOGIA_LABELS),
+    "immobile.destinazione_generale": ["Residenziale", "Non residenziale", "Misto"],
+    "immobile.destinazione_particolare": [
+      "Edifici adibiti a residenza e assimilabili (con carattere continuativo o saltuario)",
+      "Edifici adibiti a uffici e assimilabili",
+      "Edifici adibiti a ospedali, cliniche o case di cura e assimilabili",
+      "Edifici adibiti ad attività ricreative, associative o di culto e assimilabili (cinema, teatri, sale riunioni, musei, chiese e similari)",
+      "Edifici adibiti ad attività commerciali e assimilabili",
+      "Edifici adibiti ad attività sportive (piscine, palestre, servizi di supporto alle attività sportive)",
+      "Edifici adibiti ad attività scolastiche a tutti i livelli e assimilabili",
+      "Edifici adibiti ad attività industriali ed artigianali e assimilabili",
+    ],
     "impianto.tipo": Object.values(IMPIANTO_TIPO_LABELS),
     "impianto.terminali": Object.values(TERMINALI_LABELS),
     "impianto.generatore": Object.values(CALDAIA_LABELS),

@@ -9,6 +9,11 @@ import {
   TITOLO_LABELS,
 } from "@/types/form-cliente";
 import { getGeneratorTestConvention } from "./conventions";
+import {
+  centralizedPlantFromType,
+  interventionScopeFromUnitCount,
+  interventionTypeFromProduct,
+} from "./interventionRules";
 import { validateOperatorOverride } from "./operatorValidation";
 import type {
   EneaLabDocumentAnalysis,
@@ -241,6 +246,10 @@ export function mapSchermaturaPractice(
         cap: form.residenza.cap,
       }
     : form.appartamento_lavori;
+  const interventionScope = interventionScopeFromUnitCount(form.edificio.numero_appartamenti);
+  const interventionType = interventionTypeFromProduct(form.prodotto.tipo);
+  const centralizedPlant = centralizedPlantFromType(form.impianto.tipo);
+  const finishDate = source.dataFineLavori ?? analysis?.lastInvoiceDate ?? null;
 
   const detectedItems = analysis?.items ?? [];
   const declaredItems = prodotto?.items ?? [];
@@ -457,29 +466,62 @@ export function mapSchermaturaPractice(
       mappedField(
         "intervento.ambito",
         "Intervento su",
-        form.edificio.numero_appartamenti ? "Singola unità immobiliare" : "",
+        interventionScope,
         {
           source: "Regola controllata",
-          status: form.edificio.numero_appartamenti ? "review" : "missing",
-          note: "Confermare se l'intervento riguarda una singola unità o parti comuni.",
+          status: interventionScope ? "ready" : "missing",
+          note: interventionScope
+            ? "Determinato dal numero di appartamenti dichiarato nel modulo."
+            : "Serve sapere se l'edificio è composto da una o più unità immobiliari.",
         },
       ),
-      mappedField("intervento.unita_totali", "Unità immobiliari totali", form.edificio.numero_appartamenti),
-      mappedField("intervento.unita_oggetto", "Unità oggetto della detrazione", "", {
-        note: "Dato distinto dal numero totale di appartamenti dell'edificio.",
+      mappedField("intervento.unita_totali", "Unità immobiliari totali", form.edificio.numero_appartamenti, {
+        required: false,
+        note: "Dato di appoggio per determinare il tipo di edificio; non viene scritto nel campo ENEA delle unità oggetto.",
       }),
-      mappedField("intervento.accorpamenti", "Accorpamenti di unità immobiliari", "", {
-        note: "Il modulo cliente non raccoglie questa informazione.",
+      mappedField("intervento.unita_oggetto", "Unità oggetto della detrazione", "1", {
+        source: "Regola controllata",
+        editable: false,
+        note: "Regola operativa PraticaRapida: per le pratiche gestite il valore è sempre 1.",
+      }),
+      mappedField("intervento.accorpamenti", "Accorpamenti di unità immobiliari", "No", {
+        source: "Regola controllata",
+        editable: false,
+        note: "Regola operativa PraticaRapida: la risposta è sempre No.",
       }),
       mappedField("intervento.data_inizio", "Data inizio lavori", formatDate(analysis?.firstInvoiceDate), {
         source: "Fattura",
-        status: analysis?.firstInvoiceDate ? "review" : "missing",
+        status: analysis?.firstInvoiceDate ? "ready" : "missing",
         note: analysis?.firstInvoiceDate
-          ? "Proposta dalla prima data fattura riconosciuta; confermare che coincida con l'inizio lavori."
-          : "Non ricavata con sicurezza.",
+          ? "Ricavata dalla prima data della prima fattura riconosciuta."
+          : "La prima data fattura non è stata riconosciuta.",
       }),
-      mappedField("intervento.data_fine", "Data fine lavori", formatDate(source.dataFineLavori), {
+      mappedField("intervento.data_fine", "Data fine lavori", formatDate(finishDate), {
+        source: source.dataFineLavori ? "Pratica CRM" : "Fattura",
+        note: source.dataFineLavori
+          ? "Data indicata dal rivenditore."
+          : finishDate
+            ? "Data del rivenditore assente: usata l'ultima data fattura riconosciuta."
+            : "Se il rivenditore non l'ha indicata, usare l'ultima fattura; il certificato di fine lavori sarà gestito dopo l'acquisizione dei facsimili.",
+      }),
+      mappedField("intervento.tipo", "Tipo di intervento", interventionType, {
         source: "Pratica CRM",
+        editable: false,
+        note: "Derivato dal form scelto dal rivenditore.",
+      }),
+      mappedField("intervento.impianto_centralizzato", "Impianto centralizzato", centralizedPlant, {
+        source: "Modulo cliente",
+        required: false,
+        editable: false,
+        note: centralizedPlant
+          ? "Derivato dal tipo di impianto esistente dichiarato nel modulo."
+          : "Lasciato vuoto quando il modulo non permette di determinarlo.",
+      }),
+      mappedField("intervento.zona_urbanistica", "Zona urbanistica", "", {
+        source: "Regola controllata",
+        required: false,
+        editable: false,
+        note: "Non viene compilata per i tipi d'intervento gestiti; il campo resta vuoto sul portale.",
       }),
     ]),
     section("impianto", "4. Impianto esistente", "Caratteristiche dell'impianto prima dei lavori", [

@@ -48,6 +48,7 @@ export interface EneaLabDocumentAnalysis {
   creditTotal: number;
   eligibleExpense: number | null;
   firstInvoiceDate: string | null;
+  lastInvoiceDate: string | null;
   documents: EneaLabDocumentResult[];
   blockers: string[];
   warnings: string[];

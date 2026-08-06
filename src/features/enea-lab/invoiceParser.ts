@@ -139,9 +139,11 @@ export function combineDocumentResults(
   const creditTotal = documents
     .filter(({ documentType }) => documentType === "credit_note")
     .reduce((sum, document) => sum + Math.abs(document.total ?? 0), 0);
-  const firstInvoiceDate = invoiceDocuments
+  const invoiceDates = invoiceDocuments
     .flatMap(({ documentDate }) => documentDate ? [documentDate] : [])
-    .sort()[0] ?? null;
+    .sort();
+  const firstInvoiceDate = invoiceDates[0] ?? null;
+  const lastInvoiceDate = invoiceDates.at(-1) ?? null;
   const blockers: string[] = [];
   const warnings: string[] = [];
   const identities = documents.map(documentIdentity).filter((identity): identity is string => identity !== null);
@@ -181,6 +183,7 @@ export function combineDocumentResults(
     creditTotal,
     eligibleExpense: eligibleExpense !== null && eligibleExpense >= 0 ? eligibleExpense : null,
     firstInvoiceDate,
+    lastInvoiceDate,
     documents,
     blockers,
     warnings,

@@ -57,6 +57,7 @@ describe("parseScreeningInvoiceText", () => {
     expect(analysis.creditTotal).toBe(200);
     expect(analysis.eligibleExpense).toBe(13924);
     expect(analysis.firstInvoiceDate).toBe("2026-04-09");
+    expect(analysis.lastInvoiceDate).toBe("2026-04-09");
     expect(analysis.items).toHaveLength(2);
   });
 

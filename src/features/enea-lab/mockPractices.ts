@@ -166,6 +166,7 @@ export const ENEA_LAB_MOCK_ANALYSIS: Record<string, EneaLabDocumentAnalysis> = {
     creditTotal: 200,
     eligibleExpense: 13_924,
     firstInvoiceDate: "2026-07-01",
+    lastInvoiceDate: "2026-07-01",
     documents: [
       {
         path: "lab-schermature-001/fattura/fattura-01.pdf",

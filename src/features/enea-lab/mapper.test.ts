@@ -16,6 +16,7 @@ const analysis: EneaLabDocumentAnalysis = {
   creditTotal: 0,
   eligibleExpense: 1000,
   firstInvoiceDate: "2026-07-01",
+  lastInvoiceDate: "2026-07-01",
   documents: [],
   blockers: [],
   warnings: [],
@@ -122,6 +123,44 @@ describe("mapSchermaturaPractice", () => {
     expect(fields.find((field) => field.id === "beneficiario.indirizzo_residenza")?.value).toBe("Via Laboratorio");
     expect(fields.find((field) => field.id === "beneficiario.civico_residenza")?.value).toBe("24");
     expect(fields.find((field) => field.id === "beneficiario.cap_residenza")?.value).toBe("00001");
+  });
+
+  it("applica le regole operative della sezione Intervento", () => {
+    const fields = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0], analysis)
+      .sections.flatMap((currentSection) => currentSection.fields);
+
+    expect(fields.find((field) => field.id === "intervento.ambito")).toMatchObject({
+      value: "Edificio costituito da una singola unità immobiliare",
+      status: "ready",
+    });
+    expect(fields.find((field) => field.id === "intervento.unita_oggetto")?.value).toBe("1");
+    expect(fields.find((field) => field.id === "intervento.accorpamenti")?.value).toBe("No");
+    expect(fields.find((field) => field.id === "intervento.data_inizio")).toMatchObject({
+      value: "01/07/2026",
+      status: "ready",
+    });
+    expect(fields.find((field) => field.id === "intervento.tipo")?.value).toBe("Comma 345B - Schermature solari");
+    expect(fields.find((field) => field.id === "intervento.impianto_centralizzato")?.value).toBe("No");
+    expect(fields.find((field) => field.id === "intervento.zona_urbanistica")).toMatchObject({
+      value: "Non indicato",
+      required: false,
+      editable: false,
+    });
+  });
+
+  it("usa l'ultima fattura quando manca la data fine lavori del rivenditore", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.dataFineLavori = null;
+    const documentAnalysis = { ...analysis, lastInvoiceDate: "2026-07-24" };
+    const field = mapSchermaturaPractice(source, documentAnalysis)
+      .sections.flatMap((currentSection) => currentSection.fields)
+      .find((candidate) => candidate.id === "intervento.data_fine");
+
+    expect(field).toMatchObject({
+      value: "24/07/2026",
+      source: "Fattura",
+      status: "ready",
+    });
   });
 
   it("non considera verificata una correzione con formato impossibile", () => {

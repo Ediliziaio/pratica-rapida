@@ -13,8 +13,12 @@ type PdfTextItemLike = {
   transform?: number[];
 };
 
+type PdfMarkedContentLike = {
+  type?: string;
+};
+
 /** Conserva le righe del PDF: importi e intestazioni non devono diventare un'unica frase. */
-export function pdfTextItemsToLines(items: PdfTextItemLike[]): string {
+export function pdfTextItemsToLines(items: Array<PdfTextItemLike | PdfMarkedContentLike>): string {
   const lines: string[] = [];
   let current: string[] = [];
   let previousY: number | null = null;
@@ -26,7 +30,7 @@ export function pdfTextItemsToLines(items: PdfTextItemLike[]): string {
   };
 
   for (const item of items) {
-    if (typeof item.str !== "string") continue;
+    if (!("str" in item) || typeof item.str !== "string") continue;
     const y = Array.isArray(item.transform) && typeof item.transform[5] === "number"
       ? item.transform[5]
       : null;
@@ -94,6 +98,7 @@ export async function analyzePracticeDocuments(
       creditTotal: 0,
       eligibleExpense: null,
       firstInvoiceDate: null,
+      lastInvoiceDate: null,
       documents: [],
       blockers: ["Nessuna fattura disponibile nella pratica."],
       warnings: [],

@@ -76,7 +76,7 @@ export function validateOperatorOverride(
     return allowedValue(value.toUpperCase(), ["M", "F"], "Indicare M oppure F.");
   }
 
-  if (/^(?:beneficiario\.abitazione_principale|beneficiario\.cointestazione|impianto\.condizionamento|intervento\.accorpamenti)$/.test(fieldId)) {
+  if (/^(?:beneficiario\.abitazione_principale|beneficiario\.cointestazione|impianto\.condizionamento|intervento\.(?:accorpamenti|impianto_centralizzato))$/.test(fieldId)) {
     const normalized = value.toLocaleLowerCase("it").replace("ì", "i");
     return normalized === "si"
       ? { valid: true, value: "Sì" }
@@ -98,6 +98,16 @@ export function validateOperatorOverride(
       "Edifici adibiti ad attività sportive (piscine, palestre, servizi di supporto alle attività sportive)",
       "Edifici adibiti ad attività scolastiche a tutti i livelli e assimilabili",
       "Edifici adibiti ad attività industriali ed artigianali e assimilabili",
+    ],
+    "intervento.ambito": [
+      "Singola unità immobiliare (in un edificio costituito da più unità immobiliari)",
+      "Edificio costituito da una singola unità immobiliare",
+      "Intero edificio (qualsiasi altro tipo di edificio non incluso nei casi sopra riportati)",
+    ],
+    "intervento.tipo": [
+      "Comma 345A - Interventi sull'involucro",
+      "Comma 345B - Schermature solari",
+      "Comma 347A - Sostituzione di impianto di climatizzazione",
     ],
     "impianto.tipo": Object.values(IMPIANTO_TIPO_LABELS),
     "impianto.terminali": Object.values(TERMINALI_LABELS),

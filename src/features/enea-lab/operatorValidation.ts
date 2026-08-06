@@ -1,7 +1,6 @@
 import {
   CALDAIA_LABELS,
   SCHERMATURA_DIREZIONE_LABELS,
-  SCHERMATURA_TIPO_LABELS,
   TIPOLOGIA_LABELS,
   TITOLO_LABELS,
   isValidPhone,
@@ -13,6 +12,13 @@ import {
   ENEA_PLANT_TERMINAL,
   ENEA_PLANT_TYPE,
 } from "./plantRules";
+import {
+  ENEA_SCREENING_CALCULATION,
+  ENEA_SCREENING_INSTALLATION,
+  ENEA_SCREENING_MATERIAL,
+  ENEA_SCREENING_REGULATION,
+  ENEA_SCREENING_TYPE,
+} from "./screeningRules";
 
 export interface EneaLabOperatorValidation {
   valid: boolean;
@@ -126,7 +132,23 @@ export function validateOperatorOverride(
   }
 
   if (/^schermature\.\d+\.tipo$/.test(fieldId)) {
-    return allowedValue(value, Object.values(SCHERMATURA_TIPO_LABELS), "Selezionare un tipo di schermatura previsto.");
+    return allowedValue(value, Object.values(ENEA_SCREENING_TYPE), "Selezionare un tipo di schermatura previsto da ENEA.");
+  }
+
+  if (/^schermature\.\d+\.installazione$/.test(fieldId)) {
+    return allowedValue(value, Object.values(ENEA_SCREENING_INSTALLATION), "Selezionare un'installazione prevista da ENEA.");
+  }
+
+  if (/^schermature\.\d+\.modalita_calcolo$/.test(fieldId)) {
+    return allowedValue(value, Object.values(ENEA_SCREENING_CALCULATION), "Selezionare una modalità di calcolo prevista da ENEA.");
+  }
+
+  if (/^schermature\.\d+\.materiale$/.test(fieldId)) {
+    return allowedValue(value, Object.values(ENEA_SCREENING_MATERIAL), "Selezionare un materiale previsto da ENEA.");
+  }
+
+  if (/^schermature\.\d+\.regolazione$/.test(fieldId)) {
+    return allowedValue(value, Object.values(ENEA_SCREENING_REGULATION), "Selezionare un meccanismo previsto da ENEA.");
   }
 
   if (/^schermature\.\d+\.esposizione$/.test(fieldId)) {

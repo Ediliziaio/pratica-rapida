@@ -54,7 +54,11 @@ describe("mapSchermaturaPractice", () => {
       status: "missing",
       editable: true,
     });
-    expect(fields.find((field) => field.id === "schermature.1.gtot")?.status).toBe("missing");
+    expect(fields.find((field) => field.id === "schermature.1.gtot")).toMatchObject({
+      value: "0,06",
+      source: "Regola controllata",
+      status: "ready",
+    });
     expect(fields.find((field) => field.id === "schermature.numero")).toMatchObject({
       value: "2",
       source: "Modulo cliente",

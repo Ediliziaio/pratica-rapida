@@ -1,7 +1,6 @@
 import {
   CALDAIA_LABELS,
   SCHERMATURA_DIREZIONE_LABELS,
-  SCHERMATURA_TIPO_LABELS,
   TIPOLOGIA_LABELS,
   TITOLO_LABELS,
 } from "@/types/form-cliente";
@@ -18,6 +17,7 @@ import {
   plantTerminalFromForm,
   plantTypeFromForm,
 } from "./plantRules";
+import { screeningRules } from "./screeningRules";
 import { validateOperatorOverride } from "./operatorValidation";
 import type {
   EneaLabDocumentAnalysis,
@@ -271,24 +271,24 @@ export function mapSchermaturaPractice(
   const screeningFields = Array.from({ length: screeningCount }).flatMap((_, index) => {
     const item = detectedItems[index];
     const declared = prodotto?.items[index];
-    const validGTot = item?.gTot !== null
-      && item?.gTot !== undefined
-      && item.gTot > 0
-      && item.gTot <= 0.35;
+    const rules = screeningRules(declared?.tipo ?? "", item?.description ?? "", item?.gTot);
     return [
       mappedField(
         `schermature.${index}.tipo`,
         `Elemento ${index + 1} · tipo schermatura`,
-        declared?.tipo ? SCHERMATURA_TIPO_LABELS[declared.tipo] : "",
+        rules.type,
+        {
+          source: "Regola controllata",
+          note: "Tenda da sole → Tenda o veneziana; tapparelle, zanzariere e pergole → Altra schermatura solare.",
+        },
       ),
       mappedField(
         `schermature.${index}.installazione`,
         `Elemento ${index + 1} · installazione`,
-        declared?.tipo ? "Esterna" : "",
+        rules.installation,
         {
           source: "Regola controllata",
-          status: declared?.tipo ? "review" : "missing",
-          note: "Ipotesi coerente con tende e pergole; confermare sul prodotto reale.",
+          note: "Le schermature gestite dal flusso operativo sono installate esternamente.",
         },
       ),
       mappedField(
@@ -323,7 +323,11 @@ export function mapSchermaturaPractice(
         `schermature.${index}.rsupp`,
         `Elemento ${index + 1} · resistenza termica supplementare`,
         "",
-        { note: "Inserire il valore dichiarato nella documentazione tecnica applicabile." },
+        {
+          required: false,
+          editable: false,
+          note: "Calcolata automaticamente da ENEA; il laboratorio non la compila.",
+        },
       ),
       mappedField(
         `schermature.${index}.esposizione`,
@@ -333,30 +337,44 @@ export function mapSchermaturaPractice(
       mappedField(
         `schermature.${index}.modalita_calcolo`,
         `Elemento ${index + 1} · modalità di calcolo`,
-        item?.gTot !== null && item?.gTot !== undefined ? "Dichiarato dal fornitore" : "",
-        { source: "Fattura", status: item?.gTot !== null && item?.gTot !== undefined ? "review" : "missing" },
+        rules.calculation,
+        {
+          source: rules.gTotFromDocument ? "Fattura" : "Regola controllata",
+          status: rules.calculation ? "ready" : "missing",
+          note: "Regola operativa fissa: Dichiarato dal fornitore.",
+        },
       ),
       mappedField(
         `schermature.${index}.gtot`,
         `Elemento ${index + 1} · gTot`,
-        item?.gTot === null || item?.gTot === undefined ? "" : formatNumber(item.gTot, 2),
+        formatNumber(rules.gTot, 2),
         {
-          source: "Fattura",
-          status: validGTot ? "ready" : "missing",
-          note: validGTot ? "Requisito automatico verificato: gTot ≤ 0,35." : "Il valore deve essere documentato e non superiore a 0,35.",
+          source: rules.gTotFromDocument ? "Fattura" : "Regola controllata",
+          status: "ready",
+          note: rules.gTotFromDocument
+            ? "Requisito automatico verificato: gTot ≤ 0,35."
+            : `Valore sostitutivo operativo: ${formatNumber(rules.gTot, 2)} in assenza di un valore specificato.`,
         },
       ),
       mappedField(
         `schermature.${index}.materiale`,
         `Elemento ${index + 1} · materiale`,
-        "",
-        { note: "Selezionare il materiale dichiarato dal produttore." },
+        rules.material,
+        {
+          source: "Regola controllata",
+          note: rules.material
+            ? "Ricavato dalla tipologia e dalla descrizione della fattura."
+            : "Per tapparelle e avvolgibili occorre distinguere PVC da alluminio nella fattura.",
+        },
       ),
       mappedField(
         `schermature.${index}.regolazione`,
         `Elemento ${index + 1} · meccanismo di regolazione`,
-        "",
-        { note: "Indicare manuale o automatico in base al prodotto installato." },
+        rules.regulation,
+        {
+          source: "Regola controllata",
+          note: "Pergole e pergotende automatiche; zanzariere manuali; negli altri casi conta la presenza del motore.",
+        },
       ),
     ];
   });

@@ -44,6 +44,7 @@ import { buildEneaBeneficiaryPortalScript } from "@/features/enea-lab/portalBene
 import { buildEneaBuildingPortalScript } from "@/features/enea-lab/portalBuilding";
 import { buildEneaInterventionPortalScript } from "@/features/enea-lab/portalIntervention";
 import { buildEneaPlantPortalScript } from "@/features/enea-lab/portalPlant";
+import { buildEneaScreeningPortalScript } from "@/features/enea-lab/portalScreening";
 import { cn } from "@/lib/utils";
 import {
   loadEneaLabDraft,
@@ -179,7 +180,7 @@ export default function EneaLab() {
   const [confirmedByPractice, setConfirmedByPractice] = useState<Record<string, string[]>>(initialDraft.confirmedByPractice);
   const [preparedIds, setPreparedIds] = useState<string[]>(initialDraft.preparedIds);
   const [preparedSnapshotsByPractice, setPreparedSnapshotsByPractice] = useState(initialDraft.preparedSnapshotsByPractice);
-  const [copyStatus, setCopyStatus] = useState<"idle" | "test-copied" | "official-copied" | "beneficiary-copied" | "building-copied" | "intervention-copied" | "plant-copied" | "error">("idle");
+  const [copyStatus, setCopyStatus] = useState<"idle" | "test-copied" | "official-copied" | "beneficiary-copied" | "building-copied" | "intervention-copied" | "plant-copied" | "screening-copied" | "error">("idle");
 
   const visibleSourcePractices = useMemo(() => {
     const query = searchText.trim().toLocaleLowerCase("it");
@@ -413,6 +414,16 @@ export default function EneaLab() {
       const preparation = buildEneaPlantPortalScript(selected);
       await navigator.clipboard.writeText(preparation.script);
       setCopyStatus("plant-copied");
+    } catch {
+      setCopyStatus("error");
+    }
+  };
+
+  const copyScreeningCompilation = async () => {
+    try {
+      const preparation = buildEneaScreeningPortalScript(selected, 0);
+      await navigator.clipboard.writeText(preparation.script);
+      setCopyStatus("screening-copied");
     } catch {
       setCopyStatus("error");
     }
@@ -717,6 +728,10 @@ export default function EneaLab() {
                     <Button type="button" variant="outline" onClick={() => void copyPlantCompilation()} className="gap-2">
                       {copyStatus === "plant-copied" ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
                       {copyStatus === "plant-copied" ? "Impianto copiato" : "Copia compilazione impianto"}
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => void copyScreeningCompilation()} className="gap-2">
+                      {copyStatus === "screening-copied" ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
+                      {copyStatus === "screening-copied" ? "Schermatura copiata" : "Copia compilazione schermatura 1"}
                     </Button>
                     <Button type="button" variant="outline" onClick={() => downloadPayload("test")} className="gap-2">
                       <Download className="h-4 w-4" /> Scarica prova

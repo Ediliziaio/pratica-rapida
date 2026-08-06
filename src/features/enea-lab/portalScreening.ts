@@ -10,6 +10,7 @@ import {
   buildEneaPortalRuntimeScript,
   type EneaPortalControl,
   type EneaPortalRuntimeField,
+  type EneaPortalScriptOptions,
 } from "./portalScript";
 
 interface ScreeningPortalFieldDefinition {
@@ -25,6 +26,7 @@ export interface EneaScreeningPortalPreparation {
   itemIndex: number;
   readyFieldIds: string[];
   skippedFieldIds: string[];
+  runtime: EneaPortalScriptOptions;
 }
 
 const TYPE_VALUES = {
@@ -115,12 +117,13 @@ export function buildEneaScreeningPortalScript(
   const skippedFieldIds = ENEA_SCREENING_PORTAL_FIELDS
     .map(({ fieldSuffix }) => `${prefix}${fieldSuffix}`)
     .filter((fieldId) => !readySet.has(fieldId));
-  const script = buildEneaPortalRuntimeScript({
+  const runtime: EneaPortalScriptOptions = {
     fields: readyFields.map(({ prepared }) => prepared),
     pageName: "Aggiungi schermatura solare",
     markerIds: ["id-tipo", "id-sup_s", "id-gtot"],
     successMessage: `ENEA Lab: schermatura ${itemIndex + 1} compilata. Nessun salvataggio o invio eseguito.`,
-  });
+  };
+  const script = buildEneaPortalRuntimeScript(runtime);
 
-  return { script, itemIndex, readyFieldIds, skippedFieldIds };
+  return { script, itemIndex, readyFieldIds, skippedFieldIds, runtime };
 }

@@ -2,6 +2,7 @@ import type { EneaLabMappedPractice } from "./types";
 import {
   buildEneaPortalRuntimeScript,
   type EneaPortalControl,
+  type EneaPortalScriptOptions,
 } from "./portalScript";
 
 interface BeneficiaryPortalFieldDefinition {
@@ -14,6 +15,7 @@ export interface EneaBeneficiaryPortalPreparation {
   script: string;
   readyFieldIds: string[];
   skippedFieldIds: string[];
+  runtime: EneaPortalScriptOptions;
 }
 
 /**
@@ -58,12 +60,13 @@ export function buildEneaBeneficiaryPortalScript(
     value,
   })));
 
-  const script = buildEneaPortalRuntimeScript({
+  const runtime: EneaPortalScriptOptions = {
     fields: JSON.parse(data),
     pageName: "Anagrafica Beneficiario",
     markerIds: ["id-nome", "id-codice_fiscale"],
     successMessage: "ENEA Lab: compilazione anagrafica conclusa. Nessun salvataggio o invio eseguito.",
-  });
+  };
+  const script = buildEneaPortalRuntimeScript(runtime);
 
-  return { script, readyFieldIds, skippedFieldIds };
+  return { script, readyFieldIds, skippedFieldIds, runtime };
 }

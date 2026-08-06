@@ -42,6 +42,7 @@ describe("EneaLab", () => {
     expect(screen.getByText("Pacchetto di prova pronto")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Apri ENEA per prova" })).toBeEnabled();
     expect(screen.getByText("PROVA")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Copia comando unico ENEA" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copia compilazione immobile" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copia compilazione intervento" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copia compilazione impianto" })).toBeInTheDocument();

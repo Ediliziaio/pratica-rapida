@@ -3,6 +3,7 @@ import {
   buildEneaPortalRuntimeScript,
   type EneaPortalControl,
   type EneaPortalRuntimeField,
+  type EneaPortalScriptOptions,
 } from "./portalScript";
 
 interface BuildingPortalFieldDefinition {
@@ -18,6 +19,7 @@ export interface EneaBuildingPortalPreparation {
   script: string;
   readyFieldIds: string[];
   skippedFieldIds: string[];
+  runtime: EneaPortalScriptOptions;
 }
 
 const POSSESSION_VALUES = {
@@ -109,12 +111,13 @@ export function buildEneaBuildingPortalScript(
   const skippedFieldIds = ENEA_BUILDING_PORTAL_FIELDS
     .map(({ fieldId }) => fieldId)
     .filter((fieldId) => !readySet.has(fieldId));
-  const script = buildEneaPortalRuntimeScript({
+  const runtime: EneaPortalScriptOptions = {
     fields: readyFields.map(({ prepared }) => prepared),
     pageName: "Immobile",
     markerIds: ["id-comune", "id-indirizzo", "id-mappale"],
     successMessage: "ENEA Lab: compilazione immobile conclusa. Nessun salvataggio o invio eseguito.",
-  });
+  };
+  const script = buildEneaPortalRuntimeScript(runtime);
 
-  return { script, readyFieldIds, skippedFieldIds };
+  return { script, readyFieldIds, skippedFieldIds, runtime };
 }

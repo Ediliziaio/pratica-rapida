@@ -7,6 +7,7 @@ import {
   buildEneaPortalRuntimeScript,
   type EneaPortalControl,
   type EneaPortalRuntimeField,
+  type EneaPortalScriptOptions,
 } from "./portalScript";
 
 interface InterventionPortalFieldDefinition {
@@ -22,6 +23,7 @@ export interface EneaInterventionPortalPreparation {
   script: string;
   readyFieldIds: string[];
   skippedFieldIds: string[];
+  runtime: EneaPortalScriptOptions;
 }
 
 const SCOPE_VALUES = {
@@ -86,12 +88,13 @@ export function buildEneaInterventionPortalScript(
   const skippedFieldIds = ENEA_INTERVENTION_PORTAL_FIELDS
     .map(({ fieldId }) => fieldId)
     .filter((fieldId) => !readySet.has(fieldId));
-  const script = buildEneaPortalRuntimeScript({
+  const runtime: EneaPortalScriptOptions = {
     fields: readyFields.map(({ prepared }) => prepared),
     pageName: "Intervento",
     markerIds: ["id-immobile", "id-unita", "id-data_fine"],
     successMessage: "ENEA Lab: compilazione intervento conclusa. Nessun salvataggio o invio eseguito.",
-  });
+  };
+  const script = buildEneaPortalRuntimeScript(runtime);
 
-  return { script, readyFieldIds, skippedFieldIds };
+  return { script, readyFieldIds, skippedFieldIds, runtime };
 }

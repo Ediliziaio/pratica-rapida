@@ -10,6 +10,7 @@ import {
   buildEneaPortalRuntimeScript,
   type EneaPortalControl,
   type EneaPortalRuntimeField,
+  type EneaPortalScriptOptions,
 } from "./portalScript";
 
 interface PlantPortalFieldDefinition {
@@ -23,6 +24,7 @@ export interface EneaPlantPortalPreparation {
   script: string;
   readyFieldIds: string[];
   skippedFieldIds: string[];
+  runtime: EneaPortalScriptOptions;
 }
 
 const PLANT_TYPE_VALUES = {
@@ -99,12 +101,13 @@ export function buildEneaPlantPortalScript(
   const skippedFieldIds = ENEA_PLANT_PORTAL_FIELDS
     .map(({ fieldId }) => fieldId)
     .filter((fieldId) => !readySet.has(fieldId));
-  const script = buildEneaPortalRuntimeScript({
+  const runtime: EneaPortalScriptOptions = {
     fields: readyFields.map(({ prepared }) => prepared),
     pageName: "Impianto termico esistente",
     markerIds: ["id-impianto", "id-erogazione", "id-vettore"],
     successMessage: "ENEA Lab: compilazione impianto esistente conclusa. Nessun salvataggio o invio eseguito.",
-  });
+  };
+  const script = buildEneaPortalRuntimeScript(runtime);
 
-  return { script, readyFieldIds, skippedFieldIds };
+  return { script, readyFieldIds, skippedFieldIds, runtime };
 }

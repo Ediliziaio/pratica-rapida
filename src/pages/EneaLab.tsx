@@ -45,6 +45,7 @@ import { buildEneaBuildingPortalScript } from "@/features/enea-lab/portalBuildin
 import { buildEneaInterventionPortalScript } from "@/features/enea-lab/portalIntervention";
 import { buildEneaPlantPortalScript } from "@/features/enea-lab/portalPlant";
 import { buildEneaScreeningPortalScript } from "@/features/enea-lab/portalScreening";
+import { buildEneaPortalWorkflowScript } from "@/features/enea-lab/portalWorkflow";
 import { cn } from "@/lib/utils";
 import {
   loadEneaLabDraft,
@@ -180,7 +181,7 @@ export default function EneaLab() {
   const [confirmedByPractice, setConfirmedByPractice] = useState<Record<string, string[]>>(initialDraft.confirmedByPractice);
   const [preparedIds, setPreparedIds] = useState<string[]>(initialDraft.preparedIds);
   const [preparedSnapshotsByPractice, setPreparedSnapshotsByPractice] = useState(initialDraft.preparedSnapshotsByPractice);
-  const [copyStatus, setCopyStatus] = useState<"idle" | "test-copied" | "official-copied" | "beneficiary-copied" | "building-copied" | "intervention-copied" | "plant-copied" | "screening-copied" | "error">("idle");
+  const [copyStatus, setCopyStatus] = useState<"idle" | "workflow-copied" | "test-copied" | "official-copied" | "beneficiary-copied" | "building-copied" | "intervention-copied" | "plant-copied" | "screening-copied" | "error">("idle");
 
   const visibleSourcePractices = useMemo(() => {
     const query = searchText.trim().toLocaleLowerCase("it");
@@ -424,6 +425,16 @@ export default function EneaLab() {
       const preparation = buildEneaScreeningPortalScript(selected, 0);
       await navigator.clipboard.writeText(preparation.script);
       setCopyStatus("screening-copied");
+    } catch {
+      setCopyStatus("error");
+    }
+  };
+
+  const copyPortalWorkflow = async () => {
+    try {
+      const preparation = buildEneaPortalWorkflowScript(selected);
+      await navigator.clipboard.writeText(preparation.script);
+      setCopyStatus("workflow-copied");
     } catch {
       setCopyStatus("error");
     }
@@ -709,6 +720,10 @@ export default function EneaLab() {
                     <CardDescription>Contiene anche i due valori convenzionali, marcati come test. Nessun dato è stato inviato.</CardDescription>
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    <Button type="button" onClick={() => void copyPortalWorkflow()} className="gap-2">
+                      {copyStatus === "workflow-copied" ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
+                      {copyStatus === "workflow-copied" ? "Comando unico copiato" : "Copia comando unico ENEA"}
+                    </Button>
                     <Button type="button" variant="outline" onClick={() => void copyPayload("test")} className="gap-2">
                       {copyStatus === "test-copied" ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
                       {copyStatus === "test-copied" ? "Prova copiata" : copyStatus === "error" ? "Copia non riuscita" : "Copia prova"}
@@ -756,7 +771,7 @@ export default function EneaLab() {
                     La bozza ufficiale esclude automaticamente valori di prova e campi non verificati. Stato dati ufficiali: {officialPayload.readyForOfficialSubmission ? "completi, pronti per il collaudo sul portale" : "incompleti, invio bloccato"}.
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    Le compilazioni Anagrafica, Immobile e Intervento usano soltanto campi verificati: selezionano anche i Comuni e il comma corretto, ma non premono Salva e non inviano la pratica.
+                    Il comando unico riconosce Anagrafica, Immobile, Intervento, Impianto, finestra Generatore e Schermature. Va incollato identico su ogni pagina: compila i dati disponibili ma non preme Salva e non invia la pratica.
                   </p>
                 </CardContent>
               </Card>

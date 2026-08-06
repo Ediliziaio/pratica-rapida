@@ -81,6 +81,16 @@ function parseFieldDate(value: string): Date | null {
     : null;
 }
 
+function portalValue(fieldId: string, value: string): string {
+  const trimmed = value.trim();
+  const numericUnit = /(?:€|m²|kW|kWh\/anno|%)\s*$/i;
+  if (!numericUnit.test(trimmed)) return trimmed;
+  const withoutUnit = trimmed.replace(numericUnit, "").trim();
+  return fieldId === "schermature.spesa" || fieldId === "schermature.spese_professionali"
+    ? withoutUnit.replace(/\.(?=\d{3}(?:\D|$))/g, "")
+    : withoutUnit;
+}
+
 export function validatePreparedPractice(
   source: EneaLabSourcePractice,
   mapped: EneaLabMappedPractice,
@@ -221,6 +231,18 @@ export function buildEneaPayload(
   const selectedFields = mode === "test"
     ? fields
     : fields.filter((field) => !field.testOnly && field.status === "ready");
+  const selectedIds = new Set(selectedFields.map((field) => field.id));
+  const portalFields = mapped.sections.flatMap((section) => section.fields
+    .filter((field) => selectedIds.has(field.id))
+    .map((field) => ({
+      id: field.id,
+      label: field.label,
+      sectionId: section.id,
+      sectionTitle: section.title,
+      value: portalValue(field.id, field.value),
+      source: field.source,
+      testOnly: field.testOnly,
+    })));
 
   return {
     schemaVersion: 1,
@@ -231,6 +253,7 @@ export function buildEneaPayload(
     generatedAt: now.toISOString(),
     practiceCode: mapped.source.code,
     fields: Object.fromEntries(selectedFields.map((field) => [field.id, field.value])),
+    portalFields,
     excludedTestFields: mode === "official"
       ? fields.filter((field) => field.testOnly).map((field) => field.id)
       : [],

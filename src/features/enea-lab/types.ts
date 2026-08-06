@@ -121,6 +121,15 @@ export interface EneaLabPayload {
   generatedAt: string;
   practiceCode: string;
   fields: Record<string, string>;
+  portalFields: Array<{
+    id: string;
+    label: string;
+    sectionId: string;
+    sectionTitle: string;
+    value: string;
+    source: EneaLabFieldSource;
+    testOnly: boolean;
+  }>;
   excludedTestFields: string[];
   excludedUnverifiedFields: string[];
   interventionRequired: string[];

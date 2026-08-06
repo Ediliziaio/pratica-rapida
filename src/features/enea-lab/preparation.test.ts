@@ -13,7 +13,13 @@ describe("preparazione pacchetto ENEA", () => {
     const officialPayload = buildEneaPayload(mapped, issues, "official", now);
 
     expect(testPayload.fields["impianto.potenza"]).toMatch(/kW$/);
+    expect(testPayload.portalFields.find(({ id }) => id === "impianto.potenza")).toMatchObject({
+      value: expect.stringMatching(/^\d{2},\d$/),
+      sectionId: "impianto",
+      testOnly: true,
+    });
     expect(officialPayload.fields["impianto.potenza"]).toBeUndefined();
+    expect(officialPayload.portalFields.some(({ id }) => id === "impianto.potenza")).toBe(false);
     expect(officialPayload.excludedTestFields).toEqual(expect.arrayContaining([
       "impianto.potenza",
       "impianto.rendimento",
@@ -192,5 +198,7 @@ describe("preparazione pacchetto ENEA", () => {
     expect(validatePreparedPractice(source, mapped, failedAnalysis).some(
       ({ message }) => message.startsWith("Il totale di almeno un documento"),
     )).toBe(false);
+    const payload = buildEneaPayload(mapped, validatePreparedPractice(source, mapped, failedAnalysis), "test");
+    expect(payload.portalFields.find(({ id }) => id === "schermature.spesa")?.value).toBe("13924,00");
   });
 });

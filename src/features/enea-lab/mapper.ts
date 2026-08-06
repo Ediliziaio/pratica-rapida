@@ -219,6 +219,13 @@ export function mapSchermaturaPractice(
   const convention = getGeneratorTestConvention(source.id);
   const includeTestConventions = options?.includeTestConventions ?? true;
   const inferredSex = sexFromItalianFiscalCode(form.richiedente.cf);
+  const inferredBirthNation = /^[A-Z]{2}$/i.test(form.richiedente.provincia_nascita.trim())
+    ? "Italia"
+    : "";
+  const inferredResidenceNation = /^[A-Z]{2}$/i.test(form.residenza.provincia.trim())
+    && /^\d{5}$/.test(form.residenza.cap.trim())
+    ? "Italia"
+    : "";
   const worksAddress = form.residenza.stesso_indirizzo_lavori
     ? {
         comune: form.residenza.comune,
@@ -338,8 +345,6 @@ export function mapSchermaturaPractice(
       mappedField("beneficiario.cognome", "Cognome", form.richiedente.cognome),
       mappedField("beneficiario.cf", "Codice fiscale", form.richiedente.cf),
       mappedField("beneficiario.data_nascita", "Data di nascita", formatDate(form.richiedente.data_nascita)),
-      mappedField("beneficiario.comune_nascita", "Comune di nascita", form.richiedente.comune_nascita),
-      mappedField("beneficiario.provincia_nascita", "Provincia di nascita", form.richiedente.provincia_nascita),
       mappedField("beneficiario.sesso", "Sesso", inferredSex, {
         source: "Regola controllata",
         status: inferredSex ? "ready" : "missing",
@@ -347,6 +352,26 @@ export function mapSchermaturaPractice(
           ? "Ricavato dal giorno di nascita codificato nel codice fiscale italiano."
           : "Non ricavabile con sicurezza dal codice fiscale disponibile.",
       }),
+      mappedField("beneficiario.nazione_nascita", "Nazione di nascita", inferredBirthNation, {
+        source: "Regola controllata",
+        status: inferredBirthNation ? "review" : "missing",
+        note: inferredBirthNation
+          ? "Proposta Italia perché il modulo contiene una provincia italiana; confermare prima della compilazione."
+          : "Il modulo cliente non raccoglie la nazione di nascita.",
+      }),
+      mappedField("beneficiario.comune_nascita", "Comune di nascita", form.richiedente.comune_nascita),
+      mappedField("beneficiario.provincia_nascita", "Provincia di nascita", form.richiedente.provincia_nascita),
+      mappedField("beneficiario.nazione_residenza", "Nazione di residenza", inferredResidenceNation, {
+        source: "Regola controllata",
+        status: inferredResidenceNation ? "review" : "missing",
+        note: inferredResidenceNation
+          ? "Proposta Italia perché provincia e CAP hanno formato italiano; confermare prima della compilazione."
+          : "Il modulo cliente non raccoglie la nazione di residenza.",
+      }),
+      mappedField("beneficiario.comune_residenza", "Comune di residenza", form.residenza.comune),
+      mappedField("beneficiario.indirizzo_residenza", "Indirizzo di residenza", form.residenza.indirizzo),
+      mappedField("beneficiario.civico_residenza", "Civico di residenza", form.residenza.civico),
+      mappedField("beneficiario.cap_residenza", "CAP di residenza", form.residenza.cap),
       mappedField("beneficiario.email", "Email", form.richiedente.email),
       mappedField("beneficiario.telefono", "Telefono", form.richiedente.telefono),
       mappedField(

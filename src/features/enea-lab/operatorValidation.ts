@@ -127,7 +127,7 @@ export function validateOperatorOverride(
       : invalid(value, "La provincia deve contenere due lettere.");
   }
 
-  if (fieldId === "immobile.cap") {
+  if (/^(?:immobile\.cap|beneficiario\.cap_residenza)$/.test(fieldId)) {
     return /^\d{5}$/.test(value)
       ? { valid: true, value }
       : invalid(value, "Il CAP deve contenere cinque cifre.");

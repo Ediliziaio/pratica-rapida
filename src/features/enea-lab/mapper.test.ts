@@ -108,6 +108,22 @@ describe("mapSchermaturaPractice", () => {
     expect(fields.find((field) => field.id === "beneficiario.sesso")?.value).toBe("F");
   });
 
+  it("prepara tutti i campi osservati nella pagina anagrafica del beneficiario", () => {
+    const fields = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0])
+      .sections.flatMap((currentSection) => currentSection.fields);
+
+    expect(fields.find((field) => field.id === "beneficiario.nazione_nascita")).toMatchObject({
+      value: "Italia",
+      status: "review",
+      source: "Regola controllata",
+    });
+    expect(fields.find((field) => field.id === "beneficiario.nazione_residenza")?.status).toBe("review");
+    expect(fields.find((field) => field.id === "beneficiario.comune_residenza")?.value).toBe("Comune Demo Nord");
+    expect(fields.find((field) => field.id === "beneficiario.indirizzo_residenza")?.value).toBe("Via Laboratorio");
+    expect(fields.find((field) => field.id === "beneficiario.civico_residenza")?.value).toBe("24");
+    expect(fields.find((field) => field.id === "beneficiario.cap_residenza")?.value).toBe("00001");
+  });
+
   it("non considera verificata una correzione con formato impossibile", () => {
     const result = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0], analysis, {
       overrides: { "schermature.0.gtot": "0,72" },

@@ -40,6 +40,7 @@ import type {
 } from "@/features/enea-lab/types";
 import { useReadOnlyEneaQueue } from "@/features/enea-lab/useReadOnlyQueue";
 import { useDocumentAnalysis } from "@/features/enea-lab/useDocumentAnalysis";
+import { buildEneaBeneficiaryPortalScript } from "@/features/enea-lab/portalBeneficiary";
 import { cn } from "@/lib/utils";
 import {
   loadEneaLabDraft,
@@ -175,7 +176,7 @@ export default function EneaLab() {
   const [confirmedByPractice, setConfirmedByPractice] = useState<Record<string, string[]>>(initialDraft.confirmedByPractice);
   const [preparedIds, setPreparedIds] = useState<string[]>(initialDraft.preparedIds);
   const [preparedSnapshotsByPractice, setPreparedSnapshotsByPractice] = useState(initialDraft.preparedSnapshotsByPractice);
-  const [copyStatus, setCopyStatus] = useState<"idle" | "test-copied" | "official-copied" | "error">("idle");
+  const [copyStatus, setCopyStatus] = useState<"idle" | "test-copied" | "official-copied" | "beneficiary-copied" | "error">("idle");
 
   const visibleSourcePractices = useMemo(() => {
     const query = searchText.trim().toLocaleLowerCase("it");
@@ -372,6 +373,16 @@ export default function EneaLab() {
     link.download = `${selected.source.code.toLocaleLowerCase("it")}-enea-${mode}.json`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const copyBeneficiaryCompilation = async () => {
+    try {
+      const preparation = buildEneaBeneficiaryPortalScript(selected);
+      await navigator.clipboard.writeText(preparation.script);
+      setCopyStatus("beneficiary-copied");
+    } catch {
+      setCopyStatus("error");
+    }
   };
 
   const openEnea = () => {
@@ -658,6 +669,10 @@ export default function EneaLab() {
                       {copyStatus === "test-copied" ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
                       {copyStatus === "test-copied" ? "Prova copiata" : copyStatus === "error" ? "Copia non riuscita" : "Copia prova"}
                     </Button>
+                    <Button type="button" variant="outline" onClick={() => void copyBeneficiaryCompilation()} className="gap-2">
+                      {copyStatus === "beneficiary-copied" ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
+                      {copyStatus === "beneficiary-copied" ? "Anagrafica copiata" : "Copia compilazione anagrafica"}
+                    </Button>
                     <Button type="button" variant="outline" onClick={() => downloadPayload("test")} className="gap-2">
                       <Download className="h-4 w-4" /> Scarica prova
                     </Button>
@@ -679,6 +694,9 @@ export default function EneaLab() {
                   </div>
                   <p className="mt-3 text-xs text-slate-500">
                     La bozza ufficiale esclude automaticamente valori di prova e campi non verificati. Stato dati ufficiali: {officialPayload.readyForOfficialSubmission ? "completi, pronti per il collaudo sul portale" : "incompleti, invio bloccato"}.
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    La compilazione anagrafica usa soltanto campi verificati della prima pagina ENEA: riempie il modulo ma non preme Salva e non invia la pratica.
                   </p>
                 </CardContent>
               </Card>

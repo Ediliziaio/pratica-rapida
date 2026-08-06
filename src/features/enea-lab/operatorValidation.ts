@@ -1,14 +1,18 @@
 import {
   CALDAIA_LABELS,
-  COMBUSTIBILE_LABELS,
-  IMPIANTO_TIPO_LABELS,
   SCHERMATURA_DIREZIONE_LABELS,
   SCHERMATURA_TIPO_LABELS,
-  TERMINALI_LABELS,
   TIPOLOGIA_LABELS,
   TITOLO_LABELS,
   isValidPhone,
 } from "@/types/form-cliente";
+import {
+  ENEA_ENERGY_CARRIER,
+  ENEA_PLANT_DISTRIBUTION,
+  ENEA_PLANT_REGULATION,
+  ENEA_PLANT_TERMINAL,
+  ENEA_PLANT_TYPE,
+} from "./plantRules";
 
 export interface EneaLabOperatorValidation {
   valid: boolean;
@@ -109,10 +113,12 @@ export function validateOperatorOverride(
       "Comma 345B - Schermature solari",
       "Comma 347A - Sostituzione di impianto di climatizzazione",
     ],
-    "impianto.tipo": Object.values(IMPIANTO_TIPO_LABELS),
-    "impianto.terminali": Object.values(TERMINALI_LABELS),
+    "impianto.tipo": Object.values(ENEA_PLANT_TYPE),
+    "impianto.terminali": Object.values(ENEA_PLANT_TERMINAL),
+    "impianto.distribuzione": [ENEA_PLANT_DISTRIBUTION],
+    "impianto.regolazione": [ENEA_PLANT_REGULATION],
     "impianto.generatore": Object.values(CALDAIA_LABELS),
-    "impianto.combustibile": Object.values(COMBUSTIBILE_LABELS),
+    "impianto.combustibile": Object.values(ENEA_ENERGY_CARRIER),
   };
   const allowedLabels = labelSets[fieldId];
   if (allowedLabels) {

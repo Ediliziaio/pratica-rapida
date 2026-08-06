@@ -1,10 +1,7 @@
 import {
   CALDAIA_LABELS,
-  COMBUSTIBILE_LABELS,
-  IMPIANTO_TIPO_LABELS,
   SCHERMATURA_DIREZIONE_LABELS,
   SCHERMATURA_TIPO_LABELS,
-  TERMINALI_LABELS,
   TIPOLOGIA_LABELS,
   TITOLO_LABELS,
 } from "@/types/form-cliente";
@@ -14,6 +11,13 @@ import {
   interventionScopeFromUnitCount,
   interventionTypeFromProduct,
 } from "./interventionRules";
+import {
+  ENEA_PLANT_DISTRIBUTION,
+  ENEA_PLANT_REGULATION,
+  energyCarrierFromForm,
+  plantTerminalFromForm,
+  plantTypeFromForm,
+} from "./plantRules";
 import { validateOperatorOverride } from "./operatorValidation";
 import type {
   EneaLabDocumentAnalysis,
@@ -250,6 +254,9 @@ export function mapSchermaturaPractice(
   const interventionType = interventionTypeFromProduct(form.prodotto.tipo);
   const centralizedPlant = centralizedPlantFromType(form.impianto.tipo);
   const finishDate = source.dataFineLavori ?? analysis?.lastInvoiceDate ?? null;
+  const existingPlantType = plantTypeFromForm(form.impianto.tipo);
+  const existingPlantTerminal = plantTerminalFromForm(form.impianto.terminali);
+  const existingEnergyCarrier = energyCarrierFromForm(form.impianto.combustibile);
 
   const detectedItems = analysis?.items ?? [];
   const declaredItems = prodotto?.items ?? [];
@@ -525,13 +532,27 @@ export function mapSchermaturaPractice(
       }),
     ]),
     section("impianto", "4. Impianto esistente", "Caratteristiche dell'impianto prima dei lavori", [
-      mappedField("impianto.tipo", "Tipo impianto", form.impianto.tipo ? IMPIANTO_TIPO_LABELS[form.impianto.tipo] : ""),
-      mappedField("impianto.terminali", "Terminali", form.impianto.terminali ? TERMINALI_LABELS[form.impianto.terminali] : ""),
-      mappedField("impianto.distribuzione", "Tipo di distribuzione", "", {
-        note: "Dato non raccolto dal modulo cliente.",
+      mappedField("impianto.tipo", "Tipo impianto", existingPlantType, {
+        source: "Modulo cliente",
+        editable: false,
+        note: "Tradotto automaticamente nella corrispondente opzione ENEA.",
       }),
-      mappedField("impianto.regolazione", "Tipo di regolazione", "", {
-        note: "Dato non raccolto dal modulo cliente.",
+      mappedField("impianto.terminali", "Terminali", existingPlantTerminal, {
+        source: "Regola controllata",
+        editable: false,
+        note: form.impianto.terminali === "split"
+          ? "Per impianto elettrico con split viene selezionato Altro, secondo la regola operativa PraticaRapida."
+          : "Caloriferi e riscaldamento a pavimento vengono tradotti nelle corrispondenti voci ENEA.",
+      }),
+      mappedField("impianto.distribuzione", "Tipo di distribuzione", ENEA_PLANT_DISTRIBUTION, {
+        source: "Regola controllata",
+        editable: false,
+        note: "Regola operativa PraticaRapida: selezionare sempre la voce C.",
+      }),
+      mappedField("impianto.regolazione", "Tipo di regolazione", ENEA_PLANT_REGULATION, {
+        source: "Regola controllata",
+        editable: false,
+        note: "Regola operativa PraticaRapida: selezionare sempre Ad ambiente o zona.",
       }),
       mappedField("impianto.generatore", "Tipo generatore", form.impianto.tipo_caldaia ? CALDAIA_LABELS[form.impianto.tipo_caldaia] : ""),
       mappedField("impianto.numero_generatori", "Numero generatori", form.impianto.tipo_caldaia ? "1" : "", {
@@ -560,7 +581,11 @@ export function mapSchermaturaPractice(
           note: "Valore convenzionale 26,4-32,8 kW utilizzabile soltanto per prove; per l'invio serve un dato verificato.",
         },
       ),
-      mappedField("impianto.combustibile", "Vettore energetico", form.impianto.combustibile ? COMBUSTIBILE_LABELS[form.impianto.combustibile] : ""),
+      mappedField("impianto.combustibile", "Vettore energetico", existingEnergyCarrier, {
+        source: "Modulo cliente",
+        editable: false,
+        note: "Biomassa e altri vettori non presenti nel modulo non vengono dedotti automaticamente.",
+      }),
       mappedField("impianto.condizionamento", "Climatizzazione estiva", form.impianto.aria_condizionata),
       mappedField("impianto.manutenzione", "Manutenzioni straordinarie", "", {
         required: false,

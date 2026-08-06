@@ -148,6 +148,23 @@ describe("mapSchermaturaPractice", () => {
     });
   });
 
+  it("applica le regole operative dell'impianto termico esistente", () => {
+    const fields = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0], analysis)
+      .sections.flatMap((currentSection) => currentSection.fields);
+
+    expect(fields.find((field) => field.id === "impianto.tipo")?.value).toBe("a. impianto autonomo");
+    expect(fields.find((field) => field.id === "impianto.terminali")?.value).toBe("d. radiatori");
+    expect(fields.find((field) => field.id === "impianto.distribuzione")?.value).toMatch(/^c\./);
+    expect(fields.find((field) => field.id === "impianto.regolazione")?.value)
+      .toBe("c. regolazione ad ambiente o a zona");
+    expect(fields.find((field) => field.id === "impianto.combustibile")?.value).toBe("a. gas metano");
+    expect(fields.find((field) => field.id === "impianto.condizionamento")?.value).toBe("Sì");
+    expect(fields.find((field) => field.id === "impianto.manutenzione")).toMatchObject({
+      value: "Non indicato",
+      required: false,
+    });
+  });
+
   it("usa l'ultima fattura quando manca la data fine lavori del rivenditore", () => {
     const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
     source.dataFineLavori = null;

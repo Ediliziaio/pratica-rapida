@@ -29,7 +29,10 @@ describe("validazione correzioni operatore", () => {
     expect(validateOperatorOverride("schermature.0.superficie_finestrata", "2,9 m²").valid).toBe(true);
     expect(validateOperatorOverride("beneficiario.sesso", "f")).toEqual({ valid: true, value: "F" });
     expect(validateOperatorOverride("beneficiario.abitazione_principale", "si")).toEqual({ valid: true, value: "Sì" });
-    expect(validateOperatorOverride("impianto.tipo", "autonomo")).toEqual({ valid: true, value: "Autonomo" });
+    expect(validateOperatorOverride("impianto.tipo", "A. IMPIANTO AUTONOMO")).toEqual({
+      valid: true,
+      value: "a. impianto autonomo",
+    });
     expect(validateOperatorOverride("schermature.0.esposizione", "sud-est")).toEqual({ valid: true, value: "Sud-Est" });
     expect(validateOperatorOverride("schermature.0.dimensioni", "1200x1450")).toEqual({
       valid: true,

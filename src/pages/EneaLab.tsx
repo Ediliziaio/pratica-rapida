@@ -43,6 +43,7 @@ import { useDocumentAnalysis } from "@/features/enea-lab/useDocumentAnalysis";
 import { buildEneaBeneficiaryPortalScript } from "@/features/enea-lab/portalBeneficiary";
 import { buildEneaBuildingPortalScript } from "@/features/enea-lab/portalBuilding";
 import { buildEneaInterventionPortalScript } from "@/features/enea-lab/portalIntervention";
+import { buildEneaPlantPortalScript } from "@/features/enea-lab/portalPlant";
 import { cn } from "@/lib/utils";
 import {
   loadEneaLabDraft,
@@ -178,7 +179,7 @@ export default function EneaLab() {
   const [confirmedByPractice, setConfirmedByPractice] = useState<Record<string, string[]>>(initialDraft.confirmedByPractice);
   const [preparedIds, setPreparedIds] = useState<string[]>(initialDraft.preparedIds);
   const [preparedSnapshotsByPractice, setPreparedSnapshotsByPractice] = useState(initialDraft.preparedSnapshotsByPractice);
-  const [copyStatus, setCopyStatus] = useState<"idle" | "test-copied" | "official-copied" | "beneficiary-copied" | "building-copied" | "intervention-copied" | "error">("idle");
+  const [copyStatus, setCopyStatus] = useState<"idle" | "test-copied" | "official-copied" | "beneficiary-copied" | "building-copied" | "intervention-copied" | "plant-copied" | "error">("idle");
 
   const visibleSourcePractices = useMemo(() => {
     const query = searchText.trim().toLocaleLowerCase("it");
@@ -402,6 +403,16 @@ export default function EneaLab() {
       const preparation = buildEneaInterventionPortalScript(selected);
       await navigator.clipboard.writeText(preparation.script);
       setCopyStatus("intervention-copied");
+    } catch {
+      setCopyStatus("error");
+    }
+  };
+
+  const copyPlantCompilation = async () => {
+    try {
+      const preparation = buildEneaPlantPortalScript(selected);
+      await navigator.clipboard.writeText(preparation.script);
+      setCopyStatus("plant-copied");
     } catch {
       setCopyStatus("error");
     }
@@ -702,6 +713,10 @@ export default function EneaLab() {
                     <Button type="button" variant="outline" onClick={() => void copyInterventionCompilation()} className="gap-2">
                       {copyStatus === "intervention-copied" ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
                       {copyStatus === "intervention-copied" ? "Intervento copiato" : "Copia compilazione intervento"}
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => void copyPlantCompilation()} className="gap-2">
+                      {copyStatus === "plant-copied" ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
+                      {copyStatus === "plant-copied" ? "Impianto copiato" : "Copia compilazione impianto"}
                     </Button>
                     <Button type="button" variant="outline" onClick={() => downloadPayload("test")} className="gap-2">
                       <Download className="h-4 w-4" /> Scarica prova

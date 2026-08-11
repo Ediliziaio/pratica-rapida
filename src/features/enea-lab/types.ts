@@ -1,7 +1,7 @@
 import type { FormClienteData } from "@/types/form-cliente";
 
 export type EneaLabFieldStatus = "ready" | "review" | "missing";
-export type EneaLabQueueStatus = "waiting_client" | "ready";
+export type EneaLabQueueStatus = "waiting_client" | "ready" | "historical";
 export type EneaLabFieldSource =
   | "Pratica CRM"
   | "Modulo cliente"
@@ -66,6 +66,7 @@ export interface EneaLabSourcePractice {
   fattureCount: number;
   documentiCount: number;
   documentPaths: EneaLabDocumentPath[];
+  completedEneaPaths?: string[];
   queueStatus: EneaLabQueueStatus;
   form: FormClienteData;
 }

@@ -41,6 +41,12 @@ export function classifyHistoricalAudit(
   if (audit.mismatches === 0) {
     return { outcome: "match", differenceFieldIds, blockedDifferenceFieldIds };
   }
+  // Fail-safe: un contatore mismatch senza dettaglio dei campi non può essere
+  // considerato "correttamente bloccato" solo perché 0 === 0. Lo trattiamo
+  // come differenza reale finché l'audit non spiega quali campi divergono.
+  if (differenceFieldIds.length === 0) {
+    return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
+  }
   if (blockedDifferenceFieldIds.length === differenceFieldIds.length) {
     return { outcome: "blocked", differenceFieldIds, blockedDifferenceFieldIds };
   }

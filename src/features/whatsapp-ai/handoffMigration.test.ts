@@ -1,9 +1,10 @@
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const migrationPath = fileURLToPath(
-  new URL("../../../supabase/migrations/20260811000200_whatsapp_ai_handoff.sql", import.meta.url),
+const migrationPath = join(
+  process.cwd(),
+  "supabase/migrations/20260811000200_whatsapp_ai_handoff.sql",
 );
 const migration = readFileSync(migrationPath, "utf8");
 

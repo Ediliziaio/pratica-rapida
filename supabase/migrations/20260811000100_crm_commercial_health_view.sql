@@ -66,12 +66,14 @@ WITH practice_activity AS (
     CASE
       WHEN pa.total_practices = 0 THEN 'mai_attivato'
       WHEN pa.last_practice_at < now() - interval '60 days' THEN 'inattivo'
+      -- Una prima attivazione recente resta sotto onboarding: non va
+      -- classificata come semplice crescita solo perché il periodo prima era 0.
+      WHEN pa.first_practice_at >= now() - interval '30 days' THEN 'nuovo_attivo'
       WHEN pa.practices_last_30d = 0 AND pa.practices_prev_30d >= 2 THEN 'a_rischio'
       WHEN pa.practices_prev_30d >= 4
        AND pa.practices_last_30d <= floor(pa.practices_prev_30d * 0.5) THEN 'a_rischio'
       WHEN pa.practices_last_30d < pa.practices_prev_30d THEN 'in_calo'
       WHEN pa.practices_last_30d > pa.practices_prev_30d THEN 'in_crescita'
-      WHEN pa.first_practice_at >= now() - interval '30 days' THEN 'nuovo_attivo'
       ELSE 'stabile'
     END AS health_status
   FROM practice_activity pa

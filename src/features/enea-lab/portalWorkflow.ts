@@ -16,6 +16,7 @@ export interface EneaPortalWorkflowPreparation {
   script: string;
   supportedPages: string[];
   screeningItemCount: number;
+  mode: "test" | "official";
 }
 
 function screeningIndexes(mapped: EneaLabMappedPractice): number[] {
@@ -35,12 +36,17 @@ function step(id: string, runtime: EneaPortalScriptOptions): EneaPortalWorkflowS
 /**
  * Un solo comando da riutilizzare nella Console: riconosce la pagina aperta e
  * applica la preparazione corrispondente senza salvare o avanzare.
+ *
+ * `test` mantiene i valori convenzionali del generatore usati nel collaudo.
+ * `official` esclude ogni valore test-only: un generatore viene compilato solo
+ * se i valori provengono da dati verificati della pratica.
  */
 export function buildEneaPortalWorkflowScript(
   mapped: EneaLabMappedPractice,
+  mode: "test" | "official" = "test",
 ): EneaPortalWorkflowPreparation {
   const indexes = screeningIndexes(mapped);
-  const generator = buildEneaGeneratorPortalScript(mapped, true);
+  const generator = buildEneaGeneratorPortalScript(mapped, mode === "test");
   const beneficiary = buildEneaBeneficiaryPortalScript(mapped);
   const building = buildEneaBuildingPortalScript(mapped);
   const intervention = buildEneaInterventionPortalScript(mapped);
@@ -67,5 +73,12 @@ export function buildEneaPortalWorkflowScript(
     }),
     supportedPages: steps.map(({ pageName }) => pageName),
     screeningItemCount: screeningSteps.length,
+    mode,
   };
+}
+
+export function buildEneaOfficialPortalWorkflowScript(
+  mapped: EneaLabMappedPractice,
+): EneaPortalWorkflowPreparation {
+  return buildEneaPortalWorkflowScript(mapped, "official");
 }

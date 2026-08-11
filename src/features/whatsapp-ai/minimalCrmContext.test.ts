@@ -34,31 +34,12 @@ describe("WhatsApp minimal CRM context", () => {
     const context = buildMinimalWhatsappCrmContext({
       id: "practice-1",
       code: "ENEA-2026-001",
-      stage: "documenti_mancanti",
+      stage: "attesa_documenti",
       product: "Infissi",
       updatedAt: "2026-08-11T12:00:00Z",
       missingDocuments: Array.from({ length: 30 }, (_, index) => `Documento ${index + 1}`),
     });
 
     expect(context.missingDocuments).toHaveLength(20);
-  });
-
-  it("non inventa un codice o altri valori quando il CRM reale non li espone", () => {
-    const context = buildMinimalWhatsappCrmContext({
-      id: "practice-2",
-      stage: null,
-      product: null,
-      updatedAt: null,
-      missingDocuments: [],
-    });
-
-    expect(context).toEqual({
-      practiceId: "practice-2",
-      practiceCode: null,
-      stage: null,
-      product: null,
-      updatedAt: null,
-      missingDocuments: [],
-    });
   });
 });

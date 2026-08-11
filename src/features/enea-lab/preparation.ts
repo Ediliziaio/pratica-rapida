@@ -121,6 +121,22 @@ export function validatePreparedPractice(
     }
   }
 
+  mapped.sections
+    .flatMap((section) => section.fields)
+    .filter((field) => /^schermature\.\d+\.gtot$/.test(field.id))
+    .forEach((field) => {
+      const verifiedSource = field.source === "Fattura" || field.source === "Inserimento operatore";
+      if (!verifiedSource) {
+        const index = Number(field.id.match(/^schermature\.(\d+)\./)?.[1] ?? 0);
+        issues.push({
+          code: `unverified-gtot-${index}`,
+          severity: "blocker",
+          message: `Elemento ${index + 1}: il gTot non è documentato. Verificare fattura o scheda tecnica oppure inserirlo dopo controllo umano.`,
+          fieldId: field.id,
+        });
+      }
+    });
+
   if (analysis) {
     for (const [index, message] of analysis.blockers.entries()) {
       const resolution = documentBlockerResolution(message, mapped);
@@ -153,7 +169,7 @@ export function validatePreparedPractice(
       const fieldId = `schermature.${index}.gtot`;
       const mappedGTot = fieldById(mapped, fieldId);
       if (!mappedGTot) return;
-      if ((item.gTot === null || item.gTot <= 0 || item.gTot > 0.35) && mappedGTot?.status !== "ready") {
+      if ((item.gTot === null || item.gTot <= 0 || item.gTot > 0.35) && !manuallyVerified(mapped, fieldId)) {
         issues.push({
           code: `invalid-gtot-${index}`,
           severity: "blocker",

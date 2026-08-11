@@ -23,7 +23,7 @@ jobs:
         with:
           bun-version: latest
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun install
       - name: ENEA Lab tests
         run: bunx vitest run src/features/enea-lab src/pages/EneaLab.test.tsx
       - name: Typecheck

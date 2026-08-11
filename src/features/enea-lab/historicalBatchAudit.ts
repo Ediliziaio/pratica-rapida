@@ -5,6 +5,7 @@ import { auditCompletedEneaPractice, type CompletedEneaAuditResult } from "./com
 import { mapSchermaturaPractice } from "./mapper";
 import { validatePreparedPractice } from "./preparation";
 import { loadReadOnlyEneaHistoricalQueue } from "./readOnlySource";
+import type { EneaLabMappedPractice } from "./types";
 
 export type HistoricalAuditOutcome = "match" | "blocked" | "difference" | "error";
 
@@ -36,6 +37,68 @@ export interface HistoricalBatchAuditReport {
 // certificare il mapper: potrebbe indicare un parser parziale o un documento
 // diverso da quello atteso. Il collaudo storico deve quindi fallire chiuso.
 const MIN_HISTORICAL_COMPARISONS = 10;
+
+/**
+ * Se una pratica ha piu PDF conclusivi/duplicati, non basta prendere il primo
+ * file leggibile: potrebbe essere una copia parziale o un documento intermedio.
+ * Preferiamo prima un documento con CPID (prova che e' una pratica conclusa) e,
+ * a parita, quello che offre la maggiore copertura di campi confrontabili.
+ * Non usiamo il numero di match come criterio, per non scegliere il PDF che
+ * "fa apparire migliore" il mapper corrente.
+ */
+export function selectBestHistoricalCompletedAudit(
+  candidates: readonly CompletedEneaAuditResult[],
+): CompletedEneaAuditResult | null {
+  let best: CompletedEneaAuditResult | null = null;
+
+  for (const candidate of candidates) {
+    if (!best) {
+      best = candidate;
+      continue;
+    }
+
+    const candidateHasCpid = Boolean(candidate.cpid);
+    const bestHasCpid = Boolean(best.cpid);
+    if (candidateHasCpid !== bestHasCpid) {
+      if (candidateHasCpid) best = candidate;
+      continue;
+    }
+
+    if (candidate.compared > best.compared) best = candidate;
+  }
+
+  return best;
+}
+
+async function auditBestHistoricalCompletedEneaPractice(
+  client: SupabaseClient<Database>,
+  mapped: EneaLabMappedPractice,
+): Promise<CompletedEneaAuditResult> {
+  const paths = mapped.source.completedEneaPaths ?? [];
+  const candidates: CompletedEneaAuditResult[] = [];
+
+  // auditCompletedEneaPractice resta fail-safe e valida path/tipo/dimensione.
+  // Qui lo invochiamo su un path alla volta, cosi un primo PDF parziale non
+  // impedisce di valutare un PDF conclusivo migliore presente nella stessa pratica.
+  for (const path of paths) {
+    try {
+      candidates.push(await auditCompletedEneaPractice(client, {
+        ...mapped,
+        source: {
+          ...mapped.source,
+          completedEneaPaths: [path],
+        },
+      }));
+    } catch {
+      // Un allegato illeggibile non deve interrompere la ricerca degli altri
+      // candidati; l'errore viene sollevato solo se nessun PDF e' utilizzabile.
+    }
+  }
+
+  const best = selectBestHistoricalCompletedAudit(candidates);
+  if (!best) throw new Error("Nessun PDF ENEA conclusivo leggibile per l'audit.");
+  return best;
+}
 
 export function classifyHistoricalAudit(
   audit: CompletedEneaAuditResult,
@@ -111,7 +174,7 @@ export async function runHistoricalEneaBatchAudit(
           .filter((issue) => issue.severity === "blocker" && issue.fieldId)
           .map((issue) => issue.fieldId!),
       );
-      const audit = await auditCompletedEneaPractice(client, mapped);
+      const audit = await auditBestHistoricalCompletedEneaPractice(client, mapped);
       const classified = classifyHistoricalAudit(audit, blockerFieldIds);
       practices.push({
         practiceCode: practice.code,

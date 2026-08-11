@@ -74,6 +74,19 @@ Se manca uno di questi elementi, una risposta sullo stato/documenti della pratic
 
 Per default non propaga codice fiscale, indirizzi, URL dei documenti, importi o altre colonne non necessarie.
 
+## Modalità Assist: contratto e pipeline
+
+`draftContract.ts` definisce l'unico artefatto generato dalla V1: una `operator_draft` che ha sempre `requiresApproval=true`. Il contratto non possiede campi di destinatario, endpoint, template, token o invio.
+
+`assistPipeline.ts` compone i gate in ordine deterministico:
+
+1. verifica identità/pratica con `crmGrounding`;
+2. applica `routingPolicy`;
+3. produce una bozza soltanto se la policy non richiede intervento umano esclusivo;
+4. produce il record di audit.
+
+La pipeline è provider-independent e non contiene chiamate a Meta/WhatsApp né effetti collaterali. Anche se in futuro la policy restituisse `auto_send`, nel laboratorio il risultato resta una bozza destinata all'operatore: l'invio reale non esiste in questo modulo.
+
 ## Audit decisionale
 
 Migration `20260811000201_whatsapp_ai_audit_log.sql` e `auditRecord.ts` registrano soltanto metadati utili a verificare la decisione:
@@ -95,17 +108,18 @@ Workflow `.github/workflows/whatsapp-ai-ci.yml`:
 - test delle policy;
 - test handoff/grounding;
 - test minimizzazione contesto;
+- test contratto bozza e pipeline Assist end-to-end;
 - test audit data-minimal;
 - regressione statica sugli invarianti della migration di presa in carico;
 - typecheck TypeScript.
 
-Stato ultimo checkpoint: CI verde anche con minimizzazione dati e audit decisionale.
+Stato ultimo checkpoint: CI verde anche con pipeline Assist end-to-end, minimizzazione dati e audit decisionale.
 
 ## Gate ancora aperti
 
 1. Non applicare le migration al database reale senza autorizzazione esplicita.
 2. Non scegliere/integrare un provider LLM finché il livello di policy/grounding non è stabilizzato.
 3. Implementare il recupero read-only del contesto CRM usando esclusivamente il contratto minimizzato.
-4. Implementare prima la modalità `assist` con bozze e approvazione operatore.
+4. Collegare la pipeline `assist` all'interfaccia operatore esistente senza introdurre alcun invio automatico.
 5. Valutare `auto` solo dopo log, metriche, audit dei falsi positivi e autorizzazione esplicita.
 6. Nessun messaggio automatico su normativa, prezzi, reclami o eccezioni.

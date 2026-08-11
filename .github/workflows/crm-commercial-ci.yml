@@ -6,7 +6,7 @@ on:
       - agent/crm-commerciale-supervisor
     paths:
       - "src/features/crm-commercial/**"
-      - "supabase/migrations/20260811000100_crm_commercial_health_view.sql"
+      - "supabase/migrations/202608110001*.sql"
       - ".github/workflows/crm-commercial-ci.yml"
   workflow_dispatch:
 

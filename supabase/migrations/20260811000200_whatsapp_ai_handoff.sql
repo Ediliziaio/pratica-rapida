@@ -23,10 +23,22 @@ COMMENT ON COLUMN public.whatsapp_conversations.ai_mode IS
 COMMENT ON COLUMN public.whatsapp_conversations.ai_pause_reason IS
   'Motivo opzionale della presa in carico umana o sospensione AI.';
 
+-- Fail-safe anche per conversazioni gia' assegnate quando la migration viene applicata:
+-- il default `assist` non deve lasciare attiva l'AI su chat gia' prese in carico.
+UPDATE public.whatsapp_conversations
+SET
+  ai_mode = 'paused',
+  ai_mode_updated_at = now(),
+  ai_mode_updated_by = assigned_to,
+  ai_pause_reason = COALESCE(ai_pause_reason, 'Presa in carico da operatore')
+WHERE assigned_to IS NOT NULL
+  AND ai_mode <> 'paused';
+
 -- La presa in carico non deve dipendere dal fatto che l'interfaccia ricordi di
--- sospendere l'AI: il database applica il fail-safe ogni volta che un operatore
--- viene assegnato alla conversazione. La rimozione dell'assegnazione NON riattiva
--- automaticamente l'AI; la ripresa deve essere una scelta esplicita.
+-- sospendere l'AI: il database applica il fail-safe sia alle nuove conversazioni
+-- create gia' assegnate sia a ogni assegnazione successiva. La rimozione
+-- dell'assegnazione NON riattiva automaticamente l'AI; la ripresa deve essere
+-- una scelta esplicita.
 CREATE OR REPLACE FUNCTION public.pause_whatsapp_ai_on_human_assignment()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -34,7 +46,7 @@ SET search_path = public
 AS $$
 BEGIN
   IF NEW.assigned_to IS NOT NULL
-     AND NEW.assigned_to IS DISTINCT FROM OLD.assigned_to THEN
+     AND (TG_OP = 'INSERT' OR NEW.assigned_to IS DISTINCT FROM OLD.assigned_to) THEN
     NEW.ai_mode := 'paused';
     NEW.ai_mode_updated_at := now();
     NEW.ai_mode_updated_by := NEW.assigned_to;
@@ -47,7 +59,7 @@ $$;
 DROP TRIGGER IF EXISTS trg_pause_whatsapp_ai_on_human_assignment
   ON public.whatsapp_conversations;
 CREATE TRIGGER trg_pause_whatsapp_ai_on_human_assignment
-BEFORE UPDATE OF assigned_to
+BEFORE INSERT OR UPDATE OF assigned_to
 ON public.whatsapp_conversations
 FOR EACH ROW
 EXECUTE FUNCTION public.pause_whatsapp_ai_on_human_assignment();

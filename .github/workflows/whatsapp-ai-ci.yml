@@ -6,7 +6,8 @@ on:
       - agent/whatsapp-ai-crm
     paths:
       - "src/features/whatsapp-ai/**"
-      - "supabase/migrations/20260811000200_whatsapp_ai_handoff.sql"
+      - "supabase/migrations/202608110002*.sql"
+      - "package.json"
       - ".github/workflows/whatsapp-ai-ci.yml"
   workflow_dispatch:
 

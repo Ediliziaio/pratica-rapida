@@ -38,6 +38,12 @@ export function classifyHistoricalAudit(
   const differenceFieldIds = audit.differences.map(({ fieldId }) => fieldId);
   const blockedDifferenceFieldIds = differenceFieldIds.filter((fieldId) => blockerFieldIds.has(fieldId));
 
+  // Fail-safe: un PDF leggibile senza alcun campo realmente confrontabile non
+  // dimostra che il mapper corrente coincida con la pratica conclusa. Non deve
+  // quindi produrre un falso "match" solo perché 0 mismatch su 0 confronti.
+  if (audit.compared === 0) {
+    return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
+  }
   if (audit.mismatches === 0) {
     return { outcome: "match", differenceFieldIds, blockedDifferenceFieldIds };
   }

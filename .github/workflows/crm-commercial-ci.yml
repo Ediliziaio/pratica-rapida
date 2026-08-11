@@ -1,0 +1,27 @@
+name: CRM Commercial Lab CI
+
+on:
+  push:
+    branches:
+      - agent/crm-commerciale-supervisor
+    paths:
+      - "src/features/crm-commercial/**"
+      - "supabase/migrations/20260811000100_crm_commercial_health_view.sql"
+      - ".github/workflows/crm-commercial-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  verify-commercial-health:
+    name: Verify commercial health policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install
+      - name: Commercial health tests
+        run: bunx vitest run src/features/crm-commercial
+      - name: Typecheck
+        run: bunx tsc -p tsconfig.app.json --noEmit

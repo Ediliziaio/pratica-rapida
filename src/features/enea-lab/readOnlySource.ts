@@ -193,8 +193,9 @@ export async function loadReadOnlyEneaQueue(
 
 /**
  * Campione storico per il collaudo: legge soltanto pratiche ENEA archiviate che
- * possiedono almeno un PDF conclusivo caricato. Le pratiche annullate/archiviate
- * senza documento finale vengono escluse dopo la SELECT.
+ * possiedono un PDF conclusivo caricato. Il filtro non-null viene applicato già
+ * in Supabase per minimizzare i record letti; il controllo del path resta locale
+ * per escludere array vuoti o percorsi che non appartengono alla pratica.
  */
 export async function loadReadOnlyEneaHistoricalQueue(
   client: SupabaseClient<Database>,
@@ -204,6 +205,7 @@ export async function loadReadOnlyEneaHistoricalQueue(
     .select(QUEUE_SELECT)
     .eq("brand", "enea")
     .in("pipeline_stages.stage_type", ["archiviate"])
+    .not("pratica_enea_conclusa_urls", "is", null)
     .order("updated_at", { ascending: false })
     .limit(100);
 

@@ -22,6 +22,21 @@ describe("compilazione finestra generatore ENEA", () => {
     ]);
   });
 
+  it("rifiuta valori numerici non validi anche se arrivano da una correzione locale", () => {
+    const source = ENEA_LAB_MOCK_PRACTICES[0];
+    const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id], {
+      includeTestConventions: true,
+      overrides: {
+        "impianto.numero_generatori": "0",
+        "impianto.rendimento": "0",
+        "impianto.potenza": "0",
+      },
+    });
+
+    expect(buildEneaGeneratorPortalScript(mapped, true).readyFieldIds).toEqual([]);
+    expect(buildEneaGeneratorPortalScript(mapped).readyFieldIds).toEqual([]);
+  });
+
   it("compila la finestra aperta senza premere Salva", async () => {
     const source = ENEA_LAB_MOCK_PRACTICES[0];
     const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id], {

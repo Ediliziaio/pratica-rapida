@@ -1,0 +1,66 @@
+import { describe, expect, it } from "vitest";
+import { suggestCommercialAction } from "./actionPolicy";
+
+describe("commercial supervisor action policy", () => {
+  it("non disturba un cliente stabile", () => {
+    expect(suggestCommercialAction({
+      healthStatus: "stabile",
+      practicesLast30d: 8,
+      practicesPrev30d: 8,
+      lastPracticeDaysAgo: 3,
+    })).toEqual(expect.objectContaining({
+      action: "monitor",
+      channel: "none",
+      priority: "low",
+      requiresHumanApproval: true,
+    }));
+  });
+
+  it("porta in cima un calo forte ma non autorizza contatti automatici", () => {
+    const decision = suggestCommercialAction({
+      healthStatus: "a_rischio",
+      practicesLast30d: 2,
+      practicesPrev30d: 10,
+      lastPracticeDaysAgo: 12,
+    });
+    expect(decision.action).toBe("check_decline");
+    expect(decision.priority).toBe("critical");
+    expect(decision.requiresHumanApproval).toBe(true);
+  });
+
+  it("preferisce WhatsApp se esiste già una conversazione aperta", () => {
+    expect(suggestCommercialAction({
+      healthStatus: "a_rischio",
+      practicesLast30d: 0,
+      practicesPrev30d: 6,
+      lastPracticeDaysAgo: 35,
+      hasOpenConversation: true,
+    }).channel).toBe("whatsapp");
+  });
+
+  it("facilita la prima pratica per chi non si è mai attivato", () => {
+    expect(suggestCommercialAction({
+      healthStatus: "mai_attivato",
+      practicesLast30d: 0,
+      practicesPrev30d: 0,
+      lastPracticeDaysAgo: null,
+    })).toEqual(expect.objectContaining({
+      action: "activate_first_practice",
+      channel: "whatsapp",
+      priority: "medium",
+    }));
+  });
+
+  it("non sollecita commercialmente un cliente in crescita", () => {
+    expect(suggestCommercialAction({
+      healthStatus: "in_crescita",
+      practicesLast30d: 15,
+      practicesPrev30d: 8,
+      lastPracticeDaysAgo: 1,
+    })).toEqual(expect.objectContaining({
+      action: "growth_opportunity",
+      channel: "none",
+      priority: "low",
+    }));
+  });
+});

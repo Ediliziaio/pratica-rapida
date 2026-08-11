@@ -43,7 +43,7 @@ export function pdfTextItemsToLines(items: Array<PdfTextItemLike | PdfMarkedCont
   return lines.join("\n");
 }
 
-async function extractPdfText(blob: Blob): Promise<string> {
+export async function extractPdfText(blob: Blob): Promise<string> {
   const [{ getDocument, GlobalWorkerOptions }, workerModule] = await Promise.all([
     import("pdfjs-dist/legacy/build/pdf.mjs"),
     import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url"),

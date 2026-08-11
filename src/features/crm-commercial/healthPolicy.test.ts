@@ -60,6 +60,16 @@ describe("commercial health policy", () => {
     }).status).toBe("nuovo_attivo");
   });
 
+  it("mantiene in onboarding un nuovo cliente anche se il confronto sembra crescita", () => {
+    expect(classifyCommercialHealth({
+      totalPractices: 3,
+      practicesLast30d: 3,
+      practicesPrev30d: 0,
+      firstPracticeDaysAgo: 12,
+      lastPracticeDaysAgo: 1,
+    })).toEqual({ status: "nuovo_attivo", attentionScore: 40 });
+  });
+
   it("riconosce inattivita lunga prima degli altri confronti", () => {
     expect(classifyCommercialHealth({
       totalPractices: 10,

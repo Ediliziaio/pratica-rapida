@@ -1,0 +1,30 @@
+name: ENEA Lab CI
+
+on:
+  push:
+    branches:
+      - agent/crm-ombra-enea-lab
+    paths:
+      - "src/features/enea-lab/**"
+      - "src/pages/EneaLab.tsx"
+      - "src/pages/EneaLab.test.tsx"
+      - "package.json"
+      - "bun.lock"
+      - ".github/workflows/enea-lab-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  verify-enea-lab:
+    name: Verify ENEA Lab
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: ENEA Lab tests
+        run: bunx vitest run src/features/enea-lab src/pages/EneaLab.test.tsx
+      - name: Typecheck
+        run: bunx tsc -p tsconfig.app.json --noEmit

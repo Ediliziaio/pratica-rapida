@@ -26,12 +26,13 @@ describe("mapQueueRow", () => {
     expect(client.from).toHaveBeenCalledWith("enea_practices_public");
   });
 
-  it("carica lo storico con sole SELECT e senza filtrare archived_at", async () => {
+  it("carica lo storico con sole SELECT, filtra i PDF conclusivi e non esclude gli archiviati", async () => {
     const calls: string[] = [];
     const query = {
       select: vi.fn(() => { calls.push("select"); return query; }),
       eq: vi.fn(() => { calls.push("eq"); return query; }),
       in: vi.fn(() => { calls.push("in"); return query; }),
+      not: vi.fn(() => { calls.push("not"); return query; }),
       order: vi.fn(() => { calls.push("order"); return query; }),
       limit: vi.fn(() => { calls.push("limit"); return Promise.resolve({ data: [], error: null }); }),
     };
@@ -41,7 +42,8 @@ describe("mapQueueRow", () => {
 
     await loadReadOnlyEneaHistoricalQueue(client as never);
 
-    expect(calls).toEqual(["from", "select", "eq", "in", "order", "limit"]);
+    expect(calls).toEqual(["from", "select", "eq", "in", "not", "order", "limit"]);
+    expect(query.not).toHaveBeenCalledWith("pratica_enea_conclusa_urls", "is", null);
     expect(client.from).toHaveBeenCalledWith("enea_practices_public");
   });
 

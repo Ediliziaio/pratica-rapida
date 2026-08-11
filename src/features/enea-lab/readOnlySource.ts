@@ -19,6 +19,7 @@ type QueueRow = {
   data_fine_lavori: string | null;
   fatture_urls: string[] | null;
   documenti_aggiuntivi_urls: string[] | null;
+  pratica_enea_conclusa_urls: string[] | null;
   dati_form: Json | null;
   form_compilato_at: string | null;
   created_at: string | null;
@@ -26,6 +27,26 @@ type QueueRow = {
   pipeline_stages: { stage_type: string } | null;
   companies: { ragione_sociale: string } | null;
 };
+
+const QUEUE_SELECT = `
+  id,
+  cliente_nome,
+  cliente_cognome,
+  cliente_email,
+  cliente_telefono,
+  cliente_cf,
+  prodotto_installato,
+  data_fine_lavori,
+  fatture_urls,
+  documenti_aggiuntivi_urls,
+  pratica_enea_conclusa_urls,
+  dati_form,
+  form_compilato_at,
+  created_at,
+  updated_at,
+  pipeline_stages!inner(stage_type),
+  companies:reseller_id(ragione_sociale)
+`;
 
 function normalizeSchermaturaItem(value: unknown): SchermaturaItem | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -118,12 +139,15 @@ export function mapQueueRow(row: QueueRow): EneaLabSourcePractice | null {
   const receivedAt = row.form_compilato_at ?? row.updated_at ?? createdAt;
   const stageType = row.pipeline_stages?.stage_type;
   const isReady = stageType === "pronte_da_fare" && Boolean(row.form_compilato_at);
+  const isHistorical = stageType === "archiviate" && Boolean(row.pratica_enea_conclusa_urls?.length);
   const formFiles = collectFormFiles(row.dati_form, row.id);
   const documentPaths = uniquePaths([
     ...(row.fatture_urls ?? []).map((path) => ({ kind: "invoice" as const, path })),
     ...(row.documenti_aggiuntivi_urls ?? []).map((path) => ({ kind: "additional" as const, path })),
     ...formFiles,
   ]).filter(({ path }) => path.startsWith(`${row.id}/`));
+  const completedEneaPaths = [...new Set(row.pratica_enea_conclusa_urls ?? [])]
+    .filter((path) => path.startsWith(`${row.id}/`));
   const invoiceCount = documentPaths.filter(({ kind }) => kind === "invoice").length;
 
   return {
@@ -138,7 +162,8 @@ export function mapQueueRow(row: QueueRow): EneaLabSourcePractice | null {
     fattureCount: invoiceCount,
     documentiCount: documentPaths.length - invoiceCount,
     documentPaths,
-    queueStatus: isReady ? "ready" : "waiting_client",
+    completedEneaPaths,
+    queueStatus: isHistorical ? "historical" : isReady ? "ready" : "waiting_client",
     form,
   };
 }
@@ -152,24 +177,7 @@ export async function loadReadOnlyEneaQueue(
 ): Promise<EneaLabSourcePractice[]> {
   const { data, error } = await client
     .from("enea_practices_public")
-    .select(`
-      id,
-      cliente_nome,
-      cliente_cognome,
-      cliente_email,
-      cliente_telefono,
-      cliente_cf,
-      prodotto_installato,
-      data_fine_lavori,
-      fatture_urls,
-      documenti_aggiuntivi_urls,
-      dati_form,
-      form_compilato_at,
-      created_at,
-      updated_at,
-      pipeline_stages!inner(stage_type),
-      companies:reseller_id(ragione_sociale)
-    `)
+    .select(QUEUE_SELECT)
     .eq("brand", "enea")
     .is("archived_at", null)
     .in("pipeline_stages.stage_type", ["inviata", "attesa_compilazione", "pronte_da_fare"])
@@ -181,4 +189,31 @@ export async function loadReadOnlyEneaQueue(
   return ((data ?? []) as unknown as QueueRow[])
     .map(mapQueueRow)
     .filter((practice): practice is EneaLabSourcePractice => practice !== null);
+}
+
+/**
+ * Campione storico per il collaudo: legge soltanto pratiche ENEA archiviate che
+ * possiedono almeno un PDF conclusivo caricato. Le pratiche annullate/archiviate
+ * senza documento finale vengono escluse dopo la SELECT.
+ */
+export async function loadReadOnlyEneaHistoricalQueue(
+  client: SupabaseClient<Database>,
+): Promise<EneaLabSourcePractice[]> {
+  const { data, error } = await client
+    .from("enea_practices_public")
+    .select(QUEUE_SELECT)
+    .eq("brand", "enea")
+    .in("pipeline_stages.stage_type", ["archiviate"])
+    .order("updated_at", { ascending: false })
+    .limit(100);
+
+  if (error) throw error;
+
+  return ((data ?? []) as unknown as QueueRow[])
+    .map(mapQueueRow)
+    .filter((practice): practice is EneaLabSourcePractice =>
+      practice !== null
+      && practice.queueStatus === "historical"
+      && Boolean(practice.completedEneaPaths?.length),
+    );
 }

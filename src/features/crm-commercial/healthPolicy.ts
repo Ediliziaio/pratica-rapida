@@ -29,6 +29,12 @@ export function classifyCommercialHealth(input: CommercialHealthInput): Commerci
     return { status: "inattivo", attentionScore: 90 };
   }
 
+  // Una prima attivazione recente resta sotto onboarding anche se, per definizione,
+  // il confronto col periodo precedente (zero pratiche) sembrerebbe una crescita.
+  if (input.firstPracticeDaysAgo !== null && input.firstPracticeDaysAgo <= 30) {
+    return { status: "nuovo_attivo", attentionScore: 40 };
+  }
+
   if (
     (input.practicesLast30d === 0 && input.practicesPrev30d >= 2)
     || (input.practicesPrev30d >= 4 && input.practicesLast30d <= Math.floor(input.practicesPrev30d * 0.5))
@@ -42,10 +48,6 @@ export function classifyCommercialHealth(input: CommercialHealthInput): Commerci
 
   if (input.practicesLast30d > input.practicesPrev30d) {
     return { status: "in_crescita", attentionScore: 10 };
-  }
-
-  if (input.firstPracticeDaysAgo !== null && input.firstPracticeDaysAgo <= 30) {
-    return { status: "nuovo_attivo", attentionScore: 40 };
   }
 
   return { status: "stabile", attentionScore: 20 };

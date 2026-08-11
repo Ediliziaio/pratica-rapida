@@ -294,11 +294,15 @@ const App = () => (
                       : <Navigate to="/" replace />
                   }
                 />
-                {/* Anteprima isolata con soli dati fittizi per il collaudo locale.
-                    Non è inclusa come funzione raggiungibile nella build di produzione. */}
+                {/* Anteprima locale: usa lo stesso componente e quindi la stessa sorgente CRM read-only.
+                    Per questo resta protetta come il laboratorio principale; non è una route pubblica. */}
                 <Route
                   path="/admin/enea-lab-preview"
-                  element={import.meta.env.DEV ? <EneaLab /> : <Navigate to="/" replace />}
+                  element={
+                    import.meta.env.DEV
+                      ? <ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><EneaLab /></RoleGuard></ProtectedRoute>
+                      : <Navigate to="/" replace />
+                  }
                 />
                 <Route path="/schermature-solari/:token" element={<ModuloClientePage />} />
                 <Route path="/modulo-infissi/:token" element={<ModuloClientePage />} />
@@ -315,30 +319,20 @@ const App = () => (
                     aziende e rivenditori vengono dirottati su /kanban (vista unificata) */}
                 <Route path="/pratiche" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]} fallback="/kanban"><Pratiche /></RoleGuard></ProtectedRoute>} />
                 <Route path="/pratiche/nuova" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, "admin_interno"]} fallback="/enea/nuova"><NuovaPratica /></RoleGuard></ProtectedRoute>} />
-                {/* /pratiche/:id legacy — solo staff (ha sezioni Assegnatario/Attività non per aziende).
-                    Aziende vedono il detail tramite Sheet del /kanban (read-only). */}
                 <Route path="/pratiche/:id" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]} fallback="/kanban"><PraticaDetail /></RoleGuard></ProtectedRoute>} />
                 <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
                 <Route path="/impostazioni" element={<ProtectedRoute><ImpostazioniAzienda /></ProtectedRoute>} />
                 <Route path="/clienti" element={<ProtectedRoute><Clienti /></ProtectedRoute>} />
-
-                {/* Staff-only routes (super_admin + operatore — NOT admin_interno/company admins) */}
                 <Route path="/aziende" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><Aziende /></RoleGuard></ProtectedRoute>} />
                 <Route path="/aziende/:id" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><AziendaDetail /></RoleGuard></ProtectedRoute>} />
-                {/* Redirect legacy standalone routes to Impostazioni tabs */}
                 <Route path="/utenti" element={<Navigate to="/admin/impostazioni" replace />} />
                 <Route path="/listino" element={<Navigate to="/admin/impostazioni" replace />} />
                 <Route path="/admin/audit-log" element={<Navigate to="/admin/impostazioni" replace />} />
                 <Route path="/coda-pratiche" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><CodaPratiche /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/pratiche" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><AdminPratiche /></RoleGuard></ProtectedRoute>} />
-
-                {/* Super admin only */}
                 <Route path="/admin/impostazioni" element={<ProtectedRoute><RoleGuard allowed={[...ADMIN_ROLES]}><ImpostazioniPiattaforma /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/campi" element={<ProtectedRoute><RoleGuard allowed={[...ADMIN_ROLES]}><ImpostazioniCampi /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/moduli" element={<ProtectedRoute><RoleGuard allowed={[...ADMIN_ROLES]}><Moduli /></RoleGuard></ProtectedRoute>} />
-
-                {/* Pratica Rapida v2.0 — ENEA/CT */}
-                {/* /kanban + /enea/* open to staff + resellers + tenant admins */}
                 <Route path="/kanban" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, ...RESELLER_ROLES, "admin_interno", "azienda_admin", "azienda_user"]}><KanbanBoard /></RoleGuard></ProtectedRoute>} />
                 <Route path="/enea/nuova" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, ...RESELLER_ROLES, "admin_interno", "azienda_admin", "azienda_user"]}><NuovaPraticaEnea /></RoleGuard></ProtectedRoute>} />
                 <Route path="/enea/dashboard" element={<ProtectedRoute><RoleGuard allowed={[...ALL_AUTH_ROLES]}><EneaDashboard /></RoleGuard></ProtectedRoute>} />
@@ -359,11 +353,8 @@ const App = () => (
                 <Route path="/admin/whatsapp-config" element={<ProtectedRoute><RoleGuard allowed={["super_admin"]}><WhatsappConfig /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/whatsapp-chat" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><WhatsappChat /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/chat" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><Chat /></RoleGuard></ProtectedRoute>} />
-                {/* Redirect retrocompatibile: la vecchia pagina dedicata è ora un tab di /admin/whatsapp-config */}
                 <Route path="/admin/whatsapp-quick-replies" element={<Navigate to="/admin/whatsapp-config" replace />} />
                 <Route path="/admin/calendario-eventi" element={<Navigate to="/admin/calendario" replace />} />
-
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

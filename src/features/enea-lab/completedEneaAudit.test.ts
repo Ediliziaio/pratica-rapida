@@ -8,9 +8,28 @@ import {
 
 const COMPLETED_ENEA_TECHNICAL_EXCERPT = `
 Ecobonus 2026
+Riqualificazione energetica - ex legge 296/2006
 Comma 345B - Schermature solari
 CPID 288717-2026E-TESTTESTTESTTEST Data chiusura 2026-07-14 9:57:39 CEST
+Dati generali
+1. Dati identificativi della struttura oggetto dell'intervento Ubicazione edificio
+Indirizzo: Via Esempio 75/130 - 21040 Rho (MI)
+Scala:
+Interno:
+Dati catastali
+Codice nazionale del Comune: H264
+Sezione:
+Foglio: 9
+Particella: 10986
+Subalterno: 32
 2. Anno di costruzione inserire anche se stimato 2022
+3. Proprietario o detentore dell'edificio o avente diritto Nome: Mario Cognome: Rossi Codice fiscale: RSSMRA74C23H264X Sesso: M Data di nascita: 23/03/1974 Comune di nascita: Rho (MI) Residenza: Via Residenza 12 - 21040 Uboldo (VA)
+4. Altri beneficiari (persone fisiche)
+5. Altri beneficiari (persone giuridiche)
+6. Titolo di possesso Proprietario o comproprietario
+7. Destinazione d'uso generale Residenziale
+8. Destinazione d'uso particolare Edifici adibiti a residenza e assimilabili (con carattere continuativo o saltuario)
+9. Tipologia edilizia Edificio a schiera e condominio fino a tre piani
 10. Superficie utile [m²] delle unità immobiliari interessate dall'intervento 140
 11. Zona climatica E
 12. Gradi giorno 2631
@@ -43,14 +62,27 @@ Spese congrue sostenute [€] 13924
 `;
 
 describe("audit storico PDF ENEA conclusivo", () => {
-  it("estrae i campi tecnici scritti dal workflow senza includere Rsupp", () => {
+  it("estrae soltanto campi realmente compilati dal workflow e ignora i valori automatici del portale", () => {
     const snapshot = parseCompletedEneaText(COMPLETED_ENEA_TECHNICAL_EXCERPT);
 
     expect(snapshot.cpid).toBe("288717-2026E-TESTTESTTESTTEST");
+    expect(snapshot.fields["intervento.tipo"]).toBe("Comma 345B - Schermature solari");
+    expect(snapshot.fields["immobile.comune"]).toBe("Rho");
+    expect(snapshot.fields["immobile.indirizzo"]).toBe("Via Esempio");
+    expect(snapshot.fields["immobile.civico"]).toBe("75/130");
+    expect(snapshot.fields["immobile.cap"]).toBe("21040");
+    expect(snapshot.fields["immobile.foglio"]).toBe("9");
+    expect(snapshot.fields["immobile.mappale"]).toBe("10986");
+    expect(snapshot.fields["immobile.subalterno"]).toBe("32");
     expect(snapshot.fields["immobile.anno"]).toBe("2022");
+    expect(snapshot.fields["beneficiario.nome"]).toBe("Mario");
+    expect(snapshot.fields["beneficiario.cognome"]).toBe("Rossi");
+    expect(snapshot.fields["beneficiario.comune_nascita"]).toBe("Rho (MI)");
+    expect(snapshot.fields["beneficiario.comune_residenza"]).toBe("Uboldo");
+    expect(snapshot.fields["beneficiario.titolo"]).toBe("Proprietario o comproprietario");
+    expect(snapshot.fields["immobile.tipologia"]).toBe("Edificio a schiera e condominio fino a tre piani");
     expect(snapshot.fields["intervento.data_inizio"]).toBe("09/04/2026");
     expect(snapshot.fields["impianto.tipo"]).toBe("a. impianto autonomo");
-    expect(snapshot.fields["impianto.generatore"]).toBe("Altro (energia elettrica)");
     expect(snapshot.fields["impianto.numero_generatori"]).toBe("1");
     expect(snapshot.fields["impianto.rendimento"]).toBe("94.8");
     expect(snapshot.fields["impianto.potenza"]).toBe("24.1");
@@ -59,6 +91,10 @@ describe("audit storico PDF ENEA conclusivo", () => {
     expect(snapshot.fields["schermature.4.gtot"]).toBe("0.13");
     expect(snapshot.fields["schermature.spesa"]).toBe("13924");
     expect(snapshot.fields["schermature.0.rsupp"]).toBeUndefined();
+    expect(snapshot.fields["immobile.zona_climatica"]).toBeUndefined();
+    expect(snapshot.fields["immobile.gradi_giorno"]).toBeUndefined();
+    expect(snapshot.fields["intervento.unita_totali"]).toBeUndefined();
+    expect(snapshot.fields["impianto.generatore"]).toBeUndefined();
     expect(snapshot.screeningCount).toBe(5);
   });
 
@@ -83,5 +119,27 @@ describe("audit storico PDF ENEA conclusivo", () => {
       completedValue: "2.9",
       mappedValue: "Intervento umano richiesto",
     });
+  });
+
+  it("considera equivalenti le etichette ENEA storiche e quelle normalizzate del mapper", () => {
+    const source = ENEA_LAB_MOCK_PRACTICES[0];
+    const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id], {
+      overrides: {
+        "beneficiario.titolo": "Proprietario / comproprietario",
+        "immobile.tipologia": "Edificio fino a 3 piani",
+      },
+      confirmedFieldIds: new Set(["beneficiario.titolo", "immobile.tipologia"]),
+    });
+    const audit = compareMappedToCompletedEnea(mapped, {
+      cpid: "TEST",
+      screeningCount: 0,
+      fields: {
+        "beneficiario.titolo": "Proprietario o comproprietario",
+        "immobile.tipologia": "Edificio a schiera e condominio fino a tre piani",
+      },
+    });
+
+    expect(audit.mismatches).toBe(0);
+    expect(audit.matches).toBe(2);
   });
 });

@@ -83,6 +83,11 @@ function numericValue(value: string): string {
   return value.trim().replace(/[^0-9,.-]/g, "");
 }
 
+function isVerifiedGTot(fieldId: string, source: string): boolean {
+  if (!fieldId.endsWith(".gtot")) return true;
+  return source === "Fattura" || source === "Inserimento operatore";
+}
+
 export function buildEneaScreeningPortalScript(
   mapped: EneaLabMappedPractice,
   itemIndex = 0,
@@ -100,6 +105,7 @@ export function buildEneaScreeningPortalScript(
       || field.testOnly
       || field.value === "Non indicato"
       || field.value === "Intervento umano richiesto"
+      || !isVerifiedGTot(fieldId, field.source)
     ) return [];
     const value = definition.numeric ? numericValue(field.value) : field.value;
     const selectValue = definition.selectValues?.[value];

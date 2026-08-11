@@ -27,6 +27,15 @@ function numericValue(value: string): string {
   return value.trim().replace(/[^0-9,.-]/g, "");
 }
 
+function isValidGeneratorValue(fieldId: string, value: string): boolean {
+  const parsed = Number(value.replace(",", "."));
+  if (!Number.isFinite(parsed)) return false;
+  if (fieldId === "impianto.numero_generatori") return Number.isInteger(parsed) && parsed > 0;
+  if (fieldId === "impianto.rendimento") return parsed > 0 && parsed <= 100;
+  if (fieldId === "impianto.potenza") return parsed > 0;
+  return false;
+}
+
 /** Compila soltanto la finestra del generatore gia aperta dall'operatore. */
 export function buildEneaGeneratorPortalScript(
   mapped: EneaLabMappedPractice,
@@ -38,10 +47,12 @@ export function buildEneaGeneratorPortalScript(
   const readyFields = GENERATOR_PORTAL_FIELDS.flatMap((definition) => {
     const field = fieldsById.get(definition.fieldId);
     const usableOfficialValue = field?.status === "ready" && !field.testOnly;
-    const usableTestValue = includeTestValues && Boolean(field?.value);
+    const usableTestValue = includeTestValues
+      && Boolean(field?.value)
+      && Boolean(field?.testOnly || field?.status === "review" || usableOfficialValue);
     if (!field || (!usableOfficialValue && !usableTestValue)) return [];
     const value = numericValue(field.value);
-    if (!value) return [];
+    if (!value || !isValidGeneratorValue(definition.fieldId, value)) return [];
     const prepared: EneaPortalRuntimeField = {
       portalId: definition.portalId,
       control: "input",

@@ -44,6 +44,13 @@ export function classifyHistoricalAudit(
   if (audit.compared === 0) {
     return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
   }
+  // Un confronto dei valori può essere perfetto e tuttavia il workflow attuale
+  // può avere blocker (per esempio un gTot non documentato che per coincidenza
+  // è uguale al valore usato nella pratica storica). In quel caso la pratica
+  // non è automatizzabile end-to-end e non deve gonfiare il conteggio "match".
+  if (audit.mismatches === 0 && blockerFieldIds.size > 0) {
+    return { outcome: "blocked", differenceFieldIds, blockedDifferenceFieldIds };
+  }
   if (audit.mismatches === 0) {
     return { outcome: "match", differenceFieldIds, blockedDifferenceFieldIds };
   }

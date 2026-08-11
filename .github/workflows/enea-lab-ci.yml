@@ -8,6 +8,7 @@ on:
       - "src/features/enea-lab/**"
       - "src/pages/EneaLab.tsx"
       - "src/pages/EneaLab.test.tsx"
+      - "src/App.tsx"
       - "package.json"
       - "bun.lock"
       - ".github/workflows/enea-lab-ci.yml"

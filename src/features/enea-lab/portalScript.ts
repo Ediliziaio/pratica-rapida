@@ -70,8 +70,10 @@ export function buildEneaPortalWorkflowRuntimeScript({
     const chooseAutocomplete=async(element,value)=>{element.focus();setValue(element,value);element.dispatchEvent(new KeyboardEvent("keyup",{key:value.slice(-1),bubbles:true}));const wanted=normalize(value);for(let attempt=0;attempt<25;attempt+=1){await wait(100);const candidates=[...document.querySelectorAll('[role="option"],.ui-autocomplete li,.awesomplete li,.autocomplete-item,.dropdown-menu .dropdown-item,.list-group-item')];const candidate=candidates.find(item=>{const text=normalize(item.textContent);return text===wanted||text.startsWith(wanted+" (")||text.startsWith(wanted+" -")});if(!candidate)continue;const target=candidate.querySelector("a,button")||candidate;for(const type of ["mousedown","mouseup","click"]){target.dispatchEvent(new MouseEvent(type,{bubbles:true,cancelable:true,view:window}));}await wait(150);return normalize(element.value)===wanted||normalize(element.value).startsWith(wanted+" (");}return false;};
     const screeningOpen=["id-tipo","id-sup_s","id-gtot"].every(id=>document.getElementById(id));
     const pageMatches=steps.filter(candidate=>candidate.markerIds.every(id=>document.getElementById(id)));
-    if(pageMatches.length>1||(screeningOpen&&screenings.length&&pageMatches.length)){
-      const matched=[...pageMatches.map(candidate=>candidate.id+" ("+candidate.pageName+")"),...(screeningOpen&&screenings.length?["screening (Schermature solari)"]:[])].join(", ");
+    const generatorOverlay=pageMatches.length===2&&pageMatches.some(candidate=>candidate.id==="generator")&&pageMatches.some(candidate=>candidate.id==="plant");
+    const recognizedMatches=generatorOverlay?pageMatches.filter(candidate=>candidate.id==="generator"):pageMatches;
+    if(recognizedMatches.length>1||(screeningOpen&&screenings.length&&recognizedMatches.length)){
+      const matched=[...recognizedMatches.map(candidate=>candidate.id+" ("+candidate.pageName+")"),...(screeningOpen&&screenings.length?["screening (Schermature solari)"]:[])].join(", ");
       throw new Error("Riconoscimento pagina ENEA ambiguo: "+matched+". Nessun campo compilato.");
     }
     let screeningIndex=0;
@@ -81,7 +83,7 @@ export function buildEneaPortalWorkflowRuntimeScript({
       screeningIndex=Number.isInteger(stored)&&stored>=0&&stored<screenings.length?stored:0;
       step=screenings[screeningIndex];
     }else{
-      [step]=pageMatches;
+      [step]=recognizedMatches;
     }
     if(!step)throw new Error("Questa pagina ENEA non e ancora mappata nel laboratorio.");
     const result={step:step.id,pageName:step.pageName,compiled:[],notFound:[],notAvailable:[],notSelected:[]};

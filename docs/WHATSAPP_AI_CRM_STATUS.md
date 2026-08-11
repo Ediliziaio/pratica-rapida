@@ -62,22 +62,50 @@ Mismatch di dati sensibili → sempre umano.
 
 Se manca uno di questi elementi, una risposta sullo stato/documenti della pratica non può essere auto-inviata. Il gate resta fail-closed.
 
+## Minimizzazione dati
+
+`minimalCrmContext.ts` riduce il contesto CRM prima di qualunque uso AI. Per stato pratica/documenti mancanti espone soltanto:
+
+- id e codice pratica;
+- stato;
+- prodotto;
+- timestamp ultimo aggiornamento;
+- elenco limitato dei documenti mancanti.
+
+Per default non propaga codice fiscale, indirizzi, URL dei documenti, importi o altre colonne non necessarie.
+
+## Audit decisionale
+
+Migration `20260811000201_whatsapp_ai_audit_log.sql` e `auditRecord.ts` registrano soltanto metadati utili a verificare la decisione:
+
+- conversazione e messaggio inbound di riferimento;
+- modalità AI;
+- categoria;
+- azione (`human_only`, `draft_only`, `auto_send`);
+- confidenza;
+- esito grounding CRM;
+- motivo sintetico.
+
+L'audit non duplica body della chat, prompt, documenti, URL o altri dati cliente. Questo permette di misurare falsi positivi e decisioni prima di autorizzare qualsiasi modalità automatica.
+
 ## Gate tecnici
 
 Workflow `.github/workflows/whatsapp-ai-ci.yml`:
 
 - test delle policy;
 - test handoff/grounding;
+- test minimizzazione contesto;
+- test audit data-minimal;
 - regressione statica sugli invarianti della migration di presa in carico;
 - typecheck TypeScript.
 
-Stato ultimo checkpoint: CI verde per policy di routing, handoff, isolamento CRM e invarianti della migration.
+Stato ultimo checkpoint: CI verde anche con minimizzazione dati e audit decisionale.
 
 ## Gate ancora aperti
 
-1. Non applicare la migration al database reale senza autorizzazione esplicita.
+1. Non applicare le migration al database reale senza autorizzazione esplicita.
 2. Non scegliere/integrare un provider LLM finché il livello di policy/grounding non è stabilizzato.
-3. Implementare il recupero read-only del contesto CRM strettamente necessario alla risposta.
+3. Implementare il recupero read-only del contesto CRM usando esclusivamente il contratto minimizzato.
 4. Implementare prima la modalità `assist` con bozze e approvazione operatore.
 5. Valutare `auto` solo dopo log, metriche, audit dei falsi positivi e autorizzazione esplicita.
 6. Nessun messaggio automatico su normativa, prezzi, reclami o eccezioni.

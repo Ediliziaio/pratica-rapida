@@ -44,6 +44,12 @@ export function classifyHistoricalAudit(
   if (audit.compared === 0) {
     return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
   }
+  // Il CPID identifica la pratica ENEA conclusa. Se il parser non riesce a
+  // leggerlo, il documento non offre una prova abbastanza forte per certificare
+  // il confronto storico come match, anche quando alcuni valori coincidono.
+  if (!audit.cpid) {
+    return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
+  }
   // Un confronto dei valori può essere perfetto e tuttavia il workflow attuale
   // può avere blocker (per esempio un gTot non documentato che per coincidenza
   // è uguale al valore usato nella pratica storica). In quel caso la pratica

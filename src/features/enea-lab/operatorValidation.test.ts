@@ -14,6 +14,9 @@ describe("validazione correzioni operatore", () => {
     expect(validateOperatorOverride("schermature.0.esposizione", "Nord").valid).toBe(false);
     expect(validateOperatorOverride("schermature.risparmio_energia", "non calcolato").valid).toBe(false);
     expect(validateOperatorOverride("schermature.0.dimensioni", "80 x 1200").valid).toBe(false);
+    expect(validateOperatorOverride("impianto.numero_generatori", "0").valid).toBe(false);
+    expect(validateOperatorOverride("impianto.numero_generatori", "1,5").valid).toBe(false);
+    expect(validateOperatorOverride("impianto.potenza", "0 kW").valid).toBe(false);
   });
 
   it("accetta e normalizza valori verificabili", () => {
@@ -38,6 +41,8 @@ describe("validazione correzioni operatore", () => {
       valid: true,
       value: "1200 × 1450 mm",
     });
+    expect(validateOperatorOverride("impianto.numero_generatori", "2")).toEqual({ valid: true, value: "2" });
+    expect(validateOperatorOverride("impianto.potenza", "26,4 kW").valid).toBe(true);
   });
 
   it("limita il numero di schermature per evitare una scheda ingestibile", () => {

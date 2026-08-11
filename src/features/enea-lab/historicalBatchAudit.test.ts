@@ -49,4 +49,21 @@ describe("classificazione audit storico ENEA", () => {
     expect(result.outcome).toBe("difference");
     expect(result.blockedDifferenceFieldIds).toEqual(["schermature.0.superficie_finestrata"]);
   });
+
+  it("non considera sicuro un mismatch privo del dettaglio dei campi", () => {
+    const audit: CompletedEneaAuditResult = {
+      path: "demo/conclusa.pdf",
+      cpid: "TEST",
+      compared: 1,
+      matches: 0,
+      mismatches: 1,
+      differences: [],
+    };
+
+    const result = classifyHistoricalAudit(audit, new Set());
+
+    expect(result.outcome).toBe("difference");
+    expect(result.differenceFieldIds).toEqual([]);
+    expect(result.blockedDifferenceFieldIds).toEqual([]);
+  });
 });

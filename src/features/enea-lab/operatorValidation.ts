@@ -211,7 +211,7 @@ export function validateOperatorOverride(
       : invalid(value, "Inserire un numero intero di schermature compreso tra 1 e 50.");
   }
 
-  if (/^(?:immobile\.unita|intervento\.unita_totali|intervento\.unita_oggetto)$/.test(fieldId)) {
+  if (/^(?:immobile\.unita|intervento\.unita_totali|intervento\.unita_oggetto|impianto\.numero_generatori)$/.test(fieldId)) {
     const parsed = parseItalianNumber(value);
     return parsed !== null && Number.isInteger(parsed) && parsed > 0
       ? { valid: true, value }
@@ -240,7 +240,14 @@ export function validateOperatorOverride(
       : invalid(value, "Il rendimento deve essere maggiore di 0 e non superiore al 100%.");
   }
 
-  if (/^(?:immobile\.gradi_giorno|immobile\.superficie|impianto\.potenza|schermature\.(?:spesa|superficie_totale|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp))$/.test(fieldId)) {
+  if (fieldId === "impianto.potenza") {
+    const parsed = parseItalianNumber(value);
+    return parsed !== null && parsed > 0
+      ? { valid: true, value }
+      : invalid(value, "La potenza nominale deve essere maggiore di zero.");
+  }
+
+  if (/^(?:immobile\.gradi_giorno|immobile\.superficie|schermature\.(?:spesa|superficie_totale|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp))$/.test(fieldId)) {
     const parsed = parseItalianNumber(value);
     return parsed !== null && parsed >= 0
       ? { valid: true, value }

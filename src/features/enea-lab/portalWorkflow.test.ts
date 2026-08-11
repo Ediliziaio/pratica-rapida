@@ -38,4 +38,26 @@ describe("comando unico ENEA", () => {
     expect(preparation.script).not.toMatch(/\.submit\s*\(/);
     expect(submitCount).toBe(0);
   });
+
+  it("si ferma prima di scrivere quando più pagine risultano compatibili", async () => {
+    const source = ENEA_LAB_MOCK_PRACTICES[0];
+    const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id], {
+      includeTestConventions: true,
+    });
+    const preparation = buildEneaPortalWorkflowScript(mapped);
+    const dom = new JSDOM(`
+      <form id="generatore">
+        <input id="id-num"><input id="id-n"><input id="id-pn">
+      </form>
+      <form id="beneficiario">
+        <input id="id-nome"><input id="id-codice_fiscale">
+      </form>
+    `, { runScripts: "outside-only", url: "https://bonusfiscali.enea.it/pratica" });
+
+    await expect(dom.window.eval(preparation.script)).rejects.toThrow(
+      /Riconoscimento pagina ENEA ambiguo/,
+    );
+    expect((dom.window.document.getElementById("id-num") as HTMLInputElement).value).toBe("");
+    expect((dom.window.document.getElementById("id-nome") as HTMLInputElement).value).toBe("");
+  });
 });

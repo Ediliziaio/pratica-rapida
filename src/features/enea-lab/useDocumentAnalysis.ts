@@ -16,7 +16,7 @@ export function useDocumentAnalysis(practice: EneaLabSourcePractice | undefined)
     queryFn: () => preview
       ? Promise.resolve(ENEA_LAB_MOCK_ANALYSIS[practice!.id])
       : analyzePracticeDocuments(supabase, practice!),
-    enabled: Boolean(practice && practice.queueStatus === "ready"),
+    enabled: Boolean(practice && (practice.queueStatus === "ready" || practice.queueStatus === "historical")),
     staleTime: 5 * 60_000,
     retry: 1,
   });

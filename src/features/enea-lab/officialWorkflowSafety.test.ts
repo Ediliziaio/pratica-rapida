@@ -21,4 +21,22 @@ describe("workflow ENEA ufficiale", () => {
     expect(officialWorkflow.script).not.toContain('"portalId":"id-n"');
     expect(officialWorkflow.script).not.toContain('"portalId":"id-pn"');
   });
+
+  it("non porta nel comando ufficiale valori generatore invalidi inseriti localmente", () => {
+    const source = ENEA_LAB_MOCK_PRACTICES[0];
+    const mapped = mapSchermaturaPractice(source, undefined, {
+      includeTestConventions: true,
+      overrides: {
+        "impianto.numero_generatori": "0",
+        "impianto.rendimento": "0",
+        "impianto.potenza": "0 kW",
+      },
+    });
+
+    const officialWorkflow = buildEneaOfficialPortalWorkflowScript(mapped);
+
+    expect(officialWorkflow.script).not.toContain('"portalId":"id-num"');
+    expect(officialWorkflow.script).not.toContain('"portalId":"id-n"');
+    expect(officialWorkflow.script).not.toContain('"portalId":"id-pn"');
+  });
 });

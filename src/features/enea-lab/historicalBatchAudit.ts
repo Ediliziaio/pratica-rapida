@@ -31,6 +31,12 @@ export interface HistoricalBatchAuditReport {
   practices: HistoricalPracticeAudit[];
 }
 
+// Un PDF ENEA conclusivo per schermature contiene normalmente decine di campi
+// confrontabili. Una manciata di coincidenze non e' evidenza sufficiente per
+// certificare il mapper: potrebbe indicare un parser parziale o un documento
+// diverso da quello atteso. Il collaudo storico deve quindi fallire chiuso.
+const MIN_HISTORICAL_COMPARISONS = 10;
+
 export function classifyHistoricalAudit(
   audit: CompletedEneaAuditResult,
   blockerFieldIds: ReadonlySet<string>,
@@ -48,6 +54,12 @@ export function classifyHistoricalAudit(
   // leggerlo, il documento non offre una prova abbastanza forte per certificare
   // il confronto storico come match, anche quando alcuni valori coincidono.
   if (!audit.cpid) {
+    return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
+  }
+  // Fail-safe di copertura: CPID + poche coincidenze possono ancora provenire
+  // da un parsing incompleto. Per schermature, sotto questa soglia il risultato
+  // resta una differenza da investigare e non viene mai promosso a match/blocked.
+  if (audit.compared < MIN_HISTORICAL_COMPARISONS) {
     return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
   }
   // Un confronto dei valori può essere perfetto e tuttavia il workflow attuale

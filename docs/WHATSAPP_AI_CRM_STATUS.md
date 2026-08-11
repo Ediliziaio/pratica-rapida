@@ -25,7 +25,12 @@ Migration `20260811000200_whatsapp_ai_handoff.sql`:
 - `auto`: risposte automatiche consentite soltanto se passano la policy applicativa;
 - `paused`: presa in carico umana, AI bloccata.
 
-Fail-safe database: quando `assigned_to` cambia verso un operatore, `ai_mode` viene forzato a `paused`. La rimozione dell'assegnazione non riattiva automaticamente l'AI.
+Fail-safe database:
+
+- le conversazioni già assegnate a un operatore vengono portate a `paused` quando la migration viene applicata;
+- una nuova conversazione creata già assegnata nasce con AI `paused`;
+- ogni successiva assegnazione o cambio operatore forza `paused`;
+- la rimozione dell'assegnazione non riattiva automaticamente l'AI: la ripresa deve essere esplicita.
 
 ## Policy di routing
 
@@ -63,9 +68,10 @@ Workflow `.github/workflows/whatsapp-ai-ci.yml`:
 
 - test delle policy;
 - test handoff/grounding;
+- regressione statica sugli invarianti della migration di presa in carico;
 - typecheck TypeScript.
 
-Stato ultimo checkpoint: CI verde per policy di routing, handoff e isolamento CRM.
+Stato ultimo checkpoint: CI verde per policy di routing, handoff, isolamento CRM e invarianti della migration.
 
 ## Gate ancora aperti
 

@@ -18,7 +18,7 @@ function auditWithDifferences(fieldIds: string[]): CompletedEneaAuditResult {
 }
 
 describe("classificazione audit storico ENEA", () => {
-  it("classifica come match quando non ci sono differenze", () => {
+  it("classifica come match quando non ci sono differenze né blocker", () => {
     expect(classifyHistoricalAudit(auditWithDifferences([]), new Set()).outcome).toBe("match");
   });
 
@@ -35,6 +35,18 @@ describe("classificazione audit storico ENEA", () => {
     const result = classifyHistoricalAudit(audit, new Set());
 
     expect(result.outcome).toBe("difference");
+    expect(result.differenceFieldIds).toEqual([]);
+    expect(result.blockedDifferenceFieldIds).toEqual([]);
+  });
+
+  it("non conta come match valori coincidenti se il workflow corrente ha ancora blocker", () => {
+    const audit = auditWithDifferences([]);
+    const result = classifyHistoricalAudit(
+      audit,
+      new Set(["schermature.0.gtot"]),
+    );
+
+    expect(result.outcome).toBe("blocked");
     expect(result.differenceFieldIds).toEqual([]);
     expect(result.blockedDifferenceFieldIds).toEqual([]);
   });

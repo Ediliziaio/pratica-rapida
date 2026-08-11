@@ -39,6 +39,19 @@ describe("classificazione audit storico ENEA", () => {
     expect(result.blockedDifferenceFieldIds).toEqual([]);
   });
 
+  it("non considera match un PDF conclusivo senza CPID leggibile", () => {
+    const audit: CompletedEneaAuditResult = {
+      ...auditWithDifferences([]),
+      cpid: null,
+    };
+
+    const result = classifyHistoricalAudit(audit, new Set());
+
+    expect(result.outcome).toBe("difference");
+    expect(result.differenceFieldIds).toEqual([]);
+    expect(result.blockedDifferenceFieldIds).toEqual([]);
+  });
+
   it("non conta come match valori coincidenti se il workflow corrente ha ancora blocker", () => {
     const audit = auditWithDifferences([]);
     const result = classifyHistoricalAudit(

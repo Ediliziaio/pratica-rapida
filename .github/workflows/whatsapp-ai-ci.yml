@@ -1,0 +1,27 @@
+name: WhatsApp AI Lab CI
+
+on:
+  push:
+    branches:
+      - agent/whatsapp-ai-crm
+    paths:
+      - "src/features/whatsapp-ai/**"
+      - "supabase/migrations/20260811000200_whatsapp_ai_handoff.sql"
+      - ".github/workflows/whatsapp-ai-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  verify-whatsapp-ai:
+    name: Verify WhatsApp AI policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install
+      - name: Policy tests
+        run: bunx vitest run src/features/whatsapp-ai
+      - name: Typecheck
+        run: bunx tsc -p tsconfig.app.json --noEmit

@@ -3,11 +3,12 @@ import { classifyHistoricalAudit } from "./historicalBatchAudit";
 import type { CompletedEneaAuditResult } from "./completedEneaAudit";
 
 function auditWithDifferences(fieldIds: string[]): CompletedEneaAuditResult {
+  const compared = Math.max(12, fieldIds.length);
   return {
     path: "demo/conclusa.pdf",
     cpid: "TEST",
-    compared: Math.max(1, fieldIds.length),
-    matches: fieldIds.length ? 0 : 1,
+    compared,
+    matches: Math.max(0, compared - fieldIds.length),
     mismatches: fieldIds.length,
     differences: fieldIds.map((fieldId) => ({
       fieldId,
@@ -43,6 +44,23 @@ describe("classificazione audit storico ENEA", () => {
     const audit: CompletedEneaAuditResult = {
       ...auditWithDifferences([]),
       cpid: null,
+    };
+
+    const result = classifyHistoricalAudit(audit, new Set());
+
+    expect(result.outcome).toBe("difference");
+    expect(result.differenceFieldIds).toEqual([]);
+    expect(result.blockedDifferenceFieldIds).toEqual([]);
+  });
+
+  it("non certifica come match un parsing con copertura troppo bassa", () => {
+    const audit: CompletedEneaAuditResult = {
+      path: "demo/conclusa.pdf",
+      cpid: "TEST",
+      compared: 9,
+      matches: 9,
+      mismatches: 0,
+      differences: [],
     };
 
     const result = classifyHistoricalAudit(audit, new Set());
@@ -96,8 +114,8 @@ describe("classificazione audit storico ENEA", () => {
     const audit: CompletedEneaAuditResult = {
       path: "demo/conclusa.pdf",
       cpid: "TEST",
-      compared: 1,
-      matches: 0,
+      compared: 12,
+      matches: 11,
       mismatches: 1,
       differences: [],
     };

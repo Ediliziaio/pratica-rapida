@@ -24,6 +24,15 @@ interface EneaPortalWorkflowOptions {
   screeningSteps: EneaPortalWorkflowStep[];
 }
 
+function isInternalPortalPlaceholder(value: string): boolean {
+  const normalized = value.trim().toLocaleLowerCase("it");
+  return normalized === "non indicato" || normalized === "intervento umano richiesto";
+}
+
+function safeRuntimeFields(fields: EneaPortalRuntimeField[]): EneaPortalRuntimeField[] {
+  return fields.filter((field) => !isInternalPortalPlaceholder(field.value));
+}
+
 /**
  * Genera uno script autosufficiente da eseguire manualmente nella Console ENEA.
  * Lo script compila soltanto i controlli osservati: non cerca né attiva pulsanti
@@ -35,7 +44,7 @@ export function buildEneaPortalRuntimeScript({
   markerIds,
   successMessage,
 }: EneaPortalScriptOptions): string {
-  const data = JSON.stringify(fields);
+  const data = JSON.stringify(safeRuntimeFields(fields));
   const markers = JSON.stringify(markerIds);
   const wrongPageMessage = JSON.stringify(
     `Aprire la pagina ${pageName} del portale ENEA prima di eseguire la compilazione.`,
@@ -55,8 +64,16 @@ export function buildEneaPortalWorkflowRuntimeScript({
   steps,
   screeningSteps,
 }: EneaPortalWorkflowOptions): string {
-  const serializedSteps = JSON.stringify(steps);
-  const serializedScreenings = JSON.stringify(screeningSteps);
+  const sanitizedSteps = steps.map((currentStep) => ({
+    ...currentStep,
+    fields: safeRuntimeFields(currentStep.fields),
+  }));
+  const sanitizedScreenings = screeningSteps.map((currentStep) => ({
+    ...currentStep,
+    fields: safeRuntimeFields(currentStep.fields),
+  }));
+  const serializedSteps = JSON.stringify(sanitizedSteps);
+  const serializedScreenings = JSON.stringify(sanitizedScreenings);
   const storageKey = JSON.stringify(`enea-lab:${practiceCode}:schermatura`);
 
   return `(async()=>{

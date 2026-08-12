@@ -57,13 +57,13 @@ function documentBlockerResolution(
   if (/documento fiscale duplicato|note di credito superano/i.test(message)) {
     return {
       resolved: manuallyVerified(mapped, "schermature.spesa")
-        && fieldById(mapped, "documenti.fatture")?.status === "ready",
+        && manuallyVerified(mapped, "documenti.fatture"),
       fieldId: "schermature.spesa",
     };
   }
   if (/documento deve essere letto|documento non è stato riconosciuto/i.test(message)) {
     return {
-      resolved: fieldById(mapped, "documenti.fatture")?.status === "ready",
+      resolved: manuallyVerified(mapped, "documenti.fatture"),
       fieldId: "documenti.fatture",
     };
   }

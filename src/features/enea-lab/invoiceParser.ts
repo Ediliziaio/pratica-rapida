@@ -89,6 +89,7 @@ export function parseScreeningInvoiceText(
   const compact = text.replace(/\s+/g, " ");
   const pattern = /SCHERMATURA\s+SOLARE([\s\S]{0,260}?)LARGHEZZA\s+(\d{2,5})\s*[X×]\s*(\d{2,5})\s+VALORE\s+G\s*TOT\s*([0-9]+(?:[,.][0-9]+)?)/gi;
   const items: EneaLabScreeningItem[] = [];
+  let invalidExplicitQuantity = false;
 
   if (documentType === "invoice") {
     for (const match of compact.matchAll(pattern)) {
@@ -97,9 +98,19 @@ export function parseScreeningInvoiceText(
       const gTot = parseItalianNumber(match[4]);
       const quantityMatch = match[1].match(/\bNR\s+([0-9]+(?:[,.][0-9]+)?)/i);
       const quantityValue = quantityMatch ? parseItalianNumber(quantityMatch[1]) : 1;
-      const quantity = Number.isInteger(quantityValue) && quantityValue! >= 1 && quantityValue! <= MAX_SCREENING_QUANTITY
-        ? quantityValue!
-        : 1;
+      const quantityIsValid = Number.isInteger(quantityValue)
+        && quantityValue! >= 1
+        && quantityValue! <= MAX_SCREENING_QUANTITY;
+
+      // Se la fattura espone esplicitamente una quantità ma il valore non è un
+      // intero plausibile, non possiamo trasformarlo silenziosamente in 1. Un
+      // fallback del genere sottostimerebbe il numero di schermature e potrebbe
+      // rendere apparentemente pronto un payload ufficiale incompleto.
+      if (quantityMatch && !quantityIsValid) {
+        invalidExplicitQuantity = true;
+        continue;
+      }
+      const quantity = quantityMatch ? quantityValue! : 1;
 
       for (let index = 0; index < quantity; index += 1) {
         items.push({
@@ -118,10 +129,13 @@ export function parseScreeningInvoiceText(
     items,
     result: {
       path,
-      status: "parsed",
+      status: invalidExplicitQuantity ? "failed" : "parsed",
       documentType,
       total: extractDocumentTotal(text),
       itemCount: items.length,
+      ...(invalidExplicitQuantity
+        ? { message: "Quantità schermatura esplicita non valida: controllo umano richiesto." }
+        : {}),
       ...extractDocumentIdentity(text),
     },
   };

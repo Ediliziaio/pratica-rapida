@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { addFixtureEmailDraft, addSyntheticAttachment, assignShadowCrm, EMPTY_SHADOW_CRM_STATE, internalPilotCriteria, loadShadowCrmState, prioritizeShadowCrm, saveShadowCrmState, serializeShadowCrmAudit, transitionShadowCrm } from "./workflow";
+import { addFixtureEmailDraft, addSyntheticAttachment, assignShadowCrm, clearShadowCrmState, EMPTY_SHADOW_CRM_STATE, ENEA_SHADOW_CRM_STORAGE_KEY, internalPilotCriteria, loadShadowCrmState, prioritizeShadowCrm, removeSyntheticAttachment, saveShadowCrmState, serializeShadowCrmAudit, serializeShadowCrmPractice, transitionShadowCrm } from "./workflow";
 
 describe("workflow CRM ombra", () => {
   it("consente soltanto il percorso ordinato e conserva un audit append-only", () => {
@@ -35,11 +35,26 @@ describe("workflow CRM ombra", () => {
     state = transitionShadowCrm(state, "start", new Date("2026-08-12T10:00:03Z"));
     state = transitionShadowCrm(state, "review", new Date("2026-08-12T10:00:04Z"));
     state = addFixtureEmailDraft(state, "status-update", "LAB-DEMO-001", new Date("2026-08-12T10:00:05Z"));
+    state = addFixtureEmailDraft(state, "status-update", "LAB-DEMO-001", new Date("2026-08-12T10:00:06Z"));
     expect(internalPilotCriteria(state).ready).toBe(true);
     expect(state.attachments.every((item) => item.name.startsWith("DEMO-") && item.size <= 200_000)).toBe(true);
     expect(state.drafts[0].body).toContain("non inviata");
+    expect(state.drafts.map((draft) => draft.version)).toEqual([1, 2]);
     expect(serializeShadowCrmAudit("crm-reale-1", state)).toBeNull();
     expect(serializeShadowCrmAudit("lab-demo-1", state)).toContain('"fixture": true');
+    expect(serializeShadowCrmPractice("lab-demo-1", state)).toContain('"pilot"');
+  });
+
+  it("rimuove allegati con audit e resetta una sola pratica persistita", () => {
+    const withAttachment = addSyntheticAttachment(EMPTY_SHADOW_CRM_STATE, "invoice");
+    const removed = removeSyntheticAttachment(withAttachment, withAttachment.attachments[0].id);
+    expect(removed.attachments).toEqual([]);
+    expect(removed.audit.at(-1)?.type).toBe("attachment-removed");
+    const values: Record<string, string> = { [ENEA_SHADOW_CRM_STORAGE_KEY]: JSON.stringify({ "lab-one": withAttachment, "lab-two": EMPTY_SHADOW_CRM_STATE }) };
+    const storage = { getItem: vi.fn((key: string) => values[key] ?? null), setItem: vi.fn((key: string, value: string) => { values[key] = value; }), removeItem: vi.fn((key: string) => { delete values[key]; }) };
+    expect(clearShadowCrmState(storage, "lab-one")).toBe(true);
+    expect(JSON.parse(values[ENEA_SHADOW_CRM_STORAGE_KEY])).toHaveProperty("lab-two");
+    expect(JSON.parse(values[ENEA_SHADOW_CRM_STORAGE_KEY])).not.toHaveProperty("lab-one");
   });
 
   it("legge e salva esclusivamente identificativi fixture e degrada in sicurezza", () => {

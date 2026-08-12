@@ -25,10 +25,13 @@ describe("CRM ombra ENEA locale", () => {
     expect(screen.getByText("LAB-SCH-001 — Cliente Demo Uno")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Aggiungi fattura DEMO" }));
     fireEvent.click(screen.getByRole("button", { name: "Aggiungi bonifico DEMO" }));
+    fireEvent.click(screen.getByRole("button", { name: "Rimuovi DEMO-FATTURA.pdf" }));
+    fireEvent.click(screen.getByRole("button", { name: "Aggiungi fattura DEMO" }));
     fireEvent.change(screen.getByLabelText("Assegnatario"), { target: { value: "operatore-demo-anna" } });
     fireEvent.change(screen.getByLabelText("Priorità"), { target: { value: "high" } });
     fireEvent.click(screen.getByRole("button", { name: "Avvia lavorazione" }));
     fireEvent.click(screen.getByRole("button", { name: "Invia a revisione" }));
+    fireEvent.click(screen.getByRole("button", { name: "Crea bozza aggiornamento" }));
     fireEvent.click(screen.getByRole("button", { name: "Crea bozza aggiornamento" }));
     fireEvent.click(screen.getByRole("button", { name: "Crea bozza documenti mancanti" }));
     expect(screen.getByText("Readiness pilot interno: PRONTA")).toBeInTheDocument();
@@ -37,6 +40,7 @@ describe("CRM ombra ENEA locale", () => {
 
     expect(screen.getByText(/Stato: Conclusa/)).toBeInTheDocument();
     expect(screen.getAllByText(/non inviata/).length).toBeGreaterThan(1);
+    expect(screen.getByText(/versione 2/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Invia email$/ })).not.toBeInTheDocument();
     expect(createObjectURL).toHaveBeenCalledOnce();
     expect(revokeObjectURL).toHaveBeenCalledWith("blob:fixture-audit");
@@ -47,6 +51,19 @@ describe("CRM ombra ENEA locale", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(xhrSpy).not.toHaveBeenCalled();
     expect(socketSpy).not.toHaveBeenCalled();
+  });
+
+  it("richiede conferma e pulisce soltanto il pilot selezionato", () => {
+    localStorage.setItem("enea-shadow-crm:workflow:v1", JSON.stringify({ "lab-schermature-001": { stage: "assigned" }, "lab-schermature-002": { stage: "received" } }));
+    render(<EneaShadowCrm />);
+    const reset = screen.getByRole("button", { name: "Resetta singolo pilot fixture" });
+    expect(reset).toBeDisabled();
+    fireEvent.click(screen.getByLabelText(/Confermo la pulizia locale/));
+    fireEvent.click(reset);
+    const persisted = JSON.parse(localStorage.getItem("enea-shadow-crm:workflow:v1") ?? "{}");
+    expect(persisted).not.toHaveProperty("lab-schermature-001");
+    expect(persisted).toHaveProperty("lab-schermature-002");
+    expect(screen.getByText(/Stato: Ricevuta/)).toBeInTheDocument();
   });
 
   it("ricerca e filtra la coda per stato e assegnatario sintetico", () => {

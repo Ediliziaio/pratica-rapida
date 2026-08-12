@@ -78,14 +78,16 @@ function dateYear(value: string): number | null {
 
 /**
  * Un CPID formalmente valido puo' comunque appartenere a un'altra annualita'.
- * Se conosciamo la data di fine lavori, il PDF storico puo' certificare il
- * collaudo solo quando l'anno Ecobonus codificato nel CPID coincide con essa.
+ * Il PDF storico puo' certificare il collaudo solo quando abbiamo anche una
+ * data di fine lavori verificabile e l'anno Ecobonus del CPID coincide con essa.
+ * In assenza della data non assumiamo che l'annualita' sia corretta: la stessa
+ * persona e lo stesso immobile possono avere schermature ENEA in anni diversi.
  */
 export function isHistoricalCpidCoherentWithFinishDate(
   cpid: string | null,
-  finishDate: string,
+  finishDate: string | null,
 ): boolean {
-  if (!isValidHistoricalCpid(cpid)) return false;
+  if (!isValidHistoricalCpid(cpid) || !finishDate) return false;
   const completedYear = cpidYear(cpid);
   const expectedYear = dateYear(finishDate);
   return completedYear !== null && expectedYear !== null && completedYear === expectedYear;
@@ -209,11 +211,14 @@ async function auditBestHistoricalCompletedEneaPractice(
 
   const finishDate = readyMappedFieldValue(mapped, "intervento.data_fine");
   if (
-    finishDate
-    && isValidHistoricalCpid(best.cpid)
+    isValidHistoricalCpid(best.cpid)
     && !isHistoricalCpidCoherentWithFinishDate(best.cpid, finishDate)
   ) {
-    throw new Error("PDF ENEA conclusivo con anno CPID non coerente con la data di fine lavori.");
+    throw new Error(
+      finishDate
+        ? "PDF ENEA conclusivo con anno CPID non coerente con la data di fine lavori."
+        : "Data di fine lavori verificabile assente: impossibile provare l'annualita' del PDF ENEA conclusivo.",
+    );
   }
 
   return best;

@@ -1,4 +1,4 @@
-import { buildEneaPayload } from "./preparation";
+import { buildEneaPayload, validatePreparedPractice } from "./preparation";
 import { buildEneaOfficialPortalWorkflowScript, type EneaPortalWorkflowPreparation } from "./portalWorkflow";
 import type { EneaLabMappedPractice, EneaLabPayload } from "./types";
 
@@ -91,7 +91,18 @@ export function prepareEneaOfficialPortalCollaudo(
   if (payload.mode !== "official") {
     return { status: "blocked", reason: "payload-not-official", workflow: null };
   }
-  if (!payload.readyForOfficialSubmission || payload.interventionRequired.length > 0) {
+
+  // I flag del payload sono una rappresentazione derivata e non una fonte di
+  // verità. Prima del collaudo ricontrolliamo direttamente il mapping corrente:
+  // un JSON con readyForOfficialSubmission/interventionRequired manipolati non
+  // deve poter promuovere una pratica che presenta ancora blocker strutturali.
+  const independentBlockers = validatePreparedPractice(mapped.source, mapped)
+    .filter((issue) => issue.severity === "blocker");
+  if (
+    independentBlockers.length > 0
+    || !payload.readyForOfficialSubmission
+    || payload.interventionRequired.length > 0
+  ) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
   if (!hasConsistentOfficialPayload(mapped, payload)) {

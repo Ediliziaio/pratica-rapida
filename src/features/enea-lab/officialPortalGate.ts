@@ -113,6 +113,14 @@ export function prepareEneaOfficialPortalCollaudo(
     return { status: "blocked", reason: "payload-not-official", workflow: null };
   }
 
+  // Il workflow ufficiale non può essere preparato senza l'analisi documentale
+  // corrente. In particolare, durante un errore o mentre il download/parsing è
+  // indisponibile, omettere analysis non deve trasformare l'assenza di blocker
+  // in un via libera implicito.
+  if (!analysis) {
+    return { status: "blocked", reason: "official-data-incomplete", workflow: null };
+  }
+
   // L'audit storico ha mostrato che il totale fiscale della fattura può non
   // coincidere con la "spesa congrua sostenuta" effettivamente riportata nel
   // riepilogo ENEA conclusivo. Il totale estratto resta quindi una proposta di

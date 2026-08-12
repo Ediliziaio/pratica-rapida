@@ -59,6 +59,33 @@ function hasCurrentDocumentAnalysis(
   return analysis.items.every((item) => expectedPathSet.has(item.sourcePath));
 }
 
+function mappedScreeningCount(mapped: EneaLabMappedPractice): number | null {
+  const field = mapped.sections
+    .flatMap((section) => section.fields)
+    .find((candidate) => candidate.id === "schermature.numero");
+  if (!field) return null;
+  const parsed = Number(field.value.trim().replace(/\s/g, "").replace(",", "."));
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function hasNoScreeningUndercount(
+  mapped: EneaLabMappedPractice,
+  analysis: EneaLabDocumentAnalysis,
+): boolean {
+  const currentCount = mappedScreeningCount(mapped);
+  if (currentCount === null) return false;
+  const declaredCount = mapped.source.form.prodotto.tipo === "schermature"
+    ? mapped.source.form.prodotto.items.length
+    : 0;
+  const documentedCount = analysis.items.length;
+
+  // Il numero inserito dall'operatore non deve poter cancellare righe già
+  // osservate nel modulo o nelle fatture. Un eventuale vero scarto verso il
+  // basso va riconciliato fuori dal percorso automatico, non trasformato in un
+  // pacchetto ufficiale apparentemente completo.
+  return currentCount >= Math.max(declaredCount, documentedCount);
+}
+
 function samePortalFields(
   left: EneaLabPayload["portalFields"],
   right: EneaLabPayload["portalFields"],
@@ -140,6 +167,9 @@ export function prepareEneaOfficialPortalCollaudo(
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
   if (!hasCurrentDocumentAnalysis(mapped, analysis)) {
+    return { status: "blocked", reason: "official-data-incomplete", workflow: null };
+  }
+  if (!hasNoScreeningUndercount(mapped, analysis)) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
 

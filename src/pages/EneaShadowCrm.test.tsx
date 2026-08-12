@@ -58,6 +58,16 @@ describe("CRM ombra ENEA locale", () => {
     expect(socketSpy).not.toHaveBeenCalled();
   });
 
+  it("allinea la checklist della fixture incompleta ai documenti DEMO validati", () => {
+    render(<EneaShadowCrm />);
+    fireEvent.click(screen.getByRole("button", { name: /LAB-SCH-002/ }));
+    expect(screen.getByText("○ Analisi documentale fixture completata")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Aggiungi fattura DEMO" }));
+    fireEvent.click(screen.getByRole("button", { name: "Aggiungi bonifico DEMO" }));
+    expect(screen.getByText("✓ Analisi documentale fixture completata")).toBeInTheDocument();
+    expect(screen.getByText("✓ Dati sintetici pronti per istruttoria")).toBeInTheDocument();
+  });
+
   it("richiede conferma e pulisce soltanto il pilot selezionato", () => {
     vi.stubGlobal("URL", { ...URL, createObjectURL: vi.fn(() => "blob:fixture-full"), revokeObjectURL: vi.fn() });
     vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);

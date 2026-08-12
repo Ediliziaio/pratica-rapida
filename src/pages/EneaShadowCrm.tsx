@@ -29,11 +29,12 @@ function Workspace({ practice, state, setState }: { practice: EneaLabSourcePract
   const [practiceExported, setPracticeExported] = useState(false);
   const skipNextSave = useRef(false);
   const analysis = ENEA_LAB_MOCK_ANALYSIS[practice.id];
+  const syntheticDocumentsReady = state.attachments.length >= 2 && state.attachments.every((item) => item.validation === "valid");
   const checklist = [
     { label: "Anagrafica sintetica disponibile", ok: practice.clienteCognome.startsWith("Demo") },
-    { label: "Allegati fixture acquisiti", ok: practice.documentPaths.length > 0 },
-    { label: "Analisi documentale fixture completata", ok: Boolean(analysis) },
-    { label: "Dati pratica pronti per istruttoria", ok: practice.queueStatus === "ready" },
+    { label: "Allegati fixture acquisiti", ok: practice.documentPaths.length > 0 || syntheticDocumentsReady },
+    { label: "Analisi documentale fixture completata", ok: Boolean(analysis) || syntheticDocumentsReady },
+    { label: "Dati sintetici pronti per istruttoria", ok: practice.queueStatus === "ready" || syntheticDocumentsReady },
   ];
   const pilot = internalPilotCriteria(state);
   const sessionId = pilotSessionId(practice.id);

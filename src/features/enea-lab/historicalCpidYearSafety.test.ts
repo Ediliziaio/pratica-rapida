@@ -23,6 +23,17 @@ describe("coerenza annualita PDF ENEA storico", () => {
     )).toBe(false);
   });
 
+  it("non certifica l'annualita se la data di fine lavori e assente", () => {
+    expect(isHistoricalCpidCoherentWithFinishDate(
+      "288717-2026E-TFJHEYICFSKSRZCA",
+      null,
+    )).toBe(false);
+    expect(isHistoricalCpidCoherentWithFinishDate(
+      "288717-2026E-TFJHEYICFSKSRZCA",
+      "",
+    )).toBe(false);
+  });
+
   it("rifiuta CPID o date non abbastanza strutturati per provare la coerenza", () => {
     expect(isHistoricalCpidCoherentWithFinishDate("288717-2026E", "2026-07-14")).toBe(false);
     expect(isHistoricalCpidCoherentWithFinishDate(

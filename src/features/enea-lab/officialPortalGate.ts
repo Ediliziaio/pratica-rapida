@@ -1,3 +1,4 @@
+import { buildEneaPayload } from "./preparation";
 import { buildEneaOfficialPortalWorkflowScript, type EneaPortalWorkflowPreparation } from "./portalWorkflow";
 import type { EneaLabMappedPractice, EneaLabPayload } from "./types";
 
@@ -24,14 +25,54 @@ function isInternalPlaceholder(value: string): boolean {
   return normalized === "non indicato" || normalized === "intervento umano richiesto";
 }
 
-function hasConsistentOfficialPayload(payload: EneaLabPayload): boolean {
+function sameStringRecord(left: Record<string, string>, right: Record<string, string>): boolean {
+  const leftKeys = Object.keys(left).sort();
+  const rightKeys = Object.keys(right).sort();
+  if (leftKeys.length !== rightKeys.length) return false;
+  return leftKeys.every((key, index) => key === rightKeys[index] && left[key] === right[key]);
+}
+
+function sameStringSet(left: string[], right: string[]): boolean {
+  const normalizedLeft = [...new Set(left)].sort();
+  const normalizedRight = [...new Set(right)].sort();
+  if (normalizedLeft.length !== left.length || normalizedRight.length !== right.length) return false;
+  return normalizedLeft.length === normalizedRight.length
+    && normalizedLeft.every((value, index) => value === normalizedRight[index]);
+}
+
+function samePortalFields(
+  left: EneaLabPayload["portalFields"],
+  right: EneaLabPayload["portalFields"],
+): boolean {
+  if (left.length !== right.length) return false;
+  if (new Set(left.map((field) => field.id)).size !== left.length) return false;
+
+  const expectedById = new Map(right.map((field) => [field.id, field]));
+  return left.every((field) => {
+    const expected = expectedById.get(field.id);
+    return Boolean(expected)
+      && field.label === expected?.label
+      && field.sectionId === expected?.sectionId
+      && field.sectionTitle === expected?.sectionTitle
+      && field.value === expected?.value
+      && field.source === expected?.source
+      && field.testOnly === expected?.testOnly;
+  });
+}
+
+function hasConsistentOfficialPayload(mapped: EneaLabMappedPractice, payload: EneaLabPayload): boolean {
+  if (payload.practiceCode !== mapped.source.code) return false;
   if (!payload.portalFields.length) return false;
   if (payload.portalFields.some((field) => field.testOnly || isInternalPlaceholder(field.value))) return false;
 
-  const fieldIds = Object.keys(payload.fields).sort();
-  const portalFieldIds = payload.portalFields.map((field) => field.id).sort();
-  if (fieldIds.length !== portalFieldIds.length) return false;
-  return fieldIds.every((fieldId, index) => fieldId === portalFieldIds[index]);
+  // Ricostruisce localmente la parte deterministica del payload ufficiale dal
+  // mapping corrente. Il gate non deve fidarsi di un JSON copiato, alterato o
+  // appartenente a un'altra pratica anche se espone flag di readiness validi.
+  const expected = buildEneaPayload(mapped, [], "official", new Date(0));
+  return sameStringRecord(payload.fields, expected.fields)
+    && samePortalFields(payload.portalFields, expected.portalFields)
+    && sameStringSet(payload.excludedTestFields, expected.excludedTestFields)
+    && sameStringSet(payload.excludedUnverifiedFields, expected.excludedUnverifiedFields);
 }
 
 /**
@@ -53,7 +94,7 @@ export function prepareEneaOfficialPortalCollaudo(
   if (!payload.readyForOfficialSubmission || payload.interventionRequired.length > 0) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
-  if (!hasConsistentOfficialPayload(payload)) {
+  if (!hasConsistentOfficialPayload(mapped, payload)) {
     return { status: "blocked", reason: "payload-inconsistent", workflow: null };
   }
 

@@ -13,6 +13,19 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
     return { mapped, issues };
   }
 
+  function syntheticallyReadyPayload() {
+    const { mapped, issues } = fixture();
+    const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-12T08:00:00.000Z"));
+    return {
+      mapped,
+      payload: {
+        ...payload,
+        readyForOfficialSubmission: true,
+        interventionRequired: [],
+      },
+    };
+  }
+
   it("blocca una pratica con dati ufficiali ancora incompleti", () => {
     const { mapped, issues } = fixture();
     const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-12T08:00:00.000Z"));
@@ -41,15 +54,9 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
   });
 
   it("restituisce soltanto un workflow official quando il payload corrente supera tutte le barriere", () => {
-    const { mapped, issues } = fixture();
-    const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-12T08:00:00.000Z"));
-    const readyPayload = {
-      ...payload,
-      readyForOfficialSubmission: true,
-      interventionRequired: [],
-    };
+    const { mapped, payload } = syntheticallyReadyPayload();
 
-    const gate = prepareEneaOfficialPortalCollaudo(mapped, readyPayload, true);
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true);
 
     expect(gate.status).toBe("ready");
     if (gate.status !== "ready") throw new Error("Il gate doveva essere pronto nel caso positivo sintetico.");
@@ -59,13 +66,48 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
   });
 
   it("blocca payload dichiarati pronti ma internamente incoerenti", () => {
-    const { mapped, issues } = fixture();
-    const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-12T08:00:00.000Z"));
+    const { mapped, payload } = syntheticallyReadyPayload();
     const poisonedPayload = {
       ...payload,
-      readyForOfficialSubmission: true,
-      interventionRequired: [],
       portalFields: payload.portalFields.map((field, index) => index === 0 ? { ...field, testOnly: true } : field),
+    };
+
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true);
+
+    expect(gate).toEqual({ status: "blocked", reason: "payload-inconsistent", workflow: null });
+  });
+
+  it("blocca un payload ufficiale appartenente a un'altra pratica", () => {
+    const { mapped, payload } = syntheticallyReadyPayload();
+    const poisonedPayload = { ...payload, practiceCode: `${payload.practiceCode}-ALTRO` };
+
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true);
+
+    expect(gate).toEqual({ status: "blocked", reason: "payload-inconsistent", workflow: null });
+  });
+
+  it("blocca un payload che omette in modo coerente un campo ufficiale", () => {
+    const { mapped, payload } = syntheticallyReadyPayload();
+    const omittedId = payload.portalFields[0]?.id;
+    if (!omittedId) throw new Error("Fixture ufficiale senza campi portale.");
+    const fields = { ...payload.fields };
+    delete fields[omittedId];
+    const poisonedPayload = {
+      ...payload,
+      fields,
+      portalFields: payload.portalFields.filter((field) => field.id !== omittedId),
+    };
+
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true);
+
+    expect(gate).toEqual({ status: "blocked", reason: "payload-inconsistent", workflow: null });
+  });
+
+  it("blocca la manipolazione del valore portale mantenendo invariati gli id", () => {
+    const { mapped, payload } = syntheticallyReadyPayload();
+    const poisonedPayload = {
+      ...payload,
+      portalFields: payload.portalFields.map((field, index) => index === 0 ? { ...field, value: `${field.value}-ALTERATO` } : field),
     };
 
     const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true);

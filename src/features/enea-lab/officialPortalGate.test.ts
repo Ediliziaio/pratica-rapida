@@ -104,6 +104,18 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
     expect(gate).toEqual({ status: "blocked", reason: "official-data-incomplete", workflow: null });
   });
 
+  it("blocca un'analisi documentale diventata obsoleta rispetto alle fatture correnti", () => {
+    const { mapped, payload, analysis } = readyPayload();
+    const staleAnalysis = {
+      ...analysis,
+      documents: analysis.documents.slice(0, 1),
+    };
+
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true, staleAnalysis);
+
+    expect(gate).toEqual({ status: "blocked", reason: "official-data-incomplete", workflow: null });
+  });
+
   it("rivalida anche i blocker dell'analisi documentale corrente", () => {
     const { mapped, payload } = readyPayload();
     const baseAnalysis = ENEA_LAB_MOCK_ANALYSIS[mapped.source.id];

@@ -4,6 +4,7 @@ import type { CompletedEneaAuditResult } from "./completedEneaAudit";
 
 const VALID_CPID = "288717-2026E-TEST";
 const SAFE_IDENTITY_MATCHES = [
+  "intervento.tipo",
   "beneficiario.cf",
   "immobile.foglio",
   "immobile.mappale",
@@ -93,6 +94,20 @@ describe("classificazione audit storico ENEA", () => {
     expect(result.blockedDifferenceFieldIds).toEqual([]);
   });
 
+  it("non certifica un PDF dello stesso beneficiario e immobile senza prova che sia schermature", () => {
+    const audit: CompletedEneaAuditResult = {
+      ...auditWithDifferences([]),
+      matchedFieldIds: [
+        "beneficiario.cf",
+        "immobile.foglio",
+        "immobile.mappale",
+        "immobile.destinazione_generale",
+      ],
+    };
+
+    expect(classifyHistoricalAudit(audit, new Set()).outcome).toBe("difference");
+  });
+
   it("non certifica un PDF con molti match ma senza prova di identita", () => {
     const audit: CompletedEneaAuditResult = {
       ...auditWithDifferences([]),
@@ -109,7 +124,7 @@ describe("classificazione audit storico ENEA", () => {
   it("non basta il solo codice fiscale senza una prova dell'immobile", () => {
     const audit: CompletedEneaAuditResult = {
       ...auditWithDifferences([]),
-      matchedFieldIds: ["beneficiario.cf"],
+      matchedFieldIds: ["intervento.tipo", "beneficiario.cf"],
     };
 
     expect(classifyHistoricalAudit(audit, new Set()).outcome).toBe("difference");
@@ -119,6 +134,7 @@ describe("classificazione audit storico ENEA", () => {
     const audit: CompletedEneaAuditResult = {
       ...auditWithDifferences([]),
       matchedFieldIds: [
+        "intervento.tipo",
         "beneficiario.cf",
         "immobile.foglio",
         "immobile.mappale",
@@ -132,6 +148,7 @@ describe("classificazione audit storico ENEA", () => {
     const audit: CompletedEneaAuditResult = {
       ...auditWithDifferences([]),
       matchedFieldIds: [
+        "intervento.tipo",
         "beneficiario.cf",
         "immobile.indirizzo",
         "immobile.civico",

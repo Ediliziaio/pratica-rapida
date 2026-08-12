@@ -44,7 +44,7 @@ describe("compilazione riepilogo schermature ENEA", () => {
       const preparation = buildEneaScreeningSummaryPortalScript(mapped);
       expect(preparation.readyFieldIds).toEqual([]);
       expect(preparation.skippedFieldIds).toEqual(["schermature.spesa"]);
-      expect(preparation.script).not.toContain(`\"value\":\"${invalidValue}\"`);
+      expect(preparation.script).not.toContain(`"value":"${invalidValue}"`);
     }
   });
 });

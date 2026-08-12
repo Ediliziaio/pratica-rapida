@@ -116,6 +116,33 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
     expect(gate).toEqual({ status: "blocked", reason: "official-data-incomplete", workflow: null });
   });
 
+  it("blocca un numero manuale inferiore alle schermature già documentate", () => {
+    const { mapped, analysis } = readyPayload();
+    const undercountedMapped = {
+      ...mapped,
+      sections: mapped.sections.map((section) => ({
+        ...section,
+        fields: section.fields
+          .filter((field) => !/^schermature\.1\./.test(field.id))
+          .map((field) => field.id === "schermature.numero"
+            ? { ...field, value: "1", status: "ready" as const, source: "Inserimento operatore" as const }
+            : field),
+      })),
+    };
+    const issues = validatePreparedPractice(undercountedMapped.source, undercountedMapped, analysis);
+    const payload = buildEneaPayload(
+      undercountedMapped,
+      issues,
+      "official",
+      new Date("2026-08-12T08:00:00.000Z"),
+    );
+
+    expect(payload.readyForOfficialSubmission).toBe(true);
+    const gate = prepareEneaOfficialPortalCollaudo(undercountedMapped, payload, true, analysis);
+
+    expect(gate).toEqual({ status: "blocked", reason: "official-data-incomplete", workflow: null });
+  });
+
   it("rivalida anche i blocker dell'analisi documentale corrente", () => {
     const { mapped, payload } = readyPayload();
     const baseAnalysis = ENEA_LAB_MOCK_ANALYSIS[mapped.source.id];
@@ -139,8 +166,8 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
     expect(gate.status).toBe("ready");
     if (gate.status !== "ready") throw new Error("Il gate doveva essere pronto nel caso positivo verificato.");
     expect(gate.workflow.mode).toBe("official");
-    expect(gate.workflow.script).toContain('"portalId":"id-n"');
-    expect(gate.workflow.script).toContain('"portalId":"id-pn"');
+    expect(gate.workflow.script).toContain('\"portalId\":\"id-n\"');
+    expect(gate.workflow.script).toContain('\"portalId\":\"id-pn\"');
   });
 
   it("blocca payload dichiarati pronti ma internamente incoerenti", () => {

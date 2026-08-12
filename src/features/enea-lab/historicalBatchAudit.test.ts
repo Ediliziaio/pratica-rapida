@@ -8,6 +8,10 @@ const SAFE_IDENTITY_MATCHES = [
   "beneficiario.cf",
   "immobile.foglio",
   "immobile.mappale",
+  "intervento.data_inizio",
+  "intervento.data_fine",
+  "schermature.numero",
+  "schermature.spesa",
 ];
 
 function auditWithDifferences(fieldIds: string[]): CompletedEneaAuditResult {
@@ -102,6 +106,10 @@ describe("classificazione audit storico ENEA", () => {
         "immobile.foglio",
         "immobile.mappale",
         "immobile.destinazione_generale",
+        "intervento.data_inizio",
+        "intervento.data_fine",
+        "schermature.numero",
+        "schermature.spesa",
       ],
     };
 
@@ -115,6 +123,10 @@ describe("classificazione audit storico ENEA", () => {
         "intervento.tipo",
         "immobile.destinazione_generale",
         "schermature.0.tipo",
+        "intervento.data_inizio",
+        "intervento.data_fine",
+        "schermature.numero",
+        "schermature.spesa",
       ],
     };
 
@@ -124,7 +136,38 @@ describe("classificazione audit storico ENEA", () => {
   it("non basta il solo codice fiscale senza una prova dell'immobile", () => {
     const audit: CompletedEneaAuditResult = {
       ...auditWithDifferences([]),
-      matchedFieldIds: ["intervento.tipo", "beneficiario.cf"],
+      matchedFieldIds: [
+        "intervento.tipo",
+        "beneficiario.cf",
+        "intervento.data_inizio",
+        "intervento.data_fine",
+        "schermature.numero",
+        "schermature.spesa",
+      ],
+    };
+
+    expect(classifyHistoricalAudit(audit, new Set()).outcome).toBe("difference");
+  });
+
+  it("non basta stessa persona, immobile e tipo se non coincide la singola pratica", () => {
+    const audit: CompletedEneaAuditResult = {
+      ...auditWithDifferences([]),
+      matchedFieldIds: [
+        "intervento.tipo",
+        "beneficiario.cf",
+        "immobile.foglio",
+        "immobile.mappale",
+        "schermature.spesa",
+      ],
+    };
+
+    expect(classifyHistoricalAudit(audit, new Set()).outcome).toBe("difference");
+  });
+
+  it("non certifica se il parser non osserva la spesa della pratica conclusa", () => {
+    const audit: CompletedEneaAuditResult = {
+      ...auditWithDifferences([]),
+      matchedFieldIds: SAFE_IDENTITY_MATCHES.filter((fieldId) => fieldId !== "schermature.spesa"),
     };
 
     expect(classifyHistoricalAudit(audit, new Set()).outcome).toBe("difference");
@@ -138,6 +181,10 @@ describe("classificazione audit storico ENEA", () => {
         "beneficiario.cf",
         "immobile.foglio",
         "immobile.mappale",
+        "intervento.data_inizio",
+        "intervento.data_fine",
+        "schermature.numero",
+        "schermature.spesa",
       ],
     };
 
@@ -154,6 +201,10 @@ describe("classificazione audit storico ENEA", () => {
         "immobile.civico",
         "immobile.cap",
         "immobile.comune",
+        "intervento.data_inizio",
+        "intervento.data_fine",
+        "schermature.numero",
+        "schermature.spesa",
       ],
     };
 
@@ -170,6 +221,14 @@ describe("classificazione audit storico ENEA", () => {
     expect(result.outcome).toBe("blocked");
     expect(result.differenceFieldIds).toEqual([]);
     expect(result.blockedDifferenceFieldIds).toEqual([]);
+  });
+
+  it("mantiene blocked se la spesa e osservata ma discordante per un blocker noto", () => {
+    const audit = auditWithDifferences(["schermature.spesa"]);
+    const result = classifyHistoricalAudit(audit, new Set(["schermature.spesa"]));
+
+    expect(result.outcome).toBe("blocked");
+    expect(result.blockedDifferenceFieldIds).toEqual(["schermature.spesa"]);
   });
 
   it("classifica come correttamente bloccata se tutte le differenze erano già bloccanti", () => {

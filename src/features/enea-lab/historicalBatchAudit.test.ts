@@ -93,6 +93,56 @@ describe("classificazione audit storico ENEA", () => {
     expect(result.blockedDifferenceFieldIds).toEqual([]);
   });
 
+  it("non certifica un PDF con molti match ma senza prova di identita", () => {
+    const audit: CompletedEneaAuditResult = {
+      ...auditWithDifferences([]),
+      matchedFieldIds: [
+        "intervento.tipo",
+        "immobile.destinazione_generale",
+        "schermature.0.tipo",
+      ],
+    };
+
+    expect(classifyHistoricalAudit(audit, new Set()).outcome).toBe("difference");
+  });
+
+  it("non basta il solo codice fiscale senza una prova dell'immobile", () => {
+    const audit: CompletedEneaAuditResult = {
+      ...auditWithDifferences([]),
+      matchedFieldIds: ["beneficiario.cf"],
+    };
+
+    expect(classifyHistoricalAudit(audit, new Set()).outcome).toBe("difference");
+  });
+
+  it("accetta come identita forte codice fiscale e almeno due riferimenti catastali", () => {
+    const audit: CompletedEneaAuditResult = {
+      ...auditWithDifferences([]),
+      matchedFieldIds: [
+        "beneficiario.cf",
+        "immobile.foglio",
+        "immobile.mappale",
+      ],
+    };
+
+    expect(classifyHistoricalAudit(audit, new Set()).outcome).toBe("match");
+  });
+
+  it("accetta come alternativa codice fiscale e indirizzo completo dell'immobile", () => {
+    const audit: CompletedEneaAuditResult = {
+      ...auditWithDifferences([]),
+      matchedFieldIds: [
+        "beneficiario.cf",
+        "immobile.indirizzo",
+        "immobile.civico",
+        "immobile.cap",
+        "immobile.comune",
+      ],
+    };
+
+    expect(classifyHistoricalAudit(audit, new Set()).outcome).toBe("match");
+  });
+
   it("non conta come match valori coincidenti se il workflow corrente ha ancora blocker", () => {
     const audit = auditWithDifferences([]);
     const result = classifyHistoricalAudit(

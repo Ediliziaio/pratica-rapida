@@ -28,7 +28,7 @@ export interface CompletedEneaAuditResult {
   matchedFieldIds?: string[];
 }
 
-const NUMERIC_FIELD = /^(?:immobile\.superficie|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.spesa|schermature\.\d+\.(?:superficie|superficie_finestrata|gtot))$/;
+const NUMERIC_FIELD = /^(?:immobile\.superficie|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.(?:numero|spesa)|schermature\.\d+\.(?:superficie|superficie_finestrata|gtot))$/;
 const DATE_FIELD = /^(?:beneficiario\.data_nascita|intervento\.(?:data_inizio|data_fine))$/;
 
 function compact(text: string): string {
@@ -228,6 +228,32 @@ export function compareMappedToCompletedEnea(
   const matchedFieldIds: string[] = [];
   let compared = 0;
   let matches = 0;
+
+  // Il PDF storico contiene una riga numerata per ogni schermatura. Il solo
+  // confronto dei campi presenti nel PDF non rileverebbe eventuali elementi
+  // extra nel mapper (o righe perse dal parser): il numero totale e' quindi
+  // una prova strutturale obbligatoria, trattata come un normale campo audit.
+  const mappedScreeningCount = mappedFields.get("schermature.numero");
+  const completedScreeningCount = String(completed.screeningCount);
+  compared += 1;
+  if (
+    mappedScreeningCount?.status === "ready"
+    && !mappedScreeningCount.testOnly
+    && sameValue("schermature.numero", mappedScreeningCount.value, completedScreeningCount)
+  ) {
+    matches += 1;
+    matchedFieldIds.push("schermature.numero");
+  } else {
+    differences.push({
+      fieldId: "schermature.numero",
+      completedValue: completedScreeningCount,
+      mappedValue: !mappedScreeningCount
+        ? "Campo non disponibile"
+        : mappedScreeningCount.status === "missing"
+          ? "Intervento umano richiesto"
+          : mappedScreeningCount.value,
+    });
+  }
 
   for (const [fieldId, completedValue] of Object.entries(completed.fields)) {
     const field = mappedFields.get(fieldId);

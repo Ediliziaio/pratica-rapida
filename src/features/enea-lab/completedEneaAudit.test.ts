@@ -61,6 +61,13 @@ SS. Schermature solari
 Spese congrue sostenute [€] 13924
 `;
 
+function mappedScreeningCount(mapped: ReturnType<typeof mapSchermaturaPractice>): number {
+  const field = mapped.sections
+    .flatMap((section) => section.fields)
+    .find((candidate) => candidate.id === "schermature.numero");
+  return Number(field?.value ?? 0);
+}
+
 describe("audit storico PDF ENEA conclusivo", () => {
   it("estrae soltanto campi realmente compilati dal workflow e ignora i valori automatici del portale", () => {
     const snapshot = parseCompletedEneaText(COMPLETED_ENEA_TECHNICAL_EXCERPT);
@@ -103,7 +110,7 @@ describe("audit storico PDF ENEA conclusivo", () => {
     const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id]);
     const completed = {
       cpid: "TEST",
-      screeningCount: 1,
+      screeningCount: mappedScreeningCount(mapped),
       fields: {
         "schermature.0.superficie_finestrata": "2.9",
       },
@@ -111,9 +118,10 @@ describe("audit storico PDF ENEA conclusivo", () => {
 
     const audit = compareMappedToCompletedEnea(mapped, completed, `${source.id}/conclusa.pdf`);
 
-    expect(audit.compared).toBe(1);
-    expect(audit.matches).toBe(0);
+    expect(audit.compared).toBe(2);
+    expect(audit.matches).toBe(1);
     expect(audit.mismatches).toBe(1);
+    expect(audit.matchedFieldIds).toContain("schermature.numero");
     expect(audit.differences[0]).toMatchObject({
       fieldId: "schermature.0.superficie_finestrata",
       completedValue: "2.9",
@@ -132,7 +140,7 @@ describe("audit storico PDF ENEA conclusivo", () => {
     });
     const audit = compareMappedToCompletedEnea(mapped, {
       cpid: "TEST",
-      screeningCount: 0,
+      screeningCount: mappedScreeningCount(mapped),
       fields: {
         "beneficiario.titolo": "Proprietario o comproprietario",
         "immobile.tipologia": "Edificio a schiera e condominio fino a tre piani",
@@ -140,6 +148,29 @@ describe("audit storico PDF ENEA conclusivo", () => {
     });
 
     expect(audit.mismatches).toBe(0);
-    expect(audit.matches).toBe(2);
+    expect(audit.matches).toBe(3);
+  });
+
+  it("non certifica il mapper se il numero di schermature differisce dal PDF conclusivo", () => {
+    const source = ENEA_LAB_MOCK_PRACTICES[0];
+    const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id]);
+    const mappedCount = mappedScreeningCount(mapped);
+
+    const audit = compareMappedToCompletedEnea(mapped, {
+      cpid: "TEST",
+      screeningCount: mappedCount + 1,
+      fields: {},
+    });
+
+    expect(audit.compared).toBe(1);
+    expect(audit.matches).toBe(0);
+    expect(audit.mismatches).toBe(1);
+    expect(audit.differences).toEqual([
+      {
+        fieldId: "schermature.numero",
+        completedValue: String(mappedCount + 1),
+        mappedValue: String(mappedCount),
+      },
+    ]);
   });
 });

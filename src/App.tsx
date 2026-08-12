@@ -294,13 +294,14 @@ const App = () => (
                       : <Navigate to="/" replace />
                   }
                 />
-                {/* Anteprima locale: usa lo stesso componente e quindi la stessa sorgente CRM read-only.
-                    Per questo resta protetta come il laboratorio principale; non è una route pubblica. */}
+                {/* Anteprima strettamente locale: EneaLab seleziona dati e documenti mock
+                    tramite il pathname. Deve restare accessibile senza sessione per poter
+                    collaudare un Mac nuovo senza contattare il CRM; in produzione non esiste. */}
                 <Route
                   path="/admin/enea-lab-preview"
                   element={
                     import.meta.env.DEV
-                      ? <ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><EneaLab /></RoleGuard></ProtectedRoute>
+                      ? <EneaLab />
                       : <Navigate to="/" replace />
                   }
                 />

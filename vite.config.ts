@@ -6,7 +6,9 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
+    // Fail closed: il laboratorio DEV e le altre route locali non devono
+    // essere esposti sulla LAN salvo override esplicito da CLI.
+    host: "127.0.0.1",
     // Port resolved in this order:
     //  1) PORT env var (used by harness to assign a free port)
     //  2) fallback to 8080 for local dev convenience
@@ -14,6 +16,10 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
+  },
+  preview: {
+    // Anche `vite preview` resta limitato alla macchina locale di default.
+    host: "127.0.0.1",
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

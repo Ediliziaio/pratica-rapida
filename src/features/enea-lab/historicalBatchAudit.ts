@@ -49,6 +49,36 @@ function isValidHistoricalCpid(cpid: string | null): cpid is string {
   return /^\d+-\d{4}E-[A-Z0-9]+$/i.test(cpid.trim());
 }
 
+function cpidYear(cpid: string): number | null {
+  const match = cpid.trim().match(/^\d+-(\d{4})E-[A-Z0-9]+$/i);
+  if (!match) return null;
+  const year = Number(match[1]);
+  return Number.isInteger(year) ? year : null;
+}
+
+function dateYear(value: string): number | null {
+  const trimmed = value.trim();
+  const iso = trimmed.match(/^(\d{4})-\d{2}-\d{2}$/);
+  if (iso) return Number(iso[1]);
+  const italian = trimmed.match(/^\d{2}\/\d{2}\/(\d{4})$/);
+  return italian ? Number(italian[1]) : null;
+}
+
+/**
+ * Un CPID formalmente valido puo' comunque appartenere a un'altra annualita'.
+ * Se conosciamo la data di fine lavori, il PDF storico puo' certificare il
+ * collaudo solo quando l'anno Ecobonus codificato nel CPID coincide con essa.
+ */
+export function isHistoricalCpidCoherentWithFinishDate(
+  cpid: string | null,
+  finishDate: string,
+): boolean {
+  if (!isValidHistoricalCpid(cpid)) return false;
+  const completedYear = cpidYear(cpid);
+  const expectedYear = dateYear(finishDate);
+  return completedYear !== null && expectedYear !== null && completedYear === expectedYear;
+}
+
 /**
  * Se una pratica ha piu PDF conclusivi/duplicati, non basta prendere il primo
  * file leggibile: potrebbe essere una copia parziale o un documento intermedio.
@@ -95,6 +125,15 @@ export function selectBestHistoricalCompletedAudit(
   return best;
 }
 
+function readyMappedFieldValue(mapped: EneaLabMappedPractice, fieldId: string): string | null {
+  const field = mapped.sections
+    .flatMap((section) => section.fields)
+    .find((candidate) => candidate.id === fieldId);
+  if (!field || field.status !== "ready" || field.testOnly) return null;
+  const value = field.value.trim();
+  return value || null;
+}
+
 async function auditBestHistoricalCompletedEneaPractice(
   client: SupabaseClient<Database>,
   mapped: EneaLabMappedPractice,
@@ -122,6 +161,16 @@ async function auditBestHistoricalCompletedEneaPractice(
 
   const best = selectBestHistoricalCompletedAudit(candidates);
   if (!best) throw new Error("Nessun PDF ENEA conclusivo leggibile per l'audit.");
+
+  const finishDate = readyMappedFieldValue(mapped, "intervento.data_fine");
+  if (
+    finishDate
+    && isValidHistoricalCpid(best.cpid)
+    && !isHistoricalCpidCoherentWithFinishDate(best.cpid, finishDate)
+  ) {
+    throw new Error("PDF ENEA conclusivo con anno CPID non coerente con la data di fine lavori.");
+  }
+
   return best;
 }
 

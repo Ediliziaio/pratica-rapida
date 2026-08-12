@@ -42,17 +42,24 @@ function normalizedCpid(cpid: string): string {
   return cpid.trim().toUpperCase();
 }
 
+function isValidHistoricalCpid(cpid: string | null): cpid is string {
+  if (!cpid) return false;
+  // Le pratiche Ecobonus osservate usano la forma numero-AAAAE-token.
+  // Una stringa parziale o generica non deve bastare a certificare un match.
+  return /^\d+-\d{4}E-[A-Z0-9]+$/i.test(cpid.trim());
+}
+
 /**
  * Se una pratica ha piu PDF conclusivi/duplicati, non basta prendere il primo
  * file leggibile: potrebbe essere una copia parziale o un documento intermedio.
- * Preferiamo prima un documento con CPID (prova che e' una pratica conclusa) e,
- * a parita, quello che offre la maggiore copertura di campi confrontabili.
- * Non usiamo il numero di match come criterio, per non scegliere il PDF che
- * "fa apparire migliore" il mapper corrente.
+ * Preferiamo prima un documento con CPID strutturalmente valido (prova che e'
+ * una pratica Ecobonus conclusa) e, a parita, quello che offre la maggiore
+ * copertura di campi confrontabili. Non usiamo il numero di match come criterio,
+ * per non scegliere il PDF che "fa apparire migliore" il mapper corrente.
  *
- * Fail-safe aggiuntivo: due CPID diversi nella stessa pratica indicano allegati
- * incoerenti o una pratica ENEA estranea. In quel caso non scegliamo arbitrariamente
- * un documento: l'audit deve fermarsi e richiedere verifica dell'associazione.
+ * Fail-safe aggiuntivo: due CPID validi diversi nella stessa pratica indicano
+ * allegati incoerenti o una pratica ENEA estranea. In quel caso non scegliamo
+ * arbitrariamente un documento: l'audit deve fermarsi e richiedere verifica.
  */
 export function selectBestHistoricalCompletedAudit(
   candidates: readonly CompletedEneaAuditResult[],
@@ -60,7 +67,7 @@ export function selectBestHistoricalCompletedAudit(
   const distinctCpids = new Set(
     candidates
       .map(({ cpid }) => cpid)
-      .filter((cpid): cpid is string => Boolean(cpid))
+      .filter(isValidHistoricalCpid)
       .map(normalizedCpid),
   );
   if (distinctCpids.size > 1) {
@@ -75,8 +82,8 @@ export function selectBestHistoricalCompletedAudit(
       continue;
     }
 
-    const candidateHasCpid = Boolean(candidate.cpid);
-    const bestHasCpid = Boolean(best.cpid);
+    const candidateHasCpid = isValidHistoricalCpid(candidate.cpid);
+    const bestHasCpid = isValidHistoricalCpid(best.cpid);
     if (candidateHasCpid !== bestHasCpid) {
       if (candidateHasCpid) best = candidate;
       continue;
@@ -131,10 +138,10 @@ export function classifyHistoricalAudit(
   if (audit.compared === 0) {
     return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
   }
-  // Il CPID identifica la pratica ENEA conclusa. Se il parser non riesce a
-  // leggerlo, il documento non offre una prova abbastanza forte per certificare
-  // il confronto storico come match, anche quando alcuni valori coincidono.
-  if (!audit.cpid) {
+  // Il CPID identifica la pratica ENEA conclusa. Non basta che sia non vuoto:
+  // deve avere la struttura osservata delle pratiche Ecobonus, altrimenti un
+  // parsing tronco potrebbe produrre una falsa prova di conclusione.
+  if (!isValidHistoricalCpid(audit.cpid)) {
     return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
   }
   // Fail-safe di copertura: CPID + poche coincidenze possono ancora provenire

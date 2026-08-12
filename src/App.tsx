@@ -71,6 +71,7 @@ const WhatsappPanel = lazy(() => import("./pages/admin/WhatsappPanel"));
 const Moduli = lazy(() => import("./pages/admin/Moduli"));
 const ArchivioEnea = lazy(() => import("./pages/rivenditore/ArchivioEnea"));
 const EneaLab = lazy(() => import("./pages/EneaLab"));
+const EneaLabPreviewHandoff = lazy(() => import("./EneaLabPreviewHandoff"));
 
 /**
  * QueryClient con default sensibili per ridurre carico backend e migliorare
@@ -301,7 +302,7 @@ const App = () => (
                   path="/admin/enea-lab-preview"
                   element={
                     import.meta.env.DEV
-                      ? <EneaLab />
+                      ? <EneaLabPreviewHandoff />
                       : <Navigate to="/" replace />
                   }
                 />

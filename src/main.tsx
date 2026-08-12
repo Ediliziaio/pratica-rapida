@@ -1,6 +1,7 @@
+import { lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
-import App from "./App.tsx";
+import { loadRootComponent } from "./appBootstrap";
 import "./index.css";
 
 // Initialize Sentry after DOM is ready
@@ -9,8 +10,12 @@ if (import.meta.env.PROD) {
   initSentry();
 }
 
+const RootApp = lazy(() => loadRootComponent(import.meta.env.DEV, window.location.pathname));
+
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>
-    <App />
+    <Suspense fallback={null}>
+      <RootApp />
+    </Suspense>
   </HelmetProvider>
 );

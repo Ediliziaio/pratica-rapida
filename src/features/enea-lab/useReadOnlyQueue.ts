@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { isIsolatedEneaPreview } from "@/appBootstrap";
 import { ENEA_LAB_MOCK_PRACTICES } from "./mockPractices";
 import { runHistoricalEneaBatchAudit, type HistoricalBatchAuditReport } from "./historicalBatchAudit";
 import {
@@ -16,16 +16,15 @@ declare global {
   }
 }
 
-function isLocalPreview(): boolean {
-  return import.meta.env.DEV && window.location.pathname === "/admin/enea-lab-preview";
-}
-
 export function useReadOnlyEneaQueue(scope: EneaLabQueueScope = "active") {
-  const preview = isLocalPreview();
+  const preview = isIsolatedEneaPreview(import.meta.env.DEV, window.location.pathname);
 
   useEffect(() => {
     if (!import.meta.env.DEV || preview) return undefined;
-    window.__ENEA_LAB_AUDIT_5__ = () => runHistoricalEneaBatchAudit(supabase, 5);
+    window.__ENEA_LAB_AUDIT_5__ = async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      return runHistoricalEneaBatchAudit(supabase, 5);
+    };
     return () => {
       delete window.__ENEA_LAB_AUDIT_5__;
     };
@@ -33,8 +32,9 @@ export function useReadOnlyEneaQueue(scope: EneaLabQueueScope = "active") {
 
   return useQuery({
     queryKey: ["enea-lab", "read-only-queue", preview ? "preview" : "crm", scope],
-    queryFn: () => {
+    queryFn: async () => {
       if (preview) return Promise.resolve(ENEA_LAB_MOCK_PRACTICES);
+      const { supabase } = await import("@/integrations/supabase/client");
       return scope === "historical"
         ? loadReadOnlyEneaHistoricalQueue(supabase)
         : loadReadOnlyEneaQueue(supabase);

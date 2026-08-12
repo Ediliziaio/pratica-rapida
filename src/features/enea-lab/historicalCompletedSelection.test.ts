@@ -30,6 +30,13 @@ describe("selezione PDF conclusivo per audit storico ENEA", () => {
     expect(selectBestHistoricalCompletedAudit([partial, completed])).toBe(completed);
   });
 
+  it("preferisce un CPID valido a un candidato malformato anche se il secondo ha piu campi", () => {
+    const malformed = audit("pratica/cpid-troncato.pdf", "288717-2026E", 30);
+    const completed = audit("pratica/cpid-conclusivo.pdf", "288717-2026E-TEST", 12);
+
+    expect(selectBestHistoricalCompletedAudit([malformed, completed])).toBe(completed);
+  });
+
   it("tra due PDF conclusivi con CPID uguale preferisce quello con maggiore copertura", () => {
     const partial = audit("pratica/cpid-parziale.pdf", "288717-2026E-TEST", 7);
     const complete = audit("pratica/cpid-completo.pdf", "288717-2026E-TEST", 24, 3);

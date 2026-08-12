@@ -45,6 +45,8 @@ describe("payload ufficiale ENEA - campi non applicabili", () => {
 
     expect(payload.portalFields.length).toBeGreaterThan(0);
     expect(payload.portalFields.every(({ id }) => supportedReadyIds.has(id))).toBe(true);
+    expect(Object.keys(payload.fields).every((id) => supportedReadyIds.has(id))).toBe(true);
+    expect(payload.portalFields.map(({ id }) => id).sort()).toEqual(Object.keys(payload.fields).sort());
     expect(payload.portalFields.some(({ id }) => id.startsWith("documenti."))).toBe(false);
     expect(payload.portalFields.some(({ id }) => id === "intervento.unita_totali")).toBe(false);
     expect(payload.portalFields.some(({ id }) => id === "immobile.gradi_giorno")).toBe(false);

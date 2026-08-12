@@ -94,6 +94,21 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
     expect(gate).toEqual({ status: "blocked", reason: "official-data-incomplete", workflow: null });
   });
 
+  it("rivalida anche i blocker dell'analisi documentale corrente", () => {
+    const { mapped, payload } = readyPayload();
+    const baseAnalysis = ENEA_LAB_MOCK_ANALYSIS[mapped.source.id];
+    if (!baseAnalysis) throw new Error("Fixture senza analisi documentale.");
+    const analysisWithBlocker = {
+      ...baseAnalysis,
+      blockers: ["Controllo documentale non risolto: verificare manualmente il documento fiscale."],
+      warnings: [],
+    };
+
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysisWithBlocker);
+
+    expect(gate).toEqual({ status: "blocked", reason: "official-data-incomplete", workflow: null });
+  });
+
   it("restituisce soltanto un workflow official quando mapping e payload superano indipendentemente tutte le barriere", () => {
     const { mapped, payload } = readyPayload();
 

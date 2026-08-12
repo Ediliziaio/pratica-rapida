@@ -76,12 +76,14 @@ function preparedSnapshotsRecord(
       if (!allowedPracticeId(practiceId, scope)) return [];
       if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) return [];
       const candidate = snapshot as Record<string, unknown>;
-      const generatedAt = typeof candidate.generatedAt === "string" ? Date.parse(candidate.generatedAt) : Number.NaN;
+      const generatedAtValue = typeof candidate.generatedAt === "string" ? candidate.generatedAt : null;
+      const generatedAt = generatedAtValue ? Date.parse(generatedAtValue) : Number.NaN;
       return typeof candidate.fingerprint === "string"
         && candidate.fingerprint.length > 0
+        && generatedAtValue !== null
         && Number.isFinite(generatedAt)
         && generatedAt <= now.getTime()
-        ? [[practiceId, { fingerprint: candidate.fingerprint, generatedAt: candidate.generatedAt }]]
+        ? [[practiceId, { fingerprint: candidate.fingerprint, generatedAt: generatedAtValue }]]
         : [];
     }),
   );

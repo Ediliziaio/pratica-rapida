@@ -2,6 +2,10 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import EneaLab from "./EneaLab";
 import {
+  ENEA_LAB_DRAFT_STORAGE_KEY,
+  ENEA_LAB_PREVIEW_DRAFT_STORAGE_KEY,
+} from "@/features/enea-lab/draftStorage";
+import {
   ENEA_LAB_MOCK_ANALYSIS,
   ENEA_LAB_MOCK_PRACTICES,
 } from "@/features/enea-lab/mockPractices";
@@ -127,6 +131,14 @@ describe("EneaLab", () => {
 
   it("mantiene interazioni e persistenza nella preview senza aprire ENEA o usare rete", () => {
     window.history.replaceState({}, "", "/admin/enea-lab-preview");
+    const crmDraft = JSON.stringify({
+      overridesByPractice: { "crm-non-fixture": { "beneficiario.nome": "DATO-CRM-NON-FIXTURE" } },
+      confirmedByPractice: {},
+      preparedIds: ["crm-non-fixture"],
+      preparedSnapshotsByPractice: {},
+      savedAt: new Date().toISOString(),
+    });
+    window.localStorage.setItem(ENEA_LAB_DRAFT_STORAGE_KEY, crmDraft);
     const fetchSpy = vi.fn();
     const xhrSpy = vi.fn();
     const webSocketSpy = vi.fn();
@@ -146,7 +158,12 @@ describe("EneaLab", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(xhrSpy).not.toHaveBeenCalled();
     expect(webSocketSpy).not.toHaveBeenCalled();
-    expect(Object.keys(window.localStorage)).toEqual(["enea-lab:draft:v1"]);
+    expect(screen.queryByText("DATO-CRM-NON-FIXTURE")).not.toBeInTheDocument();
+    expect(window.localStorage.getItem(ENEA_LAB_DRAFT_STORAGE_KEY)).toBe(crmDraft);
+    expect(Object.keys(window.localStorage).sort()).toEqual([
+      ENEA_LAB_DRAFT_STORAGE_KEY,
+      ENEA_LAB_PREVIEW_DRAFT_STORAGE_KEY,
+    ].sort());
   });
 
 });

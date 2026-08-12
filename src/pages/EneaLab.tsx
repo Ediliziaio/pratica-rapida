@@ -179,7 +179,8 @@ export default function EneaLab() {
   const [searchText, setSearchText] = useState("");
   const [queueFilter, setQueueFilter] = useState<"all" | EneaLabQueueStatus>("all");
   const [activeSectionId, setActiveSectionId] = useState("beneficiario");
-  const [initialDraft] = useState(() => loadEneaLabDraft(window.localStorage));
+  const draftScope = isPreview ? "preview" : "crm";
+  const [initialDraft] = useState(() => loadEneaLabDraft(window.localStorage, new Date(), draftScope));
   const [overridesByPractice, setOverridesByPractice] = useState<Record<string, EneaLabOverrides>>(initialDraft.overridesByPractice);
   const [confirmedByPractice, setConfirmedByPractice] = useState<Record<string, string[]>>(initialDraft.confirmedByPractice);
   const [preparedIds, setPreparedIds] = useState<string[]>(initialDraft.preparedIds);
@@ -250,8 +251,8 @@ export default function EneaLab() {
       confirmedByPractice,
       preparedIds,
       preparedSnapshotsByPractice,
-    });
-  }, [confirmedByPractice, overridesByPractice, preparedIds, preparedSnapshotsByPractice]);
+    }, new Date(), draftScope);
+  }, [confirmedByPractice, draftScope, overridesByPractice, preparedIds, preparedSnapshotsByPractice]);
 
   if (isPending) {
     return (

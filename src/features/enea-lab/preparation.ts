@@ -91,6 +91,11 @@ function portalValue(fieldId: string, value: string): string {
     : withoutUnit;
 }
 
+function isInternalPlaceholder(value: string): boolean {
+  const normalized = value.trim().toLocaleLowerCase("it");
+  return normalized === "non indicato" || normalized === "intervento umano richiesto";
+}
+
 export function validatePreparedPractice(
   source: EneaLabSourcePractice,
   mapped: EneaLabMappedPractice,
@@ -242,11 +247,16 @@ export function buildEneaPayload(
   const fields = mapped.sections.flatMap((section) => section.fields);
   const blockers = issues.filter((issue) => issue.severity === "blocker");
   const hasUnverifiedRequiredFields = fields.some(
-    (field) => field.required && field.status !== "ready",
+    (field) => field.required && (field.status !== "ready" || isInternalPlaceholder(field.value)),
   );
   const selectedFields = mode === "test"
     ? fields
-    : fields.filter((field) => !field.testOnly && field.status === "ready");
+    : fields.filter((field) =>
+      !field.testOnly
+      && field.status === "ready"
+      && Boolean(field.value.trim())
+      && !isInternalPlaceholder(field.value),
+    );
   const selectedIds = new Set(selectedFields.map((field) => field.id));
   const portalFields = mapped.sections.flatMap((section) => section.fields
     .filter((field) => selectedIds.has(field.id))

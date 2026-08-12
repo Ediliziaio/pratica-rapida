@@ -125,14 +125,20 @@ export function parseScreeningInvoiceText(
     }
   }
 
+  // Una quantità esplicita non valida rende inaffidabile l'associazione fra le
+  // righe dell'intero documento e gli elementi ENEA. Non conserviamo quindi le
+  // altre righe apparentemente valide della stessa fattura: l'operatore deve
+  // riconciliare il documento prima che quei dati possano rientrare nel mapping.
+  const safeItems = invalidExplicitQuantity ? [] : items;
+
   return {
-    items,
+    items: safeItems,
     result: {
       path,
       status: invalidExplicitQuantity ? "failed" : "parsed",
       documentType,
       total: extractDocumentTotal(text),
-      itemCount: items.length,
+      itemCount: safeItems.length,
       ...(invalidExplicitQuantity
         ? { message: "Quantità schermatura esplicita non valida: controllo umano richiesto." }
         : {}),
@@ -163,6 +169,9 @@ export function combineDocumentResults(
   const identities = documents.map(documentIdentity).filter((identity): identity is string => identity !== null);
   const duplicateIdentities = identities.filter((identity, index) => identities.indexOf(identity) !== index);
   const hasDuplicateDocuments = duplicateIdentities.length > 0;
+  const hasInvalidExplicitQuantity = documents.some(({ message }) =>
+    /Quantità schermatura esplicita non valida/i.test(message ?? ""),
+  );
 
   if (!invoiceDocuments.length) blockers.push("Nessuna fattura riconosciuta tra i documenti fiscali.");
   if (!items.length) blockers.push("Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.");
@@ -174,6 +183,9 @@ export function combineDocumentResults(
   }
   if (documents.some(({ documentType }) => documentType === "unknown")) {
     blockers.push("Almeno un documento non è stato riconosciuto come fattura o nota di credito.");
+  }
+  if (hasInvalidExplicitQuantity) {
+    blockers.push("La quantità di almeno una schermatura non è affidabile: verificare manualmente numero totale, misure e gTot.");
   }
   if (invoiceTotal > 0 && creditTotal > invoiceTotal) {
     blockers.push("Le note di credito superano il totale delle fatture.");

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { isIsolatedEneaPreview } from "@/appBootstrap";
 import {
   AlertTriangle,
   Check,
@@ -172,6 +173,7 @@ function FieldRow({
 }
 
 export default function EneaLab() {
+  const isPreview = isIsolatedEneaPreview(import.meta.env.DEV, window.location.pathname);
   const { data: sourcePractices = [], error, isPending, isFetching, refetch } = useReadOnlyEneaQueue();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
@@ -255,7 +257,8 @@ export default function EneaLab() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50/70">
         <div className="flex items-center gap-3 text-sm text-slate-600">
-          <Loader2 className="h-5 w-5 animate-spin" /> Lettura della coda CRM in corso…
+          <Loader2 className="h-5 w-5 animate-spin" />
+          {isPreview ? "Caricamento fixture locali in corso…" : "Lettura della coda CRM in corso…"}
         </div>
       </main>
     );
@@ -268,7 +271,11 @@ export default function EneaLab() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Collegamento in sola lettura non disponibile</AlertTitle>
           <AlertDescription className="space-y-3">
-            <p>ENEA Lab non ha modificato il CRM. Controlla la sessione locale o la configurazione Supabase.</p>
+            <p>
+              {isPreview
+                ? "Le fixture locali non sono disponibili. Nessun servizio esterno è stato contattato."
+                : "ENEA Lab non ha modificato il CRM. Controlla la sessione locale o la configurazione Supabase."}
+            </p>
             <Button type="button" variant="outline" size="sm" onClick={() => void refetch()}>Riprova</Button>
           </AlertDescription>
         </Alert>
@@ -283,7 +290,9 @@ export default function EneaLab() {
           <ShieldCheck className="h-4 w-4" />
           <AlertTitle>Collegamento attivo</AlertTitle>
           <AlertDescription>
-            Nessuna schermatura corrisponde ai filtri correnti. La coda si aggiorna automaticamente ogni 30 secondi.
+            {isPreview
+              ? "Nessuna schermatura è presente nelle fixture locali."
+              : "Nessuna schermatura corrisponde ai filtri correnti. La coda si aggiorna automaticamente ogni 30 secondi."}
           </AlertDescription>
         </Alert>
       </main>

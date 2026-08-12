@@ -12,7 +12,10 @@ export interface EneaScreeningSummaryPortalPreparation {
 }
 
 function numericValue(value: string): string {
-  return value.trim().replace(/\s*€\s*$/i, "").replace(/\.(?=\d{3}(?:\D|$))/g, "");
+  const normalized = value.trim().replace(/\s*€\s*$/i, "").replace(/\.(?=\d{3}(?:\D|$))/g, "");
+  if (!/\d/.test(normalized)) return "";
+  const parsed = Number(normalized.replace(",", "."));
+  return Number.isFinite(parsed) && parsed >= 0 ? normalized : "";
 }
 
 /** Compila i dati riepilogativi osservati nella pagina delle schermature. */

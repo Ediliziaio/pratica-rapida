@@ -10,20 +10,20 @@ const COMPLETED_ENEA_TECHNICAL_EXCERPT = `
 Ecobonus 2026
 Riqualificazione energetica - ex legge 296/2006
 Comma 345B - Schermature solari
-CPID 288717-2026E-TESTTESTTESTTEST Data chiusura 2026-07-14 9:57:39 CEST
+CPID 000001-2026E-SYNTHETICFIXTURE Data chiusura 2026-07-14 9:57:39 CEST
 Dati generali
 1. Dati identificativi della struttura oggetto dell'intervento Ubicazione edificio
-Indirizzo: Via Esempio 75/130 - 21040 Rho (MI)
+Indirizzo: Via Laboratorio 24 - 00001 Comune Demo Nord (ZZ)
 Scala:
 Interno:
 Dati catastali
-Codice nazionale del Comune: H264
+Codice nazionale del Comune: Z999
 Sezione:
-Foglio: 9
-Particella: 10986
-Subalterno: 32
+Foglio: 900
+Particella: 90001
+Subalterno: 900
 2. Anno di costruzione inserire anche se stimato 2022
-3. Proprietario o detentore dell'edificio o avente diritto Nome: Mario Cognome: Rossi Codice fiscale: RSSMRA74C23H264X Sesso: M Data di nascita: 23/03/1974 Comune di nascita: Rho (MI) Residenza: Via Residenza 12 - 21040 Uboldo (VA)
+3. Proprietario o detentore dell'edificio o avente diritto Nome: Cliente Cognome: Demo Storico Codice fiscale: CF-SINTETICO-NON-VALIDO Sesso: M Data di nascita: 01/01/1980 Comune di nascita: Comune Demo Nord (ZZ) Residenza: Via Dimostrazione 12 - 00002 Comune Demo Ovest (ZZ)
 4. Altri beneficiari (persone fisiche)
 5. Altri beneficiari (persone giuridiche)
 6. Titolo di possesso Proprietario o comproprietario
@@ -72,20 +72,20 @@ describe("audit storico PDF ENEA conclusivo", () => {
   it("estrae soltanto campi realmente compilati dal workflow e ignora i valori automatici del portale", () => {
     const snapshot = parseCompletedEneaText(COMPLETED_ENEA_TECHNICAL_EXCERPT);
 
-    expect(snapshot.cpid).toBe("288717-2026E-TESTTESTTESTTEST");
+    expect(snapshot.cpid).toBe("000001-2026E-SYNTHETICFIXTURE");
     expect(snapshot.fields["intervento.tipo"]).toBe("Comma 345B - Schermature solari");
-    expect(snapshot.fields["immobile.comune"]).toBe("Rho");
-    expect(snapshot.fields["immobile.indirizzo"]).toBe("Via Esempio");
-    expect(snapshot.fields["immobile.civico"]).toBe("75/130");
-    expect(snapshot.fields["immobile.cap"]).toBe("21040");
-    expect(snapshot.fields["immobile.foglio"]).toBe("9");
-    expect(snapshot.fields["immobile.mappale"]).toBe("10986");
-    expect(snapshot.fields["immobile.subalterno"]).toBe("32");
+    expect(snapshot.fields["immobile.comune"]).toBe("Comune Demo Nord");
+    expect(snapshot.fields["immobile.indirizzo"]).toBe("Via Laboratorio");
+    expect(snapshot.fields["immobile.civico"]).toBe("24");
+    expect(snapshot.fields["immobile.cap"]).toBe("00001");
+    expect(snapshot.fields["immobile.foglio"]).toBe("900");
+    expect(snapshot.fields["immobile.mappale"]).toBe("90001");
+    expect(snapshot.fields["immobile.subalterno"]).toBe("900");
     expect(snapshot.fields["immobile.anno"]).toBe("2022");
-    expect(snapshot.fields["beneficiario.nome"]).toBe("Mario");
-    expect(snapshot.fields["beneficiario.cognome"]).toBe("Rossi");
-    expect(snapshot.fields["beneficiario.comune_nascita"]).toBe("Rho (MI)");
-    expect(snapshot.fields["beneficiario.comune_residenza"]).toBe("Uboldo");
+    expect(snapshot.fields["beneficiario.nome"]).toBe("Cliente");
+    expect(snapshot.fields["beneficiario.cognome"]).toBe("Demo Storico");
+    expect(snapshot.fields["beneficiario.comune_nascita"]).toBe("Comune Demo Nord (ZZ)");
+    expect(snapshot.fields["beneficiario.comune_residenza"]).toBe("Comune Demo Ovest");
     expect(snapshot.fields["beneficiario.titolo"]).toBe("Proprietario o comproprietario");
     expect(snapshot.fields["immobile.tipologia"]).toBe("Edificio a schiera e condominio fino a tre piani");
     expect(snapshot.fields["intervento.data_inizio"]).toBe("09/04/2026");

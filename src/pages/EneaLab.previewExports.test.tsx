@@ -111,6 +111,30 @@ describe("EneaLab preview exports", () => {
     expect(fixtures).toContain("cliente.uno@example.test");
     expect(fixtures).toContain("CF-DEMO-001-NON-VALIDO");
     expect(fixtures).not.toMatch(/(?:sk|sbp|eyJ)[_-][a-z0-9_-]{16,}/i);
+    expect(fixtures).not.toMatch(/IT\d{2}[A-Z]\d{10}[A-Z0-9]{12}/i);
+    expect(fixtures).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i);
+
+    for (const practice of ENEA_LAB_MOCK_PRACTICES) {
+      expect(practice.id).toMatch(/^lab-/);
+      expect(practice.code).toMatch(/^LAB-/);
+      expect(`${practice.clienteNome} ${practice.clienteCognome}`).toMatch(/^Cliente Demo /);
+      expect(practice.reseller).toMatch(/^Rivenditore Demo /);
+      expect(practice.form.richiedente.cf).toMatch(/^CF-DEMO-\d{3}-NON-VALIDO$/);
+      expect(practice.form.richiedente.email).toMatch(/@example\.test$/);
+      if (practice.form.richiedente.telefono) {
+        expect(practice.form.richiedente.telefono).toMatch(/^\+39 000 000 000\d$/);
+      }
+      expect(practice.form.residenza.provincia).toBe("ZZ");
+      expect(practice.form.residenza.indirizzo).toMatch(/Laboratorio|Dimostrazione/);
+      expect(practice.documentPaths.every(({ path }) => path.startsWith(`${practice.id}/`))).toBe(true);
+      for (const url of [
+        practice.form.impianto.libretto_url,
+        practice.form.documenti.fattura_url,
+        practice.form.documenti.bonifico_url,
+      ].filter((value): value is string => Boolean(value))) {
+        expect(url).toMatch(/^mock:\/\//);
+      }
+    }
   });
 
   it("scarica JSON fixture con filename e MIME locali e revoca gli object URL", () => {

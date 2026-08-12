@@ -25,43 +25,43 @@ function audit(
 describe("selezione PDF conclusivo per audit storico ENEA", () => {
   it("non si ferma a un primo PDF parziale senza CPID se ne esiste uno conclusivo valido", () => {
     const partial = audit("pratica/allegato-parziale.pdf", null, 18);
-    const completed = audit("pratica/cpid-conclusivo.pdf", "288717-2026E-TEST", 12);
+    const completed = audit("pratica/cpid-conclusivo.pdf", "000001-2026E-SYNTHETICFIXTURE", 12);
 
     expect(selectBestHistoricalCompletedAudit([partial, completed])).toBe(completed);
   });
 
   it("preferisce un CPID valido a un candidato malformato anche se il secondo ha piu campi", () => {
-    const malformed = audit("pratica/cpid-troncato.pdf", "288717-2026E", 30);
-    const completed = audit("pratica/cpid-conclusivo.pdf", "288717-2026E-TEST", 12);
+    const malformed = audit("pratica/cpid-troncato.pdf", "000001-2026E", 30);
+    const completed = audit("pratica/cpid-conclusivo.pdf", "000001-2026E-SYNTHETICFIXTURE", 12);
 
     expect(selectBestHistoricalCompletedAudit([malformed, completed])).toBe(completed);
   });
 
   it("tra due PDF conclusivi con CPID uguale preferisce quello con maggiore copertura", () => {
-    const partial = audit("pratica/cpid-parziale.pdf", "288717-2026E-TEST", 7);
-    const complete = audit("pratica/cpid-completo.pdf", "288717-2026E-TEST", 24, 3);
+    const partial = audit("pratica/cpid-parziale.pdf", "000001-2026E-SYNTHETICFIXTURE", 7);
+    const complete = audit("pratica/cpid-completo.pdf", "000001-2026E-SYNTHETICFIXTURE", 24, 3);
 
     expect(selectBestHistoricalCompletedAudit([partial, complete])).toBe(complete);
   });
 
   it("considera lo stesso CPID equivalente anche con differenze innocue di maiuscole o spazi", () => {
-    const first = audit("pratica/cpid-a.pdf", " 288717-2026e-test ", 12);
-    const complete = audit("pratica/cpid-b.pdf", "288717-2026E-TEST", 20);
+    const first = audit("pratica/cpid-a.pdf", " 000001-2026e-syntheticfixture ", 12);
+    const complete = audit("pratica/cpid-b.pdf", "000001-2026E-SYNTHETICFIXTURE", 20);
 
     expect(selectBestHistoricalCompletedAudit([first, complete])).toBe(complete);
   });
 
   it("blocca la selezione se la stessa pratica contiene PDF conclusivi con CPID diversi", () => {
-    const first = audit("pratica/cpid-a.pdf", "288717-2026E-AAAA", 18);
-    const foreign = audit("pratica/cpid-b.pdf", "288718-2026E-BBBB", 24);
+    const first = audit("pratica/cpid-a.pdf", "000001-2026E-SYNTHETICFIXTURE", 18);
+    const foreign = audit("pratica/cpid-b.pdf", "000002-2026E-SYNTHETICFIXTURE", 24);
 
     expect(() => selectBestHistoricalCompletedAudit([first, foreign]))
       .toThrow("PDF ENEA conclusivi con CPID discordanti nella stessa pratica.");
   });
 
   it("a parita di CPID e copertura non sceglie in base al numero di match", () => {
-    const first = audit("pratica/revisione-a.pdf", "288717-2026E-TEST", 20, 4);
-    const mapperFriendly = audit("pratica/revisione-b.pdf", "288717-2026E-TEST", 20, 0);
+    const first = audit("pratica/revisione-a.pdf", "000001-2026E-SYNTHETICFIXTURE", 20, 4);
+    const mapperFriendly = audit("pratica/revisione-b.pdf", "000001-2026E-SYNTHETICFIXTURE", 20, 0);
 
     expect(selectBestHistoricalCompletedAudit([first, mapperFriendly])).toBe(first);
   });

@@ -12,29 +12,29 @@ describe("audit storico ENEA - PDF conclusivo 2026 osservato", () => {
       Ecobonus 2026
       Riqualificazione energetica - ex legge 296/2006
       Comma 345B - Schermature solari
-      CPID 288717-2026E-ABCDEFGHIJKLMNOP
+      CPID 000001-2026E-SYNTHETICFIXTURE
       Data chiusura 2026-07-14 9:57:39 CEST
       Dati generali
       1. Dati identificativi della struttura oggetto dell'intervento
       Ubicazione edificio
-      Indirizzo: Via Esempio 75/130 - 21040 Rho (MI)
+      Indirizzo: Via Laboratorio 24 - 00001 Comune Demo Nord (ZZ)
       Scala:
       Interno:
       Dati catastali
-      Codice nazionale del Comune: H264
+      Codice nazionale del Comune: Z999
       Sezione:
-      Foglio: 9
-      Particella: 10986
-      Subalterno: 32
+      Foglio: 900
+      Particella: 90001
+      Subalterno: 900
       2. Anno di costruzione inserire anche se stimato 2022
       3. Proprietario o detentore dell'edificio o avente diritto
-      Nome: Mario
-      Cognome: Esempio
-      Codice fiscale: TESTCF80A01H501X
+      Nome: Cliente
+      Cognome: Demo Storico
+      Codice fiscale: CF-SINTETICO-NON-VALIDO
       Sesso: M
       Data di nascita: 01/01/1980
-      Comune di nascita: Rho (MI)
-      Residenza: Via Residenza 10 - 21040 Uboldo (VA)
+      Comune di nascita: Comune Demo Nord (ZZ)
+      Residenza: Via Dimostrazione 10 - 00002 Comune Demo Ovest (ZZ)
       4. Altri beneficiari (persone fisiche)
       5. Altri beneficiari (persone giuridiche)
       6. Titolo di possesso Proprietario o comproprietario
@@ -74,12 +74,12 @@ describe("audit storico ENEA - PDF conclusivo 2026 osservato", () => {
       Riepilogo
     `);
 
-    expect(snapshot.cpid).toBe("288717-2026E-ABCDEFGHIJKLMNOP");
+    expect(snapshot.cpid).toBe("000001-2026E-SYNTHETICFIXTURE");
     expect(snapshot.screeningCount).toBe(5);
     expect(snapshot.fields["intervento.tipo"]).toBe("Comma 345B - Schermature solari");
-    expect(snapshot.fields["immobile.indirizzo"]).toBe("Via Esempio");
-    expect(snapshot.fields["immobile.civico"]).toBe("75/130");
-    expect(snapshot.fields["beneficiario.comune_residenza"]).toBe("Uboldo");
+    expect(snapshot.fields["immobile.indirizzo"]).toBe("Via Laboratorio");
+    expect(snapshot.fields["immobile.civico"]).toBe("24");
+    expect(snapshot.fields["beneficiario.comune_residenza"]).toBe("Comune Demo Ovest");
     expect(snapshot.fields["impianto.numero_generatori"]).toBe("1");
     expect(snapshot.fields["impianto.rendimento"]).toBe("94.8");
     expect(snapshot.fields["impianto.potenza"]).toBe("24.1");

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { classifyHistoricalAudit } from "./historicalBatchAudit";
 import type { CompletedEneaAuditResult } from "./completedEneaAudit";
 
-const VALID_CPID = "288717-2026E-TEST";
+const VALID_CPID = "000001-2026E-SYNTHETICFIXTURE";
 const SAFE_IDENTITY_MATCHES = [
   "intervento.tipo",
   "beneficiario.cf",
@@ -70,7 +70,7 @@ describe("classificazione audit storico ENEA", () => {
   it("non considera match un CPID parziale o malformato", () => {
     const audit: CompletedEneaAuditResult = {
       ...auditWithDifferences([]),
-      cpid: "288717-2026E",
+      cpid: "000001-2026E",
     };
 
     const result = classifyHistoricalAudit(audit, new Set());

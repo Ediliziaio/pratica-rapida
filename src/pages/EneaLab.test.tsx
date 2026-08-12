@@ -120,8 +120,8 @@ describe("EneaLab", () => {
     const input = screen.getByRole("textbox", { name: "Correzione Nome" });
     expect(input).toHaveValue("Cliente");
 
-    fireEvent.change(input, { target: { value: "Mario" } });
-    expect(input).toHaveValue("Mario");
+    fireEvent.change(input, { target: { value: "Nome Demo Corretto" } });
+    expect(input).toHaveValue("Nome Demo Corretto");
     expect(screen.getByRole("button", { name: "Ripristina valore" })).toBeInTheDocument();
   });
 

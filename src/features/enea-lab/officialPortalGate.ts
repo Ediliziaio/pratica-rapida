@@ -75,11 +75,24 @@ function hasConsistentOfficialPayload(mapped: EneaLabMappedPractice, payload: En
     && sameStringSet(payload.excludedUnverifiedFields, expected.excludedUnverifiedFields);
 }
 
+function positiveExpense(value: string): boolean {
+  const normalized = value
+    .trim()
+    .replace(/\s/g, "")
+    .replace(/[^0-9,.-]/g, "")
+    .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+    .replace(",", ".");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) && parsed > 0;
+}
+
 function hasManuallyVerifiedEligibleExpense(mapped: EneaLabMappedPractice): boolean {
   const expense = mapped.sections
     .flatMap((section) => section.fields)
     .find((field) => field.id === "schermature.spesa");
-  return expense?.status === "ready" && expense.source === "Inserimento operatore";
+  return expense?.status === "ready"
+    && expense.source === "Inserimento operatore"
+    && positiveExpense(expense.value);
 }
 
 /**
@@ -104,7 +117,9 @@ export function prepareEneaOfficialPortalCollaudo(
   // coincidere con la "spesa congrua sostenuta" effettivamente riportata nel
   // riepilogo ENEA conclusivo. Il totale estratto resta quindi una proposta di
   // lavoro: prima del portale reale la spesa deve essere riscritta/verificata
-  // esplicitamente dall'operatore, non soltanto ereditata dal parser.
+  // esplicitamente dall'operatore, non soltanto ereditata dal parser. Una spesa
+  // nulla non è considerata una verifica sufficiente per una pratica con
+  // schermature: il gate resta chiuso finché non c'è un importo positivo.
   if (!hasManuallyVerifiedEligibleExpense(mapped)) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }

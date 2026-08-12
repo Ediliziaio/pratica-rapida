@@ -56,7 +56,18 @@ function hasCurrentDocumentAnalysis(
   if (!expectedInvoicePaths.length || !sameStringSet(expectedInvoicePaths, analyzedInvoicePaths)) return false;
 
   const expectedPathSet = new Set(expectedInvoicePaths);
-  return analysis.items.every((item) => expectedPathSet.has(item.sourcePath));
+  if (!analysis.items.every((item) => expectedPathSet.has(item.sourcePath))) return false;
+
+  // Il riepilogo documentale e l'elenco dettagliato devono raccontare la stessa
+  // cosa per ogni fattura. Se itemCount dichiara due schermature ma l'array
+  // dettagliato ne contiene una sola (o viceversa), il gate non deve poter usare
+  // il conteggio più basso e preparare un workflow ufficiale incompleto.
+  return analysis.documents.every((document) => {
+    if (!Number.isInteger(document.itemCount) || document.itemCount < 0) return false;
+    if (document.status !== "parsed" && document.itemCount !== 0) return false;
+    const detailedCount = analysis.items.filter((item) => item.sourcePath === document.path).length;
+    return detailedCount === document.itemCount;
+  });
 }
 
 function mappedScreeningCount(mapped: EneaLabMappedPractice): number | null {

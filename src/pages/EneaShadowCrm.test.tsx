@@ -20,9 +20,12 @@ describe("CRM ombra ENEA locale", () => {
     const revokeObjectURL = vi.fn();
     vi.stubGlobal("URL", { ...URL, createObjectURL, revokeObjectURL });
     const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    const printSpy = vi.spyOn(window, "print").mockImplementation(() => undefined);
     render(<EneaShadowCrm />);
 
     expect(screen.getByText("LAB-SCH-001 — Cliente Demo Uno")).toBeInTheDocument();
+    expect(screen.getByTestId("pilot-session-id")).toHaveTextContent("PILOT-CRM-ENEA-V1-LAB-SCHERMATURE-001");
+    expect(screen.getByRole("heading", { name: "Procedura operativa del pilot" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Aggiungi fattura DEMO" }));
     fireEvent.click(screen.getByRole("button", { name: "Aggiungi bonifico DEMO" }));
     fireEvent.click(screen.getByRole("button", { name: "Rimuovi DEMO-FATTURA.pdf" }));
@@ -37,6 +40,7 @@ describe("CRM ombra ENEA locale", () => {
     expect(screen.getByText("Readiness pilot interno: PRONTA")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Concludi pratica fixture" }));
     fireEvent.click(screen.getByRole("button", { name: "Esporta audit fixture JSON" }));
+    fireEvent.click(screen.getByRole("button", { name: "Stampa riepilogo fixture" }));
 
     expect(screen.getByText(/Stato: Conclusa/)).toBeInTheDocument();
     expect(screen.getAllByText(/non inviata/).length).toBeGreaterThan(1);
@@ -45,6 +49,7 @@ describe("CRM ombra ENEA locale", () => {
     expect(createObjectURL).toHaveBeenCalledOnce();
     expect(revokeObjectURL).toHaveBeenCalledWith("blob:fixture-audit");
     expect(clickSpy).toHaveBeenCalledOnce();
+    expect(printSpy).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByRole("button", { name: /LAB-SCH-002/ }));
     expect(screen.getByText("LAB-SCH-002 — Cliente Demo Due")).toBeInTheDocument();
     expect(screen.getByText(/Stato: Ricevuta/)).toBeInTheDocument();
@@ -54,11 +59,16 @@ describe("CRM ombra ENEA locale", () => {
   });
 
   it("richiede conferma e pulisce soltanto il pilot selezionato", () => {
+    vi.stubGlobal("URL", { ...URL, createObjectURL: vi.fn(() => "blob:fixture-full"), revokeObjectURL: vi.fn() });
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
     localStorage.setItem("enea-shadow-crm:workflow:v1", JSON.stringify({ "lab-schermature-001": { stage: "assigned" }, "lab-schermature-002": { stage: "received" } }));
     render(<EneaShadowCrm />);
     const reset = screen.getByRole("button", { name: "Resetta singolo pilot fixture" });
     expect(reset).toBeDisabled();
     fireEvent.click(screen.getByLabelText(/Confermo la pulizia locale/));
+    expect(reset).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Esporta pratica fixture JSON" }));
+    expect(screen.getByText("Export preventivo: completato")).toBeInTheDocument();
     fireEvent.click(reset);
     const persisted = JSON.parse(localStorage.getItem("enea-shadow-crm:workflow:v1") ?? "{}");
     expect(persisted).not.toHaveProperty("lab-schermature-001");

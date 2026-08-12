@@ -6,6 +6,14 @@ export type ShadowCrmPriority = "low" | "normal" | "high";
 export type ShadowCrmAttachmentTemplate = "invoice" | "bank-transfer";
 export type ShadowCrmDraftTemplate = "status-update" | "missing-documents";
 
+export const OFFICIAL_PILOT_FIXTURE_IDS: readonly string[] = Object.freeze(["lab-schermature-001", "lab-schermature-002"]);
+export const INTERNAL_PILOT_PROCEDURE = Object.freeze([
+  Object.freeze({ order: 1, role: "Operatore demo", action: "Seleziona la pratica fixture, allega i due documenti DEMO e verifica i controlli." }),
+  Object.freeze({ order: 2, role: "Istruttore demo", action: "Assegna priorità, avvia la lavorazione e porta la pratica in revisione." }),
+  Object.freeze({ order: 3, role: "Revisore demo", action: "Prepara almeno una bozza locale, verifica la readiness e conclude la pratica." }),
+  Object.freeze({ order: 4, role: "Responsabile pilot", action: "Esporta il riepilogo fixture prima di autorizzare la pulizia locale." }),
+]);
+
 export interface ShadowCrmAttachment {
   id: string;
   name: string;
@@ -55,6 +63,10 @@ const ALLOWED_STAGES = new Set<ShadowCrmStage>(["received", "assigned", "process
 
 function fixtureId(id: string): boolean {
   return /^lab-[a-z0-9-]+$/.test(id);
+}
+
+export function pilotSessionId(practiceId: string): string | null {
+  return OFFICIAL_PILOT_FIXTURE_IDS.includes(practiceId) ? `PILOT-CRM-ENEA-V1-${practiceId.toUpperCase()}` : null;
 }
 
 function sanitize(value: unknown): ShadowCrmPracticeState {
@@ -170,8 +182,9 @@ export function serializeShadowCrmAudit(practiceId: string, state: ShadowCrmPrac
 }
 
 export function serializeShadowCrmPractice(practiceId: string, state: ShadowCrmPracticeState): string | null {
-  if (!fixtureId(practiceId)) return null;
-  return JSON.stringify({ fixture: true, practiceId, exportedAt: new Date().toISOString(), state: sanitize(state), pilot: internalPilotCriteria(state) }, null, 2);
+  const sessionId = pilotSessionId(practiceId);
+  if (!sessionId) return null;
+  return JSON.stringify({ fixture: true, practiceId, sessionId, exportedAt: new Date().toISOString(), procedure: INTERNAL_PILOT_PROCEDURE, state: sanitize(state), pilot: internalPilotCriteria(state) }, null, 2);
 }
 
 export function clearShadowCrmState(storage: Pick<Storage, "getItem" | "setItem" | "removeItem">, practiceId: string): boolean {

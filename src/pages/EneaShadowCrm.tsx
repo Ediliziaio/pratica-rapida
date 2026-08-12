@@ -8,8 +8,10 @@ import {
   assignShadowCrm,
   clearShadowCrmState,
   EMPTY_SHADOW_CRM_STATE,
+  INTERNAL_PILOT_PROCEDURE,
   internalPilotCriteria,
   prioritizeShadowCrm,
+  pilotSessionId,
   removeSyntheticAttachment,
   saveShadowCrmState,
   serializeShadowCrmAudit,
@@ -24,6 +26,7 @@ const STAGE_LABELS: Record<ShadowCrmPracticeState["stage"], string> = {
 
 function Workspace({ practice, state, setState }: { practice: EneaLabSourcePractice; state: ShadowCrmPracticeState; setState: (state: ShadowCrmPracticeState) => void }) {
   const [resetConfirmed, setResetConfirmed] = useState(false);
+  const [practiceExported, setPracticeExported] = useState(false);
   const skipNextSave = useRef(false);
   const analysis = ENEA_LAB_MOCK_ANALYSIS[practice.id];
   const checklist = [
@@ -33,6 +36,7 @@ function Workspace({ practice, state, setState }: { practice: EneaLabSourcePract
     { label: "Dati pratica pronti per istruttoria", ok: practice.queueStatus === "ready" },
   ];
   const pilot = internalPilotCriteria(state);
+  const sessionId = pilotSessionId(practice.id);
 
   useEffect(() => {
     if (skipNextSave.current) {
@@ -52,16 +56,18 @@ function Workspace({ practice, state, setState }: { practice: EneaLabSourcePract
     URL.revokeObjectURL(url);
   };
   const resetPilot = () => {
-    if (!resetConfirmed || !clearShadowCrmState(window.localStorage, practice.id)) return;
+    if (!resetConfirmed || !practiceExported || !clearShadowCrmState(window.localStorage, practice.id)) return;
     skipNextSave.current = true;
     setState({ ...EMPTY_SHADOW_CRM_STATE, attachments: [], drafts: [], audit: [] });
     setResetConfirmed(false);
+    setPracticeExported(false);
   };
 
   return <main className="flex-1 space-y-6 p-6" data-testid="shadow-workspace">
     <header>
       <p className="text-sm font-medium text-amber-700">Demo esclusivamente locale · dati sintetici · nessun invio</p>
       <h1 className="text-2xl font-semibold">{practice.code} — {practice.clienteNome} {practice.clienteCognome}</h1>
+      <p data-testid="pilot-session-id">Sessione pilot: {sessionId}</p>
       <p className="text-muted-foreground">Stato: {STAGE_LABELS[state.stage]} · Assegnatario: {state.assignee ?? "non assegnato"}</p>
     </header>
 
@@ -102,10 +108,12 @@ function Workspace({ practice, state, setState }: { practice: EneaLabSourcePract
       <h2 id="esito" className="font-semibold">5. Esito e audit append-only</h2>
       <button disabled={state.stage !== "review" || !state.emailDrafted} onClick={() => act("complete")} className="mt-2 rounded border px-3 py-2 disabled:opacity-40">Concludi pratica fixture</button>
       <ol className="mt-3 list-decimal pl-5" aria-label="Audit locale">{state.audit.map((event) => <li key={event.id}>{event.type} · {new Date(event.at).toLocaleString("it-IT")}</li>)}</ol>
-      <div className="mt-3 flex gap-2"><button onClick={() => downloadJson(serializeShadowCrmAudit(practice.id, state), `${practice.code}-audit-fixture.json`)} className="rounded border px-3 py-2">Esporta audit fixture JSON</button><button onClick={() => downloadJson(serializeShadowCrmPractice(practice.id, state), `${practice.code}-pratica-fixture.json`)} className="rounded border px-3 py-2">Esporta pratica fixture JSON</button></div>
+      <div className="mt-3 flex gap-2"><button onClick={() => downloadJson(serializeShadowCrmAudit(practice.id, state), `${practice.code}-audit-fixture.json`)} className="rounded border px-3 py-2">Esporta audit fixture JSON</button><button onClick={() => { downloadJson(serializeShadowCrmPractice(practice.id, state), `${practice.code}-pratica-fixture.json`); setPracticeExported(true); }} className="rounded border px-3 py-2">Esporta pratica fixture JSON</button><button onClick={() => window.print()} className="rounded border px-3 py-2">Stampa riepilogo fixture</button></div>
       <h3 className="mt-4 font-medium">Readiness pilot interno: {pilot.ready ? "PRONTA" : "NON PRONTA"}</h3>
       <ul aria-label="Criteri pilot interno">{pilot.checks.map((check) => <li key={check.label}>{check.ok ? "✓" : "○"} {check.label}</li>)}</ul>
-      <div className="mt-4 rounded border border-red-300 p-3"><h3 className="font-medium">Pulizia del singolo pilot</h3><p className="text-sm">Rimuove soltanto lo stato locale di {practice.code}; le altre pratiche fixture restano invariate.</p><label className="mt-2 block"><input type="checkbox" checked={resetConfirmed} onChange={(event) => setResetConfirmed(event.target.checked)} /> Confermo la pulizia locale di questa pratica fixture</label><button disabled={!resetConfirmed} onClick={resetPilot} className="mt-2 rounded border px-3 py-2 disabled:opacity-40">Resetta singolo pilot fixture</button></div>
+      <section aria-labelledby="procedura-pilot" className="mt-4 rounded border p-3"><h3 id="procedura-pilot" className="font-medium">Procedura operativa del pilot</h3><ol className="list-decimal pl-5">{INTERNAL_PILOT_PROCEDURE.map((step) => <li key={step.order}><strong>{step.role}:</strong> {step.action}</li>)}</ol><p className="mt-2 text-sm">Accettazione: tutti i criteri di readiness devono risultare verdi, il riepilogo deve essere esportabile e nessun servizio esterno deve essere contattato.</p></section>
+      <section aria-label="Riepilogo finale stampabile" className="mt-4 rounded border p-3"><h3 className="font-medium">Riepilogo finale stampabile</h3><p>{sessionId} · {practice.code} · {STAGE_LABELS[state.stage]} · priorità {state.priority}</p><p>{state.attachments.length} allegati fixture · {state.drafts.length} bozze non inviate · {state.audit.length} eventi audit · readiness {pilot.ready ? "PRONTA" : "NON PRONTA"}</p></section>
+      <div className="mt-4 rounded border border-red-300 p-3"><h3 className="font-medium">Pulizia del singolo pilot</h3><p className="text-sm">Rimuove soltanto lo stato locale di {practice.code}; le altre pratiche fixture restano invariate. Prima è obbligatorio esportare la pratica fixture.</p><p aria-live="polite">Export preventivo: {practiceExported ? "completato" : "richiesto"}</p><label className="mt-2 block"><input type="checkbox" checked={resetConfirmed} onChange={(event) => setResetConfirmed(event.target.checked)} /> Confermo la pulizia locale di questa pratica fixture</label><button disabled={!resetConfirmed || !practiceExported} onClick={resetPilot} className="mt-2 rounded border px-3 py-2 disabled:opacity-40">Resetta singolo pilot fixture</button></div>
     </section>
   </main>;
 }

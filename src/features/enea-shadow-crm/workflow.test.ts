@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { addFixtureEmailDraft, addSyntheticAttachment, assignShadowCrm, clearShadowCrmState, EMPTY_SHADOW_CRM_STATE, ENEA_SHADOW_CRM_STORAGE_KEY, internalPilotCriteria, loadShadowCrmState, prioritizeShadowCrm, removeSyntheticAttachment, saveShadowCrmState, serializeShadowCrmAudit, serializeShadowCrmPractice, transitionShadowCrm } from "./workflow";
+import { addFixtureEmailDraft, addSyntheticAttachment, assignShadowCrm, clearShadowCrmState, EMPTY_SHADOW_CRM_STATE, ENEA_SHADOW_CRM_STORAGE_KEY, INTERNAL_PILOT_PROCEDURE, internalPilotCriteria, loadShadowCrmState, OFFICIAL_PILOT_FIXTURE_IDS, pilotSessionId, prioritizeShadowCrm, removeSyntheticAttachment, saveShadowCrmState, serializeShadowCrmAudit, serializeShadowCrmPractice, transitionShadowCrm } from "./workflow";
 
 describe("workflow CRM ombra", () => {
   it("consente soltanto il percorso ordinato e conserva un audit append-only", () => {
@@ -42,7 +42,7 @@ describe("workflow CRM ombra", () => {
     expect(state.drafts.map((draft) => draft.version)).toEqual([1, 2]);
     expect(serializeShadowCrmAudit("crm-reale-1", state)).toBeNull();
     expect(serializeShadowCrmAudit("lab-demo-1", state)).toContain('"fixture": true');
-    expect(serializeShadowCrmPractice("lab-demo-1", state)).toContain('"pilot"');
+    expect(serializeShadowCrmPractice("lab-schermature-001", state)).toContain('"pilot"');
   });
 
   it("rimuove allegati con audit e resetta una sola pratica persistita", () => {
@@ -55,6 +55,15 @@ describe("workflow CRM ombra", () => {
     expect(clearShadowCrmState(storage, "lab-one")).toBe(true);
     expect(JSON.parse(values[ENEA_SHADOW_CRM_STORAGE_KEY])).toHaveProperty("lab-two");
     expect(JSON.parse(values[ENEA_SHADOW_CRM_STORAGE_KEY])).not.toHaveProperty("lab-one");
+  });
+
+  it("mantiene immutabili fixture e procedura ufficiali e usa sessioni stabili", () => {
+    expect(Object.isFrozen(OFFICIAL_PILOT_FIXTURE_IDS)).toBe(true);
+    expect(Object.isFrozen(INTERNAL_PILOT_PROCEDURE)).toBe(true);
+    expect(INTERNAL_PILOT_PROCEDURE.every(Object.isFrozen)).toBe(true);
+    expect(pilotSessionId("lab-schermature-001")).toBe("PILOT-CRM-ENEA-V1-LAB-SCHERMATURE-001");
+    expect(pilotSessionId("lab-non-ufficiale")).toBeNull();
+    expect(serializeShadowCrmPractice("lab-non-ufficiale", EMPTY_SHADOW_CRM_STATE)).toBeNull();
   });
 
   it("legge e salva esclusivamente identificativi fixture e degrada in sicurezza", () => {

@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import { classifyHistoricalAudit } from "./historicalBatchAudit";
 import type { CompletedEneaAuditResult } from "./completedEneaAudit";
 
+const VALID_CPID = "288717-2026E-TEST";
+
 function auditWithDifferences(fieldIds: string[]): CompletedEneaAuditResult {
   const compared = Math.max(12, fieldIds.length);
   return {
     path: "demo/conclusa.pdf",
-    cpid: "TEST",
+    cpid: VALID_CPID,
     compared,
     matches: Math.max(0, compared - fieldIds.length),
     mismatches: fieldIds.length,
@@ -26,7 +28,7 @@ describe("classificazione audit storico ENEA", () => {
   it("non considera match un audit che non ha confrontato alcun campo", () => {
     const audit: CompletedEneaAuditResult = {
       path: "demo/conclusa.pdf",
-      cpid: "TEST",
+      cpid: VALID_CPID,
       compared: 0,
       matches: 0,
       mismatches: 0,
@@ -53,10 +55,23 @@ describe("classificazione audit storico ENEA", () => {
     expect(result.blockedDifferenceFieldIds).toEqual([]);
   });
 
+  it("non considera match un CPID parziale o malformato", () => {
+    const audit: CompletedEneaAuditResult = {
+      ...auditWithDifferences([]),
+      cpid: "288717-2026E",
+    };
+
+    const result = classifyHistoricalAudit(audit, new Set());
+
+    expect(result.outcome).toBe("difference");
+    expect(result.differenceFieldIds).toEqual([]);
+    expect(result.blockedDifferenceFieldIds).toEqual([]);
+  });
+
   it("non certifica come match un parsing con copertura troppo bassa", () => {
     const audit: CompletedEneaAuditResult = {
       path: "demo/conclusa.pdf",
-      cpid: "TEST",
+      cpid: VALID_CPID,
       compared: 9,
       matches: 9,
       mismatches: 0,
@@ -113,7 +128,7 @@ describe("classificazione audit storico ENEA", () => {
   it("non considera sicuro un mismatch privo del dettaglio dei campi", () => {
     const audit: CompletedEneaAuditResult = {
       path: "demo/conclusa.pdf",
-      cpid: "TEST",
+      cpid: VALID_CPID,
       compared: 12,
       matches: 11,
       mismatches: 1,

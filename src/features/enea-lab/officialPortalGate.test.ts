@@ -10,7 +10,7 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
     const analysis = ENEA_LAB_MOCK_ANALYSIS[source.id];
     const mapped = mapSchermaturaPractice(source, analysis, { includeTestConventions: true });
     const issues = validatePreparedPractice(source, mapped, analysis);
-    return { mapped, issues };
+    return { mapped, issues, analysis };
   }
 
   function independentlyReadyMapped() {
@@ -45,42 +45,44 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
 
   function readyPayload() {
     const mapped = independentlyReadyMapped();
-    const issues = validatePreparedPractice(mapped.source, mapped);
+    const analysis = ENEA_LAB_MOCK_ANALYSIS[mapped.source.id];
+    if (!analysis) throw new Error("Fixture senza analisi documentale.");
+    const issues = validatePreparedPractice(mapped.source, mapped, analysis);
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
     const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-12T08:00:00.000Z"));
     expect(payload.readyForOfficialSubmission).toBe(true);
-    return { mapped, payload };
+    return { mapped, payload, analysis };
   }
 
   it("blocca una pratica con dati ufficiali ancora incompleti", () => {
-    const { mapped, issues } = fixture();
+    const { mapped, issues, analysis } = fixture();
     const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-12T08:00:00.000Z"));
 
-    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true);
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis);
 
     expect(gate).toEqual({ status: "blocked", reason: "official-data-incomplete", workflow: null });
   });
 
   it("blocca sempre un pacchetto diventato obsoleto", () => {
-    const { mapped, issues } = fixture();
+    const { mapped, issues, analysis } = fixture();
     const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-12T08:00:00.000Z"));
 
-    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, false);
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, false, analysis);
 
     expect(gate).toEqual({ status: "blocked", reason: "package-not-current", workflow: null });
   });
 
   it("rifiuta un payload di prova anche se il chiamante tenta di usarlo come ufficiale", () => {
-    const { mapped, issues } = fixture();
+    const { mapped, issues, analysis } = fixture();
     const payload = buildEneaPayload(mapped, issues, "test", new Date("2026-08-12T08:00:00.000Z"));
 
-    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true);
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis);
 
     expect(gate).toEqual({ status: "blocked", reason: "payload-not-official", workflow: null });
   });
 
   it("non si fida dei flag di readiness se il mapping corrente contiene ancora blocker", () => {
-    const { mapped, issues } = fixture();
+    const { mapped, issues, analysis } = fixture();
     expect(issues.some((issue) => issue.severity === "blocker")).toBe(true);
     const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-12T08:00:00.000Z"));
     const poisonedPayload = {
@@ -89,7 +91,15 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
       interventionRequired: [],
     };
 
-    const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true);
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true, analysis);
+
+    expect(gate).toEqual({ status: "blocked", reason: "official-data-incomplete", workflow: null });
+  });
+
+  it("blocca il workflow ufficiale se l'analisi documentale corrente non è disponibile", () => {
+    const { mapped, payload } = readyPayload();
+
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true);
 
     expect(gate).toEqual({ status: "blocked", reason: "official-data-incomplete", workflow: null });
   });
@@ -110,9 +120,9 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
   });
 
   it("restituisce soltanto un workflow official quando mapping e payload superano indipendentemente tutte le barriere", () => {
-    const { mapped, payload } = readyPayload();
+    const { mapped, payload, analysis } = readyPayload();
 
-    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true);
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis);
 
     expect(gate.status).toBe("ready");
     if (gate.status !== "ready") throw new Error("Il gate doveva essere pronto nel caso positivo verificato.");
@@ -122,28 +132,28 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
   });
 
   it("blocca payload dichiarati pronti ma internamente incoerenti", () => {
-    const { mapped, payload } = readyPayload();
+    const { mapped, payload, analysis } = readyPayload();
     const poisonedPayload = {
       ...payload,
       portalFields: payload.portalFields.map((field, index) => index === 0 ? { ...field, testOnly: true } : field),
     };
 
-    const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true);
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true, analysis);
 
     expect(gate).toEqual({ status: "blocked", reason: "payload-inconsistent", workflow: null });
   });
 
   it("blocca un payload ufficiale appartenente a un'altra pratica", () => {
-    const { mapped, payload } = readyPayload();
+    const { mapped, payload, analysis } = readyPayload();
     const poisonedPayload = { ...payload, practiceCode: `${payload.practiceCode}-ALTRO` };
 
-    const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true);
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true, analysis);
 
     expect(gate).toEqual({ status: "blocked", reason: "payload-inconsistent", workflow: null });
   });
 
   it("blocca un payload che omette in modo coerente un campo ufficiale", () => {
-    const { mapped, payload } = readyPayload();
+    const { mapped, payload, analysis } = readyPayload();
     const omittedId = payload.portalFields[0]?.id;
     if (!omittedId) throw new Error("Fixture ufficiale senza campi portale.");
     const fields = { ...payload.fields };
@@ -154,19 +164,19 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
       portalFields: payload.portalFields.filter((field) => field.id !== omittedId),
     };
 
-    const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true);
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true, analysis);
 
     expect(gate).toEqual({ status: "blocked", reason: "payload-inconsistent", workflow: null });
   });
 
   it("blocca la manipolazione del valore portale mantenendo invariati gli id", () => {
-    const { mapped, payload } = readyPayload();
+    const { mapped, payload, analysis } = readyPayload();
     const poisonedPayload = {
       ...payload,
       portalFields: payload.portalFields.map((field, index) => index === 0 ? { ...field, value: `${field.value}-ALTERATO` } : field),
     };
 
-    const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true);
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true, analysis);
 
     expect(gate).toEqual({ status: "blocked", reason: "payload-inconsistent", workflow: null });
   });

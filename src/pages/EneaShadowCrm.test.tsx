@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import EneaShadowCrm from "./EneaShadowCrm";
+import { ENEA_SHADOW_IMPORT_STORAGE_KEY, IMPORT_CONFIRMATION_PHRASE, prepareSinglePracticeImport, saveImportedPractice } from "@/features/enea-shadow-crm/importBridge";
 
 describe("CRM ombra ENEA locale", () => {
   beforeEach(() => localStorage.clear());
@@ -99,5 +100,28 @@ describe("CRM ombra ENEA locale", () => {
     expect(screen.queryByRole("button", { name: /LAB-SCH-002/ })).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Filtra per stato"), { target: { value: "received" } });
     expect(screen.getByText("Nessuna pratica fixture trovata.")).toBeInTheDocument();
+  });
+
+  it("mostra soltanto contatti mascherati da uno snapshot sintetico importato", () => {
+    const result = prepareSinglePracticeImport([{
+      id: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      code: "CRM-DEMO-002",
+      cliente_nome: "NomeNonPersistibile",
+      cliente_cognome: "CognomeNonPersistibile",
+      cliente_email: "demo@example.invalid",
+      cliente_telefono: "+39 000 765 4321",
+      cliente_cf: "DMOSNT80A01F205X",
+      prodotto_installato: "Schermature Solari",
+      ricevuta_at: "2026-08-12T10:00:00Z",
+      document_count: 3,
+      form_complete: true,
+    }], { confirmationPhrase: IMPORT_CONFIRMATION_PHRASE, singlePracticeConfirmed: true, localOnlyConfirmed: true, communicationsBlockedConfirmed: true });
+    if (result.ok === false) throw new Error(result.reason);
+    saveImportedPractice(localStorage, result.practice);
+    render(<EneaShadowCrm />);
+    expect(screen.getByTestId("masked-import")).toHaveTextContent("Cliente reale mascherato");
+    expect(screen.getByTestId("masked-import")).toHaveTextContent("***@example.invalid");
+    expect(screen.queryByText(/NomeNonPersistibile|CognomeNonPersistibile/)).not.toBeInTheDocument();
+    expect(localStorage.getItem(ENEA_SHADOW_IMPORT_STORAGE_KEY)).not.toContain("NomeNonPersistibile");
   });
 });

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ENEA_LAB_MOCK_ANALYSIS, ENEA_LAB_MOCK_PRACTICES } from "@/features/enea-lab/mockPractices";
 import type { EneaLabSourcePractice } from "@/features/enea-lab/types";
+import { loadImportedPractice } from "@/features/enea-shadow-crm/importBridge";
 import {
   loadShadowCrmState,
   addFixtureEmailDraft,
@@ -120,6 +121,7 @@ function Workspace({ practice, state, setState }: { practice: EneaLabSourcePract
 }
 
 export default function EneaShadowCrm() {
+  const [importedPractice] = useState(() => loadImportedPractice(window.localStorage));
   const [selectedId, setSelectedId] = useState(ENEA_LAB_MOCK_PRACTICES[0].id);
   const [query, setQuery] = useState("");
   const [stageFilter, setStageFilter] = useState("all");
@@ -136,6 +138,12 @@ export default function EneaShadowCrm() {
   return <div className="min-h-screen bg-background text-foreground md:flex">
     <nav aria-label="Pratiche fixture" className="border-b p-4 md:w-72 md:border-b-0 md:border-r">
       <h2 className="mb-3 font-semibold">CRM ombra ENEA</h2>
+      <section aria-label="Ponte importazione read-only" className="mb-4 rounded border border-amber-300 p-3 text-sm">
+        <h3 className="font-semibold">Ponte CRM reale</h3>
+        <p>Disconnesso dal CRM: nessun record selezionato. L’import richiede una sola pratica, consenso esplicito e snapshot read-only minimizzato.</p>
+        <p className="mt-1">Email, WhatsApp, scritture CRM/ENEA e upload: <strong>bloccati</strong>.</p>
+        {importedPractice && <div className="mt-2" data-testid="masked-import"><strong>{importedPractice.code}</strong><p>{importedPractice.customerLabel} · {importedPractice.maskedEmail ?? "email omessa"} · {importedPractice.maskedPhone ?? "telefono omesso"}</p></div>}
+      </section>
       <p aria-label="Riepilogo stati" className="mb-3 text-sm">Ricevute {summary.received ?? 0} · Assegnate {summary.assigned ?? 0} · In corso {summary.processing ?? 0} · Revisione {summary.review ?? 0} · Concluse {summary.completed ?? 0}</p>
       <input aria-label="Cerca pratiche" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Codice, cliente, rivenditore" className="mb-2 w-full rounded border p-2" />
       <select aria-label="Filtra per stato" value={stageFilter} onChange={(event) => setStageFilter(event.target.value)} className="mb-2 w-full rounded border p-2"><option value="all">Tutti gli stati</option>{Object.entries(STAGE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>

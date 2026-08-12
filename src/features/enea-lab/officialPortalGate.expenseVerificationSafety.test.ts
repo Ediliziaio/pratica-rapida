@@ -46,13 +46,14 @@ function readyMappedWithExpenseSource(
 describe("gate ENEA: verifica manuale della spesa congrua", () => {
   it("non accetta come ufficiale il semplice totale fiscale calcolato dal parser", () => {
     const mapped = readyMappedWithExpenseSource("Calcolo ENEA");
-    const issues = validatePreparedPractice(mapped.source, mapped);
+    const analysis = ENEA_LAB_MOCK_ANALYSIS[mapped.source.id];
+    const issues = validatePreparedPractice(mapped.source, mapped, analysis);
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
 
     const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-12T18:30:00.000Z"));
     expect(payload.readyForOfficialSubmission).toBe(true);
 
-    expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true)).toEqual({
+    expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis)).toEqual({
       status: "blocked",
       reason: "official-data-incomplete",
       workflow: null,
@@ -61,13 +62,14 @@ describe("gate ENEA: verifica manuale della spesa congrua", () => {
 
   it("non considera verificata una spesa nulla anche se inserita manualmente", () => {
     const mapped = readyMappedWithExpenseSource("Inserimento operatore", "0 €");
-    const issues = validatePreparedPractice(mapped.source, mapped);
+    const analysis = ENEA_LAB_MOCK_ANALYSIS[mapped.source.id];
+    const issues = validatePreparedPractice(mapped.source, mapped, analysis);
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
 
     const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-12T18:30:00.000Z"));
     expect(payload.readyForOfficialSubmission).toBe(true);
 
-    expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true)).toEqual({
+    expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis)).toEqual({
       status: "blocked",
       reason: "official-data-incomplete",
       workflow: null,
@@ -76,11 +78,12 @@ describe("gate ENEA: verifica manuale della spesa congrua", () => {
 
   it("consente il gate quando la spesa positiva è stata riscritta e verificata dall'operatore", () => {
     const mapped = readyMappedWithExpenseSource("Inserimento operatore");
-    const issues = validatePreparedPractice(mapped.source, mapped);
+    const analysis = ENEA_LAB_MOCK_ANALYSIS[mapped.source.id];
+    const issues = validatePreparedPractice(mapped.source, mapped, analysis);
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
 
     const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-12T18:30:00.000Z"));
-    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true);
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis);
 
     expect(gate.status).toBe("ready");
   });

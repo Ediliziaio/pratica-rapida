@@ -1,6 +1,6 @@
 import { buildEneaPayload, validatePreparedPractice } from "./preparation";
 import { buildEneaOfficialPortalWorkflowScript, type EneaPortalWorkflowPreparation } from "./portalWorkflow";
-import type { EneaLabMappedPractice, EneaLabPayload } from "./types";
+import type { EneaLabDocumentAnalysis, EneaLabMappedPractice, EneaLabPayload } from "./types";
 
 export type EneaOfficialPortalGateReason =
   | "package-not-current"
@@ -84,6 +84,7 @@ export function prepareEneaOfficialPortalCollaudo(
   mapped: EneaLabMappedPractice,
   payload: EneaLabPayload,
   packageCurrent: boolean,
+  analysis?: EneaLabDocumentAnalysis,
 ): EneaOfficialPortalGate {
   if (!packageCurrent) {
     return { status: "blocked", reason: "package-not-current", workflow: null };
@@ -93,10 +94,10 @@ export function prepareEneaOfficialPortalCollaudo(
   }
 
   // I flag del payload sono una rappresentazione derivata e non una fonte di
-  // verità. Prima del collaudo ricontrolliamo direttamente il mapping corrente:
-  // un JSON con readyForOfficialSubmission/interventionRequired manipolati non
-  // deve poter promuovere una pratica che presenta ancora blocker strutturali.
-  const independentBlockers = validatePreparedPractice(mapped.source, mapped)
+  // verità. Prima del collaudo ricontrolliamo direttamente mapping e analisi
+  // documentale correnti: un JSON con readiness manipolata o un blocker emerso
+  // dai documenti non deve poter essere escluso dal gate finale.
+  const independentBlockers = validatePreparedPractice(mapped.source, mapped, analysis)
     .filter((issue) => issue.severity === "blocker");
   if (
     independentBlockers.length > 0

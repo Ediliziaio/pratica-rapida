@@ -87,7 +87,7 @@ export function parseScreeningInvoiceText(
       ? "invoice"
       : "unknown";
   const compact = text.replace(/\s+/g, " ");
-  const pattern = /SCHERMATURA\s+SOLARE([\s\S]{0,260}?)LARGHEZZA\s+(\d{2,5})\s*[X×]\s*(\d{2,5})\s+VALORE\s+G\s*TOT\s*([0-9]+(?:[,.][0-9]+)?)/gi;
+  const pattern = /SCHERMATURA\s+SOLARE((?:(?!SCHERMATURA\s+SOLARE)[\s\S]){0,260}?)LARGHEZZA\s+(\d{2,5})\s*[X×]\s*(\d{2,5})\s+VALORE\s+G\s*TOT\s*([0-9]+(?:[,.][0-9]+)?)/gi;
   const items: EneaLabScreeningItem[] = [];
   let invalidExplicitQuantity = false;
 

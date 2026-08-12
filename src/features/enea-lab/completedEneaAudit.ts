@@ -195,7 +195,11 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   const screeningText = screeningStart >= 0
     ? source.slice(screeningStart, screeningEnd > screeningStart ? screeningEnd : undefined)
     : "";
-  const screeningRowPattern = /(?:^|\s)(\d+)\s+(?=Tenda o veneziana|Altra schermatura solare)/gi;
+  // Conta qualunque riga numerata che inizi con un'etichetta testuale, non solo
+  // i due tipi che il parser sa gia' interpretare. Se ENEA introduce o conserva
+  // una tipologia diversa, la riga deve rendere la struttura incompleta invece
+  // di sparire dal conteggio e produrre un falso match sul numero schermature.
+  const screeningRowPattern = /(?:^|\s)(\d+)\s+(?=[A-Za-zÀ-ÿ])/g;
   const screeningOrdinals = Array.from(screeningText.matchAll(screeningRowPattern), (match) => Number(match[1]));
   const screeningPattern = /(\d+)\s+(Tenda o veneziana|Altra schermatura solare)\s+(Esterna)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Sud-Est|Sud-Ovest|Est|Sud|Ovest)\s+(Dichiarato dal fornitore)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Tessuto|PVC|Metallo|Misto)\s+(Manuale|Automatico)/gi;
   const parsedScreeningOrdinals: number[] = [];

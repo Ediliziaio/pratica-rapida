@@ -75,6 +75,13 @@ function hasConsistentOfficialPayload(mapped: EneaLabMappedPractice, payload: En
     && sameStringSet(payload.excludedUnverifiedFields, expected.excludedUnverifiedFields);
 }
 
+function hasManuallyVerifiedEligibleExpense(mapped: EneaLabMappedPractice): boolean {
+  const expense = mapped.sections
+    .flatMap((section) => section.fields)
+    .find((field) => field.id === "schermature.spesa");
+  return expense?.status === "ready" && expense.source === "Inserimento operatore";
+}
+
 /**
  * Ultima barriera locale prima del collaudo sul portale reale.
  * Non apre ENEA e non esegue il comando: restituisce il workflow ufficiale
@@ -91,6 +98,15 @@ export function prepareEneaOfficialPortalCollaudo(
   }
   if (payload.mode !== "official") {
     return { status: "blocked", reason: "payload-not-official", workflow: null };
+  }
+
+  // L'audit storico ha mostrato che il totale fiscale della fattura può non
+  // coincidere con la "spesa congrua sostenuta" effettivamente riportata nel
+  // riepilogo ENEA conclusivo. Il totale estratto resta quindi una proposta di
+  // lavoro: prima del portale reale la spesa deve essere riscritta/verificata
+  // esplicitamente dall'operatore, non soltanto ereditata dal parser.
+  if (!hasManuallyVerifiedEligibleExpense(mapped)) {
+    return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
 
   // I flag del payload sono una rappresentazione derivata e non una fonte di

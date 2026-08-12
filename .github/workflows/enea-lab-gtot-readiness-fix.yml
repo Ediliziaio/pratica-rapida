@@ -1,0 +1,131 @@
+name: ENEA Lab one-shot gTot readiness fix
+
+on:
+  push:
+    branches:
+      - agent/crm-ombra-enea-lab
+    paths:
+      - ".github/workflows/enea-lab-gtot-readiness-fix.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  remediate:
+    if: github.event.head_commit.message == 'One-shot gTot readiness remediation'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/crm-ombra-enea-lab
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Apply fail-closed gTot readiness semantics
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              file = Path(path)
+              text = file.read_text()
+              if text.count(old) != 1:
+                  raise SystemExit(f"Expected exactly one match in {path}, found {text.count(old)}")
+              file.write_text(text.replace(old, new, 1))
+
+          replace_once(
+              "src/features/enea-lab/mapper.ts",
+              '''        {
+          source: rules.gTotFromDocument ? "Fattura" : "Regola controllata",
+          status: "ready",
+          note: rules.gTotFromDocument
+            ? "Requisito automatico verificato: gTot ≤ 0,35."
+            : `Valore sostitutivo operativo: ${formatNumber(rules.gTot, 2)} in assenza di un valore specificato.`,
+        },''',
+              '''        {
+          source: rules.gTotFromDocument ? "Fattura" : "Regola controllata",
+          status: rules.gTotFromDocument ? "ready" : "missing",
+          note: rules.gTotFromDocument
+            ? "Requisito automatico verificato: gTot ≤ 0,35."
+            : `Valore indicativo non verificato: ${formatNumber(rules.gTot, 2)}. Non viene considerato pronto né compilato nel workflow ufficiale; verificare fattura, scheda tecnica o conferma umana.`,
+        },''',
+          )
+
+          replace_once(
+              "src/features/enea-lab/preparation.ts",
+              '''  for (const field of requiredFields(mapped)) {
+    if (field.status === "ready") continue;
+    issues.push({''',
+              '''  for (const field of requiredFields(mapped)) {
+    if (field.status === "ready") continue;
+    const unverifiedGTot = field.id.match(/^schermature\\.(\\d+)\\.gtot$/);
+    if (unverifiedGTot && issues.some((issue) => issue.code === `unverified-gtot-${unverifiedGTot[1]}`)) continue;
+    issues.push({''',
+          )
+
+          replace_once(
+              "src/features/enea-lab/mapper.test.ts",
+              '''    expect(fields.find((field) => field.id === "schermature.1.gtot")).toMatchObject({
+      value: "0,06",
+      source: "Regola controllata",
+      status: "ready",
+    });''',
+              '''    expect(fields.find((field) => field.id === "schermature.1.gtot")).toMatchObject({
+      value: "0,06",
+      source: "Regola controllata",
+      status: "missing",
+    });''',
+          )
+
+          replace_once(
+              "src/features/enea-lab/gtotSafety.test.ts",
+              '''    const mapped = mapSchermaturaPractice(source);
+    const issues = validatePreparedPractice(source, mapped);
+    const preparation = buildEneaScreeningPortalScript(mapped, 0);''',
+              '''    const mapped = mapSchermaturaPractice(source);
+    const mappedGTot = mapped.sections.flatMap((section) => section.fields)
+      .find((field) => field.id === "schermature.0.gtot");
+    const issues = validatePreparedPractice(source, mapped);
+    const preparation = buildEneaScreeningPortalScript(mapped, 0);''',
+          )
+
+          replace_once(
+              "src/features/enea-lab/gtotSafety.test.ts",
+              '''    expect(issues).toContainEqual(expect.objectContaining({
+      code: "unverified-gtot-0",
+      severity: "blocker",
+      fieldId: "schermature.0.gtot",
+    }));
+    expect(preparation.readyFieldIds).not.toContain("schermature.0.gtot");''',
+              '''    expect(mappedGTot).toMatchObject({
+      value: "0,06",
+      source: "Regola controllata",
+      status: "missing",
+    });
+    expect(issues).toContainEqual(expect.objectContaining({
+      code: "unverified-gtot-0",
+      severity: "blocker",
+      fieldId: "schermature.0.gtot",
+    }));
+    expect(issues.filter((issue) => issue.fieldId === "schermature.0.gtot" && issue.severity === "blocker")).toHaveLength(1);
+    expect(preparation.readyFieldIds).not.toContain("schermature.0.gtot");''',
+          )
+          PY
+      - name: Diff sanity
+        run: git diff --check && git diff -- src/features/enea-lab/mapper.ts src/features/enea-lab/preparation.ts src/features/enea-lab/mapper.test.ts src/features/enea-lab/gtotSafety.test.ts
+      - name: Install dependencies
+        run: bun install
+      - name: ENEA Lab tests
+        run: bunx vitest run src/features/enea-lab src/pages/EneaLab.test.tsx
+      - name: Typecheck
+        run: bunx tsc -p tsconfig.app.json --noEmit
+      - name: Commit verified remediation and remove one-shot workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/enea-lab-gtot-readiness-fix.yml
+          git add src/features/enea-lab/mapper.ts src/features/enea-lab/preparation.ts src/features/enea-lab/mapper.test.ts src/features/enea-lab/gtotSafety.test.ts
+          git diff --cached --check
+          git commit -m "Allinea readiness gTot non documentato"
+          git push origin HEAD:agent/crm-ombra-enea-lab

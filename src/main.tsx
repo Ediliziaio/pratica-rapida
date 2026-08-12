@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import { loadRootComponent } from "./appBootstrap";
+import { RootBootstrapBoundary, RootLoadingFallback } from "./RootBootstrapState";
 import "./index.css";
 
 // Initialize Sentry after DOM is ready
@@ -14,8 +15,10 @@ const RootApp = lazy(() => loadRootComponent(import.meta.env.DEV, window.locatio
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>
-    <Suspense fallback={null}>
-      <RootApp />
-    </Suspense>
+    <RootBootstrapBoundary>
+      <Suspense fallback={<RootLoadingFallback />}>
+        <RootApp />
+      </Suspense>
+    </RootBootstrapBoundary>
   </HelmetProvider>
 );

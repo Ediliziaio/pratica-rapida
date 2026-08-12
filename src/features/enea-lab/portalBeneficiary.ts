@@ -38,6 +38,11 @@ export const ENEA_BENEFICIARY_PORTAL_FIELDS: readonly BeneficiaryPortalFieldDefi
   { fieldId: "beneficiario.telefono", portalId: "id-telefono", control: "input" },
 ] as const;
 
+function isInternalPlaceholder(value: string): boolean {
+  const normalized = value.trim().toLocaleLowerCase("it");
+  return normalized === "non indicato" || normalized === "intervento umano richiesto";
+}
+
 export function buildEneaBeneficiaryPortalScript(
   mapped: EneaLabMappedPractice,
 ): EneaBeneficiaryPortalPreparation {
@@ -46,7 +51,7 @@ export function buildEneaBeneficiaryPortalScript(
   );
   const readyFields = ENEA_BENEFICIARY_PORTAL_FIELDS.flatMap((definition) => {
     const field = fieldsById.get(definition.fieldId);
-    if (!field || field.status !== "ready" || field.testOnly) return [];
+    if (!field || field.status !== "ready" || field.testOnly || isInternalPlaceholder(field.value)) return [];
     return [{ ...definition, value: field.value }];
   });
   const readyFieldIds = readyFields.map(({ fieldId }) => fieldId);

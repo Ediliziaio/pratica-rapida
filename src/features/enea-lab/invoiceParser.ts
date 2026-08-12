@@ -90,6 +90,7 @@ export function parseScreeningInvoiceText(
   const dimensionPattern = /LARGHEZZA\s+(\d{2,5})\s*[X×]\s*(\d{2,5})\s+VALORE\s+G\s*TOT\s*([0-9]+(?:[,.][0-9]+)?)/i;
   const items: EneaLabScreeningItem[] = [];
   let invalidExplicitQuantity = false;
+  let incompleteScreeningBlock = false;
 
   if (documentType === "invoice") {
     for (const blockMatch of compact.matchAll(blockPattern)) {
@@ -109,7 +110,13 @@ export function parseScreeningInvoiceText(
       }
 
       const dimensionsMatch = block.match(dimensionPattern);
-      if (!dimensionsMatch) continue;
+      if (!dimensionsMatch) {
+        // Un marcatore SCHERMATURA SOLARE non decodificato non può essere
+        // ignorato se nello stesso documento esistono altre righe valide:
+        // altrimenti il conteggio ENEA verrebbe sottostimato senza blocker.
+        incompleteScreeningBlock = true;
+        continue;
+      }
 
       const widthMm = Number(dimensionsMatch[1]);
       const heightMm = Number(dimensionsMatch[2]);
@@ -130,23 +137,27 @@ export function parseScreeningInvoiceText(
     }
   }
 
-  // Una quantità esplicita non valida rende inaffidabile l'associazione fra le
-  // righe dell'intero documento e gli elementi ENEA. Non conserviamo quindi le
-  // altre righe apparentemente valide della stessa fattura: l'operatore deve
-  // riconciliare il documento prima che quei dati possano rientrare nel mapping.
-  const safeItems = invalidExplicitQuantity ? [] : items;
+  // Una quantità esplicita non valida oppure una riga schermatura non letta
+  // rende inaffidabile l'associazione fra il documento e gli elementi ENEA.
+  // Non conserviamo quindi nemmeno le altre righe apparentemente valide della
+  // stessa fattura: l'operatore deve riconciliare il documento prima del mapping.
+  const unsafeScreeningStructure = invalidExplicitQuantity || incompleteScreeningBlock;
+  const safeItems = unsafeScreeningStructure ? [] : items;
+  const failureMessage = invalidExplicitQuantity
+    ? "Quantità schermatura esplicita non valida: controllo umano richiesto."
+    : incompleteScreeningBlock
+      ? "Almeno una schermatura non contiene misure e gTot riconoscibili: controllo umano richiesto."
+      : undefined;
 
   return {
     items: safeItems,
     result: {
       path,
-      status: invalidExplicitQuantity ? "failed" : "parsed",
+      status: unsafeScreeningStructure ? "failed" : "parsed",
       documentType,
       total: extractDocumentTotal(text),
       itemCount: safeItems.length,
-      ...(invalidExplicitQuantity
-        ? { message: "Quantità schermatura esplicita non valida: controllo umano richiesto." }
-        : {}),
+      ...(failureMessage ? { message: failureMessage } : {}),
       ...extractDocumentIdentity(text),
     },
   };
@@ -177,6 +188,9 @@ export function combineDocumentResults(
   const hasInvalidExplicitQuantity = documents.some(({ message }) =>
     /Quantità schermatura esplicita non valida/i.test(message ?? ""),
   );
+  const hasIncompleteScreeningBlock = documents.some(({ message }) =>
+    /schermatura non contiene misure e gTot riconoscibili/i.test(message ?? ""),
+  );
 
   if (!invoiceDocuments.length) blockers.push("Nessuna fattura riconosciuta tra i documenti fiscali.");
   if (!items.length) blockers.push("Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.");
@@ -191,6 +205,9 @@ export function combineDocumentResults(
   }
   if (hasInvalidExplicitQuantity) {
     blockers.push("La quantità di almeno una schermatura non è affidabile: verificare manualmente numero totale, misure e gTot.");
+  }
+  if (hasIncompleteScreeningBlock) {
+    blockers.push("Almeno una schermatura della fattura non è stata letta integralmente: verificare manualmente numero totale, misure e gTot.");
   }
   if (invoiceTotal > 0 && creditTotal > invoiceTotal) {
     blockers.push("Le note di credito superano il totale delle fatture.");

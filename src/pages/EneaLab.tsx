@@ -299,7 +299,7 @@ export default function EneaLab() {
   const wasPrepared = preparedIds.includes(selected.source.id);
   const isPrepared = wasPrepared && preparedSnapshot?.fingerprint === currentFingerprint;
   const isPreparedStale = wasPrepared && !isPrepared;
-  const officialPortalGate = prepareEneaOfficialPortalCollaudo(selected, officialPayload, isPrepared);
+  const officialPortalGate = prepareEneaOfficialPortalCollaudo(selected, officialPayload, isPrepared, documentAnalysis.data);
   const officialPortalGateMessage = officialPortalGate.status === "ready"
     ? "Comando ufficiale pronto per il collaudo sul portale. Non salva e non invia la pratica."
     : `Comando ufficiale bloccato: ${officialPortalGate.reason === "package-not-current"

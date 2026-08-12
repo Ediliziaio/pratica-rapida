@@ -86,30 +86,36 @@ export function parseScreeningInvoiceText(
       ? "invoice"
       : "unknown";
   const compact = text.replace(/\s+/g, " ");
-  const pattern = /SCHERMATURA\s+SOLARE((?:(?!SCHERMATURA\s+SOLARE)[\s\S]){0,260}?)LARGHEZZA\s+(\d{2,5})\s*[X×]\s*(\d{2,5})\s+VALORE\s+G\s*TOT\s*([0-9]+(?:[,.][0-9]+)?)/gi;
+  const blockPattern = /SCHERMATURA\s+SOLARE((?:(?!SCHERMATURA\s+SOLARE)[\s\S]){0,320})/gi;
+  const dimensionPattern = /LARGHEZZA\s+(\d{2,5})\s*[X×]\s*(\d{2,5})\s+VALORE\s+G\s*TOT\s*([0-9]+(?:[,.][0-9]+)?)/i;
   const items: EneaLabScreeningItem[] = [];
   let invalidExplicitQuantity = false;
 
   if (documentType === "invoice") {
-    for (const match of compact.matchAll(pattern)) {
-      const widthMm = Number(match[2]);
-      const heightMm = Number(match[3]);
-      const gTot = parseItalianNumber(match[4]);
-      const quantityMatch = match[1].match(/\bNR\s+([0-9]+(?:[,.][0-9]+)?)/i);
+    for (const blockMatch of compact.matchAll(blockPattern)) {
+      const block = blockMatch[1];
+      const quantityMatch = block.match(/\bNR\s+([0-9]+(?:[,.][0-9]+)?)/i);
       const quantityValue = quantityMatch ? parseItalianNumber(quantityMatch[1]) : 1;
       const quantityIsValid = Number.isInteger(quantityValue)
         && quantityValue! >= 1
         && quantityValue! <= MAX_SCREENING_QUANTITY;
 
-      // Se la fattura espone esplicitamente una quantità ma il valore non è un
-      // intero plausibile, non possiamo trasformarlo silenziosamente in 1. Un
-      // fallback del genere sottostimerebbe il numero di schermature e potrebbe
-      // rendere apparentemente pronto un payload ufficiale incompleto.
+      // Nei PDF osservati la quantità può comparire sia prima sia dopo
+      // LARGHEZZA/gTot. La leggiamo quindi dall'intero blocco della singola
+      // schermatura, mantenendo il blocco confinato al marcatore successivo.
       if (quantityMatch && !quantityIsValid) {
         invalidExplicitQuantity = true;
         continue;
       }
+
+      const dimensionsMatch = block.match(dimensionPattern);
+      if (!dimensionsMatch) continue;
+
+      const widthMm = Number(dimensionsMatch[1]);
+      const heightMm = Number(dimensionsMatch[2]);
+      const gTot = parseItalianNumber(dimensionsMatch[3]);
       const quantity = quantityMatch ? quantityValue! : 1;
+      const descriptionPart = block.slice(0, dimensionsMatch.index ?? 0);
 
       for (let index = 0; index < quantity; index += 1) {
         items.push({
@@ -117,7 +123,7 @@ export function parseScreeningInvoiceText(
           heightMm,
           surfaceM2: truncateOneDecimal((widthMm * heightMm) / 1_000_000),
           gTot,
-          description: cleanDescription(`Schermatura solare${match[1]}`),
+          description: cleanDescription(`Schermatura solare${descriptionPart}`),
           sourcePath: path,
         });
       }

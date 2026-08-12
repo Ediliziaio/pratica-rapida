@@ -61,6 +61,17 @@ describe("compilazione pagina beneficiario ENEA", () => {
     expect(preparation.script).not.toContain("CF-DEMO-001-NON-VALIDO");
   });
 
+  it("non prepara placeholder interni anche se il dato sorgente risulta formalmente valorizzato", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.richiedente.nome = "Non indicato";
+    const mapped = mapSchermaturaPractice(source);
+    const preparation = buildEneaBeneficiaryPortalScript(mapped);
+
+    expect(preparation.skippedFieldIds).toContain("beneficiario.nome");
+    expect(preparation.readyFieldIds).not.toContain("beneficiario.nome");
+    expect(preparation.script).not.toContain("Non indicato");
+  });
+
   it("compila input, select e Comuni in una pagina equivalente senza attivare Salva", async () => {
     const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
     source.form.richiedente.cf = "RSSMRA80A01H501U";

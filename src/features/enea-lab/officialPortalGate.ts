@@ -70,6 +70,39 @@ function hasCurrentDocumentAnalysis(
   });
 }
 
+function hasReconciledMissingDocumentScreenings(
+  mapped: EneaLabMappedPractice,
+  analysis: EneaLabDocumentAnalysis,
+): boolean {
+  const requiresManualReconciliation = analysis.blockers.some((message) =>
+    /Nessuna riga di schermatura/i.test(message),
+  );
+  if (!requiresManualReconciliation) return true;
+
+  const fields = mapped.sections.flatMap((section) => section.fields);
+  const screeningCount = fields.find((field) => field.id === "schermature.numero");
+  if (screeningCount?.status !== "ready" || screeningCount.source !== "Inserimento operatore") return false;
+
+  const dimensions = fields.filter((field) => /^schermature\.\d+\.dimensioni$/.test(field.id));
+  if (!dimensions.length) return false;
+
+  // Se l'analisi corrente non riconosce alcuna riga tecnica, eventuali valori
+  // rimasti nel mapping da un'analisi precedente non possono essere riutilizzati
+  // come se fossero ancora documentati. Numero, misure e gTot devono essere stati
+  // riconciliati esplicitamente dall'operatore; la superficie può invece essere
+  // il calcolo deterministico ottenuto dalle misure manualmente verificate.
+  return dimensions.every((dimension) => {
+    const prefix = dimension.id.replace(/\.dimensioni$/, "");
+    const surface = fields.find((field) => field.id === `${prefix}.superficie`);
+    const gTot = fields.find((field) => field.id === `${prefix}.gtot`);
+    return dimension.status === "ready"
+      && dimension.source === "Inserimento operatore"
+      && surface?.status === "ready"
+      && gTot?.status === "ready"
+      && gTot.source === "Inserimento operatore";
+  });
+}
+
 function mappedScreeningCount(mapped: EneaLabMappedPractice): number | null {
   const field = mapped.sections
     .flatMap((section) => section.fields)
@@ -178,6 +211,9 @@ export function prepareEneaOfficialPortalCollaudo(
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
   if (!hasCurrentDocumentAnalysis(mapped, analysis)) {
+    return { status: "blocked", reason: "official-data-incomplete", workflow: null };
+  }
+  if (!hasReconciledMissingDocumentScreenings(mapped, analysis)) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
   if (!hasNoScreeningUndercount(mapped, analysis)) {

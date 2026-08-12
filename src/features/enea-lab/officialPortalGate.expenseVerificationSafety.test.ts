@@ -4,7 +4,10 @@ import { ENEA_LAB_MOCK_ANALYSIS, ENEA_LAB_MOCK_PRACTICES } from "./mockPractices
 import { prepareEneaOfficialPortalCollaudo } from "./officialPortalGate";
 import { buildEneaPayload, validatePreparedPractice } from "./preparation";
 
-function readyMappedWithExpenseSource(expenseSource: "Calcolo ENEA" | "Inserimento operatore") {
+function readyMappedWithExpenseSource(
+  expenseSource: "Calcolo ENEA" | "Inserimento operatore",
+  expenseValue = "1000 €",
+) {
   const source = ENEA_LAB_MOCK_PRACTICES[0];
   const analysis = ENEA_LAB_MOCK_ANALYSIS[source.id];
   const mapped = mapSchermaturaPractice(source, analysis, { includeTestConventions: true });
@@ -23,7 +26,7 @@ function readyMappedWithExpenseSource(expenseSource: "Calcolo ENEA" | "Inserimen
         else if (field.id === "impianto.potenza") value = "25 kW";
         else if (/\.dimensioni$/.test(field.id)) value = "1000 × 1000 mm";
         else if (/\.superficie(?:_finestrata)?$/.test(field.id)) value = "1,0 m²";
-        else if (field.id === "schermature.spesa") value = "1000 €";
+        else if (field.id === "schermature.spesa") value = expenseValue;
         else if (/^(?:Non indicato|Intervento umano richiesto)$/i.test(value.trim())) value = "Valore verificato";
 
         return {
@@ -56,7 +59,22 @@ describe("gate ENEA: verifica manuale della spesa congrua", () => {
     });
   });
 
-  it("consente il gate quando la spesa è stata riscritta e verificata dall'operatore", () => {
+  it("non considera verificata una spesa nulla anche se inserita manualmente", () => {
+    const mapped = readyMappedWithExpenseSource("Inserimento operatore", "0 €");
+    const issues = validatePreparedPractice(mapped.source, mapped);
+    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
+
+    const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-12T18:30:00.000Z"));
+    expect(payload.readyForOfficialSubmission).toBe(true);
+
+    expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true)).toEqual({
+      status: "blocked",
+      reason: "official-data-incomplete",
+      workflow: null,
+    });
+  });
+
+  it("consente il gate quando la spesa positiva è stata riscritta e verificata dall'operatore", () => {
     const mapped = readyMappedWithExpenseSource("Inserimento operatore");
     const issues = validatePreparedPractice(mapped.source, mapped);
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);

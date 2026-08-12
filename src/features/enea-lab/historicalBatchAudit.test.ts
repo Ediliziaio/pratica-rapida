@@ -3,6 +3,11 @@ import { classifyHistoricalAudit } from "./historicalBatchAudit";
 import type { CompletedEneaAuditResult } from "./completedEneaAudit";
 
 const VALID_CPID = "288717-2026E-TEST";
+const SAFE_IDENTITY_MATCHES = [
+  "beneficiario.cf",
+  "immobile.foglio",
+  "immobile.mappale",
+];
 
 function auditWithDifferences(fieldIds: string[]): CompletedEneaAuditResult {
   const compared = Math.max(12, fieldIds.length);
@@ -17,6 +22,7 @@ function auditWithDifferences(fieldIds: string[]): CompletedEneaAuditResult {
       completedValue: "valore finale",
       mappedValue: "valore mapper",
     })),
+    matchedFieldIds: SAFE_IDENTITY_MATCHES.filter((fieldId) => !fieldIds.includes(fieldId)),
   };
 }
 
@@ -33,6 +39,7 @@ describe("classificazione audit storico ENEA", () => {
       matches: 0,
       mismatches: 0,
       differences: [],
+      matchedFieldIds: SAFE_IDENTITY_MATCHES,
     };
 
     const result = classifyHistoricalAudit(audit, new Set());
@@ -76,6 +83,7 @@ describe("classificazione audit storico ENEA", () => {
       matches: 9,
       mismatches: 0,
       differences: [],
+      matchedFieldIds: SAFE_IDENTITY_MATCHES,
     };
 
     const result = classifyHistoricalAudit(audit, new Set());
@@ -133,6 +141,7 @@ describe("classificazione audit storico ENEA", () => {
       matches: 11,
       mismatches: 1,
       differences: [],
+      matchedFieldIds: SAFE_IDENTITY_MATCHES,
     };
 
     const result = classifyHistoricalAudit(audit, new Set());

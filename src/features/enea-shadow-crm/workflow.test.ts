@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { EMPTY_SHADOW_CRM_STATE, loadShadowCrmState, saveShadowCrmState, transitionShadowCrm } from "./workflow";
+import { assignShadowCrm, EMPTY_SHADOW_CRM_STATE, loadShadowCrmState, prioritizeShadowCrm, saveShadowCrmState, transitionShadowCrm } from "./workflow";
 
 describe("workflow CRM ombra", () => {
   it("consente soltanto il percorso ordinato e conserva un audit append-only", () => {
@@ -19,6 +19,13 @@ describe("workflow CRM ombra", () => {
       EMPTY_SHADOW_CRM_STATE,
     );
     expect(transitionShadowCrm(review, "draft-email")).toBe(review);
+  });
+
+  it("registra assegnazioni e priorità sintetiche senza alterare pratiche concluse", () => {
+    const assigned = assignShadowCrm(EMPTY_SHADOW_CRM_STATE, "operatore-demo-luca", new Date("2026-08-12T10:00:00Z"));
+    const prioritized = prioritizeShadowCrm(assigned, "high", new Date("2026-08-12T10:00:01Z"));
+    expect(prioritized).toMatchObject({ stage: "assigned", assignee: "operatore-demo-luca", priority: "high" });
+    expect(prioritized.audit.map((event) => event.type)).toEqual(["assign-luca", "priority-high"]);
   });
 
   it("legge e salva esclusivamente identificativi fixture e degrada in sicurezza", () => {

@@ -1,6 +1,8 @@
 export const ENEA_SHADOW_CRM_STORAGE_KEY = "enea-shadow-crm:workflow:v1";
 
 export type ShadowCrmStage = "received" | "assigned" | "processing" | "review" | "completed";
+export type ShadowCrmAssignee = "operatore-demo-anna" | "operatore-demo-luca";
+export type ShadowCrmPriority = "low" | "normal" | "high";
 
 export interface ShadowCrmAuditEvent {
   id: string;
@@ -11,6 +13,7 @@ export interface ShadowCrmAuditEvent {
 export interface ShadowCrmPracticeState {
   stage: ShadowCrmStage;
   assignee: string | null;
+  priority: ShadowCrmPriority;
   emailDrafted: boolean;
   outcome: "pending" | "review_required" | "completed";
   audit: ShadowCrmAuditEvent[];
@@ -19,6 +22,7 @@ export interface ShadowCrmPracticeState {
 export const EMPTY_SHADOW_CRM_STATE: ShadowCrmPracticeState = {
   stage: "received",
   assignee: null,
+  priority: "normal",
   emailDrafted: false,
   outcome: "pending",
   audit: [],
@@ -53,7 +57,31 @@ function sanitize(value: unknown): ShadowCrmPracticeState {
       ? [{ id: event.id, type: event.type, at: event.at }]
       : [];
   }).slice(-100) : [];
-  return { stage, assignee, emailDrafted: candidate.emailDrafted === true, outcome, audit };
+  const priority = candidate.priority === "low" || candidate.priority === "high" ? candidate.priority : "normal";
+  return { stage, assignee, priority, emailDrafted: candidate.emailDrafted === true, outcome, audit };
+}
+
+function appendAudit(state: ShadowCrmPracticeState, type: string, now: Date): ShadowCrmPracticeState {
+  return { ...state, audit: [...state.audit, { id: `${now.getTime()}-${state.audit.length}`, type, at: now.toISOString() }] };
+}
+
+export function assignShadowCrm(
+  state: ShadowCrmPracticeState,
+  assignee: ShadowCrmAssignee,
+  now = new Date(),
+): ShadowCrmPracticeState {
+  if (state.stage === "completed" || state.assignee === assignee) return state;
+  const stage = state.stage === "received" ? "assigned" : state.stage;
+  return appendAudit({ ...state, stage, assignee }, `assign-${assignee.replace("operatore-demo-", "")}`, now);
+}
+
+export function prioritizeShadowCrm(
+  state: ShadowCrmPracticeState,
+  priority: ShadowCrmPriority,
+  now = new Date(),
+): ShadowCrmPracticeState {
+  if (state.stage === "completed" || state.priority === priority) return state;
+  return appendAudit({ ...state, priority }, `priority-${priority}`, now);
 }
 
 export function loadShadowCrmState(storage: Pick<Storage, "getItem">, practiceId: string): ShadowCrmPracticeState {
@@ -113,12 +141,5 @@ export function transitionShadowCrm(
       : action === "complete" ? "completed"
         : state.outcome,
   };
-  return {
-    ...next,
-    audit: [...state.audit, {
-      id: `${now.getTime()}-${state.audit.length}`,
-      type: action,
-      at: now.toISOString(),
-    }],
-  };
+  return appendAudit(next, action, now);
 }

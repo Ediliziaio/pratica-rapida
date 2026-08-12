@@ -3,6 +3,8 @@ import { ENEA_LAB_MOCK_ANALYSIS, ENEA_LAB_MOCK_PRACTICES } from "@/features/enea
 import type { EneaLabSourcePractice } from "@/features/enea-lab/types";
 import {
   loadShadowCrmState,
+  assignShadowCrm,
+  prioritizeShadowCrm,
   saveShadowCrmState,
   transitionShadowCrm,
   type ShadowCrmPracticeState,
@@ -12,8 +14,7 @@ const STAGE_LABELS: Record<ShadowCrmPracticeState["stage"], string> = {
   received: "Ricevuta", assigned: "Assegnata", processing: "In lavorazione", review: "In revisione", completed: "Conclusa",
 };
 
-function Workspace({ practice }: { practice: EneaLabSourcePractice }) {
-  const [state, setState] = useState(() => loadShadowCrmState(window.localStorage, practice.id));
+function Workspace({ practice, state, setState }: { practice: EneaLabSourcePractice; state: ShadowCrmPracticeState; setState: (state: ShadowCrmPracticeState) => void }) {
   const analysis = ENEA_LAB_MOCK_ANALYSIS[practice.id];
   const checklist = [
     { label: "Anagrafica sintetica disponibile", ok: practice.clienteCognome.startsWith("Demo") },
@@ -27,7 +28,7 @@ function Workspace({ practice }: { practice: EneaLabSourcePractice }) {
   }), [practice]);
 
   useEffect(() => saveShadowCrmState(window.localStorage, practice.id, state), [practice.id, state]);
-  const act = (action: Parameters<typeof transitionShadowCrm>[1]) => setState((current) => transitionShadowCrm(current, action));
+  const act = (action: Parameters<typeof transitionShadowCrm>[1]) => setState(transitionShadowCrm(state, action));
 
   return <main className="flex-1 space-y-6 p-6" data-testid="shadow-workspace">
     <header>
@@ -49,8 +50,11 @@ function Workspace({ practice }: { practice: EneaLabSourcePractice }) {
 
     <section aria-labelledby="istruttoria" className="rounded-lg border p-4">
       <h2 id="istruttoria" className="font-semibold">3. Istruttoria</h2>
+      <div className="mt-3 flex flex-wrap gap-3">
+        <label>Assegnatario <select aria-label="Assegnatario" value={state.assignee ?? ""} disabled={state.stage === "completed"} onChange={(event) => setState(assignShadowCrm(state, event.target.value as "operatore-demo-anna" | "operatore-demo-luca"))} className="rounded border p-2"><option value="" disabled>Seleziona</option><option value="operatore-demo-anna">Anna Demo</option><option value="operatore-demo-luca">Luca Demo</option></select></label>
+        <label>Priorità <select aria-label="Priorità" value={state.priority} disabled={state.stage === "completed"} onChange={(event) => setState(prioritizeShadowCrm(state, event.target.value as "low" | "normal" | "high"))} className="rounded border p-2"><option value="low">Bassa</option><option value="normal">Normale</option><option value="high">Alta</option></select></label>
+      </div>
       <div className="mt-3 flex flex-wrap gap-2">
-        <button disabled={state.stage !== "received"} onClick={() => act("assign")} className="rounded border px-3 py-2 disabled:opacity-40">Assegna ad Anna (demo)</button>
         <button disabled={state.stage !== "assigned"} onClick={() => act("start")} className="rounded border px-3 py-2 disabled:opacity-40">Avvia lavorazione</button>
         <button disabled={state.stage !== "processing"} onClick={() => act("review")} className="rounded border px-3 py-2 disabled:opacity-40">Invia a revisione</button>
       </div>
@@ -74,12 +78,27 @@ function Workspace({ practice }: { practice: EneaLabSourcePractice }) {
 
 export default function EneaShadowCrm() {
   const [selectedId, setSelectedId] = useState(ENEA_LAB_MOCK_PRACTICES[0].id);
+  const [query, setQuery] = useState("");
+  const [stageFilter, setStageFilter] = useState("all");
+  const [assigneeFilter, setAssigneeFilter] = useState("all");
+  const [states, setStates] = useState<Record<string, ShadowCrmPracticeState>>(() => Object.fromEntries(ENEA_LAB_MOCK_PRACTICES.map((practice) => [practice.id, loadShadowCrmState(window.localStorage, practice.id)])));
   const selected = ENEA_LAB_MOCK_PRACTICES.find((practice) => practice.id === selectedId) ?? ENEA_LAB_MOCK_PRACTICES[0];
+  const visible = ENEA_LAB_MOCK_PRACTICES.filter((practice) => {
+    const state = states[practice.id];
+    const text = `${practice.code} ${practice.clienteNome} ${practice.clienteCognome} ${practice.reseller}`.toLowerCase();
+    return text.includes(query.toLowerCase()) && (stageFilter === "all" || state.stage === stageFilter) && (assigneeFilter === "all" || (assigneeFilter === "unassigned" ? !state.assignee : state.assignee === assigneeFilter));
+  });
+  const summary = Object.values(states).reduce((result, state) => ({ ...result, [state.stage]: (result[state.stage] ?? 0) + 1 }), {} as Record<string, number>);
+  const updateSelected = (state: ShadowCrmPracticeState) => setStates((current) => ({ ...current, [selected.id]: state }));
   return <div className="min-h-screen bg-background text-foreground md:flex">
     <nav aria-label="Pratiche fixture" className="border-b p-4 md:w-72 md:border-b-0 md:border-r">
       <h2 className="mb-3 font-semibold">CRM ombra ENEA</h2>
-      <div className="space-y-2">{ENEA_LAB_MOCK_PRACTICES.map((practice) => <button key={practice.id} onClick={() => setSelectedId(practice.id)} aria-current={practice.id === selectedId ? "page" : undefined} className="block w-full rounded border p-3 text-left"><strong>{practice.code}</strong><br /><span className="text-sm">{practice.clienteNome} {practice.clienteCognome}</span></button>)}</div>
+      <p aria-label="Riepilogo stati" className="mb-3 text-sm">Ricevute {summary.received ?? 0} · Assegnate {summary.assigned ?? 0} · In corso {summary.processing ?? 0} · Revisione {summary.review ?? 0} · Concluse {summary.completed ?? 0}</p>
+      <input aria-label="Cerca pratiche" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Codice, cliente, rivenditore" className="mb-2 w-full rounded border p-2" />
+      <select aria-label="Filtra per stato" value={stageFilter} onChange={(event) => setStageFilter(event.target.value)} className="mb-2 w-full rounded border p-2"><option value="all">Tutti gli stati</option>{Object.entries(STAGE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
+      <select aria-label="Filtra per assegnatario" value={assigneeFilter} onChange={(event) => setAssigneeFilter(event.target.value)} className="mb-3 w-full rounded border p-2"><option value="all">Tutti gli assegnatari</option><option value="unassigned">Non assegnate</option><option value="operatore-demo-anna">Anna Demo</option><option value="operatore-demo-luca">Luca Demo</option></select>
+      <div className="space-y-2">{visible.map((practice) => <button key={practice.id} onClick={() => setSelectedId(practice.id)} aria-current={practice.id === selectedId ? "page" : undefined} className="block w-full rounded border p-3 text-left"><strong>{practice.code}</strong><br /><span className="text-sm">{practice.clienteNome} {practice.clienteCognome} · {STAGE_LABELS[states[practice.id].stage]} · priorità {states[practice.id].priority}</span></button>)}{visible.length === 0 && <p>Nessuna pratica fixture trovata.</p>}</div>
     </nav>
-    <Workspace key={selected.id} practice={selected} />
+    <Workspace key={selected.id} practice={selected} state={states[selected.id]} setState={updateSelected} />
   </div>;
 }

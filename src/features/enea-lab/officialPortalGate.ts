@@ -40,6 +40,25 @@ function sameStringSet(left: string[], right: string[]): boolean {
     && normalizedLeft.every((value, index) => value === normalizedRight[index]);
 }
 
+function hasCurrentDocumentAnalysis(
+  mapped: EneaLabMappedPractice,
+  analysis: EneaLabDocumentAnalysis,
+): boolean {
+  const expectedInvoicePaths = mapped.source.documentPaths
+    .filter(({ kind }) => kind === "invoice")
+    .map(({ path }) => path);
+  const analyzedInvoicePaths = analysis.documents.map(({ path }) => path);
+
+  // L'analisi usata dal gate deve appartenere esattamente al set di fatture
+  // della pratica corrente. Questo impedisce che un risultato ancora in cache,
+  // appartenente a un'altra pratica o precedente a una modifica documentale,
+  // possa validare il pacchetto ufficiale.
+  if (!expectedInvoicePaths.length || !sameStringSet(expectedInvoicePaths, analyzedInvoicePaths)) return false;
+
+  const expectedPathSet = new Set(expectedInvoicePaths);
+  return analysis.items.every((item) => expectedPathSet.has(item.sourcePath));
+}
+
 function samePortalFields(
   left: EneaLabPayload["portalFields"],
   right: EneaLabPayload["portalFields"],
@@ -118,6 +137,9 @@ export function prepareEneaOfficialPortalCollaudo(
   // indisponibile, omettere analysis non deve trasformare l'assenza di blocker
   // in un via libera implicito.
   if (!analysis) {
+    return { status: "blocked", reason: "official-data-incomplete", workflow: null };
+  }
+  if (!hasCurrentDocumentAnalysis(mapped, analysis)) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
 

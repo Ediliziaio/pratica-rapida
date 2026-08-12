@@ -38,6 +38,14 @@ export interface HistoricalBatchAuditReport {
 // diverso da quello atteso. Il collaudo storico deve quindi fallire chiuso.
 const MIN_HISTORICAL_COMPARISONS = 10;
 const HISTORICAL_INTERVENTION_FIELD = "intervento.tipo";
+const HISTORICAL_PRACTICE_ID_FIELDS = [
+  "intervento.data_inizio",
+  "intervento.data_fine",
+  "schermature.numero",
+] as const;
+const HISTORICAL_CRITICAL_COVERAGE_FIELDS = [
+  "schermature.spesa",
+] as const;
 const HISTORICAL_CADASTRAL_ID_FIELDS = [
   "immobile.foglio",
   "immobile.mappale",
@@ -124,6 +132,33 @@ export function hasHistoricalIdentityEvidence(audit: CompletedEneaAuditResult): 
  */
 function hasHistoricalInterventionEvidence(audit: CompletedEneaAuditResult): boolean {
   return (audit.matchedFieldIds ?? []).includes(HISTORICAL_INTERVENTION_FIELD);
+}
+
+/**
+ * Anche beneficiario, immobile, tipo intervento e anno possono coincidere tra
+ * due pratiche diverse. Per certificare proprio quella pratica richiediamo che
+ * coincidano le due date lavori e il numero di schermature: sono ancore della
+ * singola lavorazione, non semplici attributi anagrafici dell'immobile.
+ */
+function hasHistoricalPracticeEvidence(audit: CompletedEneaAuditResult): boolean {
+  const matched = new Set(audit.matchedFieldIds ?? []);
+  return HISTORICAL_PRACTICE_ID_FIELDS.every((fieldId) => matched.has(fieldId));
+}
+
+/**
+ * Un parser parziale puo' omettere un campo importante senza produrre mismatch,
+ * perché compareMappedToCompletedEnea confronta solo cio' che riesce a leggere
+ * nel PDF. Alcuni campi critici devono quindi risultare almeno osservati
+ * (match oppure differenza) prima di certificare l'audit. La spesa resta
+ * confrontabile anche quando e' un blocker, cosi una pratica correttamente
+ * bloccata puo' continuare a essere riconosciuta come tale.
+ */
+function hasHistoricalCriticalCoverage(audit: CompletedEneaAuditResult): boolean {
+  const observed = new Set([
+    ...(audit.matchedFieldIds ?? []),
+    ...audit.differences.map(({ fieldId }) => fieldId),
+  ]);
+  return HISTORICAL_CRITICAL_COVERAGE_FIELDS.every((fieldId) => observed.has(fieldId));
 }
 
 /**
@@ -259,6 +294,16 @@ export function classifyHistoricalAudit(
   // (tipo intervento, destinazione d'uso, regole schermatura). Prima di poter
   // certificare match o blocked deve coincidere anche su beneficiario+immobile.
   if (!hasHistoricalIdentityEvidence(audit)) {
+    return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
+  }
+  // Stessa identita', stesso immobile e stesso tipo non identificano ancora la
+  // singola pratica. Date lavori e numero schermature devono coincidere davvero.
+  if (!hasHistoricalPracticeEvidence(audit)) {
+    return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
+  }
+  // La spesa e' un campo critico del flusso ENEA: se il parser non l'ha neppure
+  // osservata, l'assenza non deve trasformarsi silenziosamente in un falso match.
+  if (!hasHistoricalCriticalCoverage(audit)) {
     return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
   }
   // Un confronto dei valori può essere perfetto e tuttavia il workflow attuale

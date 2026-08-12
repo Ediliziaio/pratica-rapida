@@ -7,6 +7,7 @@ type RootLoaders = {
 };
 
 export const ENEA_LAB_PREVIEW_PATH = "/admin/enea-lab-preview";
+export const ENEA_SHADOW_CRM_PATH = "/admin/enea-crm-ombra";
 
 type PreviewLocation = Pick<Location, "search" | "hash" | "replace">;
 
@@ -20,8 +21,18 @@ export function isIsolatedEneaPreview(isDev: boolean, pathname: string): boolean
   return isDev && normalizedPathname === ENEA_LAB_PREVIEW_PATH;
 }
 
+export function isIsolatedEneaShell(isDev: boolean, pathname: string): boolean {
+  const normalizedPathname = pathname.replace(/\/+$/, "") || "/";
+  return isDev && (normalizedPathname === ENEA_LAB_PREVIEW_PATH || normalizedPathname === ENEA_SHADOW_CRM_PATH);
+}
+
 export function reloadIntoIsolatedEneaPreview(location: PreviewLocation): void {
   location.replace(`${ENEA_LAB_PREVIEW_PATH}${location.search}${location.hash}`);
+}
+
+export function reloadIntoIsolatedEneaShell(location: PreviewLocation, pathname: string): void {
+  if (pathname !== ENEA_LAB_PREVIEW_PATH && pathname !== ENEA_SHADOW_CRM_PATH) return;
+  location.replace(`${pathname}${location.search}${location.hash}`);
 }
 
 export function loadRootComponent(
@@ -29,5 +40,5 @@ export function loadRootComponent(
   pathname: string,
   loaders: RootLoaders = DEFAULT_LOADERS,
 ): Promise<RootModule> {
-  return isIsolatedEneaPreview(isDev, pathname) ? loaders.preview() : loaders.app();
+  return isIsolatedEneaShell(isDev, pathname) ? loaders.preview() : loaders.app();
 }

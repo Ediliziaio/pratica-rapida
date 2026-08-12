@@ -306,6 +306,14 @@ const App = () => (
                       : <Navigate to="/" replace />
                   }
                 />
+                <Route
+                  path="/admin/enea-crm-ombra"
+                  element={
+                    import.meta.env.DEV
+                      ? <EneaLabPreviewHandoff targetPath="/admin/enea-crm-ombra" />
+                      : <Navigate to="/" replace />
+                  }
+                />
                 <Route path="/schermature-solari/:token" element={<ModuloClientePage />} />
                 <Route path="/modulo-infissi/:token" element={<ModuloClientePage />} />
                 <Route path="/impianto-termico/:token" element={<ModuloClientePage />} />

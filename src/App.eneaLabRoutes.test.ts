@@ -45,4 +45,10 @@ describe("contratto route ENEA Lab", () => {
       'import.meta.env.DEV ? <ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><EneaLab /></RoleGuard></ProtectedRoute> : <Navigate to="/" replace />',
     );
   });
+
+  it("espone il CRM ombra isolato solo in DEV", () => {
+    expect(routeElement("/admin/enea-crm-ombra")).toBe(
+      'import.meta.env.DEV ? <EneaLabPreviewHandoff targetPath="/admin/enea-crm-ombra" /> : <Navigate to="/" replace />',
+    );
+  });
 });

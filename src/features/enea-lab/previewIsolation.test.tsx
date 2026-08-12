@@ -2,7 +2,7 @@ import type { PropsWithChildren } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { loadRootComponent, reloadIntoIsolatedEneaPreview } from "@/appBootstrap";
+import { loadRootComponent, reloadIntoIsolatedEneaPreview, reloadIntoIsolatedEneaShell } from "@/appBootstrap";
 import { ENEA_LAB_MOCK_ANALYSIS, ENEA_LAB_MOCK_PRACTICES } from "./mockPractices";
 import { useDocumentAnalysis } from "./useDocumentAnalysis";
 import { useReadOnlyEneaQueue } from "./useReadOnlyQueue";
@@ -91,6 +91,21 @@ describe("isolamento fixture della preview ENEA", () => {
 
     expect(preview).toHaveBeenCalledOnce();
     expect(app).not.toHaveBeenCalled();
+  });
+
+  it("carica anche il CRM ombra nella shell isolata solo in DEV", async () => {
+    const app = vi.fn().mockResolvedValue({ default: () => null });
+    const preview = vi.fn().mockResolvedValue({ default: () => null });
+    await loadRootComponent(true, "/admin/enea-crm-ombra/", { app, preview });
+    await loadRootComponent(false, "/admin/enea-crm-ombra", { app, preview });
+    expect(preview).toHaveBeenCalledOnce();
+    expect(app).toHaveBeenCalledOnce();
+  });
+
+  it("preserva query e hash nell'handoff isolato del CRM ombra", () => {
+    const replace = vi.fn();
+    reloadIntoIsolatedEneaShell({ search: "?pratica=lab", hash: "#audit", replace }, "/admin/enea-crm-ombra");
+    expect(replace).toHaveBeenCalledWith("/admin/enea-crm-ombra?pratica=lab#audit");
   });
 
   it("trasforma l'ingresso SPA in un reload canonico preservando query e hash", () => {

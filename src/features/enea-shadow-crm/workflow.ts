@@ -3,6 +3,24 @@ export const ENEA_SHADOW_CRM_STORAGE_KEY = "enea-shadow-crm:workflow:v1";
 export type ShadowCrmStage = "received" | "assigned" | "processing" | "review" | "completed";
 export type ShadowCrmAssignee = "operatore-demo-anna" | "operatore-demo-luca";
 export type ShadowCrmPriority = "low" | "normal" | "high";
+export type ShadowCrmAttachmentTemplate = "invoice" | "bank-transfer";
+export type ShadowCrmDraftTemplate = "status-update" | "missing-documents";
+
+export interface ShadowCrmAttachment {
+  id: string;
+  name: string;
+  mimeType: "application/pdf";
+  size: number;
+  validation: "valid";
+  checks: string[];
+}
+
+export interface ShadowCrmEmailDraft {
+  id: string;
+  template: ShadowCrmDraftTemplate;
+  subject: string;
+  body: string;
+}
 
 export interface ShadowCrmAuditEvent {
   id: string;
@@ -15,6 +33,8 @@ export interface ShadowCrmPracticeState {
   assignee: string | null;
   priority: ShadowCrmPriority;
   emailDrafted: boolean;
+  attachments: ShadowCrmAttachment[];
+  drafts: ShadowCrmEmailDraft[];
   outcome: "pending" | "review_required" | "completed";
   audit: ShadowCrmAuditEvent[];
 }
@@ -24,6 +44,8 @@ export const EMPTY_SHADOW_CRM_STATE: ShadowCrmPracticeState = {
   assignee: null,
   priority: "normal",
   emailDrafted: false,
+  attachments: [],
+  drafts: [],
   outcome: "pending",
   audit: [],
 };
@@ -58,7 +80,25 @@ function sanitize(value: unknown): ShadowCrmPracticeState {
       : [];
   }).slice(-100) : [];
   const priority = candidate.priority === "low" || candidate.priority === "high" ? candidate.priority : "normal";
-  return { stage, assignee, priority, emailDrafted: candidate.emailDrafted === true, outcome, audit };
+  const attachments = Array.isArray(candidate.attachments) ? candidate.attachments.flatMap((entry) => {
+    if (!entry || typeof entry !== "object") return [];
+    const item = entry as Record<string, unknown>;
+    return typeof item.id === "string" && /^synthetic-[a-z0-9-]+$/.test(item.id)
+      && typeof item.name === "string" && /^DEMO-[A-Z0-9-]+\.pdf$/.test(item.name)
+      && item.mimeType === "application/pdf" && typeof item.size === "number" && item.size <= 200_000
+      && item.validation === "valid" && Array.isArray(item.checks) && item.checks.every((check) => typeof check === "string")
+      ? [item as unknown as ShadowCrmAttachment] : [];
+  }).slice(0, 10) : [];
+  const drafts = Array.isArray(candidate.drafts) ? candidate.drafts.flatMap((entry) => {
+    if (!entry || typeof entry !== "object") return [];
+    const item = entry as Record<string, unknown>;
+    return typeof item.id === "string" && /^draft-[a-z0-9-]+$/.test(item.id)
+      && (item.template === "status-update" || item.template === "missing-documents")
+      && typeof item.subject === "string" && item.subject.startsWith("[DEMO LOCALE]")
+      && typeof item.body === "string" && item.body.includes("non inviata")
+      ? [item as unknown as ShadowCrmEmailDraft] : [];
+  }).slice(0, 10) : [];
+  return { stage, assignee, priority, emailDrafted: candidate.emailDrafted === true || drafts.length > 0, attachments, drafts, outcome, audit };
 }
 
 function appendAudit(state: ShadowCrmPracticeState, type: string, now: Date): ShadowCrmPracticeState {
@@ -82,6 +122,41 @@ export function prioritizeShadowCrm(
 ): ShadowCrmPracticeState {
   if (state.stage === "completed" || state.priority === priority) return state;
   return appendAudit({ ...state, priority }, `priority-${priority}`, now);
+}
+
+const ATTACHMENT_TEMPLATES: Record<ShadowCrmAttachmentTemplate, Omit<ShadowCrmAttachment, "id">> = {
+  invoice: { name: "DEMO-FATTURA.pdf", mimeType: "application/pdf", size: 24_000, validation: "valid", checks: ["tipo PDF consentito", "dimensione entro 200 KB", "marcatore sintetico DEMO"] },
+  "bank-transfer": { name: "DEMO-BONIFICO.pdf", mimeType: "application/pdf", size: 18_000, validation: "valid", checks: ["tipo PDF consentito", "dimensione entro 200 KB", "marcatore sintetico DEMO"] },
+};
+
+export function addSyntheticAttachment(state: ShadowCrmPracticeState, template: ShadowCrmAttachmentTemplate, now = new Date()): ShadowCrmPracticeState {
+  if (state.stage === "completed" || state.attachments.length >= 10 || state.attachments.some((item) => item.name === ATTACHMENT_TEMPLATES[template].name)) return state;
+  const attachment = { ...ATTACHMENT_TEMPLATES[template], id: `synthetic-${template}-${now.getTime()}` };
+  return appendAudit({ ...state, attachments: [...state.attachments, attachment] }, `attachment-${template}`, now);
+}
+
+export function addFixtureEmailDraft(state: ShadowCrmPracticeState, template: ShadowCrmDraftTemplate, practiceCode: string, now = new Date()): ShadowCrmPracticeState {
+  if (state.stage !== "review" || state.drafts.length >= 10 || !/^LAB-[A-Z0-9-]+$/.test(practiceCode)) return state;
+  const subject = template === "status-update" ? `Aggiornamento pratica ${practiceCode}` : `Documenti mancanti per ${practiceCode}`;
+  const body = template === "status-update" ? "La pratica sintetica è in revisione." : "Occorrono esclusivamente documenti fixture aggiuntivi.";
+  const draft: ShadowCrmEmailDraft = { id: `draft-${template}-${now.getTime()}`, template, subject: `[DEMO LOCALE] ${subject}`, body: `${body} Questa bozza è locale e non inviata.` };
+  return appendAudit({ ...state, drafts: [...state.drafts, draft], emailDrafted: true }, `draft-${template}`, now);
+}
+
+export function internalPilotCriteria(state: ShadowCrmPracticeState): { ready: boolean; checks: Array<{ label: string; ok: boolean }> } {
+  const checks = [
+    { label: "assegnatario demo selezionato", ok: state.assignee !== null },
+    { label: "almeno due allegati sintetici validi", ok: state.attachments.length >= 2 && state.attachments.every((item) => item.validation === "valid") },
+    { label: "almeno una bozza locale non inviata", ok: state.drafts.length > 0 },
+    { label: "istruttoria arrivata in revisione o conclusa", ok: state.stage === "review" || state.stage === "completed" },
+    { label: "audit locale disponibile", ok: state.audit.length > 0 },
+  ];
+  return { ready: checks.every((check) => check.ok), checks };
+}
+
+export function serializeShadowCrmAudit(practiceId: string, state: ShadowCrmPracticeState): string | null {
+  if (!fixtureId(practiceId)) return null;
+  return JSON.stringify({ fixture: true, practiceId, exportedAt: new Date().toISOString(), audit: state.audit }, null, 2);
 }
 
 export function loadShadowCrmState(storage: Pick<Storage, "getItem">, practiceId: string): ShadowCrmPracticeState {

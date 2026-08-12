@@ -1,11 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ENEA_LAB_MOCK_ANALYSIS, ENEA_LAB_MOCK_PRACTICES } from "@/features/enea-lab/mockPractices";
 import type { EneaLabSourcePractice } from "@/features/enea-lab/types";
 import {
   loadShadowCrmState,
+  addFixtureEmailDraft,
+  addSyntheticAttachment,
   assignShadowCrm,
+  internalPilotCriteria,
   prioritizeShadowCrm,
   saveShadowCrmState,
+  serializeShadowCrmAudit,
   transitionShadowCrm,
   type ShadowCrmPracticeState,
 } from "@/features/enea-shadow-crm/workflow";
@@ -22,13 +26,20 @@ function Workspace({ practice, state, setState }: { practice: EneaLabSourcePract
     { label: "Analisi documentale fixture completata", ok: Boolean(analysis) },
     { label: "Dati pratica pronti per istruttoria", ok: practice.queueStatus === "ready" },
   ];
-  const draft = useMemo(() => ({
-    subject: `[DEMO LOCALE] Aggiornamento pratica ${practice.code}`,
-    body: `Gentile ${practice.clienteNome} ${practice.clienteCognome},\n\nla pratica sintetica ${practice.code} è stata lavorata nel CRM ombra locale. Questa bozza non è stata inviata.`,
-  }), [practice]);
+  const pilot = internalPilotCriteria(state);
 
   useEffect(() => saveShadowCrmState(window.localStorage, practice.id, state), [practice.id, state]);
   const act = (action: Parameters<typeof transitionShadowCrm>[1]) => setState(transitionShadowCrm(state, action));
+  const exportAudit = () => {
+    const payload = serializeShadowCrmAudit(practice.id, state);
+    if (!payload) return;
+    const url = URL.createObjectURL(new Blob([payload], { type: "application/json" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${practice.code}-audit-fixture.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
 
   return <main className="flex-1 space-y-6 p-6" data-testid="shadow-workspace">
     <header>
@@ -41,6 +52,9 @@ function Workspace({ practice, state, setState }: { practice: EneaLabSourcePract
       <h2 id="ricezione" className="font-semibold">1. Ricezione e allegati</h2>
       <p>{practice.reseller} · {practice.prodottoInstallato} · ricevuta {new Date(practice.ricevutaAt).toLocaleString("it-IT")}</p>
       {practice.documentPaths.length ? <ul className="mt-2 list-disc pl-5">{practice.documentPaths.map((doc) => <li key={doc.path}>{doc.kind}: {doc.path}</li>)}</ul> : <p className="mt-2 text-amber-700">Nessun allegato fixture disponibile.</p>}
+      <p className="mt-3 text-sm">Acquisizione controllata: genera soltanto metadati PDF sintetici, massimo 10 file e 200 KB dichiarati per file.</p>
+      <div className="mt-2 flex gap-2"><button onClick={() => setState(addSyntheticAttachment(state, "invoice"))} className="rounded border px-3 py-2">Aggiungi fattura DEMO</button><button onClick={() => setState(addSyntheticAttachment(state, "bank-transfer"))} className="rounded border px-3 py-2">Aggiungi bonifico DEMO</button></div>
+      <ul aria-label="Allegati sintetici acquisiti" className="mt-2 list-disc pl-5">{state.attachments.map((item) => <li key={item.id}>{item.name} · {item.mimeType} · {item.size} byte · {item.validation}<ul className="list-[circle] pl-5">{item.checks.map((check) => <li key={check}>{check}</li>)}</ul></li>)}</ul>
     </section>
 
     <section aria-labelledby="checklist" className="rounded-lg border p-4">
@@ -63,15 +77,17 @@ function Workspace({ practice, state, setState }: { practice: EneaLabSourcePract
     <section aria-labelledby="email" className="rounded-lg border p-4">
       <h2 id="email" className="font-semibold">4. Comunicazione controllata</h2>
       <p className="text-sm text-muted-foreground">Bozza locale: non esiste alcun pulsante di invio e non viene contattato alcun provider email.</p>
-      <label className="mt-2 block text-sm">Oggetto<input readOnly value={draft.subject} className="mt-1 block w-full rounded border p-2" /></label>
-      <label className="mt-2 block text-sm">Corpo<textarea readOnly value={draft.body} rows={4} className="mt-1 block w-full rounded border p-2" /></label>
-      <button disabled={state.stage !== "review" || state.emailDrafted} onClick={() => act("draft-email")} className="mt-3 rounded border px-3 py-2 disabled:opacity-40">{state.emailDrafted ? "Bozza preparata (non inviata)" : "Prepara bozza email"}</button>
+      <div className="mt-2 flex gap-2"><button disabled={state.stage !== "review"} onClick={() => setState(addFixtureEmailDraft(state, "status-update", practice.code))} className="rounded border px-3 py-2 disabled:opacity-40">Crea bozza aggiornamento</button><button disabled={state.stage !== "review"} onClick={() => setState(addFixtureEmailDraft(state, "missing-documents", practice.code))} className="rounded border px-3 py-2 disabled:opacity-40">Crea bozza documenti mancanti</button></div>
+      <div aria-label="Bozze email locali">{state.drafts.map((draft) => <article key={draft.id} className="mt-3 rounded border p-3"><strong>{draft.subject}</strong><p>{draft.body}</p></article>)}</div>
     </section>
 
     <section aria-labelledby="esito" className="rounded-lg border p-4">
       <h2 id="esito" className="font-semibold">5. Esito e audit append-only</h2>
       <button disabled={state.stage !== "review" || !state.emailDrafted} onClick={() => act("complete")} className="mt-2 rounded border px-3 py-2 disabled:opacity-40">Concludi pratica fixture</button>
       <ol className="mt-3 list-decimal pl-5" aria-label="Audit locale">{state.audit.map((event) => <li key={event.id}>{event.type} · {new Date(event.at).toLocaleString("it-IT")}</li>)}</ol>
+      <button onClick={exportAudit} className="mt-3 rounded border px-3 py-2">Esporta audit fixture JSON</button>
+      <h3 className="mt-4 font-medium">Readiness pilot interno: {pilot.ready ? "PRONTA" : "NON PRONTA"}</h3>
+      <ul aria-label="Criteri pilot interno">{pilot.checks.map((check) => <li key={check.label}>{check.ok ? "✓" : "○"} {check.label}</li>)}</ul>
     </section>
   </main>;
 }

@@ -4,7 +4,10 @@ import EneaShadowCrm from "./EneaShadowCrm";
 
 describe("CRM ombra ENEA locale", () => {
   beforeEach(() => localStorage.clear());
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
 
   it("lavora più pratiche fixture senza rete né invio email", () => {
     const fetchSpy = vi.fn();
@@ -13,19 +16,31 @@ describe("CRM ombra ENEA locale", () => {
     vi.stubGlobal("fetch", fetchSpy);
     vi.stubGlobal("XMLHttpRequest", xhrSpy);
     vi.stubGlobal("WebSocket", socketSpy);
+    const createObjectURL = vi.fn(() => "blob:fixture-audit");
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", { ...URL, createObjectURL, revokeObjectURL });
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
     render(<EneaShadowCrm />);
 
     expect(screen.getByText("LAB-SCH-001 — Cliente Demo Uno")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Aggiungi fattura DEMO" }));
+    fireEvent.click(screen.getByRole("button", { name: "Aggiungi bonifico DEMO" }));
     fireEvent.change(screen.getByLabelText("Assegnatario"), { target: { value: "operatore-demo-anna" } });
     fireEvent.change(screen.getByLabelText("Priorità"), { target: { value: "high" } });
     fireEvent.click(screen.getByRole("button", { name: "Avvia lavorazione" }));
     fireEvent.click(screen.getByRole("button", { name: "Invia a revisione" }));
-    fireEvent.click(screen.getByRole("button", { name: "Prepara bozza email" }));
+    fireEvent.click(screen.getByRole("button", { name: "Crea bozza aggiornamento" }));
+    fireEvent.click(screen.getByRole("button", { name: "Crea bozza documenti mancanti" }));
+    expect(screen.getByText("Readiness pilot interno: PRONTA")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Concludi pratica fixture" }));
+    fireEvent.click(screen.getByRole("button", { name: "Esporta audit fixture JSON" }));
 
     expect(screen.getByText(/Stato: Conclusa/)).toBeInTheDocument();
-    expect(screen.getByDisplayValue(/Questa bozza non è stata inviata/)).toBeInTheDocument();
+    expect(screen.getAllByText(/non inviata/).length).toBeGreaterThan(1);
     expect(screen.queryByRole("button", { name: /^Invia email$/ })).not.toBeInTheDocument();
+    expect(createObjectURL).toHaveBeenCalledOnce();
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:fixture-audit");
+    expect(clickSpy).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByRole("button", { name: /LAB-SCH-002/ }));
     expect(screen.getByText("LAB-SCH-002 — Cliente Demo Due")).toBeInTheDocument();
     expect(screen.getByText(/Stato: Ricevuta/)).toBeInTheDocument();

@@ -27,6 +27,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mapSchermaturaPractice } from "@/features/enea-lab/mapper";
+import { prepareEneaOfficialPortalCollaudo } from "@/features/enea-lab/officialPortalGate";
 import {
   buildEneaPayload,
   fingerprintPreparedPractice,
@@ -181,7 +182,7 @@ export default function EneaLab() {
   const [confirmedByPractice, setConfirmedByPractice] = useState<Record<string, string[]>>(initialDraft.confirmedByPractice);
   const [preparedIds, setPreparedIds] = useState<string[]>(initialDraft.preparedIds);
   const [preparedSnapshotsByPractice, setPreparedSnapshotsByPractice] = useState(initialDraft.preparedSnapshotsByPractice);
-  const [copyStatus, setCopyStatus] = useState<"idle" | "workflow-copied" | "test-copied" | "official-copied" | "beneficiary-copied" | "building-copied" | "intervention-copied" | "plant-copied" | "screening-copied" | "error">("idle");
+  const [copyStatus, setCopyStatus] = useState<"idle" | "workflow-copied" | "official-workflow-copied" | "test-copied" | "official-copied" | "beneficiary-copied" | "building-copied" | "intervention-copied" | "plant-copied" | "screening-copied" | "error">("idle");
 
   const visibleSourcePractices = useMemo(() => {
     const query = searchText.trim().toLocaleLowerCase("it");
@@ -298,6 +299,16 @@ export default function EneaLab() {
   const wasPrepared = preparedIds.includes(selected.source.id);
   const isPrepared = wasPrepared && preparedSnapshot?.fingerprint === currentFingerprint;
   const isPreparedStale = wasPrepared && !isPrepared;
+  const officialPortalGate = prepareEneaOfficialPortalCollaudo(selected, officialPayload, isPrepared);
+  const officialPortalGateMessage = officialPortalGate.status === "ready"
+    ? "Comando ufficiale pronto per il collaudo sul portale. Non salva e non invia la pratica."
+    : `Comando ufficiale bloccato: ${officialPortalGate.reason === "package-not-current"
+      ? "il pacchetto deve essere rigenerato"
+      : officialPortalGate.reason === "payload-not-official"
+        ? "il payload non è ufficiale"
+        : officialPortalGate.reason === "official-data-incomplete"
+          ? "i dati ufficiali non sono ancora completi"
+          : "il payload ufficiale non è coerente"}.`;
 
   const updateOverride = (fieldId: string, value: string) => {
     setOverridesByPractice((current) => {
@@ -435,6 +446,16 @@ export default function EneaLab() {
       const preparation = buildEneaPortalWorkflowScript(selected);
       await navigator.clipboard.writeText(preparation.script);
       setCopyStatus("workflow-copied");
+    } catch {
+      setCopyStatus("error");
+    }
+  };
+
+  const copyOfficialPortalWorkflow = async () => {
+    if (officialPortalGate.status !== "ready") return;
+    try {
+      await navigator.clipboard.writeText(officialPortalGate.workflow.script);
+      setCopyStatus("official-workflow-copied");
     } catch {
       setCopyStatus("error");
     }
@@ -724,6 +745,16 @@ export default function EneaLab() {
                       {copyStatus === "workflow-copied" ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
                       {copyStatus === "workflow-copied" ? "Comando unico copiato" : "Copia comando unico ENEA"}
                     </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => void copyOfficialPortalWorkflow()}
+                      disabled={officialPortalGate.status !== "ready"}
+                      className="gap-2"
+                    >
+                      {copyStatus === "official-workflow-copied" ? <Check className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
+                      {copyStatus === "official-workflow-copied" ? "Comando UFFICIALE copiato" : "Copia comando UFFICIALE ENEA"}
+                    </Button>
                     <Button type="button" variant="outline" onClick={() => void copyPayload("test")} className="gap-2">
                       {copyStatus === "test-copied" ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
                       {copyStatus === "test-copied" ? "Prova copiata" : copyStatus === "error" ? "Copia non riuscita" : "Copia prova"}
@@ -770,8 +801,11 @@ export default function EneaLab() {
                   <p className="mt-3 text-xs text-slate-500">
                     La bozza ufficiale esclude automaticamente valori di prova e campi non verificati. Stato dati ufficiali: {officialPayload.readyForOfficialSubmission ? "completi, pronti per il collaudo sul portale" : "incompleti, invio bloccato"}.
                   </p>
+                  <p className={cn("mt-1 text-xs", officialPortalGate.status === "ready" ? "text-emerald-700" : "text-amber-700")}>
+                    {officialPortalGateMessage}
+                  </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    Il comando unico riconosce Anagrafica, Immobile, Intervento, Impianto, finestra Generatore e Schermature. Va incollato identico su ogni pagina: compila i dati disponibili ma non preme Salva e non invia la pratica.
+                    Il comando unico di prova riconosce Anagrafica, Immobile, Intervento, Impianto, finestra Generatore e Schermature. Va incollato identico su ogni pagina: compila i dati disponibili ma non preme Salva e non invia la pratica.
                   </p>
                 </CardContent>
               </Card>

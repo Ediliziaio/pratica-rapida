@@ -1,3 +1,10 @@
+import { buildEneaBeneficiaryPortalScript } from "./portalBeneficiary";
+import { buildEneaBuildingPortalScript } from "./portalBuilding";
+import { buildEneaGeneratorPortalScript } from "./portalGenerator";
+import { buildEneaInterventionPortalScript } from "./portalIntervention";
+import { buildEneaPlantPortalScript } from "./portalPlant";
+import { buildEneaScreeningPortalScript } from "./portalScreening";
+import { buildEneaScreeningSummaryPortalScript } from "./portalScreeningSummary";
 import type {
   EneaLabDocumentAnalysis,
   EneaLabIssue,
@@ -94,6 +101,25 @@ function portalValue(fieldId: string, value: string): string {
 function isInternalPlaceholder(value: string): boolean {
   const normalized = value.trim().toLocaleLowerCase("it");
   return normalized === "non indicato" || normalized === "intervento umano richiesto";
+}
+
+function officialPortalReadyFieldIds(mapped: EneaLabMappedPractice): ReadonlySet<string> {
+  const screeningIndexes = mapped.sections
+    .flatMap((section) => section.fields)
+    .flatMap((field) => {
+      const match = field.id.match(/^schermature\.(\d+)\.tipo$/);
+      return match ? [Number(match[1])] : [];
+    });
+
+  return new Set([
+    ...buildEneaBeneficiaryPortalScript(mapped).readyFieldIds,
+    ...buildEneaBuildingPortalScript(mapped).readyFieldIds,
+    ...buildEneaInterventionPortalScript(mapped).readyFieldIds,
+    ...buildEneaPlantPortalScript(mapped).readyFieldIds,
+    ...buildEneaGeneratorPortalScript(mapped, false).readyFieldIds,
+    ...buildEneaScreeningSummaryPortalScript(mapped).readyFieldIds,
+    ...screeningIndexes.flatMap((index) => buildEneaScreeningPortalScript(mapped, index).readyFieldIds),
+  ]);
 }
 
 export function validatePreparedPractice(
@@ -249,10 +275,12 @@ export function buildEneaPayload(
   const hasUnverifiedRequiredFields = fields.some(
     (field) => field.required && (field.status !== "ready" || isInternalPlaceholder(field.value)),
   );
+  const officialPortalIds = mode === "official" ? officialPortalReadyFieldIds(mapped) : null;
   const selectedFields = mode === "test"
     ? fields
     : fields.filter((field) =>
-      !field.testOnly
+      Boolean(officialPortalIds?.has(field.id))
+      && !field.testOnly
       && field.status === "ready"
       && Boolean(field.value.trim())
       && !isInternalPlaceholder(field.value),

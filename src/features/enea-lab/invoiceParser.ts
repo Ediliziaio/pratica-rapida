@@ -33,14 +33,13 @@ function toIsoDate(value: string): string | undefined {
 }
 
 function documentIdentity(document: EneaLabDocumentResult): string | null {
-  if (document.documentType === "unknown" || !document.documentNumber || !document.documentDate || document.total === null) {
+  if (document.documentType === "unknown" || !document.documentNumber || !document.documentDate) {
     return null;
   }
   return [
     document.documentType,
     document.documentNumber.replace(/\s+/g, "").toLocaleUpperCase("it"),
     document.documentDate,
-    document.total.toFixed(2),
   ].join("|");
 }
 

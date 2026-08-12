@@ -38,6 +38,10 @@ export interface HistoricalBatchAuditReport {
 // diverso da quello atteso. Il collaudo storico deve quindi fallire chiuso.
 const MIN_HISTORICAL_COMPARISONS = 10;
 
+function normalizedCpid(cpid: string): string {
+  return cpid.trim().toUpperCase();
+}
+
 /**
  * Se una pratica ha piu PDF conclusivi/duplicati, non basta prendere il primo
  * file leggibile: potrebbe essere una copia parziale o un documento intermedio.
@@ -45,10 +49,24 @@ const MIN_HISTORICAL_COMPARISONS = 10;
  * a parita, quello che offre la maggiore copertura di campi confrontabili.
  * Non usiamo il numero di match come criterio, per non scegliere il PDF che
  * "fa apparire migliore" il mapper corrente.
+ *
+ * Fail-safe aggiuntivo: due CPID diversi nella stessa pratica indicano allegati
+ * incoerenti o una pratica ENEA estranea. In quel caso non scegliamo arbitrariamente
+ * un documento: l'audit deve fermarsi e richiedere verifica dell'associazione.
  */
 export function selectBestHistoricalCompletedAudit(
   candidates: readonly CompletedEneaAuditResult[],
 ): CompletedEneaAuditResult | null {
+  const distinctCpids = new Set(
+    candidates
+      .map(({ cpid }) => cpid)
+      .filter((cpid): cpid is string => Boolean(cpid))
+      .map(normalizedCpid),
+  );
+  if (distinctCpids.size > 1) {
+    throw new Error("PDF ENEA conclusivi con CPID discordanti nella stessa pratica.");
+  }
+
   let best: CompletedEneaAuditResult | null = null;
 
   for (const candidate of candidates) {

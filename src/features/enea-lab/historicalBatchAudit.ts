@@ -37,6 +37,17 @@ export interface HistoricalBatchAuditReport {
 // certificare il mapper: potrebbe indicare un parser parziale o un documento
 // diverso da quello atteso. Il collaudo storico deve quindi fallire chiuso.
 const MIN_HISTORICAL_COMPARISONS = 10;
+const HISTORICAL_CADASTRAL_ID_FIELDS = [
+  "immobile.foglio",
+  "immobile.mappale",
+  "immobile.subalterno",
+] as const;
+const HISTORICAL_ADDRESS_ID_FIELDS = [
+  "immobile.indirizzo",
+  "immobile.civico",
+  "immobile.cap",
+  "immobile.comune",
+] as const;
 
 function normalizedCpid(cpid: string): string {
   return cpid.trim().toUpperCase();
@@ -77,6 +88,27 @@ export function isHistoricalCpidCoherentWithFinishDate(
   const completedYear = cpidYear(cpid);
   const expectedYear = dateYear(finishDate);
   return completedYear !== null && expectedYear !== null && completedYear === expectedYear;
+}
+
+/**
+ * Il CPID e l'annualita' dimostrano che il file e' una pratica ENEA conclusa,
+ * non che appartenga alla pratica CRM che stiamo collaudando. Prima di usare
+ * un PDF come prova storica pretendiamo quindi un'identita' forte: il codice
+ * fiscale del beneficiario deve coincidere e deve coincidere anche l'immobile,
+ * provato da almeno due riferimenti catastali oppure dall'indirizzo completo.
+ * In assenza di questa evidenza l'audit fallisce chiuso.
+ */
+export function hasHistoricalIdentityEvidence(audit: CompletedEneaAuditResult): boolean {
+  const matched = new Set(audit.matchedFieldIds ?? []);
+  if (!matched.has("beneficiario.cf")) return false;
+
+  const cadastralMatches = HISTORICAL_CADASTRAL_ID_FIELDS
+    .filter((fieldId) => matched.has(fieldId))
+    .length;
+  const fullAddressMatches = HISTORICAL_ADDRESS_ID_FIELDS
+    .every((fieldId) => matched.has(fieldId));
+
+  return cadastralMatches >= 2 || fullAddressMatches;
 }
 
 /**
@@ -197,6 +229,12 @@ export function classifyHistoricalAudit(
   // da un parsing incompleto. Per schermature, sotto questa soglia il risultato
   // resta una differenza da investigare e non viene mai promosso a match/blocked.
   if (audit.compared < MIN_HISTORICAL_COMPARISONS) {
+    return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
+  }
+  // Un PDF della stessa annualita' puo' condividere molti valori generici
+  // (tipo intervento, destinazione d'uso, regole schermatura). Prima di poter
+  // certificare match o blocked deve coincidere anche su beneficiario+immobile.
+  if (!hasHistoricalIdentityEvidence(audit)) {
     return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
   }
   // Un confronto dei valori può essere perfetto e tuttavia il workflow attuale

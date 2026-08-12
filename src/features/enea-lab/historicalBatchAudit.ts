@@ -37,6 +37,7 @@ export interface HistoricalBatchAuditReport {
 // certificare il mapper: potrebbe indicare un parser parziale o un documento
 // diverso da quello atteso. Il collaudo storico deve quindi fallire chiuso.
 const MIN_HISTORICAL_COMPARISONS = 10;
+const HISTORICAL_INTERVENTION_FIELD = "intervento.tipo";
 const HISTORICAL_CADASTRAL_ID_FIELDS = [
   "immobile.foglio",
   "immobile.mappale",
@@ -109,6 +110,18 @@ export function hasHistoricalIdentityEvidence(audit: CompletedEneaAuditResult): 
     .every((fieldId) => matched.has(fieldId));
 
   return cadastralMatches >= 2 || fullAddressMatches;
+}
+
+/**
+ * Identita' e CPID non bastano a dimostrare che il PDF sia quello delle
+ * schermature solari: la stessa persona e lo stesso immobile possono avere
+ * piu interventi ENEA nello stesso anno. Pretendiamo quindi anche il match del
+ * tipo di intervento, che nel PDF finale osservato compare come
+ * "Comma 345B - Schermature solari". Se il parser non lo legge, l'audit resta
+ * prudenzialmente una differenza invece di certificare un documento estraneo.
+ */
+function hasHistoricalInterventionEvidence(audit: CompletedEneaAuditResult): boolean {
+  return (audit.matchedFieldIds ?? []).includes(HISTORICAL_INTERVENTION_FIELD);
 }
 
 /**
@@ -229,6 +242,12 @@ export function classifyHistoricalAudit(
   // da un parsing incompleto. Per schermature, sotto questa soglia il risultato
   // resta una differenza da investigare e non viene mai promosso a match/blocked.
   if (audit.compared < MIN_HISTORICAL_COMPARISONS) {
+    return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
+  }
+  // La stessa persona e lo stesso immobile possono avere piu pratiche ENEA.
+  // Per certificare questo workflow serve una prova positiva che il PDF sia
+  // proprio quello delle schermature solari, non soltanto un altro intervento.
+  if (!hasHistoricalInterventionEvidence(audit)) {
     return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
   }
   // Un PDF della stessa annualita' puo' condividere molti valori generici

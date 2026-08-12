@@ -125,4 +125,28 @@ describe("EneaLab", () => {
     expect(screen.getByRole("button", { name: "Ripristina valore" })).toBeInTheDocument();
   });
 
+  it("mantiene interazioni e persistenza nella preview senza aprire ENEA o usare rete", () => {
+    window.history.replaceState({}, "", "/admin/enea-lab-preview");
+    const fetchSpy = vi.fn();
+    const xhrSpy = vi.fn();
+    const webSocketSpy = vi.fn();
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+    vi.stubGlobal("fetch", fetchSpy);
+    vi.stubGlobal("XMLHttpRequest", xhrSpy);
+    vi.stubGlobal("WebSocket", webSocketSpy);
+
+    render(<EneaLab />);
+    fireEvent.click(screen.getByRole("button", { name: "In attesa" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Cerca pratica" }), { target: { value: "Demo Due" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "Correzione Sesso" }), { target: { value: "F" } });
+    fireEvent.click(screen.getByRole("button", { name: "Genera pacchetto prova" }));
+
+    expect(screen.getByRole("button", { name: "Apri ENEA per prova" })).toBeDisabled();
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(xhrSpy).not.toHaveBeenCalled();
+    expect(webSocketSpy).not.toHaveBeenCalled();
+    expect(Object.keys(window.localStorage)).toEqual(["enea-lab:draft:v1"]);
+  });
+
 });

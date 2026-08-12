@@ -471,6 +471,7 @@ export default function EneaLab() {
   };
 
   const openEnea = () => {
+    if (isPreview) return;
     window.open(ENEA_PORTAL_URL, "_blank", "noopener,noreferrer");
   };
 
@@ -509,7 +510,8 @@ export default function EneaLab() {
             </p>
           </div>
           <div className="flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-xs text-slate-600 shadow-sm">
-            <ShieldCheck className="h-4 w-4 text-emerald-600" /> Sola lettura · aggiornamento ogni 30 secondi
+            <ShieldCheck className="h-4 w-4 text-emerald-600" />
+            {isPreview ? "Fixture locali · nessun aggiornamento automatico" : "Sola lettura · aggiornamento ogni 30 secondi"}
           </div>
         </header>
 
@@ -517,7 +519,9 @@ export default function EneaLab() {
           <CircleDashed className="h-4 w-4 text-violet-700" />
           <AlertTitle>Ambiente controllato</AlertTitle>
           <AlertDescription className="text-violet-800">
-            Il CRM viene interrogato solo in lettura. Correzioni e conferme restano esclusivamente in questo browser per consentire il recupero dopo una chiusura accidentale e vengono eliminate automaticamente dopo 7 giorni; non cambiano stati, file, email, WhatsApp o automazioni. I valori convenzionali sono inclusi soltanto nel pacchetto di prova.
+            {isPreview
+              ? "La preview usa esclusivamente fixture locali. Correzioni e conferme restano in questo browser e vengono eliminate automaticamente dopo 7 giorni; nessun CRM, file, messaggio o automazione esterna viene contattato."
+              : "Il CRM viene interrogato solo in lettura. Correzioni e conferme restano esclusivamente in questo browser per consentire il recupero dopo una chiusura accidentale e vengono eliminate automaticamente dopo 7 giorni; non cambiano stati, file, email, WhatsApp o automazioni. I valori convenzionali sono inclusi soltanto nel pacchetto di prova."}
           </AlertDescription>
         </Alert>
 
@@ -643,7 +647,7 @@ export default function EneaLab() {
                       <RotateCcw className="h-4 w-4" /> Azzera correzioni locali
                     </Button>
                   )}
-                  <Button variant="outline" onClick={openEnea} disabled={!isPrepared} className="gap-2">
+                  <Button variant="outline" onClick={openEnea} disabled={!isPrepared || isPreview} className="gap-2">
                     <ExternalLink className="h-4 w-4" /> Apri ENEA per prova
                   </Button>
                   <Button onClick={preparePractice} disabled={documentAnalysis.isPending} className="gap-2">

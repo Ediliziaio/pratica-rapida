@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import EneaLab from "./EneaLab";
 
@@ -58,6 +58,8 @@ describe("stati preview fixture ENEA", () => {
     render(<EneaLab />);
     expect(screen.getByText("Le fixture locali non sono disponibili. Nessun servizio esterno è stato contattato.")).toBeInTheDocument();
     expect(screen.queryByText(/Supabase|sessione locale/i)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Riprova" }));
+    expect(queueState.value.refetch).toHaveBeenCalledOnce();
     expectNoExternalActivity();
   });
 });

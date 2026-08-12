@@ -51,6 +51,15 @@ describe("EneaLab", () => {
     expect(screen.getByText("nota-credito.pdf")).toBeInTheDocument();
   });
 
+  it("non espone un comando ufficiale utilizzabile finché il gate pre-collaudo è bloccato", () => {
+    render(<EneaLab />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Genera pacchetto prova" }));
+
+    expect(screen.getByRole("button", { name: "Copia comando UFFICIALE ENEA" })).toBeDisabled();
+    expect(screen.getByText(/Comando ufficiale bloccato:/)).toBeInTheDocument();
+  });
+
   it("filtra la coda e mostra correttamente una ricerca senza risultati", () => {
     render(<EneaLab />);
 

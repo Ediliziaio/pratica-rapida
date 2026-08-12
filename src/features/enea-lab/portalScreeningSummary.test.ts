@@ -30,4 +30,21 @@ describe("compilazione riepilogo schermature ENEA", () => {
     expect(result.compiled).toEqual(["id-costo"]);
     expect(submitCount).toBe(0);
   });
+
+  it("rifiuta placeholder e valori non numerici anche se il campo fosse marcato ready a monte", () => {
+    const source = ENEA_LAB_MOCK_PRACTICES[0];
+    const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id]);
+    const expense = mapped.sections
+      .flatMap((section) => section.fields)
+      .find((field) => field.id === "schermature.spesa")!;
+
+    for (const invalidValue of ["Non indicato", "Intervento umano richiesto", "testo", "-1 €"]) {
+      expense.status = "ready";
+      expense.value = invalidValue;
+      const preparation = buildEneaScreeningSummaryPortalScript(mapped);
+      expect(preparation.readyFieldIds).toEqual([]);
+      expect(preparation.skippedFieldIds).toEqual(["schermature.spesa"]);
+      expect(preparation.script).not.toContain(`\"value\":\"${invalidValue}\"`);
+    }
+  });
 });

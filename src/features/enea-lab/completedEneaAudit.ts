@@ -195,12 +195,15 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   const screeningText = screeningStart >= 0
     ? source.slice(screeningStart, screeningEnd > screeningStart ? screeningEnd : undefined)
     : "";
+  const screeningRowPattern = /(?:^|\s)(\d+)\s+(?=Tenda o veneziana|Altra schermatura solare)/gi;
+  const screeningOrdinals = Array.from(screeningText.matchAll(screeningRowPattern), (match) => Number(match[1]));
   const screeningPattern = /(\d+)\s+(Tenda o veneziana|Altra schermatura solare)\s+(Esterna)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Sud-Est|Sud-Ovest|Est|Sud|Ovest)\s+(Dichiarato dal fornitore)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Tessuto|PVC|Metallo|Misto)\s+(Manuale|Automatico)/gi;
-  let screeningCount = 0;
+  const parsedScreeningOrdinals: number[] = [];
   for (const match of screeningText.matchAll(screeningPattern)) {
-    const index = Number(match[1]) - 1;
+    const ordinal = Number(match[1]);
+    const index = ordinal - 1;
     if (!Number.isInteger(index) || index < 0) continue;
-    screeningCount = Math.max(screeningCount, index + 1);
+    parsedScreeningOrdinals.push(ordinal);
     fields[`schermature.${index}.tipo`] = match[2];
     fields[`schermature.${index}.installazione`] = match[3];
     fields[`schermature.${index}.superficie`] = match[4];
@@ -211,6 +214,18 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
     fields[`schermature.${index}.materiale`] = match[10];
     fields[`schermature.${index}.regolazione`] = match[11];
   }
+  const uniqueScreeningOrdinals = new Set(screeningOrdinals);
+  const uniqueParsedScreeningOrdinals = new Set(parsedScreeningOrdinals);
+  const orderedScreeningOrdinals = [...uniqueScreeningOrdinals].sort((left, right) => left - right);
+  const screeningStructureValid = screeningOrdinals.length === uniqueScreeningOrdinals.size
+    && orderedScreeningOrdinals.every((ordinal, index) => ordinal === index + 1)
+    && uniqueParsedScreeningOrdinals.size === uniqueScreeningOrdinals.size
+    && orderedScreeningOrdinals.every((ordinal) => uniqueParsedScreeningOrdinals.has(ordinal));
+  // -1 e' un sentinel fail-safe: indica che il PDF contiene righe schermatura
+  // numerate ma il parser non le ha lette tutte in modo univoco e consecutivo.
+  // In audit il confronto con schermature.numero fallira' invece di certificare
+  // per errore un PDF parzialmente interpretato.
+  const screeningCount = screeningStructureValid ? orderedScreeningOrdinals.length : -1;
   set(fields, "schermature.spesa", capture(source, /Spese congrue sostenute \[€\]\s+([0-9]+(?:[.,][0-9]+)?)/i));
 
   return { cpid, fields, screeningCount };

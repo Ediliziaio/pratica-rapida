@@ -49,6 +49,7 @@ import { buildEneaPlantPortalScript } from "@/features/enea-lab/portalPlant";
 import { buildEneaScreeningPortalScript } from "@/features/enea-lab/portalScreening";
 import { buildEneaPortalWorkflowScript } from "@/features/enea-lab/portalWorkflow";
 import { cn } from "@/lib/utils";
+import { EneaShadowCycle } from "@/features/enea-lab/EneaShadowCycle";
 import {
   loadEneaLabDraft,
   saveEneaLabDraft,
@@ -525,6 +526,18 @@ export default function EneaLab() {
               : "Il CRM viene interrogato solo in lettura. Correzioni e conferme restano esclusivamente in questo browser per consentire il recupero dopo una chiusura accidentale e vengono eliminate automaticamente dopo 7 giorni; non cambiano stati, file, email, WhatsApp o automazioni. I valori convenzionali sono inclusi soltanto nel pacchetto di prova."}
           </AlertDescription>
         </Alert>
+
+        {isPreview && (
+          <div className="mb-6">
+            <EneaShadowCycle
+              key={selected.source.id}
+              practiceId={selected.source.id}
+              prepared={isPrepared}
+              documentsChecked={Boolean(documentAnalysis.data) && !documentAnalysis.error}
+              blockerCount={blockers.length}
+            />
+          </div>
+        )}
 
         <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
           <aside>

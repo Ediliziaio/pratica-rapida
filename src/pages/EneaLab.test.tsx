@@ -5,6 +5,7 @@ import {
   ENEA_LAB_DRAFT_STORAGE_KEY,
   ENEA_LAB_PREVIEW_DRAFT_STORAGE_KEY,
 } from "@/features/enea-lab/draftStorage";
+import { ENEA_SHADOW_WORKFLOW_STORAGE_KEY } from "@/features/enea-lab/shadowWorkflow";
 import {
   ENEA_LAB_MOCK_ANALYSIS,
   ENEA_LAB_MOCK_PRACTICES,
@@ -163,7 +164,30 @@ describe("EneaLab", () => {
     expect(Object.keys(window.localStorage).sort()).toEqual([
       ENEA_LAB_DRAFT_STORAGE_KEY,
       ENEA_LAB_PREVIEW_DRAFT_STORAGE_KEY,
+      ENEA_SHADOW_WORKFLOW_STORAGE_KEY,
     ].sort());
+  });
+
+  it("simula consenso SPID e lavorazione senza credenziali o servizi esterni", () => {
+    window.history.replaceState({}, "", "/admin/enea-lab-preview");
+    const fetchSpy = vi.fn();
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+    vi.stubGlobal("fetch", fetchSpy);
+
+    render(<EneaLab />);
+    expect(screen.getByText("Richiesta SPID simulata")).toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: /spid|password|otp/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Genera pacchetto prova" }));
+    fireEvent.click(screen.getByRole("button", { name: "Acconsento alla simulazione SPID" }));
+    fireEvent.click(screen.getByRole("button", { name: "Esegui lavorazione locale" }));
+
+    expect(screen.getByText("Esito simulato: revisione richiesta")).toBeInTheDocument();
+    const stored = window.localStorage.getItem(ENEA_SHADOW_WORKFLOW_STORAGE_KEY) ?? "";
+    expect(stored).toContain("spid-demo-consent");
+    expect(stored).toContain("local-review-required");
+    expect(stored).not.toMatch(/Cliente Demo|example\.test|CF-DEMO|password|otp/i);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(openSpy).not.toHaveBeenCalled();
   });
 
 });

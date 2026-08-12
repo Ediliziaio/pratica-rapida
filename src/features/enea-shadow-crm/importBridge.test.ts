@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import { ENEA_SHADOW_IMPORT_STORAGE_KEY, IMPORT_CONFIRMATION_PHRASE, loadImportedPractice, prepareSinglePracticeImport, saveImportedPractice, type CrmReadOnlySnapshot } from "./importBridge";
+import { clearImportedPractice, ENEA_SHADOW_IMPORT_STORAGE_KEY, IMPORT_CONFIRMATION_PHRASE, loadImportedPractice, prepareSinglePracticeImport, saveImportedPractice, toShadowQueuePractice, type CrmReadOnlySnapshot } from "./importBridge";
 
 const syntheticSnapshot: CrmReadOnlySnapshot = {
   id: "11111111-2222-4333-8444-555555555555",
@@ -53,5 +53,22 @@ describe("ponte importazione CRM ombra", () => {
   it("non importa client CRM, rete, mutation, RPC o upload", () => {
     const source = fs.readFileSync(path.resolve(process.cwd(), "src/features/enea-shadow-crm/importBridge.ts"), "utf8");
     expect(source).not.toMatch(/supabase|fetch\(|XMLHttpRequest|WebSocket|\.from\(|\.insert\(|\.update\(|\.rpc\(|upload\(/i);
+  });
+
+  it("crea una voce coda mascherata e resetta soltanto lo snapshot corrispondente", () => {
+    const result = prepareSinglePracticeImport([syntheticSnapshot], consent);
+    if (result.ok === false) throw new Error(result.reason);
+    const values: Record<string, string> = {};
+    const storage = {
+      getItem: vi.fn((key: string) => values[key] ?? null),
+      setItem: vi.fn((key: string, value: string) => { values[key] = value; }),
+      removeItem: vi.fn((key: string) => { delete values[key]; }),
+    };
+    expect(saveImportedPractice(storage, result.practice)).toBe(true);
+    expect(toShadowQueuePractice(result.practice)).toMatchObject({ id: result.practice.localId, clienteNome: "Cliente reale", clienteCognome: "mascherato", documentPaths: [] });
+    expect(JSON.stringify(toShadowQueuePractice(result.practice))).not.toContain("Persona");
+    expect(clearImportedPractice(storage, "local-import-deadbeef")).toBe(false);
+    expect(clearImportedPractice(storage, result.practice.localId)).toBe(true);
+    expect(values[ENEA_SHADOW_IMPORT_STORAGE_KEY]).toBeUndefined();
   });
 });

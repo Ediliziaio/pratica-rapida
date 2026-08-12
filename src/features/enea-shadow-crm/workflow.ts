@@ -1,3 +1,5 @@
+import type { LocalImportedPractice } from "./importBridge";
+
 export const ENEA_SHADOW_CRM_STORAGE_KEY = "enea-shadow-crm:workflow:v1";
 
 export type ShadowCrmStage = "received" | "assigned" | "processing" | "review" | "completed";
@@ -65,8 +67,17 @@ function fixtureId(id: string): boolean {
   return /^lab-[a-z0-9-]+$/.test(id);
 }
 
+function importedPracticeId(id: string): boolean {
+  return /^local-import-[0-9a-f]{8}$/.test(id);
+}
+
+function localPracticeId(id: string): boolean {
+  return fixtureId(id) || importedPracticeId(id);
+}
+
 export function pilotSessionId(practiceId: string): string | null {
-  return OFFICIAL_PILOT_FIXTURE_IDS.includes(practiceId) ? `PILOT-CRM-ENEA-V1-${practiceId.toUpperCase()}` : null;
+  if (OFFICIAL_PILOT_FIXTURE_IDS.includes(practiceId)) return `PILOT-CRM-ENEA-V1-${practiceId.toUpperCase()}`;
+  return importedPracticeId(practiceId) ? `PILOT-CRM-ENEA-LOCAL-${practiceId.slice(-8).toUpperCase()}` : null;
 }
 
 function sanitize(value: unknown): ShadowCrmPracticeState {
@@ -157,7 +168,7 @@ export function removeSyntheticAttachment(state: ShadowCrmPracticeState, attachm
 }
 
 export function addFixtureEmailDraft(state: ShadowCrmPracticeState, template: ShadowCrmDraftTemplate, practiceCode: string, now = new Date()): ShadowCrmPracticeState {
-  if (state.stage !== "review" || state.drafts.length >= 10 || !/^LAB-[A-Z0-9-]+$/.test(practiceCode)) return state;
+  if (state.stage !== "review" || state.drafts.length >= 10 || !/^(LAB|CRM)-[A-Z0-9-]+$/.test(practiceCode)) return state;
   const subject = template === "status-update" ? `Aggiornamento pratica ${practiceCode}` : `Documenti mancanti per ${practiceCode}`;
   const body = template === "status-update" ? "La pratica sintetica è in revisione." : "Occorrono esclusivamente documenti fixture aggiuntivi.";
   const version = state.drafts.filter((draft) => draft.template === template).length + 1;
@@ -177,18 +188,41 @@ export function internalPilotCriteria(state: ShadowCrmPracticeState): { ready: b
 }
 
 export function serializeShadowCrmAudit(practiceId: string, state: ShadowCrmPracticeState): string | null {
-  if (!fixtureId(practiceId)) return null;
-  return JSON.stringify({ fixture: true, practiceId, exportedAt: new Date().toISOString(), audit: state.audit }, null, 2);
+  if (!localPracticeId(practiceId)) return null;
+  return JSON.stringify({ fixture: fixtureId(practiceId), localSnapshot: importedPracticeId(practiceId), practiceId, exportedAt: new Date().toISOString(), audit: state.audit }, null, 2);
 }
 
-export function serializeShadowCrmPractice(practiceId: string, state: ShadowCrmPracticeState): string | null {
+export function serializeShadowCrmPractice(practiceId: string, state: ShadowCrmPracticeState, source?: LocalImportedPractice): string | null {
   const sessionId = pilotSessionId(practiceId);
   if (!sessionId) return null;
-  return JSON.stringify({ fixture: true, practiceId, sessionId, exportedAt: new Date().toISOString(), procedure: INTERNAL_PILOT_PROCEDURE, state: sanitize(state), pilot: internalPilotCriteria(state) }, null, 2);
+  const imported = importedPracticeId(practiceId);
+  if (imported && (!source
+    || source.localId !== practiceId
+    || source.customerLabel !== "Cliente reale mascherato"
+    || Object.values(source.communicationPolicy).some((value) => value !== "blocked"))) return null;
+  const minimizedSource = source ? {
+    schema: source.schema,
+    localId: source.localId,
+    sourceFingerprint: source.sourceFingerprint,
+    code: source.code,
+    customerLabel: source.customerLabel,
+    maskedEmail: source.maskedEmail,
+    maskedPhone: source.maskedPhone,
+    maskedFiscalCode: source.maskedFiscalCode,
+    product: source.product,
+    receivedAt: source.receivedAt,
+    workCompletedAt: source.workCompletedAt,
+    documentCount: source.documentCount,
+    formComplete: source.formComplete,
+    importedAt: source.importedAt,
+    sourceMode: source.sourceMode,
+    communicationPolicy: source.communicationPolicy,
+  } : undefined;
+  return JSON.stringify({ fixture: fixtureId(practiceId), localSnapshot: imported, practiceId, sessionId, exportedAt: new Date().toISOString(), procedure: INTERNAL_PILOT_PROCEDURE, source: minimizedSource, state: sanitize(state), pilot: internalPilotCriteria(state) }, null, 2);
 }
 
 export function clearShadowCrmState(storage: Pick<Storage, "getItem" | "setItem" | "removeItem">, practiceId: string): boolean {
-  if (!fixtureId(practiceId)) return false;
+  if (!localPracticeId(practiceId)) return false;
   try {
     const raw = storage.getItem(ENEA_SHADOW_CRM_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) as unknown : {};
@@ -196,7 +230,7 @@ export function clearShadowCrmState(storage: Pick<Storage, "getItem" | "setItem"
       storage.removeItem(ENEA_SHADOW_CRM_STORAGE_KEY);
       return true;
     }
-    const remaining = Object.fromEntries(Object.entries(parsed as Record<string, unknown>).filter(([id]) => fixtureId(id) && id !== practiceId));
+    const remaining = Object.fromEntries(Object.entries(parsed as Record<string, unknown>).filter(([id]) => localPracticeId(id) && id !== practiceId));
     if (Object.keys(remaining).length === 0) storage.removeItem(ENEA_SHADOW_CRM_STORAGE_KEY);
     else storage.setItem(ENEA_SHADOW_CRM_STORAGE_KEY, JSON.stringify(remaining));
     return true;
@@ -206,7 +240,7 @@ export function clearShadowCrmState(storage: Pick<Storage, "getItem" | "setItem"
 }
 
 export function loadShadowCrmState(storage: Pick<Storage, "getItem">, practiceId: string): ShadowCrmPracticeState {
-  if (!fixtureId(practiceId)) return EMPTY_SHADOW_CRM_STATE;
+  if (!localPracticeId(practiceId)) return EMPTY_SHADOW_CRM_STATE;
   try {
     const raw = storage.getItem(ENEA_SHADOW_CRM_STORAGE_KEY);
     if (!raw) return EMPTY_SHADOW_CRM_STATE;
@@ -223,7 +257,7 @@ export function saveShadowCrmState(
   practiceId: string,
   state: ShadowCrmPracticeState,
 ): void {
-  if (!fixtureId(practiceId)) return;
+  if (!localPracticeId(practiceId)) return;
   try {
     const raw = storage.getItem(ENEA_SHADOW_CRM_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) as unknown : {};
@@ -231,7 +265,7 @@ export function saveShadowCrmState(
       ? parsed as Record<string, unknown>
       : {};
     storage.setItem(ENEA_SHADOW_CRM_STORAGE_KEY, JSON.stringify({
-      ...Object.fromEntries(Object.entries(current).filter(([id]) => fixtureId(id))),
+      ...Object.fromEntries(Object.entries(current).filter(([id]) => localPracticeId(id))),
       [practiceId]: sanitize(state),
     }));
   } catch {

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import EneaShadowCrm from "./EneaShadowCrm";
-import { ENEA_SHADOW_IMPORT_STORAGE_KEY, IMPORT_CONFIRMATION_PHRASE, prepareSinglePracticeImport, saveImportedPractice } from "@/features/enea-shadow-crm/importBridge";
+import { ENEA_SHADOW_IMPORT_STORAGE_KEY, IMPORT_CONFIRMATION_PHRASE } from "@/features/enea-shadow-crm/importBridge";
 
 describe("CRM ombra ENEA locale", () => {
   beforeEach(() => localStorage.clear());
@@ -39,9 +39,9 @@ describe("CRM ombra ENEA locale", () => {
     fireEvent.click(screen.getByRole("button", { name: "Crea bozza aggiornamento" }));
     fireEvent.click(screen.getByRole("button", { name: "Crea bozza documenti mancanti" }));
     expect(screen.getByText("Readiness pilot interno: PRONTA")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Concludi pratica fixture" }));
-    fireEvent.click(screen.getByRole("button", { name: "Esporta audit fixture JSON" }));
-    fireEvent.click(screen.getByRole("button", { name: "Stampa riepilogo fixture" }));
+    fireEvent.click(screen.getByRole("button", { name: "Concludi pratica locale" }));
+    fireEvent.click(screen.getByRole("button", { name: "Esporta audit locale JSON" }));
+    fireEvent.click(screen.getByRole("button", { name: "Stampa riepilogo locale" }));
 
     expect(screen.getByText(/Stato: Conclusa/)).toBeInTheDocument();
     expect(screen.getAllByText(/non inviata/).length).toBeGreaterThan(1);
@@ -74,11 +74,11 @@ describe("CRM ombra ENEA locale", () => {
     vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
     localStorage.setItem("enea-shadow-crm:workflow:v1", JSON.stringify({ "lab-schermature-001": { stage: "assigned" }, "lab-schermature-002": { stage: "received" } }));
     render(<EneaShadowCrm />);
-    const reset = screen.getByRole("button", { name: "Resetta singolo pilot fixture" });
+    const reset = screen.getByRole("button", { name: "Resetta singolo pilot locale" });
     expect(reset).toBeDisabled();
     fireEvent.click(screen.getByLabelText(/Confermo la pulizia locale/));
     expect(reset).toBeDisabled();
-    fireEvent.click(screen.getByRole("button", { name: "Esporta pratica fixture JSON" }));
+    fireEvent.click(screen.getByRole("button", { name: "Esporta pratica locale JSON" }));
     expect(screen.getByText("Export preventivo: completato")).toBeInTheDocument();
     fireEvent.click(reset);
     const persisted = JSON.parse(localStorage.getItem("enea-shadow-crm:workflow:v1") ?? "{}");
@@ -103,7 +103,16 @@ describe("CRM ombra ENEA locale", () => {
   });
 
   it("mostra soltanto contatti mascherati da uno snapshot sintetico importato", () => {
-    const result = prepareSinglePracticeImport([{
+    const fetchSpy = vi.fn();
+    const xhrSpy = vi.fn();
+    const socketSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    vi.stubGlobal("XMLHttpRequest", xhrSpy);
+    vi.stubGlobal("WebSocket", socketSpy);
+    vi.stubGlobal("URL", { ...URL, createObjectURL: vi.fn(() => "blob:local-snapshot"), revokeObjectURL: vi.fn() });
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    localStorage.setItem("enea-shadow-crm:workflow:v1", JSON.stringify({ "lab-schermature-001": { stage: "assigned" } }));
+    const snapshot = {
       id: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
       code: "CRM-DEMO-002",
       cliente_nome: "NomeNonPersistibile",
@@ -115,13 +124,32 @@ describe("CRM ombra ENEA locale", () => {
       ricevuta_at: "2026-08-12T10:00:00Z",
       document_count: 3,
       form_complete: true,
-    }], { confirmationPhrase: IMPORT_CONFIRMATION_PHRASE, singlePracticeConfirmed: true, localOnlyConfirmed: true, communicationsBlockedConfirmed: true });
-    if (result.ok === false) throw new Error(result.reason);
-    saveImportedPractice(localStorage, result.practice);
+    };
     render(<EneaShadowCrm />);
+    fireEvent.change(screen.getByLabelText("Snapshot CRM read-only"), { target: { value: JSON.stringify(snapshot) } });
+    fireEvent.change(screen.getByLabelText("Frase di conferma importazione"), { target: { value: IMPORT_CONFIRMATION_PHRASE } });
+    fireEvent.click(screen.getByLabelText("Confermo una sola pratica"));
+    fireEvent.click(screen.getByLabelText("Confermo persistenza solo locale"));
+    fireEvent.click(screen.getByLabelText("Confermo comunicazioni bloccate"));
+    fireEvent.click(screen.getByRole("button", { name: "Carica snapshot locale" }));
     expect(screen.getByTestId("masked-import")).toHaveTextContent("Cliente reale mascherato");
     expect(screen.getByTestId("masked-import")).toHaveTextContent("***@example.invalid");
     expect(screen.queryByText(/NomeNonPersistibile|CognomeNonPersistibile/)).not.toBeInTheDocument();
     expect(localStorage.getItem(ENEA_SHADOW_IMPORT_STORAGE_KEY)).not.toContain("NomeNonPersistibile");
+    expect(screen.queryByLabelText("Snapshot CRM read-only")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /CRM-DEMO-002/ }));
+    expect(screen.getByRole("heading", { name: "CRM-DEMO-002 — Cliente reale mascherato" })).toBeInTheDocument();
+    expect(screen.getByTestId("pilot-session-id")).toHaveTextContent("PILOT-CRM-ENEA-LOCAL-");
+    expect(screen.getByText("✓ Anagrafica minimizzata disponibile")).toBeInTheDocument();
+    expect(screen.queryByText(/NomeNonPersistibile|CognomeNonPersistibile/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Esporta pratica locale JSON" }));
+    fireEvent.click(screen.getByLabelText("Confermo la pulizia locale di questa pratica"));
+    fireEvent.click(screen.getByRole("button", { name: "Resetta singolo pilot locale" }));
+    expect(screen.queryByRole("button", { name: /CRM-DEMO-002/ })).not.toBeInTheDocument();
+    expect(localStorage.getItem(ENEA_SHADOW_IMPORT_STORAGE_KEY)).toBeNull();
+    expect(JSON.parse(localStorage.getItem("enea-shadow-crm:workflow:v1") ?? "{}")).toHaveProperty("lab-schermature-001");
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(xhrSpy).not.toHaveBeenCalled();
+    expect(socketSpy).not.toHaveBeenCalled();
   });
 });

@@ -1,3 +1,6 @@
+import type { EneaLabSourcePractice } from "@/features/enea-lab/types";
+import { emptyFormData } from "@/types/form-cliente";
+
 export const ENEA_SHADOW_IMPORT_STORAGE_KEY = "enea-shadow-crm:single-import:v1";
 export const IMPORT_CONFIRMATION_PHRASE = "IMPORTA_UNA_PRATICA";
 
@@ -152,5 +155,37 @@ export function loadImportedPractice(storage: Pick<Storage, "getItem">): LocalIm
       ? parsed : null;
   } catch {
     return null;
+  }
+}
+
+export function toShadowQueuePractice(practice: LocalImportedPractice): EneaLabSourcePractice {
+  return {
+    id: practice.localId,
+    code: practice.code,
+    reseller: "Origine CRM read-only",
+    clienteNome: "Cliente reale",
+    clienteCognome: "mascherato",
+    prodottoInstallato: practice.product,
+    ricevutaAt: practice.receivedAt,
+    dataFineLavori: practice.workCompletedAt,
+    fattureCount: 0,
+    documentiCount: practice.documentCount,
+    documentPaths: [],
+    queueStatus: practice.formComplete ? "ready" : "waiting_client",
+    form: emptyFormData(),
+  };
+}
+
+export function clearImportedPractice(
+  storage: Pick<Storage, "getItem" | "removeItem">,
+  localId: string,
+): boolean {
+  const practice = loadImportedPractice(storage);
+  if (!practice || practice.localId !== localId) return false;
+  try {
+    storage.removeItem(ENEA_SHADOW_IMPORT_STORAGE_KEY);
+    return true;
+  } catch {
+    return false;
   }
 }

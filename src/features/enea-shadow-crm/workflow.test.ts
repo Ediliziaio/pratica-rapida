@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { IMPORT_CONFIRMATION_PHRASE, prepareSinglePracticeImport } from "./importBridge";
 import { addFixtureEmailDraft, addSyntheticAttachment, assignShadowCrm, clearShadowCrmState, EMPTY_SHADOW_CRM_STATE, ENEA_SHADOW_CRM_STORAGE_KEY, INTERNAL_PILOT_PROCEDURE, internalPilotCriteria, loadShadowCrmState, OFFICIAL_PILOT_FIXTURE_IDS, pilotSessionId, prioritizeShadowCrm, removeSyntheticAttachment, saveShadowCrmState, serializeShadowCrmAudit, serializeShadowCrmPractice, transitionShadowCrm } from "./workflow";
 
 describe("workflow CRM ombra", () => {
@@ -84,5 +85,26 @@ describe("workflow CRM ombra", () => {
     const state = loadShadowCrmState(storage, "lab-demo-1");
     expect(state.attachments).toEqual([]);
     expect(state.drafts).toEqual([]);
+  });
+
+  it("isola stato, audit, export e reset della pratica importata", () => {
+    const importedId = "local-import-61fa6740";
+    const fixtureState = assignShadowCrm(EMPTY_SHADOW_CRM_STATE, "operatore-demo-anna");
+    const importedState = prioritizeShadowCrm(EMPTY_SHADOW_CRM_STATE, "high");
+    const values: Record<string, string> = { [ENEA_SHADOW_CRM_STORAGE_KEY]: JSON.stringify({ "lab-schermature-001": fixtureState }) };
+    const storage = { getItem: vi.fn((key: string) => values[key] ?? null), setItem: vi.fn((key: string, value: string) => { values[key] = value; }), removeItem: vi.fn((key: string) => { delete values[key]; }) };
+    saveShadowCrmState(storage, importedId, importedState);
+    expect(loadShadowCrmState(storage, importedId).priority).toBe("high");
+    expect(loadShadowCrmState(storage, "lab-schermature-001").assignee).toBe("operatore-demo-anna");
+    expect(serializeShadowCrmAudit(importedId, importedState)).toContain('"localSnapshot": true');
+    expect(serializeShadowCrmPractice(importedId, importedState)).toBeNull();
+    const prepared = prepareSinglePracticeImport([{ id: "11111111-2222-4333-8444-555555555555", code: "CRM-DEMO-001", prodotto_installato: "Schermature Solari", ricevuta_at: "2026-08-12T10:00:00Z", document_count: 2, form_complete: true }], { confirmationPhrase: IMPORT_CONFIRMATION_PHRASE, singlePracticeConfirmed: true, localOnlyConfirmed: true, communicationsBlockedConfirmed: true });
+    if (prepared.ok === false) throw new Error(prepared.reason);
+    const exported = serializeShadowCrmPractice(prepared.practice.localId, importedState, { ...prepared.practice, cliente_nome: "Nome reale" } as typeof prepared.practice);
+    expect(exported).toContain('"localSnapshot": true');
+    expect(exported).not.toContain("Nome reale");
+    expect(clearShadowCrmState(storage, importedId)).toBe(true);
+    expect(JSON.parse(values[ENEA_SHADOW_CRM_STORAGE_KEY])).toHaveProperty("lab-schermature-001");
+    expect(JSON.parse(values[ENEA_SHADOW_CRM_STORAGE_KEY])).not.toHaveProperty(importedId);
   });
 });

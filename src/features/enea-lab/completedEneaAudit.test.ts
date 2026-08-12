@@ -105,6 +105,18 @@ describe("audit storico PDF ENEA conclusivo", () => {
     expect(snapshot.screeningCount).toBe(5);
   });
 
+  it("marca come struttura incompleta se una riga schermatura numerata non viene interpretata", () => {
+    const unsupportedRow = COMPLETED_ENEA_TECHNICAL_EXCERPT.replace(
+      "2 Altra schermatura solare Esterna 11.3 5.9 0.08 Sud Dichiarato dal fornitore 0.13 Misto Manuale",
+      "2 Altra schermatura solare Esterna 11.3 5.9 0.08 Nord Dichiarato dal fornitore 0.13 Misto Manuale",
+    );
+
+    const snapshot = parseCompletedEneaText(unsupportedRow);
+
+    expect(snapshot.fields["schermature.1.superficie"]).toBeUndefined();
+    expect(snapshot.screeningCount).toBe(-1);
+  });
+
   it("segnala come differenza un valore presente nel PDF ma non pronto nel mapper", () => {
     const source = ENEA_LAB_MOCK_PRACTICES[0];
     const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id]);

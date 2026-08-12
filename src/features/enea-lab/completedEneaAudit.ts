@@ -22,6 +22,10 @@ export interface CompletedEneaAuditResult {
   matches: number;
   mismatches: number;
   differences: CompletedEneaDifference[];
+  /** Id dei campi realmente confrontati e coincidenti; usati dall'audit storico
+   * per provare che il PDF appartenga alla stessa persona/immobile, non solo
+   * che condivida valori generici con il mapper corrente. */
+  matchedFieldIds?: string[];
 }
 
 const NUMERIC_FIELD = /^(?:immobile\.superficie|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.spesa|schermature\.\d+\.(?:superficie|superficie_finestrata|gtot))$/;
@@ -221,6 +225,7 @@ export function compareMappedToCompletedEnea(
     mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
   );
   const differences: CompletedEneaDifference[] = [];
+  const matchedFieldIds: string[] = [];
   let compared = 0;
   let matches = 0;
 
@@ -230,6 +235,7 @@ export function compareMappedToCompletedEnea(
     compared += 1;
     if (field.status === "ready" && !field.testOnly && sameValue(fieldId, field.value, completedValue)) {
       matches += 1;
+      matchedFieldIds.push(fieldId);
       continue;
     }
     differences.push({
@@ -246,6 +252,7 @@ export function compareMappedToCompletedEnea(
     matches,
     mismatches: differences.length,
     differences,
+    matchedFieldIds,
   };
 }
 

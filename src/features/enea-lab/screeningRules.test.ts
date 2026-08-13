@@ -57,9 +57,9 @@ describe("regole operative schermature solari", () => {
     });
   });
 
-  it("blocca il servoassistito finché il mapping portale non lo supporta", () => {
+  it("riconosce il servoassistito osservato sul portale ENEA", () => {
     expect(screeningRules("pergola", "Pergola servoassistita", null)).toMatchObject({
-      regulation: "",
+      regulation: ENEA_SCREENING_REGULATION.servoAssisted,
     });
   });
 

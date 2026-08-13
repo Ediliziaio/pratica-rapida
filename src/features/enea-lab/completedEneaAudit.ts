@@ -291,8 +291,15 @@ export function compareMappedToCompletedEnea(
 
   for (const [fieldId, completedValue] of Object.entries(completed.fields)) {
     const field = mappedFields.get(fieldId);
-    if (!field) continue;
     compared += 1;
+    if (!field) {
+      differences.push({
+        fieldId,
+        completedValue,
+        mappedValue: "Campo non disponibile",
+      });
+      continue;
+    }
     if (field.status === "ready" && !field.testOnly && sameValue(fieldId, field.value, completedValue)) {
       matches += 1;
       matchedFieldIds.push(fieldId);

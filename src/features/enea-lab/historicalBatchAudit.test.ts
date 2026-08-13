@@ -12,6 +12,7 @@ const SAFE_IDENTITY_MATCHES = [
   "intervento.data_fine",
   "schermature.numero",
   "schermature.spesa",
+  "schermature.risparmio_energia",
 ];
 
 function auditWithDifferences(fieldIds: string[]): CompletedEneaAuditResult {
@@ -110,6 +111,7 @@ describe("classificazione audit storico ENEA", () => {
         "intervento.data_fine",
         "schermature.numero",
         "schermature.spesa",
+        "schermature.risparmio_energia",
       ],
     };
 
@@ -127,6 +129,7 @@ describe("classificazione audit storico ENEA", () => {
         "intervento.data_fine",
         "schermature.numero",
         "schermature.spesa",
+        "schermature.risparmio_energia",
       ],
     };
 
@@ -143,6 +146,7 @@ describe("classificazione audit storico ENEA", () => {
         "intervento.data_fine",
         "schermature.numero",
         "schermature.spesa",
+        "schermature.risparmio_energia",
       ],
     };
 
@@ -158,6 +162,7 @@ describe("classificazione audit storico ENEA", () => {
         "immobile.foglio",
         "immobile.mappale",
         "schermature.spesa",
+        "schermature.risparmio_energia",
       ],
     };
 
@@ -185,6 +190,7 @@ describe("classificazione audit storico ENEA", () => {
         "intervento.data_fine",
         "schermature.numero",
         "schermature.spesa",
+        "schermature.risparmio_energia",
       ],
     };
 
@@ -205,6 +211,7 @@ describe("classificazione audit storico ENEA", () => {
         "intervento.data_fine",
         "schermature.numero",
         "schermature.spesa",
+        "schermature.risparmio_energia",
       ],
     };
 

@@ -23,7 +23,6 @@ export const ENEA_SCREENING_MATERIAL = {
 export const ENEA_SCREENING_REGULATION = {
   manual: "Manuale",
   automatic: "Automatico",
-  servoAssisted: "Servoassistito",
 } as const;
 
 export interface EneaScreeningRuleResult {
@@ -76,22 +75,22 @@ export function screeningRules(
   else if (pergola) material = ENEA_SCREENING_MATERIAL.metal;
   else if (awning) material = ENEA_SCREENING_MATERIAL.fabric;
 
+  // Le indicazioni esplicite del documento prevalgono sui fallback per tipologia.
+  // Così, per esempio, "senza motore" non viene interpretato come Automatico
+  // soltanto perché contiene la parola "motore".
   const explicitlyManual = /\bmanual(?:e|i)?\b|non\s+motorizz|senza\s+(?:motore|motorizzazione)/.test(normalized);
-  const explicitlyServoAssisted = /servo[\s-]*assistit/.test(normalized);
   const explicitlyMotorized = /motorizz|(?:^|\W)motore(?:\W|$)|automatic/.test(normalized);
   const regulation = explicitlyManual
     ? ENEA_SCREENING_REGULATION.manual
-    : explicitlyServoAssisted
-      ? ENEA_SCREENING_REGULATION.servoAssisted
-      : explicitlyMotorized
-        ? ENEA_SCREENING_REGULATION.automatic
-        : zanzariera
-          ? ENEA_SCREENING_REGULATION.manual
-          : pergotenda || pergola
-            ? ENEA_SCREENING_REGULATION.automatic
-            : awning || shutter
-              ? ENEA_SCREENING_REGULATION.manual
-              : "";
+    : explicitlyMotorized
+      ? ENEA_SCREENING_REGULATION.automatic
+      : zanzariera
+        ? ENEA_SCREENING_REGULATION.manual
+        : pergotenda || pergola
+          ? ENEA_SCREENING_REGULATION.automatic
+          : awning || shutter
+            ? ENEA_SCREENING_REGULATION.manual
+            : "";
 
   return {
     type: awning && !zanzariera && !shutter && !pergotenda && !pergola

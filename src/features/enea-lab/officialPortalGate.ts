@@ -176,6 +176,22 @@ function positiveExpense(value: string): boolean {
   return Number.isFinite(parsed) && parsed > 0;
 }
 
+function hasPositiveScreeningSurfaces(mapped: EneaLabMappedPractice): boolean {
+  const count = mappedScreeningCount(mapped);
+  if (count === null) return false;
+  const fields = mapped.sections.flatMap((section) => section.fields);
+
+  for (let index = 0; index < count; index += 1) {
+    const surface = fields.find((field) => field.id === `schermature.${index}.superficie`);
+    const glazedSurface = fields.find((field) => field.id === `schermature.${index}.superficie_finestrata`);
+    if (surface?.status !== "ready" || !positiveExpense(surface.value)) return false;
+    if (glazedSurface?.status !== "ready" || !positiveExpense(glazedSurface.value)) return false;
+  }
+
+  const totalSurface = fields.find((field) => field.id === "schermature.superficie_totale");
+  return totalSurface?.status === "ready" && positiveExpense(totalSurface.value);
+}
+
 function hasManuallyVerifiedEligibleExpense(mapped: EneaLabMappedPractice): boolean {
   const expense = mapped.sections
     .flatMap((section) => section.fields)
@@ -217,6 +233,14 @@ export function prepareEneaOfficialPortalCollaudo(
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
   if (!hasNoScreeningUndercount(mapped, analysis)) {
+    return { status: "blocked", reason: "official-data-incomplete", workflow: null };
+  }
+
+  // Una schermatura con superficie nulla oppure senza superficie vetrata
+  // protetta può risultare formalmente "ready" nei livelli precedenti, ma non
+  // descrive un intervento ENEA utilizzabile. L'ultima barriera richiede quindi
+  // valori strettamente positivi per ogni elemento e per il totale.
+  if (!hasPositiveScreeningSurfaces(mapped)) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
 

@@ -62,6 +62,22 @@ describe("regole operative schermature solari", () => {
     });
   });
 
+  it("dà priorità all'alluminio esplicito sulla pergotenda", () => {
+    expect(screeningRules("pergotenda", "Pergotenda in alluminio", null)).toMatchObject({
+      type: ENEA_SCREENING_TYPE.otherSolarScreening,
+      material: ENEA_SCREENING_MATERIAL.metal,
+      regulation: ENEA_SCREENING_REGULATION.automatic,
+    });
+  });
+
+  it("dà priorità al PVC esplicito sulla pergola", () => {
+    expect(screeningRules("pergola", "Pergola con telo PVC", null)).toMatchObject({
+      type: ENEA_SCREENING_TYPE.otherSolarScreening,
+      material: ENEA_SCREENING_MATERIAL.pvc,
+      regulation: ENEA_SCREENING_REGULATION.automatic,
+    });
+  });
+
   it("non inventa il materiale della tapparella se manca in fattura", () => {
     expect(screeningRules("altro", "Tapparella motorizzata", null)).toMatchObject({
       type: ENEA_SCREENING_TYPE.otherSolarScreening,

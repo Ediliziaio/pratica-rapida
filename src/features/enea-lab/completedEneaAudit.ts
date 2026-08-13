@@ -196,24 +196,35 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
     ? source.slice(screeningStart, screeningEnd > screeningStart ? screeningEnd : undefined)
     : "";
   // Conta qualunque riga numerata che inizi con un'etichetta testuale, non solo
-  // i due tipi che il parser sa gia' interpretare. Se ENEA introduce o conserva
-  // una tipologia diversa, la riga deve rendere la struttura incompleta invece
-  // di sparire dal conteggio e produrre un falso match sul numero schermature.
+  // i tipi che il parser sa interpretare. Una riga non riconosciuta deve rendere
+  // la struttura incompleta invece di sparire dal conteggio e produrre un falso
+  // match sul numero schermature.
   const screeningRowPattern = /(?:^|\s)(\d+)\s+(?=[A-Za-zÀ-ÿ])/g;
   const screeningOrdinals = Array.from(screeningText.matchAll(screeningRowPattern), (match) => Number(match[1]));
-  const screeningPattern = /(\d+)\s+(Tenda o veneziana|Altra schermatura solare)\s+(Esterna)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Sud-Est|Sud-Ovest|Est|Sud|Ovest)\s+(Dichiarato dal fornitore)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Tessuto|PVC|Metallo|Misto)\s+(Manuale|Automatico)/gi;
+  const screeningPattern = /(\d+)\s+(Persiana avvolgibile|Persiana|Tenda o veneziana|Schermatura integrata \(veneziana nella vetrocamera\)|Altra schermatura solare|Altra chiusura oscurante)\s+(Interna|Esterna)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Nord-Est|Sud-Est|Sud-Ovest|Nord-Ovest|P-orizzontale|Nord|Est|Sud|Ovest)\s+(Dichiarato dal fornitore|Dalla tabella del programma Chiusure oscuranti(?:\(\*\))?|Calcolato secondo UNI EN 13125)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Tessuto|Legno|Plastica|PVC|Metallo|Misto|Altro)\s+(Manuale|Automatico|Servoassistito)/gi;
   const parsedScreeningOrdinals: number[] = [];
+  const darkeningClosureTypes = new Set(["Persiana", "Persiana avvolgibile", "Altra chiusura oscurante"]);
+  const northExposures = new Set(["Nord", "Nord-Est", "Nord-Ovest"]);
   for (const match of screeningText.matchAll(screeningPattern)) {
     const ordinal = Number(match[1]);
     const index = ordinal - 1;
     if (!Number.isInteger(index) || index < 0) continue;
+    const type = match[2];
+    const exposure = match[7];
+    // Per le schermature solari ENEA esclude Nord, Nord-Est e Nord-Ovest;
+    // per le chiusure oscuranti (persiane/avvolgibili/altre chiusure) sono
+    // invece ammesse tutte le esposizioni. L'audit storico deve rispettare
+    // questa distinzione e restare fail-closed sulle combinazioni non valide.
+    if (northExposures.has(exposure) && !darkeningClosureTypes.has(type)) continue;
     parsedScreeningOrdinals.push(ordinal);
-    fields[`schermature.${index}.tipo`] = match[2];
+    fields[`schermature.${index}.tipo`] = type;
     fields[`schermature.${index}.installazione`] = match[3];
     fields[`schermature.${index}.superficie`] = match[4];
     fields[`schermature.${index}.superficie_finestrata`] = match[5];
-    fields[`schermature.${index}.esposizione`] = match[7];
-    fields[`schermature.${index}.modalita_calcolo`] = match[8];
+    fields[`schermature.${index}.esposizione`] = exposure;
+    fields[`schermature.${index}.modalita_calcolo`] = match[8].startsWith("Dalla tabella del programma Chiusure oscuranti")
+      ? "Dalla tabella del programma Chiusure oscuranti(*)"
+      : match[8];
     fields[`schermature.${index}.gtot`] = match[9];
     fields[`schermature.${index}.materiale`] = match[10];
     fields[`schermature.${index}.regolazione`] = match[11];

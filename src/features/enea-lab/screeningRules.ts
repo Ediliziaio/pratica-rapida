@@ -61,6 +61,10 @@ function isShutter(description: string): boolean {
   return /tapparell|avvolgibil/.test(normalize(description));
 }
 
+function isPersiana(description: string): boolean {
+  return /\bpersian[ae]\b/.test(normalize(description));
+}
+
 export function screeningRules(
   declaredType: SchermaturaTipo | "",
   description: string,
@@ -69,6 +73,7 @@ export function screeningRules(
   const normalized = normalize(description);
   const zanzariera = isZanzariera(description);
   const shutter = isShutter(description);
+  const persiana = isPersiana(description);
   const pergotenda = declaredType === "pergotenda" || /pergotend/.test(normalized);
   const pergola = declaredType === "pergola" || /pergola/.test(normalized);
   const awning = declaredType === "tende_da_sole"
@@ -109,11 +114,15 @@ export function screeningRules(
               : "";
 
   return {
-    type: awning && !zanzariera && !shutter && !pergotenda && !pergola
-      ? ENEA_SCREENING_TYPE.awning
-      : declaredType || zanzariera || shutter || pergotenda || pergola
-        ? ENEA_SCREENING_TYPE.otherSolarScreening
-        : "",
+    type: shutter
+      ? ENEA_SCREENING_TYPE.rollerShutter
+      : persiana
+        ? ENEA_SCREENING_TYPE.shutter
+        : awning && !zanzariera && !pergotenda && !pergola
+          ? ENEA_SCREENING_TYPE.awning
+          : declaredType || zanzariera || pergotenda || pergola
+            ? ENEA_SCREENING_TYPE.otherSolarScreening
+            : "",
     installation: declaredType || description.trim()
       ? ENEA_SCREENING_INSTALLATION.external
       : "",

@@ -196,12 +196,12 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
     ? source.slice(screeningStart, screeningEnd > screeningStart ? screeningEnd : undefined)
     : "";
   // Conta qualunque riga numerata che inizi con un'etichetta testuale, non solo
-  // i tipi che il parser sa gia' interpretare. Se ENEA introduce o conserva
+  // i due tipi che il parser sa gia' interpretare. Se ENEA introduce o conserva
   // una tipologia diversa, la riga deve rendere la struttura incompleta invece
   // di sparire dal conteggio e produrre un falso match sul numero schermature.
   const screeningRowPattern = /(?:^|\s)(\d+)\s+(?=[A-Za-zÀ-ÿ])/g;
   const screeningOrdinals = Array.from(screeningText.matchAll(screeningRowPattern), (match) => Number(match[1]));
-  const screeningPattern = /(\d+)\s+(Schermatura integrata \(veneziana nella vetrocamera\)|Persiana avvolgibile|Altra chiusura oscurante|Altra schermatura solare|Tenda o veneziana|Persiana)\s+(Interna|Esterna)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Nord-Est|Sud-Est|Sud-Ovest|Nord-Ovest|P-orizzontale|Nord|Est|Sud|Ovest)\s+(Dalla tabella del programma Chiusure oscuranti(?:\(\*\))?|Calcolato secondo UNI EN 13125|Dichiarato dal fornitore)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Tessuto|Legno|Plastica|PVC|Metallo|Misto|Altro)\s+(Manuale|Automatico|Servoassistito)/gi;
+  const screeningPattern = /(\d+)\s+(Tenda o veneziana|Altra schermatura solare)\s+(Esterna)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Sud-Est|Sud-Ovest|Est|Sud|Ovest)\s+(Dichiarato dal fornitore)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Tessuto|PVC|Metallo|Misto)\s+(Manuale|Automatico)/gi;
   const parsedScreeningOrdinals: number[] = [];
   for (const match of screeningText.matchAll(screeningPattern)) {
     const ordinal = Number(match[1]);

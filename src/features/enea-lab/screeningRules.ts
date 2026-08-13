@@ -15,9 +15,12 @@ export const ENEA_SCREENING_CALCULATION = {
 
 export const ENEA_SCREENING_MATERIAL = {
   fabric: "Tessuto",
+  wood: "Legno",
+  plastic: "Plastica",
   pvc: "PVC",
   metal: "Metallo",
   mixed: "Misto",
+  other: "Altro",
 } as const;
 
 export const ENEA_SCREENING_REGULATION = {
@@ -70,6 +73,8 @@ export function screeningRules(
 
   let material = "";
   if (zanzariera) material = ENEA_SCREENING_MATERIAL.mixed;
+  else if (/\blegn[oa]\b/.test(normalized)) material = ENEA_SCREENING_MATERIAL.wood;
+  else if (/\bplastic[ao]\b/.test(normalized)) material = ENEA_SCREENING_MATERIAL.plastic;
   else if (/\bpvc\b/.test(normalized)) material = ENEA_SCREENING_MATERIAL.pvc;
   else if (/allumini|metall/.test(normalized)) material = ENEA_SCREENING_MATERIAL.metal;
   else if (pergotenda) material = ENEA_SCREENING_MATERIAL.pvc;

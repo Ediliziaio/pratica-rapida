@@ -65,6 +65,10 @@ function isPersiana(description: string): boolean {
   return /\bpersian[ae]\b/.test(normalize(description));
 }
 
+function isVenetianBlind(description: string): boolean {
+  return /\bvenezian[ae]\b/.test(normalize(description));
+}
+
 export function screeningRules(
   declaredType: SchermaturaTipo | "",
   description: string,
@@ -74,10 +78,13 @@ export function screeningRules(
   const zanzariera = isZanzariera(description);
   const shutter = isShutter(description);
   const persiana = isPersiana(description);
+  const venetianBlind = isVenetianBlind(description);
   const pergotenda = declaredType === "pergotenda" || /pergotend/.test(normalized);
   const pergola = declaredType === "pergola" || /pergola/.test(normalized);
   const awning = declaredType === "tende_da_sole"
-    || /tenda da sole|tende da sole|tenda a bracci/.test(normalized);
+    || /tenda da sole|tende da sole|tenda a bracci/.test(normalized)
+    || venetianBlind;
+  const explicitlyInternal = /\bintern[aoei]\b/.test(normalized);
   const validDocumentedGTot = documentedGTot !== null
     && documentedGTot !== undefined
     && documentedGTot > 0
@@ -123,9 +130,11 @@ export function screeningRules(
           : declaredType || zanzariera || pergotenda || pergola
             ? ENEA_SCREENING_TYPE.otherSolarScreening
             : "",
-    installation: declaredType || description.trim()
-      ? ENEA_SCREENING_INSTALLATION.external
-      : "",
+    installation: explicitlyInternal
+      ? ENEA_SCREENING_INSTALLATION.internal
+      : declaredType || description.trim()
+        ? ENEA_SCREENING_INSTALLATION.external
+        : "",
     gTot: validDocumentedGTot ? documentedGTot : zanzariera ? 0.33 : 0.06,
     gTotFromDocument: validDocumentedGTot,
     calculation: declaredType || description.trim()

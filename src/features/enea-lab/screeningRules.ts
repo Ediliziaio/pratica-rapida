@@ -138,7 +138,7 @@ export function screeningRules(
       ? ENEA_SCREENING_INSTALLATION.internal
       : explicitlyExternal
         ? ENEA_SCREENING_INSTALLATION.external
-        : integrated
+        : integrated || venetianBlind
           ? ""
           : declaredType || description.trim()
             ? ENEA_SCREENING_INSTALLATION.external

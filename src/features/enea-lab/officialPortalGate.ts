@@ -282,10 +282,12 @@ function hasManuallyVerifiedEligibleExpense(mapped: EneaLabMappedPractice): bool
     && positiveExpense(expense.value);
 }
 
-function hasValidCurrentReadyFields(mapped: EneaLabMappedPractice): boolean {
+function hasValidCurrentScreeningDomains(mapped: EneaLabMappedPractice): boolean {
+  const domainField = /^schermature\.\d+\.(?:tipo|installazione|esposizione|modalita_calcolo|materiale|regolazione)$/;
   return mapped.sections
     .flatMap((section) => section.fields)
-    .every((field) => field.status !== "ready"
+    .every((field) => !domainField.test(field.id)
+      || field.status !== "ready"
       || field.testOnly
       || validateOperatorOverride(field.id, field.value).valid);
 }
@@ -361,12 +363,11 @@ export function prepareEneaOfficialPortalCollaudo(
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
 
-  // Anche i valori già marcati ready vengono rivalidati contro gli stessi
-  // domini/formati ammessi dall'input operatore. Un mapping alterato potrebbe
-  // altrimenti mantenere lo status ready con, per esempio, una voce select non
-  // prevista: il builder del portale la salterebbe silenziosamente e il workflow
-  // risulterebbe comunque official ma incompleto.
-  if (!hasValidCurrentReadyFields(mapped)) {
+  // Le voci select della singola schermatura devono appartenere ai domini ENEA
+  // osservati anche nell'ultima barriera. Un mapping alterato potrebbe altrimenti
+  // restare ready con un valore non previsto: il builder lo salterebbe e il
+  // workflow official risulterebbe incompleto senza un blocker esplicito.
+  if (!hasValidCurrentScreeningDomains(mapped)) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
 

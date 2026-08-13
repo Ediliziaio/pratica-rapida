@@ -79,12 +79,14 @@ export function screeningRules(
   const shutter = isShutter(description);
   const persiana = isPersiana(description);
   const venetianBlind = isVenetianBlind(description);
+  const integrated = /vetrocamera/.test(normalized) && (venetianBlind || /integrat/.test(normalized));
   const pergotenda = declaredType === "pergotenda" || /pergotend/.test(normalized);
   const pergola = declaredType === "pergola" || /pergola/.test(normalized);
   const awning = declaredType === "tende_da_sole"
     || /tenda da sole|tende da sole|tenda a bracci/.test(normalized)
-    || venetianBlind;
+    || (venetianBlind && !integrated);
   const explicitlyInternal = /\bintern[aoei]\b/.test(normalized);
+  const explicitlyExternal = /\bestern[aoei]\b/.test(normalized);
   const validDocumentedGTot = documentedGTot !== null
     && documentedGTot !== undefined
     && documentedGTot > 0
@@ -98,7 +100,7 @@ export function screeningRules(
   else if (/allumini|metall/.test(normalized)) material = ENEA_SCREENING_MATERIAL.metal;
   else if (pergotenda) material = ENEA_SCREENING_MATERIAL.pvc;
   else if (pergola) material = ENEA_SCREENING_MATERIAL.metal;
-  else if (awning) material = ENEA_SCREENING_MATERIAL.fabric;
+  else if (awning && !integrated) material = ENEA_SCREENING_MATERIAL.fabric;
 
   // Le indicazioni esplicite del documento prevalgono sui fallback per tipologia.
   // In particolare "senza motore" non deve essere intercettato dalla sola parola
@@ -116,30 +118,40 @@ export function screeningRules(
           ? ENEA_SCREENING_REGULATION.manual
           : pergotenda || pergola
             ? ENEA_SCREENING_REGULATION.automatic
-            : awning || shutter
+            : (awning && !integrated) || shutter
               ? ENEA_SCREENING_REGULATION.manual
               : "";
 
   return {
-    type: shutter
-      ? ENEA_SCREENING_TYPE.rollerShutter
-      : persiana
-        ? ENEA_SCREENING_TYPE.shutter
-        : awning && !zanzariera && !pergotenda && !pergola
-          ? ENEA_SCREENING_TYPE.awning
-          : declaredType || zanzariera || pergotenda || pergola
-            ? ENEA_SCREENING_TYPE.otherSolarScreening
-            : "",
+    type: integrated
+      ? ENEA_SCREENING_TYPE.integrated
+      : shutter
+        ? ENEA_SCREENING_TYPE.rollerShutter
+        : persiana
+          ? ENEA_SCREENING_TYPE.shutter
+          : awning && !zanzariera && !pergotenda && !pergola
+            ? ENEA_SCREENING_TYPE.awning
+            : declaredType || zanzariera || pergotenda || pergola
+              ? ENEA_SCREENING_TYPE.otherSolarScreening
+              : "",
     installation: explicitlyInternal
       ? ENEA_SCREENING_INSTALLATION.internal
-      : declaredType || description.trim()
+      : explicitlyExternal
         ? ENEA_SCREENING_INSTALLATION.external
-        : "",
-    gTot: validDocumentedGTot ? documentedGTot : zanzariera ? 0.33 : 0.06,
+        : integrated
+          ? ""
+          : declaredType || description.trim()
+            ? ENEA_SCREENING_INSTALLATION.external
+            : "",
+    gTot: validDocumentedGTot ? documentedGTot : integrated ? 0 : zanzariera ? 0.33 : 0.06,
     gTotFromDocument: validDocumentedGTot,
-    calculation: declaredType || description.trim()
+    calculation: validDocumentedGTot
       ? ENEA_SCREENING_CALCULATION.supplierDeclared
-      : "",
+      : integrated
+        ? ""
+        : declaredType || description.trim()
+          ? ENEA_SCREENING_CALCULATION.supplierDeclared
+          : "",
     material,
     regulation,
   };

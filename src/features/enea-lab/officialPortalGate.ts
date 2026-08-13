@@ -1,3 +1,4 @@
+import { validateOperatorOverride } from "./operatorValidation";
 import { buildEneaPayload, validatePreparedPractice } from "./preparation";
 import { buildEneaOfficialPortalWorkflowScript, type EneaPortalWorkflowPreparation } from "./portalWorkflow";
 import type { EneaLabDocumentAnalysis, EneaLabMappedPractice, EneaLabPayload } from "./types";
@@ -281,6 +282,14 @@ function hasManuallyVerifiedEligibleExpense(mapped: EneaLabMappedPractice): bool
     && positiveExpense(expense.value);
 }
 
+function hasValidCurrentReadyFields(mapped: EneaLabMappedPractice): boolean {
+  return mapped.sections
+    .flatMap((section) => section.fields)
+    .every((field) => field.status !== "ready"
+      || field.testOnly
+      || validateOperatorOverride(field.id, field.value).valid);
+}
+
 /**
  * Ultima barriera locale prima del collaudo sul portale reale.
  * Non apre ENEA e non esegue il comando: restituisce il workflow ufficiale
@@ -349,6 +358,15 @@ export function prepareEneaOfficialPortalCollaudo(
   // nulla non è considerata una verifica sufficiente per una pratica con
   // schermature: il gate resta chiuso finché non c'è un importo positivo.
   if (!hasManuallyVerifiedEligibleExpense(mapped)) {
+    return { status: "blocked", reason: "official-data-incomplete", workflow: null };
+  }
+
+  // Anche i valori già marcati ready vengono rivalidati contro gli stessi
+  // domini/formati ammessi dall'input operatore. Un mapping alterato potrebbe
+  // altrimenti mantenere lo status ready con, per esempio, una voce select non
+  // prevista: il builder del portale la salterebbe silenziosamente e il workflow
+  // risulterebbe comunque official ma incompleto.
+  if (!hasValidCurrentReadyFields(mapped)) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
 

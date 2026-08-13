@@ -165,7 +165,7 @@ function hasConsistentOfficialPayload(mapped: EneaLabMappedPractice, payload: En
     && sameStringSet(payload.excludedUnverifiedFields, expected.excludedUnverifiedFields);
 }
 
-function positiveExpense(value: string): boolean {
+function parsedItalianNumber(value: string): number | null {
   const normalized = value
     .trim()
     .replace(/\s/g, "")
@@ -173,7 +173,12 @@ function positiveExpense(value: string): boolean {
     .replace(/\.(?=\d{3}(?:\D|$))/g, "")
     .replace(",", ".");
   const parsed = Number(normalized);
-  return Number.isFinite(parsed) && parsed > 0;
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function positiveExpense(value: string): boolean {
+  const parsed = parsedItalianNumber(value);
+  return parsed !== null && parsed > 0;
 }
 
 function hasPositiveScreeningSurfaces(mapped: EneaLabMappedPractice): boolean {
@@ -190,6 +195,32 @@ function hasPositiveScreeningSurfaces(mapped: EneaLabMappedPractice): boolean {
 
   const totalSurface = fields.find((field) => field.id === "schermature.superficie_totale");
   return totalSurface?.status === "ready" && positiveExpense(totalSurface.value);
+}
+
+function hasValidCurrentScreeningGTot(
+  mapped: EneaLabMappedPractice,
+  analysis: EneaLabDocumentAnalysis,
+): boolean {
+  const count = mappedScreeningCount(mapped);
+  if (count === null) return false;
+  const fields = mapped.sections.flatMap((section) => section.fields);
+
+  for (let index = 0; index < count; index += 1) {
+    const field = fields.find((candidate) => candidate.id === `schermature.${index}.gtot`);
+    const parsed = field ? parsedItalianNumber(field.value) : null;
+    if (field?.status !== "ready" || parsed === null || parsed <= 0 || parsed > 0.35) return false;
+
+    if (field.source === "Fattura") {
+      const documented = analysis.items[index]?.gTot;
+      if (documented === null || documented === undefined) return false;
+      const documentedAtPortalPrecision = Number(documented.toFixed(2));
+      if (Math.abs(parsed - documentedAtPortalPrecision) > 1e-9) return false;
+    } else if (field.source !== "Inserimento operatore") {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function hasManuallyVerifiedEligibleExpense(mapped: EneaLabMappedPractice): boolean {
@@ -241,6 +272,15 @@ export function prepareEneaOfficialPortalCollaudo(
   // descrive un intervento ENEA utilizzabile. L'ultima barriera richiede quindi
   // valori strettamente positivi per ogni elemento e per il totale.
   if (!hasPositiveScreeningSurfaces(mapped)) {
+    return { status: "blocked", reason: "official-data-incomplete", workflow: null };
+  }
+
+  // Il gTot inviato al portale deve rispettare sempre il limite ENEA noto e,
+  // quando è attribuito alla fattura, deve coincidere con l'analisi documentale
+  // corrente alla stessa precisione usata nel mapping. Questo impedisce che un
+  // valore stale o alterato resti formalmente ready pur non essendo più quello
+  // letto dal documento corrente.
+  if (!hasValidCurrentScreeningGTot(mapped, analysis)) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
 

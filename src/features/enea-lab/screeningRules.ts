@@ -69,10 +69,10 @@ export function screeningRules(
 
   let material = "";
   if (zanzariera) material = ENEA_SCREENING_MATERIAL.mixed;
-  else if (pergotenda) material = ENEA_SCREENING_MATERIAL.pvc;
-  else if (pergola) material = ENEA_SCREENING_MATERIAL.metal;
   else if (/\bpvc\b/.test(normalized)) material = ENEA_SCREENING_MATERIAL.pvc;
   else if (/allumini|metall/.test(normalized)) material = ENEA_SCREENING_MATERIAL.metal;
+  else if (pergotenda) material = ENEA_SCREENING_MATERIAL.pvc;
+  else if (pergola) material = ENEA_SCREENING_MATERIAL.metal;
   else if (awning) material = ENEA_SCREENING_MATERIAL.fabric;
 
   const explicitlyMotorized = /motoriz|motore|automatic/.test(normalized);

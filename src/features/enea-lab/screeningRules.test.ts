@@ -45,6 +45,24 @@ describe("regole operative schermature solari", () => {
     });
   });
 
+  it("mantiene manuale una tenda dichiarata senza motore", () => {
+    expect(screeningRules("tende_da_sole", "Tenda da sole senza motore", null)).toMatchObject({
+      regulation: ENEA_SCREENING_REGULATION.manual,
+    });
+  });
+
+  it("dà precedenza a manuale sul fallback della pergotenda", () => {
+    expect(screeningRules("pergotenda", "Pergotenda manuale", null)).toMatchObject({
+      regulation: ENEA_SCREENING_REGULATION.manual,
+    });
+  });
+
+  it("blocca il servoassistito finché il mapping portale non lo supporta", () => {
+    expect(screeningRules("pergola", "Pergola servoassistita", null)).toMatchObject({
+      regulation: "",
+    });
+  });
+
   it("usa altra schermatura e metallo automatico per la pergola bioclimatica", () => {
     expect(screeningRules("pergola", "Pergola bioclimatica", null)).toMatchObject({
       type: ENEA_SCREENING_TYPE.otherSolarScreening,

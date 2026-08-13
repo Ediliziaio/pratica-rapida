@@ -1,16 +1,23 @@
 import type { SchermaturaTipo } from "@/types/form-cliente";
 
 export const ENEA_SCREENING_TYPE = {
+  shutter: "Persiana",
+  rollerShutter: "Persiana avvolgibile",
   awning: "Tenda o veneziana",
+  integrated: "Schermatura integrata (veneziana nella vetrocamera)",
   otherSolarScreening: "Altra schermatura solare",
+  otherDarkeningClosure: "Altra chiusura oscurante",
 } as const;
 
 export const ENEA_SCREENING_INSTALLATION = {
+  internal: "Interna",
   external: "Esterna",
 } as const;
 
 export const ENEA_SCREENING_CALCULATION = {
   supplierDeclared: "Dichiarato dal fornitore",
+  closureTable: "Dalla tabella del programma Chiusure oscuranti(*)",
+  uniEn13125: "Calcolato secondo UNI EN 13125",
 } as const;
 
 export const ENEA_SCREENING_MATERIAL = {

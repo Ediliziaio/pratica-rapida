@@ -30,11 +30,16 @@ export interface EneaScreeningPortalPreparation {
 }
 
 const TYPE_VALUES = {
+  [ENEA_SCREENING_TYPE.shutter]: "125",
+  [ENEA_SCREENING_TYPE.rollerShutter]: "126",
   [ENEA_SCREENING_TYPE.awning]: "127",
+  [ENEA_SCREENING_TYPE.integrated]: "416",
   [ENEA_SCREENING_TYPE.otherSolarScreening]: "169",
+  [ENEA_SCREENING_TYPE.otherDarkeningClosure]: "310",
 } as const;
 
 const INSTALLATION_VALUES = {
+  [ENEA_SCREENING_INSTALLATION.internal]: "191",
   [ENEA_SCREENING_INSTALLATION.external]: "192",
 } as const;
 
@@ -52,6 +57,8 @@ const EXPOSURE_VALUES = {
 
 const CALCULATION_VALUES = {
   [ENEA_SCREENING_CALCULATION.supplierDeclared]: "193",
+  [ENEA_SCREENING_CALCULATION.closureTable]: "195",
+  [ENEA_SCREENING_CALCULATION.uniEn13125]: "307",
 } as const;
 
 const MATERIAL_VALUES = {

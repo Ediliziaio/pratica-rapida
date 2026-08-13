@@ -197,6 +197,55 @@ function hasPositiveScreeningSurfaces(mapped: EneaLabMappedPractice): boolean {
   return totalSurface?.status === "ready" && positiveExpense(totalSurface.value);
 }
 
+function parsedScreeningDimensions(value: string): { widthMm: number; heightMm: number } | null {
+  const match = value.trim().match(/^(\d{2,5})\s*[x×]\s*(\d{2,5})(?:\s*mm)?$/i);
+  if (!match) return null;
+  const widthMm = Number(match[1]);
+  const heightMm = Number(match[2]);
+  return widthMm >= 100 && heightMm >= 100 ? { widthMm, heightMm } : null;
+}
+
+function screeningSurfaceFromDimensions(widthMm: number, heightMm: number): number {
+  return Math.floor((((widthMm * heightMm) / 1_000_000) + Number.EPSILON) * 10) / 10;
+}
+
+function hasValidCurrentScreeningGeometry(
+  mapped: EneaLabMappedPractice,
+  analysis: EneaLabDocumentAnalysis,
+): boolean {
+  const count = mappedScreeningCount(mapped);
+  if (count === null) return false;
+  const fields = mapped.sections.flatMap((section) => section.fields);
+
+  for (let index = 0; index < count; index += 1) {
+    const dimensions = fields.find((field) => field.id === `schermature.${index}.dimensioni`);
+    const surface = fields.find((field) => field.id === `schermature.${index}.superficie`);
+    const parsedDimensions = dimensions ? parsedScreeningDimensions(dimensions.value) : null;
+    const parsedSurface = surface ? parsedItalianNumber(surface.value) : null;
+    if (dimensions?.status !== "ready" || !parsedDimensions) return false;
+    if (surface?.status !== "ready" || parsedSurface === null || parsedSurface <= 0) return false;
+
+    if (dimensions.source === "Fattura") {
+      const documented = analysis.items[index];
+      if (!documented) return false;
+      if (parsedDimensions.widthMm !== documented.widthMm || parsedDimensions.heightMm !== documented.heightMm) {
+        return false;
+      }
+    } else if (dimensions.source !== "Inserimento operatore") {
+      return false;
+    }
+
+    if (surface.source === "Calcolo ENEA") {
+      const expectedSurface = screeningSurfaceFromDimensions(parsedDimensions.widthMm, parsedDimensions.heightMm);
+      if (Math.abs(parsedSurface - expectedSurface) > 1e-9) return false;
+    } else if (surface.source !== "Inserimento operatore") {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function hasValidCurrentScreeningGTot(
   mapped: EneaLabMappedPractice,
   analysis: EneaLabDocumentAnalysis,
@@ -272,6 +321,14 @@ export function prepareEneaOfficialPortalCollaudo(
   // descrive un intervento ENEA utilizzabile. L'ultima barriera richiede quindi
   // valori strettamente positivi per ogni elemento e per il totale.
   if (!hasPositiveScreeningSurfaces(mapped)) {
+    return { status: "blocked", reason: "official-data-incomplete", workflow: null };
+  }
+
+  // Misure attribuite alla fattura e superfici dichiarate come calcolo ENEA non
+  // possono essere riutilizzate se non coincidono più con l'analisi corrente.
+  // Questo chiude il caso in cui un mapping stale o alterato mantenga readiness
+  // valida ma porti al portale una superficie diversa da quella documentata.
+  if (!hasValidCurrentScreeningGeometry(mapped, analysis)) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
 

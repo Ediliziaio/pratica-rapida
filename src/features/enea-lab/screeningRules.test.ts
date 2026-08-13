@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ENEA_SCREENING_INSTALLATION,
   ENEA_SCREENING_MATERIAL,
   ENEA_SCREENING_REGULATION,
   ENEA_SCREENING_TYPE,
@@ -24,6 +25,15 @@ describe("regole operative schermature solari", () => {
       calculation: "Dichiarato dal fornitore",
       material: ENEA_SCREENING_MATERIAL.pvc,
       regulation: ENEA_SCREENING_REGULATION.automatic,
+    });
+  });
+
+  it("riconosce una veneziana interna senza degradarla ad altra schermatura", () => {
+    expect(screeningRules("altro", "Veneziana interna in alluminio manuale", null)).toMatchObject({
+      type: ENEA_SCREENING_TYPE.awning,
+      installation: ENEA_SCREENING_INSTALLATION.internal,
+      material: ENEA_SCREENING_MATERIAL.metal,
+      regulation: ENEA_SCREENING_REGULATION.manual,
     });
   });
 

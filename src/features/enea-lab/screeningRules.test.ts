@@ -96,9 +96,9 @@ describe("regole operative schermature solari", () => {
     });
   });
 
-  it("non inventa il materiale della tapparella se manca in fattura", () => {
+  it("mappa la tapparella esplicita sul tipo ENEA osservato", () => {
     expect(screeningRules("altro", "Tapparella motorizzata", null)).toMatchObject({
-      type: ENEA_SCREENING_TYPE.otherSolarScreening,
+      type: ENEA_SCREENING_TYPE.rollerShutter,
       gTot: 0.06,
       material: "",
       regulation: ENEA_SCREENING_REGULATION.automatic,

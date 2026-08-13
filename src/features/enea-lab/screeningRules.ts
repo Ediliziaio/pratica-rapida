@@ -76,13 +76,15 @@ export function screeningRules(
   else if (awning) material = ENEA_SCREENING_MATERIAL.fabric;
 
   const explicitlyMotorized = /motoriz|motore|automatic/.test(normalized);
-  const regulation = zanzariera
-    ? ENEA_SCREENING_REGULATION.manual
-    : pergotenda || pergola || explicitlyMotorized
-      ? ENEA_SCREENING_REGULATION.automatic
-      : awning || shutter
-        ? ENEA_SCREENING_REGULATION.manual
-        : "";
+  const regulation = explicitlyMotorized
+    ? ENEA_SCREENING_REGULATION.automatic
+    : zanzariera
+      ? ENEA_SCREENING_REGULATION.manual
+      : pergotenda || pergola
+        ? ENEA_SCREENING_REGULATION.automatic
+        : awning || shutter
+          ? ENEA_SCREENING_REGULATION.manual
+          : "";
 
   return {
     type: awning && !zanzariera && !shutter && !pergotenda && !pergola

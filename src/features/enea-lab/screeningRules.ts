@@ -23,6 +23,7 @@ export const ENEA_SCREENING_MATERIAL = {
 export const ENEA_SCREENING_REGULATION = {
   manual: "Manuale",
   automatic: "Automatico",
+  servoAssisted: "Servoassistito",
 } as const;
 
 export interface EneaScreeningRuleResult {
@@ -76,16 +77,15 @@ export function screeningRules(
   else if (awning) material = ENEA_SCREENING_MATERIAL.fabric;
 
   // Le indicazioni esplicite del documento prevalgono sui fallback per tipologia.
-  // "Servoassistito" è un valore osservato sul portale ma finché il relativo
-  // mapping non è allineato il laboratorio deve fermarsi invece di degradarlo
-  // ad Automatico.
+  // In particolare "senza motore" non deve essere intercettato dalla sola parola
+  // "motore" e trasformato erroneamente in Automatico.
   const explicitlyManual = /\bmanual(?:e|i)?\b|non\s+motorizz|senza\s+(?:motore|motorizzazione)/.test(normalized);
   const explicitlyServoAssisted = /servo[\s-]*assistit/.test(normalized);
   const explicitlyMotorized = /motorizz|(?:^|\W)motore(?:\W|$)|automatic/.test(normalized);
   const regulation = explicitlyManual
     ? ENEA_SCREENING_REGULATION.manual
     : explicitlyServoAssisted
-      ? ""
+      ? ENEA_SCREENING_REGULATION.servoAssisted
       : explicitlyMotorized
         ? ENEA_SCREENING_REGULATION.automatic
         : zanzariera

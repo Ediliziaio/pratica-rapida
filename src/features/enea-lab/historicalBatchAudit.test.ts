@@ -12,6 +12,7 @@ const SAFE_IDENTITY_MATCHES = [
   "intervento.data_fine",
   "schermature.numero",
   "schermature.spesa",
+  "schermature.risparmio_energia",
 ];
 
 function auditWithDifferences(fieldIds: string[]): CompletedEneaAuditResult {
@@ -110,6 +111,7 @@ describe("classificazione audit storico ENEA", () => {
         "intervento.data_fine",
         "schermature.numero",
         "schermature.spesa",
+        "schermature.risparmio_energia",
       ],
     };
 
@@ -127,6 +129,7 @@ describe("classificazione audit storico ENEA", () => {
         "intervento.data_fine",
         "schermature.numero",
         "schermature.spesa",
+        "schermature.risparmio_energia",
       ],
     };
 
@@ -143,6 +146,7 @@ describe("classificazione audit storico ENEA", () => {
         "intervento.data_fine",
         "schermature.numero",
         "schermature.spesa",
+        "schermature.risparmio_energia",
       ],
     };
 
@@ -158,6 +162,7 @@ describe("classificazione audit storico ENEA", () => {
         "immobile.foglio",
         "immobile.mappale",
         "schermature.spesa",
+        "schermature.risparmio_energia",
       ],
     };
 
@@ -168,6 +173,17 @@ describe("classificazione audit storico ENEA", () => {
     const audit: CompletedEneaAuditResult = {
       ...auditWithDifferences([]),
       matchedFieldIds: SAFE_IDENTITY_MATCHES.filter((fieldId) => fieldId !== "schermature.spesa"),
+    };
+
+    expect(classifyHistoricalAudit(audit, new Set()).outcome).toBe("difference");
+  });
+
+  it("non certifica se il parser non osserva il risparmio energetico conclusivo", () => {
+    const audit: CompletedEneaAuditResult = {
+      ...auditWithDifferences([]),
+      matchedFieldIds: SAFE_IDENTITY_MATCHES.filter(
+        (fieldId) => fieldId !== "schermature.risparmio_energia",
+      ),
     };
 
     expect(classifyHistoricalAudit(audit, new Set()).outcome).toBe("difference");
@@ -185,6 +201,7 @@ describe("classificazione audit storico ENEA", () => {
         "intervento.data_fine",
         "schermature.numero",
         "schermature.spesa",
+        "schermature.risparmio_energia",
       ],
     };
 
@@ -205,6 +222,7 @@ describe("classificazione audit storico ENEA", () => {
         "intervento.data_fine",
         "schermature.numero",
         "schermature.spesa",
+        "schermature.risparmio_energia",
       ],
     };
 

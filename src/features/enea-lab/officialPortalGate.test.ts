@@ -219,4 +219,39 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
 
     expect(gate).toEqual({ status: "blocked", reason: "payload-inconsistent", workflow: null });
   });
+
+  it("blocca una voce schermatura ready ma fuori dal dominio ENEA prima che sparisca dal workflow", () => {
+    const { mapped, analysis } = readyPayload();
+    const altered = {
+      ...mapped,
+      sections: mapped.sections.map((section) => ({
+        ...section,
+        fields: section.fields.map((field) => field.id === "schermature.0.regolazione"
+          ? {
+              ...field,
+              value: "Regolazione non prevista",
+              status: "ready" as const,
+              source: "Inserimento operatore" as const,
+            }
+          : field),
+      })),
+    };
+    const issues = validatePreparedPractice(altered.source, altered, analysis);
+    const payload = buildEneaPayload(
+      altered,
+      issues,
+      "official",
+      new Date("2026-08-13T04:20:00.000Z"),
+    );
+
+    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
+    expect(payload.readyForOfficialSubmission).toBe(true);
+    expect(payload.portalFields.some((field) => field.id === "schermature.0.regolazione")).toBe(false);
+
+    expect(prepareEneaOfficialPortalCollaudo(altered, payload, true, analysis)).toEqual({
+      status: "blocked",
+      reason: "official-data-incomplete",
+      workflow: null,
+    });
+  });
 });

@@ -28,7 +28,7 @@ export interface CompletedEneaAuditResult {
   matchedFieldIds?: string[];
 }
 
-const NUMERIC_FIELD = /^(?:immobile\.superficie|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.(?:numero|spesa)|schermature\.\d+\.(?:superficie|superficie_finestrata|gtot))$/;
+const NUMERIC_FIELD = /^(?:immobile\.superficie|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.(?:numero|spesa|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|gtot))$/;
 const DATE_FIELD = /^(?:beneficiario\.data_nascita|intervento\.(?:data_inizio|data_fine))$/;
 
 function compact(text: string): string {
@@ -242,6 +242,10 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   // per errore un PDF parzialmente interpretato.
   const screeningCount = screeningStructureValid ? orderedScreeningOrdinals.length : -1;
   set(fields, "schermature.spesa", capture(source, /Spese congrue sostenute \[€\]\s+([0-9]+(?:[.,][0-9]+)?)/i));
+  set(fields, "schermature.risparmio_energia", capture(
+    source,
+    /2\. Risparmio stimato di energia primaria non rinnovabile \[kWh\/anno\].*?([0-9]+(?:[.,][0-9]+)?)\s+Il documento originale cartaceo/i,
+  ));
 
   return { cpid, fields, screeningCount };
 }

@@ -37,6 +37,14 @@ describe("regole operative schermature solari", () => {
     });
   });
 
+  it("non perde una motorizzazione esplicita sulla zanzariera", () => {
+    expect(screeningRules("altro", "Zanzariera motorizzata", null)).toMatchObject({
+      type: ENEA_SCREENING_TYPE.otherSolarScreening,
+      material: ENEA_SCREENING_MATERIAL.mixed,
+      regulation: ENEA_SCREENING_REGULATION.automatic,
+    });
+  });
+
   it("usa altra schermatura e metallo automatico per la pergola bioclimatica", () => {
     expect(screeningRules("pergola", "Pergola bioclimatica", null)).toMatchObject({
       type: ENEA_SCREENING_TYPE.otherSolarScreening,

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { ENEA_SCREENING_PORTAL_FIELDS } from "./portalScreening";
-import { ENEA_SCREENING_CALCULATION, ENEA_SCREENING_INSTALLATION, ENEA_SCREENING_TYPE } from "./screeningRules";
+import {
+  ENEA_SCREENING_CALCULATION,
+  ENEA_SCREENING_INSTALLATION,
+  ENEA_SCREENING_TYPE,
+  screeningRules,
+} from "./screeningRules";
 
 describe("contratto schermature ENEA 2026", () => {
   it("mantiene i codici osservati per tipo, installazione e calcolo", () => {
@@ -14,5 +19,14 @@ describe("contratto schermature ENEA 2026", () => {
     expect(installation?.selectValues?.[ENEA_SCREENING_INSTALLATION.internal]).toBe("191");
     expect(calculation?.selectValues?.[ENEA_SCREENING_CALCULATION.closureTable]).toBe("195");
     expect(calculation?.selectValues?.[ENEA_SCREENING_CALCULATION.uniEn13125]).toBe("307");
+  });
+
+  it("riconosce la veneziana in vetrocamera senza inventare dettagli non documentati", () => {
+    expect(screeningRules("altro", "Veneziana integrata nella vetrocamera", null)).toMatchObject({
+      type: ENEA_SCREENING_TYPE.integrated,
+      installation: "",
+      material: "",
+      regulation: "",
+    });
   });
 });

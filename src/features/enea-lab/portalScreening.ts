@@ -64,6 +64,7 @@ const MATERIAL_VALUES = {
 const REGULATION_VALUES = {
   [ENEA_SCREENING_REGULATION.manual]: "143",
   [ENEA_SCREENING_REGULATION.automatic]: "144",
+  [ENEA_SCREENING_REGULATION.servoAssisted]: "145",
 } as const;
 
 /** Identificativi e valori osservati nella finestra "Aggiungi schermatura solare" ENEA 2026. */

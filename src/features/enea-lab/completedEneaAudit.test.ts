@@ -69,7 +69,7 @@ function mappedScreeningCount(mapped: ReturnType<typeof mapSchermaturaPractice>)
 }
 
 describe("audit storico PDF ENEA conclusivo", () => {
-  it("estrae soltanto campi realmente compilati dal workflow e ignora i valori automatici del portale", () => {
+  it("estrae i campi tecnici osservati e ignora soltanto i valori automatici non gestiti", () => {
     const snapshot = parseCompletedEneaText(COMPLETED_ENEA_TECHNICAL_EXCERPT);
 
     expect(snapshot.cpid).toBe("288717-2026E-TESTTESTTESTTEST");
@@ -95,9 +95,9 @@ describe("audit storico PDF ENEA conclusivo", () => {
     expect(snapshot.fields["impianto.potenza"]).toBe("24.1");
     expect(snapshot.fields["schermature.0.superficie"]).toBe("3.7");
     expect(snapshot.fields["schermature.0.superficie_finestrata"]).toBe("2.9");
+    expect(snapshot.fields["schermature.0.rsupp"]).toBe("0.08");
     expect(snapshot.fields["schermature.4.gtot"]).toBe("0.13");
     expect(snapshot.fields["schermature.spesa"]).toBe("13924");
-    expect(snapshot.fields["schermature.0.rsupp"]).toBeUndefined();
     expect(snapshot.fields["immobile.zona_climatica"]).toBeUndefined();
     expect(snapshot.fields["immobile.gradi_giorno"]).toBeUndefined();
     expect(snapshot.fields["intervento.unita_totali"]).toBeUndefined();

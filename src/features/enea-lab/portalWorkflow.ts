@@ -27,7 +27,11 @@ const NORTH_COMPATIBLE_TYPES = new Set<string>([
   ENEA_SCREENING_TYPE.rollerShutter,
   ENEA_SCREENING_TYPE.otherDarkeningClosure,
 ]);
-const GENERATOR_FIELD_IDS = [
+const OFFICIAL_NUMERIC_FIELD_IDS = [
+  "immobile.anno",
+  "immobile.superficie",
+  "immobile.unita",
+  "intervento.unita_oggetto",
   "impianto.numero_generatori",
   "impianto.rendimento",
   "impianto.potenza",
@@ -102,17 +106,18 @@ function hasValidOfficialScreeningRsupp(mapped: EneaLabMappedPractice): boolean 
   });
 }
 
-function hasValidOfficialGeneratorValues(mapped: EneaLabMappedPractice): boolean {
+function hasValidOfficialNumericValues(mapped: EneaLabMappedPractice): boolean {
   const fields = new Map(
     mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
   );
 
   // Il workflow official può essere costruito anche su mapping volutamente
   // incompleti nei test di serializzazione. Non imponiamo qui la presenza dei
-  // tre campi: se però un valore è già marcato ready e non test-only, deve
-  // superare di nuovo la stessa validazione numerica dell'inserimento operatore.
-  // Così una stringa stale come "25 x 2 kW" non può essere ripulita a "252".
-  return GENERATOR_FIELD_IDS.every((fieldId) => {
+  // campi: se però un valore numerico che finirà nel portale è già `ready` e
+  // non test-only, deve superare di nuovo la validazione nota del laboratorio.
+  // La barriera vale sia per il generatore sia per immobile/intervento: così una
+  // superficie stale come "2 x 9 m²" non può arrivare all'input ENEA.
+  return OFFICIAL_NUMERIC_FIELD_IDS.every((fieldId) => {
     const field = fields.get(fieldId);
     return !field
       || field.status !== "ready"
@@ -210,10 +215,11 @@ export function buildEneaOfficialPortalWorkflowScript(
     };
   }
 
-  // I tre numeri del generatore sono normalizzati dal builder di pagina. Prima
-  // di costruire il comando official rivalidiamo quindi qualsiasi valore ready:
-  // una stringa ambigua non deve mai trasformarsi in un numero diverso.
-  if (!hasValidOfficialGeneratorValues(mapped)) {
+  // I numeri di immobile, intervento e generatore possono essere normalizzati
+  // dai builder di pagina oppure passati direttamente agli input ENEA. Prima di
+  // costruire il comando official rivalidiamo quindi qualsiasi valore ready:
+  // una stringa ambigua non deve mai essere reinterpretata o inviata così com'è.
+  if (!hasValidOfficialNumericValues(mapped)) {
     return {
       script: "",
       supportedPages: [],

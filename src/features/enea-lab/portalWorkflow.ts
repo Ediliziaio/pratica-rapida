@@ -37,6 +37,19 @@ function screeningIndexes(mapped: EneaLabMappedPractice): number[] {
   return [...new Set(indexes)].sort((a, b) => a - b);
 }
 
+function hasConsistentOfficialScreeningIndexes(mapped: EneaLabMappedPractice): boolean {
+  const countField = mapped.sections
+    .flatMap((section) => section.fields)
+    .find((field) => field.id === "schermature.numero");
+  if (countField?.status !== "ready" || countField.testOnly) return false;
+  const count = Number(countField.value.trim().replace(/\s/g, "").replace(",", "."));
+  if (!Number.isInteger(count) || count < 1) return false;
+
+  const indexes = screeningIndexes(mapped);
+  if (indexes.length !== count) return false;
+  return indexes.every((index, position) => index === position);
+}
+
 function hasCompatibleOfficialScreeningExposures(mapped: EneaLabMappedPractice): boolean {
   const fields = new Map(
     mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
@@ -104,6 +117,18 @@ export function buildEneaPortalWorkflowScript(
 export function buildEneaOfficialPortalWorkflowScript(
   mapped: EneaLabMappedPractice,
 ): EneaPortalWorkflowPreparation {
+  // Il numero riepilogativo e gli indici tecnici devono descrivere esattamente
+  // lo stesso insieme 0..n-1. Un campo stale oltre il conteggio non deve creare
+  // una finestra schermatura aggiuntiva nel workflow ufficiale.
+  if (!hasConsistentOfficialScreeningIndexes(mapped)) {
+    return {
+      script: "",
+      supportedPages: [],
+      screeningItemCount: 0,
+      mode: "blocked",
+    };
+  }
+
   // ENEA ammette Nord/Nord-Est/Nord-Ovest per le chiusure oscuranti, non per
   // le schermature solari. Il workflow ufficiale resta fail-closed anche se un
   // valore manuale singolarmente valido viene abbinato a una tipologia

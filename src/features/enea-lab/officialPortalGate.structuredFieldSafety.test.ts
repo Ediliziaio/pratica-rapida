@@ -86,4 +86,18 @@ describe("gate ENEA: formati strutturati delle pagine non schermatura", () => {
       workflow: null,
     });
   });
+
+  it("blocca date intervento singolarmente valide ma in ordine cronologico inverso", () => {
+    const { mapped, analysis } = readyFixture();
+    const withLateStart = alterReadyField(mapped, "intervento.data_inizio", "03/01/2026");
+    const altered = alterReadyField(withLateStart, "intervento.data_fine", "02/01/2026");
+    const { issues, payload, gate } = officialGate(altered, analysis);
+    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
+    expect(payload.readyForOfficialSubmission).toBe(true);
+    expect(gate).toEqual({
+      status: "blocked",
+      reason: "payload-inconsistent",
+      workflow: null,
+    });
+  });
 });

@@ -83,6 +83,7 @@ export const ENEA_SCREENING_PORTAL_FIELDS: readonly ScreeningPortalFieldDefiniti
   { fieldSuffix: "installazione", portalId: "id-inst", control: "select", selectValues: INSTALLATION_VALUES },
   { fieldSuffix: "superficie", portalId: "id-sup_s", control: "input", numeric: true },
   { fieldSuffix: "superficie_finestrata", portalId: "id-sup_f", control: "input", numeric: true },
+  { fieldSuffix: "rsupp", portalId: "id-rsup", control: "input", numeric: true },
   { fieldSuffix: "esposizione", portalId: "id-esp", control: "select", selectValues: EXPOSURE_VALUES },
   { fieldSuffix: "modalita_calcolo", portalId: "id-calc", control: "select", selectValues: CALCULATION_VALUES },
   { fieldSuffix: "gtot", portalId: "id-gtot", control: "input", numeric: true },
@@ -97,6 +98,11 @@ function numericValue(value: string): string {
 function isVerifiedGTot(fieldId: string, source: string): boolean {
   if (!fieldId.endsWith(".gtot")) return true;
   return source === "Fattura" || source === "Inserimento operatore";
+}
+
+function isVerifiedRsupp(fieldId: string, source: string): boolean {
+  if (!fieldId.endsWith(".rsupp")) return true;
+  return source === "Inserimento operatore";
 }
 
 export function buildEneaScreeningPortalScript(
@@ -117,6 +123,7 @@ export function buildEneaScreeningPortalScript(
       || field.value === "Non indicato"
       || field.value === "Intervento umano richiesto"
       || !isVerifiedGTot(fieldId, field.source)
+      || !isVerifiedRsupp(fieldId, field.source)
     ) return [];
     const value = definition.numeric ? numericValue(field.value) : field.value;
     const selectValue = definition.selectValues?.[value];

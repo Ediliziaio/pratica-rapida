@@ -43,4 +43,24 @@ describe("freshness analisi documentale ENEA", () => {
     expect(options.refetchOnMount).toBe("always");
     expect(options.refetchOnWindowFocus).toBe("always");
   });
+
+  it("non espone l'analisi precedente mentre e in corso una rilettura", () => {
+    const cachedAnalysis = {
+      documents: [],
+      items: [],
+      blockers: [],
+      warnings: [],
+    };
+    useQueryMock.mockReturnValue({ data: cachedAnalysis, isFetching: true });
+    const practice = {
+      id: "practice-1",
+      queueStatus: "ready",
+      documentPaths: [{ kind: "invoice", path: "practice-1/fattura.pdf" }],
+    } as unknown as EneaLabSourcePractice;
+
+    const result = useDocumentAnalysis(practice);
+
+    expect(result.isFetching).toBe(true);
+    expect(result.data).toBeUndefined();
+  });
 });

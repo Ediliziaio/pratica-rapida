@@ -28,7 +28,7 @@ export interface CompletedEneaAuditResult {
   matchedFieldIds?: string[];
 }
 
-const NUMERIC_FIELD = /^(?:immobile\.superficie|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.(?:numero|spesa|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|gtot))$/;
+const NUMERIC_FIELD = /^(?:immobile\.superficie|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.(?:numero|spesa|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp|gtot))$/;
 const DATE_FIELD = /^(?:beneficiario\.data_nascita|intervento\.(?:data_inizio|data_fine))$/;
 
 function compact(text: string): string {
@@ -122,9 +122,9 @@ function parseAddressBlock(
 
 /**
  * Estrae dal PDF finale ENEA soltanto i campi che il workflow del laboratorio
- * prova effettivamente a scrivere. I valori caricati/calcolati dal portale
- * (per esempio zona climatica, gradi giorno e Rsupp) restano fuori dall'audit
- * per evitare falsi errori.
+ * prova effettivamente a scrivere o che servono a verificare il contratto
+ * tecnico osservato. I valori caricati dal portale, per esempio zona climatica
+ * e gradi giorno, restano fuori dall'audit per evitare falsi errori.
  */
 export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   const source = compact(text);
@@ -221,6 +221,7 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
     fields[`schermature.${index}.installazione`] = match[3];
     fields[`schermature.${index}.superficie`] = match[4];
     fields[`schermature.${index}.superficie_finestrata`] = match[5];
+    fields[`schermature.${index}.rsupp`] = match[6];
     fields[`schermature.${index}.esposizione`] = exposure;
     fields[`schermature.${index}.modalita_calcolo`] = match[8].startsWith("Dalla tabella del programma Chiusure oscuranti")
       ? "Dalla tabella del programma Chiusure oscuranti(*)"

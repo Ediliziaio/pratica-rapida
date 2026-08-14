@@ -11,7 +11,7 @@ describe("validazione correzioni operatore", () => {
     expect(validateOperatorOverride("beneficiario.sesso", "testo libero").valid).toBe(false);
     expect(validateOperatorOverride("beneficiario.telefono", "123").valid).toBe(false);
     expect(validateOperatorOverride("impianto.tipo", "impianto inventato").valid).toBe(false);
-    expect(validateOperatorOverride("schermature.0.esposizione", "Nord").valid).toBe(false);
+    expect(validateOperatorOverride("schermature.0.esposizione", "Direzione inventata").valid).toBe(false);
     expect(validateOperatorOverride("schermature.risparmio_energia", "non calcolato").valid).toBe(false);
     expect(validateOperatorOverride("schermature.0.dimensioni", "80 x 1200").valid).toBe(false);
     expect(validateOperatorOverride("impianto.numero_generatori", "0").valid).toBe(false);
@@ -37,6 +37,7 @@ describe("validazione correzioni operatore", () => {
       value: "a. impianto autonomo",
     });
     expect(validateOperatorOverride("schermature.0.esposizione", "sud-est")).toEqual({ valid: true, value: "Sud-Est" });
+    expect(validateOperatorOverride("schermature.0.esposizione", "nord-est")).toEqual({ valid: true, value: "Nord-Est" });
     expect(validateOperatorOverride("schermature.0.dimensioni", "1200x1450")).toEqual({
       valid: true,
       value: "1200 × 1450 mm",

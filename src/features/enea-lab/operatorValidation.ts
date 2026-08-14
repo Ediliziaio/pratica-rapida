@@ -7,8 +7,8 @@ import {
 } from "@/types/form-cliente";
 import {
   ENEA_ENERGY_CARRIER,
-  ENEA_PLANT_DISTRIBUTION,
-  ENEA_PLANT_REGULATION,
+  ENEA_PLANT_DISTRIBUTIONS,
+  ENEA_PLANT_REGULATIONS,
   ENEA_PLANT_TERMINAL,
   ENEA_PLANT_TYPE,
 } from "./plantRules";
@@ -189,8 +189,8 @@ export function validateOperatorOverride(
     ],
     "impianto.tipo": Object.values(ENEA_PLANT_TYPE),
     "impianto.terminali": Object.values(ENEA_PLANT_TERMINAL),
-    "impianto.distribuzione": [ENEA_PLANT_DISTRIBUTION],
-    "impianto.regolazione": [ENEA_PLANT_REGULATION],
+    "impianto.distribuzione": Object.values(ENEA_PLANT_DISTRIBUTIONS),
+    "impianto.regolazione": Object.values(ENEA_PLANT_REGULATIONS),
     "impianto.generatore": Object.values(CALDAIA_LABELS),
     "impianto.combustibile": Object.values(ENEA_ENERGY_CARRIER),
   };

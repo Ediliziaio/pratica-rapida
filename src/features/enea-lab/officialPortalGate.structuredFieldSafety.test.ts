@@ -16,7 +16,9 @@ function readyFixture() {
       fields: section.fields.map((field) => {
         if (!field.required) return field;
         let value = field.value;
-        if (field.id === "intervento.data_inizio") value = "01/01/2026";
+        if (field.id === "beneficiario.cf") value = "RSSMRA80A01H501U";
+        else if (field.id === "beneficiario.sesso") value = "M";
+        else if (field.id === "intervento.data_inizio") value = "01/01/2026";
         else if (field.id === "intervento.data_fine") value = "02/01/2026";
         else if (field.id === "impianto.numero_generatori") value = "1";
         else if (field.id === "impianto.rendimento") value = "95";
@@ -57,27 +59,31 @@ function alterReadyField(mapped: ReturnType<typeof readyFixture>["mapped"], fiel
   };
 }
 
-function expectBlockedStructuredField(fieldId: string, value: string) {
-  const { mapped, analysis } = readyFixture();
-  const altered = alterReadyField(mapped, fieldId, value);
-  const issues = validatePreparedPractice(altered.source, altered, analysis);
-  const payload = buildEneaPayload(altered, issues, "official", new Date("2026-08-14T18:30:00.000Z"));
-
-  expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
-  expect(payload.readyForOfficialSubmission).toBe(true);
-  expect(prepareEneaOfficialPortalCollaudo(altered, payload, true, analysis)).toEqual({
-    status: "blocked",
-    reason: "payload-inconsistent",
-    workflow: null,
-  });
+function officialGate(mapped: ReturnType<typeof readyFixture>["mapped"], analysis: ReturnType<typeof readyFixture>["analysis"]) {
+  const issues = validatePreparedPractice(mapped.source, mapped, analysis);
+  const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-14T18:30:00.000Z"));
+  return { issues, payload, gate: prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis) };
 }
 
 describe("gate ENEA: formati strutturati delle pagine non schermatura", () => {
-  it("blocca un codice fiscale beneficiario ready ma formalmente invalido", () => {
-    expectBlockedStructuredField("beneficiario.cf", "CF-NON-VALIDO");
+  it("parte da una fixture realmente pronta al collaudo", () => {
+    const { mapped, analysis } = readyFixture();
+    const { issues, payload, gate } = officialGate(mapped, analysis);
+    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
+    expect(payload.readyForOfficialSubmission).toBe(true);
+    expect(gate.status).toBe("ready");
   });
 
-  it("blocca una data fine lavori ready ma impossibile", () => {
-    expectBlockedStructuredField("intervento.data_fine", "31/02/2026");
+  it("blocca un codice fiscale beneficiario ready ma formalmente invalido", () => {
+    const { mapped, analysis } = readyFixture();
+    const altered = alterReadyField(mapped, "beneficiario.cf", "CF-NON-VALIDO");
+    const { issues, payload, gate } = officialGate(altered, analysis);
+    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
+    expect(payload.readyForOfficialSubmission).toBe(true);
+    expect(gate).toEqual({
+      status: "blocked",
+      reason: "payload-inconsistent",
+      workflow: null,
+    });
   });
 });

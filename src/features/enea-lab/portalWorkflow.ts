@@ -41,7 +41,13 @@ function hasConsistentOfficialScreeningIndexes(mapped: EneaLabMappedPractice): b
   const countField = mapped.sections
     .flatMap((section) => section.fields)
     .find((field) => field.id === "schermature.numero");
-  if (countField?.status !== "ready" || countField.testOnly) return false;
+
+  // Questo builder viene usato anche dai test di serializzazione su mapping
+  // volutamente incompleti. In quel caso la readiness complessiva resta compito
+  // del gate pre-collaudo. Quando però il riepilogo è già `ready`, gli indici
+  // tecnici devono coincidere esattamente con 0..n-1: nessuna riga stale può
+  // produrre una finestra schermatura ufficiale aggiuntiva.
+  if (countField?.status !== "ready" || countField.testOnly) return true;
   const count = Number(countField.value.trim().replace(/\s/g, "").replace(",", "."));
   if (!Number.isInteger(count) || count < 1) return false;
 

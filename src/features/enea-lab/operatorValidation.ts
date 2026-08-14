@@ -26,6 +26,13 @@ export interface EneaLabOperatorValidation {
   message?: string;
 }
 
+const ENEA_SCREENING_EXPOSURES = [
+  ...Object.values(SCHERMATURA_DIREZIONE_LABELS),
+  "Nord",
+  "Nord-Est",
+  "Nord-Ovest",
+] as const;
+
 function parseItalianNumber(value: string): number | null {
   if (!/\d/.test(value)) return null;
   const normalized = value
@@ -152,7 +159,11 @@ export function validateOperatorOverride(
   }
 
   if (/^schermature\.\d+\.esposizione$/.test(fieldId)) {
-    return allowedValue(value, Object.values(SCHERMATURA_DIREZIONE_LABELS), "L'esposizione deve essere Sud, Sud-Est, Sud-Ovest, Est oppure Ovest.");
+    return allowedValue(
+      value,
+      ENEA_SCREENING_EXPOSURES,
+      "L'esposizione deve essere una delle otto direzioni previste da ENEA; le direzioni nord sono ammesse solo per chiusure oscuranti compatibili.",
+    );
   }
 
   if (/^(?:beneficiario\.cf|beneficiario\.cointestatario_cf)$/.test(fieldId)) {

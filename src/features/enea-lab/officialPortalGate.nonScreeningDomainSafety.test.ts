@@ -66,7 +66,7 @@ describe("gate ENEA: domini non schermatura", () => {
 
     expect(prepareEneaOfficialPortalCollaudo(altered, payload, true, analysis)).toEqual({
       status: "blocked",
-      reason: "official-data-incomplete",
+      reason: "payload-inconsistent",
       workflow: null,
     });
   });

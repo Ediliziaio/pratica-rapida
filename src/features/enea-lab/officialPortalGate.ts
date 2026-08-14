@@ -174,6 +174,7 @@ function parsedItalianNumber(value: string): number | null {
     .replace(/[^0-9,.-]/g, "")
     .replace(/\.(?=\d{3}(?:\D|$))/g, "")
     .replace(",", ".");
+  if (!/[0-9]/.test(normalized)) return null;
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
 }

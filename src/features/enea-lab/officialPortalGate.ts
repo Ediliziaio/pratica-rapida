@@ -1,6 +1,7 @@
 import { validateOperatorOverride } from "./operatorValidation";
 import { buildEneaPayload, validatePreparedPractice } from "./preparation";
 import { buildEneaOfficialPortalWorkflowScript, type EneaPortalWorkflowPreparation } from "./portalWorkflow";
+import { ENEA_SCREENING_TYPE } from "./screeningRules";
 import type { EneaLabDocumentAnalysis, EneaLabMappedPractice, EneaLabPayload } from "./types";
 
 export type EneaOfficialPortalGateReason =
@@ -292,6 +293,41 @@ function hasValidCurrentScreeningDomains(mapped: EneaLabMappedPractice): boolean
       || validateOperatorOverride(field.id, field.value).valid);
 }
 
+const DARKENING_CLOSURE_TYPES = new Set<string>([
+  ENEA_SCREENING_TYPE.shutter,
+  ENEA_SCREENING_TYPE.rollerShutter,
+  ENEA_SCREENING_TYPE.otherDarkeningClosure,
+]);
+
+function hasSeasonallyValidEnergySaving(mapped: EneaLabMappedPractice): boolean {
+  const count = mappedScreeningCount(mapped);
+  if (count === null) return false;
+  const fields = mapped.sections.flatMap((section) => section.fields);
+  const energy = fields.find((field) => field.id === "schermature.risparmio_energia");
+  const parsedEnergy = energy ? parsedItalianNumber(energy.value) : null;
+  if (energy?.status !== "ready" || energy.testOnly || parsedEnergy === null || parsedEnergy < 0) return false;
+
+  // Un valore positivo è comunque una stima esplicita da verificare nel flusso
+  // ordinario. Il caso pericoloso è lo zero: ENEA lo ammette soltanto quando
+  // manca l'impianto pertinente alla stagione dell'intervento.
+  if (parsedEnergy > 0) return true;
+
+  let hasDarkeningClosure = false;
+  for (let index = 0; index < count; index += 1) {
+    const type = fields.find((field) => field.id === `schermature.${index}.tipo`);
+    if (type?.status !== "ready" || type.testOnly || !type.value.trim()) return false;
+    if (DARKENING_CLOSURE_TYPES.has(type.value)) hasDarkeningClosure = true;
+  }
+
+  // Il modello CRM corrente registra esplicitamente la presenza del
+  // raffrescamento ma non una prova equivalente di assenza del riscaldamento.
+  // Per questo 0 è deterministico soltanto per sole schermature solari senza
+  // climatizzazione estiva; per qualsiasi chiusura oscurante il gate resta
+  // fail-closed finché l'assenza del riscaldamento non sarà rappresentabile.
+  if (hasDarkeningClosure) return false;
+  return mapped.source.form.impianto.aria_condizionata === false;
+}
+
 /**
  * Ultima barriera locale prima del collaudo sul portale reale.
  * Non apre ENEA e non esegue il comando: restituisce il workflow ufficiale
@@ -368,6 +404,14 @@ export function prepareEneaOfficialPortalCollaudo(
   // restare ready con un valore non previsto: il builder lo salterebbe e il
   // workflow official risulterebbe incompleto senza un blocker esplicito.
   if (!hasValidCurrentScreeningDomains(mapped)) {
+    return { status: "blocked", reason: "official-data-incomplete", workflow: null };
+  }
+
+  // Lo zero del risparmio energetico è stagionale: per una schermatura solare
+  // dipende dall'assenza del raffrescamento, mentre una chiusura oscurante
+  // richiede l'assenza del riscaldamento. L'ultima barriera non accetta quindi
+  // uno zero manuale o stale basato sull'impianto sbagliato.
+  if (!hasSeasonallyValidEnergySaving(mapped)) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
 

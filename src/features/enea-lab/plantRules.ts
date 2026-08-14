@@ -40,20 +40,7 @@ export const ENEA_PLANT_TERMINAL = {
   radiators: "d. radiatori",
   isolatedRadiantPanels: "e. pannelli radianti isolati dalle strutture",
   embeddedRadiantPanels: "f. pannelli radianti annegati nella struttura",
-  // Voce osservata sul portale, mantenuta nel contratto tecnico per non perdere
-  // il codice ENEA. Non è però una scelta official supportata finché il laboratorio
-  // non rappresenta anche l'eventuale informazione complementare richiesta da Altro.
-  other: "g. altro",
 } as const;
-
-export const ENEA_SUPPORTED_PLANT_TERMINALS = [
-  ENEA_PLANT_TERMINAL.thermoconvectors,
-  ENEA_PLANT_TERMINAL.fanCoils,
-  ENEA_PLANT_TERMINAL.hotAirOutlets,
-  ENEA_PLANT_TERMINAL.radiators,
-  ENEA_PLANT_TERMINAL.isolatedRadiantPanels,
-  ENEA_PLANT_TERMINAL.embeddedRadiantPanels,
-] as const;
 
 export const ENEA_ENERGY_CARRIER = {
   naturalGas: "a. gas metano",

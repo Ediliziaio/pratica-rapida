@@ -170,6 +170,39 @@ function hasValidOfficialStructuredValues(mapped: EneaLabMappedPractice): boolea
   });
 }
 
+function dateTimestamp(value: string): number | null {
+  const italian = value.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const iso = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (italian) return Date.UTC(Number(italian[3]), Number(italian[2]) - 1, Number(italian[1]));
+  if (iso) return Date.UTC(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+  return null;
+}
+
+function hasValidOfficialInterventionChronology(mapped: EneaLabMappedPractice): boolean {
+  const fields = new Map(
+    mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
+  );
+  const start = fields.get("intervento.data_inizio");
+  const finish = fields.get("intervento.data_fine");
+
+  // La presenza e il formato dei singoli campi sono già gestiti dalla readiness
+  // e dalla rivalidazione strutturata. Quando entrambe le date entreranno nel
+  // workflow official, però, devono anche descrivere una sequenza temporale
+  // coerente: una fine lavori precedente all'inizio non può essere copiata ENEA.
+  if (
+    !start
+    || !finish
+    || start.status !== "ready"
+    || finish.status !== "ready"
+    || start.testOnly
+    || finish.testOnly
+  ) return true;
+
+  const startTime = dateTimestamp(start.value);
+  const finishTime = dateTimestamp(finish.value);
+  return startTime !== null && finishTime !== null && startTime <= finishTime;
+}
+
 function hasValidOfficialDiscreteDomains(mapped: EneaLabMappedPractice): boolean {
   const fields = new Map(
     mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
@@ -295,6 +328,17 @@ export function buildEneaOfficialPortalWorkflowScript(
   // barriera. In particolare un CF, CAP, telefono o data diventati stale non
   // possono essere copiati nel comando official solo perché risultano `ready`.
   if (!hasValidOfficialStructuredValues(mapped)) {
+    return {
+      script: "",
+      supportedPages: [],
+      screeningItemCount: 0,
+      mode: "blocked",
+    };
+  }
+
+  // Le date possono essere singolarmente valide ma incompatibili tra loro.
+  // La barriera official ricontrolla quindi anche la cronologia dell'intervento.
+  if (!hasValidOfficialInterventionChronology(mapped)) {
     return {
       script: "",
       supportedPages: [],

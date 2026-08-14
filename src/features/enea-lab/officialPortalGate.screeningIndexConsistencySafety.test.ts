@@ -68,12 +68,12 @@ function readyMappedWithStaleExtraScreening() {
       : section),
   };
 
-  return { mapped, analysis, expectedCount: extraIndex };
+  return { mapped, analysis };
 }
 
 describe("gate ENEA · coerenza indici schermature", () => {
   it("blocca una schermatura stale oltre il numero riepilogativo prima di generare un passo portale extra", () => {
-    const { mapped, analysis, expectedCount } = readyMappedWithStaleExtraScreening();
+    const { mapped, analysis } = readyMappedWithStaleExtraScreening();
     const issues = validatePreparedPractice(mapped.source, mapped, analysis);
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
 
@@ -83,12 +83,8 @@ describe("gate ENEA · coerenza indici schermature", () => {
     const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis);
     expect(gate).toEqual({
       status: "blocked",
-      reason: "official-data-incomplete",
+      reason: "payload-inconsistent",
       workflow: null,
     });
-
-    if (gate.status === "ready") {
-      expect(gate.workflow.screeningItemCount).toBe(expectedCount);
-    }
   });
 });

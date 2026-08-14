@@ -40,7 +40,20 @@ export const ENEA_PLANT_TERMINAL = {
   radiators: "d. radiatori",
   isolatedRadiantPanels: "e. pannelli radianti isolati dalle strutture",
   embeddedRadiantPanels: "f. pannelli radianti annegati nella struttura",
+  // Voce osservata sul portale, mantenuta nel contratto tecnico per non perdere
+  // il codice ENEA. Non è però una scelta official supportata finché il laboratorio
+  // non rappresenta anche l'eventuale informazione complementare richiesta da Altro.
+  other: "g. altro",
 } as const;
+
+export const ENEA_SUPPORTED_PLANT_TERMINALS = [
+  ENEA_PLANT_TERMINAL.thermoconvectors,
+  ENEA_PLANT_TERMINAL.fanCoils,
+  ENEA_PLANT_TERMINAL.hotAirOutlets,
+  ENEA_PLANT_TERMINAL.radiators,
+  ENEA_PLANT_TERMINAL.isolatedRadiantPanels,
+  ENEA_PLANT_TERMINAL.embeddedRadiantPanels,
+] as const;
 
 export const ENEA_ENERGY_CARRIER = {
   naturalGas: "a. gas metano",
@@ -64,10 +77,9 @@ export function plantTypeFromForm(value: ImpiantoTipo | ""): string {
 export function plantTerminalFromForm(value: Terminali | ""): string {
   if (value === "caloriferi") return ENEA_PLANT_TERMINAL.radiators;
   if (value === "riscaldamento_pavimento") return ENEA_PLANT_TERMINAL.embeddedRadiantPanels;
-  // Il CRM usa "split" come categoria propria, ma il portale osservato espone
-  // soltanto una voce generica "Altro" che richiede una riconciliazione non
-  // modellata dal laboratorio. Non deduciamo quindi un terminale ENEA: il campo
-  // resta fail-closed finché un operatore non verifica una voce rappresentabile.
+  // Il CRM usa "split" come categoria propria, ma la sola voce generica "Altro"
+  // non è una traduzione deterministica. Il campo resta quindi fail-closed finché
+  // un operatore non verifica una voce ENEA specificamente rappresentabile.
   if (value === "split") return "";
   return "";
 }

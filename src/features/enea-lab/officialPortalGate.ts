@@ -168,13 +168,11 @@ function hasConsistentOfficialPayload(mapped: EneaLabMappedPractice, payload: En
 }
 
 function parsedItalianNumber(value: string): number | null {
-  const normalized = value
-    .trim()
-    .replace(/\s/g, "")
-    .replace(/[^0-9,.-]/g, "")
+  const tokens = value.trim().match(/[+-]?\d+(?:[.,]\d+)*/g) ?? [];
+  if (tokens.length !== 1) return null;
+  const normalized = tokens[0]
     .replace(/\.(?=\d{3}(?:\D|$))/g, "")
     .replace(",", ".");
-  if (!/[0-9]/.test(normalized)) return null;
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
 }

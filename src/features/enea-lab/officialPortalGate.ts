@@ -1,7 +1,7 @@
 import { validateOperatorOverride } from "./operatorValidation";
 import { buildEneaPayload, validatePreparedPractice } from "./preparation";
 import { buildEneaOfficialPortalWorkflowScript, type EneaPortalWorkflowPreparation } from "./portalWorkflow";
-import { ENEA_SCREENING_TYPE } from "./screeningRules";
+import { ENEA_SCREENING_TYPE, screeningRules } from "./screeningRules";
 import type { EneaLabDocumentAnalysis, EneaLabMappedPractice, EneaLabPayload } from "./types";
 
 export type EneaOfficialPortalGateReason =
@@ -294,6 +294,49 @@ function hasValidCurrentScreeningDomains(mapped: EneaLabMappedPractice): boolean
       || validateOperatorOverride(field.id, field.value).valid);
 }
 
+function hasCurrentControlledScreeningRules(
+  mapped: EneaLabMappedPractice,
+  analysis: EneaLabDocumentAnalysis,
+): boolean {
+  const count = mappedScreeningCount(mapped);
+  if (count === null) return false;
+  const fields = new Map(
+    mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
+  );
+  const declaredItems = mapped.source.form.prodotto.tipo === "schermature"
+    ? mapped.source.form.prodotto.items
+    : [];
+
+  for (let index = 0; index < count; index += 1) {
+    const documented = analysis.items[index];
+    const rules = screeningRules(
+      declaredItems[index]?.tipo ?? "",
+      documented?.description ?? "",
+      documented?.gTot,
+    );
+    const expectedBySuffix: Record<string, string> = {
+      tipo: rules.type,
+      installazione: rules.installation,
+      modalita_calcolo: rules.calculation,
+      materiale: rules.material,
+      regolazione: rules.regulation,
+    };
+
+    for (const [suffix, expectedValue] of Object.entries(expectedBySuffix)) {
+      const field = fields.get(`schermature.${index}.${suffix}`);
+      if (field?.source !== "Regola controllata") continue;
+      if (
+        field.status !== "ready"
+        || field.testOnly
+        || !expectedValue
+        || field.value !== expectedValue
+      ) return false;
+    }
+  }
+
+  return true;
+}
+
 const DARKENING_CLOSURE_TYPES = new Set<string>([
   ENEA_SCREENING_TYPE.shutter,
   ENEA_SCREENING_TYPE.rollerShutter,
@@ -406,6 +449,14 @@ export function prepareEneaOfficialPortalCollaudo(
   // restare ready con un valore non previsto: il builder lo salterebbe e il
   // workflow official risulterebbe incompleto senza un blocker esplicito.
   if (!hasValidCurrentScreeningDomains(mapped)) {
+    return { status: "blocked", reason: "official-data-incomplete", workflow: null };
+  }
+
+  // I valori ancora attribuiti a una "Regola controllata" non sono override
+  // umani: devono quindi coincidere con la regola ricalcolata oggi sulle fonti
+  // correnti. Un tipo/materiale/meccanismo stale non può diventare ufficiale
+  // soltanto perché appartiene comunque al dominio ENEA ammesso.
+  if (!hasCurrentControlledScreeningRules(mapped, analysis)) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
 

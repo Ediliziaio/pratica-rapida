@@ -27,6 +27,7 @@ function readyMappedWithExpenseSource(
         else if (/\.dimensioni$/.test(field.id)) value = "1000 × 1000 mm";
         else if (/\.superficie(?:_finestrata)?$/.test(field.id)) value = "1,0 m²";
         else if (field.id === "schermature.spesa") value = expenseValue;
+        else if (field.id === "schermature.risparmio_energia") value = "100 kWh/anno";
         else if (/^(?:Non indicato|Intervento umano richiesto)$/i.test(value.trim())) value = "Valore verificato";
 
         return {

@@ -102,4 +102,28 @@ describe("gate ENEA: stagionalita del risparmio energetico", () => {
       workflow: null,
     });
   });
+
+  it("blocca un risparmio positivo non verificato manualmente", () => {
+    const { mapped, analysis } = readyMappedWithEnergy("solar", "311 kWh/anno");
+    const staleMapped = {
+      ...mapped,
+      sections: mapped.sections.map((section) => ({
+        ...section,
+        fields: section.fields.map((field) => field.id === "schermature.risparmio_energia"
+          ? { ...field, source: "Calcolo ENEA" as const }
+          : field),
+      })),
+    };
+    const issues = validatePreparedPractice(staleMapped.source, staleMapped, analysis);
+    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
+
+    const payload = buildEneaPayload(staleMapped, issues, "official", new Date("2026-08-14T04:00:00.000Z"));
+    expect(payload.readyForOfficialSubmission).toBe(true);
+
+    expect(prepareEneaOfficialPortalCollaudo(staleMapped, payload, true, analysis)).toEqual({
+      status: "blocked",
+      reason: "official-data-incomplete",
+      workflow: null,
+    });
+  });
 });

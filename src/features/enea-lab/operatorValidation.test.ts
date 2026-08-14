@@ -17,6 +17,8 @@ describe("validazione correzioni operatore", () => {
     expect(validateOperatorOverride("impianto.numero_generatori", "0").valid).toBe(false);
     expect(validateOperatorOverride("impianto.numero_generatori", "1,5").valid).toBe(false);
     expect(validateOperatorOverride("impianto.potenza", "0 kW").valid).toBe(false);
+    expect(validateOperatorOverride("schermature.0.rsupp", "0,08 x 2").valid).toBe(false);
+    expect(validateOperatorOverride("schermature.0.superficie", "2 x 9 m²").valid).toBe(false);
   });
 
   it("accetta e normalizza valori verificabili", () => {
@@ -30,6 +32,7 @@ describe("validazione correzioni operatore", () => {
     });
     expect(validateOperatorOverride("schermature.0.gtot", "0,13").valid).toBe(true);
     expect(validateOperatorOverride("schermature.0.superficie_finestrata", "2,9 m²").valid).toBe(true);
+    expect(validateOperatorOverride("schermature.spesa", "1.000 €").valid).toBe(true);
     expect(validateOperatorOverride("beneficiario.sesso", "f")).toEqual({ valid: true, value: "F" });
     expect(validateOperatorOverride("beneficiario.abitazione_principale", "si")).toEqual({ valid: true, value: "Sì" });
     expect(validateOperatorOverride("impianto.tipo", "A. IMPIANTO AUTONOMO")).toEqual({

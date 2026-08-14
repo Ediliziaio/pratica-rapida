@@ -1,8 +1,8 @@
 import type { EneaLabMappedPractice } from "./types";
 import {
   ENEA_ENERGY_CARRIER,
-  ENEA_PLANT_DISTRIBUTION,
-  ENEA_PLANT_REGULATION,
+  ENEA_PLANT_DISTRIBUTIONS,
+  ENEA_PLANT_REGULATIONS,
   ENEA_PLANT_TERMINAL,
   ENEA_PLANT_TYPE,
 } from "./plantRules";
@@ -31,20 +31,31 @@ const PLANT_TYPE_VALUES = {
   [ENEA_PLANT_TYPE.autonomo]: "26",
   [ENEA_PLANT_TYPE.centralizzato]: "27",
   [ENEA_PLANT_TYPE.centralizzatoConContabilizzazione]: "28",
+  [ENEA_PLANT_TYPE.centralizzatoPiuGeneratori]: "29",
+  [ENEA_PLANT_TYPE.centralizzatoPiuGeneratoriConContabilizzazione]: "30",
 } as const;
 
 const TERMINAL_VALUES = {
+  [ENEA_PLANT_TERMINAL.thermoconvectors]: "31",
+  [ENEA_PLANT_TERMINAL.fanCoils]: "32",
+  [ENEA_PLANT_TERMINAL.hotAirOutlets]: "33",
   [ENEA_PLANT_TERMINAL.radiators]: "34",
+  [ENEA_PLANT_TERMINAL.isolatedRadiantPanels]: "35",
   [ENEA_PLANT_TERMINAL.embeddedRadiantPanels]: "36",
   [ENEA_PLANT_TERMINAL.other]: "37",
 } as const;
 
 const DISTRIBUTION_VALUES = {
-  [ENEA_PLANT_DISTRIBUTION]: "40",
+  [ENEA_PLANT_DISTRIBUTIONS.internalColumns]: "38",
+  [ENEA_PLANT_DISTRIBUTIONS.uninsulatedColumnsInWalls]: "39",
+  [ENEA_PLANT_DISTRIBUTIONS.insulatedColumnsInWalls]: "40",
+  [ENEA_PLANT_DISTRIBUTIONS.horizontalOrRing]: "41",
 } as const;
 
 const REGULATION_VALUES = {
-  [ENEA_PLANT_REGULATION]: "44",
+  [ENEA_PLANT_REGULATIONS.centralized]: "42",
+  [ENEA_PLANT_REGULATIONS.terminal]: "43",
+  [ENEA_PLANT_REGULATIONS.roomOrZone]: "44",
 } as const;
 
 const ENERGY_CARRIER_VALUES = {
@@ -52,7 +63,9 @@ const ENERGY_CARRIER_VALUES = {
   [ENEA_ENERGY_CARRIER.diesel]: "46",
   [ENEA_ENERGY_CARRIER.lpg]: "47",
   [ENEA_ENERGY_CARRIER.districtHeating]: "48",
+  [ENEA_ENERGY_CARRIER.fuelOil]: "49",
   [ENEA_ENERGY_CARRIER.electricity]: "50",
+  [ENEA_ENERGY_CARRIER.biomass]: "51",
 } as const;
 
 const YES_NO_VALUES = {

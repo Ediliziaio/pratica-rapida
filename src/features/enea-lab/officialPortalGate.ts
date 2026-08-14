@@ -282,15 +282,6 @@ function hasManuallyVerifiedEligibleExpense(mapped: EneaLabMappedPractice): bool
     && positiveExpense(expense.value);
 }
 
-function hasValidCurrentReadyFields(mapped: EneaLabMappedPractice): boolean {
-  return mapped.sections
-    .flatMap((section) => section.fields)
-    .every((field) => field.status !== "ready"
-      || field.testOnly
-      || isInternalPlaceholder(field.value)
-      || validateOperatorOverride(field.id, field.value).valid);
-}
-
 function hasValidCurrentScreeningDomains(mapped: EneaLabMappedPractice): boolean {
   const domainField = /^schermature\.\d+\.(?:tipo|installazione|esposizione|modalita_calcolo|materiale|regolazione)$/;
   return mapped.sections
@@ -412,15 +403,6 @@ export function prepareEneaOfficialPortalCollaudo(
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
   if (!hasNoScreeningUndercount(mapped, analysis)) {
-    return { status: "blocked", reason: "official-data-incomplete", workflow: null };
-  }
-
-  // Prima di affidarsi ai builder delle singole pagine, ogni valore già
-  // dichiarato `ready` viene rivalidato con le regole note del laboratorio.
-  // Questo impedisce che un select/button fuori dominio (per esempio l'ambito
-  // dell'intervento) venga scartato silenziosamente dal builder lasciando però
-  // il payload formalmente pronto.
-  if (!hasValidCurrentReadyFields(mapped)) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
 

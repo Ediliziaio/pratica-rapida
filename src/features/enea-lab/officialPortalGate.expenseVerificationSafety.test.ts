@@ -19,7 +19,8 @@ function readyMappedWithExpenseSource(
       fields: section.fields.map((field) => {
         if (!field.required) return field;
         let value = field.value;
-        if (field.id === "intervento.data_inizio") value = "01/01/2026";
+        if (field.id === "beneficiario.sesso") value = "M";
+        else if (field.id === "intervento.data_inizio") value = "01/01/2026";
         else if (field.id === "intervento.data_fine") value = "02/01/2026";
         else if (field.id === "impianto.numero_generatori") value = "1";
         else if (field.id === "impianto.rendimento") value = "95";

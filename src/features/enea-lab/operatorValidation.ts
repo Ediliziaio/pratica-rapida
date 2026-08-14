@@ -35,11 +35,9 @@ const ENEA_SCREENING_EXPOSURES = [
 ] as const;
 
 function parseItalianNumber(value: string): number | null {
-  if (!/\d/.test(value)) return null;
-  const normalized = value
-    .trim()
-    .replace(/\s/g, "")
-    .replace(/[^0-9,.-]/g, "")
+  const tokens = value.trim().match(/[+-]?\d+(?:[.,]\d+)*/g) ?? [];
+  if (tokens.length !== 1) return null;
+  const normalized = tokens[0]
     .replace(/\.(?=\d{3}(?:\D|$))/g, "")
     .replace(",", ".");
   const parsed = Number(normalized);

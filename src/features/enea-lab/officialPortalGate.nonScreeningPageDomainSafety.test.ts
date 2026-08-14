@@ -80,4 +80,8 @@ describe("gate ENEA: domini discreti delle pagine non schermatura", () => {
   it("blocca un tipo impianto ready ma fuori dal dominio ENEA", () => {
     expectBlockedDomain("impianto.tipo", "Impianto non previsto");
   });
+
+  it("blocca un sesso beneficiario ready ma fuori dal dominio ENEA", () => {
+    expectBlockedDomain("beneficiario.sesso", "X");
+  });
 });

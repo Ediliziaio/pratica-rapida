@@ -57,8 +57,10 @@ function readyMappedWithRsupp(value: string) {
 describe("gate ENEA · formato Rsupp", () => {
   it("non deve concatenare due numeri separati da testo in una Rsupp apparentemente valida", () => {
     const malformed = "0,08 x 2";
-    expect(validateOperatorOverride("schermature.0.rsupp", malformed).valid).toBe(true);
+    expect(validateOperatorOverride("schermature.0.rsupp", malformed).valid).toBe(false);
 
+    // La barriera finale deve restare indipendente dalla validazione UI: anche
+    // un mapping costruito o alterato fuori dal percorso operatore viene bloccato.
     const { mapped, analysis } = readyMappedWithRsupp(malformed);
     const issues = validatePreparedPractice(mapped.source, mapped, analysis);
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);

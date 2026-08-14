@@ -6,6 +6,7 @@ import { buildEneaInterventionPortalScript } from "./portalIntervention";
 import { buildEneaPlantPortalScript } from "./portalPlant";
 import { buildEneaScreeningPortalScript } from "./portalScreening";
 import { buildEneaScreeningSummaryPortalScript } from "./portalScreeningSummary";
+import { ENEA_SCREENING_TYPE } from "./screeningRules";
 import {
   buildEneaPortalWorkflowRuntimeScript,
   type EneaPortalScriptOptions,
@@ -16,8 +17,15 @@ export interface EneaPortalWorkflowPreparation {
   script: string;
   supportedPages: string[];
   screeningItemCount: number;
-  mode: "test" | "official";
+  mode: "test" | "official" | "blocked";
 }
+
+const NORTHERN_EXPOSURES = new Set(["Nord", "Nord-Est", "Nord-Ovest"]);
+const NORTH_COMPATIBLE_TYPES = new Set<string>([
+  ENEA_SCREENING_TYPE.shutter,
+  ENEA_SCREENING_TYPE.rollerShutter,
+  ENEA_SCREENING_TYPE.otherDarkeningClosure,
+]);
 
 function screeningIndexes(mapped: EneaLabMappedPractice): number[] {
   const indexes = mapped.sections
@@ -27,6 +35,22 @@ function screeningIndexes(mapped: EneaLabMappedPractice): number[] {
       return match ? [Number(match[1])] : [];
     });
   return [...new Set(indexes)].sort((a, b) => a - b);
+}
+
+function hasCompatibleOfficialScreeningExposures(mapped: EneaLabMappedPractice): boolean {
+  const fields = new Map(
+    mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
+  );
+
+  return screeningIndexes(mapped).every((index) => {
+    const exposure = fields.get(`schermature.${index}.esposizione`);
+    if (exposure?.status !== "ready" || exposure.testOnly || !NORTHERN_EXPOSURES.has(exposure.value)) return true;
+
+    const type = fields.get(`schermature.${index}.tipo`);
+    return type?.status === "ready"
+      && !type.testOnly
+      && NORTH_COMPATIBLE_TYPES.has(type.value);
+  });
 }
 
 function step(id: string, runtime: EneaPortalScriptOptions): EneaPortalWorkflowStep {
@@ -80,5 +104,17 @@ export function buildEneaPortalWorkflowScript(
 export function buildEneaOfficialPortalWorkflowScript(
   mapped: EneaLabMappedPractice,
 ): EneaPortalWorkflowPreparation {
+  // ENEA ammette Nord/Nord-Est/Nord-Ovest per le chiusure oscuranti, non per
+  // le schermature solari. Il workflow ufficiale resta fail-closed anche se un
+  // valore manuale singolarmente valido viene abbinato a una tipologia
+  // incompatibile: in quel caso non viene generato alcuno script eseguibile.
+  if (!hasCompatibleOfficialScreeningExposures(mapped)) {
+    return {
+      script: "",
+      supportedPages: [],
+      screeningItemCount: 0,
+      mode: "blocked",
+    };
+  }
   return buildEneaPortalWorkflowScript(mapped, "official");
 }

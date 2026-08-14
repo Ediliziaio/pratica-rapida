@@ -36,6 +36,12 @@ const OFFICIAL_NUMERIC_FIELD_IDS = [
   "impianto.rendimento",
   "impianto.potenza",
 ] as const;
+const OFFICIAL_INTERVENTION_DOMAIN_FIELD_IDS = [
+  "intervento.ambito",
+  "intervento.accorpamenti",
+  "intervento.tipo",
+  "intervento.impianto_centralizzato",
+] as const;
 
 function screeningIndexes(mapped: EneaLabMappedPractice): number[] {
   const indexes = mapped.sections
@@ -118,6 +124,25 @@ function hasValidOfficialNumericValues(mapped: EneaLabMappedPractice): boolean {
   // La barriera vale sia per il generatore sia per immobile/intervento: così una
   // superficie stale come "2 x 9 m²" non può arrivare all'input ENEA.
   return OFFICIAL_NUMERIC_FIELD_IDS.every((fieldId) => {
+    const field = fields.get(fieldId);
+    return !field
+      || field.status !== "ready"
+      || field.testOnly
+      || validateOperatorOverride(fieldId, field.value).valid;
+  });
+}
+
+function hasValidOfficialInterventionDomains(mapped: EneaLabMappedPractice): boolean {
+  const fields = new Map(
+    mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
+  );
+
+  // I builder della pagina Intervento scartano correttamente un select/button
+  // che non appartiene al contratto ENEA osservato. Nel workflow ufficiale però
+  // quel comportamento non deve trasformarsi in una omissione silenziosa di un
+  // campo già dichiarato `ready`: prima di costruire lo script rivalidiamo i
+  // domini discreti della pagina con lo stesso validatore dell'operatore.
+  return OFFICIAL_INTERVENTION_DOMAIN_FIELD_IDS.every((fieldId) => {
     const field = fields.get(fieldId);
     return !field
       || field.status !== "ready"
@@ -220,6 +245,18 @@ export function buildEneaOfficialPortalWorkflowScript(
   // costruire il comando official rivalidiamo quindi qualsiasi valore ready:
   // una stringa ambigua non deve mai essere reinterpretata o inviata così com'è.
   if (!hasValidOfficialNumericValues(mapped)) {
+    return {
+      script: "",
+      supportedPages: [],
+      screeningItemCount: 0,
+      mode: "blocked",
+    };
+  }
+
+  // I select/button della pagina Intervento hanno domini discreti osservati.
+  // Un valore `ready` ma fuori dominio non deve essere semplicemente omesso dal
+  // builder: il workflow ufficiale deve fermarsi prima di produrre uno script.
+  if (!hasValidOfficialInterventionDomains(mapped)) {
     return {
       script: "",
       supportedPages: [],

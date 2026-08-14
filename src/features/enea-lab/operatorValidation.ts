@@ -34,6 +34,47 @@ const ENEA_SCREENING_EXPOSURES = [
   "P-orizzontale",
 ] as const;
 
+const ITALIAN_FISCAL_CODE_ODD_VALUES: Record<string, number> = {
+  0: 1,
+  1: 0,
+  2: 5,
+  3: 7,
+  4: 9,
+  5: 13,
+  6: 15,
+  7: 17,
+  8: 19,
+  9: 21,
+  A: 1,
+  B: 0,
+  C: 5,
+  D: 7,
+  E: 9,
+  F: 13,
+  G: 15,
+  H: 17,
+  I: 19,
+  J: 21,
+  K: 2,
+  L: 4,
+  M: 18,
+  N: 20,
+  O: 11,
+  P: 3,
+  Q: 6,
+  R: 8,
+  S: 12,
+  T: 14,
+  U: 16,
+  V: 10,
+  W: 22,
+  X: 25,
+  Y: 24,
+  Z: 23,
+};
+
+const ITALIAN_FISCAL_CODE_PERSONAL_PATTERN = /^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/;
+
 function parseItalianNumber(value: string): number | null {
   const tokens = value.trim().match(/[+-]?\d+(?:[.,]\d+)*/g) ?? [];
   if (tokens.length !== 1) return null;
@@ -58,6 +99,27 @@ function isValidDate(value: string): boolean {
   return date.getUTCFullYear() === year
     && date.getUTCMonth() === month - 1
     && date.getUTCDate() === day;
+}
+
+function hasValidItalianFiscalCodeControlCharacter(value: string): boolean {
+  if (!ITALIAN_FISCAL_CODE_PERSONAL_PATTERN.test(value)) return false;
+
+  let total = 0;
+  for (let index = 0; index < 15; index += 1) {
+    const character = value[index];
+    if ((index + 1) % 2 === 1) {
+      const oddValue = ITALIAN_FISCAL_CODE_ODD_VALUES[character];
+      if (oddValue === undefined) return false;
+      total += oddValue;
+      continue;
+    }
+
+    total += character >= "0" && character <= "9"
+      ? Number(character)
+      : character.charCodeAt(0) - "A".charCodeAt(0);
+  }
+
+  return String.fromCharCode("A".charCodeAt(0) + (total % 26)) === value[15];
 }
 
 function invalid(value: string, message: string): EneaLabOperatorValidation {
@@ -167,8 +229,14 @@ export function validateOperatorOverride(
 
   if (/^(?:beneficiario\.cf|beneficiario\.cointestatario_cf)$/.test(fieldId)) {
     const normalized = value.replace(/\s/g, "").toUpperCase();
-    if (!/^(?:[A-Z0-9]{16}|\d{11})$/.test(normalized)) {
-      return invalid(value, "Il codice fiscale deve avere 16 caratteri; per un soggetto IVA sono ammesse 11 cifre.");
+    if (/^\d{11}$/.test(normalized)) {
+      return { valid: true, value: normalized };
+    }
+    if (!hasValidItalianFiscalCodeControlCharacter(normalized)) {
+      return invalid(
+        value,
+        "Il codice fiscale personale deve avere struttura e carattere di controllo coerenti; per un soggetto IVA sono ammesse 11 cifre.",
+      );
     }
     return { valid: true, value: normalized };
   }

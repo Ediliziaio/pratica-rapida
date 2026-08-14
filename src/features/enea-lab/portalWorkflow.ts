@@ -36,11 +36,22 @@ const OFFICIAL_NUMERIC_FIELD_IDS = [
   "impianto.rendimento",
   "impianto.potenza",
 ] as const;
-const OFFICIAL_INTERVENTION_DOMAIN_FIELD_IDS = [
+const OFFICIAL_DISCRETE_DOMAIN_FIELD_IDS = [
+  "beneficiario.sesso",
+  "beneficiario.titolo",
+  "immobile.destinazione_generale",
+  "immobile.destinazione_particolare",
+  "immobile.tipologia",
   "intervento.ambito",
   "intervento.accorpamenti",
   "intervento.tipo",
   "intervento.impianto_centralizzato",
+  "impianto.tipo",
+  "impianto.terminali",
+  "impianto.distribuzione",
+  "impianto.regolazione",
+  "impianto.combustibile",
+  "impianto.condizionamento",
 ] as const;
 
 function screeningIndexes(mapped: EneaLabMappedPractice): number[] {
@@ -132,17 +143,17 @@ function hasValidOfficialNumericValues(mapped: EneaLabMappedPractice): boolean {
   });
 }
 
-function hasValidOfficialInterventionDomains(mapped: EneaLabMappedPractice): boolean {
+function hasValidOfficialDiscreteDomains(mapped: EneaLabMappedPractice): boolean {
   const fields = new Map(
     mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
   );
 
-  // I builder della pagina Intervento scartano correttamente un select/button
-  // che non appartiene al contratto ENEA osservato. Nel workflow ufficiale però
-  // quel comportamento non deve trasformarsi in una omissione silenziosa di un
-  // campo già dichiarato `ready`: prima di costruire lo script rivalidiamo i
-  // domini discreti della pagina con lo stesso validatore dell'operatore.
-  return OFFICIAL_INTERVENTION_DOMAIN_FIELD_IDS.every((fieldId) => {
+  // I builder delle pagine ENEA scartano correttamente select/button che non
+  // appartengono al contratto osservato. Nel workflow ufficiale quel comportamento
+  // non deve però trasformarsi nell'omissione silenziosa di un campo già `ready`:
+  // rivalidiamo quindi tutti i domini discreti noti di beneficiario, immobile,
+  // intervento e impianto prima di costruire lo script pre-portale.
+  return OFFICIAL_DISCRETE_DOMAIN_FIELD_IDS.every((fieldId) => {
     const field = fields.get(fieldId);
     return !field
       || field.status !== "ready"
@@ -253,10 +264,11 @@ export function buildEneaOfficialPortalWorkflowScript(
     };
   }
 
-  // I select/button della pagina Intervento hanno domini discreti osservati.
+  // I select/button delle pagine non-schermatura hanno domini discreti osservati.
   // Un valore `ready` ma fuori dominio non deve essere semplicemente omesso dal
-  // builder: il workflow ufficiale deve fermarsi prima di produrre uno script.
-  if (!hasValidOfficialInterventionDomains(mapped)) {
+  // builder né arrivare al runtime come scelta impossibile: il workflow ufficiale
+  // deve fermarsi prima di produrre uno script.
+  if (!hasValidOfficialDiscreteDomains(mapped)) {
     return {
       script: "",
       supportedPages: [],

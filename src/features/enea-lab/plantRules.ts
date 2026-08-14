@@ -40,7 +40,6 @@ export const ENEA_PLANT_TERMINAL = {
   radiators: "d. radiatori",
   isolatedRadiantPanels: "e. pannelli radianti isolati dalle strutture",
   embeddedRadiantPanels: "f. pannelli radianti annegati nella struttura",
-  other: "g. altro",
 } as const;
 
 export const ENEA_ENERGY_CARRIER = {
@@ -65,7 +64,11 @@ export function plantTypeFromForm(value: ImpiantoTipo | ""): string {
 export function plantTerminalFromForm(value: Terminali | ""): string {
   if (value === "caloriferi") return ENEA_PLANT_TERMINAL.radiators;
   if (value === "riscaldamento_pavimento") return ENEA_PLANT_TERMINAL.embeddedRadiantPanels;
-  if (value === "split") return ENEA_PLANT_TERMINAL.other;
+  // Il CRM usa "split" come categoria propria, ma il portale osservato espone
+  // soltanto una voce generica "Altro" che richiede una riconciliazione non
+  // modellata dal laboratorio. Non deduciamo quindi un terminale ENEA: il campo
+  // resta fail-closed finché un operatore non verifica una voce rappresentabile.
+  if (value === "split") return "";
   return "";
 }
 

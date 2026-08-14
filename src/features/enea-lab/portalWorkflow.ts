@@ -72,6 +72,30 @@ function hasCompatibleOfficialScreeningExposures(mapped: EneaLabMappedPractice):
   });
 }
 
+function hasValidOfficialScreeningRsupp(mapped: EneaLabMappedPractice): boolean {
+  const fields = mapped.sections.flatMap((section) => section.fields);
+
+  return screeningIndexes(mapped).every((index) => {
+    const field = fields.find((candidate) => candidate.id === `schermature.${index}.rsupp`);
+    if (!field || field.status !== "ready" || field.testOnly) return true;
+
+    const value = field.value.trim();
+    if (!value || /^(?:Non indicato|Intervento umano richiesto)$/i.test(value)) return true;
+    if (field.source !== "Inserimento operatore") return false;
+
+    // Non ripulire concatenando cifre separate da testo: "0,08 x 2" non deve
+    // diventare silenziosamente 0,082. La Rsupp è opzionale, ma se viene portata
+    // nel workflow ufficiale deve essere un singolo valore numerico verificato.
+    const tokens = value.match(/[+-]?\d+(?:[.,]\d+)*/g) ?? [];
+    if (tokens.length !== 1) return false;
+    const normalized = tokens[0]
+      .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+      .replace(",", ".");
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) && parsed >= 0;
+  });
+}
+
 function step(id: string, runtime: EneaPortalScriptOptions): EneaPortalWorkflowStep {
   return { id, ...runtime };
 }
@@ -147,5 +171,19 @@ export function buildEneaOfficialPortalWorkflowScript(
       mode: "blocked",
     };
   }
+
+  // Rsupp è un campo opzionale del portale osservato. Se però è presente nel
+  // mapping ufficiale, non deve essere normalizzato da una stringa ambigua né
+  // provenire da una fonte automatica: serve un singolo numero non negativo
+  // verificato esplicitamente dall'operatore.
+  if (!hasValidOfficialScreeningRsupp(mapped)) {
+    return {
+      script: "",
+      supportedPages: [],
+      screeningItemCount: 0,
+      mode: "blocked",
+    };
+  }
+
   return buildEneaPortalWorkflowScript(mapped, "official");
 }

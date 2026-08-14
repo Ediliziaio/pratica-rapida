@@ -19,6 +19,7 @@ describe("validazione correzioni operatore", () => {
     expect(validateOperatorOverride("impianto.potenza", "0 kW").valid).toBe(false);
     expect(validateOperatorOverride("schermature.0.rsupp", "0,08 x 2").valid).toBe(false);
     expect(validateOperatorOverride("schermature.0.superficie", "2 x 9 m²").valid).toBe(false);
+    expect(validateOperatorOverride("beneficiario.cf", "RSSMRA80A01H501X").valid).toBe(false);
   });
 
   it("accetta e normalizza valori verificabili", () => {

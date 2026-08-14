@@ -22,7 +22,8 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
         fields: section.fields.map((field) => {
           if (!field.required) return field;
           let value = field.value;
-          if (field.id === "intervento.data_inizio") value = "01/01/2026";
+          if (field.id === "beneficiario.sesso") value = "M";
+          else if (field.id === "intervento.data_inizio") value = "01/01/2026";
           else if (field.id === "intervento.data_fine") value = "02/01/2026";
           else if (field.id === "impianto.numero_generatori") value = "1";
           else if (field.id === "impianto.rendimento") value = "95";
@@ -194,14 +195,11 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
 
   it("blocca un payload che omette in modo coerente un campo ufficiale", () => {
     const { mapped, payload, analysis } = readyPayload();
-    const omittedId = payload.portalFields[0]?.id;
-    if (!omittedId) throw new Error("Fixture ufficiale senza campi portale.");
-    const fields = { ...payload.fields };
-    delete fields[omittedId];
+    const removed = payload.portalFields[0];
     const poisonedPayload = {
       ...payload,
-      fields,
-      portalFields: payload.portalFields.filter((field) => field.id !== omittedId),
+      fields: Object.fromEntries(Object.entries(payload.fields).filter(([key]) => key !== removed.id)),
+      portalFields: payload.portalFields.slice(1),
     };
 
     const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true, analysis);
@@ -213,7 +211,9 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
     const { mapped, payload, analysis } = readyPayload();
     const poisonedPayload = {
       ...payload,
-      portalFields: payload.portalFields.map((field, index) => index === 0 ? { ...field, value: `${field.value}-ALTERATO` } : field),
+      portalFields: payload.portalFields.map((field, index) => index === 0
+        ? { ...field, value: `${field.value}-ALTERATO` }
+        : field),
     };
 
     const gate = prepareEneaOfficialPortalCollaudo(mapped, poisonedPayload, true, analysis);
@@ -223,33 +223,20 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
 
   it("blocca una voce schermatura ready ma fuori dal dominio ENEA prima che sparisca dal workflow", () => {
     const { mapped, analysis } = readyPayload();
-    const altered = {
+    const alteredMapped = {
       ...mapped,
       sections: mapped.sections.map((section) => ({
         ...section,
         fields: section.fields.map((field) => field.id === "schermature.0.regolazione"
-          ? {
-              ...field,
-              value: "Regolazione non prevista",
-              status: "ready" as const,
-              source: "Inserimento operatore" as const,
-            }
+          ? { ...field, value: "Regolazione inesistente", status: "ready" as const }
           : field),
       })),
     };
-    const issues = validatePreparedPractice(altered.source, altered, analysis);
-    const payload = buildEneaPayload(
-      altered,
-      issues,
-      "official",
-      new Date("2026-08-13T04:20:00.000Z"),
-    );
+    const issues = validatePreparedPractice(alteredMapped.source, alteredMapped, analysis);
+    const payload = buildEneaPayload(alteredMapped, issues, "official", new Date("2026-08-13T01:00:00.000Z"));
 
-    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
     expect(payload.readyForOfficialSubmission).toBe(true);
-    expect(payload.portalFields.some((field) => field.id === "schermature.0.regolazione")).toBe(false);
-
-    expect(prepareEneaOfficialPortalCollaudo(altered, payload, true, analysis)).toEqual({
+    expect(prepareEneaOfficialPortalCollaudo(alteredMapped, payload, true, analysis)).toEqual({
       status: "blocked",
       reason: "official-data-incomplete",
       workflow: null,

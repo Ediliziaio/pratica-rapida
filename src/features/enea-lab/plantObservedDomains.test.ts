@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { mapSchermaturaPractice } from "./mapper";
 import { ENEA_LAB_MOCK_ANALYSIS, ENEA_LAB_MOCK_PRACTICES } from "./mockPractices";
 import { validateOperatorOverride } from "./operatorValidation";
+import { ENEA_PLANT_TERMINAL } from "./plantRules";
 import { buildEneaPlantPortalScript } from "./portalPlant";
 
 describe("domini impianto osservati sul portale ENEA 2026", () => {
@@ -25,6 +26,35 @@ describe("domini impianto osservati sul portale ENEA 2026", () => {
     for (const [fieldId, value] of cases) {
       expect(validateOperatorOverride(fieldId, value)).toEqual({ valid: true, value });
     }
+  });
+
+  it("non tratta la voce generica Altro come terminale ufficiale verificabile", () => {
+    expect(validateOperatorOverride("impianto.terminali", "g. altro").valid).toBe(false);
+  });
+
+  it("lascia lo split fail-closed e correggibile con un terminale ENEA specifico", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.impianto.terminali = "split";
+
+    const mapped = mapSchermaturaPractice(source);
+    const terminal = mapped.sections.flatMap((section) => section.fields)
+      .find((field) => field.id === "impianto.terminali");
+    expect(terminal).toMatchObject({
+      value: "Intervento umano richiesto",
+      source: "Regola controllata",
+      status: "missing",
+      editable: true,
+    });
+
+    const reconciled = mapSchermaturaPractice(source, undefined, {
+      overrides: { "impianto.terminali": ENEA_PLANT_TERMINAL.fanCoils },
+    });
+    expect(reconciled.sections.flatMap((section) => section.fields)
+      .find((field) => field.id === "impianto.terminali")).toMatchObject({
+      value: ENEA_PLANT_TERMINAL.fanCoils,
+      source: "Inserimento operatore",
+      status: "ready",
+    });
   });
 
   it("lascia correggere distribuzione e regolazione nel laboratorio senza renderle automatiche", () => {

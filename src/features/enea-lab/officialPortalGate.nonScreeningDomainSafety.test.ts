@@ -16,7 +16,9 @@ function readyFixture() {
       fields: section.fields.map((field) => {
         if (!field.required) return field;
         let value = field.value;
-        if (field.id === "intervento.data_inizio") value = "01/01/2026";
+        if (field.id === "beneficiario.cf") value = "RSSMRA80A01H501U";
+        else if (field.id === "beneficiario.sesso") value = "M";
+        else if (field.id === "intervento.data_inizio") value = "01/01/2026";
         else if (field.id === "intervento.data_fine") value = "02/01/2026";
         else if (field.id === "impianto.numero_generatori") value = "1";
         else if (field.id === "impianto.rendimento") value = "95";
@@ -39,7 +41,21 @@ function readyFixture() {
   return { mapped, analysis };
 }
 
+function prepare(mapped: ReturnType<typeof readyFixture>["mapped"], analysis: ReturnType<typeof readyFixture>["analysis"]) {
+  const issues = validatePreparedPractice(mapped.source, mapped, analysis);
+  const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-14T16:00:00.000Z"));
+  return { issues, payload, gate: prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis) };
+}
+
 describe("gate ENEA: domini non schermatura", () => {
+  it("parte da una fixture realmente pronta al collaudo", () => {
+    const { mapped, analysis } = readyFixture();
+    const { issues, payload, gate } = prepare(mapped, analysis);
+    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
+    expect(payload.readyForOfficialSubmission).toBe(true);
+    expect(gate.status).toBe("ready");
+  });
+
   it("blocca un ambito intervento ready ma fuori dal dominio prima che sparisca dal workflow", () => {
     const { mapped, analysis } = readyFixture();
     const altered = {
@@ -57,14 +73,12 @@ describe("gate ENEA: domini non schermatura", () => {
           : field),
       })),
     };
-    const issues = validatePreparedPractice(altered.source, altered, analysis);
-    const payload = buildEneaPayload(altered, issues, "official", new Date("2026-08-14T16:00:00.000Z"));
+    const { issues, payload, gate } = prepare(altered, analysis);
 
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
     expect(payload.readyForOfficialSubmission).toBe(true);
     expect(payload.portalFields.some((field) => field.id === "intervento.ambito")).toBe(false);
-
-    expect(prepareEneaOfficialPortalCollaudo(altered, payload, true, analysis)).toEqual({
+    expect(gate).toEqual({
       status: "blocked",
       reason: "payload-inconsistent",
       workflow: null,

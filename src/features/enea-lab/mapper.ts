@@ -606,13 +606,13 @@ export function mapSchermaturaPractice(
       }),
       mappedField("impianto.distribuzione", "Tipo di distribuzione", ENEA_PLANT_DISTRIBUTION, {
         source: "Regola controllata",
-        editable: false,
-        note: "Regola operativa PraticaRapida: selezionare sempre la voce C.",
+        editable: true,
+        note: "Campo ENEA facoltativo: la regola generica non viene compilata nel workflow ufficiale. Correggere solo dopo verifica documentale o dell'operatore.",
       }),
       mappedField("impianto.regolazione", "Tipo di regolazione", ENEA_PLANT_REGULATION, {
         source: "Regola controllata",
-        editable: false,
-        note: "Regola operativa PraticaRapida: selezionare sempre Ad ambiente o zona.",
+        editable: true,
+        note: "Campo ENEA facoltativo: la regola generica non viene compilata nel workflow ufficiale. Correggere solo dopo verifica documentale o dell'operatore.",
       }),
       mappedField("impianto.generatore", "Tipo generatore", form.impianto.tipo_caldaia ? CALDAIA_LABELS[form.impianto.tipo_caldaia] : ""),
       mappedField("impianto.numero_generatori", "Numero generatori", form.impianto.tipo_caldaia ? "1" : "", {

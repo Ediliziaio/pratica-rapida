@@ -27,6 +27,21 @@ describe("domini impianto osservati sul portale ENEA 2026", () => {
     }
   });
 
+  it("lascia correggere distribuzione e regolazione nel laboratorio senza renderle automatiche", () => {
+    const source = ENEA_LAB_MOCK_PRACTICES[0];
+    const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id]);
+    const fields = mapped.sections.flatMap((section) => section.fields);
+
+    expect(fields.find((field) => field.id === "impianto.distribuzione")).toMatchObject({
+      editable: true,
+      source: "Regola controllata",
+    });
+    expect(fields.find((field) => field.id === "impianto.regolazione")).toMatchObject({
+      editable: true,
+      source: "Regola controllata",
+    });
+  });
+
   it("porta distribuzione e regolazione osservate nel workflow solo dopo override operatore", () => {
     const source = ENEA_LAB_MOCK_PRACTICES[0];
     const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id], {

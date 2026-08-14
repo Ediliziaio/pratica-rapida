@@ -32,7 +32,7 @@ describe("domini impianto osservati sul portale ENEA 2026", () => {
     expect(validateOperatorOverride("impianto.terminali", "g. altro").valid).toBe(false);
   });
 
-  it("lascia lo split fail-closed e correggibile con un terminale ENEA specifico", () => {
+  it("lascia lo split fail-closed invece di tradurlo automaticamente in Altro", () => {
     const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
     source.form.impianto.terminali = "split";
 
@@ -43,7 +43,6 @@ describe("domini impianto osservati sul portale ENEA 2026", () => {
       value: "Intervento umano richiesto",
       source: "Regola controllata",
       status: "missing",
-      editable: true,
     });
 
     const reconciled = mapSchermaturaPractice(source, undefined, {

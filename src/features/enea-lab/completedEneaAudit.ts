@@ -232,7 +232,8 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   const uniqueScreeningOrdinals = new Set(screeningOrdinals);
   const uniqueParsedScreeningOrdinals = new Set(parsedScreeningOrdinals);
   const orderedScreeningOrdinals = [...uniqueScreeningOrdinals].sort((left, right) => left - right);
-  const screeningStructureValid = screeningOrdinals.length === uniqueScreeningOrdinals.size
+  const screeningStructureValid = screeningOrdinals.length > 0
+    && screeningOrdinals.length === uniqueScreeningOrdinals.size
     && orderedScreeningOrdinals.every((ordinal, index) => ordinal === index + 1)
     && uniqueParsedScreeningOrdinals.size === uniqueScreeningOrdinals.size
     && orderedScreeningOrdinals.every((ordinal) => uniqueParsedScreeningOrdinals.has(ordinal));

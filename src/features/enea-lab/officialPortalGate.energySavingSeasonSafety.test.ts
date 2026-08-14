@@ -87,4 +87,19 @@ describe("gate ENEA: stagionalita del risparmio energetico", () => {
     expect(payload.readyForOfficialSubmission).toBe(true);
     expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis).status).toBe("ready");
   });
+
+  it("non tratta un valore testuale senza cifre come se fosse zero", () => {
+    const { mapped, analysis } = readyMappedWithEnergy("solar", "Valore verificato");
+    const issues = validatePreparedPractice(mapped.source, mapped, analysis);
+    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
+
+    const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-14T04:00:00.000Z"));
+    expect(payload.readyForOfficialSubmission).toBe(true);
+
+    expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis)).toEqual({
+      status: "blocked",
+      reason: "official-data-incomplete",
+      workflow: null,
+    });
+  });
 });

@@ -308,10 +308,11 @@ function hasSeasonallyValidEnergySaving(mapped: EneaLabMappedPractice): boolean 
   const parsedEnergy = energy ? parsedItalianNumber(energy.value) : null;
   if (energy?.status !== "ready" || energy.testOnly || parsedEnergy === null || parsedEnergy < 0) return false;
 
-  // Un valore positivo è comunque una stima esplicita da verificare nel flusso
-  // ordinario. Il caso pericoloso è lo zero: ENEA lo ammette soltanto quando
-  // manca l'impianto pertinente alla stagione dell'intervento.
-  if (parsedEnergy > 0) return true;
+  // Un valore positivo non è derivabile dal CRM corrente: prima del collaudo
+  // deve quindi provenire da una verifica esplicita dell'operatore. In questo
+  // modo un mapping stale o alterato non può trasformare una vecchia stima in
+  // un dato ufficiale soltanto mantenendo status=ready.
+  if (parsedEnergy > 0) return energy.source === "Inserimento operatore";
 
   let hasDarkeningClosure = false;
   for (let index = 0; index < count; index += 1) {
@@ -410,8 +411,8 @@ export function prepareEneaOfficialPortalCollaudo(
 
   // Lo zero del risparmio energetico è stagionale: per una schermatura solare
   // dipende dall'assenza del raffrescamento, mentre una chiusura oscurante
-  // richiede l'assenza del riscaldamento. L'ultima barriera non accetta quindi
-  // uno zero manuale o stale basato sull'impianto sbagliato.
+  // richiede l'assenza del riscaldamento. I valori positivi, non derivabili dal
+  // CRM corrente, devono invece essere stati verificati esplicitamente.
   if (!hasSeasonallyValidEnergySaving(mapped)) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }

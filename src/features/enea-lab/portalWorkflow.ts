@@ -126,6 +126,55 @@ function hasValidOfficialNumericValues(mapped: EneaLabMappedPractice): boolean {
   });
 }
 
+function parsedOfficialDate(value: string): number | null {
+  const italian = value.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const iso = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const parts = italian
+    ? [Number(italian[3]), Number(italian[2]), Number(italian[1])]
+    : iso
+      ? [Number(iso[1]), Number(iso[2]), Number(iso[3])]
+      : null;
+  if (!parts) return null;
+  const [year, month, day] = parts;
+  const timestamp = Date.UTC(year, month - 1, day);
+  const date = new Date(timestamp);
+  if (
+    date.getUTCFullYear() !== year
+    || date.getUTCMonth() !== month - 1
+    || date.getUTCDate() !== day
+  ) return null;
+  return timestamp;
+}
+
+function hasChronologicalOfficialInterventionDates(mapped: EneaLabMappedPractice): boolean {
+  const fields = new Map(
+    mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
+  );
+  const start = fields.get("intervento.data_inizio");
+  const end = fields.get("intervento.data_fine");
+
+  // I builder vengono usati anche da test su mapping parziali: la presenza dei
+  // campi resta responsabilità del gate generale. Quando entrambe le date sono
+  // pronte per il portale official, però, devono essere date reali e l'inizio
+  // non può essere successivo alla fine dell'intervento.
+  if (
+    !start
+    || !end
+    || start.status !== "ready"
+    || end.status !== "ready"
+    || start.testOnly
+    || end.testOnly
+  ) return true;
+  if (!validateOperatorOverride(start.id, start.value).valid) return false;
+  if (!validateOperatorOverride(end.id, end.value).valid) return false;
+
+  const startTimestamp = parsedOfficialDate(start.value);
+  const endTimestamp = parsedOfficialDate(end.value);
+  return startTimestamp !== null
+    && endTimestamp !== null
+    && startTimestamp <= endTimestamp;
+}
+
 function step(id: string, runtime: EneaPortalScriptOptions): EneaPortalWorkflowStep {
   return { id, ...runtime };
 }
@@ -220,6 +269,18 @@ export function buildEneaOfficialPortalWorkflowScript(
   // costruire il comando official rivalidiamo quindi qualsiasi valore ready:
   // una stringa ambigua non deve mai essere reinterpretata o inviata così com'è.
   if (!hasValidOfficialNumericValues(mapped)) {
+    return {
+      script: "",
+      supportedPages: [],
+      screeningItemCount: 0,
+      mode: "blocked",
+    };
+  }
+
+  // La validazione dei singoli campi non cattura una coppia di date entrambe
+  // formalmente valide ma cronologicamente impossibile. L'ultima barriera deve
+  // quindi impedire che l'inizio lavori cada dopo la fine lavori.
+  if (!hasChronologicalOfficialInterventionDates(mapped)) {
     return {
       script: "",
       supportedPages: [],

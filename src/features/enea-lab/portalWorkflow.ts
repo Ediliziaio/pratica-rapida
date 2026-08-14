@@ -37,7 +37,6 @@ const OFFICIAL_NUMERIC_FIELD_IDS = [
   "impianto.potenza",
 ] as const;
 const OFFICIAL_DISCRETE_DOMAIN_FIELD_IDS = [
-  "beneficiario.sesso",
   "beneficiario.titolo",
   "immobile.destinazione_generale",
   "immobile.destinazione_particolare",
@@ -151,8 +150,8 @@ function hasValidOfficialDiscreteDomains(mapped: EneaLabMappedPractice): boolean
   // I builder delle pagine ENEA scartano correttamente select/button che non
   // appartengono al contratto osservato. Nel workflow ufficiale quel comportamento
   // non deve però trasformarsi nell'omissione silenziosa di un campo già `ready`:
-  // rivalidiamo quindi tutti i domini discreti noti di beneficiario, immobile,
-  // intervento e impianto prima di costruire lo script pre-portale.
+  // rivalidiamo quindi i domini discreti osservati di immobile, intervento e
+  // impianto prima di costruire lo script pre-portale.
   return OFFICIAL_DISCRETE_DOMAIN_FIELD_IDS.every((fieldId) => {
     const field = fields.get(fieldId);
     return !field

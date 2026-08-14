@@ -47,8 +47,10 @@ function readyMappedWithGlazedSurface(value: string) {
 describe("gate ENEA · formato numerico superfici", () => {
   it("non deve trasformare due numeri separati da testo in una superficie unica", () => {
     const malformed = "2 x 9 m²";
-    expect(validateOperatorOverride("schermature.0.superficie_finestrata", malformed).valid).toBe(true);
+    expect(validateOperatorOverride("schermature.0.superficie_finestrata", malformed).valid).toBe(false);
 
+    // Anche bypassando la validazione UI e costruendo direttamente un mapping
+    // ready, l'ultima barriera deve continuare a rifiutare il valore ambiguo.
     const { mapped, analysis } = readyMappedWithGlazedSurface(malformed);
     const issues = validatePreparedPractice(mapped.source, mapped, analysis);
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);

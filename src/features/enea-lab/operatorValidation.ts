@@ -31,6 +31,7 @@ const ENEA_SCREENING_EXPOSURES = [
   "Nord",
   "Nord-Est",
   "Nord-Ovest",
+  "P-orizzontale",
 ] as const;
 
 function parseItalianNumber(value: string): number | null {
@@ -162,7 +163,7 @@ export function validateOperatorOverride(
     return allowedValue(
       value,
       ENEA_SCREENING_EXPOSURES,
-      "L'esposizione deve essere una delle otto direzioni previste da ENEA; le direzioni nord sono ammesse solo per chiusure oscuranti compatibili.",
+      "L'esposizione deve essere una delle orientazioni previste da ENEA; le direzioni nord sono ammesse solo per chiusure oscuranti compatibili.",
     );
   }
 

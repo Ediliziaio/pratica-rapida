@@ -35,6 +35,10 @@ const PLANT_TYPE_VALUES = {
   [ENEA_PLANT_TYPE.centralizzatoPiuGeneratoriConContabilizzazione]: "30",
 } as const;
 
+// Valore osservato nel DOM ENEA: il builder conserva il contratto del portale,
+// ma l'official gate lo accetta soltanto se il dominio applicativo lo supporta.
+const OBSERVED_OTHER_TERMINAL = "g. altro";
+
 const TERMINAL_VALUES = {
   [ENEA_PLANT_TERMINAL.thermoconvectors]: "31",
   [ENEA_PLANT_TERMINAL.fanCoils]: "32",
@@ -42,7 +46,7 @@ const TERMINAL_VALUES = {
   [ENEA_PLANT_TERMINAL.radiators]: "34",
   [ENEA_PLANT_TERMINAL.isolatedRadiantPanels]: "35",
   [ENEA_PLANT_TERMINAL.embeddedRadiantPanels]: "36",
-  [ENEA_PLANT_TERMINAL.other]: "37",
+  [OBSERVED_OTHER_TERMINAL]: "37",
 } as const;
 
 const DISTRIBUTION_VALUES = {

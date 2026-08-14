@@ -6,7 +6,7 @@ import type { EneaLabSourcePractice } from "./types";
 
 export function useDocumentAnalysis(practice: EneaLabSourcePractice | undefined) {
   const preview = import.meta.env.DEV && window.location.pathname === "/admin/enea-lab-preview";
-  return useQuery({
+  const query = useQuery({
     queryKey: [
       "enea-lab",
       "document-analysis",
@@ -29,4 +29,10 @@ export function useDocumentAnalysis(practice: EneaLabSourcePractice | undefined)
     refetchOnWindowFocus: "always",
     retry: 1,
   });
+
+  // React Query conserva il dato precedente durante un refetch. Per il flusso
+  // ufficiale ENEA quel dato non e una ground truth corrente: mentre una fattura
+  // viene riletta, il laboratorio deve quindi tornare temporaneamente fail-closed
+  // invece di continuare a esporre l'analisi in cache come se fosse gia verificata.
+  return query.isFetching ? { ...query, data: undefined } : query;
 }

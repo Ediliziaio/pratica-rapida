@@ -84,6 +84,7 @@ describe("audit storico ENEA - PDF conclusivo 2026 osservato", () => {
     expect(snapshot.fields["impianto.rendimento"]).toBe("94.8");
     expect(snapshot.fields["impianto.potenza"]).toBe("24.1");
     expect(snapshot.fields["schermature.0.superficie"]).toBe("3.7");
+    expect(snapshot.fields["schermature.0.rsupp"]).toBe("0.08");
     expect(snapshot.fields["schermature.4.superficie_finestrata"]).toBe("0.3");
     expect(snapshot.fields["schermature.4.gtot"]).toBe("0.13");
     expect(snapshot.fields["schermature.spesa"]).toBe("13924");

@@ -18,11 +18,11 @@ describe("regole impianto termico esistente ENEA", () => {
       .toBe(ENEA_PLANT_TYPE.centralizzatoConContabilizzazione);
   });
 
-  it("traduce i terminali secondo la convenzione operativa", () => {
+  it("traduce solo i terminali rappresentabili senza campi Altro", () => {
     expect(plantTerminalFromForm("caloriferi")).toBe(ENEA_PLANT_TERMINAL.radiators);
     expect(plantTerminalFromForm("riscaldamento_pavimento"))
       .toBe(ENEA_PLANT_TERMINAL.embeddedRadiantPanels);
-    expect(plantTerminalFromForm("split")).toBe(ENEA_PLANT_TERMINAL.other);
+    expect(plantTerminalFromForm("split")).toBe("");
   });
 
   it("mantiene fisse distribuzione C e regolazione ad ambiente o zona", () => {

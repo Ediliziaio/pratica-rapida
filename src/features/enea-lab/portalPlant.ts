@@ -60,6 +60,16 @@ const YES_NO_VALUES = {
   No: "N",
 } as const;
 
+// Lo snapshot DOM ENEA 2026 marca distribuzione e regolazione come campi non
+// obbligatori, e il PDF conclusivo storico disponibile li lascia entrambi vuoti.
+// Finché il CRM non contiene una fonte reale per questi due dati, una regola
+// generica non deve trasformarsi in una compilazione ufficiale. Restano però
+// compilabili quando il valore è stato verificato esplicitamente dall'operatore.
+const MANUAL_ONLY_OPTIONAL_PLANT_FIELD_IDS = new Set([
+  "impianto.distribuzione",
+  "impianto.regolazione",
+]);
+
 /** Identificativi e valori osservati sulla pagina "Impianto termico esistente" ENEA 2026. */
 export const ENEA_PLANT_PORTAL_FIELDS: readonly PlantPortalFieldDefinition[] = [
   { fieldId: "impianto.tipo", portalId: "id-impianto", control: "select", selectValues: PLANT_TYPE_VALUES },
@@ -85,6 +95,10 @@ export function buildEneaPlantPortalScript(
       || field.testOnly
       || field.value === "Non indicato"
       || field.value === "Intervento umano richiesto"
+      || (
+        MANUAL_ONLY_OPTIONAL_PLANT_FIELD_IDS.has(definition.fieldId)
+        && field.source !== "Inserimento operatore"
+      )
     ) return [];
     const selectValue = definition.selectValues?.[field.value];
     if (definition.control === "select" && definition.selectValues && !selectValue) return [];

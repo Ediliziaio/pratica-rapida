@@ -57,9 +57,12 @@ describe("gate ENEA · formato numerico generatore", () => {
     const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-14T12:30:00.000Z"));
     expect(payload.readyForOfficialSubmission).toBe(true);
 
+    // La barriera indipendente vive nel builder official: quando il gate tenta
+    // di materializzare il workflow, il pacchetto non è più serializzabile e
+    // viene quindi rifiutato come incoerente invece di produrre id-pn=252.
     expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis)).toEqual({
       status: "blocked",
-      reason: "official-data-incomplete",
+      reason: "payload-inconsistent",
       workflow: null,
     });
   });

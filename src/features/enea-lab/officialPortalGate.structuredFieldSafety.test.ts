@@ -3,6 +3,7 @@ import { mapSchermaturaPractice } from "./mapper";
 import { ENEA_LAB_MOCK_ANALYSIS, ENEA_LAB_MOCK_PRACTICES } from "./mockPractices";
 import { prepareEneaOfficialPortalCollaudo } from "./officialPortalGate";
 import { buildEneaPayload, validatePreparedPractice } from "./preparation";
+import { buildEneaOfficialPortalWorkflowScript } from "./portalWorkflow";
 
 function readyFixture() {
   const source = ENEA_LAB_MOCK_PRACTICES[0];
@@ -87,17 +88,29 @@ describe("gate ENEA: formati strutturati delle pagine non schermatura", () => {
     });
   });
 
-  it("blocca date intervento singolarmente valide ma in ordine cronologico inverso", () => {
+  it("mantiene fail-closed le date intervento in ordine cronologico inverso a ogni barriera", () => {
     const { mapped, analysis } = readyFixture();
     const withLateStart = alterReadyField(mapped, "intervento.data_inizio", "03/01/2026");
     const altered = alterReadyField(withLateStart, "intervento.data_fine", "02/01/2026");
     const { issues, payload, gate } = officialGate(altered, analysis);
-    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
-    expect(payload.readyForOfficialSubmission).toBe(true);
+
+    expect(issues).toContainEqual(expect.objectContaining({
+      code: "start-after-finish",
+      fieldId: "intervento.data_inizio",
+      severity: "blocker",
+    }));
+    expect(payload.readyForOfficialSubmission).toBe(false);
     expect(gate).toEqual({
       status: "blocked",
-      reason: "payload-inconsistent",
+      reason: "official-data-incomplete",
       workflow: null,
+    });
+
+    // Difesa indipendente: anche chi invoca direttamente il builder official,
+    // saltando preparation/gate, non deve ottenere uno script con date invertite.
+    expect(buildEneaOfficialPortalWorkflowScript(altered)).toMatchObject({
+      mode: "blocked",
+      script: "",
     });
   });
 });

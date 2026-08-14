@@ -36,6 +36,15 @@ const OFFICIAL_NUMERIC_FIELD_IDS = [
   "impianto.rendimento",
   "impianto.potenza",
 ] as const;
+const OFFICIAL_STRUCTURED_FIELD_IDS = [
+  "beneficiario.cf",
+  "beneficiario.data_nascita",
+  "beneficiario.cap_residenza",
+  "beneficiario.telefono",
+  "immobile.cap",
+  "intervento.data_inizio",
+  "intervento.data_fine",
+] as const;
 const OFFICIAL_DISCRETE_DOMAIN_FIELD_IDS = [
   "beneficiario.titolo",
   "beneficiario.sesso",
@@ -135,6 +144,24 @@ function hasValidOfficialNumericValues(mapped: EneaLabMappedPractice): boolean {
   // La barriera vale sia per il generatore sia per immobile/intervento: così una
   // superficie stale come "2 x 9 m²" non può arrivare all'input ENEA.
   return OFFICIAL_NUMERIC_FIELD_IDS.every((fieldId) => {
+    const field = fields.get(fieldId);
+    return !field
+      || field.status !== "ready"
+      || field.testOnly
+      || validateOperatorOverride(fieldId, field.value).valid;
+  });
+}
+
+function hasValidOfficialStructuredValues(mapped: EneaLabMappedPractice): boolean {
+  const fields = new Map(
+    mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
+  );
+
+  // Alcuni input testuali hanno un formato ENEA deterministico (CF, date, CAP,
+  // telefono). Se un mapping stale li marca `ready`, i builder di pagina li
+  // copierebbero così come sono. Il workflow official li rivalida quindi con la
+  // stessa regola dell'inserimento operatore prima di generare qualsiasi script.
+  return OFFICIAL_STRUCTURED_FIELD_IDS.every((fieldId) => {
     const field = fields.get(fieldId);
     return !field
       || field.status !== "ready"
@@ -256,6 +283,18 @@ export function buildEneaOfficialPortalWorkflowScript(
   // costruire il comando official rivalidiamo quindi qualsiasi valore ready:
   // una stringa ambigua non deve mai essere reinterpretata o inviata così com'è.
   if (!hasValidOfficialNumericValues(mapped)) {
+    return {
+      script: "",
+      supportedPages: [],
+      screeningItemCount: 0,
+      mode: "blocked",
+    };
+  }
+
+  // Anche gli input testuali con formato noto vengono rivalidati nell'ultima
+  // barriera. In particolare un CF, CAP, telefono o data diventati stale non
+  // possono essere copiati nel comando official solo perché risultano `ready`.
+  if (!hasValidOfficialStructuredValues(mapped)) {
     return {
       script: "",
       supportedPages: [],

@@ -68,7 +68,7 @@ describe("gate ENEA · formato Rsupp", () => {
 
     expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis)).toEqual({
       status: "blocked",
-      reason: "official-data-incomplete",
+      reason: "payload-inconsistent",
       workflow: null,
     });
   });

@@ -17,7 +17,7 @@ import {
   plantTerminalFromForm,
   plantTypeFromForm,
 } from "./plantRules";
-import { screeningRules } from "./screeningRules";
+import { ENEA_SCREENING_TYPE, screeningRules } from "./screeningRules";
 import { validateOperatorOverride } from "./operatorValidation";
 import type {
   EneaLabDocumentAnalysis,
@@ -218,6 +218,48 @@ function recalculateScreeningSummary(sections: EneaLabSection[]): EneaLabSection
             source: "Calcolo ENEA",
             status: "ready",
             note: "Ricalcolata dalle superfici dei singoli elementi verificati.",
+          }
+        : field),
+    };
+  });
+}
+
+const DARKENING_CLOSURE_TYPES = new Set<string>([
+  ENEA_SCREENING_TYPE.shutter,
+  ENEA_SCREENING_TYPE.rollerShutter,
+  ENEA_SCREENING_TYPE.otherDarkeningClosure,
+]);
+
+function recalculateScreeningEnergySaving(
+  sections: EneaLabSection[],
+  hasSummerCooling: boolean | null,
+): EneaLabSection[] {
+  return sections.map((currentSection) => {
+    if (currentSection.id !== "schermature") return currentSection;
+    const energyField = currentSection.fields.find((field) => field.id === "schermature.risparmio_energia");
+    if (!energyField || energyField.source === "Inserimento operatore") return currentSection;
+
+    const typeFields = currentSection.fields.filter((field) => /^schermature\.\d+\.tipo$/.test(field.id));
+    const typesAreKnown = typeFields.length > 0
+      && typeFields.every((field) => field.status === "ready" && !field.testOnly && Boolean(field.value.trim()));
+    const hasDarkeningClosure = typeFields.some((field) => DARKENING_CLOSURE_TYPES.has(field.value));
+    const canUseZeroForSolarScreenings = hasSummerCooling === false
+      && typesAreKnown
+      && !hasDarkeningClosure;
+
+    return {
+      ...currentSection,
+      fields: currentSection.fields.map((field) => field.id === "schermature.risparmio_energia"
+        ? {
+            ...field,
+            value: canUseZeroForSolarScreenings ? "0 kWh/anno" : "Intervento umano richiesto",
+            source: "Calcolo ENEA",
+            status: canUseZeroForSolarScreenings ? "ready" : "missing",
+            note: canUseZeroForSolarScreenings
+              ? "ENEA consente 0 in assenza di climatizzazione estiva per le schermature solari."
+              : hasDarkeningClosure
+                ? "Per le chiusure oscuranti il risparmio riguarda la stagione invernale: non si può dedurre 0 dalla sola assenza di climatizzazione estiva."
+                : "Calcolare o verificare il risparmio in base al tipo di schermatura e all'impianto pertinente.",
           }
         : field),
     };
@@ -660,13 +702,11 @@ export function mapSchermaturaPractice(
       mappedField(
         "schermature.risparmio_energia",
         "Risparmio energia primaria non rinnovabile",
-        form.impianto.aria_condizionata === false ? "0 kWh/anno" : "",
+        "",
         {
           source: "Calcolo ENEA",
-          status: form.impianto.aria_condizionata === false ? "ready" : "missing",
-          note: form.impianto.aria_condizionata === false
-            ? "ENEA consente 0 in assenza di climatizzazione estiva."
-            : "Con climatizzazione estiva presente deve essere calcolato con ShadoWindow o metodo equivalente.",
+          status: "missing",
+          note: "Calcolare o verificare il risparmio in base al tipo di schermatura e all'impianto pertinente.",
         },
       ),
       mappedField("schermature.spese_professionali", "Spese professionali", "", {
@@ -698,10 +738,13 @@ export function mapSchermaturaPractice(
     ]),
   ];
 
-  const sections = recalculateScreeningSummary(
-    recalculateScreeningSurfaces(
-      applyKnownFieldValidation(applyOperatorState(rawSections, options)),
+  const sections = recalculateScreeningEnergySaving(
+    recalculateScreeningSummary(
+      recalculateScreeningSurfaces(
+        applyKnownFieldValidation(applyOperatorState(rawSections, options)),
+      ),
     ),
+    form.impianto.aria_condizionata,
   );
   const summary: Record<EneaLabFieldStatus, number> = { ready: 0, review: 0, missing: 0 };
   for (const currentSection of sections) {

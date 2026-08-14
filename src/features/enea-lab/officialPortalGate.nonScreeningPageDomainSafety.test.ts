@@ -16,7 +16,9 @@ function readyFixture() {
       fields: section.fields.map((field) => {
         if (!field.required) return field;
         let value = field.value;
-        if (field.id === "intervento.data_inizio") value = "01/01/2026";
+        if (field.id === "beneficiario.cf") value = "RSSMRA80A01H501U";
+        else if (field.id === "beneficiario.sesso") value = "M";
+        else if (field.id === "intervento.data_inizio") value = "01/01/2026";
         else if (field.id === "intervento.data_fine") value = "02/01/2026";
         else if (field.id === "impianto.numero_generatori") value = "1";
         else if (field.id === "impianto.rendimento") value = "95";
@@ -57,15 +59,20 @@ function alterReadyField(mapped: ReturnType<typeof readyFixture>["mapped"], fiel
   };
 }
 
+function prepare(mapped: ReturnType<typeof readyFixture>["mapped"], analysis: ReturnType<typeof readyFixture>["analysis"]) {
+  const issues = validatePreparedPractice(mapped.source, mapped, analysis);
+  const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-14T17:00:00.000Z"));
+  return { issues, payload, gate: prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis) };
+}
+
 function expectBlockedDomain(fieldId: string, value: string) {
   const { mapped, analysis } = readyFixture();
   const altered = alterReadyField(mapped, fieldId, value);
-  const issues = validatePreparedPractice(altered.source, altered, analysis);
-  const payload = buildEneaPayload(altered, issues, "official", new Date("2026-08-14T17:00:00.000Z"));
+  const { issues, payload, gate } = prepare(altered, analysis);
 
   expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
   expect(payload.readyForOfficialSubmission).toBe(true);
-  expect(prepareEneaOfficialPortalCollaudo(altered, payload, true, analysis)).toEqual({
+  expect(gate).toEqual({
     status: "blocked",
     reason: "payload-inconsistent",
     workflow: null,
@@ -73,6 +80,14 @@ function expectBlockedDomain(fieldId: string, value: string) {
 }
 
 describe("gate ENEA: domini discreti delle pagine non schermatura", () => {
+  it("parte da una fixture realmente pronta al collaudo", () => {
+    const { mapped, analysis } = readyFixture();
+    const { issues, payload, gate } = prepare(mapped, analysis);
+    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
+    expect(payload.readyForOfficialSubmission).toBe(true);
+    expect(gate.status).toBe("ready");
+  });
+
   it("blocca una tipologia immobile ready ma fuori dal dominio ENEA", () => {
     expectBlockedDomain("immobile.tipologia", "Tipologia immobile non prevista");
   });

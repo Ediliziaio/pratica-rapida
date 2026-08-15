@@ -27,6 +27,7 @@ describe("compilazione pagina beneficiario ENEA", () => {
 
     const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
     source.form.richiedente.cf = "RSSMRA80A01H501U";
+    source.form.richiedente.data_nascita = "1980-01-01";
     const mapped = mapSchermaturaPractice(source, undefined, {
       confirmedFieldIds: new Set([
         "beneficiario.nazione_nascita",
@@ -143,6 +144,7 @@ describe("compilazione pagina beneficiario ENEA", () => {
   it("compila input, select e Comuni in una pagina equivalente senza attivare Salva", async () => {
     const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
     source.form.richiedente.cf = "RSSMRA80A01H501U";
+    source.form.richiedente.data_nascita = "1980-01-01";
     const mapped = mapSchermaturaPractice(source, undefined, {
       confirmedFieldIds: new Set([
         "beneficiario.nazione_nascita",

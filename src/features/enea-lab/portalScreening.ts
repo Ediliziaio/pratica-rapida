@@ -106,6 +106,12 @@ function isVerifiedRsupp(fieldId: string, source: string): boolean {
   return source === "Inserimento operatore";
 }
 
+function isPositiveScreeningSurface(fieldId: string, value: string): boolean {
+  if (!/\.(?:superficie|superficie_finestrata)$/.test(fieldId)) return true;
+  const parsed = Number(numericValue(value).replace(",", "."));
+  return Number.isFinite(parsed) && parsed > 0;
+}
+
 export function buildEneaScreeningPortalScript(
   mapped: EneaLabMappedPractice,
   itemIndex = 0,
@@ -129,6 +135,7 @@ export function buildEneaScreeningPortalScript(
     const validation = definition.numeric ? validateOperatorOverride(fieldId, field.value) : null;
     if (validation && !validation.valid) return [];
     const value = definition.numeric ? numericValue(validation!.value) : field.value;
+    if (!isPositiveScreeningSurface(fieldId, value)) return [];
     const selectValue = definition.selectValues?.[value];
     if (!value || (definition.control === "select" && definition.selectValues && !selectValue)) return [];
     const prepared: EneaPortalRuntimeField = {

@@ -599,9 +599,9 @@ export function mapSchermaturaPractice(
       }),
       mappedField("impianto.terminali", "Terminali", existingPlantTerminal, {
         source: "Regola controllata",
-        editable: false,
+        editable: form.impianto.terminali === "split",
         note: form.impianto.terminali === "split"
-          ? "Per impianto elettrico con split viene selezionato Altro, secondo la regola operativa PraticaRapida."
+          ? "Lo split del CRM non viene tradotto automaticamente in un terminale ENEA: selezionare una voce specifica solo dopo verifica."
           : "Caloriferi e riscaldamento a pavimento vengono tradotti nelle corrispondenti voci ENEA.",
       }),
       mappedField("impianto.distribuzione", "Tipo di distribuzione", ENEA_PLANT_DISTRIBUTION, {

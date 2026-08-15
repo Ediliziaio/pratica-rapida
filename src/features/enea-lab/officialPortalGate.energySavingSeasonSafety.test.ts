@@ -47,6 +47,8 @@ function readyMappedWithEnergy(
           else if (field.id === "impianto.potenza") value = "25 kW";
           else if (/\.dimensioni$/.test(field.id)) value = "1000 × 1000 mm";
           else if (/\.superficie(?:_finestrata)?$/.test(field.id)) value = "1,0 m²";
+          else if (kind === "darkening" && /\.rsupp$/.test(field.id)) value = "0,08";
+          else if (kind === "darkening" && /\.modalita_calcolo$/.test(field.id)) value = "Calcolato secondo UNI EN 13125";
           else if (field.id === "schermature.spesa") value = "1000 €";
           else if (field.id === "schermature.risparmio_energia") value = energyValue;
           else if (/^(?:Non indicato|Intervento umano richiesto)$/i.test(value.trim())) value = "Valore verificato";

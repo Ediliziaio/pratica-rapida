@@ -1,4 +1,5 @@
 import type { EneaLabMappedPractice } from "./types";
+import { validateOperatorOverride } from "./operatorValidation";
 import {
   buildEneaPortalRuntimeScript,
   type EneaPortalRuntimeField,
@@ -51,7 +52,13 @@ export function buildEneaGeneratorPortalScript(
       && Boolean(field?.value)
       && Boolean(field?.testOnly || field?.status === "review" || usableOfficialValue);
     if (!field || (!usableOfficialValue && !usableTestValue)) return [];
-    const value = numericValue(field.value);
+
+    // Difesa indipendente del builder: non reinterpretare un mapping stale/alterato
+    // concatenando piu numeri (es. "25 x 2 kW" -> "252"). Usa la stessa
+    // validazione fail-closed degli override prima di normalizzare il valore.
+    const validation = validateOperatorOverride(definition.fieldId, field.value);
+    if (!validation.valid) return [];
+    const value = numericValue(validation.value);
     if (!value || !isValidGeneratorValue(definition.fieldId, value)) return [];
     const prepared: EneaPortalRuntimeField = {
       portalId: definition.portalId,

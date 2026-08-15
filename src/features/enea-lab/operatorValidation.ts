@@ -229,13 +229,10 @@ export function validateOperatorOverride(
 
   if (/^(?:beneficiario\.cf|beneficiario\.cointestatario_cf)$/.test(fieldId)) {
     const normalized = value.replace(/\s/g, "").toUpperCase();
-    if (/^\d{11}$/.test(normalized)) {
-      return { valid: true, value: normalized };
-    }
     if (!hasValidItalianFiscalCodeControlCharacter(normalized)) {
       return invalid(
         value,
-        "Il codice fiscale personale deve avere struttura e carattere di controllo coerenti; per un soggetto IVA sono ammesse 11 cifre.",
+        "Il codice fiscale del beneficiario deve essere personale, di 16 caratteri, con struttura e carattere di controllo coerenti.",
       );
     }
     return { valid: true, value: normalized };

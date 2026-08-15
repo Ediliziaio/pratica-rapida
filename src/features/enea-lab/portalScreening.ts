@@ -146,11 +146,12 @@ export function buildEneaScreeningPortalScript(
       || !isVerifiedRsupp(fieldId, field.source)
     ) return [];
 
-    // Il gTot appartiene alla prestazione delle schermature solari. Una chiusura
-    // oscurante usa la Rsupp verificata: se il mapping contiene ancora un gTot
-    // stale da una classificazione precedente, il builder diretto non lo porta
-    // al runtime anche se quel campo è artificialmente marcato come ready.
+    // gTot e Rsupp rappresentano prestazioni alternative: il primo appartiene
+    // alle schermature solari, la seconda alle chiusure oscuranti. Il builder
+    // diretto non deve trascinare valori stale rimasti ready dopo un cambio di
+    // classificazione, anche se risultano formalmente verificati.
     if (definition.fieldSuffix === "gtot" && darkeningClosure) return [];
+    if (definition.fieldSuffix === "rsupp" && !darkeningClosure) return [];
 
     // Difesa indipendente del builder: le esposizioni Nord/Nord-Est/Nord-Ovest
     // sono compatibili soltanto con chiusure oscuranti. Se la tipologia non è

@@ -7,6 +7,7 @@ const BASE_MATCHES = [
   "beneficiario.cf",
   "immobile.foglio",
   "immobile.mappale",
+  "immobile.unita",
   "intervento.data_inizio",
   "intervento.data_fine",
   "schermature.numero",

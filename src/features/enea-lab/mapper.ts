@@ -186,6 +186,15 @@ function recalculateScreeningSurfaces(sections: EneaLabSection[]): EneaLabSectio
         const size = dimensions.value.match(/^(\d{2,5})\s*[x×]\s*(\d{2,5})(?:\s*mm)?$/i);
         if (!size) return field;
         const surface = truncateOneDecimal((Number(size[1]) * Number(size[2])) / 1_000_000);
+        if (surface <= 0) {
+          return {
+            ...field,
+            value: "Intervento umano richiesto",
+            source: "Calcolo ENEA",
+            status: "missing",
+            note: "Le dimensioni verificate producono una superficie nulla dopo il calcolo ENEA: ricontrollare le misure.",
+          };
+        }
         return {
           ...field,
           value: `${formatNumber(surface)} m²`,

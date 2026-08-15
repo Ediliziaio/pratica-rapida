@@ -26,7 +26,7 @@ describe("mapper ENEA · prestazioni chiusure oscuranti", () => {
     expect(fields.get("schermature.0.gtot")).toMatchObject({
       value: "Non indicato",
       required: false,
-      status: "ready",
+      status: "missing",
     });
     expect(fields.get("schermature.0.rsupp")).toMatchObject({
       required: true,

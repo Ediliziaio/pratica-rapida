@@ -113,6 +113,33 @@ describe("compilazione pagina beneficiario ENEA", () => {
     }
   });
 
+  it("scarta un identificativo societario anche da un mapping stale gia ready", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.richiedente.cf = "RSSMRA80A01H501U";
+    const base = mapSchermaturaPractice(source);
+    const mapped = {
+      ...base,
+      sections: base.sections.map((section) => ({
+        ...section,
+        fields: section.fields.map((field) => field.id === "beneficiario.cf"
+          ? {
+              ...field,
+              value: "12345678901",
+              status: "ready" as const,
+              source: "Inserimento operatore" as const,
+              testOnly: false,
+            }
+          : field),
+      })),
+    };
+
+    const preparation = buildEneaBeneficiaryPortalScript(mapped);
+
+    expect(preparation.skippedFieldIds).toContain("beneficiario.cf");
+    expect(preparation.readyFieldIds).not.toContain("beneficiario.cf");
+    expect(preparation.script).not.toContain("12345678901");
+  });
+
   it("compila input, select e Comuni in una pagina equivalente senza attivare Salva", async () => {
     const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
     source.form.richiedente.cf = "RSSMRA80A01H501U";

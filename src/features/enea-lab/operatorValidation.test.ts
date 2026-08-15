@@ -24,6 +24,7 @@ describe("validazione correzioni operatore", () => {
     expect(validateOperatorOverride("schermature.superficie_totale", "0 m²").valid).toBe(false);
     expect(validateOperatorOverride("immobile.superficie", "0 m²").valid).toBe(false);
     expect(validateOperatorOverride("beneficiario.cf", "RSSMRA80A01H501X").valid).toBe(false);
+    expect(validateOperatorOverride("beneficiario.data_nascita", "01/01/2080").valid).toBe(false);
   });
 
   it("non accetta identificativi fiscali di soggetti IVA come beneficiari persone fisiche", () => {

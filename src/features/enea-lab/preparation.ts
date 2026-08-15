@@ -5,6 +5,7 @@ import { buildEneaInterventionPortalScript } from "./portalIntervention";
 import { buildEneaPlantPortalScript } from "./portalPlant";
 import { buildEneaScreeningPortalScript } from "./portalScreening";
 import { buildEneaScreeningSummaryPortalScript } from "./portalScreeningSummary";
+import { ENEA_SCREENING_TYPE } from "./screeningRules";
 import type {
   EneaLabDocumentAnalysis,
   EneaLabIssue,
@@ -13,12 +14,23 @@ import type {
   EneaLabSourcePractice,
 } from "./types";
 
+const DARKENING_CLOSURE_TYPES = new Set<string>([
+  ENEA_SCREENING_TYPE.shutter,
+  ENEA_SCREENING_TYPE.rollerShutter,
+  ENEA_SCREENING_TYPE.otherDarkeningClosure,
+]);
+
 function requiredFields(mapped: EneaLabMappedPractice) {
   return mapped.sections.flatMap((section) => section.fields).filter((field) => field.required);
 }
 
 function fieldById(mapped: EneaLabMappedPractice, fieldId: string) {
   return mapped.sections.flatMap((section) => section.fields).find((field) => field.id === fieldId);
+}
+
+function screeningIsDarkeningClosure(mapped: EneaLabMappedPractice, index: number): boolean {
+  const type = fieldById(mapped, `schermature.${index}.tipo`);
+  return type?.status === "ready" && DARKENING_CLOSURE_TYPES.has(type.value);
 }
 
 function manuallyVerified(mapped: EneaLabMappedPractice, fieldId: string): boolean {
@@ -31,8 +43,14 @@ function allManualScreeningEssentialsReady(mapped: EneaLabMappedPractice): boole
   const dimensions = fields.filter((field) => /^schermature\.\d+\.dimensioni$/.test(field.id));
   if (!dimensions.length) return false;
   return dimensions.every((dimension) => {
-    const prefix = dimension.id.replace(/\.dimensioni$/, "");
-    return ["dimensioni", "superficie", "gtot"].every((suffix) =>
+    const match = dimension.id.match(/^schermature\.(\d+)\.dimensioni$/);
+    if (!match) return false;
+    const index = Number(match[1]);
+    const prefix = `schermature.${index}`;
+    const requiredSuffixes = screeningIsDarkeningClosure(mapped, index)
+      ? ["dimensioni", "superficie", "rsupp", "modalita_calcolo"]
+      : ["dimensioni", "superficie", "gtot"];
+    return requiredSuffixes.every((suffix) =>
       fieldById(mapped, `${prefix}.${suffix}`)?.status === "ready",
     );
   });
@@ -156,9 +174,10 @@ export function validatePreparedPractice(
     .flatMap((section) => section.fields)
     .filter((field) => /^schermature\.\d+\.gtot$/.test(field.id))
     .forEach((field) => {
+      const index = Number(field.id.match(/^schermature\.(\d+)\./)?.[1] ?? 0);
+      if (screeningIsDarkeningClosure(mapped, index)) return;
       const verifiedSource = field.source === "Fattura" || field.source === "Inserimento operatore";
       if (!verifiedSource) {
-        const index = Number(field.id.match(/^schermature\.(\d+)\./)?.[1] ?? 0);
         issues.push({
           code: `unverified-gtot-${index}`,
           severity: "blocker",
@@ -197,6 +216,7 @@ export function validatePreparedPractice(
     }
 
     analysis.items.forEach((item, index) => {
+      if (screeningIsDarkeningClosure(mapped, index)) return;
       const fieldId = `schermature.${index}.gtot`;
       const mappedGTot = fieldById(mapped, fieldId);
       if (!mappedGTot) return;

@@ -1,4 +1,5 @@
 import type { EneaLabMappedPractice } from "./types";
+import { validateOperatorOverride } from "./operatorValidation";
 import {
   ENEA_SCREENING_CALCULATION,
   ENEA_SCREENING_INSTALLATION,
@@ -125,7 +126,9 @@ export function buildEneaScreeningPortalScript(
       || !isVerifiedGTot(fieldId, field.source)
       || !isVerifiedRsupp(fieldId, field.source)
     ) return [];
-    const value = definition.numeric ? numericValue(field.value) : field.value;
+    const validation = definition.numeric ? validateOperatorOverride(fieldId, field.value) : null;
+    if (validation && !validation.valid) return [];
+    const value = definition.numeric ? numericValue(validation!.value) : field.value;
     const selectValue = definition.selectValues?.[value];
     if (!value || (definition.control === "select" && definition.selectValues && !selectValue)) return [];
     const prepared: EneaPortalRuntimeField = {

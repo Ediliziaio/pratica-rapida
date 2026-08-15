@@ -332,6 +332,13 @@ export function validateOperatorOverride(
       : invalid(value, "La potenza nominale deve essere maggiore di zero.");
   }
 
+  if (/^schermature\.\d+\.(?:superficie|superficie_finestrata)$/.test(fieldId)) {
+    const parsed = parseItalianNumber(value);
+    return parsed !== null && parsed > 0
+      ? { valid: true, value }
+      : invalid(value, "Le superfici della schermatura devono essere maggiori di zero.");
+  }
+
   if (/^(?:immobile\.gradi_giorno|schermature\.(?:spesa|superficie_totale|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp))$/.test(fieldId)) {
     const parsed = parseItalianNumber(value);
     return parsed !== null && parsed >= 0

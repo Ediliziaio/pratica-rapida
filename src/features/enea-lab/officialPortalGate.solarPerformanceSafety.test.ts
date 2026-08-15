@@ -16,7 +16,10 @@ function readySolarFixture() {
       fields: section.fields.map((field) => {
         if (!field.required) return field;
         let value = field.value;
-        if (field.id === "intervento.data_inizio") value = "01/01/2026";
+        if (field.id === "beneficiario.cf") value = "RSSMRA80A01H501U";
+        else if (field.id === "beneficiario.data_nascita") value = "01/01/1980";
+        else if (field.id === "beneficiario.sesso") value = "M";
+        else if (field.id === "intervento.data_inizio") value = "01/01/2026";
         else if (field.id === "intervento.data_fine") value = "02/01/2026";
         else if (field.id === "impianto.numero_generatori") value = "1";
         else if (field.id === "impianto.rendimento") value = "95";
@@ -24,6 +27,7 @@ function readySolarFixture() {
         else if (/\.dimensioni$/.test(field.id)) value = "1000 × 1000 mm";
         else if (/\.superficie(?:_finestrata)?$/.test(field.id)) value = "1,0 m²";
         else if (field.id === "schermature.spesa") value = "1000 €";
+        else if (field.id === "schermature.risparmio_energia") value = "311 kWh/anno";
         else if (/^(?:Non indicato|Intervento umano richiesto)$/i.test(value.trim())) value = "Valore verificato";
         return {
           ...field,
@@ -39,7 +43,7 @@ function readySolarFixture() {
 }
 
 describe("gate ENEA · prestazioni schermature solari", () => {
-  it("blocca una Rsupp stale anche se i livelli precedenti dichiarano il payload pronto", () => {
+  it("accetta una Rsupp opzionale verificata senza indebolire i controlli sul gTot", () => {
     const { mapped, analysis } = readySolarFixture();
     const altered = {
       ...mapped,
@@ -60,16 +64,17 @@ describe("gate ENEA · prestazioni schermature solari", () => {
     const type = altered.sections
       .flatMap((section) => section.fields)
       .find((field) => field.id === "schermature.0.tipo");
+    const gTot = altered.sections
+      .flatMap((section) => section.fields)
+      .find((field) => field.id === "schermature.0.gtot");
     expect(type?.value).toBe("Tenda o veneziana");
+    expect(gTot?.status).toBe("ready");
+
     const issues = validatePreparedPractice(altered.source, altered, analysis);
     const payload = buildEneaPayload(altered, issues, "official", new Date("2026-08-15T09:12:00.000Z"));
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
     expect(payload.readyForOfficialSubmission).toBe(true);
 
-    expect(prepareEneaOfficialPortalCollaudo(altered, payload, true, analysis)).toEqual({
-      status: "blocked",
-      reason: "official-data-incomplete",
-      workflow: null,
-    });
+    expect(prepareEneaOfficialPortalCollaudo(altered, payload, true, analysis).status).toBe("ready");
   });
 });

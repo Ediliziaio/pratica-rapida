@@ -1,4 +1,5 @@
 import type { EneaLabMappedPractice } from "./types";
+import { validateOperatorOverride } from "./operatorValidation";
 import {
   ENEA_INTERVENTION_SCOPE,
   ENEA_INTERVENTION_TYPE,
@@ -17,6 +18,7 @@ interface InterventionPortalFieldDefinition {
   control: EneaPortalControl;
   selectValues?: Readonly<Record<string, string>>;
   automatic?: boolean;
+  validate?: boolean;
 }
 
 export interface EneaInterventionPortalPreparation {
@@ -46,10 +48,10 @@ const INTERVENTION_BUTTON_IDS = {
 /** Identificativi osservati sulla pagina "Intervento" ENEA 2026. */
 export const ENEA_INTERVENTION_PORTAL_FIELDS: readonly InterventionPortalFieldDefinition[] = [
   { fieldId: "intervento.ambito", portalId: "id-immobile", control: "select", selectValues: SCOPE_VALUES },
-  { fieldId: "intervento.unita_oggetto", portalId: "id-unita", control: "input" },
+  { fieldId: "intervento.unita_oggetto", portalId: "id-unita", control: "input", validate: true },
   { fieldId: "intervento.accorpamenti", portalId: "id-acc", control: "select", selectValues: YES_NO_VALUES },
-  { fieldId: "intervento.data_inizio", portalId: "id-data_inizio", control: "input" },
-  { fieldId: "intervento.data_fine", portalId: "id-data_fine", control: "input" },
+  { fieldId: "intervento.data_inizio", portalId: "id-data_inizio", control: "input", validate: true },
+  { fieldId: "intervento.data_fine", portalId: "id-data_fine", control: "input", validate: true },
   { fieldId: "intervento.tipo", portalIds: INTERVENTION_BUTTON_IDS, control: "button" },
   { fieldId: "intervento.impianto_centralizzato", portalId: "id-impianto_centralizzato", control: "select", selectValues: YES_NO_VALUES },
   { fieldId: "intervento.zona_urbanistica", portalId: "id-zona_urbanistica", control: "select", automatic: true },
@@ -71,14 +73,19 @@ export function buildEneaInterventionPortalScript(
       || field.value === "Non indicato"
       || field.value === "Intervento umano richiesto"
     ) return [];
-    const portalId = definition.portalIds?.[field.value] ?? definition.portalId;
+    const validation = definition.validate
+      ? validateOperatorOverride(definition.fieldId, field.value)
+      : null;
+    if (validation && !validation.valid) return [];
+    const value = validation?.value ?? field.value;
+    const portalId = definition.portalIds?.[value] ?? definition.portalId;
     if (!portalId) return [];
-    const selectValue = definition.selectValues?.[field.value];
+    const selectValue = definition.selectValues?.[value];
     if (definition.control === "select" && definition.selectValues && !selectValue) return [];
     const prepared: EneaPortalRuntimeField = {
       portalId,
       control: definition.control,
-      value: field.value,
+      value,
       ...(selectValue ? { selectValue } : {}),
     };
     return [{ ...definition, prepared }];

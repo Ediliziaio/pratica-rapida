@@ -368,10 +368,10 @@ export function mapSchermaturaPractice(
         "",
         {
           required: darkeningClosure,
-          editable: darkeningClosure,
+          editable: true,
           note: darkeningClosure
             ? "Prestazione tecnica della chiusura oscurante: inserire la Rsupp soltanto dopo verifica documentale o dell'operatore."
-            : "Non applicabile alle schermature solari: la prestazione di riferimento è il gTot.",
+            : "Campo ENEA facoltativo osservato anche nelle schermature solari concluse: compilare la Rsupp soltanto dopo verifica documentale o dell'operatore.",
         },
       ),
       mappedField(

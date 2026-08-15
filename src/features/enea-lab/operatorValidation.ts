@@ -49,7 +49,7 @@ const ITALIAN_FISCAL_CODE_ODD_VALUES: Record<string, number> = {
   B: 0,
   C: 5,
   D: 7,
-  E: 7,
+  E: 9,
   F: 13,
   G: 15,
   H: 17,

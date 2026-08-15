@@ -22,6 +22,12 @@ export type EneaOfficialPortalGate =
       workflow: EneaPortalWorkflowPreparation;
     };
 
+const DARKENING_CLOSURE_TYPES = new Set<string>([
+  ENEA_SCREENING_TYPE.shutter,
+  ENEA_SCREENING_TYPE.rollerShutter,
+  ENEA_SCREENING_TYPE.otherDarkeningClosure,
+]);
+
 function isInternalPlaceholder(value: string): boolean {
   const normalized = value.trim().toLocaleLowerCase("it");
   return normalized === "non indicato" || normalized === "intervento umano richiesto";
@@ -89,19 +95,34 @@ function hasReconciledMissingDocumentScreenings(
   if (!dimensions.length) return false;
 
   // Se l'analisi corrente non riconosce alcuna riga tecnica, eventuali valori
-  // rimasti nel mapping da un'analisi precedente non possono essere riutilizzati
-  // come se fossero ancora documentati. Numero, misure e gTot devono essere stati
-  // riconciliati esplicitamente dall'operatore; la superficie può invece essere
-  // il calcolo deterministico ottenuto dalle misure manualmente verificate.
+  // rimasti nel mapping da un'analisi precedente non possono essere riutilizzati.
+  // Per le schermature solari va riconciliato il gTot; per le chiusure oscuranti
+  // vanno invece verificati Rsupp e metodo di calcolo.
   return dimensions.every((dimension) => {
-    const prefix = dimension.id.replace(/\.dimensioni$/, "");
+    const match = dimension.id.match(/^schermature\.(\d+)\.dimensioni$/);
+    if (!match) return false;
+    const index = Number(match[1]);
+    const prefix = `schermature.${index}`;
+    const type = fields.find((field) => field.id === `${prefix}.tipo`);
     const surface = fields.find((field) => field.id === `${prefix}.superficie`);
+    if (
+      dimension.status !== "ready"
+      || dimension.source !== "Inserimento operatore"
+      || surface?.status !== "ready"
+      || type?.status !== "ready"
+    ) return false;
+
+    if (DARKENING_CLOSURE_TYPES.has(type.value)) {
+      const rsupp = fields.find((field) => field.id === `${prefix}.rsupp`);
+      const calculation = fields.find((field) => field.id === `${prefix}.modalita_calcolo`);
+      return rsupp?.status === "ready"
+        && rsupp.source === "Inserimento operatore"
+        && calculation?.status === "ready"
+        && calculation.source === "Inserimento operatore";
+    }
+
     const gTot = fields.find((field) => field.id === `${prefix}.gtot`);
-    return dimension.status === "ready"
-      && dimension.source === "Inserimento operatore"
-      && surface?.status === "ready"
-      && gTot?.status === "ready"
-      && gTot.source === "Inserimento operatore";
+    return gTot?.status === "ready" && gTot.source === "Inserimento operatore";
   });
 }
 
@@ -247,7 +268,7 @@ function hasValidCurrentScreeningGeometry(
   return true;
 }
 
-function hasValidCurrentScreeningGTot(
+function hasValidCurrentScreeningPerformance(
   mapped: EneaLabMappedPractice,
   analysis: EneaLabDocumentAnalysis,
 ): boolean {
@@ -256,16 +277,43 @@ function hasValidCurrentScreeningGTot(
   const fields = mapped.sections.flatMap((section) => section.fields);
 
   for (let index = 0; index < count; index += 1) {
-    const field = fields.find((candidate) => candidate.id === `schermature.${index}.gtot`);
-    const parsed = field ? parsedItalianNumber(field.value) : null;
-    if (field?.status !== "ready" || parsed === null || parsed <= 0 || parsed > 0.35) return false;
+    const type = fields.find((field) => field.id === `schermature.${index}.tipo`);
+    if (type?.status !== "ready" || type.testOnly || !type.value.trim()) return false;
 
-    if (field.source === "Fattura") {
+    const gTot = fields.find((field) => field.id === `schermature.${index}.gtot`);
+    if (DARKENING_CLOSURE_TYPES.has(type.value)) {
+      const rsupp = fields.find((field) => field.id === `schermature.${index}.rsupp`);
+      const calculation = fields.find((field) => field.id === `schermature.${index}.modalita_calcolo`);
+      const parsedRsupp = rsupp ? parsedItalianNumber(rsupp.value) : null;
+      if (
+        rsupp?.status !== "ready"
+        || rsupp.testOnly
+        || rsupp.source !== "Inserimento operatore"
+        || parsedRsupp === null
+        || parsedRsupp <= 0
+      ) return false;
+      if (
+        calculation?.status !== "ready"
+        || calculation.testOnly
+        || calculation.source !== "Inserimento operatore"
+        || !validateOperatorOverride(calculation.id, calculation.value).valid
+      ) return false;
+
+      // Una chiusura oscurante non deve trascinare nel workflow un vecchio gTot
+      // rimasto ready da una classificazione precedente come schermatura solare.
+      if (gTot?.status === "ready" && !gTot.testOnly) return false;
+      continue;
+    }
+
+    const parsedGTot = gTot ? parsedItalianNumber(gTot.value) : null;
+    if (gTot?.status !== "ready" || parsedGTot === null || parsedGTot <= 0 || parsedGTot > 0.35) return false;
+
+    if (gTot.source === "Fattura") {
       const documented = analysis.items[index]?.gTot;
       if (documented === null || documented === undefined) return false;
       const documentedAtPortalPrecision = Number(documented.toFixed(2));
-      if (Math.abs(parsed - documentedAtPortalPrecision) > 1e-9) return false;
-    } else if (field.source !== "Inserimento operatore") {
+      if (Math.abs(parsedGTot - documentedAtPortalPrecision) > 1e-9) return false;
+    } else if (gTot.source !== "Inserimento operatore") {
       return false;
     }
   }
@@ -334,12 +382,6 @@ function hasCurrentControlledScreeningRules(
 
   return true;
 }
-
-const DARKENING_CLOSURE_TYPES = new Set<string>([
-  ENEA_SCREENING_TYPE.shutter,
-  ENEA_SCREENING_TYPE.rollerShutter,
-  ENEA_SCREENING_TYPE.otherDarkeningClosure,
-]);
 
 function hasSeasonallyValidEnergySaving(mapped: EneaLabMappedPractice): boolean {
   const count = mappedScreeningCount(mapped);
@@ -422,12 +464,11 @@ export function prepareEneaOfficialPortalCollaudo(
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
 
-  // Il gTot inviato al portale deve rispettare sempre il limite ENEA noto e,
-  // quando è attribuito alla fattura, deve coincidere con l'analisi documentale
-  // corrente alla stessa precisione usata nel mapping. Questo impedisce che un
-  // valore stale o alterato resti formalmente ready pur non essendo più quello
-  // letto dal documento corrente.
-  if (!hasValidCurrentScreeningGTot(mapped, analysis)) {
+  // La prestazione tecnica dipende dal tipo di elemento: per le schermature
+  // solari il gTot deve essere documentato/verificato e <= 0,35; per le chiusure
+  // oscuranti il gate richiede invece Rsupp positiva e metodo di calcolo verificati
+  // dall'operatore, senza trascinare un gTot fittizio da classificazioni precedenti.
+  if (!hasValidCurrentScreeningPerformance(mapped, analysis)) {
     return { status: "blocked", reason: "official-data-incomplete", workflow: null };
   }
 

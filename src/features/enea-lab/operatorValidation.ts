@@ -49,7 +49,7 @@ const ITALIAN_FISCAL_CODE_ODD_VALUES: Record<string, number> = {
   B: 0,
   C: 5,
   D: 7,
-  E: 9,
+  E: 7,
   F: 13,
   G: 15,
   H: 17,
@@ -296,6 +296,13 @@ export function validateOperatorOverride(
       : invalid(value, "Inserire un numero intero maggiore di zero.");
   }
 
+  if (fieldId === "immobile.superficie") {
+    const parsed = parseItalianNumber(value);
+    return parsed !== null && parsed > 0
+      ? { valid: true, value }
+      : invalid(value, "La superficie utile deve essere maggiore di zero.");
+  }
+
   if (/^schermature\.\d+\.gtot$/.test(fieldId)) {
     const parsed = parseItalianNumber(value);
     return parsed !== null && parsed > 0 && parsed <= 0.35
@@ -325,7 +332,7 @@ export function validateOperatorOverride(
       : invalid(value, "La potenza nominale deve essere maggiore di zero.");
   }
 
-  if (/^(?:immobile\.gradi_giorno|immobile\.superficie|schermature\.(?:spesa|superficie_totale|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp))$/.test(fieldId)) {
+  if (/^(?:immobile\.gradi_giorno|schermature\.(?:spesa|superficie_totale|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp))$/.test(fieldId)) {
     const parsed = parseItalianNumber(value);
     return parsed !== null && parsed >= 0
       ? { valid: true, value }

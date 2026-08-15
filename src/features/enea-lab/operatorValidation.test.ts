@@ -26,6 +26,11 @@ describe("validazione correzioni operatore", () => {
     expect(validateOperatorOverride("beneficiario.cf", "RSSMRA80A01H501X").valid).toBe(false);
   });
 
+  it("non accetta identificativi fiscali di soggetti IVA come beneficiari persone fisiche", () => {
+    expect(validateOperatorOverride("beneficiario.cf", "12345678901").valid).toBe(false);
+    expect(validateOperatorOverride("beneficiario.cointestatario_cf", "12345678901").valid).toBe(false);
+  });
+
   it("accetta e normalizza valori verificabili", () => {
     expect(validateOperatorOverride("beneficiario.cf", "rssmra80a01h501u")).toEqual({
       valid: true,

@@ -27,8 +27,8 @@ describe("builder schermatura ENEA - numeri ambigui", () => {
       "schermature.0.superficie",
       "schermature.0.gtot",
     ]));
-    expect(preparation.script).not.toContain('\"value\":\"29\"');
-    expect(preparation.script).not.toContain('\"value\":\"0,132\"');
+    expect(preparation.script).not.toContain('"value":"29"');
+    expect(preparation.script).not.toContain('"value":"0,132"');
   });
 
   it("non prepara superfici nulle anche se il mapping stale le marca ready", () => {
@@ -38,13 +38,24 @@ describe("builder schermatura ENEA - numeri ambigui", () => {
     const surface = fields.find((field) => field.id === "schermature.0.superficie");
     const protectedSurface = fields.find((field) => field.id === "schermature.0.superficie_finestrata");
 
-    expect(surface?.status).toBe("ready");
-    expect(protectedSurface?.status).toBe("ready");
+    expect(surface).toBeDefined();
+    expect(protectedSurface).toBeDefined();
+
+    surface!.status = "ready";
+    surface!.value = "1 m²";
+    surface!.testOnly = false;
+    protectedSurface!.status = "ready";
+    protectedSurface!.value = "1 m²";
+    protectedSurface!.testOnly = false;
+
+    const validPreparation = buildEneaScreeningPortalScript(mapped, 0);
+    expect(validPreparation.readyFieldIds).toEqual(expect.arrayContaining([
+      "schermature.0.superficie",
+      "schermature.0.superficie_finestrata",
+    ]));
 
     surface!.value = "0 m²";
-    surface!.testOnly = false;
     protectedSurface!.value = "0 m²";
-    protectedSurface!.testOnly = false;
 
     const preparation = buildEneaScreeningPortalScript(mapped, 0);
 

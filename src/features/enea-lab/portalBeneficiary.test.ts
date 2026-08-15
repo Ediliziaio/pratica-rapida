@@ -42,8 +42,8 @@ describe("compilazione pagina beneficiario ENEA", () => {
       "beneficiario.nazione_residenza",
       "beneficiario.cap_residenza",
     ]));
-    expect(preparation.script).toContain('"portalId":"id-nome"');
-    expect(preparation.script).toContain('"portalId":"id-nazione_nascita","control":"select","value":"Italia"');
+    expect(preparation.script).toContain('\"portalId\":\"id-nome\"');
+    expect(preparation.script).toContain('\"portalId\":\"id-nazione_nascita\",\"control\":\"select\",\"value\":\"Italia\"');
     expect(preparation.script).not.toContain("Intervento umano richiesto");
     expect(preparation.script).not.toMatch(/\.click\s*\(/);
     expect(preparation.script).not.toMatch(/\.submit\s*\(/);
@@ -70,6 +70,47 @@ describe("compilazione pagina beneficiario ENEA", () => {
     expect(preparation.skippedFieldIds).toContain("beneficiario.nome");
     expect(preparation.readyFieldIds).not.toContain("beneficiario.nome");
     expect(preparation.script).not.toContain("Non indicato");
+  });
+
+  it("rivalida i campi strutturati ready prima del builder diretto", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.richiedente.cf = "RSSMRA80A01H501U";
+    const base = mapSchermaturaPractice(source, undefined, {
+      confirmedFieldIds: new Set([
+        "beneficiario.nazione_nascita",
+        "beneficiario.nazione_residenza",
+      ]),
+    });
+    const invalidValues: Record<string, string> = {
+      "beneficiario.cf": "RSSMRA80A01H501A",
+      "beneficiario.data_nascita": "31/02/2026",
+      "beneficiario.sesso": "X",
+      "beneficiario.cap_residenza": "12A45",
+      "beneficiario.telefono": "12",
+    };
+    const mapped = {
+      ...base,
+      sections: base.sections.map((section) => ({
+        ...section,
+        fields: section.fields.map((field) => field.id in invalidValues
+          ? {
+              ...field,
+              value: invalidValues[field.id],
+              status: "ready" as const,
+              source: "Inserimento operatore" as const,
+              testOnly: false,
+            }
+          : field),
+      })),
+    };
+
+    const preparation = buildEneaBeneficiaryPortalScript(mapped);
+
+    expect(preparation.skippedFieldIds).toEqual(expect.arrayContaining(Object.keys(invalidValues)));
+    for (const [fieldId, value] of Object.entries(invalidValues)) {
+      expect(preparation.readyFieldIds).not.toContain(fieldId);
+      expect(preparation.script).not.toContain(value);
+    }
   });
 
   it("compila input, select e Comuni in una pagina equivalente senza attivare Salva", async () => {

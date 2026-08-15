@@ -101,9 +101,17 @@ function inferredParticularDestination(tipologia: string): string {
 
 function sexFromItalianFiscalCode(value: string): string {
   const normalized = value.trim().toUpperCase();
-  const match = normalized.match(/^[A-Z]{6}\d{2}[A-Z](\d{2})[A-Z]\d{3}[A-Z]$/);
+  const match = normalized.match(/^[A-Z]{6}[0-9LMNPQRSTUV]{2}[A-Z]([0-9LMNPQRSTUV]{2})[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/);
   if (!match) return "";
-  return Number(match[1]) > 40 ? "F" : "M";
+  const omocodiaDigits: Record<string, string> = {
+    L: "0", M: "1", N: "2", P: "3", Q: "4",
+    R: "5", S: "6", T: "7", U: "8", V: "9",
+  };
+  const dayCode = [...match[1]]
+    .map((character) => omocodiaDigits[character] ?? character)
+    .join("");
+  const day = Number(dayCode);
+  return day >= 41 && day <= 71 ? "F" : day >= 1 && day <= 31 ? "M" : "";
 }
 
 function applyOperatorState(sections: EneaLabSection[], options?: EneaLabMapOptions): EneaLabSection[] {

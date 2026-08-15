@@ -28,7 +28,7 @@ export interface CompletedEneaAuditResult {
   matchedFieldIds?: string[];
 }
 
-const NUMERIC_FIELD = /^(?:immobile\.superficie|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.(?:numero|spesa|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp|gtot))$/;
+const NUMERIC_FIELD = /^(?:immobile\.(?:superficie|unita)|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.(?:numero|spesa|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp|gtot))$/;
 const DATE_FIELD = /^(?:beneficiario\.data_nascita|intervento\.(?:data_inizio|data_fine))$/;
 
 function compact(text: string): string {
@@ -150,6 +150,10 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   set(fields, "immobile.subalterno", capture(source, /Subalterno:\s*([^\s]+)\s+2\. Anno di costruzione/i));
   set(fields, "immobile.anno", capture(source, /Anno di costruzione(?: inserire anche se stimato)?\s+(\d{4})/i));
   set(fields, "immobile.superficie", capture(source, /Superficie utile \[m²\][^0-9]*([0-9]+(?:[.,][0-9]+)?)/i));
+  set(fields, "immobile.unita", capture(
+    source,
+    /2\. Unità immobiliari Numero totale delle unità immobiliari dell'edificio alla fine dei lavori\s+([0-9]+)/i,
+  ));
 
   set(fields, "beneficiario.nome", capture(source, /Proprietario o detentore dell'edificio o avente diritto\s+Nome:\s*(.+?)\s+Cognome:/i));
   set(fields, "beneficiario.cognome", capture(source, /\sCognome:\s*(.+?)\s+Codice fiscale:/i));

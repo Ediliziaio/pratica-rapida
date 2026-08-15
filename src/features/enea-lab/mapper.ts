@@ -367,8 +367,8 @@ export function mapSchermaturaPractice(
         "",
         {
           required: false,
-          editable: false,
-          note: "Calcolata automaticamente da ENEA; il laboratorio non la compila.",
+          editable: true,
+          note: "Campo opzionale: compilare solo dopo verifica documentale o dell'operatore; non viene dedotto automaticamente.",
         },
       ),
       mappedField(

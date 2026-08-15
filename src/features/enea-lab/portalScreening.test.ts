@@ -45,14 +45,14 @@ describe("compilazione finestra schermatura solare ENEA", () => {
       "schermature.0.superficie_finestrata",
       "schermature.0.rsupp",
     ]);
-    expect(preparation.script).toContain('"portalId":"id-tipo","control":"select","value":"Tenda o veneziana","selectValue":"127"');
-    expect(preparation.script).toContain('"portalId":"id-inst","control":"select","value":"Esterna","selectValue":"192"');
-    expect(preparation.script).toContain('"portalId":"id-calc","control":"select","value":"Dichiarato dal fornitore","selectValue":"193"');
+    expect(preparation.script).toContain('\"portalId\":\"id-tipo\",\"control\":\"select\",\"value\":\"Tenda o veneziana\",\"selectValue\":\"127\"');
+    expect(preparation.script).toContain('\"portalId\":\"id-inst\",\"control\":\"select\",\"value\":\"Esterna\",\"selectValue\":\"192\"');
+    expect(preparation.script).toContain('\"portalId\":\"id-calc\",\"control\":\"select\",\"value\":\"Dichiarato dal fornitore\",\"selectValue\":\"193\"');
     expect(preparation.script).not.toContain("id-rsup");
     expect(preparation.script).not.toMatch(/\.submit\s*\(/);
   });
 
-  it("compila una Rsupp verificata senza attivare Salva", async () => {
+  it("ignora una Rsupp verificata sulle schermature solari senza attivare Salva", async () => {
     const source = ENEA_LAB_MOCK_PRACTICES[0];
     const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id], {
       overrides: {
@@ -86,10 +86,10 @@ describe("compilazione finestra schermatura solare ENEA", () => {
     expect((dom.window.document.getElementById("id-inst") as HTMLSelectElement).value).toBe("192");
     expect((dom.window.document.getElementById("id-sup_s") as HTMLInputElement).value).toBe("3,7");
     expect((dom.window.document.getElementById("id-sup_f") as HTMLInputElement).value).toBe("2,9");
-    expect((dom.window.document.getElementById("id-rsup") as HTMLInputElement).value).toBe("0,12");
+    expect((dom.window.document.getElementById("id-rsup") as HTMLInputElement).value).toBe("");
     expect((dom.window.document.getElementById("id-calc") as HTMLSelectElement).value).toBe("193");
     expect((dom.window.document.getElementById("id-gtot") as HTMLInputElement).value).toBe("0,13");
-    expect(result.compiled).toHaveLength(10);
+    expect(result.compiled).toHaveLength(9);
     expect(submitCount).toBe(0);
   });
 });

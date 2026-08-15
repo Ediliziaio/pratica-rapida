@@ -36,7 +36,8 @@ const PLANT_TYPE_VALUES = {
 } as const;
 
 // Valore osservato nel DOM ENEA: il builder conserva il contratto del portale,
-// ma l'official gate lo accetta soltanto se il dominio applicativo lo supporta.
+// ma non lo compila finché il dominio applicativo non supporta anche gli
+// eventuali dati complementari richiesti dalla voce generica.
 const OBSERVED_OTHER_TERMINAL = "g. altro";
 
 const TERMINAL_VALUES = {
@@ -115,6 +116,10 @@ export function buildEneaPlantPortalScript(
       || (
         MANUAL_ONLY_OPTIONAL_PLANT_FIELD_IDS.has(definition.fieldId)
         && field.source !== "Inserimento operatore"
+      )
+      || (
+        definition.fieldId === "impianto.terminali"
+        && field.value === OBSERVED_OTHER_TERMINAL
       )
     ) return [];
     const selectValue = definition.selectValues?.[field.value];

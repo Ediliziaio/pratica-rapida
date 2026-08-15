@@ -23,6 +23,7 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
           if (!field.required) return field;
           let value = field.value;
           if (field.id === "beneficiario.cf") value = "RSSMRA80A01H501U";
+          else if (field.id === "beneficiario.data_nascita") value = "01/01/1980";
           else if (field.id === "beneficiario.sesso") value = "M";
           else if (field.id === "intervento.data_inizio") value = "01/01/2026";
           else if (field.id === "intervento.data_fine") value = "02/01/2026";

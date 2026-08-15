@@ -18,6 +18,7 @@ function readyFixture() {
         if (!field.required) return field;
         let value = field.value;
         if (field.id === "beneficiario.cf") value = "RSSMRA80A01H501U";
+        else if (field.id === "beneficiario.data_nascita") value = "01/01/1980";
         else if (field.id === "beneficiario.sesso") value = "M";
         else if (field.id === "intervento.data_inizio") value = "01/01/2026";
         else if (field.id === "intervento.data_fine") value = "02/01/2026";
@@ -85,6 +86,42 @@ describe("gate ENEA: formati strutturati delle pagine non schermatura", () => {
       status: "blocked",
       reason: "payload-inconsistent",
       workflow: null,
+    });
+  });
+
+  it("blocca una data di nascita ready ma incoerente con il codice fiscale personale", () => {
+    const { mapped, analysis } = readyFixture();
+    const altered = alterReadyField(mapped, "beneficiario.data_nascita", "02/01/1980");
+    const { issues, payload, gate } = officialGate(altered, analysis);
+
+    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
+    expect(payload.readyForOfficialSubmission).toBe(true);
+    expect(gate).toEqual({
+      status: "blocked",
+      reason: "payload-inconsistent",
+      workflow: null,
+    });
+    expect(buildEneaOfficialPortalWorkflowScript(altered)).toMatchObject({
+      mode: "blocked",
+      script: "",
+    });
+  });
+
+  it("blocca un sesso ready ma incoerente con il codice fiscale personale", () => {
+    const { mapped, analysis } = readyFixture();
+    const altered = alterReadyField(mapped, "beneficiario.sesso", "F");
+    const { issues, payload, gate } = officialGate(altered, analysis);
+
+    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
+    expect(payload.readyForOfficialSubmission).toBe(true);
+    expect(gate).toEqual({
+      status: "blocked",
+      reason: "payload-inconsistent",
+      workflow: null,
+    });
+    expect(buildEneaOfficialPortalWorkflowScript(altered)).toMatchObject({
+      mode: "blocked",
+      script: "",
     });
   });
 

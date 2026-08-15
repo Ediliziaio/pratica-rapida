@@ -51,9 +51,10 @@ function normalizeDate(value: string): string {
 }
 
 function numeric(value: string): number | null {
-  const match = value.replace(/\.(?=\d{3}(?:\D|$))/g, "").match(/-?\d+(?:[.,]\d+)?/);
-  if (!match) return null;
-  const parsed = Number(match[0].replace(",", "."));
+  const normalized = value.replace(/\.(?=\d{3}(?:\D|$))/g, "");
+  const tokens = normalized.match(/-?\d+(?:[.,]\d+)?/g) ?? [];
+  if (tokens.length !== 1) return null;
+  const parsed = Number(tokens[0].replace(",", "."));
   return Number.isFinite(parsed) ? parsed : null;
 }
 

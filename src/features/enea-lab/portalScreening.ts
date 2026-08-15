@@ -57,11 +57,12 @@ const EXPOSURE_VALUES = {
 } as const;
 
 const NORTHERN_EXPOSURES = new Set(["Nord", "Nord-Est", "Nord-Ovest"]);
-const NORTH_COMPATIBLE_TYPES = new Set<string>([
+const DARKENING_CLOSURE_TYPES = new Set<string>([
   ENEA_SCREENING_TYPE.shutter,
   ENEA_SCREENING_TYPE.rollerShutter,
   ENEA_SCREENING_TYPE.otherDarkeningClosure,
 ]);
+const NORTH_COMPATIBLE_TYPES = DARKENING_CLOSURE_TYPES;
 
 const CALCULATION_VALUES = {
   [ENEA_SCREENING_CALCULATION.supplierDeclared]: "193",
@@ -127,6 +128,11 @@ export function buildEneaScreeningPortalScript(
     mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
   );
   const prefix = `schermature.${itemIndex}.`;
+  const type = fieldsById.get(`${prefix}tipo`);
+  const darkeningClosure = type?.status === "ready"
+    && !type.testOnly
+    && DARKENING_CLOSURE_TYPES.has(type.value);
+
   const readyFields = ENEA_SCREENING_PORTAL_FIELDS.flatMap((definition) => {
     const fieldId = `${prefix}${definition.fieldSuffix}`;
     const field = fieldsById.get(fieldId);
@@ -140,11 +146,16 @@ export function buildEneaScreeningPortalScript(
       || !isVerifiedRsupp(fieldId, field.source)
     ) return [];
 
+    // Il gTot appartiene alla prestazione delle schermature solari. Una chiusura
+    // oscurante usa la Rsupp verificata: se il mapping contiene ancora un gTot
+    // stale da una classificazione precedente, il builder diretto non lo porta
+    // al runtime anche se quel campo è artificialmente marcato come ready.
+    if (definition.fieldSuffix === "gtot" && darkeningClosure) return [];
+
     // Difesa indipendente del builder: le esposizioni Nord/Nord-Est/Nord-Ovest
     // sono compatibili soltanto con chiusure oscuranti. Se la tipologia non è
     // verificata o appartiene alle schermature solari, non prepariamo id-esp.
     if (definition.fieldSuffix === "esposizione" && NORTHERN_EXPOSURES.has(field.value)) {
-      const type = fieldsById.get(`${prefix}tipo`);
       if (
         !type
         || type.status !== "ready"

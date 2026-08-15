@@ -1,4 +1,5 @@
 import type { EneaLabMappedPractice } from "./types";
+import { validateOperatorOverride } from "./operatorValidation";
 import {
   buildEneaPortalRuntimeScript,
   type EneaPortalControl,
@@ -12,6 +13,7 @@ interface BuildingPortalFieldDefinition {
   control: EneaPortalControl;
   selectValues?: Readonly<Record<string, string>>;
   normalizeValue?: (value: string) => string;
+  validate?: boolean;
   automatic?: boolean;
 }
 
@@ -62,7 +64,7 @@ export const ENEA_BUILDING_PORTAL_FIELDS: readonly BuildingPortalFieldDefinition
   { fieldId: "immobile.comune", portalId: "id-comune", control: "autocomplete" },
   { fieldId: "immobile.indirizzo", portalId: "id-indirizzo", control: "input" },
   { fieldId: "immobile.civico", portalId: "id-civico", control: "input" },
-  { fieldId: "immobile.cap", portalId: "id-cap", control: "input" },
+  { fieldId: "immobile.cap", portalId: "id-cap", control: "input", validate: true },
   { fieldId: "immobile.scala", portalId: "id-scala", control: "input" },
   { fieldId: "immobile.interno", portalId: "id-interno", control: "input" },
   { fieldId: "immobile.gradi_giorno", portalId: "id-gg", control: "select", automatic: true },
@@ -70,9 +72,9 @@ export const ENEA_BUILDING_PORTAL_FIELDS: readonly BuildingPortalFieldDefinition
   { fieldId: "immobile.foglio", portalId: "id-foglio", control: "input" },
   { fieldId: "immobile.mappale", portalId: "id-mappale", control: "input" },
   { fieldId: "immobile.subalterno", portalId: "id-sub", control: "input" },
-  { fieldId: "immobile.anno", portalId: "id-anno", control: "input" },
-  { fieldId: "immobile.superficie", portalId: "id-sup_utile", control: "input", normalizeValue: numericValue },
-  { fieldId: "immobile.unita", portalId: "id-unita", control: "input" },
+  { fieldId: "immobile.anno", portalId: "id-anno", control: "input", validate: true },
+  { fieldId: "immobile.superficie", portalId: "id-sup_utile", control: "input", normalizeValue: numericValue, validate: true },
+  { fieldId: "immobile.unita", portalId: "id-unita", control: "input", validate: true },
   { fieldId: "beneficiario.titolo", portalId: "id-possesso", control: "select", selectValues: POSSESSION_VALUES },
   { fieldId: "immobile.destinazione_generale", portalId: "id-destinazione_uso", control: "select", selectValues: GENERAL_USE_VALUES },
   { fieldId: "immobile.destinazione_particolare", portalId: "id-dpr412", control: "select", selectValues: PARTICULAR_USE_VALUES },
@@ -95,7 +97,16 @@ export function buildEneaBuildingPortalScript(
       || field.value === "Non indicato"
       || field.value === "Intervento umano richiesto"
     ) return [];
-    const value = definition.normalizeValue ? definition.normalizeValue(field.value) : field.value;
+
+    // Difesa indipendente del builder: i campi strutturati/numerici gia ready
+    // vengono rivalidati prima di qualsiasi normalizzazione, cosi un mapping
+    // stale/alterato non puo reinterpretare valori ambigui (es. "2 x 9 m²").
+    const validation = definition.validate
+      ? validateOperatorOverride(definition.fieldId, field.value)
+      : null;
+    if (validation && !validation.valid) return [];
+    const verifiedValue = validation?.value ?? field.value;
+    const value = definition.normalizeValue ? definition.normalizeValue(verifiedValue) : verifiedValue;
     const selectValue = definition.selectValues?.[field.value];
     if (definition.control === "select" && definition.selectValues && !selectValue) return [];
     const prepared: EneaPortalRuntimeField = {

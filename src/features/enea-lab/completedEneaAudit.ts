@@ -169,6 +169,19 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
     fields["beneficiario.comune_residenza"] = residence.municipality;
   }
 
+  const physicalBeneficiaries = source.match(
+    /4\. Altri beneficiari \(persone fisiche\)\s*(.*?)\s*5\. Altri beneficiari \(persone giuridiche\)/i,
+  );
+  const legalBeneficiaries = source.match(
+    /5\. Altri beneficiari \(persone giuridiche\)\s*(.*?)\s*6\. Titolo di possesso/i,
+  );
+  if (physicalBeneficiaries && legalBeneficiaries) {
+    const hasOtherBeneficiaries = Boolean(
+      compact(physicalBeneficiaries[1]) || compact(legalBeneficiaries[1]),
+    );
+    fields["beneficiario.cointestazione"] = hasOtherBeneficiaries ? "Sì" : "No";
+  }
+
   set(fields, "beneficiario.titolo", capture(source, /6\. Titolo di possesso\s+(.+?)\s+7\. Destinazione d'uso generale/i));
   set(fields, "immobile.destinazione_generale", capture(source, /7\. Destinazione d'uso generale\s+(.+?)\s+8\. Destinazione d'uso particolare/i));
   set(fields, "immobile.destinazione_particolare", capture(source, /8\. Destinazione d'uso particolare\s+(.+?)\s+9\. Tipologia edilizia/i));

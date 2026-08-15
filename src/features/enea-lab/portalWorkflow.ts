@@ -315,6 +315,22 @@ function hasValidOfficialDiscreteDomains(mapped: EneaLabMappedPractice): boolean
   });
 }
 
+function hasSupportedOfficialCoOwnership(mapped: EneaLabMappedPractice): boolean {
+  const field = mapped.sections
+    .flatMap((section) => section.fields)
+    .find((candidate) => candidate.id === "beneficiario.cointestazione");
+
+  if (!field || field.status !== "ready" || field.testOnly) return true;
+  const validation = validateOperatorOverride(field.id, field.value);
+  if (!validation.valid) return false;
+
+  // Il workflow osservato modella oggi soltanto l'anagrafica del beneficiario
+  // principale: non esiste ancora uno step/contratto per inserire in sicurezza
+  // i dati di un cointestatario. Finché quel percorso non viene osservato e
+  // modellato sul portale reale, una cointestazione deve restare fail-closed.
+  return validation.value === "No";
+}
+
 function step(id: string, runtime: EneaPortalScriptOptions): EneaPortalWorkflowStep {
   return { id, ...runtime };
 }
@@ -457,6 +473,18 @@ export function buildEneaOfficialPortalWorkflowScript(
   // builder né arrivare al runtime come scelta impossibile: il workflow ufficiale
   // deve fermarsi prima di produrre uno script.
   if (!hasValidOfficialDiscreteDomains(mapped)) {
+    return {
+      script: "",
+      supportedPages: [],
+      screeningItemCount: 0,
+      mode: "blocked",
+    };
+  }
+
+  // Il laboratorio non ha ancora osservato e congelato il percorso ENEA per un
+  // secondo beneficiario. Evitiamo quindi di dichiarare official un workflow che
+  // compilerebbe soltanto il beneficiario principale lasciando fuori il cointestatario.
+  if (!hasSupportedOfficialCoOwnership(mapped)) {
     return {
       script: "",
       supportedPages: [],

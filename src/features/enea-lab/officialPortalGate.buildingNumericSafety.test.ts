@@ -60,4 +60,19 @@ describe("gate ENEA · formato numerico immobile", () => {
     expect(gate.status).toBe("blocked");
     expect(gate.workflow).toBeNull();
   });
+
+  it("non deve portare al workflow official una superficie utile pari a zero", () => {
+    expect(validateOperatorOverride("immobile.superficie", "0 m²").valid).toBe(false);
+
+    const { mapped, analysis } = readyMappedWithBuildingSurface("0 m²");
+    const issues = validatePreparedPractice(mapped.source, mapped, analysis);
+    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
+
+    const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-14T14:20:00.000Z"));
+    expect(payload.readyForOfficialSubmission).toBe(true);
+
+    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis);
+    expect(gate.status).toBe("blocked");
+    expect(gate.workflow).toBeNull();
+  });
 });

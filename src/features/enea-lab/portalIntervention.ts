@@ -45,6 +45,14 @@ const INTERVENTION_BUTTON_IDS = {
   [ENEA_INTERVENTION_TYPE.heatPump]: "id-comma-347a",
 } as const;
 
+function dateTimestamp(value: string): number | null {
+  const italian = value.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const iso = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (italian) return Date.UTC(Number(italian[3]), Number(italian[2]) - 1, Number(italian[1]));
+  if (iso) return Date.UTC(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+  return null;
+}
+
 /** Identificativi osservati sulla pagina "Intervento" ENEA 2026. */
 export const ENEA_INTERVENTION_PORTAL_FIELDS: readonly InterventionPortalFieldDefinition[] = [
   { fieldId: "intervento.ambito", portalId: "id-immobile", control: "select", selectValues: SCOPE_VALUES },
@@ -63,6 +71,20 @@ export function buildEneaInterventionPortalScript(
   const fieldsById = new Map(
     mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
   );
+  const startField = fieldsById.get("intervento.data_inizio");
+  const finishField = fieldsById.get("intervento.data_fine");
+  const startValidation = startField?.status === "ready" && !startField.testOnly
+    ? validateOperatorOverride("intervento.data_inizio", startField.value)
+    : null;
+  const finishValidation = finishField?.status === "ready" && !finishField.testOnly
+    ? validateOperatorOverride("intervento.data_fine", finishField.value)
+    : null;
+  const startTimestamp = startValidation?.valid ? dateTimestamp(startValidation.value) : null;
+  const finishTimestamp = finishValidation?.valid ? dateTimestamp(finishValidation.value) : null;
+  const invertedChronology = startTimestamp !== null
+    && finishTimestamp !== null
+    && startTimestamp > finishTimestamp;
+
   const readyFields = ENEA_INTERVENTION_PORTAL_FIELDS.flatMap((definition) => {
     const field = fieldsById.get(definition.fieldId);
     if (
@@ -72,6 +94,10 @@ export function buildEneaInterventionPortalScript(
       || field.testOnly
       || field.value === "Non indicato"
       || field.value === "Intervento umano richiesto"
+      || (invertedChronology && (
+        definition.fieldId === "intervento.data_inizio"
+        || definition.fieldId === "intervento.data_fine"
+      ))
     ) return [];
     const validation = definition.validate
       ? validateOperatorOverride(definition.fieldId, field.value)

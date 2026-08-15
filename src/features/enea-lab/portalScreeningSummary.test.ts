@@ -8,9 +8,15 @@ import {
 import { buildEneaScreeningSummaryPortalScript } from "./portalScreeningSummary";
 
 describe("compilazione riepilogo schermature ENEA", () => {
-  it("prepara la spesa IVA compresa ricavata dalle fatture", async () => {
+  it("prepara la spesa IVA compresa dopo la verifica dell'operatore", async () => {
     const source = ENEA_LAB_MOCK_PRACTICES[0];
     const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id]);
+    const expense = mapped.sections
+      .flatMap((section) => section.fields)
+      .find((field) => field.id === "schermature.spesa")!;
+    expense.source = "Inserimento operatore";
+    expense.status = "ready";
+
     const { script, readyFieldIds } = buildEneaScreeningSummaryPortalScript(mapped);
     const dom = new JSDOM(`
       <form id="riepilogo">
@@ -40,6 +46,7 @@ describe("compilazione riepilogo schermature ENEA", () => {
 
     for (const invalidValue of ["Non indicato", "Intervento umano richiesto", "testo", "-1 €"]) {
       expense.status = "ready";
+      expense.source = "Inserimento operatore";
       expense.value = invalidValue;
       const preparation = buildEneaScreeningSummaryPortalScript(mapped);
       expect(preparation.readyFieldIds).toEqual([]);

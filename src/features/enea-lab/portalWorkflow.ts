@@ -62,6 +62,32 @@ const OFFICIAL_DISCRETE_DOMAIN_FIELD_IDS = [
   "impianto.combustibile",
   "impianto.condizionamento",
 ] as const;
+const FISCAL_CODE_OMOCODIA_DIGITS: Record<string, string> = {
+  L: "0",
+  M: "1",
+  N: "2",
+  P: "3",
+  Q: "4",
+  R: "5",
+  S: "6",
+  T: "7",
+  U: "8",
+  V: "9",
+};
+const FISCAL_CODE_MONTHS: Record<string, number> = {
+  A: 1,
+  B: 2,
+  C: 3,
+  D: 4,
+  E: 5,
+  H: 6,
+  L: 7,
+  M: 8,
+  P: 9,
+  R: 10,
+  S: 11,
+  T: 12,
+};
 
 function screeningIndexes(mapped: EneaLabMappedPractice): number[] {
   const indexes = mapped.sections
@@ -168,6 +194,73 @@ function hasValidOfficialStructuredValues(mapped: EneaLabMappedPractice): boolea
       || field.testOnly
       || validateOperatorOverride(fieldId, field.value).valid;
   });
+}
+
+function fiscalCodeNumericPair(value: string): number | null {
+  const decoded = [...value.toUpperCase()]
+    .map((character) => FISCAL_CODE_OMOCODIA_DIGITS[character] ?? character)
+    .join("");
+  return /^\d{2}$/.test(decoded) ? Number(decoded) : null;
+}
+
+function birthDateParts(value: string): { year: number; month: number; day: number } | null {
+  const italian = value.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const iso = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (italian) {
+    return { year: Number(italian[3]), month: Number(italian[2]), day: Number(italian[1]) };
+  }
+  if (iso) {
+    return { year: Number(iso[1]), month: Number(iso[2]), day: Number(iso[3]) };
+  }
+  return null;
+}
+
+function hasCoherentOfficialBeneficiaryIdentity(mapped: EneaLabMappedPractice): boolean {
+  const fields = new Map(
+    mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
+  );
+  const fiscalCode = fields.get("beneficiario.cf");
+  const birthDate = fields.get("beneficiario.data_nascita");
+  const sex = fields.get("beneficiario.sesso");
+
+  // I mapping volutamente incompleti restano gestiti dalla readiness generale.
+  // Se però i tre dati personali entreranno nel workflow official, devono essere
+  // coerenti tra loro e non soltanto validi singolarmente.
+  if (
+    !fiscalCode
+    || !birthDate
+    || !sex
+    || fiscalCode.status !== "ready"
+    || birthDate.status !== "ready"
+    || sex.status !== "ready"
+    || fiscalCode.testOnly
+    || birthDate.testOnly
+    || sex.testOnly
+  ) return true;
+
+  const normalizedFiscalCode = fiscalCode.value.replace(/\s/g, "").toUpperCase();
+  // Gli 11 numeri ammessi per i soggetti IVA non codificano data e sesso.
+  if (/^\d{11}$/.test(normalizedFiscalCode)) return true;
+  if (normalizedFiscalCode.length !== 16) return false;
+
+  const fiscalYear = fiscalCodeNumericPair(normalizedFiscalCode.slice(6, 8));
+  const fiscalMonth = FISCAL_CODE_MONTHS[normalizedFiscalCode[8]];
+  const fiscalDayCode = fiscalCodeNumericPair(normalizedFiscalCode.slice(9, 11));
+  const parsedBirthDate = birthDateParts(birthDate.value);
+  if (fiscalYear === null || fiscalMonth === undefined || fiscalDayCode === null || !parsedBirthDate) return false;
+
+  const fiscalSex = fiscalDayCode >= 41 && fiscalDayCode <= 71
+    ? "F"
+    : fiscalDayCode >= 1 && fiscalDayCode <= 31
+      ? "M"
+      : null;
+  if (!fiscalSex) return false;
+  const fiscalDay = fiscalSex === "F" ? fiscalDayCode - 40 : fiscalDayCode;
+
+  return parsedBirthDate.year % 100 === fiscalYear
+    && parsedBirthDate.month === fiscalMonth
+    && parsedBirthDate.day === fiscalDay
+    && sex.value.trim().toUpperCase() === fiscalSex;
 }
 
 function dateTimestamp(value: string): number | null {
@@ -328,6 +421,18 @@ export function buildEneaOfficialPortalWorkflowScript(
   // barriera. In particolare un CF, CAP, telefono o data diventati stale non
   // possono essere copiati nel comando official solo perché risultano `ready`.
   if (!hasValidOfficialStructuredValues(mapped)) {
+    return {
+      script: "",
+      supportedPages: [],
+      screeningItemCount: 0,
+      mode: "blocked",
+    };
+  }
+
+  // Un CF personale codifica data di nascita e sesso: tre valori singolarmente
+  // validi ma tra loro incoerenti non devono produrre il workflow official. La
+  // decodifica gestisce anche le sostituzioni di omocodia nelle posizioni numeriche.
+  if (!hasCoherentOfficialBeneficiaryIdentity(mapped)) {
     return {
       script: "",
       supportedPages: [],

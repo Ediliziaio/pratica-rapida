@@ -52,12 +52,12 @@ describe("compilazione finestra schermatura solare ENEA", () => {
     expect(preparation.script).not.toMatch(/\.submit\s*\(/);
   });
 
-  it("ignora una Rsupp verificata sulle schermature solari senza attivare Salva", async () => {
+  it("compila una Rsupp verificata anche sulle schermature solari senza attivare Salva", async () => {
     const source = ENEA_LAB_MOCK_PRACTICES[0];
     const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id], {
       overrides: {
         "schermature.0.superficie_finestrata": "2,9 m²",
-        "schermature.0.rsupp": "0,12",
+        "schermature.0.rsupp": "0,08",
       },
     });
     const { script } = buildEneaScreeningPortalScript(mapped, 0);
@@ -86,10 +86,10 @@ describe("compilazione finestra schermatura solare ENEA", () => {
     expect((dom.window.document.getElementById("id-inst") as HTMLSelectElement).value).toBe("192");
     expect((dom.window.document.getElementById("id-sup_s") as HTMLInputElement).value).toBe("3,7");
     expect((dom.window.document.getElementById("id-sup_f") as HTMLInputElement).value).toBe("2,9");
-    expect((dom.window.document.getElementById("id-rsup") as HTMLInputElement).value).toBe("");
+    expect((dom.window.document.getElementById("id-rsup") as HTMLInputElement).value).toBe("0,08");
     expect((dom.window.document.getElementById("id-calc") as HTMLSelectElement).value).toBe("193");
     expect((dom.window.document.getElementById("id-gtot") as HTMLInputElement).value).toBe("0,13");
-    expect(result.compiled).toHaveLength(9);
+    expect(result.compiled).toHaveLength(10);
     expect(submitCount).toBe(0);
   });
 });

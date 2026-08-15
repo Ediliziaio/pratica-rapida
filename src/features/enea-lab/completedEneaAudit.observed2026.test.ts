@@ -79,6 +79,7 @@ describe("audit storico ENEA - PDF conclusivo 2026 osservato", () => {
     expect(snapshot.fields["intervento.tipo"]).toBe("Comma 345B - Schermature solari");
     expect(snapshot.fields["immobile.indirizzo"]).toBe("Via Esempio");
     expect(snapshot.fields["immobile.civico"]).toBe("75/130");
+    expect(snapshot.fields["immobile.unita"]).toBe("1");
     expect(snapshot.fields["beneficiario.comune_residenza"]).toBe("Uboldo");
     expect(snapshot.fields["impianto.numero_generatori"]).toBe("1");
     expect(snapshot.fields["impianto.rendimento"]).toBe("94.8");

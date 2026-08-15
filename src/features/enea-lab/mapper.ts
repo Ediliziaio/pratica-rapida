@@ -314,6 +314,7 @@ export function mapSchermaturaPractice(
     const item = detectedItems[index];
     const declared = prodotto?.items[index];
     const rules = screeningRules(declared?.tipo ?? "", item?.description ?? "", item?.gTot);
+    const darkeningClosure = DARKENING_CLOSURE_TYPES.has(rules.type);
     return [
       mappedField(
         `schermature.${index}.tipo`,
@@ -366,9 +367,11 @@ export function mapSchermaturaPractice(
         `Elemento ${index + 1} · resistenza termica supplementare`,
         "",
         {
-          required: false,
+          required: darkeningClosure,
           editable: true,
-          note: "Campo opzionale: compilare solo dopo verifica documentale o dell'operatore; non viene dedotto automaticamente.",
+          note: darkeningClosure
+            ? "Prestazione tecnica della chiusura oscurante: inserire la Rsupp soltanto dopo verifica documentale o dell'operatore."
+            : "Campo opzionale: compilare solo dopo verifica documentale o dell'operatore; non viene dedotto automaticamente.",
         },
       ),
       mappedField(
@@ -383,19 +386,25 @@ export function mapSchermaturaPractice(
         {
           source: rules.gTotFromDocument ? "Fattura" : "Regola controllata",
           status: rules.calculation ? "ready" : "missing",
-          note: "Regola operativa fissa: Dichiarato dal fornitore.",
+          note: darkeningClosure
+            ? "Per una chiusura oscurante selezionare la modalità soltanto dopo aver verificato come è stata determinata la Rsupp."
+            : "Regola operativa fissa: Dichiarato dal fornitore.",
         },
       ),
       mappedField(
         `schermature.${index}.gtot`,
         `Elemento ${index + 1} · gTot`,
-        formatNumber(rules.gTot, 2),
+        darkeningClosure ? "" : formatNumber(rules.gTot, 2),
         {
           source: rules.gTotFromDocument ? "Fattura" : "Regola controllata",
+          required: !darkeningClosure,
+          editable: !darkeningClosure,
           status: "ready",
-          note: rules.gTotFromDocument
-            ? "Requisito automatico verificato: gTot ≤ 0,35."
-            : `Valore sostitutivo operativo: ${formatNumber(rules.gTot, 2)} in assenza di un valore specificato.`,
+          note: darkeningClosure
+            ? "Il gTot è la prestazione delle schermature solari; per questa chiusura oscurante il laboratorio richiede invece la Rsupp verificata."
+            : rules.gTotFromDocument
+              ? "Requisito automatico verificato: gTot ≤ 0,35."
+              : `Valore sostitutivo operativo: ${formatNumber(rules.gTot, 2)} in assenza di un valore specificato.`,
         },
       ),
       mappedField(

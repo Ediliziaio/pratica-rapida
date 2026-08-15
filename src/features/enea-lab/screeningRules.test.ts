@@ -106,10 +106,12 @@ describe("regole operative schermature solari", () => {
     });
   });
 
-  it("mappa la tapparella esplicita sul tipo ENEA osservato", () => {
+  it("mappa la tapparella esplicita sul tipo ENEA osservato senza inventare prestazioni solari", () => {
     expect(screeningRules("altro", "Tapparella motorizzata", null)).toMatchObject({
       type: ENEA_SCREENING_TYPE.rollerShutter,
-      gTot: 0.06,
+      gTot: 0,
+      gTotFromDocument: false,
+      calculation: "",
       material: "",
       regulation: ENEA_SCREENING_REGULATION.automatic,
     });

@@ -25,11 +25,23 @@ describe("audit storico cointestazione ENEA", () => {
     expect(snapshot.fields["beneficiario.cointestazione"]).toBe("No");
   });
 
-  it("non certifica come singolo beneficiario un PDF conclusivo che contiene altri beneficiari", () => {
+  it("non certifica come singolo beneficiario un PDF conclusivo che contiene altri beneficiari persone fisiche", () => {
     const snapshot = parseCompletedEneaText(`${BASE}
 4. Altri beneficiari (persone fisiche)
 Nome: Lucia Rossi Codice fiscale: RSSLCU82B41H501A
 5. Altri beneficiari (persone giuridiche)
+6. Titolo di possesso Proprietario o comproprietario
+7. Destinazione d'uso generale Residenziale
+`);
+
+    expect(snapshot.fields["beneficiario.cointestazione"]).toBe("Sì");
+  });
+
+  it("non certifica come singolo beneficiario un PDF conclusivo che contiene altri beneficiari persone giuridiche", () => {
+    const snapshot = parseCompletedEneaText(`${BASE}
+4. Altri beneficiari (persone fisiche)
+5. Altri beneficiari (persone giuridiche)
+Denominazione: Esempio SRL Codice fiscale: 12345678901
 6. Titolo di possesso Proprietario o comproprietario
 7. Destinazione d'uso generale Residenziale
 `);

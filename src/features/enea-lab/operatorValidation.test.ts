@@ -21,6 +21,7 @@ describe("validazione correzioni operatore", () => {
     expect(validateOperatorOverride("schermature.0.superficie", "2 x 9 m²").valid).toBe(false);
     expect(validateOperatorOverride("schermature.0.superficie", "0 m²").valid).toBe(false);
     expect(validateOperatorOverride("schermature.0.superficie_finestrata", "0 m²").valid).toBe(false);
+    expect(validateOperatorOverride("schermature.superficie_totale", "0 m²").valid).toBe(false);
     expect(validateOperatorOverride("immobile.superficie", "0 m²").valid).toBe(false);
     expect(validateOperatorOverride("beneficiario.cf", "RSSMRA80A01H501X").valid).toBe(false);
   });
@@ -37,6 +38,7 @@ describe("validazione correzioni operatore", () => {
     expect(validateOperatorOverride("schermature.0.gtot", "0,13").valid).toBe(true);
     expect(validateOperatorOverride("schermature.0.superficie_finestrata", "2,9 m²").valid).toBe(true);
     expect(validateOperatorOverride("schermature.spesa", "1.000 €").valid).toBe(true);
+    expect(validateOperatorOverride("schermature.superficie_totale", "14,5 m²").valid).toBe(true);
     expect(validateOperatorOverride("immobile.superficie", "140 m²").valid).toBe(true);
     expect(validateOperatorOverride("beneficiario.sesso", "f")).toEqual({ valid: true, value: "F" });
     expect(validateOperatorOverride("beneficiario.abitazione_principale", "si")).toEqual({ valid: true, value: "Sì" });

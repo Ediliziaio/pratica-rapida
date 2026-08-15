@@ -101,6 +101,22 @@ function isValidDate(value: string): boolean {
     && date.getUTCDate() === day;
 }
 
+function isFutureDate(value: string): boolean {
+  const italian = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const iso = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const parts = italian
+    ? [Number(italian[3]), Number(italian[2]), Number(italian[1])]
+    : iso
+      ? [Number(iso[1]), Number(iso[2]), Number(iso[3])]
+      : null;
+  if (!parts) return false;
+  const [year, month, day] = parts;
+  const candidate = Date.UTC(year, month - 1, day);
+  const now = new Date();
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return candidate > today;
+}
+
 function hasValidItalianFiscalCodeControlCharacter(value: string): boolean {
   if (!ITALIAN_FISCAL_CODE_PERSONAL_PATTERN.test(value)) return false;
 
@@ -238,7 +254,13 @@ export function validateOperatorOverride(
     return { valid: true, value: normalized };
   }
 
-  if (/^(?:beneficiario\.data_nascita|intervento\.data_inizio|intervento\.data_fine)$/.test(fieldId)) {
+  if (fieldId === "beneficiario.data_nascita") {
+    return isValidDate(value) && !isFutureDate(value)
+      ? { valid: true, value }
+      : invalid(value, "La data di nascita deve essere reale, nel formato GG/MM/AAAA e non futura.");
+  }
+
+  if (/^intervento\.(?:data_inizio|data_fine)$/.test(fieldId)) {
     return isValidDate(value)
       ? { valid: true, value }
       : invalid(value, "Usare una data reale nel formato GG/MM/AAAA.");

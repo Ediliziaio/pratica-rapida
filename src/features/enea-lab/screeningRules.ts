@@ -78,6 +78,7 @@ export function screeningRules(
   const zanzariera = isZanzariera(description);
   const shutter = isShutter(description);
   const persiana = isPersiana(description);
+  const darkeningClosure = shutter || persiana;
   const venetianBlind = isVenetianBlind(description);
   const integrated = /vetrocamera/.test(normalized) && (venetianBlind || /integrat/.test(normalized));
   const pergotenda = declaredType === "pergotenda" || /pergotend/.test(normalized);
@@ -162,15 +163,25 @@ export function screeningRules(
             : declaredType || description.trim()
               ? ENEA_SCREENING_INSTALLATION.external
               : "",
-    gTot: validDocumentedGTot ? documentedGTot : integrated ? 0 : zanzariera ? 0.33 : 0.06,
-    gTotFromDocument: validDocumentedGTot,
-    calculation: validDocumentedGTot
-      ? ENEA_SCREENING_CALCULATION.supplierDeclared
-      : integrated
-        ? ""
-        : declaredType || description.trim()
-          ? ENEA_SCREENING_CALCULATION.supplierDeclared
-          : "",
+    gTot: darkeningClosure
+      ? 0
+      : validDocumentedGTot
+        ? documentedGTot
+        : integrated
+          ? 0
+          : zanzariera
+            ? 0.33
+            : 0.06,
+    gTotFromDocument: !darkeningClosure && validDocumentedGTot,
+    calculation: darkeningClosure
+      ? ""
+      : validDocumentedGTot
+        ? ENEA_SCREENING_CALCULATION.supplierDeclared
+        : integrated
+          ? ""
+          : declaredType || description.trim()
+            ? ENEA_SCREENING_CALCULATION.supplierDeclared
+            : "",
     material,
     regulation,
   };

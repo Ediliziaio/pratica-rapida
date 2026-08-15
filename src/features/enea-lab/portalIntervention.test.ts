@@ -41,9 +41,42 @@ describe("compilazione pagina intervento ENEA", () => {
       "intervento.impianto_centralizzato",
     ]));
     expect(preparation.skippedFieldIds).toContain("intervento.zona_urbanistica");
-    expect(preparation.script).toContain('"portalId":"id-comma-345b","control":"button"');
-    expect(preparation.script).not.toContain('"portalId":"id-zona_urbanistica"');
+    expect(preparation.script).toContain('\"portalId\":\"id-comma-345b\",\"control\":\"button\"');
+    expect(preparation.script).not.toContain('\"portalId\":\"id-zona_urbanistica\"');
     expect(preparation.script).not.toMatch(/\.submit\s*\(/);
+  });
+
+  it("rivalida i campi strutturati ready prima del builder diretto", () => {
+    const source = ENEA_LAB_MOCK_PRACTICES[0];
+    const base = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id]);
+    const invalidValues: Record<string, string> = {
+      "intervento.unita_oggetto": "2 x 9",
+      "intervento.data_inizio": "31/02/2026",
+      "intervento.data_fine": "2026/07/31",
+    };
+    const mapped = {
+      ...base,
+      sections: base.sections.map((section) => ({
+        ...section,
+        fields: section.fields.map((field) => field.id in invalidValues
+          ? {
+              ...field,
+              value: invalidValues[field.id],
+              status: "ready" as const,
+              source: "Inserimento operatore" as const,
+              testOnly: false,
+            }
+          : field),
+      })),
+    };
+
+    const preparation = buildEneaInterventionPortalScript(mapped);
+
+    expect(preparation.skippedFieldIds).toEqual(expect.arrayContaining(Object.keys(invalidValues)));
+    for (const [fieldId, value] of Object.entries(invalidValues)) {
+      expect(preparation.readyFieldIds).not.toContain(fieldId);
+      expect(preparation.script).not.toContain(value);
+    }
   });
 
   it("compila i campi, sceglie il comma e non attiva Salva", async () => {

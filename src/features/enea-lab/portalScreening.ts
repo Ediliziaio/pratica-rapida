@@ -56,6 +56,13 @@ const EXPOSURE_VALUES = {
   "P-orizzontale": "311",
 } as const;
 
+const NORTHERN_EXPOSURES = new Set(["Nord", "Nord-Est", "Nord-Ovest"]);
+const NORTH_COMPATIBLE_TYPES = new Set<string>([
+  ENEA_SCREENING_TYPE.shutter,
+  ENEA_SCREENING_TYPE.rollerShutter,
+  ENEA_SCREENING_TYPE.otherDarkeningClosure,
+]);
+
 const CALCULATION_VALUES = {
   [ENEA_SCREENING_CALCULATION.supplierDeclared]: "193",
   [ENEA_SCREENING_CALCULATION.closureTable]: "195",
@@ -132,6 +139,20 @@ export function buildEneaScreeningPortalScript(
       || !isVerifiedGTot(fieldId, field.source)
       || !isVerifiedRsupp(fieldId, field.source)
     ) return [];
+
+    // Difesa indipendente del builder: le esposizioni Nord/Nord-Est/Nord-Ovest
+    // sono compatibili soltanto con chiusure oscuranti. Se la tipologia non è
+    // verificata o appartiene alle schermature solari, non prepariamo id-esp.
+    if (definition.fieldSuffix === "esposizione" && NORTHERN_EXPOSURES.has(field.value)) {
+      const type = fieldsById.get(`${prefix}tipo`);
+      if (
+        !type
+        || type.status !== "ready"
+        || type.testOnly
+        || !NORTH_COMPATIBLE_TYPES.has(type.value)
+      ) return [];
+    }
+
     const validation = definition.numeric ? validateOperatorOverride(fieldId, field.value) : null;
     if (validation && !validation.valid) return [];
     const value = definition.numeric ? numericValue(validation!.value) : field.value;

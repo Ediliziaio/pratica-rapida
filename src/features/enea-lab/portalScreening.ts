@@ -146,12 +146,11 @@ export function buildEneaScreeningPortalScript(
       || !isVerifiedRsupp(fieldId, field.source)
     ) return [];
 
-    // gTot e Rsupp rappresentano prestazioni alternative: il primo appartiene
-    // alle schermature solari, la seconda alle chiusure oscuranti. Il builder
-    // diretto non deve trascinare valori stale rimasti ready dopo un cambio di
-    // classificazione, anche se risultano formalmente verificati.
+    // Il gTot resta la prestazione necessaria delle schermature solari e non
+    // deve trascinarsi sulle chiusure oscuranti. Rsupp, invece, è presente anche
+    // in PDF ENEA 2026 conclusivi di schermature solari: il builder può portarla
+    // quando è stata verificata esplicitamente, senza mai dedurla in automatico.
     if (definition.fieldSuffix === "gtot" && darkeningClosure) return [];
-    if (definition.fieldSuffix === "rsupp" && !darkeningClosure) return [];
 
     // Difesa indipendente del builder: le esposizioni Nord/Nord-Est/Nord-Ovest
     // sono compatibili soltanto con chiusure oscuranti. Se la tipologia non è

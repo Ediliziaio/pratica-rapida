@@ -15,7 +15,7 @@ function numericValue(value: string): string {
   const normalized = value.trim().replace(/\s*€\s*$/i, "").replace(/\.(?=\d{3}(?:\D|$))/g, "");
   if (!/\d/.test(normalized)) return "";
   const parsed = Number(normalized.replace(",", "."));
-  return Number.isFinite(parsed) && parsed >= 0 ? normalized : "";
+  return Number.isFinite(parsed) && parsed > 0 ? normalized : "";
 }
 
 /** Compila i dati riepilogativi osservati nella pagina delle schermature. */
@@ -25,7 +25,13 @@ export function buildEneaScreeningSummaryPortalScript(
   const field = mapped.sections
     .flatMap((section) => section.fields)
     .find((candidate) => candidate.id === "schermature.spesa");
-  const ready = field?.status === "ready" && !field.testOnly;
+  // La spesa calcolata dal parser è solo una proposta: il confronto storico ha
+  // mostrato che il totale fiscale può differire dalla spesa congrua comunicata
+  // a ENEA. Anche il builder diretto resta quindi fail-closed e compila id-costo
+  // soltanto dopo una riscrittura/verifica esplicita dell'operatore.
+  const ready = field?.status === "ready"
+    && !field.testOnly
+    && field.source === "Inserimento operatore";
   const value = ready ? numericValue(field.value) : "";
   const runtime: EneaPortalScriptOptions = {
     fields: value ? [{ portalId: "id-costo", control: "input", value }] : [],

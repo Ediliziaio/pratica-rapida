@@ -20,6 +20,38 @@ export interface EneaBeneficiaryPortalPreparation {
   runtime: EneaPortalScriptOptions;
 }
 
+const FISCAL_CODE_OMOCODIA_DIGITS: Record<string, string> = {
+  L: "0",
+  M: "1",
+  N: "2",
+  P: "3",
+  Q: "4",
+  R: "5",
+  S: "6",
+  T: "7",
+  U: "8",
+  V: "9",
+};
+const FISCAL_CODE_MONTHS: Record<string, number> = {
+  A: 1,
+  B: 2,
+  C: 3,
+  D: 4,
+  E: 5,
+  H: 6,
+  L: 7,
+  M: 8,
+  P: 9,
+  R: 10,
+  S: 11,
+  T: 12,
+};
+const BENEFICIARY_IDENTITY_FIELD_IDS = new Set([
+  "beneficiario.cf",
+  "beneficiario.data_nascita",
+  "beneficiario.sesso",
+]);
+
 /**
  * Identificativi rilevati in sola lettura sul portale Bonus Fiscali ENEA 2026.
  * La lista riguarda esclusivamente la pagina "Anagrafica Beneficiario".
@@ -45,15 +77,82 @@ function isInternalPlaceholder(value: string): boolean {
   return normalized === "non indicato" || normalized === "intervento umano richiesto";
 }
 
+function fiscalCodeNumericPair(value: string): number | null {
+  const decoded = [...value.toUpperCase()]
+    .map((character) => FISCAL_CODE_OMOCODIA_DIGITS[character] ?? character)
+    .join("");
+  return /^\d{2}$/.test(decoded) ? Number(decoded) : null;
+}
+
+function birthDateParts(value: string): { year: number; month: number; day: number } | null {
+  const italian = value.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const iso = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (italian) {
+    return { year: Number(italian[3]), month: Number(italian[2]), day: Number(italian[1]) };
+  }
+  if (iso) {
+    return { year: Number(iso[1]), month: Number(iso[2]), day: Number(iso[3]) };
+  }
+  return null;
+}
+
+function hasCoherentBeneficiaryIdentity(
+  fieldsById: Map<string, EneaLabMappedPractice["sections"][number]["fields"][number]>,
+): boolean {
+  const fiscalCode = fieldsById.get("beneficiario.cf");
+  const birthDate = fieldsById.get("beneficiario.data_nascita");
+  const sex = fieldsById.get("beneficiario.sesso");
+
+  if (
+    !fiscalCode
+    || !birthDate
+    || !sex
+    || fiscalCode.status !== "ready"
+    || birthDate.status !== "ready"
+    || sex.status !== "ready"
+    || fiscalCode.testOnly
+    || birthDate.testOnly
+    || sex.testOnly
+  ) return true;
+
+  const normalizedFiscalCode = fiscalCode.value.replace(/\s/g, "").toUpperCase();
+  if (normalizedFiscalCode.length !== 16) return false;
+
+  const fiscalYear = fiscalCodeNumericPair(normalizedFiscalCode.slice(6, 8));
+  const fiscalMonth = FISCAL_CODE_MONTHS[normalizedFiscalCode[8]];
+  const fiscalDayCode = fiscalCodeNumericPair(normalizedFiscalCode.slice(9, 11));
+  const parsedBirthDate = birthDateParts(birthDate.value);
+  if (fiscalYear === null || fiscalMonth === undefined || fiscalDayCode === null || !parsedBirthDate) return false;
+
+  const fiscalSex = fiscalDayCode >= 41 && fiscalDayCode <= 71
+    ? "F"
+    : fiscalDayCode >= 1 && fiscalDayCode <= 31
+      ? "M"
+      : null;
+  if (!fiscalSex) return false;
+  const fiscalDay = fiscalSex === "F" ? fiscalDayCode - 40 : fiscalDayCode;
+
+  return parsedBirthDate.year % 100 === fiscalYear
+    && parsedBirthDate.month === fiscalMonth
+    && parsedBirthDate.day === fiscalDay
+    && sex.value.trim().toUpperCase() === fiscalSex;
+}
+
 export function buildEneaBeneficiaryPortalScript(
   mapped: EneaLabMappedPractice,
 ): EneaBeneficiaryPortalPreparation {
   const fieldsById = new Map(
     mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
   );
+  const coherentIdentity = hasCoherentBeneficiaryIdentity(fieldsById);
   const readyFields = ENEA_BENEFICIARY_PORTAL_FIELDS.flatMap((definition) => {
     const field = fieldsById.get(definition.fieldId);
     if (!field || field.status !== "ready" || field.testOnly || isInternalPlaceholder(field.value)) return [];
+
+    // Difesa indipendente del builder: CF, data e sesso possono essere validi
+    // singolarmente ma descrivere persone diverse. Se la terna e incoerente,
+    // non prepariamo nessuno dei tre valori nel runtime della pagina.
+    if (BENEFICIARY_IDENTITY_FIELD_IDS.has(definition.fieldId) && !coherentIdentity) return [];
 
     // Difesa indipendente del builder: i campi strutturati gia ready vengono
     // rivalidati prima del runtime, cosi un mapping stale/alterato non puo

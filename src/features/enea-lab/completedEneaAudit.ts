@@ -28,7 +28,7 @@ export interface CompletedEneaAuditResult {
   matchedFieldIds?: string[];
 }
 
-const NUMERIC_FIELD = /^(?:immobile\.(?:superficie|unita)|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.(?:numero|spesa|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp|gtot))$/;
+const NUMERIC_FIELD = /^(?:immobile\.(?:superficie|unita|gradi_giorno|fascia_solare)|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.(?:numero|spesa|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp|gtot))$/;
 const DATE_FIELD = /^(?:beneficiario\.data_nascita|intervento\.(?:data_inizio|data_fine))$/;
 
 function compact(text: string): string {
@@ -128,10 +128,9 @@ function parseAddressBlock(
 }
 
 /**
- * Estrae dal PDF finale ENEA soltanto i campi che il workflow del laboratorio
- * prova effettivamente a scrivere o che servono a verificare il contratto
- * tecnico osservato. I valori caricati dal portale, per esempio zona climatica
- * e gradi giorno, restano fuori dall'audit per evitare falsi errori.
+ * Estrae dal PDF finale ENEA i campi scritti dal workflow e i valori derivati
+ * dal portale che servono a verificare il contratto tecnico osservato. I dati
+ * climatici restano evidenza storica: non vengono trasformati in default del CRM.
  */
 export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   const source = compact(text);
@@ -151,11 +150,15 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
     fields["immobile.comune"] = worksAddress.municipality;
   }
 
+  set(fields, "immobile.codice_comune", capture(source, /Codice nazionale del Comune:\s*([A-Z0-9]+)\s+Sezione:/i));
   set(fields, "immobile.foglio", capture(source, /Foglio:\s*([^\s]+)\s+Particella:/i));
   set(fields, "immobile.mappale", capture(source, /Particella:\s*([^\s]+)\s+Subalterno:/i));
   set(fields, "immobile.subalterno", capture(source, /Subalterno:\s*([^\s]+)\s+2\. Anno di costruzione/i));
   set(fields, "immobile.anno", capture(source, /Anno di costruzione(?: inserire anche se stimato)?\s+(\d{4})/i));
   set(fields, "immobile.superficie", capture(source, /Superficie utile \[m²\][^0-9]*([0-9]+(?:[.,][0-9]+)?)/i));
+  set(fields, "immobile.zona_climatica", capture(source, /(?:11\.\s*)?Zona climatica\s+([A-F])\b/i));
+  set(fields, "immobile.gradi_giorno", capture(source, /(?:12\.\s*)?Gradi giorno\s+([0-9]+)\b/i));
+  set(fields, "immobile.fascia_solare", capture(source, /(?:13\.\s*)?Fascia solare\s+([0-9]+)\b/i));
   set(fields, "immobile.unita", capture(
     source,
     /2\. Unità immobiliari Numero totale delle unità immobiliari dell'edificio alla fine dei lavori\s+([0-9]+)/i,

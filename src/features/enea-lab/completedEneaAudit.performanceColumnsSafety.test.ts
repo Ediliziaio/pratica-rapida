@@ -25,6 +25,16 @@ describe("audit storico ENEA · colonne prestazionali schermature", () => {
     expect(snapshot.fields["schermature.0.gtot"]).toBe("0.13");
   });
 
+  it("non scambia una superficie finestrata intera per una nuova riga quando Rsupp e' assente", () => {
+    const snapshot = parseCompletedEneaText(completedScreeningPdf(
+      "1 Tenda o veneziana Esterna 3.7 3 Sud Dichiarato dal fornitore 0.13 Tessuto Manuale",
+    ));
+
+    expect(snapshot.screeningCount).toBe(1);
+    expect(snapshot.fields["schermature.0.superficie_finestrata"]).toBe("3");
+    expect(snapshot.fields["schermature.0.gtot"]).toBe("0.13");
+  });
+
   it("accetta una chiusura oscurante conclusa senza gTot quando la Rsupp e' presente", () => {
     const snapshot = parseCompletedEneaText(completedScreeningPdf(
       "1 Persiana avvolgibile Esterna 3.7 2.9 0.08 Nord Calcolato secondo UNI EN 13125 Metallo Manuale",

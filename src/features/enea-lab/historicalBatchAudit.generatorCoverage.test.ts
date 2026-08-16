@@ -15,10 +15,14 @@ const BASE_MATCHES = [
   "schermature.numero",
   "schermature.spesa",
   "schermature.risparmio_energia",
+  "impianto.tipo",
+  "impianto.terminali",
   "impianto.generatore",
   "impianto.numero_generatori",
   "impianto.rendimento",
   "impianto.potenza",
+  "impianto.combustibile",
+  "impianto.condizionamento",
 ];
 
 function completedAudit(matchedFieldIds = BASE_MATCHES): CompletedEneaAuditResult {

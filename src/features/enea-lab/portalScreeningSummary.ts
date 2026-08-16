@@ -1,4 +1,5 @@
 import type { EneaLabMappedPractice } from "./types";
+import { validateOperatorOverride } from "./operatorValidation";
 import {
   buildEneaPortalRuntimeScript,
   type EneaPortalScriptOptions,
@@ -12,6 +13,11 @@ export interface EneaScreeningSummaryPortalPreparation {
 }
 
 function numericValue(value: string): string {
+  // Non delegare la sintassi numerica a Number(): forme JavaScript come
+  // "1e3" o "0x10" non sono valori ENEA verificati e non devono diventare
+  // silenziosamente 1000/16 nel builder diretto. Riutilizziamo la stessa
+  // validazione fail-closed dell'inserimento operatore prima di normalizzare.
+  if (!validateOperatorOverride("schermature.spesa", value).valid) return "";
   const normalized = value.trim().replace(/\s*€\s*$/i, "").replace(/\.(?=\d{3}(?:\D|$))/g, "");
   if (!/\d/.test(normalized)) return "";
   const parsed = Number(normalized.replace(",", "."));

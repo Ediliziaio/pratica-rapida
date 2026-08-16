@@ -33,6 +33,7 @@ Subalterno: 32
 10. Superficie utile [m²] delle unità immobiliari interessate dall'intervento 140
 11. Zona climatica E
 12. Gradi giorno 2631
+13. Fascia solare 1
 Dati intervento
 1. Intervento su Singola unità immobiliare (in un edificio costituito da più unità immobiliari)
 2. Unità immobiliari Numero totale delle unità immobiliari dell'edificio alla fine dei lavori 1
@@ -69,7 +70,7 @@ function mappedScreeningCount(mapped: ReturnType<typeof mapSchermaturaPractice>)
 }
 
 describe("audit storico PDF ENEA conclusivo", () => {
-  it("estrae i campi tecnici osservati e ignora soltanto i valori automatici non gestiti", () => {
+  it("estrae i campi tecnici osservati, inclusi i dati climatici caricati dal portale", () => {
     const snapshot = parseCompletedEneaText(COMPLETED_ENEA_TECHNICAL_EXCERPT);
 
     expect(snapshot.cpid).toBe("288717-2026E-TESTTESTTESTTEST");
@@ -78,6 +79,7 @@ describe("audit storico PDF ENEA conclusivo", () => {
     expect(snapshot.fields["immobile.indirizzo"]).toBe("Via Esempio");
     expect(snapshot.fields["immobile.civico"]).toBe("75/130");
     expect(snapshot.fields["immobile.cap"]).toBe("21040");
+    expect(snapshot.fields["immobile.codice_comune"]).toBe("H264");
     expect(snapshot.fields["immobile.foglio"]).toBe("9");
     expect(snapshot.fields["immobile.mappale"]).toBe("10986");
     expect(snapshot.fields["immobile.subalterno"]).toBe("32");
@@ -88,6 +90,9 @@ describe("audit storico PDF ENEA conclusivo", () => {
     expect(snapshot.fields["beneficiario.comune_residenza"]).toBe("Uboldo");
     expect(snapshot.fields["beneficiario.titolo"]).toBe("Proprietario o comproprietario");
     expect(snapshot.fields["immobile.tipologia"]).toBe("Edificio a schiera e condominio fino a tre piani");
+    expect(snapshot.fields["immobile.zona_climatica"]).toBe("E");
+    expect(snapshot.fields["immobile.gradi_giorno"]).toBe("2631");
+    expect(snapshot.fields["immobile.fascia_solare"]).toBe("1");
     expect(snapshot.fields["intervento.data_inizio"]).toBe("09/04/2026");
     expect(snapshot.fields["impianto.tipo"]).toBe("a. impianto autonomo");
     expect(snapshot.fields["impianto.generatore"]).toBe("Altro (energia elettrica)");
@@ -99,8 +104,6 @@ describe("audit storico PDF ENEA conclusivo", () => {
     expect(snapshot.fields["schermature.0.rsupp"]).toBe("0.08");
     expect(snapshot.fields["schermature.4.gtot"]).toBe("0.13");
     expect(snapshot.fields["schermature.spesa"]).toBe("13924");
-    expect(snapshot.fields["immobile.zona_climatica"]).toBeUndefined();
-    expect(snapshot.fields["immobile.gradi_giorno"]).toBeUndefined();
     expect(snapshot.fields["intervento.unita_totali"]).toBeUndefined();
     expect(snapshot.screeningCount).toBe(5);
   });

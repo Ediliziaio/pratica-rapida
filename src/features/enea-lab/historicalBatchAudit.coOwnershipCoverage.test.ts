@@ -10,6 +10,7 @@ const BASE_MATCHES = [
   "immobile.mappale",
   "immobile.superficie",
   "immobile.unita",
+  "impianto.generatore",
   "intervento.data_inizio",
   "intervento.data_fine",
   "schermature.numero",
@@ -21,8 +22,8 @@ function completedAudit(matchedFieldIds = BASE_MATCHES): CompletedEneaAuditResul
   return {
     path: "demo/conclusa.pdf",
     cpid: "288717-2026E-TEST",
-    compared: 14,
-    matches: 14,
+    compared: 13,
+    matches: 13,
     mismatches: 0,
     differences: [],
     matchedFieldIds,

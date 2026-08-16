@@ -60,6 +60,22 @@ function auditWithout(fieldId?: string): CompletedEneaAuditResult {
   };
 }
 
+function auditWithoutBeneficiaryDescriptors(): CompletedEneaAuditResult {
+  const beneficiaryDescriptors = new Set<string>(BENEFICIARY_DESCRIPTOR_FIELDS);
+  const matchedFieldIds = BASELINE_MATCHES.filter(
+    (candidate) => !beneficiaryDescriptors.has(candidate),
+  );
+  return {
+    path: "demo/conclusa.pdf",
+    cpid: VALID_CPID,
+    compared: matchedFieldIds.length,
+    matches: matchedFieldIds.length,
+    mismatches: 0,
+    differences: [],
+    matchedFieldIds,
+  };
+}
+
 describe("copertura storica anagrafica beneficiario ENEA", () => {
   it("mantiene match quando tutti i dati anagrafici osservati sono coperti", () => {
     expect(classifyHistoricalAudit(auditWithout(), new Set()).outcome).toBe("match");
@@ -71,4 +87,9 @@ describe("copertura storica anagrafica beneficiario ENEA", () => {
       expect(classifyHistoricalAudit(auditWithout(fieldId), new Set()).outcome).toBe("difference");
     },
   );
+
+  it("fallisce chiuso se il parser perde l'intero blocco anagrafico osservato", () => {
+    expect(classifyHistoricalAudit(auditWithoutBeneficiaryDescriptors(), new Set()).outcome)
+      .toBe("difference");
+  });
 });

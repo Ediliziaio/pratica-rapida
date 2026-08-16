@@ -59,10 +59,11 @@ describe("selezione PDF conclusivo per audit storico ENEA", () => {
       .toThrow("PDF ENEA conclusivi con CPID discordanti nella stessa pratica.");
   });
 
-  it("a parita di CPID e copertura non sceglie in base al numero di match", () => {
+  it("blocca PDF con lo stesso CPID e la stessa copertura ma risultati discordanti", () => {
     const first = audit("pratica/revisione-a.pdf", "288717-2026E-TEST", 20, 4);
-    const mapperFriendly = audit("pratica/revisione-b.pdf", "288717-2026E-TEST", 20, 0);
+    const conflicting = audit("pratica/revisione-b.pdf", "288717-2026E-TEST", 20, 0);
 
-    expect(selectBestHistoricalCompletedAudit([first, mapperFriendly])).toBe(first);
+    expect(() => selectBestHistoricalCompletedAudit([first, conflicting]))
+      .toThrow("PDF ENEA conclusivi con lo stesso CPID ma risultati discordanti.");
   });
 });

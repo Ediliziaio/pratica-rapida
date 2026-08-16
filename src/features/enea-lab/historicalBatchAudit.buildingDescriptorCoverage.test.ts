@@ -30,6 +30,7 @@ const BASELINE_MATCHES = [
   "intervento.data_inizio",
   "intervento.data_fine",
   "schermature.numero",
+  "schermature.0.tipo",
   "schermature.spesa",
   "schermature.risparmio_energia",
 ] as const;

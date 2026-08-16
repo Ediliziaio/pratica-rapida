@@ -16,21 +16,24 @@ const BASE_MATCHES = [
   "schermature.spesa",
   "schermature.risparmio_energia",
   "impianto.generatore",
+  "impianto.numero_generatori",
+  "impianto.rendimento",
+  "impianto.potenza",
 ];
 
 function completedAudit(matchedFieldIds = BASE_MATCHES): CompletedEneaAuditResult {
   return {
     path: "demo/conclusa.pdf",
     cpid: "288717-2026E-TEST",
-    compared: 13,
-    matches: 13,
+    compared: matchedFieldIds.length,
+    matches: matchedFieldIds.length,
     mismatches: 0,
     differences: [],
     matchedFieldIds,
   };
 }
 
-describe("copertura critica del tipo generatore nell'audit storico", () => {
+describe("copertura critica del generatore nell'audit storico", () => {
   it("non certifica un match se il parser perde il tipo generatore osservato nel PDF conclusivo", () => {
     const audit = completedAudit(
       BASE_MATCHES.filter((fieldId) => fieldId !== "impianto.generatore"),
@@ -39,7 +42,19 @@ describe("copertura critica del tipo generatore nell'audit storico", () => {
     expect(classifyHistoricalAudit(audit, new Set()).outcome).toBe("difference");
   });
 
-  it("continua a certificare il match quando il tipo generatore e osservato", () => {
+  for (const fieldId of [
+    "impianto.numero_generatori",
+    "impianto.rendimento",
+    "impianto.potenza",
+  ]) {
+    it(`non certifica un match se il parser perde ${fieldId}`, () => {
+      const audit = completedAudit(BASE_MATCHES.filter((candidate) => candidate !== fieldId));
+
+      expect(classifyHistoricalAudit(audit, new Set()).outcome).toBe("difference");
+    });
+  }
+
+  it("continua a certificare il match quando tutti i dati osservati del generatore sono coperti", () => {
     expect(classifyHistoricalAudit(completedAudit(), new Set()).outcome).toBe("match");
   });
 });

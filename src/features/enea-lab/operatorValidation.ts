@@ -294,10 +294,10 @@ export function validateOperatorOverride(
   }
 
   if (fieldId === "immobile.anno") {
-    const year = Number(value);
+    const year = parseItalianNumber(value);
     const currentYear = new Date().getFullYear();
-    return Number.isInteger(year) && year >= 1000 && year <= currentYear
-      ? { valid: true, value }
+    return year !== null && Number.isInteger(year) && year >= 1000 && year <= currentYear
+      ? { valid: true, value: String(year) }
       : invalid(value, `Inserire un anno compreso tra 1000 e ${currentYear}.`);
   }
 

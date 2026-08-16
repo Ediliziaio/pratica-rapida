@@ -506,7 +506,10 @@ export function mapSchermaturaPractice(
       mappedField("immobile.scala", "Scala", "", { required: false }),
       mappedField("immobile.interno", "Interno", "", { required: false }),
       mappedField("immobile.codice_comune", "Codice nazionale del Comune", "", {
-        note: "Recuperare il codice catastale del Comune da una fonte ufficiale.",
+        source: "Regola controllata",
+        required: false,
+        editable: false,
+        note: "Dato derivato dal Comune selezionato nel portale ENEA: mantenerlo come evidenza da verificare nel collaudo reale, senza compilarlo dal laboratorio.",
       }),
       mappedField("immobile.foglio", "Foglio", form.catastali.foglio),
       mappedField("immobile.mappale", "Particella / mappale", form.catastali.mappale),
@@ -543,7 +546,10 @@ export function mapSchermaturaPractice(
         form.edificio.tipologia ? TIPOLOGIA_LABELS[form.edificio.tipologia] : "",
       ),
       mappedField("immobile.zona_climatica", "Zona climatica", "", {
-        note: "Recuperare dal Comune dell'intervento.",
+        source: "Regola controllata",
+        required: false,
+        editable: false,
+        note: "Dato derivato dal Comune nel portale ENEA: verificarlo in sola lettura durante il collaudo reale; il laboratorio non lo compila.",
       }),
       mappedField("immobile.gradi_giorno", "Gradi giorno", "Automatici dal Comune ENEA", {
         source: "Regola controllata",
@@ -552,7 +558,10 @@ export function mapSchermaturaPractice(
         note: "Il portale li carica automaticamente dopo la selezione del Comune dall'elenco ENEA.",
       }),
       mappedField("immobile.fascia_solare", "Fascia solare", "", {
-        note: "Verificare il valore proposto dal portale ENEA.",
+        source: "Regola controllata",
+        required: false,
+        editable: false,
+        note: "Dato derivato dal Comune nel portale ENEA: verificarlo in sola lettura durante il collaudo reale; il laboratorio non lo compila.",
       }),
     ]),
     section("intervento", "3. Intervento", "Unità interessate e date dei lavori", [

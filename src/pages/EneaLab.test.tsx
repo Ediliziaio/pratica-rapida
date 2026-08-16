@@ -106,11 +106,11 @@ describe("EneaLab", () => {
     render(<EneaLab />);
 
     fireEvent.click(screen.getByRole("button", {
-      name: "Codice nazionale del Comune: Intervento umano richiesto.",
+      name: "Elemento 1 · superficie finestrata protetta: Intervento umano richiesto.",
     }));
 
-    expect(screen.getByRole("tab", { name: "2. Immobile" })).toHaveAttribute("data-state", "active");
-    expect(screen.getByRole("textbox", { name: "Correzione Codice nazionale del Comune" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "5. Schermature solari" })).toHaveAttribute("data-state", "active");
+    expect(screen.getByRole("textbox", { name: "Correzione Elemento 1 · superficie finestrata protetta" })).toBeInTheDocument();
   });
 
   it("permette di correggere anche un dato estratto che risultava gia pronto", () => {

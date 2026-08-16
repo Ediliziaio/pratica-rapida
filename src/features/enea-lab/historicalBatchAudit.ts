@@ -114,6 +114,12 @@ const HISTORICAL_ADDRESS_ID_FIELDS = [
   "immobile.cap",
   "immobile.comune",
 ] as const;
+const HISTORICAL_NUMERIC_EVIDENCE_FIELD = /^(?:immobile\.(?:superficie|unita|gradi_giorno|fascia_solare)|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.(?:numero|spesa|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp|gtot))$/;
+
+type HistoricalFieldEvidence =
+  | { kind: "match" }
+  | { kind: "difference"; completedValue: string; mappedValue: string }
+  | { kind: "conflict" };
 
 function normalizedCpid(cpid: string): string {
   return cpid.trim().toUpperCase();
@@ -311,21 +317,66 @@ function hasHistoricalCriticalCoverage(audit: CompletedEneaAuditResult): boolean
   return hasHistoricalScreeningTechnicalCoverage(audit, observed);
 }
 
-function historicalCandidateFieldEvidence(candidate: CompletedEneaAuditResult): Map<string, string> {
-  const evidence = new Map<string, string>();
+function historicalNumericEvidenceValue(value: string): number | null {
+  const normalized = value.replace(/\.(?=\d{3}(?:\D|$))/g, "");
+  const tokens = normalized.match(/-?\d+(?:[.,]\d+)?/g) ?? [];
+  if (tokens.length !== 1) return null;
+  const parsed = Number(tokens[0].replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function historicalEvidenceValuesEquivalent(fieldId: string, left: string, right: string): boolean {
+  if (left === right) return true;
+  if (!HISTORICAL_NUMERIC_EVIDENCE_FIELD.test(fieldId)) return false;
+  const leftNumber = historicalNumericEvidenceValue(left);
+  const rightNumber = historicalNumericEvidenceValue(right);
+  return leftNumber !== null && rightNumber !== null && Math.abs(leftNumber - rightNumber) < 0.005;
+}
+
+function historicalFieldEvidenceEquivalent(
+  fieldId: string,
+  left: HistoricalFieldEvidence,
+  right: HistoricalFieldEvidence,
+): boolean {
+  if (left.kind !== right.kind) return false;
+  if (left.kind === "match" || right.kind === "match") return true;
+  if (left.kind === "conflict" || right.kind === "conflict") return false;
+  return historicalEvidenceValuesEquivalent(fieldId, left.completedValue, right.completedValue)
+    && historicalEvidenceValuesEquivalent(fieldId, left.mappedValue, right.mappedValue);
+}
+
+function historicalCandidateFieldEvidence(
+  candidate: CompletedEneaAuditResult,
+): Map<string, HistoricalFieldEvidence> {
+  const evidence = new Map<string, HistoricalFieldEvidence>();
   for (const fieldId of new Set(candidate.matchedFieldIds ?? [])) {
-    evidence.set(fieldId, "match");
+    evidence.set(fieldId, { kind: "match" });
   }
   for (const { fieldId, completedValue, mappedValue } of candidate.differences) {
-    const state = `difference\u0000${completedValue}\u0000${mappedValue}`;
+    const state: HistoricalFieldEvidence = { kind: "difference", completedValue, mappedValue };
     const existing = evidence.get(fieldId);
-    if (existing && existing !== state) {
-      evidence.set(fieldId, `conflict\u0000${existing}\u0000${state}`);
-    } else {
+    if (existing && !historicalFieldEvidenceEquivalent(fieldId, existing, state)) {
+      evidence.set(fieldId, { kind: "conflict" });
+    } else if (!existing) {
       evidence.set(fieldId, state);
     }
   }
   return evidence;
+}
+
+function sameHistoricalCandidateEvidence(
+  left: CompletedEneaAuditResult,
+  right: CompletedEneaAuditResult,
+): boolean {
+  if (left.matches !== right.matches || left.mismatches !== right.mismatches) return false;
+  const leftEvidence = historicalCandidateFieldEvidence(left);
+  const rightEvidence = historicalCandidateFieldEvidence(right);
+  if (leftEvidence.size !== rightEvidence.size) return false;
+  for (const [fieldId, leftState] of leftEvidence) {
+    const rightState = rightEvidence.get(fieldId);
+    if (!rightState || !historicalFieldEvidenceEquivalent(fieldId, leftState, rightState)) return false;
+  }
+  return true;
 }
 
 function sameCpidCandidatesHaveOverlappingConflict(
@@ -344,7 +395,9 @@ function sameCpidCandidatesHaveOverlappingConflict(
   const rightEvidence = historicalCandidateFieldEvidence(right);
   for (const [fieldId, leftState] of leftEvidence) {
     const rightState = rightEvidence.get(fieldId);
-    if (rightState !== undefined && rightState !== leftState) return true;
+    if (rightState !== undefined && !historicalFieldEvidenceEquivalent(fieldId, leftState, rightState)) {
+      return true;
+    }
   }
   return false;
 }
@@ -389,32 +442,18 @@ export function selectBestHistoricalCompletedAudit(
 
   // Due copie con lo stesso CPID possono essere revisioni diverse. Se hanno
   // la stessa copertura ma producono esiti differenti non esiste un criterio
-  // sicuro per sceglierne una: il numero di match dipende dal mapper corrente
-  // e non deve diventare un criterio di selezione della ground truth storica.
-  const signaturesByCoverage = new Map<string, Set<string>>();
+  // sicuro per sceglierne una. Le differenze numeriche semanticamente uguali
+  // (per esempio 141 m² e 141,0) non sono revisioni discordanti: sono soltanto
+  // formattazioni diverse della stessa evidenza storica.
+  const candidateByCoverage = new Map<string, CompletedEneaAuditResult>();
   for (const candidate of candidates) {
     if (!isValidHistoricalCpid(candidate.cpid)) continue;
-    const matchedFieldIds = [...new Set(candidate.matchedFieldIds ?? [])].sort();
-    const differences = candidate.differences
-      .map(({ fieldId, completedValue, mappedValue }) => ({ fieldId, completedValue, mappedValue }))
-      .sort((left, right) => {
-        const leftKey = `${left.fieldId}\u0000${left.completedValue}\u0000${left.mappedValue}`;
-        const rightKey = `${right.fieldId}\u0000${right.completedValue}\u0000${right.mappedValue}`;
-        return leftKey.localeCompare(rightKey);
-      });
-    const signature = JSON.stringify({
-      matches: candidate.matches,
-      mismatches: candidate.mismatches,
-      matchedFieldIds,
-      differences,
-    });
     const key = `${normalizedCpid(candidate.cpid)}\u0000${candidate.compared}`;
-    const signatures = signaturesByCoverage.get(key) ?? new Set<string>();
-    signatures.add(signature);
-    if (signatures.size > 1) {
+    const existing = candidateByCoverage.get(key);
+    if (existing && !sameHistoricalCandidateEvidence(existing, candidate)) {
       throw new Error("PDF ENEA conclusivi con lo stesso CPID ma risultati discordanti.");
     }
-    signaturesByCoverage.set(key, signatures);
+    if (!existing) candidateByCoverage.set(key, candidate);
   }
 
   let best: CompletedEneaAuditResult | null = null;

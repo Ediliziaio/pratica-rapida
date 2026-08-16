@@ -223,8 +223,10 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   // Conta qualunque riga numerata che inizi con un'etichetta testuale, non solo
   // i tipi che il parser sa interpretare. Una riga non riconosciuta deve rendere
   // la struttura incompleta invece di sparire dal conteggio e produrre un falso
-  // match sul numero schermature.
-  const screeningRowPattern = /(?:^|\s)(\d+)\s+(?=[A-Za-zÀ-ÿ])/g;
+  // match sul numero schermature. I riferimenti normativi interni alla riga
+  // (es. UNI EN 13125 Metallo) non sono ordinali: il formato breve evita di
+  // scambiarli per ulteriori schermature mantenendo il controllo sui tipi ignoti.
+  const screeningRowPattern = /(?:^|\s)(\d{1,3})\s+(?=[A-Za-zÀ-ÿ])/g;
   const screeningOrdinals = Array.from(screeningText.matchAll(screeningRowPattern), (match) => Number(match[1]));
   // Rsupp e gTot non sono simmetrici: nelle schermature solari il gTot e'
   // prestazione necessaria mentre Rsupp puo' essere assente; nelle chiusure

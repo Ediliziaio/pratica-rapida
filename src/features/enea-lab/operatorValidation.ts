@@ -365,7 +365,14 @@ export function validateOperatorOverride(
       : invalid(value, "La superficie totale delle schermature deve essere maggiore di zero.");
   }
 
-  if (/^(?:immobile\.gradi_giorno|schermature\.(?:spesa|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp))$/.test(fieldId)) {
+  if (fieldId === "schermature.spesa") {
+    const parsed = parseItalianNumber(value);
+    return parsed !== null && parsed > 0
+      ? { valid: true, value }
+      : invalid(value, "La spesa congrua deve essere maggiore di zero.");
+  }
+
+  if (/^(?:immobile\.gradi_giorno|schermature\.risparmio_energia|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp))$/.test(fieldId)) {
     const parsed = parseItalianNumber(value);
     return parsed !== null && parsed >= 0
       ? { valid: true, value }

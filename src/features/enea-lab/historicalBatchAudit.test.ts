@@ -11,6 +11,7 @@ const SAFE_IDENTITY_MATCHES = [
   "immobile.mappale",
   "immobile.superficie",
   "immobile.unita",
+  "impianto.generatore",
   "intervento.data_inizio",
   "intervento.data_fine",
   "schermature.numero",
@@ -19,7 +20,7 @@ const SAFE_IDENTITY_MATCHES = [
 ];
 
 function auditWithDifferences(fieldIds: string[]): CompletedEneaAuditResult {
-  const compared = Math.max(12, fieldIds.length);
+  const compared = Math.max(13, fieldIds.length);
   return {
     path: "demo/conclusa.pdf",
     cpid: VALID_CPID,
@@ -112,6 +113,7 @@ describe("classificazione audit storico ENEA", () => {
         "immobile.mappale",
         "immobile.superficie",
         "immobile.unita",
+        "impianto.generatore",
         "immobile.destinazione_generale",
         "intervento.data_inizio",
         "intervento.data_fine",
@@ -133,6 +135,7 @@ describe("classificazione audit storico ENEA", () => {
         "immobile.destinazione_generale",
         "immobile.superficie",
         "immobile.unita",
+        "impianto.generatore",
         "schermature.0.tipo",
         "intervento.data_inizio",
         "intervento.data_fine",
@@ -154,6 +157,7 @@ describe("classificazione audit storico ENEA", () => {
         "beneficiario.cointestazione",
         "immobile.superficie",
         "immobile.unita",
+        "impianto.generatore",
         "intervento.data_inizio",
         "intervento.data_fine",
         "schermature.numero",
@@ -176,6 +180,7 @@ describe("classificazione audit storico ENEA", () => {
         "immobile.mappale",
         "immobile.superficie",
         "immobile.unita",
+        "impianto.generatore",
         "schermature.spesa",
         "schermature.risparmio_energia",
       ],
@@ -204,6 +209,7 @@ describe("classificazione audit storico ENEA", () => {
         "immobile.mappale",
         "immobile.superficie",
         "immobile.unita",
+        "impianto.generatore",
         "intervento.data_inizio",
         "intervento.data_fine",
         "schermature.numero",
@@ -228,6 +234,7 @@ describe("classificazione audit storico ENEA", () => {
         "immobile.comune",
         "immobile.superficie",
         "immobile.unita",
+        "impianto.generatore",
         "intervento.data_inizio",
         "intervento.data_fine",
         "schermature.numero",
@@ -291,8 +298,8 @@ describe("classificazione audit storico ENEA", () => {
     const audit: CompletedEneaAuditResult = {
       path: "demo/conclusa.pdf",
       cpid: VALID_CPID,
-      compared: 12,
-      matches: 11,
+      compared: 13,
+      matches: 12,
       mismatches: 1,
       differences: [],
       matchedFieldIds: SAFE_IDENTITY_MATCHES,

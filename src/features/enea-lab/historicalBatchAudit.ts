@@ -44,6 +44,7 @@ const HISTORICAL_PRACTICE_ID_FIELDS = [
   "schermature.numero",
 ] as const;
 const HISTORICAL_CRITICAL_COVERAGE_FIELDS = [
+  "beneficiario.cointestazione",
   "immobile.superficie",
   "immobile.unita",
   "schermature.spesa",
@@ -152,10 +153,10 @@ function hasHistoricalPracticeEvidence(audit: CompletedEneaAuditResult): boolean
  * Un parser parziale puo' omettere un campo importante senza produrre mismatch,
  * perché compareMappedToCompletedEnea confronta solo cio' che riesce a leggere
  * nel PDF. Alcuni campi critici devono quindi risultare almeno osservati
- * (match oppure differenza) prima di certificare l'audit. Superficie utile,
- * unita immobiliari, spesa e risparmio energetico restano confrontabili anche
- * quando sono blocker, cosi una pratica correttamente bloccata puo' continuare
- * a essere riconosciuta come tale.
+ * (match oppure differenza) prima di certificare l'audit. Cointestazione,
+ * superficie utile, unita immobiliari, spesa e risparmio energetico restano
+ * confrontabili anche quando sono blocker, cosi una pratica correttamente
+ * bloccata puo' continuare a essere riconosciuta come tale.
  */
 function hasHistoricalCriticalCoverage(audit: CompletedEneaAuditResult): boolean {
   const observed = new Set([
@@ -305,9 +306,9 @@ export function classifyHistoricalAudit(
   if (!hasHistoricalPracticeEvidence(audit)) {
     return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
   }
-  // Superficie utile, unita immobiliari, spesa e risparmio energetico sono campi
-  // critici del flusso ENEA: se il parser non li ha neppure osservati, l'assenza
-  // non deve trasformarsi silenziosamente in un falso match.
+  // Cointestazione, superficie utile, unita immobiliari, spesa e risparmio
+  // energetico sono campi critici del flusso ENEA: se il parser non li ha
+  // neppure osservati, l'assenza non deve trasformarsi in un falso match.
   if (!hasHistoricalCriticalCoverage(audit)) {
     return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
   }

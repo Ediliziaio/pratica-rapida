@@ -336,6 +336,36 @@ export function selectBestHistoricalCompletedAudit(
     throw new Error("PDF ENEA conclusivi con CPID discordanti nella stessa pratica.");
   }
 
+  // Due copie con lo stesso CPID possono essere revisioni diverse. Se hanno
+  // la stessa copertura ma producono esiti differenti non esiste un criterio
+  // sicuro per sceglierne una: il numero di match dipende dal mapper corrente
+  // e non deve diventare un criterio di selezione della ground truth storica.
+  const signaturesByCoverage = new Map<string, Set<string>>();
+  for (const candidate of candidates) {
+    if (!isValidHistoricalCpid(candidate.cpid)) continue;
+    const matchedFieldIds = [...new Set(candidate.matchedFieldIds ?? [])].sort();
+    const differences = candidate.differences
+      .map(({ fieldId, completedValue, mappedValue }) => ({ fieldId, completedValue, mappedValue }))
+      .sort((left, right) => {
+        const leftKey = `${left.fieldId}\u0000${left.completedValue}\u0000${left.mappedValue}`;
+        const rightKey = `${right.fieldId}\u0000${right.completedValue}\u0000${right.mappedValue}`;
+        return leftKey.localeCompare(rightKey);
+      });
+    const signature = JSON.stringify({
+      matches: candidate.matches,
+      mismatches: candidate.mismatches,
+      matchedFieldIds,
+      differences,
+    });
+    const key = `${normalizedCpid(candidate.cpid)}\u0000${candidate.compared}`;
+    const signatures = signaturesByCoverage.get(key) ?? new Set<string>();
+    signatures.add(signature);
+    if (signatures.size > 1) {
+      throw new Error("PDF ENEA conclusivi con lo stesso CPID ma risultati discordanti.");
+    }
+    signaturesByCoverage.set(key, signatures);
+  }
+
   let best: CompletedEneaAuditResult | null = null;
 
   for (const candidate of candidates) {

@@ -311,6 +311,44 @@ function hasHistoricalCriticalCoverage(audit: CompletedEneaAuditResult): boolean
   return hasHistoricalScreeningTechnicalCoverage(audit, observed);
 }
 
+function historicalCandidateFieldEvidence(candidate: CompletedEneaAuditResult): Map<string, string> {
+  const evidence = new Map<string, string>();
+  for (const fieldId of new Set(candidate.matchedFieldIds ?? [])) {
+    evidence.set(fieldId, "match");
+  }
+  for (const { fieldId, completedValue, mappedValue } of candidate.differences) {
+    const state = `difference\u0000${completedValue}\u0000${mappedValue}`;
+    const existing = evidence.get(fieldId);
+    if (existing && existing !== state) {
+      evidence.set(fieldId, `conflict\u0000${existing}\u0000${state}`);
+    } else {
+      evidence.set(fieldId, state);
+    }
+  }
+  return evidence;
+}
+
+function sameCpidCandidatesHaveOverlappingConflict(
+  left: CompletedEneaAuditResult,
+  right: CompletedEneaAuditResult,
+): boolean {
+  if (
+    !isValidHistoricalCpid(left.cpid)
+    || !isValidHistoricalCpid(right.cpid)
+    || normalizedCpid(left.cpid) !== normalizedCpid(right.cpid)
+  ) {
+    return false;
+  }
+
+  const leftEvidence = historicalCandidateFieldEvidence(left);
+  const rightEvidence = historicalCandidateFieldEvidence(right);
+  for (const [fieldId, leftState] of leftEvidence) {
+    const rightState = rightEvidence.get(fieldId);
+    if (rightState !== undefined && rightState !== leftState) return true;
+  }
+  return false;
+}
+
 /**
  * Se una pratica ha piu PDF conclusivi/duplicati, non basta prendere il primo
  * file leggibile: potrebbe essere una copia parziale o un documento intermedio.
@@ -334,6 +372,19 @@ export function selectBestHistoricalCompletedAudit(
   );
   if (distinctCpids.size > 1) {
     throw new Error("PDF ENEA conclusivi con CPID discordanti nella stessa pratica.");
+  }
+
+  // Due copie con lo stesso CPID possono avere coperture diverse (per esempio
+  // una scansione parziale e una completa), ma le prove che entrambe osservano
+  // devono essere compatibili. Se lo stesso campo e' match in una copia e
+  // differenza nell'altra, oppure le differenze riportano valori diversi, non
+  // esiste un criterio sicuro per scegliere automaticamente la ground truth.
+  for (let leftIndex = 0; leftIndex < candidates.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < candidates.length; rightIndex += 1) {
+      if (sameCpidCandidatesHaveOverlappingConflict(candidates[leftIndex], candidates[rightIndex])) {
+        throw new Error("PDF ENEA conclusivi con lo stesso CPID ma risultati discordanti.");
+      }
+    }
   }
 
   // Due copie con lo stesso CPID possono essere revisioni diverse. Se hanno

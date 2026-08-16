@@ -142,7 +142,17 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   const source = compact(text);
   const fields: Record<string, string> = {};
 
-  const cpid = capture(source, /\bCPID\s+([A-Z0-9-]+)(?:\s+Data chiusura|\s+del\s+)/i);
+  // Il PDF ENEA reale ripete lo stesso CPID in intestazione e nel footer. Un
+  // documento concatenato/misto con CPID diversi non deve invece essere usato
+  // come ground truth: raccogliamo tutte le occorrenze strutturate e accettiamo
+  // il CPID soltanto quando, dopo la deduplica, ne resta esattamente uno.
+  const cpids = [...new Set(
+    Array.from(
+      source.matchAll(/\bCPID\s+([A-Z0-9-]+)(?:\s+Data chiusura|\s+del\s+)/gi),
+      (match) => match[1].trim().toUpperCase(),
+    ),
+  )];
+  const cpid = cpids.length === 1 ? cpids[0] : null;
   set(fields, "intervento.tipo", capture(source, /\b(Comma\s+345B\s+-\s+Schermature solari)\b/i));
 
   const worksAddress = parseAddressBlock(capture(

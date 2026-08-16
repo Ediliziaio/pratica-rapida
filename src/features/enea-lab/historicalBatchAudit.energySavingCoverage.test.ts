@@ -11,6 +11,9 @@ const BASE_MATCHES = [
   "immobile.superficie",
   "immobile.unita",
   "impianto.generatore",
+  "impianto.numero_generatori",
+  "impianto.rendimento",
+  "impianto.potenza",
   "intervento.data_inizio",
   "intervento.data_fine",
   "schermature.numero",
@@ -22,8 +25,8 @@ function completedAudit(matchedFieldIds = BASE_MATCHES): CompletedEneaAuditResul
   return {
     path: "demo/conclusa.pdf",
     cpid: "288717-2026E-TEST",
-    compared: 13,
-    matches: 13,
+    compared: matchedFieldIds.length,
+    matches: matchedFieldIds.length,
     mismatches: 0,
     differences: [],
     matchedFieldIds,
@@ -44,9 +47,13 @@ describe("copertura critica del risparmio energetico nell'audit storico", () => 
   });
 
   it("considera coperto anche un risparmio energetico discordante gia bloccato", () => {
+    const matchedFieldIds = BASE_MATCHES.filter(
+      (fieldId) => fieldId !== "schermature.risparmio_energia",
+    );
     const audit: CompletedEneaAuditResult = {
-      ...completedAudit(BASE_MATCHES.filter((fieldId) => fieldId !== "schermature.risparmio_energia")),
-      matches: 12,
+      ...completedAudit(matchedFieldIds),
+      compared: BASE_MATCHES.length,
+      matches: matchedFieldIds.length,
       mismatches: 1,
       differences: [{
         fieldId: "schermature.risparmio_energia",

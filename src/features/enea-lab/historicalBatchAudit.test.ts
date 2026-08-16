@@ -12,6 +12,9 @@ const SAFE_IDENTITY_MATCHES = [
   "immobile.superficie",
   "immobile.unita",
   "impianto.generatore",
+  "impianto.numero_generatori",
+  "impianto.rendimento",
+  "impianto.potenza",
   "intervento.data_inizio",
   "intervento.data_fine",
   "schermature.numero",
@@ -20,19 +23,20 @@ const SAFE_IDENTITY_MATCHES = [
 ];
 
 function auditWithDifferences(fieldIds: string[]): CompletedEneaAuditResult {
-  const compared = Math.max(13, fieldIds.length);
+  const matchedFieldIds = SAFE_IDENTITY_MATCHES.filter((fieldId) => !fieldIds.includes(fieldId));
+  const compared = matchedFieldIds.length + fieldIds.length;
   return {
     path: "demo/conclusa.pdf",
     cpid: VALID_CPID,
     compared,
-    matches: Math.max(0, compared - fieldIds.length),
+    matches: matchedFieldIds.length,
     mismatches: fieldIds.length,
     differences: fieldIds.map((fieldId) => ({
       fieldId,
       completedValue: "valore finale",
       mappedValue: "valore mapper",
     })),
-    matchedFieldIds: SAFE_IDENTITY_MATCHES.filter((fieldId) => !fieldIds.includes(fieldId)),
+    matchedFieldIds,
   };
 }
 
@@ -49,7 +53,7 @@ describe("classificazione audit storico ENEA", () => {
       matches: 0,
       mismatches: 0,
       differences: [],
-      matchedFieldIds: SAFE_IDENTITY_MATCHES,
+      matchedFieldIds: [],
     };
 
     const result = classifyHistoricalAudit(audit, new Set());
@@ -93,7 +97,7 @@ describe("classificazione audit storico ENEA", () => {
       matches: 9,
       mismatches: 0,
       differences: [],
-      matchedFieldIds: SAFE_IDENTITY_MATCHES,
+      matchedFieldIds: SAFE_IDENTITY_MATCHES.slice(0, 9),
     };
 
     const result = classifyHistoricalAudit(audit, new Set());
@@ -114,6 +118,9 @@ describe("classificazione audit storico ENEA", () => {
         "immobile.superficie",
         "immobile.unita",
         "impianto.generatore",
+        "impianto.numero_generatori",
+        "impianto.rendimento",
+        "impianto.potenza",
         "immobile.destinazione_generale",
         "intervento.data_inizio",
         "intervento.data_fine",
@@ -136,6 +143,9 @@ describe("classificazione audit storico ENEA", () => {
         "immobile.superficie",
         "immobile.unita",
         "impianto.generatore",
+        "impianto.numero_generatori",
+        "impianto.rendimento",
+        "impianto.potenza",
         "schermature.0.tipo",
         "intervento.data_inizio",
         "intervento.data_fine",
@@ -158,6 +168,9 @@ describe("classificazione audit storico ENEA", () => {
         "immobile.superficie",
         "immobile.unita",
         "impianto.generatore",
+        "impianto.numero_generatori",
+        "impianto.rendimento",
+        "impianto.potenza",
         "intervento.data_inizio",
         "intervento.data_fine",
         "schermature.numero",
@@ -181,6 +194,9 @@ describe("classificazione audit storico ENEA", () => {
         "immobile.superficie",
         "immobile.unita",
         "impianto.generatore",
+        "impianto.numero_generatori",
+        "impianto.rendimento",
+        "impianto.potenza",
         "schermature.spesa",
         "schermature.risparmio_energia",
       ],
@@ -210,6 +226,9 @@ describe("classificazione audit storico ENEA", () => {
         "immobile.superficie",
         "immobile.unita",
         "impianto.generatore",
+        "impianto.numero_generatori",
+        "impianto.rendimento",
+        "impianto.potenza",
         "intervento.data_inizio",
         "intervento.data_fine",
         "schermature.numero",
@@ -235,6 +254,9 @@ describe("classificazione audit storico ENEA", () => {
         "immobile.superficie",
         "immobile.unita",
         "impianto.generatore",
+        "impianto.numero_generatori",
+        "impianto.rendimento",
+        "impianto.potenza",
         "intervento.data_inizio",
         "intervento.data_fine",
         "schermature.numero",
@@ -298,8 +320,8 @@ describe("classificazione audit storico ENEA", () => {
     const audit: CompletedEneaAuditResult = {
       path: "demo/conclusa.pdf",
       cpid: VALID_CPID,
-      compared: 13,
-      matches: 12,
+      compared: SAFE_IDENTITY_MATCHES.length,
+      matches: SAFE_IDENTITY_MATCHES.length - 1,
       mismatches: 1,
       differences: [],
       matchedFieldIds: SAFE_IDENTITY_MATCHES,

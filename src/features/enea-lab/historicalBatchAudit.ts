@@ -214,12 +214,26 @@ function hasHistoricalScreeningTechnicalCoverage(
     if (!Number.isInteger(index) || index < 0) return false;
     indexes.add(index);
   }
-  if (indexes.size === 0) return true;
+
+  const screeningTypes = (audit as HistoricalCompletedEneaAuditResult).screeningTypes;
+  const expectedIndexes = screeningTypes
+    ? Object.keys(screeningTypes).map(Number).sort((left, right) => left - right)
+    : null;
+  if (expectedIndexes?.some((index) => !Number.isInteger(index) || index < 0)) return false;
+  if (indexes.size === 0) return !expectedIndexes || expectedIndexes.length === 0;
 
   const orderedIndexes = [...indexes].sort((left, right) => left - right);
   if (!orderedIndexes.every((index, position) => index === position)) return false;
+  if (
+    expectedIndexes
+    && (
+      expectedIndexes.length !== orderedIndexes.length
+      || !expectedIndexes.every((index, position) => index === orderedIndexes[position])
+    )
+  ) {
+    return false;
+  }
 
-  const screeningTypes = (audit as HistoricalCompletedEneaAuditResult).screeningTypes;
   return orderedIndexes.every((index) => {
     const prefix = `schermature.${index}`;
     const hasBaseCoverage = HISTORICAL_SCREENING_TECHNICAL_COVERAGE_SUFFIXES.every(
@@ -273,7 +287,10 @@ function hasHistoricalCriticalCoverage(audit: CompletedEneaAuditResult): boolean
 
   const hasTechnicalScreeningEvidence = [...observed]
     .some((fieldId) => /^schermature\.\d+\./.test(fieldId));
-  if (!hasTechnicalScreeningEvidence) return true;
+  const screeningTypes = (audit as HistoricalCompletedEneaAuditResult).screeningTypes;
+  if (!hasTechnicalScreeningEvidence) {
+    return !screeningTypes || Object.keys(screeningTypes).length === 0;
+  }
 
   if (!HISTORICAL_BENEFICIARY_DESCRIPTOR_COVERAGE_FIELDS
     .every((fieldId) => observed.has(fieldId))) {

@@ -66,4 +66,23 @@ describe("selezione PDF conclusivo per audit storico ENEA", () => {
     expect(() => selectBestHistoricalCompletedAudit([first, conflicting]))
       .toThrow("PDF ENEA conclusivi con lo stesso CPID ma risultati discordanti.");
   });
+
+  it("blocca duplicati con lo stesso CPID anche se la copertura diversa nasconde un campo discordante", () => {
+    const partial: CompletedEneaAuditResult = {
+      ...audit("pratica/revisione-parziale.pdf", "288717-2026E-TEST", 12, 0),
+      matchedFieldIds: ["beneficiario.cf", "immobile.superficie"],
+    };
+    const complete: CompletedEneaAuditResult = {
+      ...audit("pratica/revisione-completa.pdf", "288717-2026E-TEST", 13, 1),
+      matchedFieldIds: ["beneficiario.cf"],
+      differences: [{
+        fieldId: "immobile.superficie",
+        completedValue: "141 m²",
+        mappedValue: "140 m²",
+      }],
+    };
+
+    expect(() => selectBestHistoricalCompletedAudit([partial, complete]))
+      .toThrow("PDF ENEA conclusivi con lo stesso CPID ma risultati discordanti.");
+  });
 });

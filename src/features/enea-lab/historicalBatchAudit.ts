@@ -32,6 +32,10 @@ export interface HistoricalBatchAuditReport {
   practices: HistoricalPracticeAudit[];
 }
 
+type HistoricalCompletedEneaAuditResult = CompletedEneaAuditResult & {
+  screeningTypes?: Record<number, string>;
+};
+
 // Un PDF ENEA conclusivo per schermature contiene normalmente decine di campi
 // confrontabili. Una manciata di coincidenze non e' evidenza sufficiente per
 // certificare il mapper: potrebbe indicare un parser parziale o un documento
@@ -89,6 +93,16 @@ const HISTORICAL_SCREENING_TECHNICAL_COVERAGE_SUFFIXES = [
   "materiale",
   "regolazione",
 ] as const;
+const HISTORICAL_DARKENING_CLOSURE_TYPES = new Set([
+  "Persiana",
+  "Persiana avvolgibile",
+  "Altra chiusura oscurante",
+]);
+const HISTORICAL_SOLAR_SCREENING_TYPES = new Set([
+  "Tenda o veneziana",
+  "Schermatura integrata (veneziana nella vetrocamera)",
+  "Altra schermatura solare",
+]);
 const HISTORICAL_CADASTRAL_ID_FIELDS = [
   "immobile.foglio",
   "immobile.mappale",
@@ -188,7 +202,10 @@ function hasHistoricalPracticeEvidence(audit: CompletedEneaAuditResult): boolean
   return HISTORICAL_PRACTICE_ID_FIELDS.every((fieldId) => matched.has(fieldId));
 }
 
-function hasHistoricalScreeningTechnicalCoverage(observed: ReadonlySet<string>): boolean {
+function hasHistoricalScreeningTechnicalCoverage(
+  audit: CompletedEneaAuditResult,
+  observed: ReadonlySet<string>,
+): boolean {
   const indexes = new Set<number>();
   for (const fieldId of observed) {
     const match = fieldId.match(/^schermature\.(\d+)\./);
@@ -202,15 +219,33 @@ function hasHistoricalScreeningTechnicalCoverage(observed: ReadonlySet<string>):
   const orderedIndexes = [...indexes].sort((left, right) => left - right);
   if (!orderedIndexes.every((index, position) => index === position)) return false;
 
-  return orderedIndexes.every((index) => (
-    HISTORICAL_SCREENING_TECHNICAL_COVERAGE_SUFFIXES.every(
-      (suffix) => observed.has(`schermature.${index}.${suffix}`),
-    )
-    && (
-      observed.has(`schermature.${index}.gtot`)
-      || observed.has(`schermature.${index}.rsupp`)
-    )
-  ));
+  const screeningTypes = (audit as HistoricalCompletedEneaAuditResult).screeningTypes;
+  return orderedIndexes.every((index) => {
+    const prefix = `schermature.${index}`;
+    const hasBaseCoverage = HISTORICAL_SCREENING_TECHNICAL_COVERAGE_SUFFIXES.every(
+      (suffix) => observed.has(`${prefix}.${suffix}`),
+    );
+    if (!hasBaseCoverage) return false;
+
+    // Nel batch reale il tipo proviene dal mapper solo dopo che lo stesso campo
+    // ha coinciso col PDF conclusivo. Possiamo quindi usarlo per pretendere la
+    // prestazione primaria corretta: gTot per schermature solari, Rsupp per
+    // chiusure oscuranti. I vecchi audit sintetici privi di metadato mantengono
+    // il fallback storico, ma il percorso read-only di produzione lo valorizza.
+    if (screeningTypes) {
+      const type = screeningTypes[index];
+      if (!type) return false;
+      if (HISTORICAL_DARKENING_CLOSURE_TYPES.has(type)) {
+        return observed.has(`${prefix}.rsupp`);
+      }
+      if (HISTORICAL_SOLAR_SCREENING_TYPES.has(type)) {
+        return observed.has(`${prefix}.gtot`);
+      }
+      return false;
+    }
+
+    return observed.has(`${prefix}.gtot`) || observed.has(`${prefix}.rsupp`);
+  });
 }
 
 /**
@@ -256,7 +291,7 @@ function hasHistoricalCriticalCoverage(audit: CompletedEneaAuditResult): boolean
   // riconoscere come blocked un audit che espone gia' differenze esplicite.
   if (audit.mismatches > 0) return true;
 
-  return hasHistoricalScreeningTechnicalCoverage(observed);
+  return hasHistoricalScreeningTechnicalCoverage(audit, observed);
 }
 
 /**
@@ -314,10 +349,22 @@ function readyMappedFieldValue(mapped: EneaLabMappedPractice, fieldId: string): 
   return value || null;
 }
 
+function readyMappedScreeningTypes(mapped: EneaLabMappedPractice): Record<number, string> {
+  const screeningTypes: Record<number, string> = {};
+  for (const field of mapped.sections.flatMap((section) => section.fields)) {
+    const match = field.id.match(/^schermature\.(\d+)\.tipo$/);
+    if (!match || field.status !== "ready" || field.testOnly) continue;
+    const index = Number(match[1]);
+    const value = field.value.trim();
+    if (Number.isInteger(index) && index >= 0 && value) screeningTypes[index] = value;
+  }
+  return screeningTypes;
+}
+
 async function auditBestHistoricalCompletedEneaPractice(
   client: SupabaseClient<Database>,
   mapped: EneaLabMappedPractice,
-): Promise<CompletedEneaAuditResult> {
+): Promise<HistoricalCompletedEneaAuditResult> {
   const paths = mapped.source.completedEneaPaths ?? [];
   const candidates: CompletedEneaAuditResult[] = [];
 
@@ -354,7 +401,10 @@ async function auditBestHistoricalCompletedEneaPractice(
     );
   }
 
-  return best;
+  return {
+    ...best,
+    screeningTypes: readyMappedScreeningTypes(mapped),
+  };
 }
 
 export function classifyHistoricalAudit(

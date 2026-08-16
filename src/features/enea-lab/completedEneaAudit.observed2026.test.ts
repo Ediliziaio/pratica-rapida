@@ -42,6 +42,9 @@ describe("audit storico ENEA - PDF conclusivo 2026 osservato", () => {
       8. Destinazione d'uso particolare Edifici adibiti a residenza e assimilabili (con carattere continuativo o saltuario)
       9. Tipologia edilizia Edificio a schiera e condominio fino a tre piani
       10. Superficie utile [m²] delle unità immobiliari interessate dall'intervento 140
+      11. Zona climatica E
+      12. Gradi giorno 2631
+      13. Fascia solare 1
       Dati intervento
       1. Intervento su Singola unità immobiliare (in un edificio costituito da più unità immobiliari)
       2. Unità immobiliari Numero totale delle unità immobiliari dell'edificio alla fine dei lavori 1
@@ -79,7 +82,11 @@ describe("audit storico ENEA - PDF conclusivo 2026 osservato", () => {
     expect(snapshot.fields["intervento.tipo"]).toBe("Comma 345B - Schermature solari");
     expect(snapshot.fields["immobile.indirizzo"]).toBe("Via Esempio");
     expect(snapshot.fields["immobile.civico"]).toBe("75/130");
+    expect(snapshot.fields["immobile.codice_comune"]).toBe("H264");
     expect(snapshot.fields["immobile.superficie"]).toBe("140");
+    expect(snapshot.fields["immobile.zona_climatica"]).toBe("E");
+    expect(snapshot.fields["immobile.gradi_giorno"]).toBe("2631");
+    expect(snapshot.fields["immobile.fascia_solare"]).toBe("1");
     expect(snapshot.fields["immobile.unita"]).toBe("1");
     expect(snapshot.fields["beneficiario.comune_residenza"]).toBe("Uboldo");
     expect(snapshot.fields["impianto.numero_generatori"]).toBe("1");

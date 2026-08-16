@@ -10,6 +10,7 @@ const BASE_MATCHES = [
   "immobile.mappale",
   "immobile.superficie",
   "immobile.unita",
+  "impianto.generatore",
   "intervento.data_inizio",
   "intervento.data_fine",
   "schermature.numero",

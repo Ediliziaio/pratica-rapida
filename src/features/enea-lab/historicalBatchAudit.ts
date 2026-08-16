@@ -188,9 +188,9 @@ function hasHistoricalPracticeEvidence(audit: CompletedEneaAuditResult): boolean
  * confrontabili anche quando sono blocker, cosi una pratica correttamente
  * bloccata puo' continuare a essere riconosciuta come tale. Quando il PDF ha
  * anche una riga tecnica schermatura realmente confrontata pretendiamo inoltre
- * i descrittori anagrafico-edilizi che il formato ENEA 2026 osservato espone
- * stabilmente. Se il parser osserva il blocco anagrafico del beneficiario,
- * nessuno dei campi che compongono quel blocco puo' sparire silenziosamente.
+ * tutti i descrittori anagrafico-edilizi che il formato ENEA 2026 osservato
+ * espone stabilmente: il parser non puo' perdere neppure l'intero blocco
+ * anagrafico e continuare a certificare un falso match.
  */
 function hasHistoricalCriticalCoverage(audit: CompletedEneaAuditResult): boolean {
   const observed = new Set([
@@ -205,12 +205,8 @@ function hasHistoricalCriticalCoverage(audit: CompletedEneaAuditResult): boolean
     .some((fieldId) => /^schermature\.\d+\./.test(fieldId));
   if (!hasTechnicalScreeningEvidence) return true;
 
-  const observedBeneficiaryDescriptors = HISTORICAL_BENEFICIARY_DESCRIPTOR_COVERAGE_FIELDS
-    .filter((fieldId) => observed.has(fieldId));
-  if (
-    observedBeneficiaryDescriptors.length > 0
-    && !HISTORICAL_BENEFICIARY_DESCRIPTOR_COVERAGE_FIELDS.every((fieldId) => observed.has(fieldId))
-  ) {
+  if (!HISTORICAL_BENEFICIARY_DESCRIPTOR_COVERAGE_FIELDS
+    .every((fieldId) => observed.has(fieldId))) {
     return false;
   }
 

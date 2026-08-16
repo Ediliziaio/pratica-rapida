@@ -54,15 +54,15 @@ const SCREENING_BASE_FIELDS = [
   "schermature.0.regolazione",
 ] as const;
 
-type AuditWithObservedValues = CompletedEneaAuditResult & {
-  completedFieldValues?: Record<string, string>;
+type AuditWithScreeningTypes = CompletedEneaAuditResult & {
+  screeningTypes?: Record<number, string>;
 };
 
 function auditWithScreening(
   performanceField: "schermature.0.gtot" | "schermature.0.rsupp",
   omittedField?: string,
   typeValue = performanceField.endsWith("rsupp") ? "Persiana avvolgibile" : "Tenda o veneziana",
-): AuditWithObservedValues {
+): AuditWithScreeningTypes {
   const matchedFieldIds = [
     ...BASELINE_MATCHES,
     ...SCREENING_BASE_FIELDS,
@@ -77,8 +77,8 @@ function auditWithScreening(
     mismatches: 0,
     differences: [],
     matchedFieldIds,
-    completedFieldValues: {
-      "schermature.0.tipo": typeValue,
+    screeningTypes: {
+      0: typeValue,
     },
   };
 }

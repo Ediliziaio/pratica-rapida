@@ -123,4 +123,43 @@ describe("copertura storica righe tecniche schermature ENEA", () => {
       new Set(),
     ).outcome).toBe("difference");
   });
+
+  it("fallisce chiuso se il parser perde l'intero blocco tecnico di una schermatura attesa", () => {
+    const matchedFieldIds = [...BASELINE_MATCHES];
+    const audit: AuditWithScreeningTypes = {
+      path: "demo/conclusa.pdf",
+      cpid: VALID_CPID,
+      compared: matchedFieldIds.length,
+      matches: matchedFieldIds.length,
+      mismatches: 0,
+      differences: [],
+      matchedFieldIds,
+      screeningTypes: { 0: "Tenda o veneziana" },
+    };
+
+    expect(classifyHistoricalAudit(audit, new Set()).outcome).toBe("difference");
+  });
+
+  it("fallisce chiuso se il parser perde per intero una delle schermature attese", () => {
+    const matchedFieldIds = [
+      ...BASELINE_MATCHES,
+      ...SCREENING_BASE_FIELDS,
+      "schermature.0.gtot",
+    ];
+    const audit: AuditWithScreeningTypes = {
+      path: "demo/conclusa.pdf",
+      cpid: VALID_CPID,
+      compared: matchedFieldIds.length,
+      matches: matchedFieldIds.length,
+      mismatches: 0,
+      differences: [],
+      matchedFieldIds,
+      screeningTypes: {
+        0: "Tenda o veneziana",
+        1: "Tenda o veneziana",
+      },
+    };
+
+    expect(classifyHistoricalAudit(audit, new Set()).outcome).toBe("difference");
+  });
 });

@@ -294,9 +294,11 @@ export function mapSchermaturaPractice(
   const includeTestConventions = options?.includeTestConventions ?? true;
   const inferredSex = sexFromItalianFiscalCode(form.richiedente.cf);
   const inferredBirthNation = /^[A-Z]{2}$/i.test(form.richiedente.provincia_nascita.trim())
+    && form.richiedente.provincia_nascita.trim().toUpperCase() !== "EE"
     ? "Italia"
     : "";
   const inferredResidenceNation = /^[A-Z]{2}$/i.test(form.residenza.provincia.trim())
+    && form.residenza.provincia.trim().toUpperCase() !== "EE"
     && /^\d{5}$/.test(form.residenza.cap.trim())
     ? "Italia"
     : "";

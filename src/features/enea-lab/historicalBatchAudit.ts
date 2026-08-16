@@ -223,9 +223,9 @@ function hasHistoricalScreeningTechnicalCoverage(observed: ReadonlySet<string>):
  * confrontabili anche quando sono blocker, cosi una pratica correttamente
  * bloccata puo' continuare a essere riconosciuta come tale. Quando il PDF ha
  * anche una riga tecnica schermatura realmente confrontata pretendiamo inoltre
- * tutti i descrittori anagrafico-edilizi e la riga tecnica completa che il
- * formato ENEA 2026 osservato espone stabilmente: il parser non puo' perdere
- * un attributo tecnico e continuare a certificare un falso match.
+ * tutti i descrittori anagrafico-edilizi. Per promuovere un audit senza mismatch
+ * a match pretendiamo anche la riga tecnica completa: un attributo perso dal
+ * parser non puo' sparire silenziosamente dalla certificazione storica.
  */
 function hasHistoricalCriticalCoverage(audit: CompletedEneaAuditResult): boolean {
   const observed = new Set([
@@ -249,6 +249,12 @@ function hasHistoricalCriticalCoverage(audit: CompletedEneaAuditResult): boolean
     .every((fieldId) => observed.has(fieldId))) {
     return false;
   }
+
+  // Una pratica gia' discordante non viene mai certificata come match: puo'
+  // soltanto restare difference oppure blocked. La copertura tecnica completa
+  // e' quindi necessaria per la promozione a match, senza impedire di
+  // riconoscere come blocked un audit che espone gia' differenze esplicite.
+  if (audit.mismatches > 0) return true;
 
   return hasHistoricalScreeningTechnicalCoverage(observed);
 }

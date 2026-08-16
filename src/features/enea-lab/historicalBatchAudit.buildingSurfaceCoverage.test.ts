@@ -5,6 +5,7 @@ import type { CompletedEneaAuditResult } from "./completedEneaAudit";
 const BASE_MATCHES = [
   "intervento.tipo",
   "beneficiario.cf",
+  "beneficiario.cointestazione",
   "immobile.foglio",
   "immobile.mappale",
   "immobile.superficie",

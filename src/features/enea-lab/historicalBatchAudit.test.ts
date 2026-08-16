@@ -6,6 +6,7 @@ const VALID_CPID = "288717-2026E-TEST";
 const SAFE_IDENTITY_MATCHES = [
   "intervento.tipo",
   "beneficiario.cf",
+  "beneficiario.cointestazione",
   "immobile.foglio",
   "immobile.mappale",
   "immobile.superficie",
@@ -106,6 +107,7 @@ describe("classificazione audit storico ENEA", () => {
       ...auditWithDifferences([]),
       matchedFieldIds: [
         "beneficiario.cf",
+        "beneficiario.cointestazione",
         "immobile.foglio",
         "immobile.mappale",
         "immobile.superficie",
@@ -127,6 +129,7 @@ describe("classificazione audit storico ENEA", () => {
       ...auditWithDifferences([]),
       matchedFieldIds: [
         "intervento.tipo",
+        "beneficiario.cointestazione",
         "immobile.destinazione_generale",
         "immobile.superficie",
         "immobile.unita",
@@ -148,6 +151,7 @@ describe("classificazione audit storico ENEA", () => {
       matchedFieldIds: [
         "intervento.tipo",
         "beneficiario.cf",
+        "beneficiario.cointestazione",
         "immobile.superficie",
         "immobile.unita",
         "intervento.data_inizio",
@@ -167,6 +171,7 @@ describe("classificazione audit storico ENEA", () => {
       matchedFieldIds: [
         "intervento.tipo",
         "beneficiario.cf",
+        "beneficiario.cointestazione",
         "immobile.foglio",
         "immobile.mappale",
         "immobile.superficie",
@@ -194,6 +199,7 @@ describe("classificazione audit storico ENEA", () => {
       matchedFieldIds: [
         "intervento.tipo",
         "beneficiario.cf",
+        "beneficiario.cointestazione",
         "immobile.foglio",
         "immobile.mappale",
         "immobile.superficie",
@@ -215,6 +221,7 @@ describe("classificazione audit storico ENEA", () => {
       matchedFieldIds: [
         "intervento.tipo",
         "beneficiario.cf",
+        "beneficiario.cointestazione",
         "immobile.indirizzo",
         "immobile.civico",
         "immobile.cap",

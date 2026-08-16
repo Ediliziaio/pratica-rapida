@@ -90,6 +90,7 @@ describe("audit storico PDF ENEA conclusivo", () => {
     expect(snapshot.fields["immobile.tipologia"]).toBe("Edificio a schiera e condominio fino a tre piani");
     expect(snapshot.fields["intervento.data_inizio"]).toBe("09/04/2026");
     expect(snapshot.fields["impianto.tipo"]).toBe("a. impianto autonomo");
+    expect(snapshot.fields["impianto.generatore"]).toBe("Altro (energia elettrica)");
     expect(snapshot.fields["impianto.numero_generatori"]).toBe("1");
     expect(snapshot.fields["impianto.rendimento"]).toBe("94.8");
     expect(snapshot.fields["impianto.potenza"]).toBe("24.1");
@@ -101,7 +102,6 @@ describe("audit storico PDF ENEA conclusivo", () => {
     expect(snapshot.fields["immobile.zona_climatica"]).toBeUndefined();
     expect(snapshot.fields["immobile.gradi_giorno"]).toBeUndefined();
     expect(snapshot.fields["intervento.unita_totali"]).toBeUndefined();
-    expect(snapshot.fields["impianto.generatore"]).toBeUndefined();
     expect(snapshot.screeningCount).toBe(5);
   });
 
@@ -147,6 +147,7 @@ describe("audit storico PDF ENEA conclusivo", () => {
       overrides: {
         "beneficiario.titolo": "Proprietario / comproprietario",
         "immobile.tipologia": "Edificio fino a 3 piani",
+        "impianto.generatore": "Energia elettrica",
       },
       confirmedFieldIds: new Set(["beneficiario.titolo", "immobile.tipologia"]),
     });
@@ -156,11 +157,12 @@ describe("audit storico PDF ENEA conclusivo", () => {
       fields: {
         "beneficiario.titolo": "Proprietario o comproprietario",
         "immobile.tipologia": "Edificio a schiera e condominio fino a tre piani",
+        "impianto.generatore": "Altro (energia elettrica)",
       },
     });
 
     expect(audit.mismatches).toBe(0);
-    expect(audit.matches).toBe(3);
+    expect(audit.matches).toBe(4);
   });
 
   it("non certifica il mapper se il numero di schermature differisce dal PDF conclusivo", () => {

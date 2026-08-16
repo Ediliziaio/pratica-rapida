@@ -83,6 +83,12 @@ function equivalentText(fieldId: string, value: string): string {
     if (/edificio a schiera e condominio fino a tre piani/.test(normalized)) return "edificio fino a 3 piani";
     if (/edificio a schiera e condominio oltre tre piani/.test(normalized)) return "edificio oltre 3 piani (4+)";
   }
+  if (fieldId === "impianto.generatore") {
+    if (normalized === "caldaia ad acqua calda standard") return "acqua calda standard";
+    if (normalized === "caldaia a gas a condensazione") return "gas a condensazione";
+    if (normalized === "pompa di calore / impianto geotermico") return "impianto geotermico";
+    if (normalized === "altro (energia elettrica)") return "energia elettrica";
+  }
   return normalized;
 }
 
@@ -201,11 +207,12 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   set(fields, "impianto.combustibile", capture(source, /6\. Vettore energetico Indicare la tipologia prevalente\s+(.+?)\s+7\. Impianto di climatizzazione estiva/i));
   set(fields, "impianto.condizionamento", capture(source, /7\. Impianto di climatizzazione estiva\s+(Sì|Si|No)/i));
 
-  const generator = source.match(/(?:Caldaia ad acqua calda standard|Caldaia ad acqua calda a bassa temperatura|Caldaia a gas a condensazione|Caldaia a gasolio a condensazione|Pompa di calore \/ Impianto geotermico|Generatore aria calda|Scambiatore per teleriscaldamento|Caldaia a biomassa|Altro \([^)]+\))\s+([0-9]+)\s+[^=]{0,12}=\s*([0-9]+(?:[.,][0-9]+)?)\s*%\s+([0-9]+(?:[.,][0-9]+)?)/i);
+  const generator = source.match(/(Caldaia ad acqua calda standard|Caldaia ad acqua calda a bassa temperatura|Caldaia a gas a condensazione|Caldaia a gasolio a condensazione|Pompa di calore \/ Impianto geotermico|Generatore aria calda|Scambiatore per teleriscaldamento|Caldaia a biomassa|Altro \([^)]+\))\s+([0-9]+)\s+[^=]{0,12}=\s*([0-9]+(?:[.,][0-9]+)?)\s*%\s+([0-9]+(?:[.,][0-9]+)?)/i);
   if (generator) {
-    fields["impianto.numero_generatori"] = generator[1];
-    fields["impianto.rendimento"] = generator[2];
-    fields["impianto.potenza"] = generator[3];
+    fields["impianto.generatore"] = generator[1];
+    fields["impianto.numero_generatori"] = generator[2];
+    fields["impianto.rendimento"] = generator[3];
+    fields["impianto.potenza"] = generator[4];
   }
 
   const screeningStart = source.indexOf("Scheda intervento SS. Schermature solari");

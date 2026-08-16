@@ -54,10 +54,15 @@ const SCREENING_BASE_FIELDS = [
   "schermature.0.regolazione",
 ] as const;
 
+type AuditWithObservedValues = CompletedEneaAuditResult & {
+  completedFieldValues?: Record<string, string>;
+};
+
 function auditWithScreening(
   performanceField: "schermature.0.gtot" | "schermature.0.rsupp",
   omittedField?: string,
-): CompletedEneaAuditResult {
+  typeValue = performanceField.endsWith("rsupp") ? "Persiana avvolgibile" : "Tenda o veneziana",
+): AuditWithObservedValues {
   const matchedFieldIds = [
     ...BASELINE_MATCHES,
     ...SCREENING_BASE_FIELDS,
@@ -72,6 +77,9 @@ function auditWithScreening(
     mismatches: 0,
     differences: [],
     matchedFieldIds,
+    completedFieldValues: {
+      "schermature.0.tipo": typeValue,
+    },
   };
 }
 
@@ -98,6 +106,20 @@ describe("copertura storica righe tecniche schermature ENEA", () => {
   it("fallisce chiuso se una chiusura oscurante perde ogni prestazione tecnica", () => {
     expect(classifyHistoricalAudit(
       auditWithScreening("schermature.0.rsupp", "schermature.0.rsupp"),
+      new Set(),
+    ).outcome).toBe("difference");
+  });
+
+  it("non certifica una schermatura solare se resta solo Rsupp ma manca gTot", () => {
+    expect(classifyHistoricalAudit(
+      auditWithScreening("schermature.0.rsupp", undefined, "Tenda o veneziana"),
+      new Set(),
+    ).outcome).toBe("difference");
+  });
+
+  it("non certifica una chiusura oscurante se resta solo gTot ma manca Rsupp", () => {
+    expect(classifyHistoricalAudit(
+      auditWithScreening("schermature.0.gtot", undefined, "Persiana avvolgibile"),
       new Set(),
     ).outcome).toBe("difference");
   });

@@ -229,13 +229,12 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   const screeningText = screeningStart >= 0
     ? source.slice(screeningStart, screeningEnd > screeningStart ? screeningEnd : undefined)
     : "";
-  // Conta qualunque riga numerata che inizi con un'etichetta testuale, non solo
-  // i tipi che il parser sa interpretare. Una riga non riconosciuta deve rendere
-  // la struttura incompleta invece di sparire dal conteggio e produrre un falso
-  // match sul numero schermature. I riferimenti normativi interni alla riga
-  // (es. UNI EN 13125 Metallo) non sono ordinali: il formato breve evita di
-  // scambiarli per ulteriori schermature mantenendo il controllo sui tipi ignoti.
-  const screeningRowPattern = /(?:^|\s)(\d{1,3})\s+(?=[A-Za-zÀ-ÿ])/g;
+  // Conta le righe numerate anche quando la tipologia non e' supportata, ma
+  // pretende la struttura "etichetta testuale + Interna/Esterna + superficie".
+  // Cosi i numeri interi dei dati tecnici (es. superficie finestrata "3" seguita
+  // da "Sud" quando Rsupp e' assente) non diventano falsi ordinali; una tipologia
+  // sconosciuta con struttura ENEA resta invece nel conteggio e forza fail-closed.
+  const screeningRowPattern = /(?:^|\s)(\d{1,3})\s+(?=[A-Za-zÀ-ÿ][^0-9]{0,140}\s+(?:Interna|Esterna)\s+[0-9])/g;
   const screeningOrdinals = Array.from(screeningText.matchAll(screeningRowPattern), (match) => Number(match[1]));
   // Rsupp e gTot non sono simmetrici: nelle schermature solari il gTot e'
   // prestazione necessaria mentre Rsupp puo' essere assente; nelle chiusure

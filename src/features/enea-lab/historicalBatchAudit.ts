@@ -79,6 +79,16 @@ const HISTORICAL_BUILDING_DESCRIPTOR_COVERAGE_FIELDS = [
   "immobile.destinazione_particolare",
   "immobile.tipologia",
 ] as const;
+const HISTORICAL_SCREENING_TECHNICAL_COVERAGE_SUFFIXES = [
+  "tipo",
+  "installazione",
+  "superficie",
+  "superficie_finestrata",
+  "esposizione",
+  "modalita_calcolo",
+  "materiale",
+  "regolazione",
+] as const;
 const HISTORICAL_CADASTRAL_ID_FIELDS = [
   "immobile.foglio",
   "immobile.mappale",
@@ -178,6 +188,31 @@ function hasHistoricalPracticeEvidence(audit: CompletedEneaAuditResult): boolean
   return HISTORICAL_PRACTICE_ID_FIELDS.every((fieldId) => matched.has(fieldId));
 }
 
+function hasHistoricalScreeningTechnicalCoverage(observed: ReadonlySet<string>): boolean {
+  const indexes = new Set<number>();
+  for (const fieldId of observed) {
+    const match = fieldId.match(/^schermature\.(\d+)\./);
+    if (!match) continue;
+    const index = Number(match[1]);
+    if (!Number.isInteger(index) || index < 0) return false;
+    indexes.add(index);
+  }
+  if (indexes.size === 0) return true;
+
+  const orderedIndexes = [...indexes].sort((left, right) => left - right);
+  if (!orderedIndexes.every((index, position) => index === position)) return false;
+
+  return orderedIndexes.every((index) => (
+    HISTORICAL_SCREENING_TECHNICAL_COVERAGE_SUFFIXES.every(
+      (suffix) => observed.has(`schermature.${index}.${suffix}`),
+    )
+    && (
+      observed.has(`schermature.${index}.gtot`)
+      || observed.has(`schermature.${index}.rsupp`)
+    )
+  ));
+}
+
 /**
  * Un parser parziale puo' omettere un campo importante senza produrre mismatch,
  * perché compareMappedToCompletedEnea confronta solo cio' che riesce a leggere
@@ -188,9 +223,9 @@ function hasHistoricalPracticeEvidence(audit: CompletedEneaAuditResult): boolean
  * confrontabili anche quando sono blocker, cosi una pratica correttamente
  * bloccata puo' continuare a essere riconosciuta come tale. Quando il PDF ha
  * anche una riga tecnica schermatura realmente confrontata pretendiamo inoltre
- * tutti i descrittori anagrafico-edilizi che il formato ENEA 2026 osservato
- * espone stabilmente: il parser non puo' perdere neppure l'intero blocco
- * anagrafico e continuare a certificare un falso match.
+ * tutti i descrittori anagrafico-edilizi e la riga tecnica completa che il
+ * formato ENEA 2026 osservato espone stabilmente: il parser non puo' perdere
+ * un attributo tecnico e continuare a certificare un falso match.
  */
 function hasHistoricalCriticalCoverage(audit: CompletedEneaAuditResult): boolean {
   const observed = new Set([
@@ -210,8 +245,12 @@ function hasHistoricalCriticalCoverage(audit: CompletedEneaAuditResult): boolean
     return false;
   }
 
-  return HISTORICAL_BUILDING_DESCRIPTOR_COVERAGE_FIELDS
-    .every((fieldId) => observed.has(fieldId));
+  if (!HISTORICAL_BUILDING_DESCRIPTOR_COVERAGE_FIELDS
+    .every((fieldId) => observed.has(fieldId))) {
+    return false;
+  }
+
+  return hasHistoricalScreeningTechnicalCoverage(observed);
 }
 
 /**

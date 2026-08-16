@@ -30,6 +30,12 @@ export interface CompletedEneaAuditResult {
 
 const NUMERIC_FIELD = /^(?:immobile\.(?:superficie|unita|gradi_giorno|fascia_solare)|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.(?:numero|spesa|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp|gtot))$/;
 const DATE_FIELD = /^(?:beneficiario\.data_nascita|intervento\.(?:data_inizio|data_fine))$/;
+const PORTAL_DERIVED_EVIDENCE_FIELDS = new Set([
+  "immobile.codice_comune",
+  "immobile.zona_climatica",
+  "immobile.gradi_giorno",
+  "immobile.fascia_solare",
+]);
 
 function compact(text: string): string {
   return text.replace(/\s+/g, " ").trim();
@@ -332,6 +338,11 @@ export function compareMappedToCompletedEnea(
   }
 
   for (const [fieldId, completedValue] of Object.entries(completed.fields)) {
+    // Codice comunale, zona climatica, gradi giorno e fascia solare sono dati
+    // osservati nel PDF finale ma derivati dal Comune dal portale ENEA. Restano
+    // evidenza storica del contratto reale, senza essere attribuiti al mapper né
+    // trasformati in falsi mismatch su campi che il workflow non deve scrivere.
+    if (PORTAL_DERIVED_EVIDENCE_FIELDS.has(fieldId)) continue;
     const field = mappedFields.get(fieldId);
     compared += 1;
     if (!field) {

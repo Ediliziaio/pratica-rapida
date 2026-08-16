@@ -47,10 +47,14 @@ const HISTORICAL_CRITICAL_COVERAGE_FIELDS = [
   "beneficiario.cointestazione",
   "immobile.superficie",
   "immobile.unita",
+  "impianto.tipo",
+  "impianto.terminali",
   "impianto.generatore",
   "impianto.numero_generatori",
   "impianto.rendimento",
   "impianto.potenza",
+  "impianto.combustibile",
+  "impianto.condizionamento",
   "schermature.spesa",
   "schermature.risparmio_energia",
 ] as const;
@@ -158,9 +162,10 @@ function hasHistoricalPracticeEvidence(audit: CompletedEneaAuditResult): boolean
  * perché compareMappedToCompletedEnea confronta solo cio' che riesce a leggere
  * nel PDF. Alcuni campi critici devono quindi risultare almeno osservati
  * (match oppure differenza) prima di certificare l'audit. Cointestazione,
- * superficie utile, unita immobiliari, dati completi del generatore, spesa e
- * risparmio energetico restano confrontabili anche quando sono blocker, cosi
- * una pratica correttamente bloccata puo' continuare a essere riconosciuta come tale.
+ * superficie utile, unita immobiliari, dati osservati dell'impianto e del
+ * generatore, spesa e risparmio energetico restano confrontabili anche quando
+ * sono blocker, cosi una pratica correttamente bloccata puo' continuare a essere
+ * riconosciuta come tale.
  */
 function hasHistoricalCriticalCoverage(audit: CompletedEneaAuditResult): boolean {
   const observed = new Set([
@@ -310,10 +315,10 @@ export function classifyHistoricalAudit(
   if (!hasHistoricalPracticeEvidence(audit)) {
     return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
   }
-  // Cointestazione, superficie utile, unita immobiliari, dati completi del
-  // generatore, spesa e risparmio energetico sono campi critici del flusso ENEA:
-  // se il parser non li ha neppure osservati, l'assenza non deve trasformarsi
-  // in un falso match.
+  // Cointestazione, superficie utile, unita immobiliari, dati osservati
+  // dell'impianto e del generatore, spesa e risparmio energetico sono campi
+  // critici del flusso ENEA: se il parser non li ha neppure osservati, l'assenza
+  // non deve trasformarsi in un falso match.
   if (!hasHistoricalCriticalCoverage(audit)) {
     return { outcome: "difference", differenceFieldIds, blockedDifferenceFieldIds };
   }

@@ -50,7 +50,7 @@ export function buildCommercialSupervisorQueue(
 
   const leadTasks = leads.flatMap((lead): CommercialSupervisorTask[] => {
     const decision = classifyLeadAttention(lead);
-    if (decision.status === "no_action" || decision.status === "progressing") return [];
+    if (decision.status === "new" || decision.status === "no_action" || decision.status === "progressing") return [];
     return [{
       id: `lead:${lead.id}`,
       kind: "lead",

@@ -43,9 +43,9 @@ describe("compilazione pagina immobile ENEA", () => {
       "immobile.gradi_giorno",
       "immobile.sezione",
     ]));
-    expect(preparation.script).not.toContain('"portalId":"id-gg"');
-    expect(preparation.script).toContain('"portalId":"id-possesso","control":"select","value":"Proprietario / comproprietario","selectValue":"1"');
-    expect(preparation.script).toContain('"portalId":"id-tipologia","control":"select","value":"Casa singola o plurifamiliare","selectValue":"18"');
+    expect(preparation.script).not.toContain('\"portalId\":\"id-gg\"');
+    expect(preparation.script).toContain('\"portalId\":\"id-possesso\",\"control\":\"select\",\"value\":\"Proprietario / comproprietario\",\"selectValue\":\"1\"');
+    expect(preparation.script).toContain('\"portalId\":\"id-tipologia\",\"control\":\"select\",\"value\":\"Casa singola o plurifamiliare\",\"selectValue\":\"18\"');
     expect(preparation.script).not.toMatch(/\.submit\s*\(/);
   });
 
@@ -93,5 +93,23 @@ describe("compilazione pagina immobile ENEA", () => {
     expect(result.compiled).toContain("id-comune");
     expect(result.notSelected).toEqual([]);
     expect(submitCount).toBe(0);
+  });
+
+  it("normalizza le migliaia italiane nella superficie utile verificata", () => {
+    const mapped = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0]);
+    const surface = mapped.sections
+      .flatMap((section) => section.fields)
+      .find((field) => field.id === "immobile.superficie");
+    expect(surface).toBeDefined();
+    if (!surface) return;
+    surface.value = "1.234,5 m²";
+    surface.status = "ready";
+    surface.testOnly = false;
+    surface.source = "Inserimento operatore";
+
+    const preparation = buildEneaBuildingPortalScript(mapped);
+    const runtimeField = preparation.runtime.fields.find(({ portalId }) => portalId === "id-sup_utile");
+
+    expect(runtimeField?.value).toBe("1234,5");
   });
 });

@@ -11,6 +11,12 @@ describe("validazione correzioni operatore · coerenza unità fisiche", () => {
     expect(validateOperatorOverride("schermature.0.gtot", "0,13 kW").valid).toBe(false);
   });
 
+  it("rifiuta annotazioni o unità sconosciute invece di ignorarle", () => {
+    expect(validateOperatorOverride("impianto.potenza", "25 hp").valid).toBe(false);
+    expect(validateOperatorOverride("immobile.superficie", "140 kg").valid).toBe(false);
+    expect(validateOperatorOverride("schermature.0.gtot", "0,13 prova").valid).toBe(false);
+  });
+
   it("continua ad accettare unità coerenti oppure il solo numero", () => {
     expect(validateOperatorOverride("impianto.potenza", "25 kW").valid).toBe(true);
     expect(validateOperatorOverride("immobile.superficie", "140 m²").valid).toBe(true);

@@ -58,4 +58,33 @@ describe("selezione duplicati PDF ENEA semanticamente equivalenti", () => {
     expect(() => selectBestHistoricalCompletedAudit([area, wrongUnit]))
       .toThrow("PDF ENEA conclusivi con lo stesso CPID ma risultati discordanti");
   });
+
+  it("blocca due match sullo stesso campo quando i valori storici divergono oltre la tolleranza", () => {
+    const first: CompletedEneaAuditResult = {
+      path: "pratica/revisione-a.pdf",
+      cpid: "288717-2026E-TEST",
+      compared: 2,
+      matches: 2,
+      mismatches: 0,
+      matchedFieldIds: ["beneficiario.cf", "immobile.superficie"],
+      matchedValues: [{
+        fieldId: "immobile.superficie",
+        completedValue: "141,004 m²",
+        mappedValue: "141,001 m²",
+      }],
+      differences: [],
+    };
+    const second: CompletedEneaAuditResult = {
+      ...first,
+      path: "pratica/revisione-b.pdf",
+      matchedValues: [{
+        fieldId: "immobile.superficie",
+        completedValue: "140,998 m²",
+        mappedValue: "141,001 m²",
+      }],
+    };
+
+    expect(() => selectBestHistoricalCompletedAudit([first, second]))
+      .toThrow("PDF ENEA conclusivi con lo stesso CPID ma risultati discordanti");
+  });
 });

@@ -57,8 +57,12 @@ function readyMapped(withCoOwner = false) {
 }
 
 describe("workflow ENEA: cointestazione non ancora modellata", () => {
-  it("mantiene disponibile il percorso official senza cointestatario", () => {
-    expect(buildEneaOfficialPortalWorkflowScript(readyMapped())).toMatchObject({ mode: "official" });
+  it("arriva al solo gate del controllo energetico quando non c'è cointestatario", () => {
+    expect(buildEneaOfficialPortalWorkflowScript(readyMapped())).toMatchObject({
+      mode: "blocked",
+      script: "",
+      reason: expect.stringContaining("risparmio energetico"),
+    });
   });
 
   it("resta fail-closed quando la pratica ha un cointestatario", () => {

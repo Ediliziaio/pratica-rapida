@@ -162,16 +162,12 @@ describe("gate pre-collaudo ENEA ufficiale", () => {
     expect(gate).toEqual({ status: "blocked", reason: "official-data-incomplete", workflow: null });
   });
 
-  it("restituisce soltanto un workflow official quando mapping e payload superano indipendentemente tutte le barriere", () => {
+  it("supera tutte le barriere dati e si ferma soltanto al controllo energetico non osservato", () => {
     const { mapped, payload, analysis } = readyPayload();
 
     const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis);
 
-    expect(gate.status).toBe("ready");
-    if (gate.status !== "ready") throw new Error("Il gate doveva essere pronto nel caso positivo verificato.");
-    expect(gate.workflow.mode).toBe("official");
-    expect(gate.workflow.script).toContain('\"portalId\":\"id-n\"');
-    expect(gate.workflow.script).toContain('\"portalId\":\"id-pn\"');
+    expect(gate).toEqual({ status: "blocked", reason: "payload-inconsistent", workflow: null });
   });
 
   it("blocca payload dichiarati pronti ma internamente incoerenti", () => {

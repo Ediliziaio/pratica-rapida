@@ -325,11 +325,28 @@ function historicalNumericEvidenceValue(value: string): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-type HistoricalNumericUnit = "area" | "power" | "energy" | "percent" | "currency";
+type HistoricalNumericUnit =
+  | "area"
+  | "thermal-resistance"
+  | "power"
+  | "energy"
+  | "percent"
+  | "currency";
 
 function historicalNumericEvidenceUnit(value: string): HistoricalNumericUnit | null {
   const normalized = value.toLowerCase().replace(/\s+/g, "");
   if (normalized.includes("kwh")) return "energy";
+  // ENEA espone Rsupp come Km²/W; accettiamo anche la notazione fisicamente
+  // equivalente m²K/W. Va riconosciuta prima dell'area, altrimenti il solo
+  // sottotesto m² farebbe apparire equivalenti resistenza termica e superficie.
+  if (
+    normalized.includes("km²/w")
+    || normalized.includes("km2/w")
+    || normalized.includes("m²k/w")
+    || normalized.includes("m2k/w")
+  ) {
+    return "thermal-resistance";
+  }
   if (/kw(?!h)/.test(normalized)) return "power";
   if (/m(?:²|2)/.test(normalized)) return "area";
   if (normalized.includes("%")) return "percent";

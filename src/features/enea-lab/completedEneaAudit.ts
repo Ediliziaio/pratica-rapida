@@ -15,6 +15,12 @@ export interface CompletedEneaDifference {
   mappedValue: string;
 }
 
+export interface CompletedEneaMatchedValue {
+  fieldId: string;
+  completedValue: string;
+  mappedValue: string;
+}
+
 export interface CompletedEneaAuditResult {
   path: string;
   cpid: string | null;
@@ -26,6 +32,10 @@ export interface CompletedEneaAuditResult {
    * per provare che il PDF appartenga alla stessa persona/immobile, non solo
    * che condivida valori generici con il mapper corrente. */
   matchedFieldIds?: string[];
+  /** Valori effettivamente osservati nei match. Servono a distinguere due PDF
+   * con lo stesso CPID che risultano entrambi compatibili col mapper ma che si
+   * contraddicono fra loro oltre la tolleranza numerica ammessa. */
+  matchedValues?: CompletedEneaMatchedValue[];
 }
 
 const NUMERIC_FIELD = /^(?:immobile\.(?:superficie|unita|gradi_giorno|fascia_solare)|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.(?:numero|spesa|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp|gtot))$/;
@@ -317,6 +327,7 @@ export function compareMappedToCompletedEnea(
   );
   const differences: CompletedEneaDifference[] = [];
   const matchedFieldIds: string[] = [];
+  const matchedValues: CompletedEneaMatchedValue[] = [];
   let compared = 0;
   let matches = 0;
 
@@ -334,6 +345,11 @@ export function compareMappedToCompletedEnea(
   ) {
     matches += 1;
     matchedFieldIds.push("schermature.numero");
+    matchedValues.push({
+      fieldId: "schermature.numero",
+      completedValue: completedScreeningCount,
+      mappedValue: mappedScreeningCount.value,
+    });
   } else {
     differences.push({
       fieldId: "schermature.numero",
@@ -365,6 +381,7 @@ export function compareMappedToCompletedEnea(
     if (field.status === "ready" && !field.testOnly && sameValue(fieldId, field.value, completedValue)) {
       matches += 1;
       matchedFieldIds.push(fieldId);
+      matchedValues.push({ fieldId, completedValue, mappedValue: field.value });
       continue;
     }
     differences.push({
@@ -382,6 +399,7 @@ export function compareMappedToCompletedEnea(
     mismatches: differences.length,
     differences,
     matchedFieldIds,
+    matchedValues,
   };
 }
 

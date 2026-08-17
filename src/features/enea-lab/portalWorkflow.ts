@@ -19,6 +19,7 @@ export interface EneaPortalWorkflowPreparation {
   supportedPages: string[];
   screeningItemCount: number;
   mode: "test" | "official" | "blocked";
+  reason?: string;
 }
 
 const NORTHERN_EXPOSURES = new Set(["Nord", "Nord-Est", "Nord-Ovest"]);
@@ -378,6 +379,25 @@ export function buildEneaPortalWorkflowScript(
 export function buildEneaOfficialPortalWorkflowScript(
   mapped: EneaLabMappedPractice,
 ): EneaPortalWorkflowPreparation {
+  const energySaving = mapped.sections
+    .flatMap((section) => section.fields)
+    .find((field) => field.id === "schermature.risparmio_energia");
+
+  // Il mapping può conoscere e validare il risparmio energetico, ma il relativo
+  // controllo del portale ENEA non è ancora stato osservato e congelato nel
+  // contratto del laboratorio. Finché quel controllo non viene modellato sul
+  // portale reale, un valore pronto non deve essere omesso silenziosamente dal
+  // workflow official: ci fermiamo esattamente al gate pre-collaudo.
+  if (energySaving?.status === "ready" && !energySaving.testOnly) {
+    return {
+      script: "",
+      supportedPages: [],
+      screeningItemCount: 0,
+      mode: "blocked",
+      reason: "Il risparmio energetico è pronto nel mapping, ma il relativo controllo del portale ENEA non è ancora stato osservato e modellato.",
+    };
+  }
+
   // Il numero riepilogativo e gli indici tecnici devono descrivere esattamente
   // lo stesso insieme 0..n-1. Un campo stale oltre il conteggio non deve creare
   // una finestra schermatura aggiuntiva nel workflow ufficiale.

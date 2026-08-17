@@ -56,7 +56,19 @@ const BUILDING_TYPE_VALUES = {
 } as const;
 
 function numericValue(value: string): string {
-  return value.replace(/\s*(?:m²|mq)\s*$/i, "").trim();
+  const unitless = value.replace(/\s*(?:m²|mq)\s*$/i, "").trim();
+  const tokenMatch = unitless.match(/^([+-]?)(\d+(?:[.,]\d+)*)$/);
+  if (!tokenMatch) return "";
+  const [, sign, body] = tokenMatch;
+
+  // Allinea il builder alla semantica numerica del validatore: una superficie
+  // italiana come 1.234,5 m² deve arrivare al portale come 1234,5, mentre una
+  // frazione esplicita con zero iniziale (0.080) non va reinterpretata come 80.
+  if (/^0\.\d+$/.test(body)) return `${sign}${body}`;
+  if (/^\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(body)) {
+    return `${sign}${body.replace(/\./g, "")}`;
+  }
+  return `${sign}${body}`;
 }
 
 /** Identificativi e valori osservati sulla pagina "Immobile" ENEA 2026. */

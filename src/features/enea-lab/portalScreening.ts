@@ -107,14 +107,11 @@ function numericValue(value: string): string {
   const [, sign, body] = tokenMatch;
 
   // Allinea il builder schermature alla stessa semantica numerica fail-closed
-  // dell'inserimento operatore: 1.234,5 diventa 1234,5, mentre una frazione
-  // esplicita con zero iniziale (0.080) non viene reinterpretata come 80.
+  // dell'inserimento operatore: 1.234,5 diventa 1234,5, mentre la virgola
+  // resta sempre il separatore decimale italiano (1,234 = 1.234, non 1234).
   if (/^0\.\d+$/.test(body)) return `${sign}${body}`;
   if (/^\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(body)) {
     return `${sign}${body.replace(/\./g, "")}`;
-  }
-  if (/^\d{1,3}(?:,\d{3})+$/.test(body)) {
-    return `${sign}${body.replace(/,/g, "")}`;
   }
   return `${sign}${body}`;
 }

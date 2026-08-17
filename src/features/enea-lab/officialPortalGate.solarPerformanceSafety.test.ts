@@ -43,7 +43,7 @@ function readySolarFixture() {
 }
 
 describe("gate ENEA · prestazioni schermature solari", () => {
-  it("accetta una Rsupp opzionale verificata senza indebolire i controlli sul gTot", () => {
+  it("accetta una Rsupp opzionale verificata e arriva al solo gate energetico non osservato", () => {
     const { mapped, analysis } = readySolarFixture();
     const altered = {
       ...mapped,
@@ -75,6 +75,10 @@ describe("gate ENEA · prestazioni schermature solari", () => {
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
     expect(payload.readyForOfficialSubmission).toBe(true);
 
-    expect(prepareEneaOfficialPortalCollaudo(altered, payload, true, analysis).status).toBe("ready");
+    expect(prepareEneaOfficialPortalCollaudo(altered, payload, true, analysis)).toEqual({
+      status: "blocked",
+      reason: "payload-inconsistent",
+      workflow: null,
+    });
   });
 });

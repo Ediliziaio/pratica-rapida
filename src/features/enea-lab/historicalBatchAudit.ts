@@ -318,7 +318,14 @@ function hasHistoricalCriticalCoverage(audit: CompletedEneaAuditResult): boolean
 }
 
 function historicalNumericEvidenceValue(value: string): number | null {
-  const normalized = value.replace(/\.(?=\d{3}(?:\D|$))/g, "");
+  // Nei documenti ENEA la virgola e' il separatore decimale usuale e il punto
+  // puo' essere usato come separatore delle migliaia. Tuttavia una frazione
+  // esplicita con zero iniziale (es. 0.080) non puo' rappresentare 80: la
+  // preserviamo come decimale prima della normalizzazione delle migliaia.
+  const normalized = value
+    .replace(/(-?0)\.(\d+)/g, "$1__DECIMAL_POINT__$2")
+    .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+    .replace(/__DECIMAL_POINT__/g, ".");
   const tokens = normalized.match(/-?\d+(?:[.,]\d+)?/g) ?? [];
   if (tokens.length !== 1) return null;
   const parsed = Number(tokens[0].replace(",", "."));

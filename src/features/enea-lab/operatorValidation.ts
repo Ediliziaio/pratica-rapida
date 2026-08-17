@@ -78,9 +78,12 @@ const ITALIAN_FISCAL_CODE_PERSONAL_PATTERN = /^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEH
 function parseItalianNumber(value: string): number | null {
   const tokens = value.trim().match(/[+-]?\d+(?:[.,]\d+)*/g) ?? [];
   if (tokens.length !== 1) return null;
-  const normalized = tokens[0]
-    .replace(/\.(?=\d{3}(?:\D|$))/g, "")
-    .replace(",", ".");
+  const token = tokens[0];
+  const normalized = /^[-+]?0\.\d+$/.test(token)
+    ? token
+    : token
+      .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+      .replace(",", ".");
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
 }

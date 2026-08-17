@@ -311,7 +311,7 @@ export function validateOperatorOverride(
   if (/^(?:immobile\.unita|intervento\.unita_totali|intervento\.unita_oggetto|impianto\.numero_generatori)$/.test(fieldId)) {
     const parsed = parseItalianNumber(value);
     return parsed !== null && Number.isInteger(parsed) && parsed > 0
-      ? { valid: true, value }
+      ? { valid: true, value: String(parsed) }
       : invalid(value, "Inserire un numero intero maggiore di zero.");
   }
 

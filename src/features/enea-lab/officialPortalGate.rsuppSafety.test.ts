@@ -74,4 +74,22 @@ describe("gate ENEA · formato Rsupp", () => {
       workflow: null,
     });
   });
+
+  it("rifiuta anche una Rsupp ready con unità o annotazione non compatibile", () => {
+    const malformed = "0,08 kg";
+    expect(validateOperatorOverride("schermature.0.rsupp", malformed).valid).toBe(false);
+
+    const { mapped, analysis } = readyMappedWithRsupp(malformed);
+    const issues = validatePreparedPractice(mapped.source, mapped, analysis);
+    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
+
+    const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-14T11:15:00.000Z"));
+    expect(payload.readyForOfficialSubmission).toBe(true);
+
+    expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis)).toEqual({
+      status: "blocked",
+      reason: "payload-inconsistent",
+      workflow: null,
+    });
+  });
 });

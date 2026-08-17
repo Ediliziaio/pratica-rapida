@@ -95,4 +95,33 @@ describe("builder schermatura ENEA - numeri ambigui", () => {
     expect(surfaceRuntime?.value).toBe("1234,5");
     expect(protectedSurfaceRuntime?.value).toBe("1234,5");
   });
+
+  it("non scambia la virgola decimale italiana con un separatore delle migliaia", () => {
+    const source = ENEA_LAB_MOCK_PRACTICES[0];
+    const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id]);
+    const fields = mapped.sections.flatMap((section) => section.fields);
+    const surface = fields.find((field) => field.id === "schermature.0.superficie");
+    const protectedSurface = fields.find((field) => field.id === "schermature.0.superficie_finestrata");
+
+    expect(surface).toBeDefined();
+    expect(protectedSurface).toBeDefined();
+
+    surface!.status = "ready";
+    surface!.value = "1,234 m²";
+    surface!.testOnly = false;
+    protectedSurface!.status = "ready";
+    protectedSurface!.value = "2,345 mq";
+    protectedSurface!.testOnly = false;
+
+    const preparation = buildEneaScreeningPortalScript(mapped, 0);
+    const surfaceRuntime = preparation.runtime.fields.find((field) => field.portalId === "id-sup_s");
+    const protectedSurfaceRuntime = preparation.runtime.fields.find((field) => field.portalId === "id-sup_f");
+
+    expect(preparation.readyFieldIds).toEqual(expect.arrayContaining([
+      "schermature.0.superficie",
+      "schermature.0.superficie_finestrata",
+    ]));
+    expect(surfaceRuntime?.value).toBe("1,234");
+    expect(protectedSurfaceRuntime?.value).toBe("2,345");
+  });
 });

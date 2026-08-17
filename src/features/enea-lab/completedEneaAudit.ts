@@ -67,7 +67,13 @@ function normalizeDate(value: string): string {
 }
 
 function numeric(value: string): number | null {
-  const normalized = value.replace(/\.(?=\d{3}(?:\D|$))/g, "");
+  // Il punto seguito da tre cifre puo' essere un separatore delle migliaia,
+  // ma una frazione con zero iniziale (es. 0.080) e' inequivocabilmente
+  // decimale. La preserviamo prima della normalizzazione per evitare 0.080 -> 80.
+  const normalized = value
+    .replace(/(-?0)\.(\d+)/g, "$1__DECIMAL_POINT__$2")
+    .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+    .replace(/__DECIMAL_POINT__/g, ".");
   const tokens = normalized.match(/-?\d+(?:[.,]\d+)?/g) ?? [];
   if (tokens.length !== 1) return null;
   const parsed = Number(tokens[0].replace(",", "."));

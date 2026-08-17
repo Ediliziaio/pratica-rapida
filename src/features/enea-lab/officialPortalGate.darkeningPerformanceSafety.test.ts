@@ -56,7 +56,7 @@ function readyDarkeningClosure() {
 }
 
 describe("gate ENEA · prestazioni chiusure oscuranti", () => {
-  it("può preparare una chiusura oscurante con Rsupp verificata senza imporre un gTot fittizio", () => {
+  it("accetta Rsupp senza gTot fittizio e arriva al solo gate energetico non osservato", () => {
     const { mapped, analysis } = readyDarkeningClosure();
     const gTotFields = mapped.sections
       .flatMap((section) => section.fields)
@@ -69,6 +69,10 @@ describe("gate ENEA · prestazioni chiusure oscuranti", () => {
     const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-14T04:00:00.000Z"));
     expect(payload.readyForOfficialSubmission).toBe(true);
 
-    expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis).status).toBe("ready");
+    expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis)).toEqual({
+      status: "blocked",
+      reason: "payload-inconsistent",
+      workflow: null,
+    });
   });
 });

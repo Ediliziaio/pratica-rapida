@@ -79,11 +79,23 @@ function parseItalianNumber(value: string): number | null {
   const tokens = value.trim().match(/[+-]?\d+(?:[.,]\d+)*/g) ?? [];
   if (tokens.length !== 1) return null;
   const token = tokens[0];
-  const normalized = /^[-+]?0\.\d+$/.test(token)
-    ? token
-    : token
-      .replace(/\.(?=\d{3}(?:\D|$))/g, "")
-      .replace(",", ".");
+  const tokenMatch = token.match(/^([+-]?)(\d+(?:[.,]\d+)*)$/);
+  if (!tokenMatch) return null;
+
+  const [, sign, body] = tokenMatch;
+  let normalized: string | null = null;
+
+  if (/^0\.\d+$/.test(body)) {
+    normalized = `${sign}${body}`;
+  } else if (/^\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(body)) {
+    normalized = `${sign}${body.replace(/\./g, "").replace(",", ".")}`;
+  } else if (/^\d+,\d+$/.test(body)) {
+    normalized = `${sign}${body.replace(",", ".")}`;
+  } else if (/^\d+\.\d+$/.test(body) || /^\d+$/.test(body)) {
+    normalized = `${sign}${body}`;
+  }
+
+  if (normalized === null) return null;
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
 }

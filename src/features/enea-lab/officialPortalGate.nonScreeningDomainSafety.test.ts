@@ -49,12 +49,16 @@ function prepare(mapped: ReturnType<typeof readyFixture>["mapped"], analysis: Re
 }
 
 describe("gate ENEA: domini non schermatura", () => {
-  it("parte da una fixture realmente pronta al collaudo", () => {
+  it("supera i domini non schermatura e si ferma al controllo energetico non osservato", () => {
     const { mapped, analysis } = readyFixture();
     const { issues, payload, gate } = prepare(mapped, analysis);
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
     expect(payload.readyForOfficialSubmission).toBe(true);
-    expect(gate.status).toBe("ready");
+    expect(gate).toEqual({
+      status: "blocked",
+      reason: "payload-inconsistent",
+      workflow: null,
+    });
   });
 
   it("blocca un ambito intervento ready ma fuori dal dominio prima che sparisca dal workflow", () => {

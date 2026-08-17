@@ -80,15 +80,18 @@ describe("gate ENEA: verifica manuale della spesa congrua", () => {
     });
   });
 
-  it("consente il gate quando la spesa positiva è stata riscritta e verificata dall'operatore", () => {
+  it("supera la verifica della spesa positiva e si ferma al controllo energetico non osservato", () => {
     const mapped = readyMappedWithExpenseSource("Inserimento operatore");
     const analysis = ENEA_LAB_MOCK_ANALYSIS[mapped.source.id];
     const issues = validatePreparedPractice(mapped.source, mapped, analysis);
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
 
     const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-12T18:30:00.000Z"));
-    const gate = prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis);
-
-    expect(gate.status).toBe("ready");
+    expect(payload.readyForOfficialSubmission).toBe(true);
+    expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis)).toEqual({
+      status: "blocked",
+      reason: "payload-inconsistent",
+      workflow: null,
+    });
   });
 });

@@ -72,4 +72,32 @@ describe("commercial supervisor queue", () => {
       },
     ])).toEqual([]);
   });
+
+  it("mantiene il follow-up lead al punteggio 70 della vista read-only", () => {
+    const queue = buildCommercialSupervisorQueue([
+      {
+        id: "never-activated",
+        label: "Azienda mai attivata",
+        healthStatus: "mai_attivato",
+        practicesLast30d: 0,
+        practicesPrev30d: 0,
+        lastPracticeDaysAgo: null,
+        attentionScore: 60,
+      },
+    ], [
+      {
+        id: "lead-followup",
+        label: "Lead da ricontattare",
+        stageId: "lead",
+        ageHours: 120,
+        contacted: true,
+        hoursSinceContact: 80,
+      },
+    ]);
+
+    expect(queue.map(({ id, score }) => ({ id, score }))).toEqual([
+      { id: "lead:lead-followup", score: 70 },
+      { id: "customer:never-activated", score: 60 },
+    ]);
+  });
 });

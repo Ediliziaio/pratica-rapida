@@ -83,14 +83,18 @@ describe("gate ENEA: stagionalita del risparmio energetico", () => {
     });
   });
 
-  it("continua ad ammettere 0 kWh/anno per sole schermature solari senza raffrescamento", () => {
+  it("ammette stagionalmente 0 kWh/anno per il solare e poi si ferma al controllo portale non osservato", () => {
     const { mapped, analysis } = readyMappedWithEnergy("solar", "0 kWh/anno");
     const issues = validatePreparedPractice(mapped.source, mapped, analysis);
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
 
     const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-14T04:00:00.000Z"));
     expect(payload.readyForOfficialSubmission).toBe(true);
-    expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis).status).toBe("ready");
+    expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis)).toEqual({
+      status: "blocked",
+      reason: "payload-inconsistent",
+      workflow: null,
+    });
   });
 
   it("non tratta un valore testuale senza cifre come se fosse zero", () => {

@@ -325,9 +325,28 @@ function historicalNumericEvidenceValue(value: string): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+type HistoricalNumericUnit = "area" | "power" | "energy" | "percent" | "currency";
+
+function historicalNumericEvidenceUnit(value: string): HistoricalNumericUnit | null {
+  const normalized = value.toLowerCase().replace(/\s+/g, "");
+  if (normalized.includes("kwh")) return "energy";
+  if (/kw(?!h)/.test(normalized)) return "power";
+  if (/m(?:²|2)/.test(normalized)) return "area";
+  if (normalized.includes("%")) return "percent";
+  if (normalized.includes("€") || normalized.includes("eur")) return "currency";
+  return null;
+}
+
+function historicalNumericEvidenceUnitsCompatible(left: string, right: string): boolean {
+  const leftUnit = historicalNumericEvidenceUnit(left);
+  const rightUnit = historicalNumericEvidenceUnit(right);
+  return leftUnit === null || rightUnit === null || leftUnit === rightUnit;
+}
+
 function historicalEvidenceValuesEquivalent(fieldId: string, left: string, right: string): boolean {
   if (left === right) return true;
   if (!HISTORICAL_NUMERIC_EVIDENCE_FIELD.test(fieldId)) return false;
+  if (!historicalNumericEvidenceUnitsCompatible(left, right)) return false;
   const leftNumber = historicalNumericEvidenceValue(left);
   const rightNumber = historicalNumericEvidenceValue(right);
   return leftNumber !== null && rightNumber !== null && Math.abs(leftNumber - rightNumber) < 0.005;

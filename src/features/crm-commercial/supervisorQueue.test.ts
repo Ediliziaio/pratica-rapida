@@ -100,4 +100,19 @@ describe("commercial supervisor queue", () => {
       { id: "customer:never-activated", score: 60 },
     ]);
   });
+
+  it("non riapre lavoro commerciale per una azienda amministrativamente disattivata", () => {
+    const disabledCustomer = {
+      id: "disabled",
+      label: "Azienda disattivata",
+      healthStatus: "inattivo" as const,
+      practicesLast30d: 0,
+      practicesPrev30d: 0,
+      lastPracticeDaysAgo: 120,
+      attentionScore: 90,
+      isActive: false,
+    };
+
+    expect(buildCommercialSupervisorQueue([disabledCustomer], [])).toEqual([]);
+  });
 });

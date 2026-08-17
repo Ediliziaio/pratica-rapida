@@ -25,4 +25,27 @@ describe("builder generatore ENEA · coerenza unità fisiche", () => {
       expect.arrayContaining([expect.objectContaining({ portalId: "id-pn" })]),
     );
   });
+
+  it("mantiene compilabile una potenza verificata con separatore italiano delle migliaia", () => {
+    const source = ENEA_LAB_MOCK_PRACTICES[0];
+    const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id]);
+    const power = mapped.sections
+      .flatMap((section) => section.fields)
+      .find((field) => field.id === "impianto.potenza");
+
+    expect(power).toBeDefined();
+    if (!power) throw new Error("Campo potenza assente");
+    power.value = "1.234,5 kW";
+    power.status = "ready";
+    power.testOnly = false;
+
+    const prepared = buildEneaGeneratorPortalScript(mapped);
+
+    expect(prepared.readyFieldIds).toContain("impianto.potenza");
+    expect(prepared.runtime.fields).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ portalId: "id-pn", value: "1234,5" }),
+      ]),
+    );
+  });
 });

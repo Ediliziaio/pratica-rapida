@@ -22,7 +22,7 @@ describe("builder immobile ENEA - numeri ambigui", () => {
     expect(preparation.runtime.fields).not.toEqual(expect.arrayContaining([
       expect.objectContaining({ portalId: "id-sup_utile" }),
     ]));
-    expect(preparation.script).not.toContain('"value":"2 x 9"');
+    expect(preparation.script).not.toContain('\"value\":\"2 x 9\"');
   });
 
   it("non porta al runtime una superficie utile nulla anche se il mapping e ready", () => {
@@ -43,5 +43,23 @@ describe("builder immobile ENEA - numeri ambigui", () => {
     expect(preparation.runtime.fields).not.toEqual(expect.arrayContaining([
       expect.objectContaining({ portalId: "id-sup_utile" }),
     ]));
+  });
+
+  it("normalizza la superficie verificata in mq prima del runtime", () => {
+    const mapped = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0]);
+    const surface = mapped.sections
+      .flatMap((section) => section.fields)
+      .find((field) => field.id === "immobile.superficie");
+
+    expect(surface?.status).toBe("ready");
+
+    surface!.value = "112 mq";
+    surface!.testOnly = false;
+
+    const preparation = buildEneaBuildingPortalScript(mapped);
+    const runtimeSurface = preparation.runtime.fields.find(({ portalId }) => portalId === "id-sup_utile");
+
+    expect(preparation.readyFieldIds).toContain("immobile.superficie");
+    expect(runtimeSurface?.value).toBe("112");
   });
 });

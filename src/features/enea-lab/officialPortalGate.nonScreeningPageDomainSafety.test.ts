@@ -81,12 +81,16 @@ function expectBlockedDomain(fieldId: string, value: string) {
 }
 
 describe("gate ENEA: domini discreti delle pagine non schermatura", () => {
-  it("parte da una fixture realmente pronta al collaudo", () => {
+  it("supera i domini discreti e si ferma al controllo energetico non osservato", () => {
     const { mapped, analysis } = readyFixture();
     const { issues, payload, gate } = prepare(mapped, analysis);
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
     expect(payload.readyForOfficialSubmission).toBe(true);
-    expect(gate.status).toBe("ready");
+    expect(gate).toEqual({
+      status: "blocked",
+      reason: "payload-inconsistent",
+      workflow: null,
+    });
   });
 
   it("blocca una tipologia immobile ready ma fuori dal dominio ENEA", () => {

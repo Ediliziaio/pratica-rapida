@@ -11,6 +11,7 @@ export interface CustomerSupervisorInput extends CommercialActionInput {
 export interface LeadQueueInput extends LeadSupervisorInput {
   id: string;
   label: string;
+  telefono?: string | null;
 }
 
 export interface CommercialSupervisorTask {
@@ -56,14 +57,18 @@ export function buildCommercialSupervisorQueue(
   const leadTasks = leads.flatMap((lead): CommercialSupervisorTask[] => {
     const decision = classifyLeadAttention(lead);
     if (decision.status === "new" || decision.status === "no_action" || decision.status === "progressing") return [];
+
+    const hasPhone = typeof lead.telefono === "string" && lead.telefono.trim().length > 0;
     return [{
       id: `lead:${lead.id}`,
       kind: "lead",
       label: lead.label,
       score: leadScore(decision.priority),
       action: decision.status,
-      channel: "whatsapp",
-      reason: decision.reason,
+      channel: hasPhone ? "whatsapp" : "none",
+      reason: hasPhone
+        ? decision.reason
+        : `${decision.reason} Nessun numero di telefono disponibile: definire manualmente il canale di contatto.`,
       requiresHumanApproval: true,
     }];
   });

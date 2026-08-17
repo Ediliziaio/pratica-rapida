@@ -60,4 +60,16 @@ describe("commercial supervisor queue", () => {
       },
     ], [])).toEqual([]);
   });
+
+  it("non mette in coda un lead nuovo ancora entro la finestra del primo contatto", () => {
+    expect(buildCommercialSupervisorQueue([], [
+      {
+        id: "lead-fresh",
+        label: "Lead appena arrivato",
+        stageId: "lead",
+        ageHours: 2,
+        contacted: false,
+      },
+    ])).toEqual([]);
+  });
 });

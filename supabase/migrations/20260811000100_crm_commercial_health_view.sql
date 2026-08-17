@@ -41,9 +41,11 @@ WITH practice_activity AS (
     MAX(p.created_at) FILTER (WHERE p.brand = 'enea') AS last_practice_at,
     MIN(p.created_at) FILTER (WHERE p.brand = 'enea') AS first_practice_at
   FROM public.companies c
+  -- archived_at e' un flag di auto-archiviazione/UI, non una cancellazione
+  -- della pratica: escluderlo falserebbe lo storico commerciale e potrebbe
+  -- far apparire "mai attivato" un rivenditore con sole pratiche archiviate.
   LEFT JOIN public.enea_practices p
     ON p.reseller_id = c.id
-   AND p.archived_at IS NULL
   GROUP BY
     c.id,
     c.ragione_sociale,

@@ -115,4 +115,20 @@ describe("commercial supervisor queue", () => {
 
     expect(buildCommercialSupervisorQueue([disabledCustomer], [])).toEqual([]);
   });
+
+  it("non suggerisce WhatsApp a un lead urgente senza numero di telefono", () => {
+    const queue = buildCommercialSupervisorQueue([], [
+      {
+        id: "lead-no-phone",
+        label: "Lead senza telefono",
+        stageId: "lead",
+        ageHours: 30,
+        contacted: false,
+        telefono: null,
+      },
+    ]);
+
+    expect(queue).toHaveLength(1);
+    expect(queue[0].channel).toBe("none");
+  });
 });

@@ -75,6 +75,9 @@ const ITALIAN_FISCAL_CODE_ODD_VALUES: Record<string, number> = {
 
 const ITALIAN_FISCAL_CODE_PERSONAL_PATTERN = /^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/;
 
+type EneaNumericUnit = "area" | "power" | "energy" | "currency" | "percent" | "thermal-resistance";
+type EneaExpectedNumericUnit = EneaNumericUnit | "dimensionless";
+
 function parseItalianNumber(value: string): number | null {
   const tokens = value.trim().match(/[+-]?\d+(?:[.,]\d+)*/g) ?? [];
   if (tokens.length !== 1) return null;
@@ -98,6 +101,48 @@ function parseItalianNumber(value: string): number | null {
   if (normalized === null) return null;
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function explicitNumericUnits(value: string): EneaNumericUnit[] {
+  const units = new Set<EneaNumericUnit>();
+  const lower = value.toLocaleLowerCase("it");
+  const thermalResistance = /(?:k\s*m(?:²|2)\s*\/\s*w|m(?:²|2)\s*k\s*\/\s*w)/gi;
+  const withoutThermalResistance = lower.replace(thermalResistance, " ");
+
+  if (thermalResistance.test(lower)) units.add("thermal-resistance");
+  if (/\bkwh\b/i.test(lower)) units.add("energy");
+  if (/(?:^|[^a-z0-9])m(?:²|2)(?:$|[^a-z0-9])/i.test(withoutThermalResistance) || /\bmq\b/i.test(withoutThermalResistance)) {
+    units.add("area");
+  }
+  if (/(?:^|[^a-z])kw(?:$|[^a-z])/i.test(lower)) units.add("power");
+  if (/€|\beur\b|\beuro\b/i.test(lower)) units.add("currency");
+  if (/%/.test(value)) units.add("percent");
+
+  return [...units];
+}
+
+function expectedNumericUnit(fieldId: string): EneaExpectedNumericUnit | null {
+  if (fieldId === "impianto.potenza") return "power";
+  if (fieldId === "impianto.rendimento") return "percent";
+  if (fieldId === "immobile.superficie" || fieldId === "schermature.superficie_totale" || /^schermature\.\d+\.(?:superficie|superficie_finestrata)$/.test(fieldId)) {
+    return "area";
+  }
+  if (fieldId === "schermature.spesa") return "currency";
+  if (fieldId === "schermature.risparmio_energia") return "energy";
+  if (/^schermature\.\d+\.rsupp$/.test(fieldId)) return "thermal-resistance";
+  if (/^schermature\.\d+\.gtot$/.test(fieldId)) return "dimensionless";
+  if (/^(?:immobile\.anno|immobile\.unita|intervento\.unita_totali|intervento\.unita_oggetto|impianto\.numero_generatori|schermature\.numero)$/.test(fieldId)) {
+    return "dimensionless";
+  }
+  return null;
+}
+
+function hasCompatibleExplicitUnit(fieldId: string, value: string): boolean {
+  const expected = expectedNumericUnit(fieldId);
+  if (!expected) return true;
+  const units = explicitNumericUnits(value);
+  if (units.length === 0) return true;
+  return expected !== "dimensionless" && units.every((unit) => unit === expected);
 }
 
 function isValidDate(value: string): boolean {
@@ -172,6 +217,9 @@ export function validateOperatorOverride(
 ): EneaLabOperatorValidation {
   const value = rawValue.trim();
   if (!value) return invalid(value, "Inserire un valore verificato.");
+  if (!hasCompatibleExplicitUnit(fieldId, value)) {
+    return invalid(value, "L'unità di misura esplicita non è coerente con il campo ENEA.");
+  }
 
   if (fieldId === "beneficiario.email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
     return invalid(value, "Indirizzo email non valido.");

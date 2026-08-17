@@ -18,10 +18,19 @@ function numericValue(value: string): string {
   // silenziosamente 1000/16 nel builder diretto. Riutilizziamo la stessa
   // validazione fail-closed dell'inserimento operatore prima di normalizzare.
   if (!validateOperatorOverride("schermature.spesa", value).valid) return "";
-  const normalized = value.trim()
-    .replace(/\s*(?:€|EUR|euro)\s*$/i, "")
-    .replace(/\.(?=\d{3}(?:\D|$))/g, "");
-  if (!/\d/.test(normalized)) return "";
+  const withoutUnit = value.trim().replace(/\s*(?:€|EUR|euro)\s*$/i, "");
+  const tokenMatch = withoutUnit.match(/^([+-]?)(\d+(?:[.,]\d+)*)$/);
+  if (!tokenMatch) return "";
+  const [, sign, body] = tokenMatch;
+
+  // La validazione numerica del laboratorio interpreta una frazione con zero
+  // iniziale come decimale esplicito (0.080 = 0,08). Non trasformarla qui in
+  // "0080" e quindi 80 mentre normalizziamo i separatori delle migliaia.
+  const normalized = /^0\.\d+$/.test(body)
+    ? `${sign}${body}`
+    : /^\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(body)
+      ? `${sign}${body.replace(/\./g, "")}`
+      : `${sign}${body}`;
   const parsed = Number(normalized.replace(",", "."));
   return Number.isFinite(parsed) && parsed > 0 ? normalized : "";
 }

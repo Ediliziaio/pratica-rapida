@@ -117,7 +117,7 @@ const HISTORICAL_ADDRESS_ID_FIELDS = [
 const HISTORICAL_NUMERIC_EVIDENCE_FIELD = /^(?:immobile\.(?:superficie|unita|gradi_giorno|fascia_solare)|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.(?:numero|spesa|risparmio_energia)|schermature\.\d+\.(?:superficie|superficie_finestrata|rsupp|gtot))$/;
 
 type HistoricalFieldEvidence =
-  | { kind: "match" }
+  | { kind: "match"; completedValue?: string; mappedValue?: string }
   | { kind: "difference"; completedValue: string; mappedValue: string }
   | { kind: "conflict" };
 
@@ -358,8 +358,19 @@ function historicalFieldEvidenceEquivalent(
   right: HistoricalFieldEvidence,
 ): boolean {
   if (left.kind !== right.kind) return false;
-  if (left.kind === "match" || right.kind === "match") return true;
   if (left.kind === "conflict" || right.kind === "conflict") return false;
+  if (left.kind === "match" && right.kind === "match") {
+    if (
+      left.completedValue === undefined
+      || left.mappedValue === undefined
+      || right.completedValue === undefined
+      || right.mappedValue === undefined
+    ) {
+      return true;
+    }
+    return historicalEvidenceValuesEquivalent(fieldId, left.completedValue, right.completedValue)
+      && historicalEvidenceValuesEquivalent(fieldId, left.mappedValue, right.mappedValue);
+  }
   return historicalEvidenceValuesEquivalent(fieldId, left.completedValue, right.completedValue)
     && historicalEvidenceValuesEquivalent(fieldId, left.mappedValue, right.mappedValue);
 }
@@ -368,8 +379,11 @@ function historicalCandidateFieldEvidence(
   candidate: CompletedEneaAuditResult,
 ): Map<string, HistoricalFieldEvidence> {
   const evidence = new Map<string, HistoricalFieldEvidence>();
+  for (const { fieldId, completedValue, mappedValue } of candidate.matchedValues ?? []) {
+    evidence.set(fieldId, { kind: "match", completedValue, mappedValue });
+  }
   for (const fieldId of new Set(candidate.matchedFieldIds ?? [])) {
-    evidence.set(fieldId, { kind: "match" });
+    if (!evidence.has(fieldId)) evidence.set(fieldId, { kind: "match" });
   }
   for (const { fieldId, completedValue, mappedValue } of candidate.differences) {
     const state: HistoricalFieldEvidence = { kind: "difference", completedValue, mappedValue };

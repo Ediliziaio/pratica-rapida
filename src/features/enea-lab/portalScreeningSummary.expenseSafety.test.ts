@@ -31,4 +31,25 @@ describe("builder riepilogo schermature: spesa ufficiale verificata", () => {
       { portalId: "id-costo", control: "input", value: "1000" },
     ]);
   });
+
+  it.each([
+    ["1.000 EUR", "1000"],
+    ["1.000 euro", "1000"],
+  ])("normalizza l'unità monetaria verificata %s prima del runtime", (value, expected) => {
+    const source = ENEA_LAB_MOCK_PRACTICES[0];
+    const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id]);
+    const expense = mapped.sections
+      .flatMap((section) => section.fields)
+      .find((field) => field.id === "schermature.spesa")!;
+
+    expense.source = "Inserimento operatore";
+    expense.value = value;
+    expense.status = "ready";
+
+    const verified = buildEneaScreeningSummaryPortalScript(mapped);
+    expect(verified.readyFieldIds).toEqual(["schermature.spesa"]);
+    expect(verified.runtime.fields).toEqual([
+      { portalId: "id-costo", control: "input", value: expected },
+    ]);
+  });
 });

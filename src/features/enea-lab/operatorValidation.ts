@@ -140,9 +140,27 @@ function expectedNumericUnit(fieldId: string): EneaExpectedNumericUnit | null {
 function hasCompatibleExplicitUnit(fieldId: string, value: string): boolean {
   const expected = expectedNumericUnit(fieldId);
   if (!expected) return true;
+
   const units = explicitNumericUnits(value);
-  if (units.length === 0) return true;
-  return expected !== "dimensionless" && units.every((unit) => unit === expected);
+  if (units.length > 0 && (expected === "dimensionless" || !units.every((unit) => unit === expected))) {
+    return false;
+  }
+
+  const tokens = value.trim().match(/[+-]?\d+(?:[.,]\d+)*/g) ?? [];
+  if (tokens.length !== 1) return true;
+  const annotation = value.replace(tokens[0], "").trim();
+  if (!annotation) return true;
+  if (expected === "dimensionless") return false;
+
+  const annotations: Record<EneaNumericUnit, RegExp> = {
+    area: /^(?:m(?:²|2)|mq)$/i,
+    power: /^kw$/i,
+    energy: /^kwh(?:\s*\/\s*anno)?$/i,
+    currency: /^(?:€|eur|euro)$/i,
+    percent: /^%$/,
+    "thermal-resistance": /^(?:k\s*m(?:²|2)\s*\/\s*w|m(?:²|2)\s*k\s*\/\s*w)$/i,
+  };
+  return annotations[expected].test(annotation);
 }
 
 function isValidDate(value: string): boolean {

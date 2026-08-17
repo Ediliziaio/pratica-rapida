@@ -101,7 +101,22 @@ export const ENEA_SCREENING_PORTAL_FIELDS: readonly ScreeningPortalFieldDefiniti
 ] as const;
 
 function numericValue(value: string): string {
-  return value.trim().replace(/[^0-9,.-]/g, "");
+  const unitless = value.trim().replace(/[^0-9,.-]/g, "");
+  const tokenMatch = unitless.match(/^(-?)(\d+(?:[.,]\d+)*)$/);
+  if (!tokenMatch) return "";
+  const [, sign, body] = tokenMatch;
+
+  // Allinea il builder schermature alla stessa semantica numerica fail-closed
+  // dell'inserimento operatore: 1.234,5 diventa 1234,5, mentre una frazione
+  // esplicita con zero iniziale (0.080) non viene reinterpretata come 80.
+  if (/^0\.\d+$/.test(body)) return `${sign}${body}`;
+  if (/^\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(body)) {
+    return `${sign}${body.replace(/\./g, "")}`;
+  }
+  if (/^\d{1,3}(?:,\d{3})+$/.test(body)) {
+    return `${sign}${body.replace(/,/g, "")}`;
+  }
+  return `${sign}${body}`;
 }
 
 function isVerifiedGTot(fieldId: string, source: string): boolean {
@@ -116,7 +131,7 @@ function isVerifiedRsupp(fieldId: string, source: string): boolean {
 
 function isPositiveScreeningSurface(fieldId: string, value: string): boolean {
   if (!/\.(?:superficie|superficie_finestrata)$/.test(fieldId)) return true;
-  const parsed = Number(numericValue(value).replace(",", "."));
+  const parsed = Number(value.replace(",", "."));
   return Number.isFinite(parsed) && parsed > 0;
 }
 

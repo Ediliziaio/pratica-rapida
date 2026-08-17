@@ -25,7 +25,18 @@ const GENERATOR_PORTAL_FIELDS: readonly GeneratorPortalFieldDefinition[] = [
 ] as const;
 
 function numericValue(value: string): string {
-  return value.trim().replace(/[^0-9,.-]/g, "");
+  const token = value.trim().match(/[+-]?\d+(?:[.,]\d+)*/)?.[0] ?? "";
+  const tokenMatch = token.match(/^([+-]?)(\d+(?:[.,]\d+)*)$/);
+  if (!tokenMatch) return "";
+  const [, sign, body] = tokenMatch;
+
+  // Mantieni le frazioni con zero iniziale (0.080 = 0,08), ma applica la
+  // stessa convenzione del validatore ai separatori italiani delle migliaia.
+  if (/^0\.\d+$/.test(body)) return `${sign}${body}`;
+  if (/^\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(body)) {
+    return `${sign}${body.replace(/\./g, "")}`;
+  }
+  return `${sign}${body}`;
 }
 
 function isValidGeneratorValue(fieldId: string, value: string): boolean {

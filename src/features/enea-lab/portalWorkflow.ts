@@ -145,16 +145,11 @@ function hasValidOfficialScreeningRsupp(mapped: EneaLabMappedPractice): boolean 
     if (!value || /^(?:Non indicato|Intervento umano richiesto)$/i.test(value)) return true;
     if (field.source !== "Inserimento operatore") return false;
 
-    // Non ripulire concatenando cifre separate da testo: "0,08 x 2" non deve
-    // diventare silenziosamente 0,082. La Rsupp è opzionale, ma se viene portata
-    // nel workflow ufficiale deve essere un singolo valore numerico verificato.
-    const tokens = value.match(/[+-]?\d+(?:[.,]\d+)*/g) ?? [];
-    if (tokens.length !== 1) return false;
-    const normalized = tokens[0]
-      .replace(/\.(?=\d{3}(?:\D|$))/g, "")
-      .replace(",", ".");
-    const parsed = Number(normalized);
-    return Number.isFinite(parsed) && parsed >= 0;
+    // Il workflow official resta una barriera autonoma: una Rsupp già `ready`
+    // deve ancora rispettare sintassi e unità della resistenza termica osservata.
+    // Riutilizzare la stessa validazione fail-closed evita che annotazioni come
+    // "0,08 kg" passino qui anche se UI e gate pre-collaudo le rifiutano.
+    return validateOperatorOverride(field.id, value).valid;
   });
 }
 

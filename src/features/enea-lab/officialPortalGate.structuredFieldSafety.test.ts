@@ -68,12 +68,16 @@ function officialGate(mapped: ReturnType<typeof readyFixture>["mapped"], analysi
 }
 
 describe("gate ENEA: formati strutturati delle pagine non schermatura", () => {
-  it("parte da una fixture realmente pronta al collaudo", () => {
+  it("supera i controlli strutturati e si ferma al controllo energetico non osservato", () => {
     const { mapped, analysis } = readyFixture();
     const { issues, payload, gate } = officialGate(mapped, analysis);
     expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
     expect(payload.readyForOfficialSubmission).toBe(true);
-    expect(gate.status).toBe("ready");
+    expect(gate).toEqual({
+      status: "blocked",
+      reason: "payload-inconsistent",
+      workflow: null,
+    });
   });
 
   it("blocca un codice fiscale beneficiario ready ma formalmente invalido", () => {

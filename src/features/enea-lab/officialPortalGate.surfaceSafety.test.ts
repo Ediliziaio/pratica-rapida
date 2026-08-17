@@ -81,12 +81,18 @@ describe("gate ENEA: superfici fisicamente valide", () => {
     expectSurfaceGateBlocked("schermature.superficie_totale");
   });
 
-  it("mantiene aperto il gate quando tutte le superfici sono positive", () => {
+  it("supera i controlli superficie e si ferma soltanto al controllo energetico non osservato", () => {
     const mapped = readyMapped();
     const analysis = ENEA_LAB_MOCK_ANALYSIS[mapped.source.id];
     const issues = validatePreparedPractice(mapped.source, mapped, analysis);
     const payload = buildEneaPayload(mapped, issues, "official", new Date("2026-08-13T00:30:00.000Z"));
 
-    expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis).status).toBe("ready");
+    expect(issues.filter((issue) => issue.severity === "blocker")).toEqual([]);
+    expect(payload.readyForOfficialSubmission).toBe(true);
+    expect(prepareEneaOfficialPortalCollaudo(mapped, payload, true, analysis)).toEqual({
+      status: "blocked",
+      reason: "payload-inconsistent",
+      workflow: null,
+    });
   });
 });

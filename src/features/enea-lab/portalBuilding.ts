@@ -56,7 +56,7 @@ const BUILDING_TYPE_VALUES = {
 } as const;
 
 function numericValue(value: string): string {
-  return value.replace(/\s*m²\s*$/i, "").trim();
+  return value.replace(/\s*(?:m²|mq)\s*$/i, "").trim();
 }
 
 /** Identificativi e valori osservati sulla pagina "Immobile" ENEA 2026. */

@@ -35,6 +35,7 @@ const OFFICIAL_NUMERIC_FIELD_IDS = [
   "impianto.numero_generatori",
   "impianto.rendimento",
   "impianto.potenza",
+  "schermature.numero",
 ] as const;
 const OFFICIAL_STRUCTURED_FIELD_IDS = [
   "beneficiario.cf",

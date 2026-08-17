@@ -25,7 +25,7 @@ export interface CommercialSupervisorTask {
 
 function leadScore(priority: "low" | "medium" | "high"): number {
   if (priority === "high") return 90;
-  if (priority === "medium") return 60;
+  if (priority === "medium") return 70;
   return 10;
 }
 

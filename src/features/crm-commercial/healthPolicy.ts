@@ -14,6 +14,7 @@ export interface CommercialHealthInput {
   practicesPrev30d: number;
   firstPracticeDaysAgo: number | null;
   lastPracticeDaysAgo: number | null;
+  companyCreatedDaysAgo?: number | null;
 }
 
 export interface CommercialHealthDecision {
@@ -22,10 +23,13 @@ export interface CommercialHealthDecision {
 }
 
 export function classifyCommercialHealth(input: CommercialHealthInput): CommercialHealthDecision {
-  const impossiblePracticeTiming = [input.firstPracticeDaysAgo, input.lastPracticeDaysAgo]
-    .some((daysAgo) => daysAgo !== null && (!Number.isFinite(daysAgo) || daysAgo < 0));
+  const impossiblePracticeTiming = [
+    input.companyCreatedDaysAgo,
+    input.firstPracticeDaysAgo,
+    input.lastPracticeDaysAgo,
+  ].some((daysAgo) => daysAgo !== null && daysAgo !== undefined && (!Number.isFinite(daysAgo) || daysAgo < 0));
 
-  // Una pratica con data futura non deve diventare attivita commerciale valida:
+  // Un'azienda o una pratica con data futura non deve diventare attivita commerciale valida:
   // la cronologia va verificata prima di proporre recuperi, onboarding o follow-up.
   if (impossiblePracticeTiming) {
     return { status: "needs_data_review", attentionScore: 80 };

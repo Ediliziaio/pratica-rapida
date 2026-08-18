@@ -4,6 +4,7 @@ import {
   loadReadOnlyAprProductIntegrationInventory,
   mapAprProductInventoryRow,
   summarizeAprProductInventory,
+  type AprProductInventoryRow,
 } from "./productIntegration";
 
 const baseRow = {
@@ -61,7 +62,7 @@ describe("integrazione multi-prodotto APR", () => {
         id: "00000000-0000-4000-8000-000000000004",
         prodotto_installato: "Non classificato",
       }),
-    ].filter((row): row is NonNullable<typeof row> => row !== null);
+    ].filter((row): row is AprProductInventoryRow => row !== null);
 
     const summary = summarizeAprProductInventory(rows);
     expect(summary.total).toBe(4);

@@ -161,4 +161,18 @@ describe("commercial supervisor action policy", () => {
       requiresHumanApproval: true,
     }));
   });
+
+  it("blocca uno stato inattivo se il bucket 30-60 contiene ancora pratiche", () => {
+    expect(suggestCommercialAction({
+      healthStatus: "inattivo",
+      practicesLast30d: 0,
+      practicesPrev30d: 3,
+      lastPracticeDaysAgo: 75,
+    })).toEqual(expect.objectContaining({
+      action: "review_data",
+      channel: "none",
+      priority: "high",
+      requiresHumanApproval: true,
+    }));
+  });
 });

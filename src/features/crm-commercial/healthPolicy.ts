@@ -15,6 +15,7 @@ export interface CommercialHealthInput {
   firstPracticeDaysAgo: number | null;
   lastPracticeDaysAgo: number | null;
   companyCreatedDaysAgo?: number | null;
+  practicesMissingCreatedAt?: number;
 }
 
 export interface CommercialHealthDecision {
@@ -28,10 +29,19 @@ export function classifyCommercialHealth(input: CommercialHealthInput): Commerci
     input.firstPracticeDaysAgo,
     input.lastPracticeDaysAgo,
   ].some((daysAgo) => daysAgo !== null && daysAgo !== undefined && (!Number.isFinite(daysAgo) || daysAgo < 0));
+  const missingCreatedAtCount = input.practicesMissingCreatedAt ?? 0;
+  const invalidMissingCreatedAtCount = !Number.isInteger(missingCreatedAtCount) || missingCreatedAtCount < 0;
+  const incompletePracticeChronology = input.totalPractices > 0
+    && (input.firstPracticeDaysAgo === null || input.lastPracticeDaysAgo === null);
 
-  // Un'azienda o una pratica con data futura non deve diventare attivita commerciale valida:
-  // la cronologia va verificata prima di proporre recuperi, onboarding o follow-up.
-  if (impossiblePracticeTiming) {
+  // Una data futura, un conteggio anomalo dei timestamp mancanti o uno storico
+  // con pratiche ma senza prima/ultima data non devono diventare segnali commerciali.
+  if (
+    impossiblePracticeTiming
+    || invalidMissingCreatedAtCount
+    || missingCreatedAtCount > 0
+    || incompletePracticeChronology
+  ) {
     return { status: "needs_data_review", attentionScore: 80 };
   }
 

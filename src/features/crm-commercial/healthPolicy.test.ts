@@ -121,4 +121,33 @@ describe("commercial health policy", () => {
       lastPracticeDaysAgo: null,
     })).toEqual({ status: "needs_data_review", attentionScore: 80 });
   });
+
+  it("rifiuta conteggi di pratiche internamente impossibili", () => {
+    expect(classifyCommercialHealth({
+      totalPractices: 2,
+      practicesLast30d: 2,
+      practicesPrev30d: 1,
+      firstPracticeDaysAgo: 120,
+      lastPracticeDaysAgo: 2,
+    })).toEqual({ status: "needs_data_review", attentionScore: 80 });
+
+    expect(classifyCommercialHealth({
+      totalPractices: 3,
+      practicesLast30d: 1,
+      practicesPrev30d: 1,
+      firstPracticeDaysAgo: 120,
+      lastPracticeDaysAgo: 2,
+      practicesMissingCreatedAt: 4,
+    })).toEqual({ status: "needs_data_review", attentionScore: 80 });
+  });
+
+  it("rifiuta una cronologia in cui la prima pratica risulta piu recente dell'ultima", () => {
+    expect(classifyCommercialHealth({
+      totalPractices: 5,
+      practicesLast30d: 0,
+      practicesPrev30d: 0,
+      firstPracticeDaysAgo: 2,
+      lastPracticeDaysAgo: 120,
+    })).toEqual({ status: "needs_data_review", attentionScore: 80 });
+  });
 });

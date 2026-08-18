@@ -23,6 +23,10 @@ WITH practice_activity AS (
     COUNT(p.id) FILTER (WHERE p.brand = 'enea')::integer AS total_practices,
     COUNT(p.id) FILTER (
       WHERE p.brand = 'enea'
+        AND p.created_at IS NULL
+    )::integer AS practices_missing_created_at,
+    COUNT(p.id) FILTER (
+      WHERE p.brand = 'enea'
         AND p.created_at >= now() - interval '30 days'
     )::integer AS practices_last_30d,
     COUNT(p.id) FILTER (
@@ -68,10 +72,15 @@ WITH practice_activity AS (
       )
     END AS change_30d_pct,
     CASE
-      -- Una pratica (o azienda) datata nel futuro non deve essere usata come
-      -- segnale commerciale valido: la cronologia va verificata manualmente.
+      -- Date future o pratiche ENEA senza timestamp non devono essere usate
+      -- come attivita commerciale valida: la cronologia va verificata prima.
       WHEN pa.company_created_at > now()
-        OR pa.last_practice_at > now() THEN 'needs_data_review'
+        OR pa.last_practice_at > now()
+        OR pa.practices_missing_created_at > 0
+        OR (
+          pa.total_practices > 0
+          AND (pa.first_practice_at IS NULL OR pa.last_practice_at IS NULL)
+        ) THEN 'needs_data_review'
       WHEN pa.total_practices = 0 THEN 'mai_attivato'
       WHEN pa.last_practice_at < now() - interval '60 days' THEN 'inattivo'
       -- Una prima attivazione recente resta sotto onboarding: non va
@@ -100,7 +109,7 @@ SELECT
     ELSE 0
   END AS attention_score,
   CASE s.health_status
-    WHEN 'needs_data_review' THEN 'Cronologia azienda/pratiche incoerente o futura: verificare i dati prima di qualsiasi azione commerciale.'
+    WHEN 'needs_data_review' THEN 'Cronologia azienda/pratiche incoerente, futura o priva di timestamp: verificare i dati prima di qualsiasi azione commerciale.'
     WHEN 'a_rischio' THEN 'Contatto prioritario: calo forte o stop recente rispetto al periodo precedente.'
     WHEN 'inattivo' THEN 'Cliente senza nuove pratiche da oltre 60 giorni.'
     WHEN 'in_calo' THEN 'Volume pratiche inferiore ai 30 giorni precedenti.'

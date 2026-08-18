@@ -209,4 +209,27 @@ describe("commercial supervisor queue", () => {
       requiresHumanApproval: true,
     }));
   });
+
+  it("porta una cronologia cliente futura in revisione senza proporre alcun contatto", () => {
+    const queue = buildCommercialSupervisorQueue([
+      {
+        id: "customer-bad-timing",
+        label: "Cliente con cronologia incoerente",
+        healthStatus: "needs_data_review",
+        practicesLast30d: 2,
+        practicesPrev30d: 1,
+        lastPracticeDaysAgo: -3,
+        attentionScore: 80,
+        telefono: "+39 333 1234567",
+      },
+    ], []);
+
+    expect(queue).toHaveLength(1);
+    expect(queue[0]).toEqual(expect.objectContaining({
+      action: "review_data",
+      channel: "none",
+      score: 80,
+      requiresHumanApproval: true,
+    }));
+  });
 });

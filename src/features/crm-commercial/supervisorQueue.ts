@@ -49,9 +49,8 @@ export function buildCommercialSupervisorQueue(
     // stringa vuota significano invece che sappiamo che il numero non esiste.
     const phoneExplicitlyMissing = customer.telefono === null
       || (typeof customer.telefono === "string" && customer.telefono.trim().length === 0);
-    const channel = phoneExplicitlyMissing && decision.channel !== "none"
-      ? "none"
-      : decision.channel;
+    const missingPhoneBlocksSuggestedContact = phoneExplicitlyMissing && decision.channel !== "none";
+    const channel = missingPhoneBlocksSuggestedContact ? "none" : decision.channel;
 
     return [{
       id: `customer:${customer.id}`,
@@ -60,7 +59,7 @@ export function buildCommercialSupervisorQueue(
       score: customer.attentionScore,
       action: decision.action,
       channel,
-      reason: phoneExplicitlyMissing
+      reason: missingPhoneBlocksSuggestedContact
         ? `${decision.reason} Nessun numero di telefono disponibile: definire manualmente il canale di contatto.`
         : decision.reason,
       requiresHumanApproval: true,

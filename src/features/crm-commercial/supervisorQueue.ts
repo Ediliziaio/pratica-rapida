@@ -33,6 +33,19 @@ function leadScore(priority: "low" | "medium" | "high"): number {
   return 10;
 }
 
+function customerScore(status: CommercialActionInput["healthStatus"]): number {
+  switch (status) {
+    case "a_rischio": return 100;
+    case "inattivo": return 90;
+    case "needs_data_review": return 80;
+    case "in_calo": return 70;
+    case "mai_attivato": return 60;
+    case "nuovo_attivo": return 40;
+    case "stabile": return 20;
+    case "in_crescita": return 10;
+  }
+}
+
 export function buildCommercialSupervisorQueue(
   customers: CustomerSupervisorInput[],
   leads: LeadQueueInput[],
@@ -56,7 +69,10 @@ export function buildCommercialSupervisorQueue(
       id: `customer:${customer.id}`,
       kind: "customer",
       label: customer.label,
-      score: customer.attentionScore,
+      // Il punteggio della vista e lo stato salute descrivono la stessa policy.
+      // Se il valore trasportato è stale/incoerente, l'ordinamento deve restare
+      // deterministico rispetto allo stato che guida anche l'azione suggerita.
+      score: customerScore(customer.healthStatus),
       action: decision.action,
       channel,
       reason: missingPhoneBlocksSuggestedContact

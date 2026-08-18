@@ -19,6 +19,7 @@ WITH practice_activity AS (
     c.settore,
     c.created_at AS company_created_at,
     c.is_active,
+    c.blocked_at,
     COUNT(p.id) FILTER (WHERE p.brand = 'enea')::integer AS total_practices,
     COUNT(p.id) FILTER (
       WHERE p.brand = 'enea'
@@ -53,7 +54,8 @@ WITH practice_activity AS (
     c.telefono,
     c.settore,
     c.created_at,
-    c.is_active
+    c.is_active,
+    c.blocked_at
 ), scored AS (
   SELECT
     pa.*,

@@ -38,10 +38,8 @@ describe("APR infissi intake", () => {
 
   it("resta fail-closed se mancano dati strutturati, fattura o PDF ENEA conclusivo", () => {
     const form = completeInfissiForm();
-    form.prodotto = {
-      ...form.prodotto,
-      nuovi_vetro: "",
-    };
+    if (form.prodotto.tipo !== "infissi") throw new Error("Fixture infissi non valida");
+    form.prodotto.nuovi_vetro = "";
 
     const intake = buildAprInfissiIntake(form, {
       hasInvoice: false,

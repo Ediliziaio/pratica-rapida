@@ -89,4 +89,15 @@ describe("commercial health policy", () => {
       lastPracticeDaysAgo: -3,
     })).toEqual({ status: "needs_data_review", attentionScore: 80 });
   });
+
+  it("porta in revisione dati anche un'azienda con data di creazione futura", () => {
+    expect(classifyCommercialHealth({
+      totalPractices: 0,
+      practicesLast30d: 0,
+      practicesPrev30d: 0,
+      firstPracticeDaysAgo: null,
+      lastPracticeDaysAgo: null,
+      companyCreatedDaysAgo: -2,
+    })).toEqual({ status: "needs_data_review", attentionScore: 80 });
+  });
 });

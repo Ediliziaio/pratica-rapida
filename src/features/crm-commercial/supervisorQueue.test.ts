@@ -232,4 +232,23 @@ describe("commercial supervisor queue", () => {
       requiresHumanApproval: true,
     }));
   });
+
+  it("non invita a scegliere un canale quando il task cliente è solo revisione dati", () => {
+    const queue = buildCommercialSupervisorQueue([
+      {
+        id: "customer-review-no-phone",
+        label: "Cliente da verificare",
+        healthStatus: "needs_data_review",
+        practicesLast30d: 2,
+        practicesPrev30d: 1,
+        lastPracticeDaysAgo: -3,
+        attentionScore: 80,
+        telefono: null,
+      },
+    ], []);
+
+    expect(queue).toHaveLength(1);
+    expect(queue[0].channel).toBe("none");
+    expect(queue[0].reason).not.toContain("definire manualmente il canale di contatto");
+  });
 });

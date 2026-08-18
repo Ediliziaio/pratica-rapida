@@ -66,9 +66,11 @@ function hasContradictoryRecencySnapshot(input: CommercialActionInput): boolean 
     case "nuovo_attivo":
       return last === null || last > 30 || input.practicesLast30d === 0;
     default:
-      // Tutti gli altri stati descrivono un cliente con almeno una pratica e
-      // non possono coesistere con assenza completa della cronologia.
-      return last === null;
+      // a_rischio / in_calo / in_crescita / stabile vengono assegnati dalla
+      // health policy soltanto dopo aver escluso l'inattività (>60 giorni).
+      // Se la recenza supera quella soglia, lo stato trasportato è stale e non
+      // deve produrre un'azione commerciale.
+      return last === null || last > 60;
   }
 }
 

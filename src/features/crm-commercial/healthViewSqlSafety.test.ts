@@ -24,4 +24,10 @@ describe("commercial health SQL safety", () => {
     expect(healthViewSql).toContain("'needs_data_review'");
     expect(healthViewSql).toMatch(/WHEN 'needs_data_review' THEN 80/);
   });
+
+  it("porta in revisione dati anche pratiche ENEA senza created_at", () => {
+    expect(healthViewSql).toContain("practices_missing_created_at");
+    expect(healthViewSql).toMatch(/p\.brand = 'enea'[\s\S]{0,120}p\.created_at IS NULL/);
+    expect(healthViewSql).toContain("pa.practices_missing_created_at > 0");
+  });
 });

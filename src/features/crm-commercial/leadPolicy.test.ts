@@ -84,4 +84,15 @@ describe("lead supervisor policy", () => {
       priority: "medium",
     }));
   });
+
+  it("dà precedenza alla revisione dati rispetto alla revisione di una fase personalizzata", () => {
+    expect(classifyLeadAttention({
+      stageId: "f7f36e26-35e0-4e4a-8b7f-stage-custom",
+      ageHours: -2,
+      contacted: false,
+    })).toEqual(expect.objectContaining({
+      status: "needs_data_review",
+      priority: "medium",
+    }));
+  });
 });

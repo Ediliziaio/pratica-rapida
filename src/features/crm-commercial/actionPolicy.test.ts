@@ -63,4 +63,18 @@ describe("commercial supervisor action policy", () => {
       priority: "low",
     }));
   });
+
+  it("non propone contatti se la cronologia cliente richiede revisione dati", () => {
+    expect(suggestCommercialAction({
+      healthStatus: "needs_data_review",
+      practicesLast30d: 2,
+      practicesPrev30d: 1,
+      lastPracticeDaysAgo: -3,
+    })).toEqual(expect.objectContaining({
+      action: "review_data",
+      channel: "none",
+      priority: "high",
+      requiresHumanApproval: true,
+    }));
+  });
 });

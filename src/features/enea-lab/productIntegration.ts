@@ -4,6 +4,16 @@ import type { ProdottoTipo } from "@/types/form-cliente";
 
 export type AprProductLifecycle = "waiting_client" | "ready" | "historical" | "other";
 export type AprProductIntegrationPhase = "screenings-validated" | "intake-only";
+export type AprIntakeOnlyProduct = Exclude<ProdottoTipo, "schermature">;
+export type AprProductPriorityBlocker =
+  | "completed-enea-ground-truth-missing"
+  | "invoice-corpus-missing"
+  | "technical-portal-contract-unobserved";
+export type AprProductPriorityNextAction =
+  | "collect-completed-enea-ground-truth"
+  | "collect-invoice-corpus"
+  | "observe-technical-portal-contract"
+  | "build-shadow-parser-mapper";
 
 type ProductInventoryQueueRow = {
   id: string | null;
@@ -41,6 +51,27 @@ export interface AprProductIntegrationSummary {
   }>;
 }
 
+export interface AprProductPriorityEvidence {
+  technicalPortalContractObserved?: Partial<Record<AprIntakeOnlyProduct, boolean>>;
+}
+
+export interface AprProductPriorityCandidate {
+  productType: AprIntakeOnlyProduct;
+  historicalWithCompletedEnea: number;
+  withInvoices: number;
+  activeReady: number;
+  total: number;
+  blockers: AprProductPriorityBlocker[];
+  nextAction: AprProductPriorityNextAction;
+  shadowTechnicalMappingAllowed: false;
+  officialSubmissionAllowed: false;
+}
+
+export interface AprProductPriorityDecision {
+  recommendedNextProduct: AprIntakeOnlyProduct | null;
+  candidates: AprProductPriorityCandidate[];
+}
+
 export const APR_PRODUCT_INTEGRATION_PHASES: Record<ProdottoTipo, AprProductIntegrationPhase> = {
   schermature: "screenings-validated",
   infissi: "intake-only",
@@ -48,6 +79,11 @@ export const APR_PRODUCT_INTEGRATION_PHASES: Record<ProdottoTipo, AprProductInte
   insufflaggio: "intake-only",
 };
 
+const APR_INTAKE_ONLY_PRODUCTS: readonly AprIntakeOnlyProduct[] = [
+  "infissi",
+  "impianto_termico",
+  "insufflaggio",
+];
 const APR_PRODUCT_INVENTORY_PAGE_SIZE = 500;
 
 /**
@@ -145,6 +181,84 @@ export function summarizeAprProductInventory(rows: AprProductInventoryRow[]): Ap
   }
 
   return { total: rows.length, unknown, byProduct };
+}
+
+function priorityBlockers(
+  productType: AprIntakeOnlyProduct,
+  product: AprProductIntegrationSummary["byProduct"][ProdottoTipo],
+  evidence: AprProductPriorityEvidence,
+): AprProductPriorityBlocker[] {
+  const blockers: AprProductPriorityBlocker[] = [];
+  if (product.historicalWithCompletedEnea === 0) {
+    blockers.push("completed-enea-ground-truth-missing");
+  }
+  if (product.withInvoices === 0) {
+    blockers.push("invoice-corpus-missing");
+  }
+  if (!evidence.technicalPortalContractObserved?.[productType]) {
+    blockers.push("technical-portal-contract-unobserved");
+  }
+  return blockers;
+}
+
+function nextPriorityAction(blockers: AprProductPriorityBlocker[]): AprProductPriorityNextAction {
+  if (blockers.includes("completed-enea-ground-truth-missing")) {
+    return "collect-completed-enea-ground-truth";
+  }
+  if (blockers.includes("invoice-corpus-missing")) return "collect-invoice-corpus";
+  if (blockers.includes("technical-portal-contract-unobserved")) {
+    return "observe-technical-portal-contract";
+  }
+  return "build-shadow-parser-mapper";
+}
+
+/**
+ * Decisione di priorità APR reversibile e puramente diagnostica.
+ * Non usa pesi arbitrari: ordina i prodotti intake-only per evidenza realmente
+ * disponibile, privilegiando prima la ground truth ENEA conclusa, poi il corpus
+ * fatture, le pratiche attualmente pronte e infine il volume totale.
+ *
+ * La raccomandazione NON promuove il prodotto: anche con tutte le evidenze
+ * disponibili, shadowTechnicalMappingAllowed resta false finché parser/mapping
+ * specifici non vengono costruiti e verificati separatamente.
+ */
+export function rankAprNextProduct(
+  summary: AprProductIntegrationSummary,
+  evidence: AprProductPriorityEvidence = {},
+): AprProductPriorityDecision {
+  const candidates = APR_INTAKE_ONLY_PRODUCTS.map((productType) => {
+    const product = summary.byProduct[productType];
+    const blockers = priorityBlockers(productType, product, evidence);
+    return {
+      productType,
+      historicalWithCompletedEnea: product.historicalWithCompletedEnea,
+      withInvoices: product.withInvoices,
+      activeReady: product.activeReady,
+      total: product.total,
+      blockers,
+      nextAction: nextPriorityAction(blockers),
+      shadowTechnicalMappingAllowed: false as const,
+      officialSubmissionAllowed: false as const,
+    };
+  }).sort((left, right) => (
+    right.historicalWithCompletedEnea - left.historicalWithCompletedEnea
+    || right.withInvoices - left.withInvoices
+    || right.activeReady - left.activeReady
+    || right.total - left.total
+    || left.productType.localeCompare(right.productType)
+  ));
+
+  const hasAnyCorpus = candidates.some((candidate) => (
+    candidate.total > 0
+    || candidate.withInvoices > 0
+    || candidate.historicalWithCompletedEnea > 0
+    || candidate.activeReady > 0
+  ));
+
+  return {
+    recommendedNextProduct: hasAnyCorpus ? candidates[0]?.productType ?? null : null,
+    candidates,
+  };
 }
 
 /**

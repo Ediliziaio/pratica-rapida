@@ -147,4 +147,18 @@ describe("commercial supervisor action policy", () => {
       requiresHumanApproval: true,
     }));
   });
+
+  it("blocca uno snapshot stabile impossibile se l'ultima pratica è negli ultimi 30 giorni ma il bucket recente è vuoto", () => {
+    expect(suggestCommercialAction({
+      healthStatus: "stabile",
+      practicesLast30d: 0,
+      practicesPrev30d: 0,
+      lastPracticeDaysAgo: 10,
+    })).toEqual(expect.objectContaining({
+      action: "review_data",
+      channel: "none",
+      priority: "high",
+      requiresHumanApproval: true,
+    }));
+  });
 });

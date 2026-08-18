@@ -116,6 +116,22 @@ describe("commercial supervisor queue", () => {
     expect(buildCommercialSupervisorQueue([disabledCustomer], [])).toEqual([]);
   });
 
+  it("non riapre lavoro commerciale per una azienda bloccata", () => {
+    const blockedCustomer = {
+      id: "blocked",
+      label: "Azienda bloccata",
+      healthStatus: "inattivo" as const,
+      practicesLast30d: 0,
+      practicesPrev30d: 0,
+      lastPracticeDaysAgo: 120,
+      attentionScore: 90,
+      isActive: true,
+      blockedAt: "2026-08-10T10:00:00.000Z",
+    };
+
+    expect(buildCommercialSupervisorQueue([blockedCustomer], [])).toEqual([]);
+  });
+
   it("non suggerisce WhatsApp a un lead urgente senza numero di telefono", () => {
     const queue = buildCommercialSupervisorQueue([], [
       {

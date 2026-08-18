@@ -91,4 +91,32 @@ describe("commercial supervisor action policy", () => {
       requiresHumanApproval: true,
     }));
   });
+
+  it("blocca uno stato inattivo stale se l'ultima pratica è recente", () => {
+    expect(suggestCommercialAction({
+      healthStatus: "inattivo",
+      practicesLast30d: 1,
+      practicesPrev30d: 0,
+      lastPracticeDaysAgo: 10,
+    })).toEqual(expect.objectContaining({
+      action: "review_data",
+      channel: "none",
+      priority: "high",
+      requiresHumanApproval: true,
+    }));
+  });
+
+  it("blocca un mai attivato stale se esiste una pratica storica", () => {
+    expect(suggestCommercialAction({
+      healthStatus: "mai_attivato",
+      practicesLast30d: 0,
+      practicesPrev30d: 0,
+      lastPracticeDaysAgo: 90,
+    })).toEqual(expect.objectContaining({
+      action: "review_data",
+      channel: "none",
+      priority: "high",
+      requiresHumanApproval: true,
+    }));
+  });
 });

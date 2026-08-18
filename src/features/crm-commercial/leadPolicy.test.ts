@@ -85,6 +85,18 @@ describe("lead supervisor policy", () => {
     }));
   });
 
+  it("porta in revisione dati un lead marcato non contattato ma con una recenza di contatto presente", () => {
+    expect(classifyLeadAttention({
+      stageId: "lead",
+      ageHours: 48,
+      contacted: false,
+      hoursSinceContact: 10,
+    })).toEqual(expect.objectContaining({
+      status: "needs_data_review",
+      priority: "medium",
+    }));
+  });
+
   it("dà precedenza alla revisione dati rispetto alla revisione di una fase personalizzata", () => {
     expect(classifyLeadAttention({
       stageId: "f7f36e26-35e0-4e4a-8b7f-stage-custom",

@@ -13,4 +13,8 @@ describe("commercial health SQL safety", () => {
       /LEFT JOIN public\.enea_practices p[\s\S]{0,220}p\.archived_at IS NULL/,
     );
   });
+
+  it("espone il blocco amministrativo alla coda del Supervisor", () => {
+    expect(healthViewSql).toMatch(/c\.blocked_at[\s\S]*GROUP BY[\s\S]*c\.blocked_at/);
+  });
 });

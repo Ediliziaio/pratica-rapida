@@ -68,6 +68,10 @@ WITH practice_activity AS (
       )
     END AS change_30d_pct,
     CASE
+      -- Una pratica (o azienda) datata nel futuro non deve essere usata come
+      -- segnale commerciale valido: la cronologia va verificata manualmente.
+      WHEN pa.company_created_at > now()
+        OR pa.last_practice_at > now() THEN 'needs_data_review'
       WHEN pa.total_practices = 0 THEN 'mai_attivato'
       WHEN pa.last_practice_at < now() - interval '60 days' THEN 'inattivo'
       -- Una prima attivazione recente resta sotto onboarding: non va
@@ -85,16 +89,18 @@ WITH practice_activity AS (
 SELECT
   s.*,
   CASE s.health_status
-    WHEN 'a_rischio'    THEN 100
-    WHEN 'inattivo'     THEN 90
-    WHEN 'in_calo'      THEN 70
-    WHEN 'mai_attivato' THEN 60
-    WHEN 'nuovo_attivo' THEN 40
-    WHEN 'stabile'      THEN 20
-    WHEN 'in_crescita'  THEN 10
+    WHEN 'a_rischio'         THEN 100
+    WHEN 'inattivo'          THEN 90
+    WHEN 'needs_data_review' THEN 80
+    WHEN 'in_calo'           THEN 70
+    WHEN 'mai_attivato'      THEN 60
+    WHEN 'nuovo_attivo'      THEN 40
+    WHEN 'stabile'           THEN 20
+    WHEN 'in_crescita'       THEN 10
     ELSE 0
   END AS attention_score,
   CASE s.health_status
+    WHEN 'needs_data_review' THEN 'Cronologia azienda/pratiche incoerente o futura: verificare i dati prima di qualsiasi azione commerciale.'
     WHEN 'a_rischio' THEN 'Contatto prioritario: calo forte o stop recente rispetto al periodo precedente.'
     WHEN 'inattivo' THEN 'Cliente senza nuove pratiche da oltre 60 giorni.'
     WHEN 'in_calo' THEN 'Volume pratiche inferiore ai 30 giorni precedenti.'

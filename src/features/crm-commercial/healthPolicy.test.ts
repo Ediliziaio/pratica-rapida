@@ -160,4 +160,14 @@ describe("commercial health policy", () => {
       lastPracticeDaysAgo: 10,
     })).toEqual({ status: "needs_data_review", attentionScore: 80 });
   });
+
+  it("rifiuta una recenza tra 30 e 60 giorni se il bucket precedente è vuoto", () => {
+    expect(classifyCommercialHealth({
+      totalPractices: 5,
+      practicesLast30d: 0,
+      practicesPrev30d: 0,
+      firstPracticeDaysAgo: 180,
+      lastPracticeDaysAgo: 45,
+    })).toEqual({ status: "needs_data_review", attentionScore: 80 });
+  });
 });

@@ -49,11 +49,7 @@ export interface AprProductIntegrationSummary {
     total: number;
     activeReady: number;
     historicalWithCompletedEnea: number;
-    /**
-     * Conta soltanto le pratiche con fatture nella colonna first-class
-     * fatture_urls. I moduli dinamici possono conservare file in dati_form:
-     * questo numero è quindi evidenza positiva quando > 0, mai prova di assenza.
-     */
+    /** fatture_urls è evidenza parziale: i moduli dinamici possono usare dati_form. */
     withInvoices: number;
     integrationPhase: AprProductIntegrationPhase;
   }>;
@@ -95,11 +91,7 @@ const APR_INTAKE_ONLY_PRODUCTS: readonly AprIntakeOnlyProduct[] = [
 ];
 const APR_PRODUCT_INVENTORY_PAGE_SIZE = 500;
 
-/**
- * Detector deliberatamente fail-closed per l'inventario APR.
- * A differenza del form pubblico non usa un fallback a infissi: un'etichetta
- * sconosciuta deve restare unknown finché non viene classificata esplicitamente.
- */
+/** Detector fail-closed: un'etichetta sconosciuta resta unknown. */
 export function detectAprProductType(value: string | null | undefined): ProdottoTipo | "unknown" {
   const normalized = (value ?? "").trim().toLocaleLowerCase("it");
   if (!normalized) return "unknown";
@@ -147,11 +139,7 @@ export function mapAprProductInventoryRow(row: ProductInventoryQueueRow): AprPro
     additionalDocumentCount: row.documenti_aggiuntivi_urls?.length ?? 0,
     completedEneaPdfCount: row.pratica_enea_conclusa_urls?.length ?? 0,
     integrationPhase,
-    // In questa fase le schermature possono essere valutate end-to-end in shadow.
-    // Gli altri prodotti entrano nel perimetro APR soltanto come intake diagnostico
-    // finché parser, mapping e contratto portale specifici non sono verificati.
     shadowEvaluationAllowed: productType === "schermature",
-    // Gate globale esplicito: nessun prodotto può inviare pratiche ufficiali.
     officialSubmissionAllowed: false,
   };
 }
@@ -201,11 +189,13 @@ function priorityBlockers(
   if (product.historicalWithCompletedEnea === 0) {
     blockers.push("completed-enea-ground-truth-missing");
   }
-  // fatture_urls NON è un indice completo: i moduli dinamici salvano file anche
-  // in dati_form. Zero qui significa "non osservato nell'indice first-class",
-  // non "la fattura non esiste". Evitiamo quindi un falso blocker di assenza.
+  // fatture_urls non è un indice completo: i moduli dinamici salvano file anche
+  // in dati_form. Se esistono pratiche ma la colonna è vuota, lo stato corretto
+  // è "indice da verificare", non "fatture assenti".
   if (product.withInvoices === 0) {
-    blockers.push("invoice-corpus-index-incomplete");
+    blockers.push(product.total === 0
+      ? "invoice-corpus-missing"
+      : "invoice-corpus-index-incomplete");
   }
   if (!evidence.technicalPortalContractObserved?.[productType]) {
     blockers.push("technical-portal-contract-unobserved");
@@ -228,15 +218,9 @@ function nextPriorityAction(blockers: AprProductPriorityBlocker[]): AprProductPr
 }
 
 /**
- * Decisione di priorità APR reversibile e puramente diagnostica.
- * Non usa pesi arbitrari: ordina i prodotti intake-only per evidenza realmente
- * affidabile, privilegiando la ground truth ENEA conclusa, poi la domanda attiva
- * e il volume. Il conteggio fatture first-class resta soltanto ultimo tie-breaker
- * perché fatture_urls non copre i file dei moduli dinamici salvati in dati_form.
- *
- * La raccomandazione NON promuove il prodotto: anche con tutte le evidenze
- * disponibili, shadowTechnicalMappingAllowed resta false finché parser/mapping
- * specifici non vengono costruiti e verificati separatamente.
+ * Priorità APR reversibile: ground truth ENEA prima, poi domanda attiva e volume.
+ * withInvoices è solo l'ultimo tie-breaker perché fatture_urls non copre i file
+ * dei moduli dinamici salvati in dati_form.
  */
 export function rankAprNextProduct(
   summary: AprProductIntegrationSummary,
@@ -279,18 +263,10 @@ export function rankAprNextProduct(
 }
 
 /**
- * Inventario multi-prodotto APR: solo SELECT, nessun dato personale e nessuna
- * mutation. Serve a misurare il corpus disponibile prima di costruire i parser
- * e i mapper specifici per infissi, impianto termico e insufflaggio.
- *
- * Nota importante: per non leggere il jsonb dati_form (che può contenere dati
- * personali), il conteggio fatture qui vede solo fatture_urls. Il chiamante deve
- * trattarlo come evidenza parziale, mai come prova che una fattura sia assente.
- *
- * La lettura è paginata: il corpus non deve dipendere da un limite arbitrario
- * di 500 righe, perché proprio queste metriche guidano la priorità del prossimo
- * adapter prodotto. L'ordinamento secondario per id rende stabili i confini
- * tra pagine quando più pratiche condividono updated_at.
+ * Inventario multi-prodotto APR: solo SELECT e nessuna mutation.
+ * Per non leggere dati_form (che può contenere dati personali), il conteggio
+ * fatture vede soltanto fatture_urls e deve quindi essere trattato come parziale.
+ * La lettura è paginata per non troncare il corpus usato nelle priorità.
  */
 export async function loadReadOnlyAprProductIntegrationInventory(
   client: SupabaseClient<Database>,

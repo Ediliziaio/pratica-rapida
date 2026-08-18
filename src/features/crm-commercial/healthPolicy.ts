@@ -47,11 +47,15 @@ export function classifyCommercialHealth(input: CommercialHealthInput): Commerci
     && (input.firstPracticeDaysAgo === null || input.lastPracticeDaysAgo === null);
   const inconsistentRecencyBuckets = input.lastPracticeDaysAgo !== null
     && (
-      (input.lastPracticeDaysAgo < 30 && input.practicesLast30d === 0)
+      (input.lastPracticeDaysAgo <= 30 && input.practicesLast30d === 0)
       || (
         input.lastPracticeDaysAgo > 30
         && input.lastPracticeDaysAgo <= 60
         && input.practicesPrev30d === 0
+      )
+      || (
+        input.lastPracticeDaysAgo > 60
+        && (input.practicesLast30d > 0 || input.practicesPrev30d > 0)
       )
     );
 

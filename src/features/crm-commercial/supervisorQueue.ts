@@ -69,10 +69,10 @@ export function buildCommercialSupervisorQueue(
       id: `customer:${customer.id}`,
       kind: "customer",
       label: customer.label,
-      // Il punteggio della vista e lo stato salute descrivono la stessa policy.
-      // Se il valore trasportato è stale/incoerente, l'ordinamento deve restare
-      // deterministico rispetto allo stato che guida anche l'azione suggerita.
-      score: customerScore(customer.healthStatus),
+      // Se la policy invalida uno stato trasportato e lo converte in review_data,
+      // anche l'ordinamento deve usare la priorità di revisione (80), non quella
+      // dello stato stale che non guida più l'azione effettiva.
+      score: decision.action === "review_data" ? 80 : customerScore(customer.healthStatus),
       action: decision.action,
       channel,
       reason: missingPhoneBlocksSuggestedContact

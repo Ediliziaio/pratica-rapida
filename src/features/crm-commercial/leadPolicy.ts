@@ -18,14 +18,6 @@ const KNOWN_STAGE_IDS = new Set(["lead", "contatto", "demo", "onboarding", "atti
  * dimenticato. Qualsiasi contatto resta soggetto ad approvazione umana.
  */
 export function classifyLeadAttention(input: LeadSupervisorInput): LeadSupervisorDecision {
-  if (!KNOWN_STAGE_IDS.has(input.stageId)) {
-    return {
-      status: "needs_stage_review",
-      priority: "medium",
-      reason: "Fase CRM personalizzata o non riconosciuta: verificare manualmente prima di qualsiasi follow-up.",
-    };
-  }
-
   if (!Number.isFinite(input.ageHours) || input.ageHours < 0) {
     return {
       status: "needs_data_review",
@@ -49,6 +41,16 @@ export function classifyLeadAttention(input: LeadSupervisorInput): LeadSuperviso
         reason: "Cronologia lead incoerente: il contatto registrato non è compatibile con la data di creazione. Verificare i dati prima di qualsiasi follow-up.",
       };
     }
+  }
+
+  // La revisione della fase viene dopo la verifica temporale: anche la vista SQL
+  // dà priorità a una cronologia impossibile rispetto a una fase personalizzata.
+  if (!KNOWN_STAGE_IDS.has(input.stageId)) {
+    return {
+      status: "needs_stage_review",
+      priority: "medium",
+      reason: "Fase CRM personalizzata o non riconosciuta: verificare manualmente prima di qualsiasi follow-up.",
+    };
   }
 
   if (["attivo", "onboarding", "demo"].includes(input.stageId)) {

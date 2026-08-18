@@ -6,6 +6,7 @@ export interface CustomerSupervisorInput extends CommercialActionInput {
   label: string;
   attentionScore: number;
   isActive?: boolean;
+  telefono?: string | null;
 }
 
 export interface LeadQueueInput extends LeadSupervisorInput {
@@ -42,14 +43,25 @@ export function buildCommercialSupervisorQueue(
 
     const decision = suggestCommercialAction(customer);
     if (decision.action === "monitor" || decision.action === "growth_opportunity") return [];
+
+    // undefined significa che il chiamante non ha ancora passato il dato; null o
+    // stringa vuota significano invece che sappiamo che il numero non esiste.
+    const phoneExplicitlyMissing = customer.telefono === null
+      || (typeof customer.telefono === "string" && customer.telefono.trim().length === 0);
+    const channel = phoneExplicitlyMissing && decision.channel !== "none"
+      ? "none"
+      : decision.channel;
+
     return [{
       id: `customer:${customer.id}`,
       kind: "customer",
       label: customer.label,
       score: customer.attentionScore,
       action: decision.action,
-      channel: decision.channel,
-      reason: decision.reason,
+      channel,
+      reason: phoneExplicitlyMissing
+        ? `${decision.reason} Nessun numero di telefono disponibile: definire manualmente il canale di contatto.`
+        : decision.reason,
       requiresHumanApproval: true,
     }];
   });

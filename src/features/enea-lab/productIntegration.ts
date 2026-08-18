@@ -5,13 +5,16 @@ import type { ProdottoTipo } from "@/types/form-cliente";
 export type AprProductLifecycle = "waiting_client" | "ready" | "historical" | "other";
 export type AprProductIntegrationPhase = "screenings-validated" | "intake-only";
 export type AprIntakeOnlyProduct = Exclude<ProdottoTipo, "schermature">;
+export type AprInvoiceEvidenceScope = "first-class-column-only";
 export type AprProductPriorityBlocker =
   | "completed-enea-ground-truth-missing"
   | "invoice-corpus-missing"
+  | "invoice-corpus-index-incomplete"
   | "technical-portal-contract-unobserved";
 export type AprProductPriorityNextAction =
   | "collect-completed-enea-ground-truth"
   | "collect-invoice-corpus"
+  | "verify-invoice-corpus-index"
   | "observe-technical-portal-contract"
   | "build-shadow-parser-mapper";
 
@@ -46,6 +49,11 @@ export interface AprProductIntegrationSummary {
     total: number;
     activeReady: number;
     historicalWithCompletedEnea: number;
+    /**
+     * Conta soltanto le pratiche con fatture nella colonna first-class
+     * fatture_urls. I moduli dinamici possono conservare file in dati_form:
+     * questo numero è quindi evidenza positiva quando > 0, mai prova di assenza.
+     */
     withInvoices: number;
     integrationPhase: AprProductIntegrationPhase;
   }>;
@@ -63,6 +71,7 @@ export interface AprProductPriorityCandidate {
   total: number;
   blockers: AprProductPriorityBlocker[];
   nextAction: AprProductPriorityNextAction;
+  invoiceEvidenceScope: AprInvoiceEvidenceScope;
   shadowTechnicalMappingAllowed: false;
   officialSubmissionAllowed: false;
 }
@@ -192,8 +201,11 @@ function priorityBlockers(
   if (product.historicalWithCompletedEnea === 0) {
     blockers.push("completed-enea-ground-truth-missing");
   }
+  // fatture_urls NON è un indice completo: i moduli dinamici salvano file anche
+  // in dati_form. Zero qui significa "non osservato nell'indice first-class",
+  // non "la fattura non esiste". Evitiamo quindi un falso blocker di assenza.
   if (product.withInvoices === 0) {
-    blockers.push("invoice-corpus-missing");
+    blockers.push("invoice-corpus-index-incomplete");
   }
   if (!evidence.technicalPortalContractObserved?.[productType]) {
     blockers.push("technical-portal-contract-unobserved");
@@ -205,6 +217,9 @@ function nextPriorityAction(blockers: AprProductPriorityBlocker[]): AprProductPr
   if (blockers.includes("completed-enea-ground-truth-missing")) {
     return "collect-completed-enea-ground-truth";
   }
+  if (blockers.includes("invoice-corpus-index-incomplete")) {
+    return "verify-invoice-corpus-index";
+  }
   if (blockers.includes("invoice-corpus-missing")) return "collect-invoice-corpus";
   if (blockers.includes("technical-portal-contract-unobserved")) {
     return "observe-technical-portal-contract";
@@ -215,8 +230,9 @@ function nextPriorityAction(blockers: AprProductPriorityBlocker[]): AprProductPr
 /**
  * Decisione di priorità APR reversibile e puramente diagnostica.
  * Non usa pesi arbitrari: ordina i prodotti intake-only per evidenza realmente
- * disponibile, privilegiando prima la ground truth ENEA conclusa, poi il corpus
- * fatture, le pratiche attualmente pronte e infine il volume totale.
+ * affidabile, privilegiando la ground truth ENEA conclusa, poi la domanda attiva
+ * e il volume. Il conteggio fatture first-class resta soltanto ultimo tie-breaker
+ * perché fatture_urls non copre i file dei moduli dinamici salvati in dati_form.
  *
  * La raccomandazione NON promuove il prodotto: anche con tutte le evidenze
  * disponibili, shadowTechnicalMappingAllowed resta false finché parser/mapping
@@ -237,14 +253,15 @@ export function rankAprNextProduct(
       total: product.total,
       blockers,
       nextAction: nextPriorityAction(blockers),
+      invoiceEvidenceScope: "first-class-column-only" as const,
       shadowTechnicalMappingAllowed: false as const,
       officialSubmissionAllowed: false as const,
     };
   }).sort((left, right) => (
     right.historicalWithCompletedEnea - left.historicalWithCompletedEnea
-    || right.withInvoices - left.withInvoices
     || right.activeReady - left.activeReady
     || right.total - left.total
+    || right.withInvoices - left.withInvoices
     || left.productType.localeCompare(right.productType)
   ));
 
@@ -265,6 +282,10 @@ export function rankAprNextProduct(
  * Inventario multi-prodotto APR: solo SELECT, nessun dato personale e nessuna
  * mutation. Serve a misurare il corpus disponibile prima di costruire i parser
  * e i mapper specifici per infissi, impianto termico e insufflaggio.
+ *
+ * Nota importante: per non leggere il jsonb dati_form (che può contenere dati
+ * personali), il conteggio fatture qui vede solo fatture_urls. Il chiamante deve
+ * trattarlo come evidenza parziale, mai come prova che una fattura sia assente.
  *
  * La lettura è paginata: il corpus non deve dipendere da un limite arbitrario
  * di 500 righe, perché proprio queste metriche guidano la priorità del prossimo

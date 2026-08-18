@@ -6,6 +6,7 @@ export interface CustomerSupervisorInput extends CommercialActionInput {
   label: string;
   attentionScore: number;
   isActive?: boolean;
+  blockedAt?: string | null;
   telefono?: string | null;
 }
 
@@ -37,9 +38,9 @@ export function buildCommercialSupervisorQueue(
   leads: LeadQueueInput[],
 ): CommercialSupervisorTask[] {
   const customerTasks = customers.flatMap((customer): CommercialSupervisorTask[] => {
-    // is_active=false è una disattivazione amministrativa esplicita: non deve
-    // diventare automaticamente una campagna di recupero commerciale.
-    if (customer.isActive === false) return [];
+    // is_active=false o blocked_at valorizzato sono stati amministrativi espliciti:
+    // non devono trasformarsi automaticamente in campagne di recupero commerciale.
+    if (customer.isActive === false || customer.blockedAt) return [];
 
     const decision = suggestCommercialAction(customer);
     if (decision.action === "monitor" || decision.action === "growth_opportunity") return [];

@@ -6,16 +6,26 @@ export interface LeadSupervisorInput {
 }
 
 export interface LeadSupervisorDecision {
-  status: "new" | "needs_first_contact" | "needs_followup" | "progressing" | "no_action";
+  status: "new" | "needs_first_contact" | "needs_followup" | "needs_stage_review" | "progressing" | "no_action";
   priority: "low" | "medium" | "high";
   reason: string;
 }
+
+const KNOWN_STAGE_IDS = new Set(["lead", "contatto", "demo", "onboarding", "attivo"]);
 
 /**
  * Policy di attenzione, non di invio: segnala quando un lead rischia di essere
  * dimenticato. Qualsiasi contatto resta soggetto ad approvazione umana.
  */
 export function classifyLeadAttention(input: LeadSupervisorInput): LeadSupervisorDecision {
+  if (!KNOWN_STAGE_IDS.has(input.stageId)) {
+    return {
+      status: "needs_stage_review",
+      priority: "medium",
+      reason: "Fase CRM personalizzata o non riconosciuta: verificare manualmente prima di qualsiasi follow-up.",
+    };
+  }
+
   if (["attivo", "onboarding", "demo"].includes(input.stageId)) {
     return { status: "progressing", priority: "low", reason: "Lead già avanzato nel percorso commerciale." };
   }

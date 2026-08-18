@@ -79,4 +79,14 @@ describe("commercial health policy", () => {
       lastPracticeDaysAgo: 90,
     })).toEqual({ status: "inattivo", attentionScore: 90 });
   });
+
+  it("porta in revisione dati una pratica futura invece di usarla come attivita commerciale", () => {
+    expect(classifyCommercialHealth({
+      totalPractices: 4,
+      practicesLast30d: 2,
+      practicesPrev30d: 1,
+      firstPracticeDaysAgo: 120,
+      lastPracticeDaysAgo: -3,
+    })).toEqual({ status: "needs_data_review", attentionScore: 80 });
+  });
 });

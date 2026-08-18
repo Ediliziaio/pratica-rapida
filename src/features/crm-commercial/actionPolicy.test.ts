@@ -77,4 +77,18 @@ describe("commercial supervisor action policy", () => {
       requiresHumanApproval: true,
     }));
   });
+
+  it("blocca uno stato a rischio stale che contraddice i volumi correnti", () => {
+    expect(suggestCommercialAction({
+      healthStatus: "a_rischio",
+      practicesLast30d: 12,
+      practicesPrev30d: 4,
+      lastPracticeDaysAgo: 2,
+    })).toEqual(expect.objectContaining({
+      action: "review_data",
+      channel: "none",
+      priority: "high",
+      requiresHumanApproval: true,
+    }));
+  });
 });

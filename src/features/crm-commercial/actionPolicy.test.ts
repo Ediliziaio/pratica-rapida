@@ -133,4 +133,18 @@ describe("commercial supervisor action policy", () => {
       requiresHumanApproval: true,
     }));
   });
+
+  it("blocca uno snapshot stabile impossibile se l'ultima pratica cade nei 30-60 giorni ma il periodo precedente è vuoto", () => {
+    expect(suggestCommercialAction({
+      healthStatus: "stabile",
+      practicesLast30d: 0,
+      practicesPrev30d: 0,
+      lastPracticeDaysAgo: 45,
+    })).toEqual(expect.objectContaining({
+      action: "review_data",
+      channel: "none",
+      priority: "high",
+      requiresHumanApproval: true,
+    }));
+  });
 });

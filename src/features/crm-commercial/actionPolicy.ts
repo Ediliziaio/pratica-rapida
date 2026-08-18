@@ -49,6 +49,29 @@ function hasContradictoryVolumeSnapshot(input: CommercialActionInput): boolean {
   }
 }
 
+function hasContradictoryRecencySnapshot(input: CommercialActionInput): boolean {
+  const last = input.lastPracticeDaysAgo;
+  if (last !== null && (!Number.isFinite(last) || last < 0)) return true;
+
+  switch (input.healthStatus) {
+    case "needs_data_review":
+      return false;
+    case "mai_attivato":
+      return last !== null || input.practicesLast30d !== 0 || input.practicesPrev30d !== 0;
+    case "inattivo":
+      // La vista assegna inattivo soltanto oltre 60 giorni. Tolleriamo il
+      // confine esatto perché un eventuale daysAgo intero può derivare da un
+      // timestamp appena oltre soglia, ma una pratica recente è incompatibile.
+      return last === null || last < 60 || input.practicesLast30d > 0;
+    case "nuovo_attivo":
+      return last === null || last > 30 || input.practicesLast30d === 0;
+    default:
+      // Tutti gli altri stati descrivono un cliente con almeno una pratica e
+      // non possono coesistere con assenza completa della cronologia.
+      return last === null;
+  }
+}
+
 /**
  * Il Supervisor propone, non contatta mai il cliente da solo.
  * La policy serve a rendere trasparente il motivo del suggerimento e a evitare
@@ -56,16 +79,16 @@ function hasContradictoryVolumeSnapshot(input: CommercialActionInput): boolean {
  */
 export function suggestCommercialAction(input: CommercialActionInput): CommercialActionDecision {
   // Lo stato salute e i volumi arrivano normalmente dalla stessa vista read-only,
-  // ma la policy può essere invocata anche con snapshot stale. Se i due segnali
-  // si contraddicono non scegliamo quale credere: fermiamo il contatto e chiediamo
+  // ma la policy può essere invocata anche con snapshot stale. Se i segnali si
+  // contraddicono non scegliamo quale credere: fermiamo il contatto e chiediamo
   // una revisione dati.
-  if (hasContradictoryVolumeSnapshot(input)) {
+  if (hasContradictoryVolumeSnapshot(input) || hasContradictoryRecencySnapshot(input)) {
     return {
       action: "review_data",
       channel: "none",
       priority: "high",
       requiresHumanApproval: true,
-      reason: "Stato salute e volumi recenti non sono coerenti: verificare i dati prima di qualsiasi azione commerciale.",
+      reason: "Stato salute e cronologia recente non sono coerenti: verificare i dati prima di qualsiasi azione commerciale.",
     };
   }
 

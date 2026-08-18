@@ -3,7 +3,9 @@ import {
   detectAprProductType,
   loadReadOnlyAprProductIntegrationInventory,
   mapAprProductInventoryRow,
+  rankAprNextProduct,
   summarizeAprProductInventory,
+  type AprProductIntegrationSummary,
   type AprProductInventoryRow,
 } from "./productIntegration";
 
@@ -16,6 +18,27 @@ const baseRow = {
   pratica_enea_conclusa_urls: [],
   pipeline_stages: { stage_type: "pronte_da_fare" },
 };
+
+function prioritySummary(overrides: Partial<AprProductIntegrationSummary["byProduct"]> = {}): AprProductIntegrationSummary {
+  const empty = (integrationPhase: "screenings-validated" | "intake-only") => ({
+    total: 0,
+    activeReady: 0,
+    historicalWithCompletedEnea: 0,
+    withInvoices: 0,
+    integrationPhase,
+  });
+  return {
+    total: 0,
+    unknown: 0,
+    byProduct: {
+      schermature: empty("screenings-validated"),
+      infissi: empty("intake-only"),
+      impianto_termico: empty("intake-only"),
+      insufflaggio: empty("intake-only"),
+      ...overrides,
+    },
+  };
+}
 
 describe("integrazione multi-prodotto APR", () => {
   it("classifica i quattro prodotti supportati senza usare il fallback infissi", () => {
@@ -71,6 +94,80 @@ describe("integrazione multi-prodotto APR", () => {
     expect(summary.byProduct.infissi.activeReady).toBe(1);
     expect(summary.byProduct.infissi.historicalWithCompletedEnea).toBe(1);
     expect(summary.byProduct.infissi.withInvoices).toBe(2);
+  });
+
+  it("sceglie il prossimo adapter privilegiando la ground truth ENEA invece di un punteggio arbitrario", () => {
+    const summary = prioritySummary({
+      infissi: {
+        total: 20,
+        activeReady: 2,
+        historicalWithCompletedEnea: 3,
+        withInvoices: 10,
+        integrationPhase: "intake-only",
+      },
+      impianto_termico: {
+        total: 40,
+        activeReady: 12,
+        historicalWithCompletedEnea: 1,
+        withInvoices: 30,
+        integrationPhase: "intake-only",
+      },
+      insufflaggio: {
+        total: 8,
+        activeReady: 1,
+        historicalWithCompletedEnea: 0,
+        withInvoices: 8,
+        integrationPhase: "intake-only",
+      },
+    });
+
+    const decision = rankAprNextProduct(summary);
+
+    expect(decision.recommendedNextProduct).toBe("infissi");
+    expect(decision.candidates.map((candidate) => candidate.productType)).toEqual([
+      "infissi",
+      "impianto_termico",
+      "insufflaggio",
+    ]);
+    expect(decision.candidates[0]?.blockers).toEqual(["technical-portal-contract-unobserved"]);
+    expect(decision.candidates[0]?.nextAction).toBe("observe-technical-portal-contract");
+  });
+
+  it("espone il collo di bottiglia successivo senza promuovere automaticamente il prodotto a shadow", () => {
+    const summary = prioritySummary({
+      infissi: {
+        total: 5,
+        activeReady: 1,
+        historicalWithCompletedEnea: 2,
+        withInvoices: 5,
+        integrationPhase: "intake-only",
+      },
+    });
+
+    const withoutPortalEvidence = rankAprNextProduct(summary);
+    expect(withoutPortalEvidence.candidates[0]?.nextAction).toBe("observe-technical-portal-contract");
+
+    const withPortalEvidence = rankAprNextProduct(summary, {
+      technicalPortalContractObserved: { infissi: true },
+    });
+    const infissi = withPortalEvidence.candidates.find((candidate) => candidate.productType === "infissi");
+    expect(infissi?.blockers).toEqual([]);
+    expect(infissi?.nextAction).toBe("build-shadow-parser-mapper");
+    expect(infissi?.shadowTechnicalMappingAllowed).toBe(false);
+    expect(infissi?.officialSubmissionAllowed).toBe(false);
+  });
+
+  it("non inventa una priorità se il corpus dei nuovi prodotti è ancora vuoto", () => {
+    const decision = rankAprNextProduct(prioritySummary());
+    expect(decision.recommendedNextProduct).toBeNull();
+    for (const candidate of decision.candidates) {
+      expect(candidate.blockers).toContain("completed-enea-ground-truth-missing");
+      expect(candidate.blockers).toContain("invoice-corpus-missing");
+      expect(candidate.blockers).toContain("technical-portal-contract-unobserved");
+      expect(candidate.nextAction).toBe("collect-completed-enea-ground-truth");
+      expect(candidate.shadowTechnicalMappingAllowed).toBe(false);
+      expect(candidate.officialSubmissionAllowed).toBe(false);
+    }
   });
 
   it("carica l'inventario con sole SELECT e senza campi anagrafici del cliente", async () => {

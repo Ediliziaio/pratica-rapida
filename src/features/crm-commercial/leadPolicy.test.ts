@@ -49,4 +49,39 @@ describe("lead supervisor policy", () => {
       priority: "medium",
     }));
   });
+
+  it("porta in revisione dati un lead con data di creazione futura", () => {
+    expect(classifyLeadAttention({
+      stageId: "lead",
+      ageHours: -2,
+      contacted: false,
+    })).toEqual(expect.objectContaining({
+      status: "needs_data_review",
+      priority: "medium",
+    }));
+  });
+
+  it("porta in revisione dati un contatto cronologicamente precedente alla creazione del lead", () => {
+    expect(classifyLeadAttention({
+      stageId: "lead",
+      ageHours: 48,
+      contacted: true,
+      hoursSinceContact: 60,
+    })).toEqual(expect.objectContaining({
+      status: "needs_data_review",
+      priority: "medium",
+    }));
+  });
+
+  it("non nasconde un lead contattato se manca la recenza del contatto", () => {
+    expect(classifyLeadAttention({
+      stageId: "contatto",
+      ageHours: 120,
+      contacted: true,
+      hoursSinceContact: null,
+    })).toEqual(expect.objectContaining({
+      status: "needs_data_review",
+      priority: "medium",
+    }));
+  });
 });

@@ -71,7 +71,7 @@ export function buildCommercialSupervisorQueue(
     const decision = classifyLeadAttention(lead);
     if (decision.status === "new" || decision.status === "no_action" || decision.status === "progressing") return [];
 
-    const manualStageReview = decision.status === "needs_stage_review";
+    const manualReview = decision.status === "needs_stage_review" || decision.status === "needs_data_review";
     const hasPhone = typeof lead.telefono === "string" && lead.telefono.trim().length > 0;
     return [{
       id: `lead:${lead.id}`,
@@ -79,8 +79,8 @@ export function buildCommercialSupervisorQueue(
       label: lead.label,
       score: leadScore(decision.priority),
       action: decision.status,
-      channel: manualStageReview ? "none" : hasPhone ? "whatsapp" : "none",
-      reason: manualStageReview || hasPhone
+      channel: manualReview ? "none" : hasPhone ? "whatsapp" : "none",
+      reason: manualReview || hasPhone
         ? decision.reason
         : `${decision.reason} Nessun numero di telefono disponibile: definire manualmente il canale di contatto.`,
       requiresHumanApproval: true,

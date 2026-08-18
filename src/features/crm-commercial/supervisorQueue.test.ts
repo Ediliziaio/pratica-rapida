@@ -187,4 +187,26 @@ describe("commercial supervisor queue", () => {
       requiresHumanApproval: true,
     }));
   });
+
+  it("porta una cronologia lead incoerente in revisione senza proporre un contatto", () => {
+    const queue = buildCommercialSupervisorQueue([], [
+      {
+        id: "lead-bad-timing",
+        label: "Lead con cronologia incoerente",
+        stageId: "lead",
+        ageHours: 48,
+        contacted: true,
+        hoursSinceContact: 60,
+        telefono: "+39 333 1234567",
+      },
+    ]);
+
+    expect(queue).toHaveLength(1);
+    expect(queue[0]).toEqual(expect.objectContaining({
+      action: "needs_data_review",
+      channel: "none",
+      score: 70,
+      requiresHumanApproval: true,
+    }));
+  });
 });

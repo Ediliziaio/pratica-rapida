@@ -23,6 +23,9 @@ SELECT
     ELSE floor(extract(epoch FROM (now() - l.contacted_at)) / 3600)::integer
   END AS hours_since_contact,
   CASE
+    WHEN l.created_at > now()
+      OR (l.contacted_at IS NOT NULL AND (l.contacted_at > now() OR l.contacted_at < l.created_at))
+      THEN 'needs_data_review'
     WHEN l.stage_id NOT IN ('lead', 'contatto', 'demo', 'onboarding', 'attivo') THEN 'needs_stage_review'
     WHEN l.stage_id IN ('demo', 'onboarding', 'attivo') THEN 'progressing'
     WHEN l.contacted_at IS NULL AND l.created_at <= now() - interval '24 hours' THEN 'needs_first_contact'
@@ -32,6 +35,9 @@ SELECT
     ELSE 'no_action'
   END AS attention_status,
   CASE
+    WHEN l.created_at > now()
+      OR (l.contacted_at IS NOT NULL AND (l.contacted_at > now() OR l.contacted_at < l.created_at))
+      THEN 70
     WHEN l.stage_id NOT IN ('lead', 'contatto', 'demo', 'onboarding', 'attivo') THEN 70
     WHEN l.stage_id IN ('demo', 'onboarding', 'attivo') THEN 10
     WHEN l.contacted_at IS NULL AND l.created_at <= now() - interval '24 hours' THEN 90
@@ -44,4 +50,4 @@ FROM public.leads l
 WHERE l.archived_at IS NULL;
 
 COMMENT ON VIEW public.crm_lead_attention IS
-  'Coda read-only dei lead ordinabile per urgenza: primo contatto, follow-up e revisione manuale delle fasi personalizzate, senza automazioni di invio.';
+  'Coda read-only dei lead ordinabile per urgenza: primo contatto, follow-up, revisione dati temporali e revisione manuale delle fasi personalizzate, senza automazioni di invio.';

@@ -6,7 +6,7 @@ export interface LeadSupervisorInput {
 }
 
 export interface LeadSupervisorDecision {
-  status: "new" | "needs_first_contact" | "needs_followup" | "needs_stage_review" | "progressing" | "no_action";
+  status: "new" | "needs_first_contact" | "needs_followup" | "needs_stage_review" | "needs_data_review" | "progressing" | "no_action";
   priority: "low" | "medium" | "high";
   reason: string;
 }
@@ -24,6 +24,31 @@ export function classifyLeadAttention(input: LeadSupervisorInput): LeadSuperviso
       priority: "medium",
       reason: "Fase CRM personalizzata o non riconosciuta: verificare manualmente prima di qualsiasi follow-up.",
     };
+  }
+
+  if (!Number.isFinite(input.ageHours) || input.ageHours < 0) {
+    return {
+      status: "needs_data_review",
+      priority: "medium",
+      reason: "Cronologia lead incoerente: la data di creazione risulta futura o non valida. Verificare i dati prima di qualsiasi contatto.",
+    };
+  }
+
+  if (input.contacted) {
+    const sinceContact = input.hoursSinceContact;
+    if (
+      sinceContact === null
+      || sinceContact === undefined
+      || !Number.isFinite(sinceContact)
+      || sinceContact < 0
+      || sinceContact > input.ageHours
+    ) {
+      return {
+        status: "needs_data_review",
+        priority: "medium",
+        reason: "Cronologia lead incoerente: il contatto registrato non è compatibile con la data di creazione. Verificare i dati prima di qualsiasi follow-up.",
+      };
+    }
   }
 
   if (["attivo", "onboarding", "demo"].includes(input.stageId)) {

@@ -165,4 +165,26 @@ describe("commercial supervisor queue", () => {
     expect(queue).toHaveLength(1);
     expect(queue[0].channel).toBe("none");
   });
+
+  it("porta una fase lead personalizzata in revisione senza proporre un contatto", () => {
+    const queue = buildCommercialSupervisorQueue([], [
+      {
+        id: "lead-custom-stage",
+        label: "Lead in fase personalizzata",
+        stageId: "f7f36e26-35e0-4e4a-8b7f-stage-custom",
+        ageHours: 200,
+        contacted: true,
+        hoursSinceContact: 100,
+        telefono: "+39 333 1234567",
+      },
+    ]);
+
+    expect(queue).toHaveLength(1);
+    expect(queue[0]).toEqual(expect.objectContaining({
+      action: "needs_stage_review",
+      channel: "none",
+      score: 70,
+      requiresHumanApproval: true,
+    }));
+  });
 });

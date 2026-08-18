@@ -26,12 +26,49 @@ export interface CommercialActionDecision {
   reason: string;
 }
 
+function hasContradictoryVolumeSnapshot(input: CommercialActionInput): boolean {
+  const { practicesLast30d: recent, practicesPrev30d: previous } = input;
+  if (!Number.isInteger(recent) || recent < 0 || !Number.isInteger(previous) || previous < 0) {
+    return true;
+  }
+
+  const strongRisk = (recent === 0 && previous >= 2)
+    || (previous >= 4 && recent <= Math.floor(previous * 0.5));
+
+  switch (input.healthStatus) {
+    case "a_rischio":
+      return !strongRisk;
+    case "in_calo":
+      return strongRisk || recent >= previous;
+    case "in_crescita":
+      return recent <= previous;
+    case "stabile":
+      return recent !== previous;
+    default:
+      return false;
+  }
+}
+
 /**
  * Il Supervisor propone, non contatta mai il cliente da solo.
  * La policy serve a rendere trasparente il motivo del suggerimento e a evitare
  * follow-up aggressivi o inutili quando il cliente è stabile.
  */
 export function suggestCommercialAction(input: CommercialActionInput): CommercialActionDecision {
+  // Lo stato salute e i volumi arrivano normalmente dalla stessa vista read-only,
+  // ma la policy può essere invocata anche con snapshot stale. Se i due segnali
+  // si contraddicono non scegliamo quale credere: fermiamo il contatto e chiediamo
+  // una revisione dati.
+  if (hasContradictoryVolumeSnapshot(input)) {
+    return {
+      action: "review_data",
+      channel: "none",
+      priority: "high",
+      requiresHumanApproval: true,
+      reason: "Stato salute e volumi recenti non sono coerenti: verificare i dati prima di qualsiasi azione commerciale.",
+    };
+  }
+
   switch (input.healthStatus) {
     case "needs_data_review":
       return {

@@ -53,6 +53,13 @@ function hasContradictoryRecencySnapshot(input: CommercialActionInput): boolean 
   const last = input.lastPracticeDaysAgo;
   if (last !== null && (!Number.isFinite(last) || last < 0)) return true;
 
+  // Se l'ultima pratica cade nella finestra 30-60 giorni, quella stessa pratica
+  // deve comparire nel conteggio del periodo precedente. Uno zero in quel bucket
+  // indica uno snapshot stale/incoerente e non deve diventare un'azione commerciale.
+  if (last !== null && last > 30 && last <= 60 && input.practicesPrev30d === 0) {
+    return true;
+  }
+
   switch (input.healthStatus) {
     case "needs_data_review":
       return false;

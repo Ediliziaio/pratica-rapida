@@ -2,6 +2,7 @@ import type { CommercialHealthStatus } from "./healthPolicy";
 
 export type CommercialSuggestedChannel = "none" | "whatsapp" | "call";
 export type CommercialSuggestedAction =
+  | "review_data"
   | "monitor"
   | "welcome_followup"
   | "activate_first_practice"
@@ -32,6 +33,14 @@ export interface CommercialActionDecision {
  */
 export function suggestCommercialAction(input: CommercialActionInput): CommercialActionDecision {
   switch (input.healthStatus) {
+    case "needs_data_review":
+      return {
+        action: "review_data",
+        channel: "none",
+        priority: "high",
+        requiresHumanApproval: true,
+        reason: "Cronologia pratiche incoerente o futura: verificare i dati prima di qualsiasi azione commerciale.",
+      };
     case "a_rischio":
       return {
         action: "check_decline",

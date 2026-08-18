@@ -45,10 +45,20 @@ export function classifyCommercialHealth(input: CommercialHealthInput): Commerci
     && (input.firstPracticeDaysAgo !== null || input.lastPracticeDaysAgo !== null);
   const incompletePracticeChronology = input.totalPractices > 0
     && (input.firstPracticeDaysAgo === null || input.lastPracticeDaysAgo === null);
+  const inconsistentRecencyBuckets = input.lastPracticeDaysAgo !== null
+    && (
+      (input.lastPracticeDaysAgo < 30 && input.practicesLast30d === 0)
+      || (
+        input.lastPracticeDaysAgo > 30
+        && input.lastPracticeDaysAgo <= 60
+        && input.practicesPrev30d === 0
+      )
+    );
 
-  // Date future, conteggi impossibili, timestamp mancanti o una sequenza prima/ultima
-  // incoerente non devono diventare segnali commerciali. La policy può essere
-  // invocata anche fuori dalla vista SQL, quindi rivalida autonomamente gli aggregati.
+  // Date future, conteggi impossibili, timestamp mancanti, bucket temporali
+  // incoerenti o una sequenza prima/ultima impossibile non devono diventare
+  // segnali commerciali. La policy puo' essere invocata anche fuori dalla
+  // vista SQL, quindi rivalida autonomamente gli aggregati.
   if (
     impossiblePracticeTiming
     || invalidPracticeCounts
@@ -56,6 +66,7 @@ export function classifyCommercialHealth(input: CommercialHealthInput): Commerci
     || zeroTotalWithPracticeDates
     || missingCreatedAtCount > 0
     || incompletePracticeChronology
+    || inconsistentRecencyBuckets
   ) {
     return { status: "needs_data_review", attentionScore: 80 };
   }

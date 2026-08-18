@@ -131,4 +131,22 @@ describe("commercial supervisor queue", () => {
     expect(queue).toHaveLength(1);
     expect(queue[0].channel).toBe("none");
   });
+
+  it("non suggerisce WhatsApp a un cliente da recuperare senza numero di telefono", () => {
+    const queue = buildCommercialSupervisorQueue([
+      {
+        id: "customer-no-phone",
+        label: "Cliente senza telefono",
+        healthStatus: "inattivo",
+        practicesLast30d: 0,
+        practicesPrev30d: 0,
+        lastPracticeDaysAgo: 120,
+        attentionScore: 90,
+        telefono: null,
+      },
+    ], []);
+
+    expect(queue).toHaveLength(1);
+    expect(queue[0].channel).toBe("none");
+  });
 });

@@ -37,4 +37,16 @@ describe("lead supervisor policy", () => {
       })).toEqual(expect.objectContaining({ status: "progressing", priority: "low" }));
     }
   });
+
+  it("non interpreta automaticamente una fase personalizzata sconosciuta", () => {
+    expect(classifyLeadAttention({
+      stageId: "f7f36e26-35e0-4e4a-8b7f-stage-custom",
+      ageHours: 200,
+      contacted: true,
+      hoursSinceContact: 100,
+    })).toEqual(expect.objectContaining({
+      status: "needs_stage_review",
+      priority: "medium",
+    }));
+  });
 });

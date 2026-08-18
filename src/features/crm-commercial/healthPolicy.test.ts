@@ -100,4 +100,25 @@ describe("commercial health policy", () => {
       companyCreatedDaysAgo: -2,
     })).toEqual({ status: "needs_data_review", attentionScore: 80 });
   });
+
+  it("non usa commercialmente pratiche ENEA prive di created_at", () => {
+    expect(classifyCommercialHealth({
+      totalPractices: 4,
+      practicesLast30d: 2,
+      practicesPrev30d: 1,
+      firstPracticeDaysAgo: 120,
+      lastPracticeDaysAgo: 3,
+      practicesMissingCreatedAt: 1,
+    })).toEqual({ status: "needs_data_review", attentionScore: 80 });
+  });
+
+  it("rileva uno storico impossibile se esistono pratiche ma mancano prima o ultima data", () => {
+    expect(classifyCommercialHealth({
+      totalPractices: 2,
+      practicesLast30d: 0,
+      practicesPrev30d: 0,
+      firstPracticeDaysAgo: null,
+      lastPracticeDaysAgo: null,
+    })).toEqual({ status: "needs_data_review", attentionScore: 80 });
+  });
 });

@@ -1,4 +1,5 @@
 export type CommercialHealthStatus =
+  | "needs_data_review"
   | "mai_attivato"
   | "nuovo_attivo"
   | "stabile"
@@ -21,6 +22,15 @@ export interface CommercialHealthDecision {
 }
 
 export function classifyCommercialHealth(input: CommercialHealthInput): CommercialHealthDecision {
+  const impossiblePracticeTiming = [input.firstPracticeDaysAgo, input.lastPracticeDaysAgo]
+    .some((daysAgo) => daysAgo !== null && (!Number.isFinite(daysAgo) || daysAgo < 0));
+
+  // Una pratica con data futura non deve diventare attivita commerciale valida:
+  // la cronologia va verificata prima di proporre recuperi, onboarding o follow-up.
+  if (impossiblePracticeTiming) {
+    return { status: "needs_data_review", attentionScore: 80 };
+  }
+
   if (input.totalPractices === 0) {
     return { status: "mai_attivato", attentionScore: 60 };
   }

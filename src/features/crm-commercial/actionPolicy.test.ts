@@ -92,6 +92,20 @@ describe("commercial supervisor action policy", () => {
     }));
   });
 
+  it("blocca uno stato a rischio stale se l'ultima pratica e gia oltre la soglia inattiva", () => {
+    expect(suggestCommercialAction({
+      healthStatus: "a_rischio",
+      practicesLast30d: 0,
+      practicesPrev30d: 6,
+      lastPracticeDaysAgo: 75,
+    })).toEqual(expect.objectContaining({
+      action: "review_data",
+      channel: "none",
+      priority: "high",
+      requiresHumanApproval: true,
+    }));
+  });
+
   it("blocca uno stato inattivo stale se l'ultima pratica è recente", () => {
     expect(suggestCommercialAction({
       healthStatus: "inattivo",

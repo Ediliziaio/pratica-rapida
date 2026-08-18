@@ -81,6 +81,7 @@ describe("integrazione multi-prodotto APR", () => {
       in: vi.fn(() => { calls.push("in"); return query; }),
       order: vi.fn(() => { calls.push("order"); return query; }),
       limit: vi.fn(() => { calls.push("limit"); return Promise.resolve({ data: [], error: null }); }),
+      range: vi.fn(() => { calls.push("range"); return Promise.resolve({ data: [], error: null }); }),
     };
     const client = {
       from: vi.fn(() => { calls.push("from"); return query; }),
@@ -90,10 +91,48 @@ describe("integrazione multi-prodotto APR", () => {
 
     const selectCall = calls.find((call) => call.startsWith("select:")) ?? "";
     expect(client.from).toHaveBeenCalledWith("enea_practices_public");
-    expect(calls.map((call) => call.split(":")[0])).toEqual(["from", "select", "eq", "in", "order", "limit"]);
+    expect(calls.map((call) => call.split(":")[0])).toEqual([
+      "from", "select", "eq", "in", "order", "order", "range",
+    ]);
     expect(selectCall).not.toContain("cliente_nome");
     expect(selectCall).not.toContain("cliente_cognome");
     expect(selectCall).not.toContain("cliente_cf");
     expect(selectCall).not.toContain("cliente_email");
+  });
+
+  it("pagina l'inventario oltre 500 righe invece di troncare il corpus usato per le priorita APR", async () => {
+    const firstPage = Array.from({ length: 500 }, (_, index) => ({
+      ...baseRow,
+      id: `practice-${String(index + 1).padStart(4, "0")}`,
+      prodotto_installato: "Infissi",
+    }));
+    const secondPage = [{
+      ...baseRow,
+      id: "practice-0501",
+      prodotto_installato: "Impianto termico",
+    }];
+    const ranges: Array<[number, number]> = [];
+    const query = {
+      select: vi.fn(() => query),
+      eq: vi.fn(() => query),
+      in: vi.fn(() => query),
+      order: vi.fn(() => query),
+      limit: vi.fn(() => Promise.resolve({ data: firstPage, error: null })),
+      range: vi.fn((from: number, to: number) => {
+        ranges.push([from, to]);
+        const data = ranges.length === 1 ? firstPage : secondPage;
+        return Promise.resolve({ data, error: null });
+      }),
+    };
+    const client = { from: vi.fn(() => query) };
+
+    const inventory = await loadReadOnlyAprProductIntegrationInventory(client as never);
+    const summary = summarizeAprProductInventory(inventory);
+
+    expect(ranges).toEqual([[0, 499], [500, 999]]);
+    expect(inventory).toHaveLength(501);
+    expect(summary.total).toBe(501);
+    expect(summary.byProduct.infissi.total).toBe(500);
+    expect(summary.byProduct.impianto_termico.total).toBe(1);
   });
 });

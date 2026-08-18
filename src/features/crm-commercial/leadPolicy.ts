@@ -41,6 +41,12 @@ export function classifyLeadAttention(input: LeadSupervisorInput): LeadSuperviso
         reason: "Cronologia lead incoerente: il contatto registrato non è compatibile con la data di creazione. Verificare i dati prima di qualsiasi follow-up.",
       };
     }
+  } else if (input.hoursSinceContact !== null && input.hoursSinceContact !== undefined) {
+    return {
+      status: "needs_data_review",
+      priority: "medium",
+      reason: "Cronologia lead incoerente: il lead risulta non contattato ma conserva una recenza di contatto. Verificare i dati prima di qualsiasi primo contatto.",
+    };
   }
 
   // La revisione della fase viene dopo la verifica temporale: anche la vista SQL

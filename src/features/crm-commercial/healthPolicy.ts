@@ -30,15 +30,30 @@ export function classifyCommercialHealth(input: CommercialHealthInput): Commerci
     input.lastPracticeDaysAgo,
   ].some((daysAgo) => daysAgo !== null && daysAgo !== undefined && (!Number.isFinite(daysAgo) || daysAgo < 0));
   const missingCreatedAtCount = input.practicesMissingCreatedAt ?? 0;
-  const invalidMissingCreatedAtCount = !Number.isInteger(missingCreatedAtCount) || missingCreatedAtCount < 0;
+  const practiceCounts = [
+    input.totalPractices,
+    input.practicesLast30d,
+    input.practicesPrev30d,
+    missingCreatedAtCount,
+  ];
+  const invalidPracticeCounts = practiceCounts.some((count) => !Number.isInteger(count) || count < 0)
+    || input.practicesLast30d + input.practicesPrev30d + missingCreatedAtCount > input.totalPractices;
+  const impossiblePracticeOrdering = input.firstPracticeDaysAgo !== null
+    && input.lastPracticeDaysAgo !== null
+    && input.firstPracticeDaysAgo < input.lastPracticeDaysAgo;
+  const zeroTotalWithPracticeDates = input.totalPractices === 0
+    && (input.firstPracticeDaysAgo !== null || input.lastPracticeDaysAgo !== null);
   const incompletePracticeChronology = input.totalPractices > 0
     && (input.firstPracticeDaysAgo === null || input.lastPracticeDaysAgo === null);
 
-  // Una data futura, un conteggio anomalo dei timestamp mancanti o uno storico
-  // con pratiche ma senza prima/ultima data non devono diventare segnali commerciali.
+  // Date future, conteggi impossibili, timestamp mancanti o una sequenza prima/ultima
+  // incoerente non devono diventare segnali commerciali. La policy può essere
+  // invocata anche fuori dalla vista SQL, quindi rivalida autonomamente gli aggregati.
   if (
     impossiblePracticeTiming
-    || invalidMissingCreatedAtCount
+    || invalidPracticeCounts
+    || impossiblePracticeOrdering
+    || zeroTotalWithPracticeDates
     || missingCreatedAtCount > 0
     || incompletePracticeChronology
   ) {

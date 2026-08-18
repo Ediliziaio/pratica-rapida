@@ -48,6 +48,8 @@ export const APR_PRODUCT_INTEGRATION_PHASES: Record<ProdottoTipo, AprProductInte
   insufflaggio: "intake-only",
 };
 
+const APR_PRODUCT_INVENTORY_PAGE_SIZE = 500;
+
 /**
  * Detector deliberatamente fail-closed per l'inventario APR.
  * A differenza del form pubblico non usa un fallback a infissi: un'etichetta
@@ -149,29 +151,45 @@ export function summarizeAprProductInventory(rows: AprProductInventoryRow[]): Ap
  * Inventario multi-prodotto APR: solo SELECT, nessun dato personale e nessuna
  * mutation. Serve a misurare il corpus disponibile prima di costruire i parser
  * e i mapper specifici per infissi, impianto termico e insufflaggio.
+ *
+ * La lettura è paginata: il corpus non deve dipendere da un limite arbitrario
+ * di 500 righe, perché proprio queste metriche guidano la priorità del prossimo
+ * adapter prodotto. L'ordinamento secondario per id rende stabili i confini
+ * tra pagine quando più pratiche condividono updated_at.
  */
 export async function loadReadOnlyAprProductIntegrationInventory(
   client: SupabaseClient<Database>,
 ): Promise<AprProductInventoryRow[]> {
-  const { data, error } = await client
-    .from("enea_practices_public")
-    .select(`
-      id,
-      prodotto_installato,
-      form_compilato_at,
-      fatture_urls,
-      documenti_aggiuntivi_urls,
-      pratica_enea_conclusa_urls,
-      pipeline_stages!inner(stage_type)
-    `)
-    .eq("brand", "enea")
-    .in("pipeline_stages.stage_type", ["inviata", "attesa_compilazione", "pronte_da_fare", "archiviate"])
-    .order("updated_at", { ascending: false })
-    .limit(500);
+  const rawRows: ProductInventoryQueueRow[] = [];
+  let from = 0;
 
-  if (error) throw error;
+  while (true) {
+    const { data, error } = await client
+      .from("enea_practices_public")
+      .select(`
+        id,
+        prodotto_installato,
+        form_compilato_at,
+        fatture_urls,
+        documenti_aggiuntivi_urls,
+        pratica_enea_conclusa_urls,
+        pipeline_stages!inner(stage_type)
+      `)
+      .eq("brand", "enea")
+      .in("pipeline_stages.stage_type", ["inviata", "attesa_compilazione", "pronte_da_fare", "archiviate"])
+      .order("updated_at", { ascending: false })
+      .order("id", { ascending: true })
+      .range(from, from + APR_PRODUCT_INVENTORY_PAGE_SIZE - 1);
 
-  return ((data ?? []) as unknown as ProductInventoryQueueRow[])
+    if (error) throw error;
+
+    const page = (data ?? []) as unknown as ProductInventoryQueueRow[];
+    rawRows.push(...page);
+    if (page.length < APR_PRODUCT_INVENTORY_PAGE_SIZE) break;
+    from += APR_PRODUCT_INVENTORY_PAGE_SIZE;
+  }
+
+  return rawRows
     .map(mapAprProductInventoryRow)
     .filter((row): row is AprProductInventoryRow => row !== null);
 }

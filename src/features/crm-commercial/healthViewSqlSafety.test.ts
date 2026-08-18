@@ -17,4 +17,11 @@ describe("commercial health SQL safety", () => {
   it("espone il blocco amministrativo alla coda del Supervisor", () => {
     expect(healthViewSql).toMatch(/c\.blocked_at[\s\S]*GROUP BY[\s\S]*c\.blocked_at/);
   });
+
+  it("non trasforma date future in attivita commerciale valida", () => {
+    expect(healthViewSql).toContain("pa.company_created_at > now()");
+    expect(healthViewSql).toContain("pa.last_practice_at > now()");
+    expect(healthViewSql).toContain("'needs_data_review'");
+    expect(healthViewSql).toMatch(/WHEN 'needs_data_review' THEN 80/);
+  });
 });

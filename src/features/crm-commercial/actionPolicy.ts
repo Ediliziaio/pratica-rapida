@@ -53,10 +53,9 @@ function hasContradictoryRecencySnapshot(input: CommercialActionInput): boolean 
   const last = input.lastPracticeDaysAgo;
   if (last !== null && (!Number.isFinite(last) || last < 0)) return true;
 
-  // Se l'ultima pratica e' chiaramente negli ultimi 30 giorni, quella stessa
-  // pratica deve comparire nel bucket recente. Tolleriamo il confine esatto a
-  // 30 giorni perché daysAgo puo' essere un intero derivato da un timestamp.
-  if (last !== null && last < 30 && input.practicesLast30d === 0) {
+  // Se l'ultima pratica e' negli ultimi 30 giorni, incluso il confine esatto,
+  // quella stessa pratica deve comparire nel bucket recente.
+  if (last !== null && last <= 30 && input.practicesLast30d === 0) {
     return true;
   }
 

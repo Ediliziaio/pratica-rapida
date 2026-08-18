@@ -73,10 +73,13 @@ function hasContradictoryRecencySnapshot(input: CommercialActionInput): boolean 
     case "mai_attivato":
       return last !== null || input.practicesLast30d !== 0 || input.practicesPrev30d !== 0;
     case "inattivo":
-      // La vista assegna inattivo soltanto oltre 60 giorni. Tolleriamo il
-      // confine esatto perché un eventuale daysAgo intero può derivare da un
-      // timestamp appena oltre soglia, ma una pratica recente è incompatibile.
-      return last === null || last < 60 || input.practicesLast30d > 0;
+      // Se l'ultima pratica è oltre 60 giorni, per definizione non può esistere
+      // alcuna pratica né negli ultimi 30 né nella finestra 30-60. Un bucket
+      // precedente non vuoto renderebbe lo snapshot internamente contraddittorio.
+      return last === null
+        || last < 60
+        || input.practicesLast30d > 0
+        || input.practicesPrev30d > 0;
     case "nuovo_attivo":
       return last === null || last > 30 || input.practicesLast30d === 0;
     default:

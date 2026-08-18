@@ -29,4 +29,25 @@ describe("commercial supervisor queue score consistency", () => {
       { id: "customer:never-activated-stale-score", score: 60 },
     ]);
   });
+
+  it("usa la priorità review_data quando la policy invalida uno stato salute stale", () => {
+    const [task] = buildCommercialSupervisorQueue([
+      {
+        id: "risk-stale-recency",
+        label: "Cliente a rischio stale",
+        healthStatus: "a_rischio",
+        practicesLast30d: 0,
+        practicesPrev30d: 6,
+        lastPracticeDaysAgo: 75,
+        attentionScore: 100,
+      },
+    ], []);
+
+    expect(task).toEqual(expect.objectContaining({
+      id: "customer:risk-stale-recency",
+      action: "review_data",
+      channel: "none",
+      score: 80,
+    }));
+  });
 });

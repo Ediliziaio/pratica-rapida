@@ -11,6 +11,8 @@ describe("commercial lead attention SQL safety", () => {
     expect(leadViewSql).toMatch(
       /stage_id NOT IN \('lead', 'contatto', 'demo', 'onboarding', 'attivo'\)[\s\S]{0,180}'needs_stage_review'/,
     );
-    expect(leadViewSql).toMatch(/WHEN attention_status = 'needs_stage_review' THEN 70/);
+    expect(leadViewSql).toMatch(
+      /stage_id NOT IN \('lead', 'contatto', 'demo', 'onboarding', 'attivo'\)[\s\S]{0,80}THEN 70/,
+    );
   });
 });

@@ -123,8 +123,8 @@ function parseRecord(value: unknown): AprShadowReviewRecord | null {
     && operatorVerdict !== "escaped-error"
   ) return null;
   if (preparationMinutes != null && typeof preparationMinutes !== "number") return null;
-  if (typeof candidate.observedAt !== "string") return null;
-  if (reviewedAt != null && typeof reviewedAt !== "string") return null;
+  if (typeof candidate.observedAt !== "string" || !Number.isFinite(Date.parse(candidate.observedAt))) return null;
+  if (reviewedAt !== null && (typeof reviewedAt !== "string" || !Number.isFinite(Date.parse(reviewedAt)))) return null;
 
   return {
     practiceId: candidate.practiceId,
@@ -137,7 +137,7 @@ function parseRecord(value: unknown): AprShadowReviewRecord | null {
     preparationMinutes: preparationMinutes as number | null | undefined,
     aprFingerprint: candidate.aprFingerprint,
     observedAt: candidate.observedAt,
-    reviewedAt: reviewedAt as string | null,
+    reviewedAt,
   };
 }
 

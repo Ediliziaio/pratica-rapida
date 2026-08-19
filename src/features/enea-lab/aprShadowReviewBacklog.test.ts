@@ -59,6 +59,41 @@ describe("APR shadow review backlog", () => {
     ]);
   });
 
+  it("calcola il false-block rate per codice solo quando tutte le pratiche di quel blocker sono revisionate", () => {
+    const complete = buildAprShadowReviewBacklog([
+      row("doc-1", "schermature", ["document-missing"], "false-block"),
+      row("doc-2", "schermature", ["document-missing"], "correct-block"),
+      row("gtot-1", "schermature", ["gtot-missing"], "correct-block"),
+    ]);
+
+    expect(complete.blockerQuality).toEqual([
+      {
+        code: "document-missing",
+        affectedCases: 2,
+        reviewedCases: 2,
+        correctBlockCases: 1,
+        falseBlockCases: 1,
+        falseBlockRate: 0.5,
+      },
+      {
+        code: "gtot-missing",
+        affectedCases: 1,
+        reviewedCases: 1,
+        correctBlockCases: 1,
+        falseBlockCases: 0,
+        falseBlockRate: 0,
+      },
+    ]);
+
+    const incomplete = buildAprShadowReviewBacklog([
+      row("doc-1", "schermature", ["document-missing"], "false-block"),
+      row("doc-2", "schermature", ["document-missing"]),
+    ]);
+
+    expect(incomplete.blockerQuality[0]?.falseBlockRate).toBeNull();
+    expect(incomplete.blockerQuality[0]?.reviewedCases).toBe(1);
+  });
+
   it("spegne la coda operativa se le evidenze KPI sono strutturalmente invalide", () => {
     const result = buildAprShadowReviewBacklog([
       row("same-practice", "schermature", ["document-missing"]),
@@ -69,6 +104,7 @@ describe("APR shadow review backlog", () => {
     expect(result.blockedReviewQueue).toEqual([]);
     expect(result.readyAuditQueue).toEqual([]);
     expect(result.blockerPareto).toEqual([]);
+    expect(result.blockerQuality).toEqual([]);
     expect(result.counts).toEqual({
       blockedAwaitingReview: 0,
       readyAwaitingAudit: 0,

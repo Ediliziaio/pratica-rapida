@@ -126,4 +126,22 @@ describe("APR shadow metrics", () => {
     ]);
     expect(Object.values(result.rates).every((rate) => rate === null)).toBe(true);
   });
+
+  it("rifiuta blocker senza codice stabile invece di contarli come blocchi validi", () => {
+    const result = calculateAprShadowMetrics([
+      {
+        ...reviewedCases[0],
+        practiceId: "blank-blocker",
+        blockerCodes: ["   "],
+        operatorVerdict: "unreviewed",
+      },
+    ]);
+
+    expect(result.evidenceValid).toBe(false);
+    expect(result.evidenceBlockers).toContainEqual({
+      practiceId: "blank-blocker",
+      code: "invalid-blocker-code",
+    });
+    expect(Object.values(result.rates).every((rate) => rate === null)).toBe(true);
+  });
 });

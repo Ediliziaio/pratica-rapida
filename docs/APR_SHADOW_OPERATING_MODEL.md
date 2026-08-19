@@ -69,6 +69,18 @@ Per ogni pratica che APR blocca o che, nel confronto umano, risulta errata:
 
 La revisione quotidiana dell'operatore è parte del sistema di apprendimento, non un'eccezione temporanea.
 
+### Gate delle nuove regole
+
+Un blocker candidato alla correzione non viene promosso soltanto perché il suo false-block rate è alto. Prima di considerare valida la nuova regola bisogna eseguire un replay sullo **stesso corpus già revisionato** e dimostrare che:
+
+- tutti i false-block attribuiti al blocker target vengono rimossi;
+- i casi in cui lo stesso blocker era corretto restano bloccati dallo stesso motivo;
+- una pratica prima corretta non diventa errata;
+- i blocker non correlati al target non cambiano;
+- una correzione nata per ridurre un false-block non introduce il blocker target su casi che prima non avevano evidenza blocker-specifica.
+
+Nei casi multi-causa una pratica può restare complessivamente bloccata per un altro falso blocker: la correzione del target è comunque valida se rimuove esclusivamente la causa attribuita e lascia invariato tutto il resto. Questo consente fix piccoli, reversibili e misurabili invece di accorpare più correzioni nello stesso commit.
+
 ## KPI Shadow
 
 KPI principali **per prodotto**; l'aggregato complessivo è utile per capacità e copertura, ma non deve nascondere la qualità di un singolo adapter:

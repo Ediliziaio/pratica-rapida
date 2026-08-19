@@ -43,12 +43,19 @@ export interface Project400ChannelInput {
   channelId: string;
   audience: Project400Audience;
   availableLeads: number;
+  /**
+   * Contatti che si intende realmente lavorare nel ciclo corrente.
+   * Per warm_legacy è obbligatorio: l'intera audience storica non può essere
+   * usata implicitamente come se fosse un mass blast.
+   */
+  plannedContacts?: number;
   rates: Project400FunnelRates;
   averageMonthlyPracticesPerFifthPracticeCustomer: number;
   costPerLead?: number;
 }
 
 export interface Project400ChannelForecast extends Project400ChannelInput {
+  plannedContacts: number;
   recommendedMotion: Project400Motion;
   funnelConversionToFifth: number;
   expectedFirstPractices: number;
@@ -175,6 +182,21 @@ function motionForAudience(audience: Project400Audience): Project400Motion {
   return "acquisition";
 }
 
+function resolvePlannedContacts(input: Project400ChannelInput): number {
+  if (input.audience === "warm_legacy" && input.plannedContacts === undefined) {
+    throw new Error("plannedContacts è obbligatorio per warm_legacy: il forecast non può assumere un mass blast");
+  }
+
+  const plannedContacts = input.plannedContacts ?? input.availableLeads;
+  assertFiniteNonNegative("plannedContacts", plannedContacts);
+
+  if (plannedContacts > input.availableLeads) {
+    throw new Error("plannedContacts non può superare availableLeads");
+  }
+
+  return plannedContacts;
+}
+
 export function buildProject400ChannelForecast(input: Project400ChannelInput): Project400ChannelForecast {
   if (!input.channelId.trim()) throw new Error("channelId è obbligatorio");
   assertFiniteNonNegative("availableLeads", input.availableLeads);
@@ -185,7 +207,8 @@ export function buildProject400ChannelForecast(input: Project400ChannelInput): P
   validateRates(input.rates);
   if (input.costPerLead !== undefined) assertFiniteNonNegative("costPerLead", input.costPerLead);
 
-  const expectedFirstPractices = input.availableLeads * input.rates.leadToFirst;
+  const plannedContacts = resolvePlannedContacts(input);
+  const expectedFirstPractices = plannedContacts * input.rates.leadToFirst;
   const expectedSecondPractices = expectedFirstPractices * input.rates.firstToSecond;
   const expectedFifthPracticeCustomers = expectedSecondPractices * input.rates.secondToFifth;
   const expectedMonthlyPractices = (
@@ -193,10 +216,11 @@ export function buildProject400ChannelForecast(input: Project400ChannelInput): P
   );
   const projectedSpend = input.costPerLead === undefined
     ? null
-    : input.availableLeads * input.costPerLead;
+    : plannedContacts * input.costPerLead;
 
   return {
     ...input,
+    plannedContacts,
     recommendedMotion: motionForAudience(input.audience),
     funnelConversionToFifth: conversionToFifth(input.rates),
     expectedFirstPractices,

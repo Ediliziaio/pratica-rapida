@@ -44,6 +44,18 @@ describe("APR product shadow readiness", () => {
     ]);
   });
 
+  it("richiede che tutta la ground truth disponibile sia stata auditata", () => {
+    const result = evaluateAprProductShadowReadiness("infissi", {
+      ...completeEvidence,
+      historicalAuditsCompared: 2,
+      globalShadowUserGateGranted: true,
+    });
+
+    expect(result.technicalShadowReady).toBe(false);
+    expect(result.operationalShadowAllowed).toBe(false);
+    expect(result.blockers).toEqual(["historical-ground-truth-not-fully-audited"]);
+  });
+
   it("separa la readiness tecnica dal gate esplicito APR operativo ombra", () => {
     const result = evaluateAprProductShadowReadiness("impianto_termico", completeEvidence);
 

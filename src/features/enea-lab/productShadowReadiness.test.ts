@@ -18,6 +18,7 @@ const completeEvidence = {
 describe("APR product shadow readiness", () => {
   it("resta fail-closed quando mancano le evidenze minime del prodotto", () => {
     const result = evaluateAprProductShadowReadiness("infissi", {
+      evidenceProductType: "infissi",
       completedEneaPdfSamples: 0,
       realParserFixtureSamples: 0,
       historicalAuditsCompared: 0,
@@ -50,6 +51,7 @@ describe("APR product shadow readiness", () => {
   it("richiede che tutta la ground truth disponibile sia stata auditata", () => {
     const result = evaluateAprProductShadowReadiness("infissi", {
       ...completeEvidence,
+      evidenceProductType: "infissi",
       historicalAuditsCompared: 2,
       globalShadowUserGateGranted: true,
     });
@@ -62,11 +64,13 @@ describe("APR product shadow readiness", () => {
   it("rifiuta conteggi di audit impossibili invece di usarli per promuovere la readiness", () => {
     const overAudited = evaluateAprProductShadowReadiness("infissi", {
       ...completeEvidence,
+      evidenceProductType: "infissi",
       historicalAuditsCompared: 4,
       globalShadowUserGateGranted: true,
     });
     const mismatchesBeyondAudits = evaluateAprProductShadowReadiness("infissi", {
       ...completeEvidence,
+      evidenceProductType: "infissi",
       historicalAuditsCompared: 2,
       unresolvedHistoricalMismatches: 3,
       globalShadowUserGateGranted: true,
@@ -82,7 +86,10 @@ describe("APR product shadow readiness", () => {
   });
 
   it("separa la readiness tecnica dal gate esplicito APR operativo ombra", () => {
-    const result = evaluateAprProductShadowReadiness("impianto_termico", completeEvidence);
+    const result = evaluateAprProductShadowReadiness("impianto_termico", {
+      ...completeEvidence,
+      evidenceProductType: "impianto_termico",
+    });
 
     expect(result.technicalShadowReady).toBe(true);
     expect(result.operationalShadowAllowed).toBe(false);
@@ -93,6 +100,7 @@ describe("APR product shadow readiness", () => {
   it("consente shadow operativo solo dopo readiness tecnica e gate utente", () => {
     const result = evaluateAprProductShadowReadiness("insufflaggio", {
       ...completeEvidence,
+      evidenceProductType: "insufflaggio",
       globalShadowUserGateGranted: true,
     });
 
@@ -105,6 +113,7 @@ describe("APR product shadow readiness", () => {
   it("blocca default non osservati e mismatch storici irrisolti anche con suite verde", () => {
     const result = evaluateAprProductShadowReadiness("infissi", {
       ...completeEvidence,
+      evidenceProductType: "infissi",
       unresolvedHistoricalMismatches: 1,
       unobservedDefaultFieldCount: 2,
       globalShadowUserGateGranted: true,

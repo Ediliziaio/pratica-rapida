@@ -13,6 +13,7 @@ export type AprShadowMetricsEvidenceBlocker =
   | "invalid-blocker-code"
   | "verdict-inconsistent-with-apr-result"
   | "unevaluated-case-has-apr-result"
+  | "unknown-product-evaluated"
   | "duplicate-practice-id";
 
 export interface AprShadowMetricCase {
@@ -109,6 +110,12 @@ function validateEvidence(rows: AprShadowMetricCase[]): AprShadowMetricsResult["
     }
     if (!row.evaluated && row.blockerCodes.length > 0) {
       blockers.push({ practiceId: row.practiceId, code: "unevaluated-case-has-apr-result" });
+    }
+    // Un'etichetta prodotto sconosciuta non ha un adapter shadow autorizzato:
+    // può stare nel perimetro per misurare l'unknown-product rate, ma non deve
+    // contribuire a coverage/ready/auto-map come se APR l'avesse davvero valutata.
+    if (row.productType === "unknown" && row.evaluated) {
+      blockers.push({ practiceId: row.practiceId, code: "unknown-product-evaluated" });
     }
     if (!verdictMatchesAprResult(row)) {
       blockers.push({ practiceId: row.practiceId, code: "verdict-inconsistent-with-apr-result" });

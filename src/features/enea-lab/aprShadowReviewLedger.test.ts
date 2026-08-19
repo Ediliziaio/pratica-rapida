@@ -125,6 +125,40 @@ describe("APR shadow review ledger", () => {
     expect(result.state).toEqual(previous);
   });
 
+  it("si ferma anche se il ledger precedente e gia corrotto", () => {
+    const valid = reconcileAprShadowReviewLedger({ records: [] }, [snapshot()]).state.records[0]!;
+    const corrupted: AprShadowReviewLedgerState = {
+      records: [valid, { ...valid }],
+    };
+
+    const result = reconcileAprShadowReviewLedger(
+      corrupted,
+      [snapshot({ practiceId: "practice-2" })],
+    );
+
+    expect(result.evidenceValid).toBe(false);
+    expect(result.evidenceBlockers).toContainEqual({
+      practiceId: "practice-1",
+      code: "duplicate-practice-id",
+    });
+    expect(result.state).toEqual(corrupted);
+  });
+
+  it("non sovrascrive lo storage con uno stato in memoria invalido", () => {
+    const storage = memoryStorage();
+    const valid = reconcileAprShadowReviewLedger({ records: [] }, [snapshot()]).state;
+    saveAprShadowReviewLedger(storage, valid, new Date("2026-08-19T08:00:00Z"));
+    const before = storage.getItem(APR_SHADOW_REVIEW_LEDGER_STORAGE_KEY);
+
+    saveAprShadowReviewLedger(
+      storage,
+      { records: [valid.records[0]!, { ...valid.records[0]! }] },
+      new Date("2026-08-19T09:00:00Z"),
+    );
+
+    expect(storage.getItem(APR_SHADOW_REVIEW_LEDGER_STORAGE_KEY)).toBe(before);
+  });
+
   it("persiste solo localmente, ricarica il ledger valido e scade dopo 120 giorni", () => {
     const storage = memoryStorage();
     const state = reconcileAprShadowReviewLedger({ records: [] }, [snapshot()]).state;

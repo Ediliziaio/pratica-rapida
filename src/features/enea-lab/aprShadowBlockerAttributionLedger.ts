@@ -10,6 +10,9 @@ import {
   type AprShadowReviewRecord,
 } from "./aprShadowReviewLedger";
 
+export const APR_SHADOW_BLOCKER_ATTRIBUTION_LEDGER_STORAGE_KEY =
+  "enea-lab:apr-shadow-blocker-attribution-ledger:v1";
+
 export interface AprShadowBlockerAttributionRecord extends AprShadowBlockerAttribution {
   aprFingerprint: string;
   attributedAt: string;
@@ -41,6 +44,15 @@ export interface AprShadowBlockerAttributionLedgerResult {
   state: AprShadowBlockerAttributionLedgerState;
 }
 
+export interface AprShadowBlockerAttributionLedgerLoadResult {
+  storageValid: boolean;
+  state: AprShadowBlockerAttributionLedgerState;
+}
+
+type ReadableAttributionStorage = Pick<Storage, "getItem"> & Partial<Pick<Storage, "removeItem">>;
+
+const EMPTY_STATE: AprShadowBlockerAttributionLedgerState = { records: [] };
+
 function attributionKey(practiceId: string, blockerCode: string): string {
   return `${practiceId}\u0000${blockerCode}`;
 }
@@ -63,6 +75,24 @@ function isRecordStructurallyValid(
     blockers.push("invalid-attribution-timeline");
   }
   return blockers;
+}
+
+function parseAttributionRecord(value: unknown): AprShadowBlockerAttributionRecord | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const candidate = value as Record<string, unknown>;
+  if (typeof candidate.practiceId !== "string" || candidate.practiceId.trim().length === 0) return null;
+  if (typeof candidate.blockerCode !== "string" || candidate.blockerCode.trim().length === 0) return null;
+  if (candidate.verdict !== "correct-block" && candidate.verdict !== "false-block") return null;
+  if (typeof candidate.aprFingerprint !== "string" || candidate.aprFingerprint.trim().length === 0) return null;
+  if (typeof candidate.attributedAt !== "string" || !Number.isFinite(Date.parse(candidate.attributedAt))) return null;
+
+  return {
+    practiceId: candidate.practiceId,
+    blockerCode: candidate.blockerCode,
+    verdict: candidate.verdict,
+    aprFingerprint: candidate.aprFingerprint,
+    attributedAt: candidate.attributedAt,
+  };
 }
 
 function recordStillApplies(
@@ -217,6 +247,70 @@ export function reconcileAprShadowBlockerAttributionLedger(
     evidenceBlockers: [],
     state: { records: sortedRecords([...nextRecords.values()]) },
   };
+}
+
+export function loadAprShadowBlockerAttributionLedger(
+  storage: ReadableAttributionStorage,
+  reviewLedgerState: AprShadowReviewLedgerState,
+  now = new Date(),
+): AprShadowBlockerAttributionLedgerLoadResult {
+  try {
+    const raw = storage.getItem(APR_SHADOW_BLOCKER_ATTRIBUTION_LEDGER_STORAGE_KEY);
+    if (!raw) return { storageValid: true, state: EMPTY_STATE };
+
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const savedAt = typeof parsed.savedAt === "string" ? Date.parse(parsed.savedAt) : Number.NaN;
+    if (!Number.isFinite(savedAt) || savedAt > now.getTime() || !Array.isArray(parsed.records)) {
+      return { storageValid: false, state: EMPTY_STATE };
+    }
+
+    const records = parsed.records.map(parseAttributionRecord);
+    if (records.some((record) => record == null)) {
+      return { storageValid: false, state: EMPTY_STATE };
+    }
+
+    const reconciled = reconcileAprShadowBlockerAttributionLedger(
+      { records: records as AprShadowBlockerAttributionRecord[] },
+      reviewLedgerState,
+      [],
+      now,
+    );
+    if (!reconciled.evidenceValid) {
+      return { storageValid: false, state: EMPTY_STATE };
+    }
+
+    if ((records as AprShadowBlockerAttributionRecord[]).length > 0 && reconciled.state.records.length === 0) {
+      storage.removeItem?.(APR_SHADOW_BLOCKER_ATTRIBUTION_LEDGER_STORAGE_KEY);
+    }
+    return { storageValid: true, state: reconciled.state };
+  } catch {
+    return { storageValid: false, state: EMPTY_STATE };
+  }
+}
+
+export function saveAprShadowBlockerAttributionLedger(
+  storage: Pick<Storage, "setItem">,
+  state: AprShadowBlockerAttributionLedgerState,
+  reviewLedgerState: AprShadowReviewLedgerState,
+  now = new Date(),
+): boolean {
+  const reconciled = reconcileAprShadowBlockerAttributionLedger(
+    state,
+    reviewLedgerState,
+    [],
+    now,
+  );
+  if (!reconciled.evidenceValid) return false;
+
+  try {
+    storage.setItem(APR_SHADOW_BLOCKER_ATTRIBUTION_LEDGER_STORAGE_KEY, JSON.stringify({
+      records: reconciled.state.records,
+      savedAt: now.toISOString(),
+    }));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function aprShadowBlockerAttributionLedgerToAttributions(

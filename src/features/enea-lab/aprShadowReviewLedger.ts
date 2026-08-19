@@ -116,6 +116,23 @@ function validateLedgerRecords(
   return blockers;
 }
 
+function recordRetentionAnchorMs(record: AprShadowReviewRecord): number {
+  const reviewedAtMs = record.reviewedAt == null ? Number.NaN : Date.parse(record.reviewedAt);
+  if (Number.isFinite(reviewedAtMs)) return reviewedAtMs;
+  return Date.parse(record.observedAt);
+}
+
+function retainFreshLedgerRecords(
+  records: AprShadowReviewRecord[],
+  now: Date,
+): AprShadowReviewRecord[] {
+  const nowMs = now.getTime();
+  return records.filter((record) => {
+    const anchorMs = recordRetentionAnchorMs(record);
+    return Number.isFinite(anchorMs) && nowMs - anchorMs <= APR_SHADOW_REVIEW_LEDGER_TTL_MS;
+  });
+}
+
 function parseRecord(value: unknown): AprShadowReviewRecord | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const candidate = value as Record<string, unknown>;
@@ -200,7 +217,13 @@ export function loadAprShadowReviewLedger(
       return { storageValid: false, expired: false, state: EMPTY_STATE };
     }
 
-    return { storageValid: true, expired: false, state: { records: typedRecords } };
+    const freshRecords = retainFreshLedgerRecords(typedRecords, now);
+    if (typedRecords.length > 0 && freshRecords.length === 0) {
+      storage.removeItem?.(APR_SHADOW_REVIEW_LEDGER_STORAGE_KEY);
+      return { storageValid: true, expired: true, state: EMPTY_STATE };
+    }
+
+    return { storageValid: true, expired: false, state: { records: freshRecords } };
   } catch {
     return { storageValid: false, expired: false, state: EMPTY_STATE };
   }
@@ -215,9 +238,11 @@ export function saveAprShadowReviewLedger(
   // sovrascrivere un ledger locale valido e diventare la base dei KPI futuri.
   if (validateLedgerRecords(state.records, now).length > 0) return;
 
+  const freshRecords = retainFreshLedgerRecords(state.records, now);
+
   try {
     storage.setItem(APR_SHADOW_REVIEW_LEDGER_STORAGE_KEY, JSON.stringify({
-      records: state.records,
+      records: freshRecords,
       savedAt: now.toISOString(),
     }));
   } catch {
@@ -267,7 +292,8 @@ export function reconcileAprShadowReviewLedger(
     };
   }
 
-  const previousByPractice = new Map(previousState.records.map((record) => [record.practiceId, record]));
+  const freshPreviousRecords = retainFreshLedgerRecords(previousState.records, now);
+  const previousByPractice = new Map(freshPreviousRecords.map((record) => [record.practiceId, record]));
   const currentIds = new Set(currentSnapshots.map((snapshot) => snapshot.practiceId));
   const observedAt = now.toISOString();
   const reconciledCurrent = currentSnapshots.map((snapshot): AprShadowReviewRecord => {
@@ -294,7 +320,7 @@ export function reconcileAprShadowReviewLedger(
 
   const nextState: AprShadowReviewLedgerState = {
     records: [
-      ...previousState.records.filter((record) => !currentIds.has(record.practiceId)),
+      ...freshPreviousRecords.filter((record) => !currentIds.has(record.practiceId)),
       ...reconciledCurrent,
     ],
   };

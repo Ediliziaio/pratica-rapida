@@ -71,18 +71,18 @@ La revisione quotidiana dell'operatore è parte del sistema di apprendimento, no
 
 ## KPI Shadow
 
-KPI principali per prodotto:
+KPI principali **per prodotto**; l'aggregato complessivo è utile per capacità e copertura, ma non deve nascondere la qualità di un singolo adapter:
 
 - **coverage** = pratiche shadow valutabili / pratiche entrate nel perimetro;
 - **auto-map rate** = campi pronti senza intervento / campi richiesti;
 - **blocker rate** = pratiche bloccate / pratiche valutate;
 - **false-block rate** = blocchi che l'operatore giudica non necessari / blocchi totali;
-- **escaped-error rate** = errori trovati dall'operatore in dati che APR aveva dichiarato pronti / pratiche valutate;
+- **escaped-error rate** = pratiche dichiarate ready da APR ma giudicate errate dall'operatore / pratiche dichiarate ready da APR;
 - **historical match rate** = audit storici match / audit completabili;
 - **median preparation time** = tempo umano necessario per portare una pratica da intake a pacchetto shadow completo;
 - **unknown-product rate** = etichette prodotto non classificabili / pratiche censite.
 
-Guardrail: l'escaped-error rate deve tendere a zero. Se cresce, si aumenta il fail-closed; non si riducono i blocker per migliorare artificialmente la coverage.
+Guardrail: l'escaped-error rate deve tendere a zero ed è condizionato alle pratiche dichiarate ready, non a tutte le pratiche valutate. In questo modo APR non può migliorare artificialmente il KPI semplicemente bloccando più pratiche. Se cresce, si aumenta il fail-closed; non si riducono i blocker per migliorare artificialmente la coverage.
 
 ## Gate
 

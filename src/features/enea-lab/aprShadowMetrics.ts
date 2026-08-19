@@ -115,7 +115,17 @@ function validateEvidence(rows: AprShadowMetricCase[]): AprShadowMetricsResult["
     if (row.blockerCodes.some((code) => code.trim().length === 0)) {
       blockers.push({ practiceId: row.practiceId, code: "invalid-blocker-code" });
     }
-    if (!row.evaluated && row.blockerCodes.length > 0) {
+    // Se APR non ha valutato la pratica, non può aver prodotto né blocker né campi
+    // mappati/auto-ready. Accettarli renderebbe il dataset internamente incoerente
+    // e permetterebbe output orfani di entrare nel loop di apprendimento.
+    if (
+      !row.evaluated
+      && (
+        row.blockerCodes.length > 0
+        || row.mappedFieldCount > 0
+        || row.autoReadyFieldCount > 0
+      )
+    ) {
       blockers.push({ practiceId: row.practiceId, code: "unevaluated-case-has-apr-result" });
     }
     // Un'etichetta prodotto sconosciuta non ha un adapter shadow autorizzato:

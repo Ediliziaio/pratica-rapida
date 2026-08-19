@@ -46,11 +46,10 @@ function queueItemOrder(left: AprShadowReviewQueueItem, right: AprShadowReviewQu
   return left.practiceId.localeCompare(right.practiceId);
 }
 
-function buildBlockerFrequency(rows: AprShadowMetricCase[]): Map<string, number> {
+function buildBlockerFrequency(queue: AprShadowReviewQueueItem[]): Map<string, number> {
   const frequency = new Map<string, number>();
-  for (const row of rows) {
-    if (!row.evaluated || row.blockerCodes.length === 0) continue;
-    for (const code of new Set(row.blockerCodes)) {
+  for (const item of queue) {
+    for (const code of new Set(item.blockerCodes)) {
       frequency.set(code, (frequency.get(code) ?? 0) + 1);
     }
   }
@@ -58,10 +57,12 @@ function buildBlockerFrequency(rows: AprShadowMetricCase[]): Map<string, number>
 }
 
 function rankBlockedQueue(
-  rows: AprShadowMetricCase[],
   queue: AprShadowReviewQueueItem[],
 ): AprShadowReviewQueueItem[] {
-  const blockerFrequency = buildBlockerFrequency(rows);
+  // La leva giornaliera deve riflettere il backlog ancora aperto. Usare anche
+  // pratiche gia revisionate farebbe dominare blocker storicamente frequenti
+  // ma ormai chiusi, sottraendo tempo ai colli di bottiglia correnti.
+  const blockerFrequency = buildBlockerFrequency(queue);
 
   return [...queue].sort((left, right) => {
     // Le pratiche a causa singola hanno la massima leva per il loop di
@@ -183,7 +184,7 @@ export function buildAprShadowDailyReviewPlan(
     };
   }
 
-  const blockedRanked = rankBlockedQueue(rows, backlog.blockedReviewQueue);
+  const blockedRanked = rankBlockedQueue(backlog.blockedReviewQueue);
   const blockedSelected = blockedRanked.slice(0, options.blockedLimit);
   const readySelected = selectBalancedReadyAudits(
     rows,

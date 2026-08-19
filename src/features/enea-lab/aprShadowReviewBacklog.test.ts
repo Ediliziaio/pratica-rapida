@@ -94,6 +94,38 @@ describe("APR shadow review backlog", () => {
     expect(incomplete.blockerQuality[0]?.reviewedCases).toBe(1);
   });
 
+  it("non attribuisce il verdetto della pratica a tutti i blocker quando il blocco ha cause multiple", () => {
+    const result = buildAprShadowReviewBacklog([
+      row(
+        "mixed-1",
+        "schermature",
+        ["document-missing", "gtot-missing"],
+        "false-block",
+      ),
+      row("doc-2", "schermature", ["document-missing"], "correct-block"),
+      row("gtot-2", "schermature", ["gtot-missing"], "correct-block"),
+    ]);
+
+    expect(result.blockerQuality).toEqual([
+      {
+        code: "document-missing",
+        affectedCases: 2,
+        reviewedCases: 1,
+        correctBlockCases: 1,
+        falseBlockCases: 0,
+        falseBlockRate: null,
+      },
+      {
+        code: "gtot-missing",
+        affectedCases: 2,
+        reviewedCases: 1,
+        correctBlockCases: 1,
+        falseBlockCases: 0,
+        falseBlockRate: null,
+      },
+    ]);
+  });
+
   it("spegne la coda operativa se le evidenze KPI sono strutturalmente invalide", () => {
     const result = buildAprShadowReviewBacklog([
       row("same-practice", "schermature", ["document-missing"]),

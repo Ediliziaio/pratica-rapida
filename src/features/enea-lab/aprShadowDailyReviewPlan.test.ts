@@ -54,6 +54,28 @@ describe("APR shadow daily review plan", () => {
     expect(result.blocked.deferred).toBe(2);
   });
 
+  it("calcola la leva sui blocker ancora da revisionare, non sullo storico gia chiuso", () => {
+    const rows: AprShadowMetricCase[] = [
+      ...Array.from({ length: 20 }, (_, index) => blockedCase(
+        `legacy-reviewed-${index}`,
+        "schermature",
+        ["legacy-blocker"],
+        "correct-block",
+      )),
+      blockedCase("legacy-pending", "schermature", ["legacy-blocker"]),
+      blockedCase("current-hot-1", "infissi", ["current-hot"]),
+      blockedCase("current-hot-2", "impianto_termico", ["current-hot"]),
+    ];
+
+    const result = buildAprShadowDailyReviewPlan(rows, {
+      blockedLimit: 1,
+      readyAuditLimit: 0,
+    });
+
+    expect(result.planValid).toBe(true);
+    expect(result.blocked.selected.map((item) => item.practiceId)).toEqual(["current-hot-1"]);
+  });
+
   it("usa gli audit ready per colmare prima il prodotto meno revisionato", () => {
     const result = buildAprShadowDailyReviewPlan([
       readyCase("screening-reviewed", "schermature", "correct-ready"),

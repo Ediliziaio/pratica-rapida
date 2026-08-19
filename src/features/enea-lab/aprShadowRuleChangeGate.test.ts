@@ -53,6 +53,24 @@ describe("APR shadow rule change gate", () => {
     });
   });
 
+  it("permette una fix blocker-specifica anche se un altro false-block mantiene la pratica bloccata", () => {
+    const result = validateAprShadowRuleChange({
+      targetBlockerCode: "gtot-missing",
+      cases: [
+        replayCase({
+          expectedDisposition: "ready",
+          targetBlockerVerdict: "false-block",
+          baselineBlockerCodes: ["gtot-missing", "other-false-block"],
+          candidateBlockerCodes: ["other-false-block"],
+        }),
+      ],
+    });
+
+    expect(result.evidenceValid).toBe(true);
+    expect(result.promotable).toBe(true);
+    expect(result.guardrailBlockers).toEqual([]);
+  });
+
   it("blocca una fix che lascia irrisolto un false-block del blocker target", () => {
     const result = validateAprShadowRuleChange({
       targetBlockerCode: "gtot-missing",
@@ -122,6 +140,34 @@ describe("APR shadow rule change gate", () => {
     expect(result.guardrailBlockers).toContainEqual({
       practiceId: "ready-regression",
       code: "unrelated-blocker-drift",
+    });
+  });
+
+  it("non usa una fix di false-block per introdurre il blocker target su casi senza evidenza baseline", () => {
+    const result = validateAprShadowRuleChange({
+      targetBlockerCode: "gtot-missing",
+      cases: [
+        replayCase({
+          practiceId: "target-case",
+          expectedDisposition: "ready",
+          baselineBlockerCodes: ["gtot-missing"],
+          candidateBlockerCodes: [],
+        }),
+        replayCase({
+          practiceId: "new-target",
+          expectedDisposition: "blocked",
+          targetBlockerVerdict: null,
+          baselineBlockerCodes: ["document-missing"],
+          candidateBlockerCodes: ["document-missing", "gtot-missing"],
+        }),
+      ],
+    });
+
+    expect(result.evidenceValid).toBe(true);
+    expect(result.promotable).toBe(false);
+    expect(result.guardrailBlockers).toContainEqual({
+      practiceId: "new-target",
+      code: "target-introduced-without-baseline-evidence",
     });
   });
 

@@ -8,6 +8,7 @@ export type AprProductShadowReadinessBlocker =
   | "historical-mismatch-unresolved"
   | "unobserved-default-present"
   | "technical-portal-contract-unobserved"
+  | "technical-performance-source-unobserved"
   | "product-parser-missing"
   | "product-mapper-missing"
   | "capability-gate-missing"
@@ -22,6 +23,13 @@ export interface AprProductShadowReadinessEvidence {
   unresolvedHistoricalMismatches: number;
   unobservedDefaultFieldCount: number;
   technicalPortalContractObserved: boolean;
+  /**
+   * True soltanto quando la sorgente reale della prestazione tecnica richiesta
+   * dal prodotto e stata osservata e congelata: per esempio certificazione/
+   * documento tecnico, fattura o altro input verificato. Il solo CRM strutturato
+   * e la sola presenza di un PDF non bastano a promuovere il mapping tecnico.
+   */
+  technicalPerformanceSourceObserved?: boolean;
   productParserImplemented: boolean;
   productMapperImplemented: boolean;
   capabilityGateImplemented: boolean;
@@ -110,6 +118,14 @@ export function evaluateAprProductShadowReadiness(
   }
   if (!evidence.technicalPortalContractObserved) {
     technicalBlockers.push("technical-portal-contract-unobserved");
+  }
+  // Hard gate separato dal contratto della pagina: conoscere i campi del portale
+  // non dimostra ancora da dove provenga il valore tecnico da scrivere. Per i
+  // prodotti nuovi APR deve prima osservare e congelare la sorgente documentale
+  // della prestazione, altrimenti un mapper completo potrebbe essere solo un
+  // insieme di valori dedotti o mancanti mascherati da readiness.
+  if (evidence.technicalPerformanceSourceObserved !== true) {
+    technicalBlockers.push("technical-performance-source-unobserved");
   }
   if (!evidence.productParserImplemented) technicalBlockers.push("product-parser-missing");
   if (!evidence.productMapperImplemented) technicalBlockers.push("product-mapper-missing");

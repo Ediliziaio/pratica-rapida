@@ -109,7 +109,10 @@ export function validateAprShadowRuleChange(
   const guardrailBlockers: AprShadowRuleChangeGateResult["guardrailBlockers"] = [];
   const targetBlockerCode = input.targetBlockerCode.trim();
 
-  if (targetBlockerCode.length === 0) {
+  if (
+    targetBlockerCode.length === 0 ||
+    targetBlockerCode !== input.targetBlockerCode
+  ) {
     evidenceBlockers.push({ practiceId: "", code: "invalid-target-blocker-code" });
   }
   if (input.cases.length === 0) {
@@ -120,19 +123,20 @@ export function validateAprShadowRuleChange(
 
   for (const row of input.cases) {
     const practiceId = row.practiceId.trim();
-    if (practiceId.length === 0) {
+    if (practiceId.length === 0 || practiceId !== row.practiceId) {
       evidenceBlockers.push({ practiceId: row.practiceId, code: "invalid-practice-id" });
     }
-    if (seenPracticeIds.has(row.practiceId)) {
+    if (seenPracticeIds.has(practiceId)) {
       evidenceBlockers.push({ practiceId: row.practiceId, code: "duplicate-practice-id" });
     }
-    seenPracticeIds.add(row.practiceId);
+    seenPracticeIds.add(practiceId);
 
     for (const codes of [row.baselineBlockerCodes, row.candidateBlockerCodes]) {
-      if (codes.some((code) => code.trim().length === 0)) {
+      const normalizedCodes = codes.map((code) => code.trim());
+      if (codes.some((code) => code.trim().length === 0 || code !== code.trim())) {
         evidenceBlockers.push({ practiceId: row.practiceId, code: "invalid-blocker-code" });
       }
-      if (uniqueCodes(codes).length !== codes.length) {
+      if (uniqueCodes(normalizedCodes).length !== codes.length) {
         evidenceBlockers.push({ practiceId: row.practiceId, code: "duplicate-blocker-code" });
       }
     }

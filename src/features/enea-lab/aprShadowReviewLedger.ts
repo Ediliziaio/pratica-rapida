@@ -41,7 +41,7 @@ export interface AprShadowReviewLedgerReconcileResult {
 }
 
 type AprShadowMetricsEvidenceCode = ReturnType<typeof calculateAprShadowMetrics>["evidenceBlockers"][number]["code"];
-
+type AprShadowReviewLedgerEvidenceBlocker = AprShadowReviewLedgerReconcileResult["evidenceBlockers"][number];
 type ReadableStorage = Pick<Storage, "getItem"> & Partial<Pick<Storage, "removeItem">>;
 
 const EMPTY_STATE: AprShadowReviewLedgerState = { records: [] };
@@ -76,6 +76,23 @@ function verdictAllowed(
     return verdict === "correct-block" || verdict === "false-block";
   }
   return verdict === "correct-ready" || verdict === "escaped-error";
+}
+
+function toMetricRows(records: AprShadowReviewRecord[]): AprShadowMetricCase[] {
+  return records.map(({ aprFingerprint: _fingerprint, observedAt: _observedAt, reviewedAt: _reviewedAt, ...row }) => row);
+}
+
+function validateLedgerRecords(records: AprShadowReviewRecord[]): AprShadowReviewLedgerEvidenceBlocker[] {
+  const metrics = calculateAprShadowMetrics(toMetricRows(records));
+  const blockers: AprShadowReviewLedgerEvidenceBlocker[] = [...metrics.evidenceBlockers];
+
+  for (const record of records) {
+    if (record.aprFingerprint.trim().length === 0) {
+      blockers.push({ practiceId: record.practiceId, code: "invalid-apr-fingerprint" });
+    }
+  }
+
+  return blockers;
 }
 
 function parseRecord(value: unknown): AprShadowReviewRecord | null {
@@ -158,8 +175,7 @@ export function loadAprShadowReviewLedger(
     }
 
     const typedRecords = records as AprShadowReviewRecord[];
-    const metrics = calculateAprShadowMetrics(typedRecords.map(({ aprFingerprint: _fingerprint, observedAt: _observedAt, reviewedAt: _reviewedAt, ...row }) => row));
-    if (!metrics.evidenceValid) {
+    if (validateLedgerRecords(typedRecords).length > 0) {
       return { storageValid: false, expired: false, state: EMPTY_STATE };
     }
 
@@ -174,6 +190,10 @@ export function saveAprShadowReviewLedger(
   state: AprShadowReviewLedgerState,
   now = new Date(),
 ): void {
+  // Fail-closed anche sulla persistenza: uno stato in memoria corrotto non deve
+  // sovrascrivere un ledger locale valido e diventare la base dei KPI futuri.
+  if (validateLedgerRecords(state.records).length > 0) return;
+
   try {
     storage.setItem(APR_SHADOW_REVIEW_LEDGER_STORAGE_KEY, JSON.stringify({
       records: state.records,
@@ -196,6 +216,9 @@ export function reconcileAprShadowReviewLedger(
   currentSnapshots: AprShadowMachineSnapshot[],
   now = new Date(),
 ): AprShadowReviewLedgerReconcileResult {
+  const evidenceBlockers: AprShadowReviewLedgerReconcileResult["evidenceBlockers"] = [
+    ...validateLedgerRecords(previousState.records),
+  ];
   const snapshotRows: AprShadowMetricCase[] = currentSnapshots.map((snapshot) => ({
     practiceId: snapshot.practiceId,
     productType: snapshot.productType,
@@ -207,9 +230,7 @@ export function reconcileAprShadowReviewLedger(
     preparationMinutes: snapshot.preparationMinutes,
   }));
   const snapshotMetrics = calculateAprShadowMetrics(snapshotRows);
-  const evidenceBlockers: AprShadowReviewLedgerReconcileResult["evidenceBlockers"] = [
-    ...snapshotMetrics.evidenceBlockers,
-  ];
+  evidenceBlockers.push(...snapshotMetrics.evidenceBlockers);
 
   for (const snapshot of currentSnapshots) {
     if (snapshot.aprFingerprint.trim().length === 0) {
@@ -250,15 +271,25 @@ export function reconcileAprShadowReviewLedger(
     };
   });
 
+  const nextState: AprShadowReviewLedgerState = {
+    records: [
+      ...previousState.records.filter((record) => !currentIds.has(record.practiceId)),
+      ...reconciledCurrent,
+    ],
+  };
+  const nextStateBlockers = validateLedgerRecords(nextState.records);
+  if (nextStateBlockers.length > 0) {
+    return {
+      evidenceValid: false,
+      evidenceBlockers: nextStateBlockers,
+      state: previousState,
+    };
+  }
+
   return {
     evidenceValid: true,
     evidenceBlockers: [],
-    state: {
-      records: [
-        ...previousState.records.filter((record) => !currentIds.has(record.practiceId)),
-        ...reconciledCurrent,
-      ],
-    },
+    state: nextState,
   };
 }
 
@@ -278,7 +309,7 @@ export function applyAprShadowOperatorVerdict(
 export function aprShadowLedgerToMetricCases(
   state: AprShadowReviewLedgerState,
 ): AprShadowMetricCase[] {
-  return state.records.map(({ aprFingerprint: _fingerprint, observedAt: _observedAt, reviewedAt: _reviewedAt, ...row }) => ({
+  return toMetricRows(state.records).map((row) => ({
     ...row,
     blockerCodes: [...row.blockerCodes],
   }));

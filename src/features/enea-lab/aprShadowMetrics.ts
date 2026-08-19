@@ -8,6 +8,7 @@ export type AprShadowOperatorVerdict =
   | "escaped-error";
 
 export type AprShadowMetricsEvidenceBlocker =
+  | "invalid-practice-id"
   | "invalid-field-counts"
   | "invalid-preparation-time"
   | "invalid-blocker-code"
@@ -92,6 +93,12 @@ function validateEvidence(rows: AprShadowMetricCase[]): AprShadowMetricsResult["
   }
 
   for (const row of rows) {
+    // I KPI shadow devono essere riconducibili a una pratica reale e revisionabile.
+    // Un identificativo vuoto renderebbe impossibile attribuire verdetti/correzioni e
+    // potrebbe far pesare nel campione evidenza che non può essere verificata.
+    if (row.practiceId.trim().length === 0) {
+      blockers.push({ practiceId: row.practiceId, code: "invalid-practice-id" });
+    }
     if (
       !isValidFieldCount(row.mappedFieldCount)
       || !isValidFieldCount(row.autoReadyFieldCount)

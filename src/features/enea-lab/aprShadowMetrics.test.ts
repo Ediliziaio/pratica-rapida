@@ -99,6 +99,28 @@ describe("APR shadow metrics", () => {
     expect(result.medianPreparationMinutes).toBeNull();
   });
 
+  it("non permette a un prodotto sconosciuto di essere contato come valutato o ready", () => {
+    const result = calculateAprShadowMetrics([
+      {
+        practiceId: "unknown-ready",
+        productType: "unknown",
+        evaluated: true,
+        blockerCodes: [],
+        mappedFieldCount: 10,
+        autoReadyFieldCount: 10,
+        operatorVerdict: "correct-ready",
+        preparationMinutes: 3,
+      },
+    ]);
+
+    expect(result.evidenceValid).toBe(false);
+    expect(result.evidenceBlockers).toContainEqual({
+      practiceId: "unknown-ready",
+      code: "unknown-product-evaluated",
+    });
+    expect(Object.values(result.rates).every((rate) => rate === null)).toBe(true);
+  });
+
   it("rifiuta un verdetto di falso blocco su una pratica che APR aveva dichiarato pronta", () => {
     const result = calculateAprShadowMetrics([
       {

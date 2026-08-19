@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  buildAprProductEvidenceWorkQueue,
-  type AprProductInventoryRow,
-} from "./productIntegration";
+import { buildAprProductEvidenceWorkQueue } from "./productEvidenceWorkQueue";
+import type { AprProductInventoryRow } from "./productIntegration";
 
 function row(overrides: Partial<AprProductInventoryRow>): AprProductInventoryRow {
   return {

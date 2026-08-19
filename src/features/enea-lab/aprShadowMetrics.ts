@@ -12,6 +12,7 @@ export type AprShadowMetricsEvidenceBlocker =
   | "invalid-field-counts"
   | "invalid-preparation-time"
   | "invalid-blocker-code"
+  | "duplicate-blocker-code"
   | "verdict-inconsistent-with-apr-result"
   | "unevaluated-case-has-apr-result"
   | "unknown-product-evaluated"
@@ -86,17 +87,22 @@ function validateEvidence(rows: AprShadowMetricCase[]): AprShadowMetricsResult["
   const practiceIdCounts = new Map<string, number>();
 
   for (const row of rows) {
-    practiceIdCounts.set(row.practiceId, (practiceIdCounts.get(row.practiceId) ?? 0) + 1);
+    const normalizedPracticeId = row.practiceId.trim();
+    practiceIdCounts.set(
+      normalizedPracticeId,
+      (practiceIdCounts.get(normalizedPracticeId) ?? 0) + 1,
+    );
   }
   for (const [practiceId, count] of practiceIdCounts) {
     if (count > 1) blockers.push({ practiceId, code: "duplicate-practice-id" });
   }
 
   for (const row of rows) {
+    const normalizedPracticeId = row.practiceId.trim();
     // I KPI shadow devono essere riconducibili a una pratica reale e revisionabile.
-    // Un identificativo vuoto renderebbe impossibile attribuire verdetti/correzioni e
-    // potrebbe far pesare nel campione evidenza che non può essere verificata.
-    if (row.practiceId.trim().length === 0) {
+    // Un identificativo vuoto o non canonico renderebbe possibile pesare due volte
+    // la stessa pratica usando semplici differenze di whitespace.
+    if (normalizedPracticeId.length === 0 || normalizedPracticeId !== row.practiceId) {
       blockers.push({ practiceId: row.practiceId, code: "invalid-practice-id" });
     }
     if (
@@ -112,8 +118,13 @@ function validateEvidence(rows: AprShadowMetricCase[]): AprShadowMetricsResult["
     ) {
       blockers.push({ practiceId: row.practiceId, code: "invalid-preparation-time" });
     }
-    if (row.blockerCodes.some((code) => code.trim().length === 0)) {
+
+    const normalizedBlockerCodes = row.blockerCodes.map((code) => code.trim());
+    if (row.blockerCodes.some((code) => code.trim().length === 0 || code !== code.trim())) {
       blockers.push({ practiceId: row.practiceId, code: "invalid-blocker-code" });
+    }
+    if (new Set(normalizedBlockerCodes).size !== row.blockerCodes.length) {
+      blockers.push({ practiceId: row.practiceId, code: "duplicate-blocker-code" });
     }
     // Se APR non ha valutato la pratica, non può aver prodotto né blocker né campi
     // mappati/auto-ready. Accettarli renderebbe il dataset internamente incoerente

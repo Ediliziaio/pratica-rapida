@@ -73,7 +73,8 @@ describe("APR shadow daily review plan", () => {
     });
 
     expect(result.planValid).toBe(true);
-    expect(result.blocked.selected.map((item) => item.practiceId)).toEqual(["current-hot-1"]);
+    expect(result.blocked.selected).toHaveLength(1);
+    expect(result.blocked.selected[0]?.blockerCodes).toEqual(["current-hot"]);
   });
 
   it("usa gli audit ready per colmare prima il prodotto meno revisionato", () => {

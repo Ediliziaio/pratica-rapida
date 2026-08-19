@@ -40,11 +40,12 @@ describe("Project 400 operating model", () => {
     expect(plan.requiredLeads).toBe(720);
   });
 
-  it("tratta il database storico come audience calda da riattivare, non come acquisizione fredda", () => {
+  it("tratta il database storico come audience calda e prevede solo il lotto pianificato, non tutti i 600 contatti", () => {
     const forecast = buildProject400ChannelForecast({
       channelId: "legacy-crm",
       audience: "warm_legacy",
       availableLeads: 600,
+      plannedContacts: 25,
       rates: {
         leadToFirst: 0.2,
         firstToSecond: 0.5,
@@ -55,13 +56,43 @@ describe("Project 400 operating model", () => {
     });
 
     expect(forecast.recommendedMotion).toBe("segmented-reactivation");
-    expect(forecast.expectedFifthPracticeCustomers).toBeCloseTo(30);
-    expect(forecast.expectedMonthlyPractices).toBeCloseTo(90);
-    expect(forecast.projectedSpend).toBe(600);
+    expect(forecast.plannedContacts).toBe(25);
+    expect(forecast.expectedFifthPracticeCustomers).toBeCloseTo(1.25);
+    expect(forecast.expectedMonthlyPractices).toBeCloseTo(3.75);
+    expect(forecast.projectedSpend).toBe(25);
     expect(forecast.costPerFifthPracticeCustomer).toBeCloseTo(20);
   });
 
-  it("separa la capacità dei canali dal gap ancora da coprire", () => {
+  it("rifiuta un forecast warm legacy senza un lotto esplicito invece di assumere un mass blast", () => {
+    expect(() => buildProject400ChannelForecast({
+      channelId: "legacy-crm",
+      audience: "warm_legacy",
+      availableLeads: 600,
+      rates: {
+        leadToFirst: 0.2,
+        firstToSecond: 0.5,
+        secondToFifth: 0.5,
+      },
+      averageMonthlyPracticesPerFifthPracticeCustomer: 3,
+    })).toThrow(/plannedContacts/);
+  });
+
+  it("rifiuta lotti superiori all'audience disponibile", () => {
+    expect(() => buildProject400ChannelForecast({
+      channelId: "legacy-crm",
+      audience: "warm_legacy",
+      availableLeads: 600,
+      plannedContacts: 601,
+      rates: {
+        leadToFirst: 0.2,
+        firstToSecond: 0.5,
+        secondToFifth: 0.5,
+      },
+      averageMonthlyPracticesPerFifthPracticeCustomer: 3,
+    })).toThrow(/availableLeads/);
+  });
+
+  it("separa la capacità dei canali dal gap ancora da coprire usando il lotto warm legacy, non l'intera audience", () => {
     const portfolio = planProject400Portfolio({
       targetMonthlyPractices: 400,
       currentMonthlyPractices: 250,
@@ -70,6 +101,7 @@ describe("Project 400 operating model", () => {
           channelId: "legacy-crm",
           audience: "warm_legacy",
           availableLeads: 300,
+          plannedContacts: 30,
           rates: { leadToFirst: 0.2, firstToSecond: 0.5, secondToFifth: 0.5 },
           averageMonthlyPracticesPerFifthPracticeCustomer: 4,
         },
@@ -84,8 +116,10 @@ describe("Project 400 operating model", () => {
     });
 
     expect(portfolio.currentGap).toBe(150);
-    expect(portfolio.projectedIncrementalMonthlyPractices).toBeCloseTo(68);
-    expect(portfolio.remainingGap).toBeCloseTo(82);
+    expect(portfolio.channels[0].plannedContacts).toBe(30);
+    expect(portfolio.channels[1].plannedContacts).toBe(100);
+    expect(portfolio.projectedIncrementalMonthlyPractices).toBeCloseTo(14);
+    expect(portfolio.remainingGap).toBeCloseTo(136);
   });
 
   it("rifiuta rate fuori dominio invece di produrre un piano numericamente seducente ma falso", () => {

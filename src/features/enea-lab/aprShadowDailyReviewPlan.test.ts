@@ -101,6 +101,28 @@ describe("APR shadow daily review plan", () => {
     expect(result.readyAudit.deferred).toBe(2);
   });
 
+  it("bilancia gli audit ready sulla copertura ready, senza farsi distorcere dai blocker gia revisionati", () => {
+    const result = buildAprShadowDailyReviewPlan([
+      ...Array.from({ length: 10 }, (_, index) => blockedCase(
+        `infissi-blocked-reviewed-${index}`,
+        "infissi",
+        ["known-blocker"],
+        "correct-block",
+      )),
+      readyCase("infissi-ready-waiting", "infissi"),
+      readyCase("screening-ready-reviewed", "schermature", "correct-ready"),
+      readyCase("screening-ready-waiting", "schermature"),
+    ], {
+      blockedLimit: 0,
+      readyAuditLimit: 1,
+    });
+
+    expect(result.planValid).toBe(true);
+    expect(result.readyAudit.selected.map((item) => item.practiceId)).toEqual([
+      "infissi-ready-waiting",
+    ]);
+  });
+
   it("non produce una coda operativa quando l'evidenza shadow e strutturalmente invalida", () => {
     const duplicate = readyCase("same", "schermature");
     const result = buildAprShadowDailyReviewPlan([

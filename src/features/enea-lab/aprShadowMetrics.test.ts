@@ -113,4 +113,17 @@ describe("APR shadow metrics", () => {
       { practiceId: "invalid-verdict", code: "verdict-inconsistent-with-apr-result" },
     ]);
   });
+
+  it("rifiuta la stessa pratica duplicata per non pesare due volte i KPI", () => {
+    const result = calculateAprShadowMetrics([
+      reviewedCases[0],
+      { ...reviewedCases[1], practiceId: "blocked-false" },
+    ]);
+
+    expect(result.evidenceValid).toBe(false);
+    expect(result.evidenceBlockers).toEqual([
+      { practiceId: "blocked-false", code: "duplicate-practice-id" },
+    ]);
+    expect(Object.values(result.rates).every((rate) => rate === null)).toBe(true);
+  });
 });

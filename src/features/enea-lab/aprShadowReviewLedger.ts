@@ -35,7 +35,7 @@ export interface AprShadowReviewLedgerReconcileResult {
   evidenceValid: boolean;
   evidenceBlockers: Array<{
     practiceId: string;
-    code: "invalid-apr-fingerprint" | AprShadowMetricsEvidenceCode;
+    code: "invalid-apr-fingerprint" | "invalid-review-timeline" | AprShadowMetricsEvidenceCode;
   }>;
   state: AprShadowReviewLedgerState;
 }
@@ -82,13 +82,34 @@ function toMetricRows(records: AprShadowReviewRecord[]): AprShadowMetricCase[] {
   return records.map(({ aprFingerprint: _fingerprint, observedAt: _observedAt, reviewedAt: _reviewedAt, ...row }) => row);
 }
 
-function validateLedgerRecords(records: AprShadowReviewRecord[]): AprShadowReviewLedgerEvidenceBlocker[] {
+function validateLedgerRecords(
+  records: AprShadowReviewRecord[],
+  now?: Date,
+): AprShadowReviewLedgerEvidenceBlocker[] {
   const metrics = calculateAprShadowMetrics(toMetricRows(records));
   const blockers: AprShadowReviewLedgerEvidenceBlocker[] = [...metrics.evidenceBlockers];
+  const nowMs = now?.getTime();
 
   for (const record of records) {
     if (record.aprFingerprint.trim().length === 0) {
       blockers.push({ practiceId: record.practiceId, code: "invalid-apr-fingerprint" });
+    }
+
+    const observedAtMs = Date.parse(record.observedAt);
+    const reviewedAtMs = record.reviewedAt == null ? null : Date.parse(record.reviewedAt);
+    const verdictReviewed = record.operatorVerdict !== "unreviewed";
+    const hasReviewTimestamp = reviewedAtMs != null && Number.isFinite(reviewedAtMs);
+    const timelineInvalid = !Number.isFinite(observedAtMs)
+      || (record.reviewedAt != null && !hasReviewTimestamp)
+      || verdictReviewed !== hasReviewTimestamp
+      || (reviewedAtMs != null && reviewedAtMs < observedAtMs)
+      || (nowMs != null && (
+        observedAtMs > nowMs
+        || (reviewedAtMs != null && reviewedAtMs > nowMs)
+      ));
+
+    if (timelineInvalid) {
+      blockers.push({ practiceId: record.practiceId, code: "invalid-review-timeline" });
     }
   }
 
@@ -158,7 +179,7 @@ export function loadAprShadowReviewLedger(
 
     const parsed = JSON.parse(raw) as Record<string, unknown>;
     const savedAt = typeof parsed.savedAt === "string" ? Date.parse(parsed.savedAt) : Number.NaN;
-    if (!Number.isFinite(savedAt)) {
+    if (!Number.isFinite(savedAt) || savedAt > now.getTime()) {
       return { storageValid: false, expired: false, state: EMPTY_STATE };
     }
     if (now.getTime() - savedAt > APR_SHADOW_REVIEW_LEDGER_TTL_MS) {
@@ -175,7 +196,7 @@ export function loadAprShadowReviewLedger(
     }
 
     const typedRecords = records as AprShadowReviewRecord[];
-    if (validateLedgerRecords(typedRecords).length > 0) {
+    if (validateLedgerRecords(typedRecords, now).length > 0) {
       return { storageValid: false, expired: false, state: EMPTY_STATE };
     }
 
@@ -192,7 +213,7 @@ export function saveAprShadowReviewLedger(
 ): void {
   // Fail-closed anche sulla persistenza: uno stato in memoria corrotto non deve
   // sovrascrivere un ledger locale valido e diventare la base dei KPI futuri.
-  if (validateLedgerRecords(state.records).length > 0) return;
+  if (validateLedgerRecords(state.records, now).length > 0) return;
 
   try {
     storage.setItem(APR_SHADOW_REVIEW_LEDGER_STORAGE_KEY, JSON.stringify({
@@ -217,7 +238,7 @@ export function reconcileAprShadowReviewLedger(
   now = new Date(),
 ): AprShadowReviewLedgerReconcileResult {
   const evidenceBlockers: AprShadowReviewLedgerReconcileResult["evidenceBlockers"] = [
-    ...validateLedgerRecords(previousState.records),
+    ...validateLedgerRecords(previousState.records, now),
   ];
   const snapshotRows: AprShadowMetricCase[] = currentSnapshots.map((snapshot) => ({
     practiceId: snapshot.practiceId,
@@ -277,7 +298,7 @@ export function reconcileAprShadowReviewLedger(
       ...reconciledCurrent,
     ],
   };
-  const nextStateBlockers = validateLedgerRecords(nextState.records);
+  const nextStateBlockers = validateLedgerRecords(nextState.records, now);
   if (nextStateBlockers.length > 0) {
     return {
       evidenceValid: false,
@@ -299,6 +320,9 @@ export function applyAprShadowOperatorVerdict(
   now = new Date(),
 ): AprShadowReviewRecord | null {
   if (!verdictAllowed(record.evaluated, record.blockerCodes, verdict)) return null;
+  const observedAtMs = Date.parse(record.observedAt);
+  if (!Number.isFinite(observedAtMs) || now.getTime() < observedAtMs) return null;
+
   return {
     ...record,
     operatorVerdict: verdict,

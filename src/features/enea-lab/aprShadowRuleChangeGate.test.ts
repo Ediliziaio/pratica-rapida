@@ -196,4 +196,41 @@ describe("APR shadow rule change gate", () => {
       code: "target-attribution-missing",
     });
   });
+
+  it("rifiuta identificatori non canonici che potrebbero aggirare deduplica e attribuzioni", () => {
+    const result = validateAprShadowRuleChange({
+      targetBlockerCode: " gtot-missing ",
+      cases: [
+        replayCase({
+          practiceId: "practice-1",
+          baselineBlockerCodes: ["gtot-missing"],
+          candidateBlockerCodes: [],
+        }),
+        replayCase({
+          practiceId: " practice-1 ",
+          baselineBlockerCodes: ["gtot-missing", " gtot-missing "],
+          candidateBlockerCodes: [],
+        }),
+      ],
+    });
+
+    expect(result.evidenceValid).toBe(false);
+    expect(result.promotable).toBe(false);
+    expect(result.evidenceBlockers).toContainEqual({
+      practiceId: "",
+      code: "invalid-target-blocker-code",
+    });
+    expect(result.evidenceBlockers).toContainEqual({
+      practiceId: " practice-1 ",
+      code: "invalid-practice-id",
+    });
+    expect(result.evidenceBlockers).toContainEqual({
+      practiceId: " practice-1 ",
+      code: "invalid-blocker-code",
+    });
+    expect(result.evidenceBlockers).toContainEqual({
+      practiceId: " practice-1 ",
+      code: "duplicate-blocker-code",
+    });
+  });
 });

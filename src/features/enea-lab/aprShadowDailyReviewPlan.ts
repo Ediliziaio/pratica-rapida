@@ -2,10 +2,7 @@ import {
   buildAprShadowReviewBacklog,
   type AprShadowReviewQueueItem,
 } from "./aprShadowReviewBacklog";
-import {
-  calculateAprShadowMetricsByProduct,
-  type AprShadowMetricsProduct,
-} from "./aprShadowMetricsByProduct";
+import type { AprShadowMetricsProduct } from "./aprShadowMetricsByProduct";
 import type { AprShadowMetricCase, AprShadowMetricsResult } from "./aprShadowMetrics";
 
 export type AprShadowDailyReviewPlanBlocker = {
@@ -87,10 +84,9 @@ function rankBlockedQueue(
   });
 }
 
-function reviewedShareByProduct(
+function reviewedReadyShareByProduct(
   rows: AprShadowMetricCase[],
 ): Record<AprShadowMetricsProduct, number> {
-  const portfolio = calculateAprShadowMetricsByProduct(rows);
   const share = {
     schermature: 1,
     infissi: 1,
@@ -99,12 +95,16 @@ function reviewedShareByProduct(
     unknown: 1,
   } satisfies Record<AprShadowMetricsProduct, number>;
 
-  if (!portfolio.portfolioEvidenceValid) return share;
-
   for (const product of Object.keys(share) as AprShadowMetricsProduct[]) {
-    const metrics = portfolio.byProduct[product];
-    if (metrics == null || metrics.counts.evaluated === 0) continue;
-    share[product] = metrics.counts.reviewed / metrics.counts.evaluated;
+    const readyRows = rows.filter((row) => (
+      row.evaluated
+      && row.productType === product
+      && row.blockerCodes.length === 0
+    ));
+    if (readyRows.length === 0) continue;
+
+    const reviewedReady = readyRows.filter((row) => row.operatorVerdict !== "unreviewed").length;
+    share[product] = reviewedReady / readyRows.length;
   }
 
   return share;
@@ -117,7 +117,11 @@ function selectBalancedReadyAudits(
 ): AprShadowReviewQueueItem[] {
   if (limit === 0 || queue.length === 0) return [];
 
-  const reviewedShare = reviewedShareByProduct(rows);
+  // Gli audit delle pratiche dichiarate ready servono a misurare gli
+  // escaped-error. Per decidere dove campionare oggi conta quindi la copertura
+  // di review dei soli casi ready, non quante pratiche bloccate dello stesso
+  // prodotto siano gia state revisionate.
+  const reviewedShare = reviewedReadyShareByProduct(rows);
   const byProduct = new Map<AprShadowMetricsProduct, AprShadowReviewQueueItem[]>();
   for (const item of queue) {
     const current = byProduct.get(item.productType) ?? [];

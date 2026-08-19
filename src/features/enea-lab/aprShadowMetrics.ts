@@ -11,7 +11,8 @@ export type AprShadowMetricsEvidenceBlocker =
   | "invalid-field-counts"
   | "invalid-preparation-time"
   | "verdict-inconsistent-with-apr-result"
-  | "unevaluated-case-has-apr-result";
+  | "unevaluated-case-has-apr-result"
+  | "duplicate-practice-id";
 
 export interface AprShadowMetricCase {
   practiceId: string;
@@ -79,6 +80,14 @@ function verdictMatchesAprResult(row: AprShadowMetricCase): boolean {
 
 function validateEvidence(rows: AprShadowMetricCase[]): AprShadowMetricsResult["evidenceBlockers"] {
   const blockers: AprShadowMetricsResult["evidenceBlockers"] = [];
+  const practiceIdCounts = new Map<string, number>();
+
+  for (const row of rows) {
+    practiceIdCounts.set(row.practiceId, (practiceIdCounts.get(row.practiceId) ?? 0) + 1);
+  }
+  for (const [practiceId, count] of practiceIdCounts) {
+    if (count > 1) blockers.push({ practiceId, code: "duplicate-practice-id" });
+  }
 
   for (const row of rows) {
     if (

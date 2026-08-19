@@ -21,6 +21,7 @@ describe("APR product shadow readiness - technical performance source", () => {
     (productType) => {
       const evidence = {
         ...otherwiseCompleteEvidence,
+        evidenceProductType: productType,
         technicalPerformanceSourceObserved: false,
       };
       const result = evaluateAprProductShadowReadiness(productType, evidence);
@@ -35,6 +36,7 @@ describe("APR product shadow readiness - technical performance source", () => {
   it("resta separato dal gate utente anche dopo aver osservato la sorgente tecnica", () => {
     const evidence = {
       ...otherwiseCompleteEvidence,
+      evidenceProductType: "infissi" as const,
       technicalPerformanceSourceObserved: true,
       globalShadowUserGateGranted: false,
     };

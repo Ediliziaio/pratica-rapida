@@ -93,7 +93,9 @@ function buildBlockerQuality(rows: AprShadowMetricCase[]): AprShadowBlockerQuali
   }>();
 
   for (const row of blockedRows(rows)) {
-    for (const code of new Set(row.blockerCodes)) {
+    const uniqueCodes = [...new Set(row.blockerCodes)];
+
+    for (const code of uniqueCodes) {
       const current = byCode.get(code) ?? {
         affectedCases: 0,
         reviewedCases: 0,
@@ -101,14 +103,27 @@ function buildBlockerQuality(rows: AprShadowMetricCase[]): AprShadowBlockerQuali
         falseBlockCases: 0,
       };
       current.affectedCases += 1;
-      if (row.operatorVerdict === "correct-block") {
-        current.reviewedCases += 1;
-        current.correctBlockCases += 1;
-      } else if (row.operatorVerdict === "false-block") {
-        current.reviewedCases += 1;
-        current.falseBlockCases += 1;
-      }
       byCode.set(code, current);
+    }
+
+    // Il verdetto dell'operatore è oggi a livello pratica, non a livello blocker.
+    // Se una pratica ha più cause di blocco non possiamo attribuire in modo
+    // affidabile "correct-block" o "false-block" a ciascun codice: farlo
+    // falserebbe il Pareto qualità. In quei casi il blocker resta non revisionato
+    // ai fini del tasso per-codice finché non esisterà evidenza specifica.
+    if (uniqueCodes.length !== 1) continue;
+
+    const code = uniqueCodes[0];
+    if (code == null) continue;
+    const current = byCode.get(code);
+    if (current == null) continue;
+
+    if (row.operatorVerdict === "correct-block") {
+      current.reviewedCases += 1;
+      current.correctBlockCases += 1;
+    } else if (row.operatorVerdict === "false-block") {
+      current.reviewedCases += 1;
+      current.falseBlockCases += 1;
     }
   }
 

@@ -1,5 +1,6 @@
 import type {
   AprIntakeOnlyProduct,
+  AprInvoiceEvidenceScope,
   AprProductInventoryRow,
 } from "./productIntegration";
 
@@ -18,6 +19,7 @@ export interface AprProductEvidenceWorkQueueEntry {
   completedGroundTruthCandidates: AprEvidenceCandidate[];
   shadowIntakeCandidates: AprEvidenceCandidate[];
   selectionScope: AprEvidenceSelectionScope;
+  invoiceEvidenceScope: AprInvoiceEvidenceScope;
   shadowTechnicalMappingAllowed: false;
   officialSubmissionAllowed: false;
 }
@@ -40,15 +42,16 @@ function toCandidate(row: AprProductInventoryRow): AprEvidenceCandidate {
 
 /**
  * Ordinamento lessicografico e verificabile, senza punteggi sintetici:
- * prima più PDF ENEA conclusivi, poi più fatture first-class, poi modulo
- * cliente completo, documenti aggiuntivi e infine ID pratica deterministico.
+ * prima più PDF ENEA conclusivi, poi modulo cliente completo e documenti
+ * aggiuntivi. Le fatture first-class restano l'ultimo tie-breaker perché
+ * fatture_urls è un indice parziale e non deve penalizzare i moduli dinamici.
  */
 function compareEvidenceRows(left: AprProductInventoryRow, right: AprProductInventoryRow): number {
   return (
     right.completedEneaPdfCount - left.completedEneaPdfCount
-    || right.invoiceCount - left.invoiceCount
     || Number(right.hasCompletedClientForm) - Number(left.hasCompletedClientForm)
     || right.additionalDocumentCount - left.additionalDocumentCount
+    || right.invoiceCount - left.invoiceCount
     || left.id.localeCompare(right.id)
   );
 }
@@ -91,6 +94,7 @@ export function buildAprProductEvidenceWorkQueue(
       completedGroundTruthCandidates,
       shadowIntakeCandidates,
       selectionScope: "practice-id-and-document-counts-only" as const,
+      invoiceEvidenceScope: "first-class-column-only" as const,
       shadowTechnicalMappingAllowed: false as const,
       officialSubmissionAllowed: false as const,
     };

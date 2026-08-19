@@ -10,6 +10,7 @@ export type AprShadowOperatorVerdict =
 export type AprShadowMetricsEvidenceBlocker =
   | "invalid-field-counts"
   | "invalid-preparation-time"
+  | "invalid-blocker-code"
   | "verdict-inconsistent-with-apr-result"
   | "unevaluated-case-has-apr-result"
   | "duplicate-practice-id";
@@ -102,6 +103,9 @@ function validateEvidence(rows: AprShadowMetricCase[]): AprShadowMetricsResult["
       && (!Number.isFinite(row.preparationMinutes) || row.preparationMinutes < 0)
     ) {
       blockers.push({ practiceId: row.practiceId, code: "invalid-preparation-time" });
+    }
+    if (row.blockerCodes.some((code) => code.trim().length === 0)) {
+      blockers.push({ practiceId: row.practiceId, code: "invalid-blocker-code" });
     }
     if (!row.evaluated && row.blockerCodes.length > 0) {
       blockers.push({ practiceId: row.practiceId, code: "unevaluated-case-has-apr-result" });

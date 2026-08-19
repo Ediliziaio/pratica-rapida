@@ -91,25 +91,30 @@ const APR_INTAKE_ONLY_PRODUCTS: readonly AprIntakeOnlyProduct[] = [
 ];
 const APR_PRODUCT_INVENTORY_PAGE_SIZE = 500;
 
-/** Detector fail-closed: un'etichetta sconosciuta resta unknown. */
+/** Detector fail-closed: un'etichetta sconosciuta o multi-prodotto resta unknown. */
 export function detectAprProductType(value: string | null | undefined): ProdottoTipo | "unknown" {
   const normalized = (value ?? "").trim().toLocaleLowerCase("it");
   if (!normalized) return "unknown";
-  if (normalized.includes("insufflag")) return "insufflaggio";
-  if (normalized.includes("infiss") || normalized.includes("serrament")) return "infissi";
+
+  const matches: ProdottoTipo[] = [];
+  if (normalized.includes("insufflag")) matches.push("insufflaggio");
+  if (normalized.includes("infiss") || normalized.includes("serrament")) matches.push("infissi");
   if (
     normalized.includes("schermat")
     || normalized.includes("tend")
     || normalized.includes("pergot")
     || normalized.includes("pergola")
-  ) return "schermature";
+  ) matches.push("schermature");
   if (
     normalized.includes("impianto termico")
     || normalized.includes("pompa di calore")
     || normalized.includes("caldaia")
     || normalized.includes("climatizz")
-  ) return "impianto_termico";
-  return "unknown";
+  ) matches.push("impianto_termico");
+
+  // Una pratica che cita due famiglie supportate non deve contaminare il corpus
+  // di un singolo adapter scegliendo semplicemente il primo match testuale.
+  return matches.length === 1 ? matches[0] : "unknown";
 }
 
 function lifecycleFromRow(row: ProductInventoryQueueRow): AprProductLifecycle {

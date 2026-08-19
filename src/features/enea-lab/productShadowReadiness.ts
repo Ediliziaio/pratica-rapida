@@ -54,10 +54,20 @@ const COUNT_FIELDS: readonly (keyof Pick<
 ];
 
 function hasInvalidEvidenceMetrics(evidence: AprProductShadowReadinessEvidence): boolean {
-  return COUNT_FIELDS.some((field) => {
+  if (COUNT_FIELDS.some((field) => {
     const value = evidence[field];
     return !Number.isFinite(value) || value < 0 || !Number.isInteger(value);
-  });
+  })) {
+    return true;
+  }
+
+  // I contatori devono descrivere un corpus realmente riconciliabile: non si
+  // possono aver auditato più PDF conclusivi di quelli disponibili, né avere
+  // più mismatch irrisolti degli audit effettivamente confrontati. Accettare
+  // questi stati permetterebbe a conteggi duplicati/stale di simulare una
+  // copertura completa e promuovere artificialmente la readiness tecnica.
+  return evidence.historicalAuditsCompared > evidence.completedEneaPdfSamples
+    || evidence.unresolvedHistoricalMismatches > evidence.historicalAuditsCompared;
 }
 
 /**

@@ -100,4 +100,30 @@ describe("APR evidence work queue", () => {
     expect(infissi?.shadowTechnicalMappingAllowed).toBe(false);
     expect(infissi?.officialSubmissionAllowed).toBe(false);
   });
+
+  it("non lascia che l'indice fatture parziale superi evidenze strutturate più affidabili", () => {
+    const queue = buildAprProductEvidenceWorkQueue([
+      row({
+        id: "infissi-ground-truth-complete-form",
+        completedEneaPdfCount: 1,
+        hasCompletedClientForm: true,
+        additionalDocumentCount: 2,
+        invoiceCount: 0,
+      }),
+      row({
+        id: "infissi-ground-truth-visible-invoices",
+        completedEneaPdfCount: 1,
+        hasCompletedClientForm: false,
+        additionalDocumentCount: 0,
+        invoiceCount: 5,
+      }),
+    ]);
+
+    const infissi = queue.find((entry) => entry.productType === "infissi");
+    expect(infissi?.completedGroundTruthCandidates.map((candidate) => candidate.practiceId)).toEqual([
+      "infissi-ground-truth-complete-form",
+      "infissi-ground-truth-visible-invoices",
+    ]);
+    expect(infissi?.invoiceEvidenceScope).toBe("first-class-column-only");
+  });
 });

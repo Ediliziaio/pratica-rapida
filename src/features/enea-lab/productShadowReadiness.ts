@@ -14,9 +14,17 @@ export type AprProductShadowReadinessBlocker =
   | "capability-gate-missing"
   | "regression-suite-not-green"
   | "evidence-metrics-invalid"
+  | "evidence-product-scope-unverified"
+  | "evidence-product-scope-mismatch"
   | "global-shadow-user-gate-not-granted";
 
 export interface AprProductShadowReadinessEvidence {
+  /**
+   * Prodotto a cui appartiene l'intero corpus di ground truth usato per questo
+   * gate. Il valore resta opzionale a livello di tipo per gestire in sicurezza
+   * snapshot legacy, ma la readiness tecnica resta fail-closed se manca.
+   */
+  evidenceProductType?: AprIntakeOnlyProduct;
   completedEneaPdfSamples: number;
   realParserFixtureSamples: number;
   historicalAuditsCompared: number;
@@ -82,9 +90,10 @@ function hasInvalidEvidenceMetrics(evidence: AprProductShadowReadinessEvidence):
  * Gate di capacità APR per i prodotti ancora intake-only.
  *
  * Working backwards dall'uso shadow: la readiness tecnica è dimostrata soltanto
- * da evidenze reali e complete; non viene derivata dal solo fatto che esistano
- * file o codice. Il gate globale resta separato e può essere concesso soltanto
- * dall'utente. Nessun esito di questa funzione abilita l'invio ufficiale.
+ * da evidenze reali e complete del prodotto corretto; non viene derivata dal
+ * solo fatto che esistano file o codice. Il gate globale resta separato e può
+ * essere concesso soltanto dall'utente. Nessun esito di questa funzione abilita
+ * l'invio ufficiale.
  */
 export function evaluateAprProductShadowReadiness(
   productType: AprIntakeOnlyProduct,
@@ -92,6 +101,15 @@ export function evaluateAprProductShadowReadiness(
 ): AprProductShadowReadinessResult {
   const technicalBlockers: AprProductShadowReadinessBlocker[] = [];
 
+  // La ground truth deve essere esplicitamente scoped allo stesso prodotto che
+  // stiamo cercando di promuovere. Senza questo legame un conteggio valido ma
+  // aggregato (per esempio PDF schermature) potrebbe soddisfare per errore il
+  // gate degli infissi o dell'impianto termico.
+  if (evidence.evidenceProductType == null) {
+    technicalBlockers.push("evidence-product-scope-unverified");
+  } else if (evidence.evidenceProductType !== productType) {
+    technicalBlockers.push("evidence-product-scope-mismatch");
+  }
   if (hasInvalidEvidenceMetrics(evidence)) {
     technicalBlockers.push("evidence-metrics-invalid");
   }

@@ -287,7 +287,7 @@ export function reconcileAprShadowReviewLedger(
       operatorVerdict: preserveReview ? previous.operatorVerdict : "unreviewed",
       preparationMinutes: snapshot.preparationMinutes,
       aprFingerprint: snapshot.aprFingerprint,
-      observedAt,
+      observedAt: preserveReview ? previous.observedAt : observedAt,
       reviewedAt: preserveReview ? previous.reviewedAt : null,
     };
   });

@@ -34,6 +34,7 @@ export type AprShadowRuleChangeGuardrailCode =
   | "no-target-false-block-evidence"
   | "target-false-block-not-resolved"
   | "target-correct-block-regression"
+  | "target-introduced-without-baseline-evidence"
   | "previously-correct-disposition-regression"
   | "unrelated-blocker-drift";
 
@@ -88,11 +89,18 @@ function sameCodes(left: string[], right: string[]): boolean {
  * - tutti i false-block attribuiti al blocker target vengono realmente rimossi;
  * - nessun blocker target giudicato corretto viene perso;
  * - nessuna pratica prima corretta diventa sbagliata;
- * - la modifica non altera blocker non correlati al target.
+ * - la modifica non altera blocker non correlati al target;
+ * - una fix nata per ridurre un false-block non introduce il target su casi che
+ *   non avevano evidenza blocker-specifica nel baseline.
  *
- * Questo mantiene la correzione piccola, reversibile e misurabile. Il risultato
- * non abilita alcun invio ENEA: serve esclusivamente come barriera prima di
- * promuovere una nuova regola nel laboratorio APR.
+ * Un caso puo restare complessivamente bloccato per un'altra causa gia nota:
+ * la correzione del target e comunque valida se rimuove esclusivamente il falso
+ * blocker attribuito e lascia invariato tutto il resto. In questo modo i fix
+ * possono restare piccoli e reversibili invece di richiedere correzioni multiple
+ * nello stesso commit.
+ *
+ * Il risultato non abilita alcun invio ENEA: serve esclusivamente come barriera
+ * prima di promuovere una nuova regola nel laboratorio APR.
  */
 export function validateAprShadowRuleChange(
   input: AprShadowRuleChangeGateInput,
@@ -176,24 +184,27 @@ export function validateAprShadowRuleChange(
     const baselineDisposition = dispositionFor(row.baselineBlockerCodes);
     const candidateDisposition = dispositionFor(row.candidateBlockerCodes);
     const baselineWasCorrect = baselineDisposition === row.expectedDisposition;
+    const targetPresentInBaseline = row.baselineBlockerCodes.includes(targetBlockerCode);
+    const targetPresentInCandidate = row.candidateBlockerCodes.includes(targetBlockerCode);
 
-    if (
-      row.targetBlockerVerdict === "false-block"
-      && row.candidateBlockerCodes.includes(targetBlockerCode)
-    ) {
+    if (row.targetBlockerVerdict === "false-block" && targetPresentInCandidate) {
       guardrailBlockers.push({
         practiceId: row.practiceId,
         code: "target-false-block-not-resolved",
       });
     }
 
-    if (
-      row.targetBlockerVerdict === "correct-block"
-      && !row.candidateBlockerCodes.includes(targetBlockerCode)
-    ) {
+    if (row.targetBlockerVerdict === "correct-block" && !targetPresentInCandidate) {
       guardrailBlockers.push({
         practiceId: row.practiceId,
         code: "target-correct-block-regression",
+      });
+    }
+
+    if (!targetPresentInBaseline && targetPresentInCandidate) {
+      guardrailBlockers.push({
+        practiceId: row.practiceId,
+        code: "target-introduced-without-baseline-evidence",
       });
     }
 
@@ -201,20 +212,6 @@ export function validateAprShadowRuleChange(
       guardrailBlockers.push({
         practiceId: row.practiceId,
         code: "previously-correct-disposition-regression",
-      });
-    }
-
-    if (
-      row.targetBlockerVerdict === "false-block"
-      && row.expectedDisposition === "ready"
-      && candidateDisposition !== "ready"
-      && !guardrailBlockers.some((item) => (
-        item.practiceId === row.practiceId && item.code === "target-false-block-not-resolved"
-      ))
-    ) {
-      guardrailBlockers.push({
-        practiceId: row.practiceId,
-        code: "target-false-block-not-resolved",
       });
     }
 

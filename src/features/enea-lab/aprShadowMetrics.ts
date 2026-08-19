@@ -15,6 +15,7 @@ export type AprShadowMetricsEvidenceBlocker =
   | "duplicate-blocker-code"
   | "verdict-inconsistent-with-apr-result"
   | "unevaluated-case-has-apr-result"
+  | "evaluated-ready-case-has-no-mapped-fields"
   | "unknown-product-evaluated"
   | "duplicate-practice-id";
 
@@ -138,6 +139,20 @@ function validateEvidence(rows: AprShadowMetricCase[]): AprShadowMetricsResult["
       )
     ) {
       blockers.push({ practiceId: row.practiceId, code: "unevaluated-case-has-apr-result" });
+    }
+    // Una pratica dichiarata pronta deve avere prodotto almeno un campo mappato.
+    // In caso contrario l'assenza di blocker verrebbe scambiata per un vero esito
+    // "ready", gonfiando coverage e denominatore degli escaped error con un run
+    // APR che in realtà non ha prodotto alcun output tecnico revisionabile.
+    if (
+      row.evaluated
+      && row.blockerCodes.length === 0
+      && row.mappedFieldCount === 0
+    ) {
+      blockers.push({
+        practiceId: row.practiceId,
+        code: "evaluated-ready-case-has-no-mapped-fields",
+      });
     }
     // Un'etichetta prodotto sconosciuta non ha un adapter shadow autorizzato:
     // può stare nel perimetro per misurare l'unknown-product rate, ma non deve

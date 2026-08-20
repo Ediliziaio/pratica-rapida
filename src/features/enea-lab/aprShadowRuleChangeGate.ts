@@ -28,7 +28,8 @@ export type AprShadowRuleChangeEvidenceCode =
   | "invalid-blocker-code"
   | "duplicate-blocker-code"
   | "target-attribution-missing"
-  | "target-attribution-without-baseline-blocker";
+  | "target-attribution-without-baseline-blocker"
+  | "mixed-target-product-scope";
 
 export type AprShadowRuleChangeGuardrailCode =
   | "no-target-false-block-evidence"
@@ -91,13 +92,20 @@ function sameCodes(left: string[], right: string[]): boolean {
  * - nessuna pratica prima corretta diventa sbagliata;
  * - la modifica non altera blocker non correlati al target;
  * - una fix nata per ridurre un false-block non introduce il target su casi che
- *   non avevano evidenza blocker-specifica nel baseline.
+ *   non avevano evidenza blocker-specifica nel baseline;
+ * - l'evidenza blocker-specifica del target appartiene a un solo prodotto APR.
  *
  * Un caso puo restare complessivamente bloccato per un'altra causa gia nota:
  * la correzione del target e comunque valida se rimuove esclusivamente il falso
  * blocker attribuito e lascia invariato tutto il resto. In questo modo i fix
  * possono restare piccoli e reversibili invece di richiedere correzioni multiple
  * nello stesso commit.
+ *
+ * Casi di altri prodotti possono comunque stare nel replay come regressioni
+ * non correlate, purche non usino lo stesso blocker target come evidenza. Se lo
+ * stesso codice target compare come evidenza su piu prodotti, il gate richiede
+ * replay separati: una diagnosi Infissi non puo autorizzare implicitamente una
+ * modifica anche per Impianto termico o Insufflaggio.
  *
  * Il risultato non abilita alcun invio ENEA: serve esclusivamente come barriera
  * prima di promuovere una nuova regola nel laboratorio APR.
@@ -151,6 +159,15 @@ export function validateAprShadowRuleChange(
         code: "target-attribution-without-baseline-blocker",
       });
     }
+  }
+
+  const targetProductTypes = new Set(
+    input.cases
+      .filter((row) => row.baselineBlockerCodes.includes(targetBlockerCode))
+      .map((row) => row.productType),
+  );
+  if (targetProductTypes.size > 1) {
+    evidenceBlockers.push({ practiceId: "", code: "mixed-target-product-scope" });
   }
 
   const targetFalseRows = input.cases.filter((row) => row.targetBlockerVerdict === "false-block");

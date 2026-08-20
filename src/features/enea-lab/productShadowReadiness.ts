@@ -1,4 +1,10 @@
 import type { AprIntakeOnlyProduct } from "./productIntegration";
+import {
+  hasExplicitAprShadowAuthorization,
+  type AprGlobalShadowUserAuthorization,
+} from "./aprShadowAuthorization";
+
+export type { AprGlobalShadowUserAuthorization } from "./aprShadowAuthorization";
 
 export type AprProductShadowReadinessBlocker =
   | "completed-enea-ground-truth-missing"
@@ -17,11 +23,6 @@ export type AprProductShadowReadinessBlocker =
   | "evidence-product-scope-unverified"
   | "evidence-product-scope-mismatch"
   | "global-shadow-user-gate-not-granted";
-
-export interface AprGlobalShadowUserAuthorization {
-  source: "user";
-  phrase: "APR operativo ombra";
-}
 
 export interface AprProductShadowReadinessEvidence {
   /**
@@ -96,18 +97,6 @@ function hasInvalidEvidenceMetrics(evidence: AprProductShadowReadinessEvidence):
     || evidence.unresolvedHistoricalMismatches > evidence.historicalAuditsCompared;
 }
 
-function hasExplicitGlobalShadowAuthorization(
-  evidence: AprProductShadowReadinessEvidence,
-): boolean {
-  const authorization = evidence.globalShadowAuthorization as {
-    source?: unknown;
-    phrase?: unknown;
-  } | undefined;
-
-  return authorization?.source === "user"
-    && authorization.phrase === "APR operativo ombra";
-}
-
 /**
  * Gate di capacità APR per i prodotti ancora intake-only.
  *
@@ -173,7 +162,9 @@ export function evaluateAprProductShadowReadiness(
   if (!evidence.regressionSuiteGreen) technicalBlockers.push("regression-suite-not-green");
 
   const technicalShadowReady = technicalBlockers.length === 0;
-  const explicitUserGateGranted = hasExplicitGlobalShadowAuthorization(evidence);
+  const explicitUserGateGranted = hasExplicitAprShadowAuthorization(
+    evidence.globalShadowAuthorization,
+  );
   const blockers = [...technicalBlockers];
   if (technicalShadowReady && !explicitUserGateGranted) {
     blockers.push("global-shadow-user-gate-not-granted");

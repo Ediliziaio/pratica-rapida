@@ -233,6 +233,26 @@ function median(values: number[]): number | null {
   return left == null || right == null ? null : (left + right) / 2;
 }
 
+function invalidDatasetResult(): AprShadowMetricsResult {
+  return {
+    evidenceValid: false,
+    evidenceBlockers: [{
+      practiceId: "runtime-dataset",
+      code: "invalid-runtime-shape",
+    }],
+    counts: {
+      inScope: 0,
+      evaluated: 0,
+      blocked: 0,
+      ready: 0,
+      reviewed: 0,
+      unknownProduct: 0,
+    },
+    rates: { ...NULL_RATES },
+    medianPreparationMinutes: null,
+  };
+}
+
 /**
  * KPI del loop di apprendimento APR in modalità shadow.
  *
@@ -243,6 +263,11 @@ function median(values: number[]): number | null {
  * migliore.
  */
 export function calculateAprShadowMetrics(rows: AprShadowMetricCase[]): AprShadowMetricsResult {
+  // Anche il contenitore può provenire da JSON/localStorage corrotto. I tipi
+  // statici non bastano: un oggetto/null non deve trasformarsi in un crash che
+  // interrompe il ciclo OMBRA o lascia visibili KPI dell'ultimo run valido.
+  if (!Array.isArray(rows)) return invalidDatasetResult();
+
   const evidenceBlockers = validateEvidence(rows);
   if (evidenceBlockers.some((blocker) => blocker.code === "invalid-runtime-shape")) {
     return {

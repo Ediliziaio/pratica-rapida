@@ -73,4 +73,20 @@ describe("APR shadow metrics runtime shape safety", () => {
     expect(result.evidenceBlockers[0]?.code).toBe("invalid-runtime-shape");
     expect(result.rates.coverage).toBeNull();
   });
+
+  it("non va in eccezione se il dataset ricostruito da storage non è un array", () => {
+    expect(() => calculateAprShadowMetrics(null as any)).not.toThrow();
+    expect(() => calculateAprShadowMetrics({ rows: [] } as any)).not.toThrow();
+
+    for (const corruptedDataset of [null, { rows: [] }] as any[]) {
+      const result = calculateAprShadowMetrics(corruptedDataset as any);
+      expect(result.evidenceValid).toBe(false);
+      expect(result.evidenceBlockers).toContainEqual({
+        practiceId: "runtime-dataset",
+        code: "invalid-runtime-shape",
+      });
+      expect(result.counts.inScope).toBe(0);
+      expect(result.rates.coverage).toBeNull();
+    }
+  });
 });

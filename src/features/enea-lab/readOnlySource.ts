@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { detectProdottoTipo, emptyFormData } from "@/types/form-cliente";
+import { emptyFormData } from "@/types/form-cliente";
 import type { FormClienteData, ProdottoData, SchermaturaItem } from "@/types/form-cliente";
 import type { Database, Json } from "@/integrations/supabase/types";
+import { detectAprProductType } from "./productIntegration";
 import type {
   EneaLabDocumentKind,
   EneaLabDocumentPath,
@@ -127,7 +128,10 @@ function uniquePaths(paths: EneaLabDocumentPath[]): EneaLabDocumentPath[] {
 
 export function mapQueueRow(row: QueueRow): EneaLabSourcePractice | null {
   if (!row.id) return null;
-  if (detectProdottoTipo(row.prodotto_installato) !== "schermature") return null;
+  // La coda Schermature deve usare la stessa classificazione fail-closed del
+  // layer multi-prodotto. Una pratica che cita due famiglie supportate non può
+  // essere presa in carico da un adapter scegliendo il primo match testuale.
+  if (detectAprProductType(row.prodotto_installato) !== "schermature") return null;
 
   const form = mergeForm(emptyFormData(), row.dati_form);
   if (!form.richiedente.nome) form.richiedente.nome = row.cliente_nome ?? "";

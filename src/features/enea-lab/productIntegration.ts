@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type { ProdottoTipo } from "@/types/form-cliente";
+import {
+  hasExplicitAprShadowAuthorization,
+  type AprGlobalShadowUserAuthorization,
+} from "./aprShadowAuthorization";
 
 export type AprProductLifecycle = "waiting_client" | "ready" | "historical" | "other";
 export type AprProductIntegrationPhase = "screenings-validated" | "intake-only";
@@ -127,7 +131,10 @@ function lifecycleFromRow(row: ProductInventoryQueueRow): AprProductLifecycle {
   return "other";
 }
 
-export function mapAprProductInventoryRow(row: ProductInventoryQueueRow): AprProductInventoryRow | null {
+export function mapAprProductInventoryRow(
+  row: ProductInventoryQueueRow,
+  globalShadowAuthorization?: AprGlobalShadowUserAuthorization,
+): AprProductInventoryRow | null {
   if (!row.id) return null;
   const productType = detectAprProductType(row.prodotto_installato);
   const integrationPhase = productType === "unknown"
@@ -144,7 +151,8 @@ export function mapAprProductInventoryRow(row: ProductInventoryQueueRow): AprPro
     additionalDocumentCount: row.documenti_aggiuntivi_urls?.length ?? 0,
     completedEneaPdfCount: row.pratica_enea_conclusa_urls?.length ?? 0,
     integrationPhase,
-    shadowEvaluationAllowed: productType === "schermature",
+    shadowEvaluationAllowed: productType === "schermature"
+      && hasExplicitAprShadowAuthorization(globalShadowAuthorization),
     officialSubmissionAllowed: false,
   };
 }
@@ -271,10 +279,13 @@ export function rankAprNextProduct(
  * Inventario multi-prodotto APR: solo SELECT e nessuna mutation.
  * Per non leggere dati_form (che può contenere dati personali), il conteggio
  * fatture vede soltanto fatture_urls e deve quindi essere trattato come parziale.
- * La lettura è paginata per non troncare il corpus usato nelle priorità.
+ * La lettura è paginata per non troncare il corpus usato nelle priorità. La
+ * semplice lettura dell'inventario non autorizza OMBRA: il gate deve essere
+ * passato esplicitamente anche a questo percorso.
  */
 export async function loadReadOnlyAprProductIntegrationInventory(
   client: SupabaseClient<Database>,
+  globalShadowAuthorization?: AprGlobalShadowUserAuthorization,
 ): Promise<AprProductInventoryRow[]> {
   const rawRows: ProductInventoryQueueRow[] = [];
   let from = 0;
@@ -306,6 +317,6 @@ export async function loadReadOnlyAprProductIntegrationInventory(
   }
 
   return rawRows
-    .map(mapAprProductInventoryRow)
+    .map((row) => mapAprProductInventoryRow(row, globalShadowAuthorization))
     .filter((row): row is AprProductInventoryRow => row !== null);
 }

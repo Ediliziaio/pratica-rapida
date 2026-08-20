@@ -26,6 +26,8 @@ export type AprProductShadowReadinessBlocker =
   | "evidence-product-scope-mismatch"
   | "evidence-sample-identity-unverified"
   | "evidence-sample-identity-invalid"
+  | "evidence-sample-lineage-unverified"
+  | "evidence-sample-lineage-invalid"
   | "global-shadow-user-gate-not-granted";
 
 export interface AprProductShadowReadinessEvidence {
@@ -48,6 +50,14 @@ export interface AprProductShadowReadinessEvidence {
   completedEneaPdfSampleIds?: readonly string[];
   realParserFixtureSampleIds?: readonly string[];
   historicalAuditedSampleIds?: readonly string[];
+  /**
+   * Per ogni fixture parser dichiara il PDF ENEA conclusivo reale da cui deriva.
+   * Gli ID possono ripetersi se un singolo PDF produce piu fixture, ma ogni
+   * sorgente deve appartenere al corpus completedEneaPdfSampleIds. In questo modo
+   * fixture sintetiche o provenienti da un altro prodotto non possono simulare
+   * evidenza reale sufficiente per la readiness tecnica.
+   */
+  realParserFixtureSourcePdfIds?: readonly string[];
   technicalPortalContractObserved: boolean;
   /**
    * True soltanto quando la sorgente reale della prestazione tecnica richiesta
@@ -112,10 +122,12 @@ const SAMPLE_ID_FIELDS: readonly (keyof Pick<
   | "completedEneaPdfSampleIds"
   | "realParserFixtureSampleIds"
   | "historicalAuditedSampleIds"
+  | "realParserFixtureSourcePdfIds"
 >)[] = [
   "completedEneaPdfSampleIds",
   "realParserFixtureSampleIds",
   "historicalAuditedSampleIds",
+  "realParserFixtureSourcePdfIds",
 ];
 
 const APR_INTAKE_ONLY_PRODUCT_VALUES = new Set<string>([
@@ -184,6 +196,15 @@ function hasCanonicalUniqueIds(ids: unknown): ids is readonly string[] {
     && new Set(normalized).size === normalized.length;
 }
 
+function hasCanonicalIds(ids: unknown): ids is readonly string[] {
+  if (!Array.isArray(ids) || ids.some((id) => typeof id !== "string")) {
+    return false;
+  }
+
+  const stringIds = ids as string[];
+  return stringIds.every((id) => id.length > 0 && id === id.trim());
+}
+
 function getSampleIdentityStatus(
   evidence: AprProductShadowReadinessEvidence,
 ): "verified" | "unverified" | "invalid" {
@@ -209,6 +230,31 @@ function getSampleIdentityStatus(
 
   const completedSet = new Set(completedIds);
   if (auditedIds.some((id) => !completedSet.has(id))) {
+    return "invalid";
+  }
+
+  return "verified";
+}
+
+function getSampleLineageStatus(
+  evidence: AprProductShadowReadinessEvidence,
+): "verified" | "unverified" | "invalid" {
+  if (evidence.realParserFixtureSamples === 0) return "verified";
+
+  const completedIds = evidence.completedEneaPdfSampleIds as unknown;
+  const sourcePdfIds = evidence.realParserFixtureSourcePdfIds as unknown;
+  if (sourcePdfIds == null) return "unverified";
+
+  if (
+    !hasCanonicalUniqueIds(completedIds)
+    || !hasCanonicalIds(sourcePdfIds)
+    || sourcePdfIds.length !== evidence.realParserFixtureSamples
+  ) {
+    return "invalid";
+  }
+
+  const completedSet = new Set(completedIds);
+  if (sourcePdfIds.some((id) => !completedSet.has(id))) {
     return "invalid";
   }
 
@@ -278,6 +324,12 @@ export function evaluateAprProductShadowReadiness(
     technicalBlockers.push("evidence-sample-identity-unverified");
   } else if (sampleIdentityStatus === "invalid") {
     technicalBlockers.push("evidence-sample-identity-invalid");
+  }
+  const sampleLineageStatus = getSampleLineageStatus(evidence);
+  if (sampleLineageStatus === "unverified") {
+    technicalBlockers.push("evidence-sample-lineage-unverified");
+  } else if (sampleLineageStatus === "invalid") {
+    technicalBlockers.push("evidence-sample-lineage-invalid");
   }
   if (evidence.completedEneaPdfSamples === 0) {
     technicalBlockers.push("completed-enea-ground-truth-missing");

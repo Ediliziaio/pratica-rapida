@@ -5,7 +5,7 @@ import { buildAprProductIntake } from "./productIntake";
 const context = { hasInvoice: true, hasCompletedEneaPdf: true };
 
 describe("APR product intake dispatcher", () => {
-  it("mantiene le schermature sul flusso shadow già validato senza abilitare invii ufficiali", () => {
+  it("mantiene le schermature validate ma non abilita lo shadow operativo senza gate utente", () => {
     const form = emptyFormData();
     form.prodotto = { tipo: "schermature", items: [{ tipo: "tende_da_sole", direzione: "sud" }] };
 
@@ -13,7 +13,42 @@ describe("APR product intake dispatcher", () => {
 
     expect(intake.productType).toBe("schermature");
     expect(intake.integrationPhase).toBe("screenings-validated");
+    expect(intake.shadowTechnicalMappingAllowed).toBe(false);
+    expect(intake.officialSubmissionAllowed).toBe(false);
+  });
+
+  it("abilita lo shadow schermature solo con il gate esplicito APR operativo ombra", () => {
+    const form = emptyFormData();
+    form.prodotto = { tipo: "schermature", items: [{ tipo: "tende_da_sole", direzione: "sud" }] };
+
+    const intake = buildAprProductIntake(form, {
+      ...context,
+      globalShadowAuthorization: {
+        source: "user",
+        phrase: "APR operativo ombra",
+      },
+    });
+
+    expect(intake.productType).toBe("schermature");
+    expect(intake.integrationPhase).toBe("screenings-validated");
     expect(intake.shadowTechnicalMappingAllowed).toBe(true);
+    expect(intake.officialSubmissionAllowed).toBe(false);
+  });
+
+  it("non considera valide autorizzazioni shadow simili ma non canoniche", () => {
+    const form = emptyFormData();
+    form.prodotto = { tipo: "schermature", items: [{ tipo: "tende_da_sole", direzione: "sud" }] };
+
+    const intake = buildAprProductIntake(form, {
+      ...context,
+      globalShadowAuthorization: {
+        source: "user",
+        phrase: "APR operativo ombra ",
+      } as never,
+    });
+
+    expect(intake.productType).toBe("schermature");
+    expect(intake.shadowTechnicalMappingAllowed).toBe(false);
     expect(intake.officialSubmissionAllowed).toBe(false);
   });
 

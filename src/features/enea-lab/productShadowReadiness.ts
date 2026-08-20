@@ -20,6 +20,7 @@ export type AprProductShadowReadinessBlocker =
   | "capability-gate-missing"
   | "regression-suite-not-green"
   | "evidence-metrics-invalid"
+  | "evidence-runtime-shape-invalid"
   | "evidence-product-scope-unverified"
   | "evidence-product-scope-mismatch"
   | "evidence-sample-identity-unverified"
@@ -90,6 +91,54 @@ const COUNT_FIELDS: readonly (keyof Pick<
   "unobservedDefaultFieldCount",
 ];
 
+const REQUIRED_BOOLEAN_FIELDS: readonly (keyof Pick<
+  AprProductShadowReadinessEvidence,
+  | "technicalPortalContractObserved"
+  | "productParserImplemented"
+  | "productMapperImplemented"
+  | "capabilityGateImplemented"
+  | "regressionSuiteGreen"
+>)[] = [
+  "technicalPortalContractObserved",
+  "productParserImplemented",
+  "productMapperImplemented",
+  "capabilityGateImplemented",
+  "regressionSuiteGreen",
+];
+
+const SAMPLE_ID_FIELDS: readonly (keyof Pick<
+  AprProductShadowReadinessEvidence,
+  | "completedEneaPdfSampleIds"
+  | "realParserFixtureSampleIds"
+  | "historicalAuditedSampleIds"
+>)[] = [
+  "completedEneaPdfSampleIds",
+  "realParserFixtureSampleIds",
+  "historicalAuditedSampleIds",
+];
+
+function hasInvalidRuntimeShape(evidence: AprProductShadowReadinessEvidence): boolean {
+  const runtimeEvidence = evidence as unknown as Record<string, unknown>;
+
+  if (REQUIRED_BOOLEAN_FIELDS.some((field) => typeof runtimeEvidence[field] !== "boolean")) {
+    return true;
+  }
+
+  const technicalPerformanceSourceObserved = runtimeEvidence.technicalPerformanceSourceObserved;
+  if (
+    technicalPerformanceSourceObserved !== undefined
+    && typeof technicalPerformanceSourceObserved !== "boolean"
+  ) {
+    return true;
+  }
+
+  return SAMPLE_ID_FIELDS.some((field) => {
+    const value = runtimeEvidence[field];
+    return value !== undefined
+      && (!Array.isArray(value) || value.some((item) => typeof item !== "string"));
+  });
+}
+
 function hasInvalidEvidenceMetrics(evidence: AprProductShadowReadinessEvidence): boolean {
   if (COUNT_FIELDS.some((field) => {
     const value = evidence[field];
@@ -113,9 +162,14 @@ function hasAnySampledEvidence(evidence: AprProductShadowReadinessEvidence): boo
     || evidence.historicalAuditsCompared > 0;
 }
 
-function hasCanonicalUniqueIds(ids: readonly string[]): boolean {
-  const normalized = ids.map((id) => id.trim());
-  return normalized.every((id, index) => id.length > 0 && id === ids[index])
+function hasCanonicalUniqueIds(ids: unknown): ids is readonly string[] {
+  if (!Array.isArray(ids) || ids.some((id) => typeof id !== "string")) {
+    return false;
+  }
+
+  const stringIds = ids as string[];
+  const normalized = stringIds.map((id) => id.trim());
+  return normalized.every((id, index) => id.length > 0 && id === stringIds[index])
     && new Set(normalized).size === normalized.length;
 }
 
@@ -124,20 +178,20 @@ function getSampleIdentityStatus(
 ): "verified" | "unverified" | "invalid" {
   if (!hasAnySampledEvidence(evidence)) return "verified";
 
-  const completedIds = evidence.completedEneaPdfSampleIds;
-  const fixtureIds = evidence.realParserFixtureSampleIds;
-  const auditedIds = evidence.historicalAuditedSampleIds;
+  const completedIds = evidence.completedEneaPdfSampleIds as unknown;
+  const fixtureIds = evidence.realParserFixtureSampleIds as unknown;
+  const auditedIds = evidence.historicalAuditedSampleIds as unknown;
   if (completedIds == null || fixtureIds == null || auditedIds == null) {
     return "unverified";
   }
 
   if (
-    completedIds.length !== evidence.completedEneaPdfSamples
-    || fixtureIds.length !== evidence.realParserFixtureSamples
-    || auditedIds.length !== evidence.historicalAuditsCompared
-    || !hasCanonicalUniqueIds(completedIds)
+    !hasCanonicalUniqueIds(completedIds)
     || !hasCanonicalUniqueIds(fixtureIds)
     || !hasCanonicalUniqueIds(auditedIds)
+    || completedIds.length !== evidence.completedEneaPdfSamples
+    || fixtureIds.length !== evidence.realParserFixtureSamples
+    || auditedIds.length !== evidence.historicalAuditsCompared
   ) {
     return "invalid";
   }
@@ -173,6 +227,9 @@ export function evaluateAprProductShadowReadiness(
     technicalBlockers.push("evidence-product-scope-unverified");
   } else if (evidence.evidenceProductType !== productType) {
     technicalBlockers.push("evidence-product-scope-mismatch");
+  }
+  if (hasInvalidRuntimeShape(evidence)) {
+    technicalBlockers.push("evidence-runtime-shape-invalid");
   }
   if (hasInvalidEvidenceMetrics(evidence)) {
     technicalBlockers.push("evidence-metrics-invalid");

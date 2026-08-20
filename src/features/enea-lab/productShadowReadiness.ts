@@ -228,6 +228,19 @@ export function evaluateAprProductShadowReadiness(
   productType: AprIntakeOnlyProduct,
   evidence: AprProductShadowReadinessEvidence,
 ): AprProductShadowReadinessResult {
+  if (evidence == null || typeof evidence !== "object" || Array.isArray(evidence)) {
+    const blockers: AprProductShadowReadinessBlocker[] = [];
+    if (!isAprIntakeOnlyProductValue(productType)) blockers.push("product-type-runtime-invalid");
+    blockers.push("evidence-runtime-shape-invalid");
+    return {
+      productType,
+      technicalShadowReady: false,
+      operationalShadowAllowed: false,
+      blockers,
+      officialSubmissionAllowed: false,
+    };
+  }
+
   const technicalBlockers: AprProductShadowReadinessBlocker[] = [];
   const runtimeEvidence = evidence as unknown as Record<string, unknown>;
   const runtimeEvidenceProductType = runtimeEvidence.evidenceProductType;

@@ -50,4 +50,16 @@ describe("APR product shadow readiness - runtime shape safety", () => {
     expect(result.operationalShadowAllowed).toBe(false);
     expect(result.blockers).toContain("evidence-runtime-shape-invalid");
   });
+
+  it("resta fail-closed senza eccezioni se l'evidenza runtime e null", () => {
+    const corrupted = null as unknown as AprProductShadowReadinessEvidence;
+
+    expect(() => evaluateAprProductShadowReadiness("infissi", corrupted)).not.toThrow();
+
+    const result = evaluateAprProductShadowReadiness("infissi", corrupted);
+    expect(result.technicalShadowReady).toBe(false);
+    expect(result.operationalShadowAllowed).toBe(false);
+    expect(result.blockers).toContain("evidence-runtime-shape-invalid");
+    expect(result.officialSubmissionAllowed).toBe(false);
+  });
 });

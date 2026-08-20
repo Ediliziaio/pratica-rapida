@@ -22,6 +22,8 @@ export type AprProductShadowReadinessBlocker =
   | "evidence-metrics-invalid"
   | "evidence-product-scope-unverified"
   | "evidence-product-scope-mismatch"
+  | "evidence-sample-identity-unverified"
+  | "evidence-sample-identity-invalid"
   | "global-shadow-user-gate-not-granted";
 
 export interface AprProductShadowReadinessEvidence {
@@ -36,6 +38,14 @@ export interface AprProductShadowReadinessEvidence {
   historicalAuditsCompared: number;
   unresolvedHistoricalMismatches: number;
   unobservedDefaultFieldCount: number;
+  /**
+   * Identita canoniche dei campioni reali. I soli conteggi non bastano per la
+   * readiness: lo stesso PDF duplicato non deve poter simulare tre campioni
+   * indipendenti e un audit deve essere riconducibile a un PDF del corpus.
+   */
+  completedEneaPdfSampleIds?: readonly string[];
+  realParserFixtureSampleIds?: readonly string[];
+  historicalAuditedSampleIds?: readonly string[];
   technicalPortalContractObserved: boolean;
   /**
    * True soltanto quando la sorgente reale della prestazione tecnica richiesta
@@ -97,6 +107,49 @@ function hasInvalidEvidenceMetrics(evidence: AprProductShadowReadinessEvidence):
     || evidence.unresolvedHistoricalMismatches > evidence.historicalAuditsCompared;
 }
 
+function hasAnySampledEvidence(evidence: AprProductShadowReadinessEvidence): boolean {
+  return evidence.completedEneaPdfSamples > 0
+    || evidence.realParserFixtureSamples > 0
+    || evidence.historicalAuditsCompared > 0;
+}
+
+function hasCanonicalUniqueIds(ids: readonly string[]): boolean {
+  const normalized = ids.map((id) => id.trim());
+  return normalized.every((id, index) => id.length > 0 && id === ids[index])
+    && new Set(normalized).size === normalized.length;
+}
+
+function getSampleIdentityStatus(
+  evidence: AprProductShadowReadinessEvidence,
+): "verified" | "unverified" | "invalid" {
+  if (!hasAnySampledEvidence(evidence)) return "verified";
+
+  const completedIds = evidence.completedEneaPdfSampleIds;
+  const fixtureIds = evidence.realParserFixtureSampleIds;
+  const auditedIds = evidence.historicalAuditedSampleIds;
+  if (completedIds == null || fixtureIds == null || auditedIds == null) {
+    return "unverified";
+  }
+
+  if (
+    completedIds.length !== evidence.completedEneaPdfSamples
+    || fixtureIds.length !== evidence.realParserFixtureSamples
+    || auditedIds.length !== evidence.historicalAuditsCompared
+    || !hasCanonicalUniqueIds(completedIds)
+    || !hasCanonicalUniqueIds(fixtureIds)
+    || !hasCanonicalUniqueIds(auditedIds)
+  ) {
+    return "invalid";
+  }
+
+  const completedSet = new Set(completedIds);
+  if (auditedIds.some((id) => !completedSet.has(id))) {
+    return "invalid";
+  }
+
+  return "verified";
+}
+
 /**
  * Gate di capacità APR per i prodotti ancora intake-only.
  *
@@ -123,6 +176,12 @@ export function evaluateAprProductShadowReadiness(
   }
   if (hasInvalidEvidenceMetrics(evidence)) {
     technicalBlockers.push("evidence-metrics-invalid");
+  }
+  const sampleIdentityStatus = getSampleIdentityStatus(evidence);
+  if (sampleIdentityStatus === "unverified") {
+    technicalBlockers.push("evidence-sample-identity-unverified");
+  } else if (sampleIdentityStatus === "invalid") {
+    technicalBlockers.push("evidence-sample-identity-invalid");
   }
   if (evidence.completedEneaPdfSamples === 0) {
     technicalBlockers.push("completed-enea-ground-truth-missing");

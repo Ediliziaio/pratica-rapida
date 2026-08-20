@@ -9,6 +9,8 @@ export type AprShadowOperatorVerdict =
 
 export type AprShadowMetricsEvidenceBlocker =
   | "invalid-practice-id"
+  | "invalid-product-type"
+  | "invalid-runtime-shape"
   | "invalid-field-counts"
   | "invalid-preparation-time"
   | "invalid-blocker-code"
@@ -66,8 +68,42 @@ const NULL_RATES: AprShadowMetricsResult["rates"] = {
   unknownProductRate: null,
 };
 
+const APR_SHADOW_PRODUCT_TYPES = new Set<string>([
+  "schermature",
+  "infissi",
+  "impianto_termico",
+  "insufflaggio",
+  "unknown",
+]);
+
 function isValidFieldCount(value: number): boolean {
   return Number.isFinite(value) && Number.isInteger(value) && value >= 0;
+}
+
+function isRuntimeMetricCase(value: unknown): value is AprShadowMetricCase {
+  if (value == null || typeof value !== "object" || Array.isArray(value)) return false;
+  const row = value as Record<string, unknown>;
+  return typeof row.practiceId === "string"
+    && typeof row.productType === "string"
+    && typeof row.evaluated === "boolean"
+    && Array.isArray(row.blockerCodes)
+    && row.blockerCodes.every((code) => typeof code === "string")
+    && typeof row.mappedFieldCount === "number"
+    && typeof row.autoReadyFieldCount === "number"
+    && typeof row.operatorVerdict === "string"
+    && (
+      row.preparationMinutes === undefined
+      || row.preparationMinutes === null
+      || typeof row.preparationMinutes === "number"
+    );
+}
+
+function runtimePracticeId(value: unknown, index: number): string {
+  if (value != null && typeof value === "object" && !Array.isArray(value)) {
+    const practiceId = (value as Record<string, unknown>).practiceId;
+    if (typeof practiceId === "string" && practiceId.trim().length > 0) return practiceId;
+  }
+  return `runtime-row-${index + 1}`;
 }
 
 function verdictMatchesAprResult(row: AprShadowMetricCase): boolean {
@@ -85,9 +121,25 @@ function verdictMatchesAprResult(row: AprShadowMetricCase): boolean {
 
 function validateEvidence(rows: AprShadowMetricCase[]): AprShadowMetricsResult["evidenceBlockers"] {
   const blockers: AprShadowMetricsResult["evidenceBlockers"] = [];
-  const practiceIdCounts = new Map<string, number>();
+  const runtimeSafeRows: AprShadowMetricCase[] = [];
 
-  for (const row of rows) {
+  // I tipi TypeScript non proteggono i record ricostruiti da localStorage/JSON.
+  // Prima di chiamare trim/map/length sui campi del ledger verifichiamo quindi
+  // la shape runtime. Una riga corrotta invalida l'intero dataset invece di
+  // provocare eccezioni o trasformare valori truthy (es. "false") in esiti APR.
+  rows.forEach((row, index) => {
+    if (!isRuntimeMetricCase(row)) {
+      blockers.push({
+        practiceId: runtimePracticeId(row, index),
+        code: "invalid-runtime-shape",
+      });
+      return;
+    }
+    runtimeSafeRows.push(row);
+  });
+
+  const practiceIdCounts = new Map<string, number>();
+  for (const row of runtimeSafeRows) {
     const normalizedPracticeId = row.practiceId.trim();
     practiceIdCounts.set(
       normalizedPracticeId,
@@ -98,13 +150,16 @@ function validateEvidence(rows: AprShadowMetricCase[]): AprShadowMetricsResult["
     if (count > 1) blockers.push({ practiceId, code: "duplicate-practice-id" });
   }
 
-  for (const row of rows) {
+  for (const row of runtimeSafeRows) {
     const normalizedPracticeId = row.practiceId.trim();
     // I KPI shadow devono essere riconducibili a una pratica reale e revisionabile.
     // Un identificativo vuoto o non canonico renderebbe possibile pesare due volte
     // la stessa pratica usando semplici differenze di whitespace.
     if (normalizedPracticeId.length === 0 || normalizedPracticeId !== row.practiceId) {
       blockers.push({ practiceId: row.practiceId, code: "invalid-practice-id" });
+    }
+    if (!APR_SHADOW_PRODUCT_TYPES.has(row.productType)) {
+      blockers.push({ practiceId: row.practiceId, code: "invalid-product-type" });
     }
     if (
       !isValidFieldCount(row.mappedFieldCount)
@@ -189,6 +244,23 @@ function median(values: number[]): number | null {
  */
 export function calculateAprShadowMetrics(rows: AprShadowMetricCase[]): AprShadowMetricsResult {
   const evidenceBlockers = validateEvidence(rows);
+  if (evidenceBlockers.some((blocker) => blocker.code === "invalid-runtime-shape")) {
+    return {
+      evidenceValid: false,
+      evidenceBlockers,
+      counts: {
+        inScope: rows.length,
+        evaluated: 0,
+        blocked: 0,
+        ready: 0,
+        reviewed: 0,
+        unknownProduct: 0,
+      },
+      rates: { ...NULL_RATES },
+      medianPreparationMinutes: null,
+    };
+  }
+
   const evaluatedRows = rows.filter((row) => row.evaluated);
   const blockedRows = evaluatedRows.filter((row) => row.blockerCodes.length > 0);
   const readyRows = evaluatedRows.filter((row) => row.blockerCodes.length === 0);

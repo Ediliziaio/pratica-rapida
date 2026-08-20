@@ -11,6 +11,7 @@ import {
   hasExplicitAprShadowAuthorization,
   type AprGlobalShadowUserAuthorization,
 } from "./aprShadowAuthorization";
+import { APR_SHADOW_RUNTIME_AUTHORIZATION } from "./aprShadowRuntimeAuthorization";
 
 export type EneaLabQueueScope = "active" | "historical";
 export type EneaLabQueueMode = "preview" | "pre-shadow" | "live-shadow";
@@ -42,7 +43,7 @@ export function resolveEneaLabQueueMode(
 
 export function useReadOnlyEneaQueue(
   scope: EneaLabQueueScope = "active",
-  globalShadowAuthorization?: AprGlobalShadowUserAuthorization,
+  globalShadowAuthorization: AprGlobalShadowUserAuthorization | undefined = APR_SHADOW_RUNTIME_AUTHORIZATION,
 ) {
   const preview = isLocalPreview();
   const queueMode = resolveEneaLabQueueMode(preview, globalShadowAuthorization);

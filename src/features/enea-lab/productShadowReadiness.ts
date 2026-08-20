@@ -18,6 +18,11 @@ export type AprProductShadowReadinessBlocker =
   | "evidence-product-scope-mismatch"
   | "global-shadow-user-gate-not-granted";
 
+export interface AprGlobalShadowUserAuthorization {
+  source: "user";
+  phrase: "APR operativo ombra";
+}
+
 export interface AprProductShadowReadinessEvidence {
   /**
    * Prodotto a cui appartiene l'intero corpus di ground truth usato per questo
@@ -42,8 +47,13 @@ export interface AprProductShadowReadinessEvidence {
   productMapperImplemented: boolean;
   capabilityGateImplemented: boolean;
   regressionSuiteGreen: boolean;
-  /** Gate esplicito dell'utente: "APR operativo ombra". Default false. */
+  /**
+   * Campo legacy mantenuto per leggere snapshot precedenti. Non autorizza più
+   * l'attivazione operativa: il gate deve derivare dalla frase esplicita utente.
+   */
   globalShadowUserGateGranted?: boolean;
+  /** Autorizzazione esplicita dell'utente; nessun default e nessuna inferenza. */
+  globalShadowAuthorization?: AprGlobalShadowUserAuthorization;
 }
 
 export interface AprProductShadowReadinessResult {
@@ -86,14 +96,26 @@ function hasInvalidEvidenceMetrics(evidence: AprProductShadowReadinessEvidence):
     || evidence.unresolvedHistoricalMismatches > evidence.historicalAuditsCompared;
 }
 
+function hasExplicitGlobalShadowAuthorization(
+  evidence: AprProductShadowReadinessEvidence,
+): boolean {
+  const authorization = evidence.globalShadowAuthorization as {
+    source?: unknown;
+    phrase?: unknown;
+  } | undefined;
+
+  return authorization?.source === "user"
+    && authorization.phrase === "APR operativo ombra";
+}
+
 /**
  * Gate di capacità APR per i prodotti ancora intake-only.
  *
  * Working backwards dall'uso shadow: la readiness tecnica è dimostrata soltanto
  * da evidenze reali e complete del prodotto corretto; non viene derivata dal
  * solo fatto che esistano file o codice. Il gate globale resta separato e può
- * essere concesso soltanto dall'utente. Nessun esito di questa funzione abilita
- * l'invio ufficiale.
+ * essere concesso soltanto dall'utente tramite la frase canonica. Nessun esito
+ * di questa funzione abilita l'invio ufficiale.
  */
 export function evaluateAprProductShadowReadiness(
   productType: AprIntakeOnlyProduct,
@@ -151,15 +173,16 @@ export function evaluateAprProductShadowReadiness(
   if (!evidence.regressionSuiteGreen) technicalBlockers.push("regression-suite-not-green");
 
   const technicalShadowReady = technicalBlockers.length === 0;
+  const explicitUserGateGranted = hasExplicitGlobalShadowAuthorization(evidence);
   const blockers = [...technicalBlockers];
-  if (technicalShadowReady && evidence.globalShadowUserGateGranted !== true) {
+  if (technicalShadowReady && !explicitUserGateGranted) {
     blockers.push("global-shadow-user-gate-not-granted");
   }
 
   return {
     productType,
     technicalShadowReady,
-    operationalShadowAllowed: technicalShadowReady && evidence.globalShadowUserGateGranted === true,
+    operationalShadowAllowed: technicalShadowReady && explicitUserGateGranted,
     blockers,
     officialSubmissionAllowed: false,
   };

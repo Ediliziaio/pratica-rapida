@@ -1,4 +1,8 @@
 import type { FormClienteData } from "@/types/form-cliente";
+import {
+  hasExplicitAprShadowAuthorization,
+  type AprGlobalShadowUserAuthorization,
+} from "./aprShadowAuthorization";
 import { buildAprInfissiIntake, type AprInfissiIntake } from "./infissiIntake";
 import {
   buildAprImpiantoTermicoIntake,
@@ -12,13 +16,14 @@ import {
 export interface AprProductIntakeContext {
   hasInvoice: boolean;
   hasCompletedEneaPdf: boolean;
+  globalShadowAuthorization?: AprGlobalShadowUserAuthorization;
 }
 
 export interface AprScreeningIntakeRoute {
   productType: "schermature";
   integrationPhase: "screenings-validated";
   existingScreeningFlow: true;
-  shadowTechnicalMappingAllowed: true;
+  shadowTechnicalMappingAllowed: boolean;
   officialSubmissionAllowed: false;
 }
 
@@ -30,9 +35,10 @@ export type AprProductIntake =
 
 /**
  * Unico punto di ingresso APR multi-prodotto.
- * Le schermature restano sul flusso shadow già validato; gli altri prodotti
- * vengono instradati verso adapter intake-only che non possono produrre invii
- * o mapping tecnici finché mancano ground truth e contratto portale specifici.
+ * Le schermature hanno un flusso tecnico già validato, ma la valutazione shadow
+ * operativa resta subordinata allo stesso gate esplicito dell'intero APR. Gli
+ * altri prodotti restano intake-only finché mancano ground truth e contratto
+ * portale specifici. Nessun percorso abilita invii ufficiali.
  */
 export function buildAprProductIntake(
   form: FormClienteData,
@@ -44,7 +50,9 @@ export function buildAprProductIntake(
         productType: "schermature",
         integrationPhase: "screenings-validated",
         existingScreeningFlow: true,
-        shadowTechnicalMappingAllowed: true,
+        shadowTechnicalMappingAllowed: hasExplicitAprShadowAuthorization(
+          context.globalShadowAuthorization,
+        ),
         officialSubmissionAllowed: false,
       };
     case "infissi":

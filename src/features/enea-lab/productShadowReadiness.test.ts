@@ -7,6 +7,9 @@ const completeEvidence = {
   historicalAuditsCompared: 3,
   unresolvedHistoricalMismatches: 0,
   unobservedDefaultFieldCount: 0,
+  completedEneaPdfSampleIds: ["enea-pdf-1", "enea-pdf-2", "enea-pdf-3"],
+  realParserFixtureSampleIds: ["fixture-1", "fixture-2", "fixture-3"],
+  historicalAuditedSampleIds: ["enea-pdf-1", "enea-pdf-2", "enea-pdf-3"],
   technicalPortalContractObserved: true,
   technicalPerformanceSourceObserved: true,
   productParserImplemented: true,
@@ -53,6 +56,7 @@ describe("APR product shadow readiness", () => {
       ...completeEvidence,
       evidenceProductType: "infissi",
       historicalAuditsCompared: 2,
+      historicalAuditedSampleIds: ["enea-pdf-1", "enea-pdf-2"],
       globalShadowUserGateGranted: true,
     });
 
@@ -72,6 +76,7 @@ describe("APR product shadow readiness", () => {
       ...completeEvidence,
       evidenceProductType: "infissi",
       historicalAuditsCompared: 2,
+      historicalAuditedSampleIds: ["enea-pdf-1", "enea-pdf-2"],
       unresolvedHistoricalMismatches: 3,
       globalShadowUserGateGranted: true,
     });

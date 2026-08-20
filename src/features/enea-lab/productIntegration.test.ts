@@ -18,6 +18,7 @@ const baseRow = {
   pratica_enea_conclusa_urls: [],
   pipeline_stages: { stage_type: "pronte_da_fare" },
 };
+const shadowAuthorization = { source: "user", phrase: "APR operativo ombra" } as const;
 
 function prioritySummary(overrides: Partial<AprProductIntegrationSummary["byProduct"]> = {}): AprProductIntegrationSummary {
   const empty = (integrationPhase: "screenings-validated" | "intake-only") => ({
@@ -66,11 +67,10 @@ describe("integrazione multi-prodotto APR", () => {
   });
 
   it("abilita la sola valutazione shadow schermature dopo autorizzazione canonica", () => {
-    const authorization = { source: "user", phrase: "APR operativo ombra" } as const;
-    const schermature = mapAprProductInventoryRow(baseRow, authorization);
+    const schermature = mapAprProductInventoryRow(baseRow, shadowAuthorization);
     const infissi = mapAprProductInventoryRow(
       { ...baseRow, prodotto_installato: "Infissi" },
-      authorization,
+      shadowAuthorization,
     );
 
     expect(schermature?.shadowEvaluationAllowed).toBe(true);
@@ -184,7 +184,7 @@ describe("integrazione multi-prodotto APR", () => {
     }
   });
 
-  it("carica l'inventario con sole SELECT e senza campi anagrafici del cliente", async () => {
+  it("carica l'inventario con sole SELECT e senza campi anagrafici del cliente dopo il gate OMBRA", async () => {
     const calls: string[] = [];
     const query = {
       select: vi.fn((selection: string) => { calls.push(`select:${selection}`); return query; }),
@@ -198,7 +198,7 @@ describe("integrazione multi-prodotto APR", () => {
       from: vi.fn(() => { calls.push("from"); return query; }),
     };
 
-    await loadReadOnlyAprProductIntegrationInventory(client as never);
+    await loadReadOnlyAprProductIntegrationInventory(client as never, shadowAuthorization);
 
     const selectCall = calls.find((call) => call.startsWith("select:")) ?? "";
     expect(client.from).toHaveBeenCalledWith("enea_practices_public");
@@ -237,7 +237,10 @@ describe("integrazione multi-prodotto APR", () => {
     };
     const client = { from: vi.fn(() => query) };
 
-    const inventory = await loadReadOnlyAprProductIntegrationInventory(client as never);
+    const inventory = await loadReadOnlyAprProductIntegrationInventory(
+      client as never,
+      shadowAuthorization,
+    );
     const summary = summarizeAprProductInventory(inventory);
 
     expect(ranges).toEqual([[0, 499], [500, 999]]);

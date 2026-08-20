@@ -28,6 +28,7 @@ export type AprProductShadowReadinessBlocker =
   | "evidence-sample-identity-invalid"
   | "evidence-sample-lineage-unverified"
   | "evidence-sample-lineage-invalid"
+  | "evidence-sample-lineage-incomplete"
   | "global-shadow-user-gate-not-granted";
 
 export interface AprProductShadowReadinessEvidence {
@@ -238,7 +239,7 @@ function getSampleIdentityStatus(
 
 function getSampleLineageStatus(
   evidence: AprProductShadowReadinessEvidence,
-): "verified" | "unverified" | "invalid" {
+): "verified" | "unverified" | "invalid" | "incomplete" {
   if (evidence.realParserFixtureSamples === 0) return "verified";
 
   const completedIds = evidence.completedEneaPdfSampleIds as unknown;
@@ -256,6 +257,15 @@ function getSampleLineageStatus(
   const completedSet = new Set(completedIds);
   if (sourcePdfIds.some((id) => !completedSet.has(id))) {
     return "invalid";
+  }
+
+  // La lineage deve coprire tutto il corpus dichiarato, non soltanto avere lo
+  // stesso numero di fixture. Altrimenti tre fixture ricavate dallo stesso PDF
+  // potrebbero simulare la copertura di tre PDF conclusivi diversi e promuovere
+  // un parser mai congelato sugli altri casi reali disponibili.
+  const sourceSet = new Set(sourcePdfIds);
+  if (completedIds.some((id) => !sourceSet.has(id))) {
+    return "incomplete";
   }
 
   return "verified";
@@ -330,6 +340,8 @@ export function evaluateAprProductShadowReadiness(
     technicalBlockers.push("evidence-sample-lineage-unverified");
   } else if (sampleLineageStatus === "invalid") {
     technicalBlockers.push("evidence-sample-lineage-invalid");
+  } else if (sampleLineageStatus === "incomplete") {
+    technicalBlockers.push("evidence-sample-lineage-incomplete");
   }
   if (evidence.completedEneaPdfSamples === 0) {
     technicalBlockers.push("completed-enea-ground-truth-missing");

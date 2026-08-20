@@ -92,6 +92,12 @@ function getRegressionAttestationStatus(
     : "stale";
 }
 
+function asRuntimeRecord(value: unknown): Record<string, unknown> {
+  return value != null && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
 /**
  * Preflight unico per il passaggio APR alla modalita OMBRA.
  *
@@ -100,29 +106,45 @@ function getRegressionAttestationStatus(
  * la semantica dei gate esistenti. Il verde della suite deve appartenere alla
  * stessa revisione che stiamo per usare: un booleano verde stale non basta.
  *
+ * Il preflight rivalida inoltre la shape minima a runtime. Snapshot ricostruiti
+ * da storage/JSON non devono poter trasformare stringhe truthy come "false" in
+ * readiness tecnica, ne provocare eccezioni se manca il corpus dei nuovi
+ * prodotti. In dubbio resta fail-closed.
+ *
  * Questo preflight non abilita mai l'invio ufficiale e non effettua letture o
  * scritture verso CRM/ENEA; produce soltanto una decisione deterministica.
  */
 export function evaluateAprShadowPreflight(
   input: AprShadowPreflightInput,
 ): AprShadowPreflightResult {
+  const runtimeInput = asRuntimeRecord(input as unknown);
+  const globalShadowAuthorization = runtimeInput.globalShadowAuthorization
+    as AprGlobalShadowUserAuthorization | undefined;
   const globalShadowUserGateGranted = hasExplicitAprShadowAuthorization(
-    input.globalShadowAuthorization,
+    globalShadowAuthorization,
   );
   const regressionAttestationStatus = getRegressionAttestationStatus(
-    input.currentCodeRevision,
-    input.regressionSuiteGreenRevision,
+    runtimeInput.currentCodeRevision,
+    runtimeInput.regressionSuiteGreenRevision,
   );
   const regressionSuiteFresh = regressionAttestationStatus === "fresh";
+  const screeningsTechnicalShadowReady = runtimeInput.screeningsTechnicalShadowReady === true;
+  const runtimeProductEvidence = asRuntimeRecord(runtimeInput.productEvidence);
 
   const products = {} as Record<AprIntakeOnlyProduct, AprShadowPreflightProductStatus>;
   for (const productType of INTAKE_ONLY_PRODUCTS) {
-    const readiness = evaluateAprProductShadowReadiness(productType, {
-      ...input.productEvidence[productType],
-      // Un solo gate globale: nessun adapter puo trasportare autorizzazioni
-      // divergenti o stale dentro la propria evidenza.
-      globalShadowAuthorization: input.globalShadowAuthorization,
-    });
+    const evidence = runtimeProductEvidence[productType] as
+      | AprProductShadowReadinessEvidence
+      | undefined;
+    const readinessEvidence = evidence == null
+      ? evidence as unknown as AprProductShadowReadinessEvidence
+      : {
+          ...evidence,
+          // Un solo gate globale: nessun adapter puo trasportare autorizzazioni
+          // divergenti o stale dentro la propria evidenza.
+          globalShadowAuthorization,
+        };
+    const readiness = evaluateAprProductShadowReadiness(productType, readinessEvidence);
 
     products[productType] = {
       readiness,
@@ -137,7 +159,7 @@ export function evaluateAprShadowPreflight(
   } else if (regressionAttestationStatus === "stale") {
     activationBlockers.push("regression-suite-attestation-stale");
   }
-  if (!input.screeningsTechnicalShadowReady) {
+  if (!screeningsTechnicalShadowReady) {
     activationBlockers.push("screenings-technical-readiness-unverified");
   }
   if (!globalShadowUserGateGranted) {
@@ -147,7 +169,7 @@ export function evaluateAprShadowPreflight(
   let nextActivationAction: AprShadowActivationAction;
   if (!regressionSuiteFresh) {
     nextActivationAction = "refresh-regression-suite-attestation";
-  } else if (!input.screeningsTechnicalShadowReady) {
+  } else if (!screeningsTechnicalShadowReady) {
     nextActivationAction = "verify-screenings-technical-readiness";
   } else if (!globalShadowUserGateGranted) {
     nextActivationAction = "await-explicit-user-gate";
@@ -163,8 +185,8 @@ export function evaluateAprShadowPreflight(
     globalShadowUserGateGranted,
     regressionSuiteFresh,
     screenings: {
-      technicalShadowReady: input.screeningsTechnicalShadowReady && regressionSuiteFresh,
-      operationalShadowAllowed: input.screeningsTechnicalShadowReady
+      technicalShadowReady: screeningsTechnicalShadowReady && regressionSuiteFresh,
+      operationalShadowAllowed: screeningsTechnicalShadowReady
         && regressionSuiteFresh
         && globalShadowUserGateGranted,
     },

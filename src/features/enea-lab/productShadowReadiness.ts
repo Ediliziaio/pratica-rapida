@@ -7,6 +7,7 @@ import {
 export type { AprGlobalShadowUserAuthorization } from "./aprShadowAuthorization";
 
 export type AprProductShadowReadinessBlocker =
+  | "product-type-runtime-invalid"
   | "completed-enea-ground-truth-missing"
   | "real-parser-fixtures-missing"
   | "historical-audit-missing"
@@ -117,6 +118,16 @@ const SAMPLE_ID_FIELDS: readonly (keyof Pick<
   "historicalAuditedSampleIds",
 ];
 
+const APR_INTAKE_ONLY_PRODUCT_VALUES = new Set<string>([
+  "infissi",
+  "impianto_termico",
+  "insufflaggio",
+]);
+
+function isAprIntakeOnlyProductValue(value: unknown): value is AprIntakeOnlyProduct {
+  return typeof value === "string" && APR_INTAKE_ONLY_PRODUCT_VALUES.has(value);
+}
+
 function hasInvalidRuntimeShape(evidence: AprProductShadowReadinessEvidence): boolean {
   const runtimeEvidence = evidence as unknown as Record<string, unknown>;
 
@@ -218,6 +229,21 @@ export function evaluateAprProductShadowReadiness(
   evidence: AprProductShadowReadinessEvidence,
 ): AprProductShadowReadinessResult {
   const technicalBlockers: AprProductShadowReadinessBlocker[] = [];
+  const runtimeEvidence = evidence as unknown as Record<string, unknown>;
+  const runtimeEvidenceProductType = runtimeEvidence.evidenceProductType;
+
+  // I tipi TypeScript non sono una barriera runtime: snapshot ricostruiti da
+  // storage o JSON possono contenere "schermature" o valori sconosciuti e non
+  // devono poter riusare il gate riservato ai tre adapter intake-only.
+  if (
+    !isAprIntakeOnlyProductValue(productType)
+    || (
+      runtimeEvidenceProductType != null
+      && !isAprIntakeOnlyProductValue(runtimeEvidenceProductType)
+    )
+  ) {
+    technicalBlockers.push("product-type-runtime-invalid");
+  }
 
   // La ground truth deve essere esplicitamente scoped allo stesso prodotto che
   // stiamo cercando di promuovere. Senza questo legame un conteggio valido ma

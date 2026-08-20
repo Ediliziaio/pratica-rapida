@@ -279,14 +279,18 @@ export function rankAprNextProduct(
  * Inventario multi-prodotto APR: solo SELECT e nessuna mutation.
  * Per non leggere dati_form (che può contenere dati personali), il conteggio
  * fatture vede soltanto fatture_urls e deve quindi essere trattato come parziale.
- * La lettura è paginata per non troncare il corpus usato nelle priorità. La
- * semplice lettura dell'inventario non autorizza OMBRA: il gate deve essere
- * passato esplicitamente anche a questo percorso.
+ * La lettura è paginata per non troncare il corpus usato nelle priorità. Prima
+ * del gate canonico APR OMBRA non viene eseguita alcuna SELECT sul CRM reale:
+ * l'inventario resta pre-shadow come il resto dei percorsi live del laboratorio.
  */
 export async function loadReadOnlyAprProductIntegrationInventory(
   client: SupabaseClient<Database>,
   globalShadowAuthorization?: AprGlobalShadowUserAuthorization,
 ): Promise<AprProductInventoryRow[]> {
+  if (!hasExplicitAprShadowAuthorization(globalShadowAuthorization)) {
+    return [];
+  }
+
   const rawRows: ProductInventoryQueueRow[] = [];
   let from = 0;
 

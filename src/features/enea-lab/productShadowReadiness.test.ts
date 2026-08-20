@@ -101,7 +101,10 @@ describe("APR product shadow readiness", () => {
     const result = evaluateAprProductShadowReadiness("insufflaggio", {
       ...completeEvidence,
       evidenceProductType: "insufflaggio",
-      globalShadowUserGateGranted: true,
+      globalShadowAuthorization: {
+        source: "user",
+        phrase: "APR operativo ombra",
+      },
     });
 
     expect(result.technicalShadowReady).toBe(true);

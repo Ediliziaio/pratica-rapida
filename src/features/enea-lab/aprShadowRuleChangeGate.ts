@@ -25,6 +25,9 @@ export type AprShadowRuleChangeEvidenceCode =
   | "empty-replay-corpus"
   | "invalid-practice-id"
   | "duplicate-practice-id"
+  | "invalid-product-type"
+  | "invalid-expected-disposition"
+  | "invalid-target-blocker-verdict"
   | "invalid-blocker-code"
   | "duplicate-blocker-code"
   | "target-attribution-missing"
@@ -64,6 +67,28 @@ export interface AprShadowRuleChangeGateInput {
   cases: AprShadowRuleReplayCase[];
 }
 
+const APR_SHADOW_RULE_CHANGE_PRODUCTS: readonly AprShadowRuleChangeProduct[] = [
+  "schermature",
+  "infissi",
+  "impianto_termico",
+  "insufflaggio",
+];
+
+function isValidProductType(value: unknown): value is AprShadowRuleChangeProduct {
+  return (
+    typeof value === "string" &&
+    (APR_SHADOW_RULE_CHANGE_PRODUCTS as readonly string[]).includes(value)
+  );
+}
+
+function isValidExpectedDisposition(value: unknown): value is AprShadowRuleExpectedDisposition {
+  return value === "blocked" || value === "ready";
+}
+
+function isValidTargetBlockerVerdict(value: unknown): value is AprShadowRuleTargetVerdict {
+  return value === null || value === "correct-block" || value === "false-block";
+}
+
 function uniqueCodes(codes: string[]): string[] {
   return [...new Set(codes)];
 }
@@ -94,6 +119,11 @@ function sameCodes(left: string[], right: string[]): boolean {
  * - una fix nata per ridurre un false-block non introduce il target su casi che
  *   non avevano evidenza blocker-specifica nel baseline;
  * - l'evidenza blocker-specifica del target appartiene a un solo prodotto APR.
+ *
+ * Il gate rivalida anche a runtime i discriminanti del replay. I tipi TypeScript
+ * non bastano come barriera per dati ricostruiti da ledger/storage: productType,
+ * expectedDisposition e targetBlockerVerdict sconosciuti o non canonici rendono
+ * l'evidenza invalida invece di poter concorrere alla promozione di una regola.
  *
  * Un caso puo restare complessivamente bloccato per un'altra causa gia nota:
  * la correzione del target e comunque valida se rimuove esclusivamente il falso
@@ -138,6 +168,22 @@ export function validateAprShadowRuleChange(
       evidenceBlockers.push({ practiceId: row.practiceId, code: "duplicate-practice-id" });
     }
     seenPracticeIds.add(practiceId);
+
+    if (!isValidProductType(row.productType)) {
+      evidenceBlockers.push({ practiceId: row.practiceId, code: "invalid-product-type" });
+    }
+    if (!isValidExpectedDisposition(row.expectedDisposition)) {
+      evidenceBlockers.push({
+        practiceId: row.practiceId,
+        code: "invalid-expected-disposition",
+      });
+    }
+    if (!isValidTargetBlockerVerdict(row.targetBlockerVerdict)) {
+      evidenceBlockers.push({
+        practiceId: row.practiceId,
+        code: "invalid-target-blocker-verdict",
+      });
+    }
 
     for (const codes of [row.baselineBlockerCodes, row.candidateBlockerCodes]) {
       const normalizedCodes = codes.map((code) => code.trim());

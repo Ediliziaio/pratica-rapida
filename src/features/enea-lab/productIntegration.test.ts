@@ -49,7 +49,7 @@ describe("integrazione multi-prodotto APR", () => {
     expect(detectAprProductType("Prodotto non ancora censito")).toBe("unknown");
   });
 
-  it("mantiene gli altri prodotti in intake-only e impedisce sempre l'invio ufficiale", () => {
+  it("non abilita valutazioni shadow dall'inventario senza il gate utente", () => {
     const infissi = mapAprProductInventoryRow({ ...baseRow, prodotto_installato: "Infissi" });
     const impianto = mapAprProductInventoryRow({ ...baseRow, prodotto_installato: "Pompa di calore" });
     const insufflaggio = mapAprProductInventoryRow({ ...baseRow, prodotto_installato: "Insufflaggio" });
@@ -61,8 +61,22 @@ describe("integrazione multi-prodotto APR", () => {
       expect(row?.officialSubmissionAllowed).toBe(false);
     }
     expect(schermature?.integrationPhase).toBe("screenings-validated");
+    expect(schermature?.shadowEvaluationAllowed).toBe(false);
+    expect(schermature?.officialSubmissionAllowed).toBe(false);
+  });
+
+  it("abilita la sola valutazione shadow schermature dopo autorizzazione canonica", () => {
+    const authorization = { source: "user", phrase: "APR operativo ombra" } as const;
+    const schermature = mapAprProductInventoryRow(baseRow, authorization);
+    const infissi = mapAprProductInventoryRow(
+      { ...baseRow, prodotto_installato: "Infissi" },
+      authorization,
+    );
+
     expect(schermature?.shadowEvaluationAllowed).toBe(true);
     expect(schermature?.officialSubmissionAllowed).toBe(false);
+    expect(infissi?.shadowEvaluationAllowed).toBe(false);
+    expect(infissi?.officialSubmissionAllowed).toBe(false);
   });
 
   it("produce metriche per scegliere il prossimo prodotto in base al corpus reale disponibile", () => {

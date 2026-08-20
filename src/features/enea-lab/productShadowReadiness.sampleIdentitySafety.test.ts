@@ -21,14 +21,20 @@ const completeEvidence = {
 
 describe("APR product shadow readiness - sample identity safety", () => {
   it("non usa conteggi senza identita campione per promuovere la readiness", () => {
-    const {
-      completedEneaPdfSampleIds: _pdfIds,
-      realParserFixtureSampleIds: _fixtureIds,
-      historicalAuditedSampleIds: _auditIds,
-      ...countsOnlyEvidence
-    } = completeEvidence;
-
-    const result = evaluateAprProductShadowReadiness("infissi", countsOnlyEvidence);
+    const result = evaluateAprProductShadowReadiness("infissi", {
+      evidenceProductType: "infissi",
+      completedEneaPdfSamples: 3,
+      realParserFixtureSamples: 3,
+      historicalAuditsCompared: 3,
+      unresolvedHistoricalMismatches: 0,
+      unobservedDefaultFieldCount: 0,
+      technicalPortalContractObserved: true,
+      technicalPerformanceSourceObserved: true,
+      productParserImplemented: true,
+      productMapperImplemented: true,
+      capabilityGateImplemented: true,
+      regressionSuiteGreen: true,
+    });
 
     expect(result.technicalShadowReady).toBe(false);
     expect(result.blockers).toContain("evidence-sample-identity-unverified");

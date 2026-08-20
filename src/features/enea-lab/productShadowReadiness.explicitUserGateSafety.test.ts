@@ -13,6 +13,7 @@ const completeEvidence = {
   unobservedDefaultFieldCount: 0,
   completedEneaPdfSampleIds: ["enea-pdf-1", "enea-pdf-2", "enea-pdf-3"],
   realParserFixtureSampleIds: ["fixture-1", "fixture-2", "fixture-3"],
+  realParserFixtureSourcePdfIds: ["enea-pdf-1", "enea-pdf-2", "enea-pdf-3"],
   historicalAuditedSampleIds: ["enea-pdf-1", "enea-pdf-2", "enea-pdf-3"],
   technicalPortalContractObserved: true,
   technicalPerformanceSourceObserved: true,

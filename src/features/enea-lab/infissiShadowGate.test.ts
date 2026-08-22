@@ -23,6 +23,7 @@ const matchCommonAudit = {
 };
 const readyTechnical = { status: "ready" as const, items: [], blockers: [] };
 const matchTechnicalAudit = { status: "match" as const, comparisons: [], blockers: [] };
+const passTransmittance = { status: "pass" as const, checks: [], blockers: [] };
 const validPortal = { valid: true, blockers: [] };
 
 describe("APR infissi shadow gate", () => {
@@ -32,6 +33,7 @@ describe("APR infissi shadow gate", () => {
       commonAudit: matchCommonAudit,
       technicalMapping: readyTechnical,
       technicalAudit: matchTechnicalAudit,
+      transmittanceGate: passTransmittance,
       portalContract: validPortal,
       livePortalValidated: false,
     });
@@ -47,6 +49,7 @@ describe("APR infissi shadow gate", () => {
       commonAudit: matchCommonAudit,
       technicalMapping: readyTechnical,
       technicalAudit: matchTechnicalAudit,
+      transmittanceGate: passTransmittance,
       portalContract: validPortal,
       livePortalValidated: true,
     });
@@ -61,6 +64,7 @@ describe("APR infissi shadow gate", () => {
       commonAudit: { ...matchCommonAudit, status: "difference", matches: 0 },
       technicalMapping: readyTechnical,
       technicalAudit: matchTechnicalAudit,
+      transmittanceGate: passTransmittance,
       portalContract: validPortal,
       livePortalValidated: true,
     });
@@ -69,12 +73,28 @@ describe("APR infissi shadow gate", () => {
     expect(result.blockers).toContain("common-audit-not-match");
   });
 
+  it("blocca una trasmittanza non conforme anche se il confronto storico coincide", () => {
+    const result = evaluateAprInfissiShadowGate({
+      historicalAudit: matchHistorical,
+      commonAudit: matchCommonAudit,
+      technicalMapping: readyTechnical,
+      technicalAudit: matchTechnicalAudit,
+      transmittanceGate: { status: "blocked", checks: [], blockers: ["new-transmittance-above-limit:1"] },
+      portalContract: validPortal,
+      livePortalValidated: true,
+    });
+
+    expect(result.shadowTechnicalCandidate).toBe(false);
+    expect(result.blockers).toContain("transmittance-gate-not-pass");
+  });
+
   it("anche dopo tutti i gate mantiene l'invio ufficiale disabilitato", () => {
     const result = evaluateAprInfissiShadowGate({
       historicalAudit: matchHistorical,
       commonAudit: matchCommonAudit,
       technicalMapping: readyTechnical,
       technicalAudit: matchTechnicalAudit,
+      transmittanceGate: passTransmittance,
       portalContract: validPortal,
       livePortalValidated: true,
     });

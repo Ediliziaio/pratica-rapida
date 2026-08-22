@@ -314,11 +314,15 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   // In audit il confronto con schermature.numero fallira' invece di certificare
   // per errore un PDF parzialmente interpretato.
   const screeningCount = screeningStructureValid ? orderedScreeningOrdinals.length : -1;
-  set(fields, "schermature.spesa", capture(source, /Spese congrue sostenute \[€\]\s+([0-9]+(?:[.,][0-9]+)?)/i));
-  set(fields, "schermature.risparmio_energia", capture(
-    source,
-    /2\. Risparmio stimato di energia primaria non rinnovabile \[kWh\/anno\].*?([0-9]+(?:[.,][0-9]+)?)\s+Il documento originale cartaceo/i,
-  ));
+  const screeningSummaryContext = screeningStart >= 0
+    || /Comma\s+345B\s+-\s+Schermature solari/i.test(source);
+  if (screeningSummaryContext) {
+    set(fields, "schermature.spesa", capture(source, /Spese congrue sostenute \[€\]\s+([0-9]+(?:[.,][0-9]+)?)/i));
+    set(fields, "schermature.risparmio_energia", capture(
+      source,
+      /2\. Risparmio stimato di energia primaria non rinnovabile \[kWh\/anno\].*?([0-9]+(?:[.,][0-9]+)?)\s+Il documento originale cartaceo/i,
+    ));
+  }
 
   return { cpid, fields, screeningCount };
 }

@@ -12,6 +12,10 @@ import {
   type AprGlobalShadowUserAuthorization,
 } from "./aprShadowAuthorization";
 import { APR_SHADOW_RUNTIME_AUTHORIZATION } from "./aprShadowRuntimeAuthorization";
+import {
+  loadAprInfissiTargetSession,
+  type AprInfissiTargetSession,
+} from "./infissiTargetSession";
 
 export type EneaLabQueueScope = "active" | "historical";
 export type EneaLabQueueMode = "preview" | "pre-shadow" | "live-shadow";
@@ -19,6 +23,7 @@ export type EneaLabQueueMode = "preview" | "pre-shadow" | "live-shadow";
 declare global {
   interface Window {
     __ENEA_LAB_AUDIT_5__?: () => Promise<HistoricalBatchAuditReport>;
+    __APR_INFISSI_SEBASTIAN_READONLY__?: () => Promise<AprInfissiTargetSession>;
   }
 }
 
@@ -28,8 +33,7 @@ function isLocalPreview(): boolean {
 
 /**
  * Il laboratorio puo continuare a essere sviluppato sui mock prima del gate,
- * ma la sorgente CRM reale appartiene alla modalita OMBRA operativa e deve
- * quindi dipendere dalla stessa autorizzazione esplicita usata dal resto APR.
+ * ma la sorgente CRM reale generale appartiene alla modalita OMBRA operativa.
  */
 export function resolveEneaLabQueueMode(
   preview: boolean,
@@ -49,11 +53,19 @@ export function useReadOnlyEneaQueue(
   const queueMode = resolveEneaLabQueueMode(preview, globalShadowAuthorization);
 
   useEffect(() => {
-    // Anche l'audit storico legge pratiche CRM reali: prima del gate globale non
-    // deve essere esposto tramite la scorciatoia DEV. La preview resta sempre mock.
-    if (!import.meta.env.DEV || queueMode !== "live-shadow") return undefined;
-    window.__ENEA_LAB_AUDIT_5__ = () => runHistoricalEneaBatchAudit(supabase, 5);
+    if (!import.meta.env.DEV) return undefined;
+
+    // Eccezione di collaudo strettamente nominativa richiesta dall'utente:
+    // una sola pratica Infissi, SELECT/download soltanto, Erremme esclusa.
+    // Non modifica il gate OMBRA globale e non abilita la coda CRM generale.
+    window.__APR_INFISSI_SEBASTIAN_READONLY__ = () => loadAprInfissiTargetSession(supabase);
+
+    if (queueMode === "live-shadow") {
+      window.__ENEA_LAB_AUDIT_5__ = () => runHistoricalEneaBatchAudit(supabase, 5);
+    }
+
     return () => {
+      delete window.__APR_INFISSI_SEBASTIAN_READONLY__;
       delete window.__ENEA_LAB_AUDIT_5__;
     };
   }, [queueMode]);
@@ -61,8 +73,7 @@ export function useReadOnlyEneaQueue(
   return useQuery({
     queryKey: ["enea-lab", "read-only-queue", queueMode, scope],
     queryFn: () => {
-      // Pre-shadow e preview lavorano esclusivamente sui mock: nessuna SELECT
-      // sulle pratiche reali finche l'utente non pronuncia il gate canonico.
+      // La coda generale resta mock finché il gate canonico non è concesso.
       if (queueMode !== "live-shadow") return Promise.resolve(ENEA_LAB_MOCK_PRACTICES);
       return scope === "historical"
         ? loadReadOnlyEneaHistoricalQueue(supabase)

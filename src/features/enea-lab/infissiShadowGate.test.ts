@@ -13,6 +13,14 @@ const blockedHistorical = {
   status: "blocked" as const,
   blockers: ["aggregate-field-mixed" as const],
 };
+const matchCommonAudit = {
+  status: "match" as const,
+  compared: 1,
+  matches: 1,
+  differences: [],
+  comparisons: [],
+  completed: { cpid: "TEST", fields: {}, screeningCount: -1 },
+};
 const readyTechnical = { status: "ready" as const, items: [], blockers: [] };
 const matchTechnicalAudit = { status: "match" as const, comparisons: [], blockers: [] };
 const validPortal = { valid: true, blockers: [] };
@@ -21,6 +29,7 @@ describe("APR infissi shadow gate", () => {
   it("non dichiara candidato prima del collaudo live sul portale", () => {
     const result = evaluateAprInfissiShadowGate({
       historicalAudit: matchHistorical,
+      commonAudit: matchCommonAudit,
       technicalMapping: readyTechnical,
       technicalAudit: matchTechnicalAudit,
       portalContract: validPortal,
@@ -32,9 +41,10 @@ describe("APR infissi shadow gate", () => {
     expect(result.blockers).toEqual(["live-portal-validation-missing"]);
   });
 
-  it("ammette un historical blocked per aggregazione CRM se il confronto tecnico è match", () => {
+  it("ammette un historical blocked per aggregazione CRM se gli audit dettagliati sono match", () => {
     const result = evaluateAprInfissiShadowGate({
       historicalAudit: blockedHistorical,
+      commonAudit: matchCommonAudit,
       technicalMapping: readyTechnical,
       technicalAudit: matchTechnicalAudit,
       portalContract: validPortal,
@@ -45,9 +55,24 @@ describe("APR infissi shadow gate", () => {
     expect(result.blockers).toEqual([]);
   });
 
+  it("blocca anche una sola differenza nelle sezioni comuni", () => {
+    const result = evaluateAprInfissiShadowGate({
+      historicalAudit: matchHistorical,
+      commonAudit: { ...matchCommonAudit, status: "difference", matches: 0 },
+      technicalMapping: readyTechnical,
+      technicalAudit: matchTechnicalAudit,
+      portalContract: validPortal,
+      livePortalValidated: true,
+    });
+
+    expect(result.shadowTechnicalCandidate).toBe(false);
+    expect(result.blockers).toContain("common-audit-not-match");
+  });
+
   it("anche dopo tutti i gate mantiene l'invio ufficiale disabilitato", () => {
     const result = evaluateAprInfissiShadowGate({
       historicalAudit: matchHistorical,
+      commonAudit: matchCommonAudit,
       technicalMapping: readyTechnical,
       technicalAudit: matchTechnicalAudit,
       portalContract: validPortal,

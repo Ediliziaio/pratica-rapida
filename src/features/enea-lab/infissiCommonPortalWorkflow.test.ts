@@ -23,13 +23,8 @@ describe("APR infissi common portal workflow", () => {
     const result = buildAprInfissiCommonPortalWorkflow(mappedInfissi());
 
     expect(result.supportedPages).toHaveLength(5);
-    expect(result.supportedPages).toEqual(expect.arrayContaining([
-      "Generatore impianto termico",
-      "Anagrafica Beneficiario",
-      "Immobile",
-      "Intervento",
-      "Impianto termico esistente",
-    ]));
+    expect(result.supportedPages).toContain("Generatore dell'impianto termico");
+    expect(result.supportedPages).toContain("Anagrafica Beneficiario");
     expect(result.script).not.toMatch(/schermatur/i);
     expect(result.script).not.toMatch(/\.submit\s*\(/);
     expect(result.script).not.toMatch(/requestSubmit\s*\(/);

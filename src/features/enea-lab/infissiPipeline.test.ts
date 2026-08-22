@@ -75,12 +75,13 @@ const technicalEvidence = [{
 }];
 
 describe("APR infissi pipeline", () => {
-  it("arriva a candidato shadow solo con audit comune/tecnico, contratto e live validation coerenti", () => {
+  it("arriva a candidato shadow solo con audit, trasmittanze, contratto e live validation coerenti", () => {
     const result = runAprInfissiPipeline({
       source: source(),
       technicalEvidence,
       completedEnea: parseCompletedEneaInfissiText(COMPLETED),
       completedEneaCommon: completedCommon(),
+      observedClimateZone: "E",
       portalContract: contract(),
       livePortalValidated: true,
     });
@@ -88,6 +89,7 @@ describe("APR infissi pipeline", () => {
     expect(result.commonAudit.status).toBe("match");
     expect(result.technicalMapping.status).toBe("ready");
     expect(result.technicalAudit.status).toBe("match");
+    expect(result.transmittanceGate.status).toBe("pass");
     expect(result.portalContract.valid).toBe(true);
     expect(result.technicalPortalScript.mode).toBe("ready");
     expect(result.gate.shadowTechnicalCandidate).toBe(true);
@@ -100,6 +102,7 @@ describe("APR infissi pipeline", () => {
       technicalEvidence,
       completedEnea: parseCompletedEneaInfissiText(COMPLETED),
       completedEneaCommon: completedCommon(),
+      observedClimateZone: "E",
       livePortalValidated: false,
     });
 
@@ -112,12 +115,27 @@ describe("APR infissi pipeline", () => {
     ]));
   });
 
+  it("senza zona climatica osservata resta fail-closed", () => {
+    const result = runAprInfissiPipeline({
+      source: source(),
+      technicalEvidence,
+      completedEnea: parseCompletedEneaInfissiText(COMPLETED),
+      completedEneaCommon: completedCommon(),
+      portalContract: contract(),
+      livePortalValidated: true,
+    });
+
+    expect(result.transmittanceGate.status).toBe("blocked");
+    expect(result.gate.blockers).toContain("transmittance-gate-not-pass");
+  });
+
   it("una differenza tecnica rispetto al PDF concluso blocca la readiness", () => {
     const result = runAprInfissiPipeline({
       source: source(),
       technicalEvidence: [{ ...technicalEvidence[0], newTransmittance: 0.93 }],
       completedEnea: parseCompletedEneaInfissiText(COMPLETED),
       completedEneaCommon: completedCommon(),
+      observedClimateZone: "E",
       portalContract: contract(),
       livePortalValidated: true,
     });
@@ -135,6 +153,7 @@ describe("APR infissi pipeline", () => {
       technicalEvidence,
       completedEnea: parseCompletedEneaInfissiText(COMPLETED),
       completedEneaCommon: common,
+      observedClimateZone: "E",
       portalContract: contract(),
       livePortalValidated: true,
     });

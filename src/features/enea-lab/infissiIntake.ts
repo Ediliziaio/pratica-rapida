@@ -22,6 +22,7 @@ export interface AprInfissiIntakeFields {
 export interface AprInfissiIntakeContext {
   hasInvoice: boolean;
   hasCompletedEneaPdf: boolean;
+  technicalPortalContractObserved?: boolean;
 }
 
 export interface AprInfissiIntake {
@@ -77,12 +78,12 @@ function runtimeInfissiFields(value: unknown): AprInfissiIntakeFields | null {
 }
 
 /**
- * Primo adapter APR per gli infissi: raccoglie esclusivamente i dati prodotto
- * già strutturati nel CRM e misura ciò che manca per costruire il vero mapping
- * tecnico. Non deduce trasmittanze, superfici, valori ENEA o selettori portale.
+ * Intake APR Infissi: raccoglie esclusivamente dati già strutturati nel CRM.
+ * Non deduce trasmittanze, superfici, valori ENEA o selettori portale.
  *
- * Finché non esistono ground truth ENEA concluse e contratto tecnico osservato,
- * l'adapter resta deliberatamente intake-only e non può produrre workflow.
+ * L'assenza del contratto tecnico resta un blocker finché il probe read-only
+ * non ha osservato la pagina 2026. Anche quando il blocker viene rimosso,
+ * questo adapter da solo non abilita il mapping tecnico: serve il gate completo.
  */
 export function buildAprInfissiIntake(
   form: FormClienteData,
@@ -110,10 +111,9 @@ export function buildAprInfissiIntake(
   if (!context.hasCompletedEneaPdf) {
     blockers.push("infissi-completed-enea-ground-truth-missing");
   }
-
-  // Hard gate: il percorso 345A è osservato, ma la pagina tecnica specifica
-  // degli infissi/serramenti non è ancora congelata come contratto portale.
-  blockers.push("infissi-portal-technical-contract-unobserved");
+  if (context.technicalPortalContractObserved !== true) {
+    blockers.push("infissi-portal-technical-contract-unobserved");
+  }
 
   return {
     productType: "infissi",

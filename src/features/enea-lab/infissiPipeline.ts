@@ -26,6 +26,11 @@ import {
 import { buildAprInfissiCommonPortalWorkflow } from "./infissiCommonPortalWorkflow";
 import { prepareAprInfissiPortalScript, type AprInfissiPortalScriptPreparation } from "./infissiPortalScript";
 import { evaluateAprInfissiShadowGate, type AprInfissiShadowGateResult } from "./infissiShadowGate";
+import {
+  validateAprInfissiTransmittance,
+  type AprInfissiTransmittanceGateResult,
+  type EneaClimateZone,
+} from "./infissiTransmittanceGate";
 import type { CompletedEneaInfissiSnapshot } from "./completedEneaInfissi";
 import type { CompletedEneaSnapshot } from "./completedEneaAudit";
 
@@ -36,6 +41,7 @@ export interface AprInfissiPipelineInput {
   technicalEvidence: AprInfissiTechnicalEvidenceItem[];
   completedEnea: CompletedEneaInfissiSnapshot;
   completedEneaCommon: CompletedEneaSnapshot;
+  observedClimateZone?: EneaClimateZone | null;
   portalContract?: AprInfissiPortalObservedContract;
   livePortalValidated: boolean;
 }
@@ -47,6 +53,7 @@ export interface AprInfissiPipelineResult {
   commonAudit: AprInfissiCommonCompletedAuditResult;
   technicalMapping: AprInfissiTechnicalMappingResult;
   technicalAudit: AprInfissiTechnicalAuditResult;
+  transmittanceGate: AprInfissiTransmittanceGateResult;
   portalContract: AprInfissiPortalContractValidation;
   commonPortalWorkflow: ReturnType<typeof buildAprInfissiCommonPortalWorkflow>;
   technicalPortalScript: AprInfissiPortalScriptPreparation;
@@ -60,10 +67,8 @@ const INVALID_CONTRACT: AprInfissiPortalContractValidation = {
 
 /**
  * Orchestratore end-to-end APR Infissi per laboratorio/shadow.
- *
- * Il PDF ENEA concluso alimenta soltanto gli audit. Il comando da eseguire sul
- * portale viene costruito esclusivamente dagli item prodotti dal mapper tecnico
- * source-driven, così il live test non può ricopiare il ground truth.
+ * Il PDF concluso è solo ground truth; zona climatica e DOM del live test devono
+ * essere osservati esplicitamente e non vengono dedotti da dati storici.
  */
 export function runAprInfissiPipeline(input: AprInfissiPipelineInput): AprInfissiPipelineResult {
   if (input.source.form.prodotto.tipo !== "infissi") {
@@ -89,6 +94,10 @@ export function runAprInfissiPipeline(input: AprInfissiPipelineInput): AprInfiss
   const technicalAudit = technicalMapping.status === "ready"
     ? auditInfissiTechnicalMappingAgainstCompleted(technicalMapping.items, input.completedEnea)
     : { status: "blocked" as const, comparisons: [], blockers: ["technical-mapping-not-ready"] };
+  const transmittanceGate = validateAprInfissiTransmittance(
+    input.observedClimateZone,
+    technicalMapping.status === "ready" ? technicalMapping.items : [],
+  );
   const commonPortalWorkflow = buildAprInfissiCommonPortalWorkflow(commonMapping);
   const technicalPortalScript = input.portalContract
     && portalContract.valid
@@ -105,6 +114,7 @@ export function runAprInfissiPipeline(input: AprInfissiPipelineInput): AprInfiss
     commonAudit,
     technicalMapping,
     technicalAudit,
+    transmittanceGate,
     portalContract,
     livePortalValidated: input.livePortalValidated,
   });
@@ -116,6 +126,7 @@ export function runAprInfissiPipeline(input: AprInfissiPipelineInput): AprInfiss
     commonAudit,
     technicalMapping,
     technicalAudit,
+    transmittanceGate,
     portalContract,
     commonPortalWorkflow,
     technicalPortalScript,

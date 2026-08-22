@@ -1,5 +1,8 @@
-import { describe, expect, it } from "vitest";
-import { mapInfissiQueueRow } from "./readOnlyInfissiSource";
+import { describe, expect, it, vi } from "vitest";
+import {
+  loadReadOnlyInfissiPracticeByFullName,
+  mapInfissiQueueRow,
+} from "./readOnlyInfissiSource";
 
 function row(overrides: Record<string, unknown> = {}) {
   return {
@@ -36,7 +39,6 @@ function row(overrides: Record<string, unknown> = {}) {
 describe("APR read-only source infissi", () => {
   it("mappa pratica infissi storica e conserva solo path appartenenti alla pratica", () => {
     const practice = mapInfissiQueueRow(row());
-
     expect(practice).not.toBeNull();
     expect(practice?.clienteNome).toBe("Sebastian Costel");
     expect(practice?.clienteCognome).toBe("Volf");
@@ -46,14 +48,38 @@ describe("APR read-only source infissi", () => {
   });
 
   it("Erremme è esclusa incondizionatamente dal mapper Infissi", () => {
-    expect(mapInfissiQueueRow(row({
-      companies: { ragione_sociale: "ERREMME S.R.L." },
-    }))).toBeNull();
+    expect(mapInfissiQueueRow(row({ companies: { ragione_sociale: "ERREMME S.R.L." } }))).toBeNull();
   });
 
   it("non assorbe prodotti diversi dagli infissi", () => {
-    expect(mapInfissiQueueRow(row({
-      prodotto_installato: "Schermature solari",
-    }))).toBeNull();
+    expect(mapInfissiQueueRow(row({ prodotto_installato: "Schermature solari" }))).toBeNull();
+  });
+
+  it("il lookup nominativo usa soltanto la catena SELECT e richiede identità esatta", async () => {
+    const calls: string[] = [];
+    const chain = {
+      select: vi.fn(() => { calls.push("select"); return chain; }),
+      eq: vi.fn(() => { calls.push("eq"); return chain; }),
+      ilike: vi.fn(() => { calls.push("ilike"); return chain; }),
+      order: vi.fn(() => { calls.push("order"); return chain; }),
+      limit: vi.fn(async () => { calls.push("limit"); return { data: [row()], error: null }; }),
+    };
+    const client = { from: vi.fn(() => { calls.push("from"); return chain; }) } as never;
+
+    const practice = await loadReadOnlyInfissiPracticeByFullName(client, "Sebastian Costel Volf");
+    expect(practice?.clienteCognome).toBe("Volf");
+    expect(calls).toEqual(["from", "select", "eq", "ilike", "order", "limit"]);
+  });
+
+  it("non seleziona un quasi-match del nome", async () => {
+    const chain = {
+      select: () => chain,
+      eq: () => chain,
+      ilike: () => chain,
+      order: () => chain,
+      limit: async () => ({ data: [row({ cliente_nome: "Sebastiano" })], error: null }),
+    };
+    const client = { from: () => chain } as never;
+    expect(await loadReadOnlyInfissiPracticeByFullName(client, "Sebastian Costel Volf")).toBeNull();
   });
 });

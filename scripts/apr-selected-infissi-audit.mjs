@@ -66,6 +66,30 @@ const intake = buildAprInfissiIntake(
   },
 );
 
+function collectProductSignals(node, path = "", output = []) {
+  if (output.length >= 120 || node == null) return output;
+  if (Array.isArray(node)) {
+    node.forEach((item, index) => collectProductSignals(item, `${path}[${index}]`, output));
+    return output;
+  }
+  if (typeof node === "object") {
+    for (const [key, value] of Object.entries(node)) {
+      const nextPath = path ? `${path}.${key}` : key;
+      if (/richiedente|residenza|appartamento|catastal|cointestat|email|telefono|codice.?fiscale|\bcf\b/i.test(nextPath)) {
+        continue;
+      }
+      collectProductSignals(value, nextPath, output);
+    }
+    return output;
+  }
+  if (/prodott|infiss|serrament|material|vetro|zanzar|tapparell|chiusur|trasmitt/i.test(path)) {
+    output.push({ path, value: typeof node === "string" ? node.slice(0, 200) : node });
+  }
+  return output;
+}
+
+const productDataSignals = collectProductSignals(row.dati_form);
+
 const apiKeys = await managementRequest("/api-keys");
 const serviceRole = (Array.isArray(apiKeys) ? apiKeys : apiKeys.data ?? [])
   .find((key) => key.name === "service_role" || key.type === "service_role")?.api_key;
@@ -108,6 +132,27 @@ if (completedPath) {
       .filter((line) => !/nome:|cognome:|codice fiscale:|indirizzo:|residenza:/i.test(line))
       .map((line) => line.slice(0, 400)),
   )].slice(0, 80);
+
+  const technicalLines = text
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s+/g, " ").trim());
+  const technicalStart = technicalLines.findIndex((line) => /IN\.\s*Serramenti e infissi/i.test(line));
+  if (technicalStart >= 0) {
+    const technicalEndOffset = technicalLines
+      .slice(technicalStart + 1)
+      .findIndex((line) => /Totale generale dei dati tecnici\/finanziari/i.test(line));
+    const technicalEnd = technicalEndOffset >= 0
+      ? technicalStart + technicalEndOffset + 2
+      : Math.min(technicalLines.length, technicalStart + 100);
+    technicalSignals = [...new Set([
+      ...technicalSignals,
+      ...technicalLines
+        .slice(technicalStart, technicalEnd)
+        .filter(Boolean)
+        .filter((line) => !/nome:|cognome:|codice fiscale:|indirizzo:|residenza:/i.test(line))
+        .map((line) => line.slice(0, 400)),
+    ])].slice(0, 140);
+  }
 }
 
 const report = {
@@ -120,6 +165,7 @@ const report = {
   completedEneaPdfCount: completedPaths.length,
   structuredIntakeComplete: intake.structuredIntakeComplete,
   intakeFields: intake.fields,
+  productDataSignals,
   blockers: intake.blockers,
   shadowTechnicalMappingAllowed: intake.shadowTechnicalMappingAllowed,
   officialSubmissionAllowed: intake.officialSubmissionAllowed,

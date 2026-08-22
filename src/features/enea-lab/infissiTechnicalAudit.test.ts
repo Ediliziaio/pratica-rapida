@@ -10,6 +10,15 @@ esterno
 Spese congrue sostenute [€] 9996.66
 `;
 
+const COMPLETED_TWO_ROWS = `
+IN. Serramenti e infissi
+1 Legno Doppio 3 1.5 PVC Triplo 0.88 Verso No
+esterno
+2 Legno Doppio 3 1.6 PVC Triplo 0.87 Verso No
+esterno
+Spese congrue sostenute [€] 9996.66
+`;
+
 const intake = {
   oldMaterial: "legno" as const,
   oldGlass: "doppio" as const,
@@ -64,8 +73,10 @@ describe("APR infissi technical audit", () => {
   });
 
   it("blocca il confronto se APR e PDF ENEA non hanno lo stesso numero di righe", () => {
-    const completed = parseCompletedEneaInfissiText(`${COMPLETED.replace("Spese congrue sostenute", "2 Legno Doppio 3 1.6 PVC Triplo 0.87 Verso No\nesterno\nSpese congrue sostenute")}`);
-    const result = auditInfissiTechnicalMappingAgainstCompleted(mapped(), completed);
+    const result = auditInfissiTechnicalMappingAgainstCompleted(
+      mapped(),
+      parseCompletedEneaInfissiText(COMPLETED_TWO_ROWS),
+    );
 
     expect(result.status).toBe("blocked");
     expect(result.blockers).toContain("technical-item-count-mismatch");

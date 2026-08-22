@@ -6,11 +6,13 @@ on:
       - agent/crm-ombra-enea-lab
     paths:
       - ".github/workflows/apr-selected-infissi-audit.yml"
+      - "scripts/apr-selected-infissi-audit.mjs"
   pull_request:
     branches:
       - main
     paths:
       - ".github/workflows/apr-selected-infissi-audit.yml"
+      - "scripts/apr-selected-infissi-audit.mjs"
 
 permissions:
   contents: read

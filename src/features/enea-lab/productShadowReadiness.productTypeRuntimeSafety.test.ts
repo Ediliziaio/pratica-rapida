@@ -28,12 +28,12 @@ function completeEvidence(productType: AprIntakeOnlyProduct): AprProductShadowRe
 describe("APR product shadow readiness - product type runtime safety", () => {
   it("non usa il gate intake-only per le schermature anche se il valore arriva da runtime", () => {
     const invalidProduct = "schermature" as unknown as AprIntakeOnlyProduct;
-    const evidence = completeEvidence("infissi") as AprProductShadowReadinessEvidence & {
-      evidenceProductType: unknown;
-    };
-    evidence.evidenceProductType = "schermature";
+    const evidence = {
+      ...completeEvidence("infissi"),
+      evidenceProductType: "schermature",
+    } as unknown as AprProductShadowReadinessEvidence;
 
-    const result = evaluateAprProductShadowReadiness(invalidProduct, evidence as AprProductShadowReadinessEvidence);
+    const result = evaluateAprProductShadowReadiness(invalidProduct, evidence);
 
     expect(result.technicalShadowReady).toBe(false);
     expect(result.operationalShadowAllowed).toBe(false);

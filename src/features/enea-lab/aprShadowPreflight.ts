@@ -118,8 +118,9 @@ export function evaluateAprShadowPreflight(
   input: AprShadowPreflightInput,
 ): AprShadowPreflightResult {
   const runtimeInput = asRuntimeRecord(input as unknown);
-  const globalShadowAuthorization = runtimeInput.globalShadowAuthorization
-    as AprGlobalShadowUserAuthorization | undefined;
+  const globalShadowAuthorization = runtimeInput.globalShadowAuthorization as
+    | AprGlobalShadowUserAuthorization
+    | undefined;
   const globalShadowUserGateGranted = hasExplicitAprShadowAuthorization(
     globalShadowAuthorization,
   );

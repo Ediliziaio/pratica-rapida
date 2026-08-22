@@ -161,8 +161,8 @@ describe("APR shadow review ledger", () => {
 
   it("persiste solo localmente, ricarica il ledger valido e scade dopo 120 giorni", () => {
     const storage = memoryStorage();
-    const state = reconcileAprShadowReviewLedger({ records: [] }, [snapshot()]).state;
     const savedAt = new Date("2026-08-19T08:00:00Z");
+    const state = reconcileAprShadowReviewLedger({ records: [] }, [snapshot()], savedAt).state;
 
     saveAprShadowReviewLedger(storage, state, savedAt);
     expect(storage.getItem(APR_SHADOW_REVIEW_LEDGER_STORAGE_KEY)).toContain("practice-1");

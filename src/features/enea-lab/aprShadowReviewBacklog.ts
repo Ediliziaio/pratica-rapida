@@ -59,6 +59,13 @@ function blockedRows(rows: AprShadowMetricCase[]): AprShadowMetricCase[] {
   return rows.filter((row) => row.evaluated && row.blockerCodes.length > 0);
 }
 
+function normalizeBlockerCodes(rows: AprShadowMetricCase[]): AprShadowMetricCase[] {
+  return rows.map((row) => ({
+    ...row,
+    blockerCodes: [...new Set(row.blockerCodes)],
+  }));
+}
+
 function buildBlockerPareto(rows: AprShadowMetricCase[]): AprShadowBlockerParetoItem[] {
   const blocked = blockedRows(rows);
   if (blocked.length === 0) return [];
@@ -157,7 +164,11 @@ function buildBlockerQuality(rows: AprShadowMetricCase[]): AprShadowBlockerQuali
 export function buildAprShadowReviewBacklog(
   rows: AprShadowMetricCase[],
 ): AprShadowReviewBacklogResult {
-  const metrics = calculateAprShadowMetrics(rows);
+  // Un blocker descrive una condizione della pratica, non un evento. Se un
+  // adapter ripete accidentalmente lo stesso codice, lo normalizziamo qui
+  // prima di calcolare KPI e code: la pratica resta valida e non pesa due volte.
+  const normalizedRows = normalizeBlockerCodes(rows);
+  const metrics = calculateAprShadowMetrics(normalizedRows);
   if (!metrics.evidenceValid) {
     return {
       evidenceValid: false,
@@ -174,7 +185,7 @@ export function buildAprShadowReviewBacklog(
     };
   }
 
-  const blockedReviewQueue = rows
+  const blockedReviewQueue = normalizedRows
     .filter((row) => (
       row.evaluated
       && row.blockerCodes.length > 0
@@ -183,7 +194,7 @@ export function buildAprShadowReviewBacklog(
     .map(queueItem)
     .sort(compareQueueItems);
 
-  const readyAuditQueue = rows
+  const readyAuditQueue = normalizedRows
     .filter((row) => (
       row.evaluated
       && row.blockerCodes.length === 0
@@ -202,7 +213,7 @@ export function buildAprShadowReviewBacklog(
     },
     blockedReviewQueue,
     readyAuditQueue,
-    blockerPareto: buildBlockerPareto(rows),
-    blockerQuality: buildBlockerQuality(rows),
+    blockerPareto: buildBlockerPareto(normalizedRows),
+    blockerQuality: buildBlockerQuality(normalizedRows),
   };
 }

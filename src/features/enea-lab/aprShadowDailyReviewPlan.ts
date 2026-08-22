@@ -33,8 +33,16 @@ function validDailyLimit(value: number): boolean {
   return Number.isFinite(value) && Number.isInteger(value) && value >= 0;
 }
 
+const APR_SHADOW_PRODUCT_ORDER: readonly AprShadowMetricsProduct[] = [
+  "schermature",
+  "infissi",
+  "impianto_termico",
+  "insufflaggio",
+  "unknown",
+];
+
 function productOrder(left: AprShadowMetricsProduct, right: AprShadowMetricsProduct): number {
-  return left.localeCompare(right);
+  return APR_SHADOW_PRODUCT_ORDER.indexOf(left) - APR_SHADOW_PRODUCT_ORDER.indexOf(right);
 }
 
 function queueItemOrder(left: AprShadowReviewQueueItem, right: AprShadowReviewQueueItem): number {

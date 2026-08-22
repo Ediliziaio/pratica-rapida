@@ -175,7 +175,7 @@ function parseRecord(value: unknown): AprShadowReviewRecord | null {
     preparationMinutes: preparationMinutes as number | null | undefined,
     aprFingerprint: candidate.aprFingerprint,
     observedAt: candidate.observedAt,
-    reviewedAt,
+    reviewedAt: reviewedAt as string | null,
   };
 }
 

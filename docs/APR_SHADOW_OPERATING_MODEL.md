@@ -116,3 +116,20 @@ Per infissi, impianto termico o insufflaggio servono almeno:
 ### Invio ufficiale
 
 Fuori perimetro. Nessun prodotto, comprese le schermature, è autorizzato a salvare o inviare pratiche sul portale ENEA senza autorizzazione esplicita separata.
+
+## Future 400 Integration
+
+APR resta un motore operativo indipendente: la sua affidabilità e il suo completamento hanno priorità su qualunque integrazione futura. Da ora le modifiche devono però evitare di legare la logica di dominio esclusivamente alla UI, così un supervisore esterno potrà essere aggiunto senza riscrivere il cuore di APR.
+
+Punti già riutilizzabili:
+
+- identificativo persistente `practiceId` nelle lavorazioni shadow;
+- input e risultati tipizzati per intake, preflight, metriche e review;
+- blocker con codici stabili, verdetti operatore e gate fail-closed;
+- ledger locale con timestamp, fingerprint APR e conservazione limitata;
+- metriche strutturate, backlog e piano di review per prodotto;
+- separazione tra core comune, adapter prodotto e gate del portale ufficiale.
+
+Quando inizierà 400, le operazioni candidate saranno `submit`, `status`, `result`, `retry`, `cancel`, `health` e `metrics`, protette da permessi distinti. Non vengono implementate ora. Restano inoltre da definire un contratto API/versionato, persistenza server-side degli eventi, idempotency key, cancellazione cooperativa, autenticazione e ruoli esterni.
+
+Limite attuale: infissi, impianto termico e insufflaggio sono intake-only; non espongono ancora un risultato tecnico end-to-end. Erremme e le sue pratiche sono esclusi da questo requisito operativo e da qualunque test finché l'utente non dispone diversamente.

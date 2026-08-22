@@ -6,6 +6,10 @@ import {
   type AprInfissiHistoricalAuditResult,
 } from "./infissiHistoricalAudit";
 import {
+  auditInfissiCommonMappingAgainstCompleted,
+  type AprInfissiCommonCompletedAuditResult,
+} from "./infissiCommonCompletedAudit";
+import {
   mapInfissiTechnicalEvidence,
   type AprInfissiTechnicalEvidenceItem,
   type AprInfissiTechnicalMappingResult,
@@ -23,6 +27,7 @@ import { buildAprInfissiCommonPortalWorkflow } from "./infissiCommonPortalWorkfl
 import { prepareAprInfissiPortalScript, type AprInfissiPortalScriptPreparation } from "./infissiPortalScript";
 import { evaluateAprInfissiShadowGate, type AprInfissiShadowGateResult } from "./infissiShadowGate";
 import type { CompletedEneaInfissiSnapshot } from "./completedEneaInfissi";
+import type { CompletedEneaSnapshot } from "./completedEneaAudit";
 
 export interface AprInfissiPipelineInput {
   source: EneaLabSourcePractice;
@@ -30,6 +35,7 @@ export interface AprInfissiPipelineInput {
   mapOptions?: EneaLabMapOptions;
   technicalEvidence: AprInfissiTechnicalEvidenceItem[];
   completedEnea: CompletedEneaInfissiSnapshot;
+  completedEneaCommon: CompletedEneaSnapshot;
   portalContract?: AprInfissiPortalObservedContract;
   livePortalValidated: boolean;
 }
@@ -38,6 +44,7 @@ export interface AprInfissiPipelineResult {
   intake: ReturnType<typeof buildAprInfissiIntake>;
   commonMapping: ReturnType<typeof mapInfissiCommonPractice>;
   historicalAudit: AprInfissiHistoricalAuditResult;
+  commonAudit: AprInfissiCommonCompletedAuditResult;
   technicalMapping: AprInfissiTechnicalMappingResult;
   technicalAudit: AprInfissiTechnicalAuditResult;
   portalContract: AprInfissiPortalContractValidation;
@@ -56,7 +63,7 @@ const INVALID_CONTRACT: AprInfissiPortalContractValidation = {
  *
  * Il PDF ENEA concluso alimenta soltanto gli audit. Il comando da eseguire sul
  * portale viene costruito esclusivamente dagli item prodotti dal mapper tecnico
- * source-driven, così il live test non può "barare" ricopiando il ground truth.
+ * source-driven, così il live test non può ricopiare il ground truth.
  */
 export function runAprInfissiPipeline(input: AprInfissiPipelineInput): AprInfissiPipelineResult {
   if (input.source.form.prodotto.tipo !== "infissi") {
@@ -77,6 +84,7 @@ export function runAprInfissiPipeline(input: AprInfissiPipelineInput): AprInfiss
     { ...input.mapOptions, includeTestConventions: false },
   );
   const historicalAudit = auditHistoricalInfissi(intake.fields, input.completedEnea);
+  const commonAudit = auditInfissiCommonMappingAgainstCompleted(commonMapping, input.completedEneaCommon);
   const technicalMapping = mapInfissiTechnicalEvidence(intake.fields, input.technicalEvidence);
   const technicalAudit = technicalMapping.status === "ready"
     ? auditInfissiTechnicalMappingAgainstCompleted(technicalMapping.items, input.completedEnea)
@@ -94,6 +102,7 @@ export function runAprInfissiPipeline(input: AprInfissiPipelineInput): AprInfiss
       };
   const gate = evaluateAprInfissiShadowGate({
     historicalAudit,
+    commonAudit,
     technicalMapping,
     technicalAudit,
     portalContract,
@@ -104,6 +113,7 @@ export function runAprInfissiPipeline(input: AprInfissiPipelineInput): AprInfiss
     intake,
     commonMapping,
     historicalAudit,
+    commonAudit,
     technicalMapping,
     technicalAudit,
     portalContract,

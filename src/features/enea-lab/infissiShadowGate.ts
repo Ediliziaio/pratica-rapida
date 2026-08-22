@@ -3,12 +3,14 @@ import type { AprInfissiCommonCompletedAuditResult } from "./infissiCommonComple
 import type { AprInfissiPortalContractValidation } from "./infissiPortalContract";
 import type { AprInfissiTechnicalAuditResult } from "./infissiTechnicalAudit";
 import type { AprInfissiTechnicalMappingResult } from "./infissiTechnicalMapping";
+import type { AprInfissiTransmittanceGateResult } from "./infissiTransmittanceGate";
 
 export type AprInfissiShadowGateBlocker =
   | "historical-audit-unsafe"
   | "common-audit-not-match"
   | "technical-mapping-not-ready"
   | "technical-audit-not-match"
+  | "transmittance-gate-not-pass"
   | "portal-contract-not-valid"
   | "live-portal-validation-missing";
 
@@ -17,6 +19,7 @@ export interface AprInfissiShadowGateInput {
   commonAudit: AprInfissiCommonCompletedAuditResult;
   technicalMapping: AprInfissiTechnicalMappingResult;
   technicalAudit: AprInfissiTechnicalAuditResult;
+  transmittanceGate: AprInfissiTransmittanceGateResult;
   portalContract: AprInfissiPortalContractValidation;
   livePortalValidated: boolean;
 }
@@ -33,8 +36,8 @@ function historicalAuditUnsafe(audit: AprInfissiHistoricalAuditResult): boolean 
 
 /**
  * Gate finale Infissi. Il confronto col PDF concluso deve essere verde sia
- * sulle sezioni comuni sia sui nove campi tecnici di ogni serramento.
- * L'invio ufficiale resta sempre disabilitato.
+ * sulle sezioni comuni sia sui nove campi tecnici; le trasmittanze devono inoltre
+ * rispettare la zona climatica osservata. L'invio ufficiale resta sempre false.
  */
 export function evaluateAprInfissiShadowGate(
   input: AprInfissiShadowGateInput,
@@ -44,6 +47,7 @@ export function evaluateAprInfissiShadowGate(
   if (input.commonAudit.status !== "match") blockers.push("common-audit-not-match");
   if (input.technicalMapping.status !== "ready") blockers.push("technical-mapping-not-ready");
   if (input.technicalAudit.status !== "match") blockers.push("technical-audit-not-match");
+  if (input.transmittanceGate.status !== "pass") blockers.push("transmittance-gate-not-pass");
   if (!input.portalContract.valid) blockers.push("portal-contract-not-valid");
   if (!input.livePortalValidated) blockers.push("live-portal-validation-missing");
 

@@ -3,6 +3,7 @@ import { ENEA_LAB_MOCK_PRACTICES } from "./mockPractices";
 import { parseCompletedEneaInfissiText } from "./completedEneaInfissi";
 import { runAprInfissiPipeline } from "./infissiPipeline";
 import type { AprInfissiPortalObservedContract } from "./infissiPortalContract";
+import type { CompletedEneaSnapshot } from "./completedEneaAudit";
 
 const COMPLETED = `
 IN. Serramenti e infissi
@@ -26,6 +27,19 @@ function source() {
     zanzariere_tapparelle: false,
   };
   return practice;
+}
+
+function completedCommon(): CompletedEneaSnapshot {
+  return {
+    cpid: "TEST-INFISSI",
+    screeningCount: -1,
+    fields: {
+      "intervento.tipo": "Comma 345A - Interventi sull'involucro",
+      "intervento.unita_oggetto": "1",
+      "immobile.anno": "1998",
+      "immobile.superficie": "112",
+    },
+  };
 }
 
 function contract(): AprInfissiPortalObservedContract {
@@ -61,15 +75,17 @@ const technicalEvidence = [{
 }];
 
 describe("APR infissi pipeline", () => {
-  it("arriva a candidato shadow solo con evidenza tecnica, contratto e live validation tutti coerenti", () => {
+  it("arriva a candidato shadow solo con audit comune/tecnico, contratto e live validation coerenti", () => {
     const result = runAprInfissiPipeline({
       source: source(),
       technicalEvidence,
       completedEnea: parseCompletedEneaInfissiText(COMPLETED),
+      completedEneaCommon: completedCommon(),
       portalContract: contract(),
       livePortalValidated: true,
     });
 
+    expect(result.commonAudit.status).toBe("match");
     expect(result.technicalMapping.status).toBe("ready");
     expect(result.technicalAudit.status).toBe("match");
     expect(result.portalContract.valid).toBe(true);
@@ -83,14 +99,12 @@ describe("APR infissi pipeline", () => {
       source: source(),
       technicalEvidence,
       completedEnea: parseCompletedEneaInfissiText(COMPLETED),
+      completedEneaCommon: completedCommon(),
       livePortalValidated: false,
     });
 
     expect(result.portalContract.valid).toBe(false);
-    expect(result.technicalPortalScript).toEqual(expect.objectContaining({
-      mode: "blocked",
-      script: "",
-    }));
+    expect(result.technicalPortalScript).toEqual(expect.objectContaining({ mode: "blocked", script: "" }));
     expect(result.gate.shadowTechnicalCandidate).toBe(false);
     expect(result.gate.blockers).toEqual(expect.arrayContaining([
       "portal-contract-not-valid",
@@ -103,6 +117,7 @@ describe("APR infissi pipeline", () => {
       source: source(),
       technicalEvidence: [{ ...technicalEvidence[0], newTransmittance: 0.93 }],
       completedEnea: parseCompletedEneaInfissiText(COMPLETED),
+      completedEneaCommon: completedCommon(),
       portalContract: contract(),
       livePortalValidated: true,
     });
@@ -110,5 +125,22 @@ describe("APR infissi pipeline", () => {
     expect(result.technicalAudit.status).toBe("difference");
     expect(result.gate.shadowTechnicalCandidate).toBe(false);
     expect(result.gate.blockers).toContain("technical-audit-not-match");
+  });
+
+  it("una differenza nelle sezioni comuni blocca anche se la tabella tecnica coincide", () => {
+    const common = completedCommon();
+    common.fields["immobile.anno"] = "2005";
+    const result = runAprInfissiPipeline({
+      source: source(),
+      technicalEvidence,
+      completedEnea: parseCompletedEneaInfissiText(COMPLETED),
+      completedEneaCommon: common,
+      portalContract: contract(),
+      livePortalValidated: true,
+    });
+
+    expect(result.commonAudit.status).toBe("difference");
+    expect(result.gate.shadowTechnicalCandidate).toBe(false);
+    expect(result.gate.blockers).toContain("common-audit-not-match");
   });
 });

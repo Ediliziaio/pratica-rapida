@@ -36,6 +36,18 @@ describe("APR infissi intake", () => {
     expect(intake.blockers).toContain("infissi-portal-technical-contract-unobserved");
   });
 
+  it("rimuove solo il blocker del contratto dopo osservazione reale, senza abilitare da solo il mapping", () => {
+    const intake = buildAprInfissiIntake(completeInfissiForm(), {
+      hasInvoice: true,
+      hasCompletedEneaPdf: true,
+      technicalPortalContractObserved: true,
+    });
+
+    expect(intake.blockers).not.toContain("infissi-portal-technical-contract-unobserved");
+    expect(intake.shadowTechnicalMappingAllowed).toBe(false);
+    expect(intake.officialSubmissionAllowed).toBe(false);
+  });
+
   it("resta fail-closed se mancano dati strutturati, fattura o PDF ENEA conclusivo", () => {
     const form = completeInfissiForm();
     if (form.prodotto.tipo !== "infissi") throw new Error("Fixture infissi non valida");

@@ -8,6 +8,11 @@ const matchHistorical = {
   itemCount: 1,
   expense: 1000,
 };
+const blockedHistorical = {
+  ...matchHistorical,
+  status: "blocked" as const,
+  blockers: ["aggregate-field-mixed" as const],
+};
 const readyTechnical = { status: "ready" as const, items: [], blockers: [] };
 const matchTechnicalAudit = { status: "match" as const, comparisons: [], blockers: [] };
 const validPortal = { valid: true, blockers: [] };
@@ -25,6 +30,19 @@ describe("APR infissi shadow gate", () => {
     expect(result.shadowTechnicalCandidate).toBe(false);
     expect(result.officialSubmissionAllowed).toBe(false);
     expect(result.blockers).toEqual(["live-portal-validation-missing"]);
+  });
+
+  it("ammette un historical blocked per aggregazione CRM se il confronto tecnico è match", () => {
+    const result = evaluateAprInfissiShadowGate({
+      historicalAudit: blockedHistorical,
+      technicalMapping: readyTechnical,
+      technicalAudit: matchTechnicalAudit,
+      portalContract: validPortal,
+      livePortalValidated: true,
+    });
+
+    expect(result.shadowTechnicalCandidate).toBe(true);
+    expect(result.blockers).toEqual([]);
   });
 
   it("anche dopo tutti i gate mantiene l'invio ufficiale disabilitato", () => {

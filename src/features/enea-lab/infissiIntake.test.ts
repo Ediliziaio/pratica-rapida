@@ -71,4 +71,30 @@ describe("APR infissi intake", () => {
     expect(intake.shadowTechnicalMappingAllowed).toBe(false);
     expect(intake.officialSubmissionAllowed).toBe(false);
   });
+
+  it("normalizza la struttura infissi del modulo dinamico storico", () => {
+    const form = emptyFormData();
+    form.prodotto = {
+      materiale_vecchi: "legno",
+      vetro_vecchi: "doppio",
+      materiale_nuovi: "pvc",
+      vetro_nuovi: "triplo",
+      zanzariere_tapparelle_persiane: false,
+    } as unknown as typeof form.prodotto;
+
+    const intake = buildAprInfissiIntake(form, {
+      hasInvoice: true,
+      hasCompletedEneaPdf: true,
+    });
+
+    expect(intake.fields).toEqual({
+      oldMaterial: "legno",
+      oldGlass: "doppio",
+      newMaterial: "pvc",
+      newGlass: "triplo",
+      hasAccessories: false,
+    });
+    expect(intake.structuredIntakeComplete).toBe(true);
+    expect(intake.blockers).not.toContain("infissi-product-mismatch");
+  });
 });

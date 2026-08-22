@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { extractPdfText } from "./documentAnalysis";
 import { parseCompletedEneaInfissiText, type CompletedEneaInfissiSnapshot } from "./completedEneaInfissi";
+import { parseCompletedEneaInfissiCommon } from "./infissiCommonCompletedAudit";
+import type { CompletedEneaSnapshot } from "./completedEneaAudit";
 import type { EneaLabSourcePractice } from "./types";
 
 export interface AprInfissiReadOnlyDocumentText {
@@ -13,6 +15,7 @@ export interface AprInfissiReadOnlyDocumentText {
 export interface AprInfissiReadOnlyDocumentBundle {
   technicalSources: AprInfissiReadOnlyDocumentText[];
   completedEnea: CompletedEneaInfissiSnapshot;
+  completedEneaCommon: CompletedEneaSnapshot;
   completedEneaPath: string;
 }
 
@@ -31,8 +34,8 @@ async function downloadPdfText(
 
 /**
  * Legge soltanto i documenti già collegati alla pratica CRM.
- * Nessun upload/delete/update/RPC viene eseguito. Il PDF ENEA concluso resta
- * separato dai documenti tecnici operativi per impedire contaminazione del mapper.
+ * Il PDF ENEA concluso viene parsato due volte sullo stesso testo: sezioni comuni
+ * e tabella tecnica Infissi, ma non viene mai mescolato ai documenti operativi.
  */
 export async function loadAprInfissiReadOnlyDocuments(
   client: SupabaseClient<Database>,
@@ -46,11 +49,12 @@ export async function loadAprInfissiReadOnlyDocuments(
   const completedEneaPath = practice.completedEneaPaths[0];
   const completedText = await downloadPdfText(client, practice.id, completedEneaPath);
   const completedEnea = parseCompletedEneaInfissiText(completedText);
+  const completedEneaCommon = parseCompletedEneaInfissiCommon(completedText);
   if (!completedEnea.items.length) throw new Error("Il PDF concluso non contiene la tabella Serramenti e infissi");
+  if (!Object.keys(completedEneaCommon.fields).length) throw new Error("Il PDF concluso non contiene sezioni comuni ENEA leggibili");
 
   const sourcePaths = practice.documentPaths.filter(({ kind, path }) =>
-    (kind === "invoice" || kind === "additional")
-    && path !== completedEneaPath,
+    (kind === "invoice" || kind === "additional") && path !== completedEneaPath,
   );
   const technicalSources: AprInfissiReadOnlyDocumentText[] = [];
   for (const source of sourcePaths) {
@@ -61,5 +65,5 @@ export async function loadAprInfissiReadOnlyDocuments(
     });
   }
 
-  return { technicalSources, completedEnea, completedEneaPath };
+  return { technicalSources, completedEnea, completedEneaCommon, completedEneaPath };
 }

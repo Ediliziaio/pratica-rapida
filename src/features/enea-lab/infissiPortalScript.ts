@@ -1,4 +1,4 @@
-import type { CompletedEneaInfissiSnapshot } from "./completedEneaInfissi";
+import type { AprInfissiMappedTechnicalItem } from "./infissiTechnicalMapping";
 import {
   validateAprInfissiPortalContract,
   type AprInfissiPortalField,
@@ -20,10 +20,7 @@ function decimal(value: number): string {
   return String(value).replace(".", ",");
 }
 
-function itemValue(
-  field: AprInfissiPortalField,
-  item: CompletedEneaInfissiSnapshot["items"][number],
-): string {
+function itemValue(field: AprInfissiPortalField, item: AprInfissiMappedTechnicalItem): string {
   switch (field) {
     case "oldMaterial": return title(item.oldMaterial);
     case "oldGlass": return title(item.oldGlass);
@@ -32,21 +29,22 @@ function itemValue(
     case "newMaterial": return title(item.newMaterial);
     case "newGlass": return title(item.newGlass);
     case "newTransmittance": return decimal(item.newTransmittance);
-    case "installation": return item.installation === "verso_esterno" ? "Verso esterno" : "";
-    case "hasDarkeningClosure": return item.hasDarkeningClosure === null
-      ? ""
-      : item.hasDarkeningClosure ? "Sì" : "No";
+    case "installation": return "Verso esterno";
+    case "hasDarkeningClosure": return item.hasDarkeningClosure ? "Sì" : "No";
   }
 }
 
 /**
  * Genera esclusivamente il comando di compilazione della pagina tecnica infissi.
+ * I valori arrivano dal mapper APR source-driven, NON dal PDF ENEA concluso usato
+ * come ground truth. In questo modo il collaudo live misura davvero APR invece di
+ * ricopiare la risposta storica che deve verificare.
+ *
  * Il comando non contiene click, submit, navigazione, salvataggio o invio.
- * I selettori devono provenire dal contratto DOM osservato sul portale 2026.
  */
 export function prepareAprInfissiPortalScript(
   contract: AprInfissiPortalObservedContract,
-  snapshot: CompletedEneaInfissiSnapshot,
+  items: AprInfissiMappedTechnicalItem[],
 ): AprInfissiPortalScriptPreparation {
   const contractValidation = validateAprInfissiPortalContract(contract);
   if (!contractValidation.valid) {
@@ -57,21 +55,12 @@ export function prepareAprInfissiPortalScript(
       reason: `invalid-portal-contract:${contractValidation.blockers.join(",")}`,
     };
   }
-  if (snapshot.items.length === 0) {
-    return { mode: "blocked", script: "", rowCount: 0, reason: "completed-enea-items-missing" };
-  }
-  if (snapshot.items.some((item) => (
-    item.installation === "unknown"
-    || item.hasDarkeningClosure === null
-    || !Number.isFinite(item.oldTransmittance)
-    || !Number.isFinite(item.surfaceM2)
-    || !Number.isFinite(item.newTransmittance)
-  ))) {
-    return { mode: "blocked", script: "", rowCount: 0, reason: "completed-enea-item-incomplete" };
+  if (items.length === 0) {
+    return { mode: "blocked", script: "", rowCount: 0, reason: "apr-technical-items-missing" };
   }
 
-  const rows = snapshot.items.map((item, index) => ({
-    row: index + 1,
+  const rows = items.map((item) => ({
+    row: item.ordinal,
     values: Object.fromEntries(contract.rowControls.map((control) => [
       control.field,
       itemValue(control.field, item),
@@ -113,11 +102,9 @@ export function prepareAprInfissiPortalScript(
   return report;
 })()`;
 
-  // Difesa aggiuntiva sul testo serializzato: anche un contratto osservato non
-  // deve poter trasformare il comando di compilazione in un'azione di workflow.
   if (/\.click\s*\(|\.submit\s*\(|requestSubmit\s*\(|location\s*=|window\.open\s*\(/.test(runtime)) {
     return { mode: "blocked", script: "", rowCount: 0, reason: "unsafe-runtime-generated" };
   }
 
-  return { mode: "ready", script: runtime, rowCount: snapshot.items.length };
+  return { mode: "ready", script: runtime, rowCount: items.length };
 }

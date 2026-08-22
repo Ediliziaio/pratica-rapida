@@ -1,6 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import { buildAprInfissiIntake } from "../src/features/enea-lab/infissiIntake.ts";
 import { parseCompletedEneaText } from "../src/features/enea-lab/completedEneaAudit.ts";
+import {
+  compareInfissiIntakeToCompleted,
+  parseCompletedEneaInfissiText,
+} from "../src/features/enea-lab/completedEneaInfissi.ts";
 
 const projectRef = process.env.SUPABASE_PROJECT_REF || "xmkjrhwmmuzaqjqlvzxm";
 const accessToken = process.env.SUPABASE_ACCESS_TOKEN;
@@ -101,6 +105,7 @@ const supabase = createClient(`https://${projectRef}.supabase.co`, serviceRole, 
 
 let completedPdfRead = false;
 let completedSnapshot = null;
+let completedInfissi = null;
 let technicalSignals = [];
 const completedPath = completedPaths.find((path) => (
   typeof path === "string"
@@ -124,6 +129,7 @@ if (completedPath) {
   const text = await Bun.file(textPath).text();
   completedPdfRead = true;
   completedSnapshot = parseCompletedEneaText(text);
+  completedInfissi = parseCompletedEneaInfissiText(text);
   technicalSignals = [...new Set(
     text
       .split(/\r?\n/)
@@ -173,6 +179,14 @@ const report = {
   completedCpidObserved: Boolean(completedSnapshot?.cpid),
   completedCommonFieldIds: Object.keys(completedSnapshot?.fields ?? {}).sort(),
   completedTechnicalSignals: technicalSignals,
+  completedInfissiItemCount: completedInfissi?.items.length ?? 0,
+  completedInfissiExpense: completedInfissi?.expense ?? null,
+  completedInfissiTotalSurfaceM2: completedInfissi
+    ? completedInfissi.items.reduce((total, item) => total + item.surfaceM2, 0)
+    : null,
+  intakeToCompletedComparison: completedInfissi
+    ? compareInfissiIntakeToCompleted(intake.fields, completedInfissi)
+    : [],
   verdict: intake.shadowTechnicalMappingAllowed
     ? "READY_FOR_TECHNICAL_COMPARISON"
     : "BLOCKED_TECHNICAL_ADAPTER_MISSING",

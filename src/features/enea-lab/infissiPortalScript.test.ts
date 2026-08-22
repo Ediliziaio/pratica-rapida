@@ -1,14 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { parseCompletedEneaInfissiText } from "./completedEneaInfissi";
 import type { AprInfissiPortalObservedContract } from "./infissiPortalContract";
 import { prepareAprInfissiPortalScript } from "./infissiPortalScript";
-
-const COMPLETED = `
-IN. Serramenti e infissi
-1 Legno Doppio 3 1.5 PVC Triplo 0.88 Verso No
-esterno
-Spese congrue sostenute [€] 9996.66
-`;
+import { mapInfissiTechnicalEvidence } from "./infissiTechnicalMapping";
 
 function observedContract(): AprInfissiPortalObservedContract {
   return {
@@ -29,17 +22,38 @@ function observedContract(): AprInfissiPortalObservedContract {
   };
 }
 
+function mappedItems() {
+  const result = mapInfissiTechnicalEvidence({
+    oldMaterial: "legno",
+    oldGlass: "doppio",
+    newMaterial: "pvc",
+    newGlass: "triplo",
+    hasAccessories: false,
+  }, [{
+    sourcePath: "technical-sheet.pdf",
+    oldMaterial: "legno",
+    oldGlass: "doppio",
+    oldTransmittance: 3,
+    surfaceM2: 1.5,
+    newMaterial: "pvc",
+    newGlass: "triplo",
+    newTransmittance: 0.88,
+    installation: "verso_esterno",
+    hasDarkeningClosure: false,
+  }]);
+  if (result.status !== "ready") throw new Error("Fixture APR non ready");
+  return result.items;
+}
+
 describe("APR infissi portal script", () => {
-  it("genera un comando che compila i campi ma non contiene click, submit o navigazione", () => {
-    const result = prepareAprInfissiPortalScript(
-      observedContract(),
-      parseCompletedEneaInfissiText(COMPLETED),
-    );
+  it("compila dall'output APR e non dalla ground truth ENEA, senza click/submit/navigazione", () => {
+    const result = prepareAprInfissiPortalScript(observedContract(), mappedItems());
 
     expect(result.mode).toBe("ready");
     expect(result.rowCount).toBe(1);
     expect(result.script).toContain("#row-{{row}}-old-material");
     expect(result.script).toContain("Verso esterno");
+    expect(result.script).not.toMatch(/completedEnea|ground truth/i);
     expect(result.script).not.toMatch(/\.click\s*\(/);
     expect(result.script).not.toMatch(/\.submit\s*\(/);
     expect(result.script).not.toMatch(/requestSubmit\s*\(/);
@@ -50,10 +64,7 @@ describe("APR infissi portal script", () => {
     const contract = observedContract();
     contract.rowControls = contract.rowControls.slice(0, 2);
 
-    const result = prepareAprInfissiPortalScript(
-      contract,
-      parseCompletedEneaInfissiText(COMPLETED),
-    );
+    const result = prepareAprInfissiPortalScript(contract, mappedItems());
 
     expect(result.mode).toBe("blocked");
     expect(result.script).toBe("");

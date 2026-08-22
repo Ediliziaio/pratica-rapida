@@ -41,6 +41,41 @@ const EMPTY_FIELDS: AprInfissiIntakeFields = {
   hasAccessories: null,
 };
 
+function runtimeInfissiFields(value: unknown): AprInfissiIntakeFields | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const product = value as Record<string, unknown>;
+  const legacyShape = [
+    "materiale_vecchi",
+    "vetro_vecchi",
+    "materiale_nuovi",
+    "vetro_nuovi",
+  ].some((key) => key in product);
+  if (product.tipo !== "infissi" && !legacyShape) return null;
+
+  const material = (canonical: string, legacy: string): MaterialeInfisso | "" => {
+    const candidate = product[canonical] ?? product[legacy];
+    return candidate === "legno" || candidate === "pvc" || candidate === "metallo"
+      ? candidate
+      : "";
+  };
+  const glass = (canonical: string, legacy: string): TipoVetro | "" => {
+    const candidate = product[canonical] ?? product[legacy];
+    return candidate === "singolo" || candidate === "doppio" || candidate === "triplo"
+      ? candidate
+      : "";
+  };
+  const accessories = product.zanzariere_tapparelle
+    ?? product.zanzariere_tapparelle_persiane;
+
+  return {
+    oldMaterial: material("vecchi_materiale", "materiale_vecchi"),
+    oldGlass: glass("vecchi_vetro", "vetro_vecchi"),
+    newMaterial: material("nuovi_materiale", "materiale_nuovi"),
+    newGlass: glass("nuovi_vetro", "vetro_nuovi"),
+    hasAccessories: typeof accessories === "boolean" ? accessories : null,
+  };
+}
+
 /**
  * Primo adapter APR per gli infissi: raccoglie esclusivamente i dati prodotto
  * già strutturati nel CRM e misura ciò che manca per costruire il vero mapping
@@ -53,16 +88,8 @@ export function buildAprInfissiIntake(
   form: FormClienteData,
   context: AprInfissiIntakeContext,
 ): AprInfissiIntake {
-  const product = form.prodotto.tipo === "infissi" ? form.prodotto : null;
-  const fields: AprInfissiIntakeFields = product
-    ? {
-        oldMaterial: product.vecchi_materiale,
-        oldGlass: product.vecchi_vetro,
-        newMaterial: product.nuovi_materiale,
-        newGlass: product.nuovi_vetro,
-        hasAccessories: product.zanzariere_tapparelle,
-      }
-    : { ...EMPTY_FIELDS };
+  const product = runtimeInfissiFields(form.prodotto as unknown);
+  const fields = product ?? { ...EMPTY_FIELDS };
 
   const structuredIntakeComplete = Boolean(
     product

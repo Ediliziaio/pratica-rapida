@@ -6,6 +6,7 @@ export interface AprInfissiReadinessEvidenceInput {
   pipeline: AprInfissiPipelineResult;
   sampleId: string;
   parserFixtureId: string;
+  productParserImplemented: boolean;
   technicalPerformanceSourceObserved: boolean;
   regressionSuiteGreen: boolean;
   globalShadowAuthorization?: AprGlobalShadowUserAuthorization;
@@ -13,8 +14,10 @@ export interface AprInfissiReadinessEvidenceInput {
 
 /**
  * Adatta un caso Infissi verificato al gate multi-prodotto generale APR.
- * I conteggi sono deliberatamente 1:1 con identità e lineage esplicite, così
- * duplicare lo stesso PDF o una fixture sintetica non aumenta la readiness.
+ *
+ * Una fixture presente NON equivale a un parser implementato: i due segnali
+ * restano separati, così un file di esempio non può promuovere artificialmente
+ * la readiness prima che esista davvero il parser della sorgente operativa.
  */
 export function buildAprInfissiReadinessEvidence(
   input: AprInfissiReadinessEvidenceInput,
@@ -38,7 +41,7 @@ export function buildAprInfissiReadinessEvidence(
     realParserFixtureSourcePdfIds: canonicalFixtureId && canonicalSampleId ? [canonicalSampleId] : [],
     technicalPortalContractObserved: input.pipeline.portalContract.valid,
     technicalPerformanceSourceObserved: input.technicalPerformanceSourceObserved,
-    productParserImplemented: canonicalFixtureId.length > 0,
+    productParserImplemented: input.productParserImplemented,
     productMapperImplemented: true,
     capabilityGateImplemented: true,
     regressionSuiteGreen: input.regressionSuiteGreen,

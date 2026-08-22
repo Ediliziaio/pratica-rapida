@@ -54,9 +54,9 @@ const INVALID_CONTRACT: AprInfissiPortalContractValidation = {
 /**
  * Orchestratore end-to-end APR Infissi per laboratorio/shadow.
  *
- * Tutte le sorgenti sono input read-only. La funzione non effettua query, upload,
- * update, RPC, click o submit: prepara soltanto mapping, confronti e script che il
- * collaudo live può eseguire sulla pagina già aperta. L'invio ufficiale resta false.
+ * Il PDF ENEA concluso alimenta soltanto gli audit. Il comando da eseguire sul
+ * portale viene costruito esclusivamente dagli item prodotti dal mapper tecnico
+ * source-driven, così il live test non può "barare" ricopiando il ground truth.
  */
 export function runAprInfissiPipeline(input: AprInfissiPipelineInput): AprInfissiPipelineResult {
   if (input.source.form.prodotto.tipo !== "infissi") {
@@ -82,9 +82,16 @@ export function runAprInfissiPipeline(input: AprInfissiPipelineInput): AprInfiss
     ? auditInfissiTechnicalMappingAgainstCompleted(technicalMapping.items, input.completedEnea)
     : { status: "blocked" as const, comparisons: [], blockers: ["technical-mapping-not-ready"] };
   const commonPortalWorkflow = buildAprInfissiCommonPortalWorkflow(commonMapping);
-  const technicalPortalScript = input.portalContract && portalContract.valid
-    ? prepareAprInfissiPortalScript(input.portalContract, input.completedEnea)
-    : { mode: "blocked" as const, script: "", rowCount: 0, reason: "portal-contract-not-valid" };
+  const technicalPortalScript = input.portalContract
+    && portalContract.valid
+    && technicalMapping.status === "ready"
+    ? prepareAprInfissiPortalScript(input.portalContract, technicalMapping.items)
+    : {
+        mode: "blocked" as const,
+        script: "",
+        rowCount: 0,
+        reason: portalContract.valid ? "technical-mapping-not-ready" : "portal-contract-not-valid",
+      };
   const gate = evaluateAprInfissiShadowGate({
     historicalAudit,
     technicalMapping,

@@ -103,7 +103,11 @@ function collectFormFiles(node: unknown, practiceId: string, fieldKey = ""): Ene
 
 function uniquePaths(paths: EneaLabDocumentPath[]): EneaLabDocumentPath[] {
   const seen = new Set<string>();
-  return paths.filter(({ path }) => !seen.has(path) && Boolean(seen.add(path)));
+  return paths.filter(({ path }) => {
+    if (seen.has(path)) return false;
+    seen.add(path);
+    return true;
+  });
 }
 
 export function mapInfissiQueueRow(row: InfissiQueueRow): EneaLabSourcePractice | null {
@@ -150,8 +154,8 @@ export function mapInfissiQueueRow(row: InfissiQueueRow): EneaLabSourcePractice 
 
 /**
  * Recupera in sola lettura una singola pratica Infissi per nome completo.
- * Il confronto è locale ed esatto dopo normalizzazione; nessun fuzzy match può
- * selezionare il cliente sbagliato. Erremme è esclusa a doppio livello: query e mapper.
+ * Il DB viene ristretto usando l'ultimo token del nome come cognome candidato;
+ * l'identità finale viene però accettata solo con confronto locale esatto.
  */
 export async function loadReadOnlyInfissiPracticeByFullName(
   client: SupabaseClient<Database>,
@@ -159,13 +163,16 @@ export async function loadReadOnlyInfissiPracticeByFullName(
 ): Promise<EneaLabSourcePractice | null> {
   const target = normalize(fullName);
   if (!target) return null;
+  const surnameToken = target.split(" ").at(-1) ?? "";
+  if (!surnameToken) return null;
 
   const { data, error } = await client
     .from("enea_practices_public")
     .select(INFISSI_QUEUE_SELECT)
     .eq("brand", "enea")
+    .ilike("cliente_cognome", `%${surnameToken}%`)
     .order("updated_at", { ascending: false })
-    .limit(500);
+    .limit(100);
   if (error) throw error;
 
   const candidates = ((data ?? []) as unknown as InfissiQueueRow[])
@@ -174,6 +181,5 @@ export async function loadReadOnlyInfissiPracticeByFullName(
     .filter((practice): practice is EneaLabSourcePractice => practice !== null)
     .filter((practice) => normalize(`${practice.clienteNome} ${practice.clienteCognome}`) === target);
 
-  // Duplicati omonimi non vengono risolti per euristica: fail-closed.
   return candidates.length === 1 ? candidates[0] : null;
 }

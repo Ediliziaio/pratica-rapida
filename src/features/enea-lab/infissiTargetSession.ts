@@ -2,6 +2,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { loadReadOnlyInfissiPracticeByFullName } from "./readOnlyInfissiSource";
 import { loadAprInfissiReadOnlyDocuments } from "./infissiReadOnlyDocuments";
+import {
+  probeAprInfissiTechnicalSources,
+  type AprInfissiTechnicalSourceProbeResult,
+} from "./infissiTechnicalSourceProbe";
 
 export const APR_INFISSI_LIVE_TEST_TARGET = "Sebastian Costel Volf" as const;
 
@@ -15,6 +19,7 @@ export interface AprInfissiTargetSession {
   technicalDocumentCount: number;
   completedEneaPath: string;
   technicalSourcePaths: string[];
+  technicalSourceProbe: AprInfissiTechnicalSourceProbeResult;
   practice: NonNullable<Awaited<ReturnType<typeof loadReadOnlyInfissiPracticeByFullName>>>;
   documents: Awaited<ReturnType<typeof loadAprInfissiReadOnlyDocuments>>;
 }
@@ -22,8 +27,8 @@ export interface AprInfissiTargetSession {
 /**
  * Sessione di collaudo nominativa autorizzata dall'utente in chat.
  * È confinata alla sola pratica Sebastian Costel Volf e usa esclusivamente
- * SELECT/download. Se il nome è ambiguo, il prodotto non è Infissi o il reseller
- * è Erremme, il loader restituisce null a monte e questa funzione si ferma.
+ * SELECT/download. Il probe cerca U/geometrie ma non converte candidate lines
+ * in valori ENEA: finché il layout reale non è congelato, il mapper resta chiuso.
  */
 export async function loadAprInfissiTargetSession(
   client: SupabaseClient<Database>,
@@ -32,11 +37,10 @@ export async function loadAprInfissiTargetSession(
   if (!practice) {
     throw new Error("Pratica Sebastian Costel Volf non individuata in modo univoco nel perimetro Infissi read-only");
   }
-  if (/erremme/i.test(practice.reseller)) {
-    throw new Error("Erremme è esclusa dal collaudo APR");
-  }
+  if (/erremme/i.test(practice.reseller)) throw new Error("Erremme è esclusa dal collaudo APR");
 
   const documents = await loadAprInfissiReadOnlyDocuments(client, practice);
+  const technicalSourceProbe = probeAprInfissiTechnicalSources(documents.technicalSources);
   return {
     practiceId: practice.id,
     practiceCode: practice.code,
@@ -47,6 +51,7 @@ export async function loadAprInfissiTargetSession(
     technicalDocumentCount: documents.technicalSources.length,
     completedEneaPath: documents.completedEneaPath,
     technicalSourcePaths: documents.technicalSources.map(({ path }) => path),
+    technicalSourceProbe,
     practice,
     documents,
   };

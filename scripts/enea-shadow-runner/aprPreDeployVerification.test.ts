@@ -108,11 +108,14 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     expect(promoted.installed).toHaveLength(3);
     expect(readFileSync(path.join(promoted.activePointer, "apr-enea-worker.mjs"), "utf8")).toContain("apr-enea-worker");
     expect(promoted.previousTarget).toBeNull();
+    expect(promoted.receipt.payload.status).toBe("PASS");
   });
 
   it("non sposta il puntatore attivo se un hash post-copy non coincide", () => {
     const value = fixture(); const verified = verifyPreDeployCertificate(value.certificatePath);
-    expect(() => promoteAprBundles(verified, { afterCopy: (role, target) => { if (role === "worker") writeFileSync(target, "corrupt\n"); } })).toThrow(/post_copy_hash_mismatch:worker/);
+    expect(() => promoteAprBundles(verified, { afterCopy: (role, target) => { if (role === "worker") writeFileSync(target, "corrupt\n"); }, now: new Date("2026-08-23T22:40:00.000Z") })).toThrow(/post_copy_hash_mismatch:worker/);
     expect(() => readFileSync(path.join(value.root, "installed", "current"))).toThrow();
+    const receipts = path.join(value.root, "installed", "receipts", `promotion-${verified.certificateArtifactId}.json`);
+    expect(JSON.parse(readFileSync(receipts, "utf8")).payload.status).toBe("FAIL");
   });
 });

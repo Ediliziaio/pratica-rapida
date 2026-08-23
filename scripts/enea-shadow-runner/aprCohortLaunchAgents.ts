@@ -4,6 +4,8 @@ import type { AprBundlePromotionReceipt } from "./aprBundlePromotionReceipt";
 import { verifyImmutableArtifactEnvelope } from "./aprMonotonicArtifacts";
 import { assertAprInstallationGuard, type AprInstallationGuard } from "./aprPreDeployVerification";
 
+const verifiedPreparations = new WeakSet<object>();
+
 export interface AprCohortLaunchAgentOptions {
   cohortNumber: number;
   stateDirectory: string;
@@ -91,10 +93,18 @@ export function prepareVerifiedAprCohortLaunchAgents(guard: AprInstallationGuard
   const activeTarget = readlinkSync(activeDirectory);
   if (activeTarget !== receipt.payload.activeTarget) throw new Error("apr_cohort_launch_agent_active_pointer_mismatch");
   const resolveInstalledBundle = (role: "supervisor" | "worker" | "watchdog") => realpathSync(path.join(activeDirectory, bundleByRole.get(role)!.installedRef));
-  return prepareAprCohortLaunchAgents({
+  const prepared = prepareAprCohortLaunchAgents({
     ...options,
     supervisorBundle: resolveInstalledBundle("supervisor"),
     workerBundle: resolveInstalledBundle("worker"),
     watchdogBundle: resolveInstalledBundle("watchdog"),
   });
+  verifiedPreparations.add(prepared);
+  return prepared;
+}
+
+export type AprVerifiedCohortLaunchAgentPreparation = ReturnType<typeof prepareVerifiedAprCohortLaunchAgents>;
+
+export function assertVerifiedAprCohortLaunchAgentPreparation(prepared: AprVerifiedCohortLaunchAgentPreparation) {
+  if (!prepared || !verifiedPreparations.has(prepared)) throw new Error("apr_cohort_launch_agent_preparation_not_verified");
 }

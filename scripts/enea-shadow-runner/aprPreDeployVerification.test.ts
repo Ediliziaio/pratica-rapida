@@ -120,6 +120,11 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     const options = { cohortNumber: 61, stateDirectory: path.join(value.root, "state"), installDirectory: path.join(value.root, "plist-staging"), nodeExecutable: process.execPath, dashboardPort: 4493 };
     const prepared = prepareVerifiedAprCohortLaunchAgents(guardAprInstallation(verified), promoted.receipt, options);
     expect(prepared).toMatchObject({ ready: true, loadPerformed: false }); expect(prepared.entries).toHaveLength(3);
+    for (const entry of prepared.entries) {
+      expect(entry.path.startsWith(options.installDirectory)).toBe(true);
+      expect(entry.bundlePath).toContain(path.join("versions", promoted.versionId));
+      expect(readFileSync(entry.path, "utf8")).toContain(`<string>${entry.bundlePath}</string>`);
+    }
     const forgedGuard = { allowed: true as const, certificateArtifactId: verified.certificateArtifactId, verifiedAt: verified.verifiedAt };
     expect(() => prepareVerifiedAprCohortLaunchAgents(forgedGuard, promoted.receipt, { ...options, installDirectory: path.join(value.root, "forged") })).toThrow(/guard_not_issued/);
     const failedReceipt = envelopeImmutableArtifact({ ...promoted.receipt.payload, receiptId: "failed-receipt", status: "FAIL" as const }, promoted.receipt.localMetadata);

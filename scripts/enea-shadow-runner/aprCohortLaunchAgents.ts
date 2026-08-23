@@ -1,4 +1,4 @@
-import { closeSync, constants, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync, accessSync } from "node:fs";
+import { closeSync, constants, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, readlinkSync, realpathSync, renameSync, writeFileSync, accessSync } from "node:fs";
 import path from "node:path";
 import type { AprBundlePromotionReceipt } from "./aprBundlePromotionReceipt";
 import { verifyImmutableArtifactEnvelope } from "./aprMonotonicArtifacts";
@@ -70,8 +70,8 @@ export function prepareAprCohortLaunchAgents(options: AprCohortLaunchAgentOption
     const contents = plist(entry.label, entry.args, path.dirname(options.supervisorBundle), path.join(logs, `${entry.role}.stdout.log`), path.join(logs, `${entry.role}.stderr.log`));
     if (!existsSync(target) || readFileSync(target, "utf8") !== contents) atomicWrite(target, contents);
     const persisted = readFileSync(target, "utf8");
-    if (!persisted.includes(`<string>${entry.label}</string>`) || !persisted.includes("<key>RunAtLoad</key><true/>") || !persisted.includes("<key>KeepAlive</key><true/>") || persisted.includes("{{")) throw new Error(`apr_cohort_launch_agent_verification_failed:${entry.role}`);
-    return { ...entry, path: target };
+    if (!persisted.includes(`<string>${entry.label}</string>`) || !persisted.includes(`<string>${xml(entry.args[1])}</string>`) || !persisted.includes("<key>RunAtLoad</key><true/>") || !persisted.includes("<key>KeepAlive</key><true/>") || persisted.includes("{{")) throw new Error(`apr_cohort_launch_agent_verification_failed:${entry.role}`);
+    return { ...entry, bundlePath: entry.args[1], path: target };
   });
   return { cohortNumber: options.cohortNumber, dashboardUrl: `http://127.0.0.1:${options.dashboardPort}/`, entries, ready: true, loadPerformed: false };
 }
@@ -87,10 +87,14 @@ export function prepareVerifiedAprCohortLaunchAgents(guard: AprInstallationGuard
   const bundleByRole = new Map(receipt.payload.bundles.map((bundle) => [bundle.role, bundle]));
   for (const role of ["supervisor", "worker", "watchdog"] as const) if (!bundleByRole.has(role)) throw new Error(`apr_cohort_launch_agent_bundle_missing:${role}`);
   const activeDirectory = path.join(receipt.localMetadata.promotionRoot, "current");
+  if (!lstatSync(activeDirectory).isSymbolicLink()) throw new Error("apr_cohort_launch_agent_active_pointer_not_symlink");
+  const activeTarget = readlinkSync(activeDirectory);
+  if (activeTarget !== receipt.payload.activeTarget) throw new Error("apr_cohort_launch_agent_active_pointer_mismatch");
+  const resolveInstalledBundle = (role: "supervisor" | "worker" | "watchdog") => realpathSync(path.join(activeDirectory, bundleByRole.get(role)!.installedRef));
   return prepareAprCohortLaunchAgents({
     ...options,
-    supervisorBundle: path.join(activeDirectory, bundleByRole.get("supervisor")!.installedRef),
-    workerBundle: path.join(activeDirectory, bundleByRole.get("worker")!.installedRef),
-    watchdogBundle: path.join(activeDirectory, bundleByRole.get("watchdog")!.installedRef),
+    supervisorBundle: resolveInstalledBundle("supervisor"),
+    workerBundle: resolveInstalledBundle("worker"),
+    watchdogBundle: resolveInstalledBundle("watchdog"),
   });
 }

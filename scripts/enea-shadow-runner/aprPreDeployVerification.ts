@@ -4,6 +4,7 @@ import { computeStagedBundleHashes } from "./aprBundleHashEvidence";
 import { inspectAprPreDeployGitState } from "./aprPreDeployCertificate";
 import { PersistentAprTestEvidenceStore } from "./aprPersistedTestEvidence";
 import { canonicalJson, verifyImmutableArtifactEnvelope, type AprMonotonicPreDeployCertificate } from "./aprMonotonicArtifacts";
+import type { AprPersistentReplayDifferential } from "./aprPersistentReplayDifferential";
 
 export const APR_PREDEPLOY_VERIFICATION_VERSION = "apr-predeploy-verification-v1" as const;
 const verifiedResults = new WeakSet<object>();
@@ -33,9 +34,10 @@ export function verifyPreDeployCertificate(certificatePath: string, options: { r
   if (canonicalJson(reverifiedRules) !== canonicalJson(certificate.payload.ruleTestEvidence)) throw new Error("apr_predeploy_verification_test_evidence_mismatch");
   const staged = computeStagedBundleHashes(certificate.payload.stagingDirectory);
   if (canonicalJson(staged) !== canonicalJson(certificate.payload.bundleHashEvidence)) throw new Error("apr_predeploy_verification_bundle_hash_mismatch");
-  const differential = JSON.parse(readFileSync(certificate.payload.differentialReport.path, "utf8")) as { artifactId?: string; payload?: { report?: { payload?: { status?: string; hasCriticalRegression?: boolean } } } };
-  if (differential.artifactId !== certificate.payload.differentialReport.artifactId
-    || differential.payload?.report?.payload?.status !== "PASS"
+  const differential = JSON.parse(readFileSync(certificate.payload.differentialReport.path, "utf8")) as AprPersistentReplayDifferential;
+  if (!verifyImmutableArtifactEnvelope(differential) || !verifyImmutableArtifactEnvelope(differential.payload.report)
+    || differential.artifactId !== certificate.payload.differentialReport.artifactId
+    || differential.payload.report.payload.status !== "PASS"
     || differential.payload.report.payload.hasCriticalRegression !== false) throw new Error("apr_predeploy_verification_differential_mismatch");
   const result: AprVerifiedPreDeployCertificate = {
     version: APR_PREDEPLOY_VERIFICATION_VERSION,

@@ -70,6 +70,14 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     expect(() => verifyPreDeployCertificate(value.certificatePath)).toThrow(/bundle_hash_mismatch/);
   });
 
+  it("rifiuta il report differenziale manomesso dopo la certificazione", () => {
+    const value = fixture(); const certificate = JSON.parse(readFileSync(value.certificatePath, "utf8"));
+    const differentialPath = certificate.payload.differentialReport.path;
+    const differential = JSON.parse(readFileSync(differentialPath, "utf8")); differential.payload.runtimeRevision = "altered";
+    writeFileSync(differentialPath, `${canonicalJson(differential)}\n`);
+    expect(() => verifyPreDeployCertificate(value.certificatePath)).toThrow(/differential_mismatch/);
+  });
+
   it("la guardia rifiuta un oggetto costruito a mano con gli stessi campi", () => {
     const manual = { version: "apr-predeploy-verification-v1", certificatePath: "/tmp/fake", certificateArtifactId: sha("a"), gitCommit: sha("b").slice(0, 40), treeHash: sha("c").slice(0, 40), verifiedAt: "2026-08-23T22:31:00.000Z", status: "VERIFIED_PASS" } as AprVerifiedPreDeployCertificate;
     expect(() => guardAprInstallation(manual)).toThrow(/unverified_certificate/);

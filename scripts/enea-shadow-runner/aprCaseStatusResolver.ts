@@ -1,0 +1,86 @@
+import type {
+  AprCaseObservationSource,
+  AprCaseStatusObservation,
+  AprPublicCaseStatus,
+} from "./aprMonotonicArtifacts";
+import type { AprTransitionToken } from "./aprCaseTransitionMatrix";
+import { matchAprCaseTransition } from "./aprCaseTransitionMatrix";
+import { deriveAprCaseSourcePolicy } from "./aprCaseSourcePolicy";
+
+export const APR_CASE_STATUS_RESOLVER_VERSION = "apr-case-status-resolver-v1" as const;
+
+export interface AprResolvedCaseStatus {
+  status: AprPublicCaseStatus;
+  reason: string;
+  disagreement: readonly AprCaseStatusObservation[] | null;
+  matchedTransitionId: string | null;
+}
+
+const MATRIX_SOURCES = ["preflight_common", "product_gate", "deep_review", "execution", "checkpoint"] as const;
+type MatrixSource = typeof MATRIX_SOURCES[number];
+
+const policyKey = (source: MatrixSource) => source === "checkpoint" ? "server_verification" : source;
+
+function inconsistent(reason: string, observations: readonly AprCaseStatusObservation[]): AprResolvedCaseStatus {
+  return { status: "INCONSISTENT", reason, disagreement: observations, matchedTransitionId: null };
+}
+
+function token(observation: AprCaseStatusObservation | undefined): AprTransitionToken {
+  if (!observation) return "NOT_APPLICABLE";
+  if (observation.status !== "BLOCKED") return observation.status;
+  return `BLOCKED:${observation.classification}` as AprTransitionToken;
+}
+
+export function resolveAprCaseStatusTruth(observations: readonly AprCaseStatusObservation[]): AprResolvedCaseStatus {
+  if (observations.length === 0) return inconsistent("Nessuna osservazione disponibile per la pratica.", observations);
+  const customerKeys = [...new Set(observations.map((item) => item.customerKey))];
+  if (customerKeys.length !== 1 || !customerKeys[0]) return inconsistent("Le osservazioni appartengono a customerKey differenti o vuoti.", observations);
+  const runIds = [...new Set(observations.map((item) => item.runId))];
+  if (runIds.length !== 1 || !runIds[0]) return inconsistent("Le osservazioni appartengono a runId differenti o vuoti.", observations);
+
+  const bySource = new Map<AprCaseObservationSource, AprCaseStatusObservation>();
+  for (const item of observations) {
+    if (bySource.has(item.source)) return inconsistent(`Fonte duplicata nello stesso run: ${item.source}.`, observations.filter((candidate) => candidate.source === item.source));
+    bySource.set(item.source, item);
+  }
+  const common = bySource.get("preflight_common");
+  if (!common) return inconsistent("Fonte obbligatoria mancante: preflight_common.", observations);
+  const product = bySource.get("product_gate");
+  const policy = deriveAprCaseSourcePolicy({
+    commonStatus: common.status,
+    productStatus: product?.status,
+    executionPresent: bySource.has("execution"),
+    serverVerificationPresent: bySource.has("checkpoint"),
+  });
+
+  for (const source of MATRIX_SOURCES) {
+    const requirement = policy[policyKey(source)];
+    const item = bySource.get(source);
+    if (requirement === "required" && !item) return inconsistent(`Fonte obbligatoria mancante: ${source}.`, observations);
+    if (requirement === "not_applicable_expected" && item && item.status !== "NOT_APPLICABLE") {
+      return inconsistent(`Fonte non applicabile eseguita con risultato sostanziale: ${source}=${item.status}.`, [item]);
+    }
+  }
+
+  const structuredBlockers = bySource.get("report_blockers");
+  const declaredBlockers = [...new Set(observations
+    .filter((item) => item.source !== "report_blockers")
+    .flatMap((item) => item.blockerCodes))].sort();
+  if (declaredBlockers.length > 0 && !structuredBlockers) {
+    return inconsistent("Fonte strutturata report_blockers mancante per blocker dichiarati.", observations.filter((item) => item.blockerCodes.length > 0));
+  }
+  if (structuredBlockers) {
+    const missing = declaredBlockers.filter((code) => !structuredBlockers.blockerCodes.includes(code));
+    if (missing.length > 0) return inconsistent(`Blocker dichiarati ma non tracciati in report_blockers: ${missing.join(", ")}.`, observations.filter((item) => item.blockerCodes.some((code) => missing.includes(code))));
+  }
+
+  const pattern = matchAprCaseTransition({
+    commonPreflight: token(common),
+    productGate: token(product),
+    deepReview: token(bySource.get("deep_review")),
+    execution: token(bySource.get("execution")),
+    serverVerification: token(bySource.get("checkpoint")),
+  });
+  if (!pattern) return inconsistent("Combinazione di stati non prevista dalla matrice APR.", observations.filter((item) => MATRIX_SOURCES.includes(item.source as MatrixSource)));
+  return { status: pattern.publicStatus, reason: pattern.reason, disagreement: null, matchedTransitionId: pattern.id };
+}

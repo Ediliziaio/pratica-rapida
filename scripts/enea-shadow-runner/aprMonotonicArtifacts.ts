@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto";
+import type { AprBundleHashEvidence } from "./aprBundleHashEvidence";
+import type { AprVerifiedRuleTestEvidence } from "./aprPersistedTestEvidence";
 
 export const APR_MONOTONIC_ARTIFACTS_VERSION = "apr-monotonic-artifacts-v1" as const;
 
@@ -87,17 +89,20 @@ export interface AprMonotonicPreDeployCertificatePayload {
   schemaVersion: "apr-monotonic-predeploy-certificate-v1";
   issuedAt: string;
   gitCommit: string;
-  gitTree: string;
+  treeHash: string;
+  workingTreeEvidence: { command: "git status --porcelain=v1 --untracked-files=all"; output: string; outputSha256: string; clean: boolean };
   runtimeRevision: string;
   inputCorpusFingerprint: AprInputCorpusFingerprint;
   baselineId: string;
   newRuleIds: readonly string[];
-  ruleTestEvidence: readonly AprRuleTestEvidenceReference[];
-  replayDifferentialReportId: string;
-  stagedBundleHashes: readonly AprStagedBundleHash[];
+  ruleTestEvidence: readonly AprVerifiedRuleTestEvidence[];
+  differentialReport: { artifactId: string; path: string; status: "PASS" | "FAIL"; hasCriticalRegression: boolean };
+  bundleHashEvidence: readonly AprBundleHashEvidence[];
   status: "PASS" | "FAIL";
   rejectionReasons: readonly string[];
 }
+
+export type AprMonotonicPreDeployCertificate = AprImmutableArtifactEnvelope<AprMonotonicPreDeployCertificatePayload>;
 
 export interface AprImmutableArtifactEnvelope<TPayload> {
   artifactId: string;

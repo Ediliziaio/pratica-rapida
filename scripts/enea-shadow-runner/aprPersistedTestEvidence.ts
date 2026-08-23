@@ -6,6 +6,7 @@ import { canonicalJson, envelopeImmutableArtifact, verifyImmutableArtifactEnvelo
 export const APR_PERSISTED_TEST_RUN_REPORT_VERSION = "apr-persisted-test-run-report-v1" as const;
 export const APR_RULE_TEST_EVIDENCE_MANIFEST_VERSION = "apr-rule-test-evidence-manifest-v1" as const;
 const SHA256 = /^[a-f0-9]{64}$/;
+const GIT_OBJECT_ID = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/;
 
 export interface AprPersistedTestRunReportPayload {
   schemaVersion: typeof APR_PERSISTED_TEST_RUN_REPORT_VERSION;
@@ -107,7 +108,7 @@ export class PersistentAprTestEvidenceStore {
       if (run.payload.commit !== expectedCommit) throw new Error(`apr_test_run_commit_mismatch:${ruleId}:${polarity}`);
       if (run.payload.runtimeRevision !== expectedRuntimeRevision) throw new Error(`apr_test_run_runtime_revision_mismatch:${ruleId}:${polarity}`);
       if (run.payload.exitCode !== 0) throw new Error(`apr_test_run_exit_code_nonzero:${ruleId}:${polarity}`);
-      if (!SHA256.test(run.payload.treeHash) || !SHA256.test(run.payload.rawReportSha256)) throw new Error(`apr_test_run_hash_invalid:${ruleId}:${polarity}`);
+      if (!GIT_OBJECT_ID.test(run.payload.treeHash) || !SHA256.test(run.payload.rawReportSha256)) throw new Error(`apr_test_run_hash_invalid:${ruleId}:${polarity}`);
       if (fileSha256(run.payload.rawReportPath) !== run.payload.rawReportSha256) throw new Error(`apr_test_run_raw_report_hash_mismatch:${ruleId}:${polarity}`);
       const raw = JSON.parse(readFileSync(run.payload.rawReportPath, "utf8")) as VitestJsonReport;
       const testFile = raw.testResults.find((item) => path.resolve(item.name) === path.resolve(record.testFile));

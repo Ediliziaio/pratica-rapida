@@ -127,10 +127,14 @@ describe("APR independent pre-deploy verification and installation guard", () =>
       expect(readFileSync(entry.path, "utf8")).toContain(`<string>${entry.bundlePath}</string>`);
     }
     let activated = false;
-    const controller: AprServiceController = { activate: (request) => { activated = true; return { observations: request.roles.map((role, index) => ({ role: role.role, pid: 100 + index, bundlePath: role.bundlePath, heartbeatAt: "2026-08-24T00:00:01.000Z", checkpointRevision: 2 })), dashboardResponding: true }; } };
-    const activation = activatePreparedAprServices({ prepared, activationRoot: path.join(value.root, "service-activation"), promotionVersionId: promoted.versionId, controller, activationId: "activation-ok" });
+    const controller: AprServiceController = { activate: (request) => { activated = true; return { observations: request.roles.map((role, index) => ({ role: role.role, pid: 100 + index, bundlePath: role.bundlePath, heartbeatAt: "2026-08-24T00:00:01.000Z", checkpointRevision: 2 })), dashboardResponding: true }; }, rollback: () => ({ restored: true }) };
+    const activation = activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "service-activation"), promotionVersionId: promoted.versionId, controller, activationId: "activation-ok" });
     expect(activation).toMatchObject({ activationId: "activation-ok", healthGate: { status: "PASS" }, loadPerformed: true, simulated: true }); expect(activated).toBe(true);
     expect(activation.roles.every((role) => readFileSync(role.plistPath, "utf8").includes(role.bundlePath))).toBe(true);
+    let rollbackCalled = false;
+    const failingController: AprServiceController = { activate: (request) => ({ observations: request.roles.map((role) => ({ role: role.role, pid: null, bundlePath: role.bundlePath, heartbeatAt: null, checkpointRevision: null })), dashboardResponding: false }), rollback: () => { rollbackCalled = true; return { restored: true }; } };
+    const failed = activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "service-activation"), promotionVersionId: promoted.versionId, controller: failingController, activationId: "activation-fail" });
+    expect(failed).toMatchObject({ healthGate: { status: "FAIL" }, rollback: { performed: true, verified: true, restoredPlistPointer: expect.stringContaining("activation-ok") } }); expect(rollbackCalled).toBe(true);
     const forgedGuard = { allowed: true as const, certificateArtifactId: verified.certificateArtifactId, verifiedAt: verified.verifiedAt };
     expect(() => prepareVerifiedAprCohortLaunchAgents(forgedGuard, promoted.receipt, { ...options, installDirectory: path.join(value.root, "forged") })).toThrow(/guard_not_issued/);
     const failedReceipt = envelopeImmutableArtifact({ ...promoted.receipt.payload, receiptId: "failed-receipt", status: "FAIL" as const }, promoted.receipt.localMetadata);

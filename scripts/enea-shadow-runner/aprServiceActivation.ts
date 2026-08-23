@@ -1,12 +1,16 @@
 import { createHash, randomUUID } from "node:crypto";
-import { closeSync, fsyncSync, mkdirSync, openSync, readFileSync, readlinkSync, renameSync, symlinkSync, writeFileSync } from "node:fs";
+import { closeSync, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, readlinkSync, renameSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { assertVerifiedAprCohortLaunchAgentPreparation, type AprVerifiedCohortLaunchAgentPreparation } from "./aprCohortLaunchAgents";
+import type { AprBundlePromotionReceipt } from "./aprBundlePromotionReceipt";
 
 export type AprServiceRole = "supervisor" | "worker" | "watchdog";
 export interface AprServiceActivationRequest { activationId: string; versionId: string; roles: Array<{ role: AprServiceRole; plistPath: string; bundlePath: string }> }
 export interface AprServiceRuntimeObservation { role: AprServiceRole; pid: number | null; bundlePath: string; heartbeatAt: string | null; checkpointRevision: number | null }
-export interface AprServiceController { activate(request: AprServiceActivationRequest): { observations: AprServiceRuntimeObservation[]; dashboardResponding: boolean } }
+export interface AprServiceController {
+  activate(request: AprServiceActivationRequest): { observations: AprServiceRuntimeObservation[]; dashboardResponding: boolean };
+  rollback(request: AprServiceActivationRequest): { restored: boolean };
+}
 export interface AprRuntimeBaseline { roles: Array<{ role: AprServiceRole; heartbeatAt: string | null; checkpointRevision: number | null }> }
 export interface AprRuntimeHealthGate { status: "PASS" | "FAIL"; reasons: string[]; roles: Array<{ role: AprServiceRole; pidOk: boolean; heartbeatAdvanced: boolean; checkpointAdvanced: boolean; bundleVersionOk: boolean }> ; dashboardResponding: boolean }
 
@@ -18,6 +22,13 @@ function copyAtomic(source: string, target: string) {
   try { writeFileSync(descriptor, readFileSync(source)); fsyncSync(descriptor); } finally { closeSync(descriptor); }
   renameSync(temporary, target);
   if (sha256(source) !== sha256(target)) throw new Error("apr_service_activation_plist_hash_mismatch");
+}
+
+function currentSymlinkTarget(pointer: string) { return existsSync(pointer) && lstatSync(pointer).isSymbolicLink() ? readlinkSync(pointer) : null; }
+function replaceSymlink(pointer: string, target: string | null) {
+  mkdirSync(path.dirname(pointer), { recursive: true, mode: 0o700 });
+  if (target === null) { if (existsSync(pointer)) unlinkSync(pointer); return; }
+  const temporary = `${pointer}.${randomUUID()}.tmp`; symlinkSync(target, temporary); renameSync(temporary, pointer);
 }
 
 export function verifyAprServiceRuntimeHealth(input: { request: AprServiceActivationRequest; runtime: ReturnType<AprServiceController["activate"]>; baseline?: AprRuntimeBaseline }): AprRuntimeHealthGate {
@@ -35,7 +46,7 @@ export function verifyAprServiceRuntimeHealth(input: { request: AprServiceActiva
   return { status: reasons.length === 0 ? "PASS" : "FAIL", reasons, roles, dashboardResponding: input.runtime.dashboardResponding };
 }
 
-export function activatePreparedAprServices(input: { prepared: AprVerifiedCohortLaunchAgentPreparation; activationRoot: string; promotionVersionId: string; controller: AprServiceController; activationId?: string; runtimeBaseline?: AprRuntimeBaseline }) {
+export function activatePreparedAprServices(input: { prepared: AprVerifiedCohortLaunchAgentPreparation; promotionReceipt: AprBundlePromotionReceipt; activationRoot: string; promotionVersionId: string; controller: AprServiceController; activationId?: string; runtimeBaseline?: AprRuntimeBaseline }) {
   assertVerifiedAprCohortLaunchAgentPreparation(input.prepared);
   const activationId = input.activationId ?? randomUUID();
   const versionDirectory = path.join(path.resolve(input.activationRoot), "versions", activationId); mkdirSync(versionDirectory, { recursive: true, mode: 0o700 });
@@ -43,10 +54,20 @@ export function activatePreparedAprServices(input: { prepared: AprVerifiedCohort
     const target = path.join(versionDirectory, path.basename(entry.path)); copyAtomic(entry.path, target);
     return { role: entry.role as AprServiceRole, plistPath: target, bundlePath: entry.bundlePath };
   });
-  const pointer = path.join(path.resolve(input.activationRoot), "current"); const temporaryPointer = `${pointer}.${randomUUID()}.tmp`;
+  const pointer = path.join(path.resolve(input.activationRoot), "current"); const previousPlistTarget = currentSymlinkTarget(pointer); const temporaryPointer = `${pointer}.${randomUUID()}.tmp`;
   symlinkSync(path.relative(path.dirname(pointer), versionDirectory), temporaryPointer); renameSync(temporaryPointer, pointer);
   if (readlinkSync(pointer) !== path.relative(path.dirname(pointer), versionDirectory)) throw new Error("apr_service_activation_pointer_mismatch");
   const request = { activationId, versionId: input.promotionVersionId, roles }; const runtime = input.controller.activate(request);
   const healthGate = verifyAprServiceRuntimeHealth({ request, runtime, baseline: input.runtimeBaseline });
-  return { activationId, versionDirectory, activePointer: pointer, roles, runtime, healthGate, loadPerformed: true as const, simulated: true as const };
+  let rollback = { performed: false, verified: false, restoredBundlePointer: null as string | null, restoredPlistPointer: null as string | null };
+  if (healthGate.status === "FAIL") {
+    const bundlePointer = path.join(input.promotionReceipt.localMetadata!.promotionRoot, "current");
+    replaceSymlink(bundlePointer, input.promotionReceipt.payload.previousTarget); replaceSymlink(pointer, previousPlistTarget);
+    const processRollback = input.controller.rollback(request);
+    const bundleVerified = currentSymlinkTarget(bundlePointer) === input.promotionReceipt.payload.previousTarget;
+    const plistVerified = currentSymlinkTarget(pointer) === previousPlistTarget;
+    rollback = { performed: true, verified: processRollback.restored && bundleVerified && plistVerified, restoredBundlePointer: input.promotionReceipt.payload.previousTarget, restoredPlistPointer: previousPlistTarget };
+    if (!rollback.verified) throw new Error("apr_service_activation_rollback_not_verified");
+  }
+  return { activationId, versionDirectory, activePointer: pointer, roles, runtime, healthGate, rollback, loadPerformed: true as const, simulated: true as const };
 }

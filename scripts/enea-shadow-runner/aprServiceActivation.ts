@@ -7,7 +7,7 @@ import { canonicalJson } from "./aprMonotonicArtifacts";
 import { loadAprServiceActivationReceipt, persistAprServiceActivationReceipt } from "./aprServiceActivationReceipt";
 
 export type AprServiceRole = "supervisor" | "worker" | "watchdog";
-export interface AprServiceActivationRequest { activationId: string; versionId: string; roles: Array<{ role: AprServiceRole; plistPath: string; bundlePath: string }> }
+export interface AprServiceActivationRequest { activationId: string; versionId: string; startedAt: string; healthDeadlineAt: string; roles: Array<{ role: AprServiceRole; plistPath: string; bundlePath: string }> }
 export interface AprServiceRuntimeObservation { role: AprServiceRole; pid: number | null; bundlePath: string; heartbeatAt: string | null; checkpointRevision: number | null }
 export interface AprServiceController {
   activate(request: AprServiceActivationRequest): { observations: AprServiceRuntimeObservation[]; dashboardResponding: boolean };
@@ -48,7 +48,8 @@ export function verifyAprServiceRuntimeHealth(input: { request: AprServiceActiva
   const roles = input.request.roles.map((expected) => {
     const observed = input.runtime.observations.find((item) => item.role === expected.role); const before = baseline.get(expected.role);
     const pidOk = Boolean(observed?.pid && observed.pid > 0);
-    const heartbeatAdvanced = Boolean(observed?.heartbeatAt && (!before?.heartbeatAt || Date.parse(observed.heartbeatAt) > Date.parse(before.heartbeatAt)));
+    const heartbeatTime = observed?.heartbeatAt ? Date.parse(observed.heartbeatAt) : Number.NaN;
+    const heartbeatAdvanced = Number.isFinite(heartbeatTime) && heartbeatTime >= Date.parse(input.request.startedAt) && heartbeatTime <= Date.parse(input.request.healthDeadlineAt) && (!before?.heartbeatAt || heartbeatTime > Date.parse(before.heartbeatAt));
     const checkpointAdvanced = Boolean(observed?.checkpointRevision !== null && observed?.checkpointRevision !== undefined && (!before || before.checkpointRevision === null || observed.checkpointRevision > before.checkpointRevision));
     const bundleVersionOk = observed?.bundlePath === expected.bundlePath && expected.bundlePath.includes(input.request.versionId);
     if (!pidOk) reasons.push(`${expected.role}:pid_missing`); if (!heartbeatAdvanced) reasons.push(`${expected.role}:heartbeat_not_advanced`); if (!checkpointAdvanced) reasons.push(`${expected.role}:checkpoint_not_advanced`); if (!bundleVersionOk) reasons.push(`${expected.role}:bundle_version_mismatch`);
@@ -58,7 +59,7 @@ export function verifyAprServiceRuntimeHealth(input: { request: AprServiceActiva
   return { status: reasons.length === 0 ? "PASS" : "FAIL", reasons, roles, dashboardResponding: input.runtime.dashboardResponding };
 }
 
-export function activatePreparedAprServices(input: { prepared: AprVerifiedCohortLaunchAgentPreparation; promotionReceipt: AprBundlePromotionReceipt; activationRoot: string; promotionVersionId: string; controller: AprServiceController; activationId?: string; runtimeBaseline?: AprRuntimeBaseline; crashAt?: "after_pointer" | "during_rollback" }) {
+export function activatePreparedAprServices(input: { prepared: AprVerifiedCohortLaunchAgentPreparation; promotionReceipt: AprBundlePromotionReceipt; activationRoot: string; promotionVersionId: string; controller: AprServiceController; activationId?: string; runtimeBaseline?: AprRuntimeBaseline; crashAt?: "after_pointer" | "during_rollback"; now?: Date; healthWindowMs?: number }) {
   const binding = assertVerifiedAprCohortLaunchAgentPreparation(input.prepared);
   if (binding.promotionReceiptArtifactId !== input.promotionReceipt.artifactId || binding.promotionVersionId !== input.promotionVersionId || input.promotionReceipt.payload.versionId !== input.promotionVersionId) throw new Error("apr_service_activation_promotion_binding_mismatch");
   const activationId = input.activationId ?? `activation-${input.promotionReceipt.payload.receiptId}`;
@@ -76,8 +77,10 @@ export function activatePreparedAprServices(input: { prepared: AprVerifiedCohort
   const pointer = path.join(path.resolve(input.activationRoot), "current"); const previousPlistTarget = currentSymlinkTarget(pointer); const temporaryPointer = `${pointer}.${randomUUID()}.tmp`;
   symlinkSync(path.relative(path.dirname(pointer), versionDirectory), temporaryPointer); renameSync(temporaryPointer, pointer);
   if (readlinkSync(pointer) !== path.relative(path.dirname(pointer), versionDirectory)) throw new Error("apr_service_activation_pointer_mismatch");
-  const request = { activationId, versionId: input.promotionVersionId, roles };
-  const startedAt = new Date().toISOString();
+  const startedAtDate = input.now ?? new Date(); const healthWindowMs = input.healthWindowMs ?? 30_000;
+  if (!Number.isFinite(healthWindowMs) || healthWindowMs <= 0) throw new Error("apr_service_activation_health_window_invalid");
+  const startedAt = startedAtDate.toISOString();
+  const request = { activationId, versionId: input.promotionVersionId, startedAt, healthDeadlineAt: new Date(startedAtDate.getTime() + healthWindowMs).toISOString(), roles };
   writeTransaction(input.activationRoot, { schemaVersion: "apr-service-activation-transaction-v1", activationId, startedAt, phase: "POINTER_SWITCHED", request, previousPlistTarget, previousBundleTarget: input.promotionReceipt.payload.previousTarget, healthStatus: null });
   if (input.crashAt === "after_pointer") throw new AprSimulatedActivationCrash("apr_service_activation_simulated_crash_after_pointer");
   const runtime = input.controller.activate(request);

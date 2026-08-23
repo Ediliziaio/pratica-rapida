@@ -33,7 +33,7 @@ describe("APR service activation simulation", () => {
     ["bundle precedente", { bundlePath: "/installed/old/worker.mjs" }, "bundle_version_mismatch"],
   ])("rende FAIL il health gate con %s", (_label, override, reason) => {
     const roles = (["supervisor", "worker", "watchdog"] as const).map((role) => ({ role, plistPath: `/plist/${role}.plist`, bundlePath: `/installed/version-new/${role}.mjs` }));
-    const request = { activationId: "activation", versionId: "version-new", roles };
+    const request = { activationId: "activation", versionId: "version-new", startedAt: "2026-08-24T00:00:00.000Z", healthDeadlineAt: "2026-08-24T00:00:30.000Z", roles };
     const observations = roles.map((role, index) => ({ role: role.role, pid: 100 + index, bundlePath: role.bundlePath, heartbeatAt: "2026-08-24T00:00:01.000Z", checkpointRevision: 2 }));
     Object.assign(observations[1], override);
     const health = verifyAprServiceRuntimeHealth({ request, runtime: { observations, dashboardResponding: true }, baseline: { roles: roles.map((role) => ({ role: role.role, heartbeatAt: "2026-08-24T00:00:00.000Z", checkpointRevision: 1 })) } });
@@ -42,8 +42,15 @@ describe("APR service activation simulation", () => {
 
   it("rende FAIL il health gate se la dashboard non risponde", () => {
     const roles = (["supervisor", "worker", "watchdog"] as const).map((role) => ({ role, plistPath: `/plist/${role}.plist`, bundlePath: `/installed/version-new/${role}.mjs` }));
-    const request = { activationId: "activation", versionId: "version-new", roles };
+    const request = { activationId: "activation", versionId: "version-new", startedAt: "2026-08-24T00:00:00.000Z", healthDeadlineAt: "2026-08-24T00:00:30.000Z", roles };
     const observations = roles.map((role, index) => ({ role: role.role, pid: 100 + index, bundlePath: role.bundlePath, heartbeatAt: "2026-08-24T00:00:01.000Z", checkpointRevision: 2 }));
     expect(verifyAprServiceRuntimeHealth({ request, runtime: { observations, dashboardResponding: false } })).toMatchObject({ status: "FAIL", reasons: expect.arrayContaining(["dashboard_unreachable"]) });
+  });
+
+  it("rifiuta un heartbeat successivo alla finestra di salute", () => {
+    const roles = (["supervisor", "worker", "watchdog"] as const).map((role) => ({ role, plistPath: `/plist/${role}.plist`, bundlePath: `/installed/version-new/${role}.mjs` }));
+    const request = { activationId: "activation", versionId: "version-new", startedAt: "2026-08-24T00:00:00.000Z", healthDeadlineAt: "2026-08-24T00:00:30.000Z", roles };
+    const observations = roles.map((role, index) => ({ role: role.role, pid: 100 + index, bundlePath: role.bundlePath, heartbeatAt: "2026-08-24T00:00:31.000Z", checkpointRevision: 2 }));
+    expect(verifyAprServiceRuntimeHealth({ request, runtime: { observations, dashboardResponding: true } })).toMatchObject({ status: "FAIL", reasons: expect.arrayContaining(["supervisor:heartbeat_not_advanced"]) });
   });
 });

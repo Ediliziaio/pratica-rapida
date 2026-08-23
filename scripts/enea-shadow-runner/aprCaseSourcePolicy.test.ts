@@ -20,5 +20,6 @@ describe("APR required and not-applicable source policy", () => {
     const context = { customerKey: "fixture-a", runId: "run-a", observedAt: "2026-08-23T20:00:00.000Z" };
     expect(createAprNotApplicableObservation({ ...context, source: "deep_review" })).toMatchObject({ stage: "DEEP_REVIEW", status: "NOT_APPLICABLE" });
     expect(observeAprStructuredBlockers({ ...context, blockerCodes: ["b", "a", "b"] })).toMatchObject({ source: "report_blockers", status: "BLOCKED", blockerCodes: ["a", "b"] });
+    expect(observeAprStructuredBlockers({ ...context, blockerCodes: null })).toMatchObject({ source: "report_blockers", status: "MISSING", blockerCodes: [] });
   });
 });

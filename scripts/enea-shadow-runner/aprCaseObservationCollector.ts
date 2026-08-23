@@ -128,7 +128,14 @@ export function collectAprCaseObservations(
     observations.push(createAprNotApplicableObservation({ source: "checkpoint", customerKey, ...at }));
   }
   const blockerCodes = [...new Set(observations.flatMap((item) => item.blockerCodes))].sort();
-  observations.push(observeAprStructuredBlockers({ customerKey, ...at, blockerCodes }));
+  const rawBlockedStatePresent = commonItem?.state === "blocked_case"
+    || batchItem?.state === "blocked_case"
+    || bundle.infissiMapping?.state.item?.customerKey === customerKey && bundle.infissiMapping.state.item.caseTruth === "OPERATOR_REQUIRED"
+    || deepItem && ["technical_repair", "operator_required", "business_rule_required"].includes(deepItem.state)
+    || executionItem?.state === "operator_intervention";
+  const structuredBlockersMissing = Boolean(rawBlockedStatePresent) && blockerCodes.length === 0;
+  if (structuredBlockersMissing) errors.push("structured_blockers_missing_for_blocked_observation");
+  observations.push(observeAprStructuredBlockers({ customerKey, ...at, blockerCodes: structuredBlockersMissing ? null : blockerCodes }));
   return { status: errors.length ? "REJECTED" : "COLLECTED", customerKey, runId: bundle.manifest.runId, corpusFingerprint: expectedCorpusFingerprint,
     sourceAggregateFingerprint, observations, errors: [...new Set(errors)].sort() };
 }

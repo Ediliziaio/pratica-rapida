@@ -60,11 +60,12 @@ export function observeAprStructuredBlockers(input: {
   customerKey: string;
   runId: string;
   observedAt: string;
-  blockerCodes: readonly string[];
+  blockerCodes: readonly string[] | null;
 }): AprCaseStatusObservation {
   if (!input.runId.trim()) throw new Error("apr_structured_blockers_run_id_empty");
-  const blockerCodes = [...new Set(input.blockerCodes.map((code) => code.trim()).filter(Boolean))].sort();
+  const blockerCodes = [...new Set((input.blockerCodes ?? []).map((code) => code.trim()).filter(Boolean))].sort();
   const base = { source: "report_blockers" as const, stage: "EVIDENCE" as const, customerKey: input.customerKey, runId: input.runId,
-    observedAt: input.observedAt, status: blockerCodes.length > 0 ? "BLOCKED" as const : "PASS" as const, blockerCodes, classification: "NONE" as const };
+    observedAt: input.observedAt, status: input.blockerCodes === null ? "MISSING" as const : blockerCodes.length > 0 ? "BLOCKED" as const : "PASS" as const,
+    blockerCodes, classification: input.blockerCodes === null ? "UNCLASSIFIED" as const : "NONE" as const };
   return { ...base, sourceFingerprint: canonicalSha256(base) };
 }

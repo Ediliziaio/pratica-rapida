@@ -54,4 +54,12 @@ describe("APR local case observation collector", () => {
     const result = collectAprCaseObservations(bundle({ common: common("blocked_case"), infissiBatch: undefined }), "fixture-1");
     expect(result.observations).toEqual(expect.arrayContaining([expect.objectContaining({ source: "report_blockers", blockerCodes: ["blocked"] })]));
   });
+
+  it("rifiuta un caso bloccato privo dei blocker strutturati", () => {
+    const malformed = common("blocked_case");
+    malformed.state.items[0].report!.blockers = [];
+    const result = collectAprCaseObservations(bundle({ common: malformed, infissiBatch: undefined }), "fixture-1");
+    expect(result).toMatchObject({ status: "REJECTED", errors: ["structured_blockers_missing_for_blocked_observation"] });
+    expect(result.observations).toEqual(expect.arrayContaining([expect.objectContaining({ source: "report_blockers", status: "MISSING" })]));
+  });
 });

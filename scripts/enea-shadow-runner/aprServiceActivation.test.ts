@@ -2,7 +2,7 @@ import { chmodSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { activatePreparedAprServices, type AprServiceActivationRequest, type AprServiceController } from "./aprServiceActivation";
+import { activatePreparedAprServices, verifyAprServiceRuntimeHealth, type AprServiceActivationRequest, type AprServiceController } from "./aprServiceActivation";
 
 describe("APR service activation simulation", () => {
   it("rifiuta una preparazione non emessa dal collegamento verificato", () => {
@@ -24,5 +24,26 @@ describe("APR service activation simulation", () => {
     const controller: AprServiceController = { activate: (request) => { observed = request; return { observations: [], dashboardResponding: true }; } };
     expect(() => activatePreparedAprServices({ prepared: raw as never, activationRoot: path.join(root, "activation"), promotionVersionId: "version", controller })).toThrow(/preparation_not_verified/);
     expect(observed).toBeNull();
+  });
+
+  it.each([
+    ["PID mancante", { pid: null }, "pid_missing"],
+    ["heartbeat fermo", { heartbeatAt: "2026-08-24T00:00:00.000Z" }, "heartbeat_not_advanced"],
+    ["checkpoint fermo", { checkpointRevision: 1 }, "checkpoint_not_advanced"],
+    ["bundle precedente", { bundlePath: "/installed/old/worker.mjs" }, "bundle_version_mismatch"],
+  ])("rende FAIL il health gate con %s", (_label, override, reason) => {
+    const roles = (["supervisor", "worker", "watchdog"] as const).map((role) => ({ role, plistPath: `/plist/${role}.plist`, bundlePath: `/installed/version-new/${role}.mjs` }));
+    const request = { activationId: "activation", versionId: "version-new", roles };
+    const observations = roles.map((role, index) => ({ role: role.role, pid: 100 + index, bundlePath: role.bundlePath, heartbeatAt: "2026-08-24T00:00:01.000Z", checkpointRevision: 2 }));
+    Object.assign(observations[1], override);
+    const health = verifyAprServiceRuntimeHealth({ request, runtime: { observations, dashboardResponding: true }, baseline: { roles: roles.map((role) => ({ role: role.role, heartbeatAt: "2026-08-24T00:00:00.000Z", checkpointRevision: 1 })) } });
+    expect(health.status).toBe("FAIL"); expect(health.reasons.join(" ")).toContain(reason);
+  });
+
+  it("rende FAIL il health gate se la dashboard non risponde", () => {
+    const roles = (["supervisor", "worker", "watchdog"] as const).map((role) => ({ role, plistPath: `/plist/${role}.plist`, bundlePath: `/installed/version-new/${role}.mjs` }));
+    const request = { activationId: "activation", versionId: "version-new", roles };
+    const observations = roles.map((role, index) => ({ role: role.role, pid: 100 + index, bundlePath: role.bundlePath, heartbeatAt: "2026-08-24T00:00:01.000Z", checkpointRevision: 2 }));
+    expect(verifyAprServiceRuntimeHealth({ request, runtime: { observations, dashboardResponding: false } })).toMatchObject({ status: "FAIL", reasons: expect.arrayContaining(["dashboard_unreachable"]) });
   });
 });

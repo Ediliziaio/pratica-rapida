@@ -129,7 +129,7 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     let activated = false;
     const controller: AprServiceController = { activate: (request) => { activated = true; return { observations: request.roles.map((role, index) => ({ role: role.role, pid: 100 + index, bundlePath: role.bundlePath, heartbeatAt: "2026-08-24T00:00:01.000Z", checkpointRevision: 2 })), dashboardResponding: true }; } };
     const activation = activatePreparedAprServices({ prepared, activationRoot: path.join(value.root, "service-activation"), promotionVersionId: promoted.versionId, controller, activationId: "activation-ok" });
-    expect(activation).toMatchObject({ activationId: "activation-ok", loadPerformed: true, simulated: true }); expect(activated).toBe(true);
+    expect(activation).toMatchObject({ activationId: "activation-ok", healthGate: { status: "PASS" }, loadPerformed: true, simulated: true }); expect(activated).toBe(true);
     expect(activation.roles.every((role) => readFileSync(role.plistPath, "utf8").includes(role.bundlePath))).toBe(true);
     const forgedGuard = { allowed: true as const, certificateArtifactId: verified.certificateArtifactId, verifiedAt: verified.verifiedAt };
     expect(() => prepareVerifiedAprCohortLaunchAgents(forgedGuard, promoted.receipt, { ...options, installDirectory: path.join(value.root, "forged") })).toThrow(/guard_not_issued/);

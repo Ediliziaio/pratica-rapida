@@ -43,7 +43,7 @@ export interface AprCaseStatusObservation {
   runId: string;
   status: AprNormalizedObservationStatus;
   blockerCodes: readonly string[];
-  classification: "BUSINESS" | "OPERATOR" | "TECHNICAL" | "NONE";
+  classification: "BUSINESS" | "OPERATOR" | "TECHNICAL" | "UNCLASSIFIED" | "NONE";
   observedAt: string;
   sourceFingerprint: string;
 }

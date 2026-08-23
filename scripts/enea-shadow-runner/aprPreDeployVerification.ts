@@ -75,3 +75,14 @@ export function guardAprInstallation(verification: AprVerifiedPreDeployCertifica
   if (!verification || verification.status !== "VERIFIED_PASS" || !verifiedResults.has(verification)) throw new Error("apr_installation_guard_unverified_certificate");
   return { allowed: true as const, certificateArtifactId: verification.certificateArtifactId, verifiedAt: verification.verifiedAt };
 }
+
+export function verifyAprStagingImmediatelyBeforePromotion(verification: AprVerifiedPreDeployCertificate) {
+  guardAprInstallation(verification);
+  const certificate = JSON.parse(readFileSync(verification.certificatePath, "utf8")) as AprMonotonicPreDeployCertificate;
+  if (!verifyImmutableArtifactEnvelope(certificate) || certificate.artifactId !== verification.certificateArtifactId || !certificate.localMetadata) {
+    throw new Error("apr_promotion_certificate_changed_after_verification");
+  }
+  const observed = canonicalBundleHashEvidence(computeStagedBundleHashes(certificate.localMetadata.stagingDirectory));
+  if (canonicalJson(observed) !== canonicalJson(certificate.payload.bundleHashEvidence)) throw new Error("apr_promotion_staging_changed_after_verification");
+  return { certificate, observed };
+}

@@ -10,7 +10,7 @@ import { canonicalJson, envelopeImmutableArtifact } from "./aprMonotonicArtifact
 import { persistAprReplayDifferential } from "./aprPersistentReplayDifferential";
 import { createAprPersistedTestRunReport, createAprRuleTestEvidenceManifest, PersistentAprTestEvidenceStore } from "./aprPersistedTestEvidence";
 import { createAprMonotonicPreDeployCertificate, persistAprMonotonicPreDeployCertificate } from "./aprPreDeployCertificate";
-import { guardAprInstallation, verifyPreDeployCertificate, type AprVerifiedPreDeployCertificate } from "./aprPreDeployVerification";
+import { guardAprInstallation, verifyAprStagingImmediatelyBeforePromotion, verifyPreDeployCertificate, type AprVerifiedPreDeployCertificate } from "./aprPreDeployVerification";
 
 const sha = (character: string) => character.repeat(64);
 const keys = Array.from({ length: 40 }, (_, index) => `verify-${String(index + 1).padStart(2, "0")}`);
@@ -92,5 +92,12 @@ describe("APR independent pre-deploy verification and installation guard", () =>
   it("la guardia rifiuta un oggetto costruito a mano con gli stessi campi", () => {
     const manual = { version: "apr-predeploy-verification-v1", certificatePath: "/tmp/fake", certificateArtifactId: sha("a"), gitCommit: sha("b").slice(0, 40), treeHash: sha("c").slice(0, 40), verifiedAt: "2026-08-23T22:31:00.000Z", status: "VERIFIED_PASS" } as AprVerifiedPreDeployCertificate;
     expect(() => guardAprInstallation(manual)).toThrow(/unverified_certificate/);
+  });
+
+  it("riverifica lo staging immediatamente prima della promozione", () => {
+    const value = fixture(); const verified = verifyPreDeployCertificate(value.certificatePath);
+    expect(verifyAprStagingImmediatelyBeforePromotion(verified).observed).toHaveLength(3);
+    writeFileSync(path.join(value.stagingDirectory, "apr-supervisor.mjs"), "// changed after verification\n");
+    expect(() => verifyAprStagingImmediatelyBeforePromotion(verified)).toThrow(/staging_changed_after_verification/);
   });
 });

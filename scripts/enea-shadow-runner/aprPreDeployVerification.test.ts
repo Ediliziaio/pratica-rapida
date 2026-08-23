@@ -13,7 +13,7 @@ import { createAprMonotonicPreDeployCertificate, persistAprMonotonicPreDeployCer
 import { guardAprInstallation, verifyAprStagingImmediatelyBeforePromotion, verifyPreDeployCertificate, type AprVerifiedPreDeployCertificate } from "./aprPreDeployVerification";
 import { promoteAprBundles, recoverAprBundlePromotion } from "./aprBundlePromotion";
 import { prepareVerifiedAprCohortLaunchAgents } from "./aprCohortLaunchAgents";
-import { activatePreparedAprServices, type AprServiceController } from "./aprServiceActivation";
+import { activatePreparedAprServices, recoverAprServiceActivation, type AprServiceController } from "./aprServiceActivation";
 
 const sha = (character: string) => character.repeat(64);
 const keys = Array.from({ length: 40 }, (_, index) => `verify-${String(index + 1).padStart(2, "0")}`);
@@ -135,6 +135,18 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     const failingController: AprServiceController = { activate: (request) => ({ observations: request.roles.map((role) => ({ role: role.role, pid: null, bundlePath: role.bundlePath, heartbeatAt: null, checkpointRevision: null })), dashboardResponding: false }), rollback: () => { rollbackCalled = true; return { restored: true }; } };
     const failed = activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "service-activation"), promotionVersionId: promoted.versionId, controller: failingController, activationId: "activation-fail" });
     expect(failed).toMatchObject({ healthGate: { status: "FAIL" }, rollback: { performed: true, verified: true, restoredPlistPointer: expect.stringContaining("activation-ok") } }); expect(rollbackCalled).toBe(true);
+    let recoveryActivations = 0;
+    const recoveryController: AprServiceController = { activate: (request) => { recoveryActivations += 1; return { observations: request.roles.map((role, index) => ({ role: role.role, pid: 500 + index, bundlePath: role.bundlePath, heartbeatAt: "2026-08-24T00:01:00.000Z", checkpointRevision: 5 })), dashboardResponding: true }; }, rollback: () => ({ restored: true }) };
+    expect(() => activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "crash-activation"), promotionVersionId: promoted.versionId, controller: recoveryController, activationId: "crash-pointer", crashAt: "after_pointer" })).toThrow(/simulated_crash_after_pointer/);
+    expect(recoverAprServiceActivation({ activationRoot: path.join(value.root, "crash-activation"), promotionReceipt: promoted.receipt, controller: recoveryController, activationId: "crash-pointer" })).toMatchObject({ phase: "COMPLETE", idempotent: false });
+    expect(recoverAprServiceActivation({ activationRoot: path.join(value.root, "crash-activation"), promotionReceipt: promoted.receipt, controller: recoveryController, activationId: "crash-pointer" })).toMatchObject({ phase: "COMPLETE", idempotent: true });
+    expect(recoveryActivations).toBe(1);
+    let recoveryRollbacks = 0;
+    const rollbackRecoveryController: AprServiceController = { activate: (request) => ({ observations: request.roles.map((role) => ({ role: role.role, pid: null, bundlePath: role.bundlePath, heartbeatAt: null, checkpointRevision: null })), dashboardResponding: false }), rollback: () => { recoveryRollbacks += 1; return { restored: true }; } };
+    expect(() => activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "crash-rollback"), promotionVersionId: promoted.versionId, controller: rollbackRecoveryController, activationId: "crash-rollback", crashAt: "during_rollback" })).toThrow(/simulated_crash_during_rollback/);
+    expect(recoverAprServiceActivation({ activationRoot: path.join(value.root, "crash-rollback"), promotionReceipt: promoted.receipt, controller: rollbackRecoveryController, activationId: "crash-rollback" })).toMatchObject({ rollbackVerified: true });
+    expect(recoverAprServiceActivation({ activationRoot: path.join(value.root, "crash-rollback"), promotionReceipt: promoted.receipt, controller: rollbackRecoveryController, activationId: "crash-rollback" })).toMatchObject({ idempotent: true });
+    expect(recoveryRollbacks).toBe(1);
     const forgedGuard = { allowed: true as const, certificateArtifactId: verified.certificateArtifactId, verifiedAt: verified.verifiedAt };
     expect(() => prepareVerifiedAprCohortLaunchAgents(forgedGuard, promoted.receipt, { ...options, installDirectory: path.join(value.root, "forged") })).toThrow(/guard_not_issued/);
     const failedReceipt = envelopeImmutableArtifact({ ...promoted.receipt.payload, receiptId: "failed-receipt", status: "FAIL" as const }, promoted.receipt.localMetadata);

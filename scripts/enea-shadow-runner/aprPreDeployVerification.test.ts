@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -113,10 +113,21 @@ describe("APR independent pre-deploy verification and installation guard", () =>
 
   it("non sposta il puntatore attivo se un hash post-copy non coincide", () => {
     const value = fixture(); const verified = verifyPreDeployCertificate(value.certificatePath);
-    expect(() => promoteAprBundles(verified, { afterCopy: (role, target) => { if (role === "worker") writeFileSync(target, "corrupt\n"); }, now: new Date("2026-08-23T22:40:00.000Z") })).toThrow(/post_copy_hash_mismatch:worker/);
+    expect(() => promoteAprBundles(verified, { attemptId: "failed-copy", afterCopy: (role, target) => { if (role === "worker") writeFileSync(target, "corrupt\n"); }, now: new Date("2026-08-23T22:40:00.000Z") })).toThrow(/post_copy_hash_mismatch:worker/);
     expect(() => readFileSync(path.join(value.root, "installed", "current"))).toThrow();
-    const receipts = path.join(value.root, "installed", "receipts", `promotion-${verified.certificateArtifactId}.json`);
+    const receipts = path.join(value.root, "installed", "receipts", `promotion-${verified.certificateArtifactId}-failed-copy.json`);
     expect(JSON.parse(readFileSync(receipts, "utf8")).payload.status).toBe("FAIL");
+  });
+
+  it("consente un nuovo tentativo PASS dopo una receipt FAIL dello stesso certificato", () => {
+    const value = fixture(); const verified = verifyPreDeployCertificate(value.certificatePath);
+    expect(() => promoteAprBundles(verified, { attemptId: "attempt-fail", afterCopy: (role, target) => { if (role === "worker") writeFileSync(target, "corrupt\n"); }, now: new Date("2026-08-23T22:40:00.000Z") })).toThrow(/post_copy_hash_mismatch:worker/);
+    const promoted = promoteAprBundles(verified, { attemptId: "attempt-pass", now: new Date("2026-08-23T22:41:00.000Z") });
+    expect(promoted.receipt.payload).toMatchObject({ attemptId: "attempt-pass", status: "PASS" });
+    const receiptFiles = readdirSync(path.join(value.root, "installed", "receipts")).sort();
+    expect(receiptFiles).toEqual([`promotion-${verified.certificateArtifactId}-attempt-fail.json`, `promotion-${verified.certificateArtifactId}-attempt-pass.json`]);
+    const latest = JSON.parse(readFileSync(path.join(value.root, "installed", "latest-receipts", `${verified.certificateArtifactId}.json`), "utf8"));
+    expect(latest).toMatchObject({ receiptId: `promotion-${verified.certificateArtifactId}-attempt-pass`, status: "PASS" });
   });
 
   it("riprende dopo crash tra pointer e receipt senza duplicare la promozione", () => {

@@ -126,15 +126,18 @@ describe("APR independent pre-deploy verification and installation guard", () =>
       expect(entry.bundlePath).toContain(path.join("versions", promoted.versionId));
       expect(readFileSync(entry.path, "utf8")).toContain(`<string>${entry.bundlePath}</string>`);
     }
-    let activated = false;
-    const controller: AprServiceController = { activate: (request) => { activated = true; return { observations: request.roles.map((role, index) => ({ role: role.role, pid: 100 + index, bundlePath: role.bundlePath, heartbeatAt: "2026-08-24T00:00:01.000Z", checkpointRevision: 2 })), dashboardResponding: true }; }, rollback: () => ({ restored: true }) };
+    let activationCalls = 0;
+    const controller: AprServiceController = { activate: (request) => { activationCalls += 1; return { observations: request.roles.map((role, index) => ({ role: role.role, pid: 100 + index, bundlePath: role.bundlePath, heartbeatAt: "2026-08-24T00:00:01.000Z", checkpointRevision: 2 })), dashboardResponding: true }; }, rollback: () => ({ restored: true }) };
     const activation = activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "service-activation"), promotionVersionId: promoted.versionId, controller, activationId: "activation-ok" });
-    expect(activation).toMatchObject({ activationId: "activation-ok", healthGate: { status: "PASS" }, loadPerformed: true, simulated: true }); expect(activated).toBe(true);
-    expect(activation.roles.every((role) => readFileSync(role.plistPath, "utf8").includes(role.bundlePath))).toBe(true);
+    expect(activation).toMatchObject({ activationId: "activation-ok", healthGate: { status: "PASS" }, receipt: { payload: { status: "PASS", promotionReceiptId: promoted.receipt.payload.receiptId } }, loadPerformed: true, simulated: true }); expect(activationCalls).toBe(1);
+    const activationRoles = activation.roles; if (!activationRoles) throw new Error("expected_new_activation");
+    expect(activationRoles.every((role) => readFileSync(role.plistPath, "utf8").includes(role.bundlePath))).toBe(true);
+    expect(activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "service-activation"), promotionVersionId: promoted.versionId, controller, activationId: "activation-ok" })).toMatchObject({ idempotent: true, receipt: { payload: { status: "PASS" } } });
+    expect(activationCalls).toBe(1);
     let rollbackCalled = false;
     const failingController: AprServiceController = { activate: (request) => ({ observations: request.roles.map((role) => ({ role: role.role, pid: null, bundlePath: role.bundlePath, heartbeatAt: null, checkpointRevision: null })), dashboardResponding: false }), rollback: () => { rollbackCalled = true; return { restored: true }; } };
     const failed = activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "service-activation"), promotionVersionId: promoted.versionId, controller: failingController, activationId: "activation-fail" });
-    expect(failed).toMatchObject({ healthGate: { status: "FAIL" }, rollback: { performed: true, verified: true, restoredPlistPointer: expect.stringContaining("activation-ok") } }); expect(rollbackCalled).toBe(true);
+    expect(failed).toMatchObject({ healthGate: { status: "FAIL" }, rollback: { performed: true, verified: true, restoredPlistPointer: expect.stringContaining("activation-ok") }, receipt: { payload: { status: "FAIL", rollback: { performed: true, verified: true } } } }); expect(rollbackCalled).toBe(true);
     let recoveryActivations = 0;
     const recoveryController: AprServiceController = { activate: (request) => { recoveryActivations += 1; return { observations: request.roles.map((role, index) => ({ role: role.role, pid: 500 + index, bundlePath: role.bundlePath, heartbeatAt: "2026-08-24T00:01:00.000Z", checkpointRevision: 5 })), dashboardResponding: true }; }, rollback: () => ({ restored: true }) };
     expect(() => activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "crash-activation"), promotionVersionId: promoted.versionId, controller: recoveryController, activationId: "crash-pointer", crashAt: "after_pointer" })).toThrow(/simulated_crash_after_pointer/);

@@ -4,6 +4,7 @@ import path from "node:path";
 import { assertVerifiedAprCohortLaunchAgentPreparation, type AprVerifiedCohortLaunchAgentPreparation } from "./aprCohortLaunchAgents";
 import type { AprBundlePromotionReceipt } from "./aprBundlePromotionReceipt";
 import { canonicalJson } from "./aprMonotonicArtifacts";
+import { loadAprServiceActivationReceipt, persistAprServiceActivationReceipt } from "./aprServiceActivationReceipt";
 
 export type AprServiceRole = "supervisor" | "worker" | "watchdog";
 export interface AprServiceActivationRequest { activationId: string; versionId: string; roles: Array<{ role: AprServiceRole; plistPath: string; bundlePath: string }> }
@@ -56,7 +57,12 @@ export function verifyAprServiceRuntimeHealth(input: { request: AprServiceActiva
 
 export function activatePreparedAprServices(input: { prepared: AprVerifiedCohortLaunchAgentPreparation; promotionReceipt: AprBundlePromotionReceipt; activationRoot: string; promotionVersionId: string; controller: AprServiceController; activationId?: string; runtimeBaseline?: AprRuntimeBaseline; crashAt?: "after_pointer" | "during_rollback" }) {
   assertVerifiedAprCohortLaunchAgentPreparation(input.prepared);
-  const activationId = input.activationId ?? randomUUID();
+  const activationId = input.activationId ?? `activation-${input.promotionReceipt.payload.receiptId}`;
+  const existingTransactionPath = transactionPath(input.activationRoot, activationId);
+  if (existsSync(existingTransactionPath)) {
+    const existing = JSON.parse(readFileSync(existingTransactionPath, "utf8")) as AprActivationTransaction;
+    if (existing.phase === "COMPLETE") return { activationId, idempotent: true as const, receipt: loadAprServiceActivationReceipt(input.activationRoot, activationId) };
+  }
   const versionDirectory = path.join(path.resolve(input.activationRoot), "versions", activationId); mkdirSync(versionDirectory, { recursive: true, mode: 0o700 });
   const roles = input.prepared.entries.map((entry) => {
     const target = path.join(versionDirectory, path.basename(entry.path)); copyAtomic(entry.path, target);
@@ -83,7 +89,8 @@ export function activatePreparedAprServices(input: { prepared: AprVerifiedCohort
     if (!rollback.verified) throw new Error("apr_service_activation_rollback_not_verified");
   }
   writeTransaction(input.activationRoot, { schemaVersion: "apr-service-activation-transaction-v1", activationId, phase: "COMPLETE", request, previousPlistTarget, previousBundleTarget: input.promotionReceipt.payload.previousTarget, healthStatus: healthGate.status });
-  return { activationId, versionDirectory, activePointer: pointer, roles, runtime, healthGate, rollback, loadPerformed: true as const, simulated: true as const };
+  const receipt = persistAprServiceActivationReceipt({ activationRoot: input.activationRoot, activationId, promotionReceiptId: input.promotionReceipt.payload.receiptId, timestamp: new Date().toISOString(), gitCommit: input.promotionReceipt.payload.gitCommit, runtimeRevision: input.promotionReceipt.payload.runtimeRevision, status: healthGate.status, healthGate, observations: runtime.observations, dashboardResponding: healthGate.dashboardResponding, reasons: healthGate.reasons, rollback: { performed: rollback.performed, verified: rollback.verified } }).receipt;
+  return { activationId, versionDirectory, activePointer: pointer, roles, runtime, healthGate, rollback, receipt, idempotent: false as const, loadPerformed: true as const, simulated: true as const };
 }
 
 export function recoverAprServiceActivation(input: { activationRoot: string; promotionReceipt: AprBundlePromotionReceipt; controller: AprServiceController; activationId: string }) {

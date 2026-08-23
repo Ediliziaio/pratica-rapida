@@ -206,6 +206,47 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     expect(observedDeadline).toBe("2020-01-01T00:00:30.000Z");
   });
 
+  it("recupera il crash dopo activate senza duplicare il side effect reale", () => {
+    const { value, promoted, prepared } = activationFixture("recovery-after-activate");
+    const activated = new Map<string, ReturnType<AprServiceController["activate"]>>();
+    let activateCalls = 0; let activationSideEffects = 0;
+    const controller: AprServiceController = {
+      activate: (request) => {
+        activateCalls += 1;
+        const existing = activated.get(request.activationId); if (existing) return existing;
+        activationSideEffects += 1;
+        const result = { observations: request.roles.map((role, index) => ({ role: role.role, pid: 900 + index, bundlePath: role.bundlePath, heartbeatAt: new Date(Date.parse(request.startedAt) + 1_000).toISOString(), checkpointRevision: 2 })), dashboardResponding: true };
+        activated.set(request.activationId, result); return result;
+      },
+      rollback: () => ({ restored: true }),
+    };
+    const activationRoot = path.join(value.root, "after-activate-crash");
+    expect(() => activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot, promotionVersionId: promoted.versionId, controller, activationId: "after-activate-crash", crashAt: "after_activate", now: new Date("2026-08-24T01:02:00.000Z") })).toThrow(/simulated_crash_after_activate/);
+    expect({ activateCalls, activationSideEffects }).toEqual({ activateCalls: 1, activationSideEffects: 1 });
+    expect(recoverAprServiceActivation({ activationRoot, promotionReceipt: promoted.receipt, controller, activationId: "after-activate-crash" })).toMatchObject({ phase: "COMPLETE", health: { status: "PASS" } });
+    expect({ activateCalls, activationSideEffects }).toEqual({ activateCalls: 2, activationSideEffects: 1 });
+    expect(activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot, promotionVersionId: promoted.versionId, controller, activationId: "after-activate-crash" })).toMatchObject({ idempotent: true, receipt: { payload: { status: "PASS" } } });
+  });
+
+  it("recupera il crash dopo rollback senza duplicare il side effect reale", () => {
+    const { value, promoted, prepared } = activationFixture("recovery-after-rollback");
+    const rolledBack = new Set<string>(); let rollbackCalls = 0; let rollbackSideEffects = 0;
+    const controller: AprServiceController = {
+      activate: (request) => ({ observations: request.roles.map((role) => ({ role: role.role, pid: null, bundlePath: role.bundlePath, heartbeatAt: null, checkpointRevision: null })), dashboardResponding: false }),
+      rollback: (request) => {
+        rollbackCalls += 1;
+        if (!rolledBack.has(request.activationId)) { rolledBack.add(request.activationId); rollbackSideEffects += 1; }
+        return { restored: true };
+      },
+    };
+    const activationRoot = path.join(value.root, "after-rollback-crash");
+    expect(() => activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot, promotionVersionId: promoted.versionId, controller, activationId: "after-rollback-crash", crashAt: "after_rollback", now: new Date("2026-08-24T01:03:00.000Z") })).toThrow(/simulated_crash_after_rollback/);
+    expect({ rollbackCalls, rollbackSideEffects }).toEqual({ rollbackCalls: 1, rollbackSideEffects: 1 });
+    expect(recoverAprServiceActivation({ activationRoot, promotionReceipt: promoted.receipt, controller, activationId: "after-rollback-crash" })).toMatchObject({ phase: "COMPLETE", rollbackVerified: true });
+    expect({ rollbackCalls, rollbackSideEffects }).toEqual({ rollbackCalls: 2, rollbackSideEffects: 1 });
+    expect(activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot, promotionVersionId: promoted.versionId, controller, activationId: "after-rollback-crash" })).toMatchObject({ idempotent: true, receipt: { payload: { status: "FAIL", rollback: { performed: true, verified: true } } } });
+  });
+
   it("non sposta il puntatore attivo se un hash post-copy non coincide", () => {
     const value = fixture(); const verified = verifyPreDeployCertificate(value.certificatePath);
     expect(() => promoteAprBundles(verified, { attemptId: "failed-copy", afterCopy: (role, target) => { if (role === "worker") writeFileSync(target, "corrupt\n"); }, now: new Date("2026-08-23T22:40:00.000Z") })).toThrow(/post_copy_hash_mismatch:worker/);

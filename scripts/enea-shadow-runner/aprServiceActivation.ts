@@ -10,7 +10,16 @@ export type AprServiceRole = "supervisor" | "worker" | "watchdog";
 export interface AprServiceActivationRequest { activationId: string; versionId: string; startedAt: string; healthDeadlineAt: string; roles: Array<{ role: AprServiceRole; plistPath: string; bundlePath: string }> }
 export interface AprServiceRuntimeObservation { role: AprServiceRole; pid: number | null; bundlePath: string; heartbeatAt: string | null; checkpointRevision: number | null }
 export interface AprServiceController {
+  /**
+   * Must be idempotent for the same request.activationId: repeated calls may
+   * inspect and return the already-active services, but must not duplicate the
+   * underlying service-start side effect.
+   */
   activate(request: AprServiceActivationRequest): { observations: AprServiceRuntimeObservation[]; dashboardResponding: boolean };
+  /**
+   * Must be idempotent for the same request.activationId: repeated calls must
+   * report the already-restored state without duplicating the rollback side effect.
+   */
   rollback(request: AprServiceActivationRequest): { restored: boolean };
 }
 export interface AprRuntimeBaseline { roles: Array<{ role: AprServiceRole; heartbeatAt: string | null; checkpointRevision: number | null }> }
@@ -68,7 +77,7 @@ export function verifyAprServiceRuntimeHealth(input: { request: AprServiceActiva
   return { status: reasons.length === 0 ? "PASS" : "FAIL", reasons, roles, dashboardResponding: input.runtime.dashboardResponding };
 }
 
-export function activatePreparedAprServices(input: { prepared: AprVerifiedCohortLaunchAgentPreparation; promotionReceipt: AprBundlePromotionReceipt; activationRoot: string; promotionVersionId: string; controller: AprServiceController; activationId?: string; runtimeBaseline?: AprRuntimeBaseline; crashAt?: "after_pointer" | "during_rollback" | "after_receipt"; now?: Date; healthWindowMs?: number }) {
+export function activatePreparedAprServices(input: { prepared: AprVerifiedCohortLaunchAgentPreparation; promotionReceipt: AprBundlePromotionReceipt; activationRoot: string; promotionVersionId: string; controller: AprServiceController; activationId?: string; runtimeBaseline?: AprRuntimeBaseline; crashAt?: "after_pointer" | "after_activate" | "during_rollback" | "after_rollback" | "after_receipt"; now?: Date; healthWindowMs?: number }) {
   const binding = assertVerifiedAprCohortLaunchAgentPreparation(input.prepared);
   if (binding.promotionReceiptArtifactId !== input.promotionReceipt.artifactId || binding.promotionVersionId !== input.promotionVersionId || input.promotionReceipt.payload.versionId !== input.promotionVersionId) throw new Error("apr_service_activation_promotion_binding_mismatch");
   const activationId = input.activationId ?? `activation-${input.promotionReceipt.payload.receiptId}`;
@@ -96,6 +105,7 @@ export function activatePreparedAprServices(input: { prepared: AprVerifiedCohort
   writeTransaction(input.activationRoot, { schemaVersion: "apr-service-activation-transaction-v1", activationId, startedAt, phase: "POINTER_SWITCHED", request, previousPlistTarget, healthStatus: null });
   if (input.crashAt === "after_pointer") throw new AprSimulatedActivationCrash("apr_service_activation_simulated_crash_after_pointer");
   const runtime = input.controller.activate(request);
+  if (input.crashAt === "after_activate") throw new AprSimulatedActivationCrash("apr_service_activation_simulated_crash_after_activate");
   const healthGate = verifyAprServiceRuntimeHealth({ request, runtime, baseline: input.runtimeBaseline });
   let rollback = { performed: false, verified: false, restoredPlistPointer: null as string | null };
   if (healthGate.status === "FAIL") {
@@ -103,6 +113,7 @@ export function activatePreparedAprServices(input: { prepared: AprVerifiedCohort
     replaceSymlink(pointer, previousPlistTarget);
     if (input.crashAt === "during_rollback") throw new AprSimulatedActivationCrash("apr_service_activation_simulated_crash_during_rollback");
     const processRollback = input.controller.rollback(request);
+    if (input.crashAt === "after_rollback") throw new AprSimulatedActivationCrash("apr_service_activation_simulated_crash_after_rollback");
     const plistVerified = currentSymlinkTarget(pointer) === previousPlistTarget;
     rollback = { performed: true, verified: processRollback.restored && plistVerified, restoredPlistPointer: previousPlistTarget };
     if (!rollback.verified) throw new Error("apr_service_activation_rollback_not_verified");

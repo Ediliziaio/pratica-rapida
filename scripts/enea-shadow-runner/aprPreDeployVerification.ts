@@ -10,6 +10,7 @@ import type { AprPersistentReplayDifferential } from "./aprPersistentReplayDiffe
 
 export const APR_PREDEPLOY_VERIFICATION_VERSION = "apr-predeploy-verification-v1" as const;
 const verifiedResults = new WeakSet<object>();
+const installationGuards = new WeakSet<object>();
 const SHA256 = /^[a-f0-9]{64}$/;
 
 function verifyBaselineFromDisk(certificate: AprMonotonicPreDeployCertificate) {
@@ -71,9 +72,21 @@ export function verifyPreDeployCertificate(certificatePath: string, options: { r
   return result;
 }
 
-export function guardAprInstallation(verification: AprVerifiedPreDeployCertificate) {
+export interface AprInstallationGuard {
+  allowed: true;
+  certificateArtifactId: string;
+  verifiedAt: string;
+}
+
+export function guardAprInstallation(verification: AprVerifiedPreDeployCertificate): AprInstallationGuard {
   if (!verification || verification.status !== "VERIFIED_PASS" || !verifiedResults.has(verification)) throw new Error("apr_installation_guard_unverified_certificate");
-  return { allowed: true as const, certificateArtifactId: verification.certificateArtifactId, verifiedAt: verification.verifiedAt };
+  const guard = { allowed: true as const, certificateArtifactId: verification.certificateArtifactId, verifiedAt: verification.verifiedAt };
+  installationGuards.add(guard);
+  return guard;
+}
+
+export function assertAprInstallationGuard(guard: AprInstallationGuard) {
+  if (!guard || guard.allowed !== true || !installationGuards.has(guard)) throw new Error("apr_installation_guard_not_issued");
 }
 
 export function verifyAprStagingImmediatelyBeforePromotion(verification: AprVerifiedPreDeployCertificate) {

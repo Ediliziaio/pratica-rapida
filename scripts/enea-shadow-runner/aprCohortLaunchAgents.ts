@@ -1,5 +1,8 @@
 import { closeSync, constants, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync, accessSync } from "node:fs";
 import path from "node:path";
+import type { AprBundlePromotionReceipt } from "./aprBundlePromotionReceipt";
+import { verifyImmutableArtifactEnvelope } from "./aprMonotonicArtifacts";
+import { assertAprInstallationGuard, type AprInstallationGuard } from "./aprPreDeployVerification";
 
 export interface AprCohortLaunchAgentOptions {
   cohortNumber: number;
@@ -71,4 +74,23 @@ export function prepareAprCohortLaunchAgents(options: AprCohortLaunchAgentOption
     return { ...entry, path: target };
   });
   return { cohortNumber: options.cohortNumber, dashboardUrl: `http://127.0.0.1:${options.dashboardPort}/`, entries, ready: true, loadPerformed: false };
+}
+
+export interface AprVerifiedCohortLaunchAgentOptions extends Omit<AprCohortLaunchAgentOptions, "supervisorBundle" | "workerBundle" | "watchdogBundle"> {}
+
+export function prepareVerifiedAprCohortLaunchAgents(guard: AprInstallationGuard, receipt: AprBundlePromotionReceipt, options: AprVerifiedCohortLaunchAgentOptions) {
+  assertAprInstallationGuard(guard);
+  if (!verifyImmutableArtifactEnvelope(receipt)) throw new Error("apr_cohort_launch_agent_promotion_receipt_invalid");
+  if (receipt.payload.status !== "PASS") throw new Error("apr_cohort_launch_agent_promotion_receipt_not_pass");
+  if (receipt.payload.preDeployCertificateId !== guard.certificateArtifactId) throw new Error("apr_cohort_launch_agent_certificate_mismatch");
+  if (!receipt.localMetadata?.promotionRoot) throw new Error("apr_cohort_launch_agent_promotion_root_missing");
+  const bundleByRole = new Map(receipt.payload.bundles.map((bundle) => [bundle.role, bundle]));
+  for (const role of ["supervisor", "worker", "watchdog"] as const) if (!bundleByRole.has(role)) throw new Error(`apr_cohort_launch_agent_bundle_missing:${role}`);
+  const activeDirectory = path.join(receipt.localMetadata.promotionRoot, "current");
+  return prepareAprCohortLaunchAgents({
+    ...options,
+    supervisorBundle: path.join(activeDirectory, bundleByRole.get("supervisor")!.installedRef),
+    workerBundle: path.join(activeDirectory, bundleByRole.get("worker")!.installedRef),
+    watchdogBundle: path.join(activeDirectory, bundleByRole.get("watchdog")!.installedRef),
+  });
 }

@@ -12,6 +12,7 @@ import { createAprPersistedTestRunReport, createAprRuleTestEvidenceManifest, Per
 import { createAprMonotonicPreDeployCertificate, persistAprMonotonicPreDeployCertificate } from "./aprPreDeployCertificate";
 import { guardAprInstallation, verifyAprStagingImmediatelyBeforePromotion, verifyPreDeployCertificate, type AprVerifiedPreDeployCertificate } from "./aprPreDeployVerification";
 import { promoteAprBundles, recoverAprBundlePromotion } from "./aprBundlePromotion";
+import { prepareVerifiedAprCohortLaunchAgents } from "./aprCohortLaunchAgents";
 
 const sha = (character: string) => character.repeat(64);
 const keys = Array.from({ length: 40 }, (_, index) => `verify-${String(index + 1).padStart(2, "0")}`);
@@ -111,6 +112,20 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     expect(readFileSync(path.join(promoted.activePointer, "apr-enea-worker.mjs"), "utf8")).toContain("apr-enea-worker");
     expect(promoted.previousTarget).toBeNull();
     expect(promoted.receipt.payload.status).toBe("PASS");
+  });
+
+  it("prepara i plist soltanto con guardia emessa e receipt PASS dello stesso certificato", () => {
+    const value = fixture(); const verified = verifyPreDeployCertificate(value.certificatePath);
+    const promoted = promoteAprBundles(verified, { attemptId: "guarded-plist" });
+    const options = { cohortNumber: 61, stateDirectory: path.join(value.root, "state"), installDirectory: path.join(value.root, "plist-staging"), nodeExecutable: process.execPath, dashboardPort: 4493 };
+    const prepared = prepareVerifiedAprCohortLaunchAgents(guardAprInstallation(verified), promoted.receipt, options);
+    expect(prepared).toMatchObject({ ready: true, loadPerformed: false }); expect(prepared.entries).toHaveLength(3);
+    const forgedGuard = { allowed: true as const, certificateArtifactId: verified.certificateArtifactId, verifiedAt: verified.verifiedAt };
+    expect(() => prepareVerifiedAprCohortLaunchAgents(forgedGuard, promoted.receipt, { ...options, installDirectory: path.join(value.root, "forged") })).toThrow(/guard_not_issued/);
+    const failedReceipt = envelopeImmutableArtifact({ ...promoted.receipt.payload, receiptId: "failed-receipt", status: "FAIL" as const }, promoted.receipt.localMetadata);
+    expect(() => prepareVerifiedAprCohortLaunchAgents(guardAprInstallation(verified), failedReceipt, { ...options, installDirectory: path.join(value.root, "failed") })).toThrow(/receipt_not_pass/);
+    const mismatchedReceipt = envelopeImmutableArtifact({ ...promoted.receipt.payload, receiptId: "mismatched-receipt", preDeployCertificateId: sha("9") }, promoted.receipt.localMetadata);
+    expect(() => prepareVerifiedAprCohortLaunchAgents(guardAprInstallation(verified), mismatchedReceipt, { ...options, installDirectory: path.join(value.root, "mismatched") })).toThrow(/certificate_mismatch/);
   });
 
   it("non sposta il puntatore attivo se un hash post-copy non coincide", () => {

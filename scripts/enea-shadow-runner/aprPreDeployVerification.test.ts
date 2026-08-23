@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -138,8 +138,13 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     expect(() => activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "wrong-version"), promotionVersionId: "wrong-version", controller, activationId: "wrong-version" })).toThrow(/promotion_binding_mismatch/);
     let rollbackCalled = false;
     const failingController: AprServiceController = { activate: (request) => ({ observations: request.roles.map((role) => ({ role: role.role, pid: null, bundlePath: role.bundlePath, heartbeatAt: null, checkpointRevision: null })), dashboardResponding: false }), rollback: () => { rollbackCalled = true; return { restored: true }; } };
+    const promotedBundleTarget = readlinkSync(promoted.activePointer);
     const failed = activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "service-activation"), promotionVersionId: promoted.versionId, controller: failingController, activationId: "activation-fail" });
     expect(failed).toMatchObject({ healthGate: { status: "FAIL" }, rollback: { performed: true, verified: true, restoredPlistPointer: expect.stringContaining("activation-ok") }, receipt: { payload: { status: "FAIL", rollback: { performed: true, verified: true } } } }); expect(rollbackCalled).toBe(true);
+    expect(readlinkSync(promoted.activePointer)).toBe(promotedBundleTarget);
+    const repeatedAfterFailedActivation = promoteAprBundles(verified);
+    expect(repeatedAfterFailedActivation.receipt.artifactId).toBe(promoted.receipt.artifactId);
+    expect(readlinkSync(repeatedAfterFailedActivation.activePointer)).toBe(promotedBundleTarget);
     let recoveryActivations = 0;
     const recoveryController: AprServiceController = { activate: (request) => { recoveryActivations += 1; return { observations: request.roles.map((role, index) => ({ role: role.role, pid: 500 + index, bundlePath: role.bundlePath, heartbeatAt: new Date(Date.parse(request.startedAt) + 1_000).toISOString(), checkpointRevision: 5 })), dashboardResponding: true }; }, rollback: () => ({ restored: true }) };
     expect(() => activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "crash-activation"), promotionVersionId: promoted.versionId, controller: recoveryController, activationId: "crash-pointer", crashAt: "after_pointer" })).toThrow(/simulated_crash_after_pointer/);
@@ -150,7 +155,9 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     let recoveryRollbacks = 0;
     const rollbackRecoveryController: AprServiceController = { activate: (request) => ({ observations: request.roles.map((role) => ({ role: role.role, pid: null, bundlePath: role.bundlePath, heartbeatAt: null, checkpointRevision: null })), dashboardResponding: false }), rollback: () => { recoveryRollbacks += 1; return { restored: true }; } };
     expect(() => activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "crash-rollback"), promotionVersionId: promoted.versionId, controller: rollbackRecoveryController, activationId: "crash-rollback", crashAt: "during_rollback" })).toThrow(/simulated_crash_during_rollback/);
+    expect(readlinkSync(promoted.activePointer)).toBe(promotedBundleTarget);
     expect(recoverAprServiceActivation({ activationRoot: path.join(value.root, "crash-rollback"), promotionReceipt: promoted.receipt, controller: rollbackRecoveryController, activationId: "crash-rollback" })).toMatchObject({ rollbackVerified: true });
+    expect(readlinkSync(promoted.activePointer)).toBe(promotedBundleTarget);
     expect(recoverAprServiceActivation({ activationRoot: path.join(value.root, "crash-rollback"), promotionReceipt: promoted.receipt, controller: rollbackRecoveryController, activationId: "crash-rollback" })).toMatchObject({ idempotent: true });
     expect(activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "crash-rollback"), promotionVersionId: promoted.versionId, controller: rollbackRecoveryController, activationId: "crash-rollback" })).toMatchObject({ idempotent: true, receipt: { payload: { status: "FAIL", rollback: { performed: true, verified: true } } } });
     expect(recoveryRollbacks).toBe(1);

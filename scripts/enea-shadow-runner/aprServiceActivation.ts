@@ -15,7 +15,7 @@ export interface AprServiceController {
 }
 export interface AprRuntimeBaseline { roles: Array<{ role: AprServiceRole; heartbeatAt: string | null; checkpointRevision: number | null }> }
 export interface AprRuntimeHealthGate { status: "PASS" | "FAIL"; reasons: string[]; roles: Array<{ role: AprServiceRole; pidOk: boolean; heartbeatAdvanced: boolean; checkpointAdvanced: boolean; bundleVersionOk: boolean }> ; dashboardResponding: boolean }
-interface AprActivationTransaction { schemaVersion: "apr-service-activation-transaction-v1"; activationId: string; startedAt: string; phase: "POINTER_SWITCHED" | "ROLLING_BACK" | "COMPLETE"; request: AprServiceActivationRequest; previousPlistTarget: string | null; previousBundleTarget: string | null; healthStatus: "PASS" | "FAIL" | null }
+interface AprActivationTransaction { schemaVersion: "apr-service-activation-transaction-v1"; activationId: string; startedAt: string; phase: "POINTER_SWITCHED" | "ROLLING_BACK" | "COMPLETE"; request: AprServiceActivationRequest; previousPlistTarget: string | null; healthStatus: "PASS" | "FAIL" | null }
 class AprSimulatedActivationCrash extends Error {}
 
 const sha256 = (target: string) => createHash("sha256").update(readFileSync(target)).digest("hex");
@@ -81,24 +81,22 @@ export function activatePreparedAprServices(input: { prepared: AprVerifiedCohort
   if (!Number.isFinite(healthWindowMs) || healthWindowMs <= 0) throw new Error("apr_service_activation_health_window_invalid");
   const startedAt = startedAtDate.toISOString();
   const request = { activationId, versionId: input.promotionVersionId, startedAt, healthDeadlineAt: new Date(startedAtDate.getTime() + healthWindowMs).toISOString(), roles };
-  writeTransaction(input.activationRoot, { schemaVersion: "apr-service-activation-transaction-v1", activationId, startedAt, phase: "POINTER_SWITCHED", request, previousPlistTarget, previousBundleTarget: input.promotionReceipt.payload.previousTarget, healthStatus: null });
+  writeTransaction(input.activationRoot, { schemaVersion: "apr-service-activation-transaction-v1", activationId, startedAt, phase: "POINTER_SWITCHED", request, previousPlistTarget, healthStatus: null });
   if (input.crashAt === "after_pointer") throw new AprSimulatedActivationCrash("apr_service_activation_simulated_crash_after_pointer");
   const runtime = input.controller.activate(request);
   const healthGate = verifyAprServiceRuntimeHealth({ request, runtime, baseline: input.runtimeBaseline });
-  let rollback = { performed: false, verified: false, restoredBundlePointer: null as string | null, restoredPlistPointer: null as string | null };
+  let rollback = { performed: false, verified: false, restoredPlistPointer: null as string | null };
   if (healthGate.status === "FAIL") {
-    const bundlePointer = path.join(input.promotionReceipt.localMetadata!.promotionRoot, "current");
-    writeTransaction(input.activationRoot, { schemaVersion: "apr-service-activation-transaction-v1", activationId, startedAt, phase: "ROLLING_BACK", request, previousPlistTarget, previousBundleTarget: input.promotionReceipt.payload.previousTarget, healthStatus: "FAIL" });
-    replaceSymlink(bundlePointer, input.promotionReceipt.payload.previousTarget); replaceSymlink(pointer, previousPlistTarget);
+    writeTransaction(input.activationRoot, { schemaVersion: "apr-service-activation-transaction-v1", activationId, startedAt, phase: "ROLLING_BACK", request, previousPlistTarget, healthStatus: "FAIL" });
+    replaceSymlink(pointer, previousPlistTarget);
     if (input.crashAt === "during_rollback") throw new AprSimulatedActivationCrash("apr_service_activation_simulated_crash_during_rollback");
     const processRollback = input.controller.rollback(request);
-    const bundleVerified = currentSymlinkTarget(bundlePointer) === input.promotionReceipt.payload.previousTarget;
     const plistVerified = currentSymlinkTarget(pointer) === previousPlistTarget;
-    rollback = { performed: true, verified: processRollback.restored && bundleVerified && plistVerified, restoredBundlePointer: input.promotionReceipt.payload.previousTarget, restoredPlistPointer: previousPlistTarget };
+    rollback = { performed: true, verified: processRollback.restored && plistVerified, restoredPlistPointer: previousPlistTarget };
     if (!rollback.verified) throw new Error("apr_service_activation_rollback_not_verified");
   }
   const receipt = persistAprServiceActivationReceipt({ activationRoot: input.activationRoot, activationId, promotionReceiptId: input.promotionReceipt.payload.receiptId, timestamp: startedAt, gitCommit: input.promotionReceipt.payload.gitCommit, runtimeRevision: input.promotionReceipt.payload.runtimeRevision, status: healthGate.status, healthGate, observations: runtime.observations, dashboardResponding: healthGate.dashboardResponding, reasons: healthGate.reasons, rollback: { performed: rollback.performed, verified: rollback.verified } }).receipt;
-  writeTransaction(input.activationRoot, { schemaVersion: "apr-service-activation-transaction-v1", activationId, startedAt, phase: "COMPLETE", request, previousPlistTarget, previousBundleTarget: input.promotionReceipt.payload.previousTarget, healthStatus: healthGate.status });
+  writeTransaction(input.activationRoot, { schemaVersion: "apr-service-activation-transaction-v1", activationId, startedAt, phase: "COMPLETE", request, previousPlistTarget, healthStatus: healthGate.status });
   return { activationId, versionDirectory, activePointer: pointer, roles, runtime, healthGate, rollback, receipt, idempotent: false as const, loadPerformed: true as const, simulated: true as const };
 }
 
@@ -106,7 +104,7 @@ export function recoverAprServiceActivation(input: { activationRoot: string; pro
   const target = transactionPath(input.activationRoot, input.activationId); const transaction = JSON.parse(readFileSync(target, "utf8")) as AprActivationTransaction;
   if (transaction.schemaVersion !== "apr-service-activation-transaction-v1" || transaction.activationId !== input.activationId) throw new Error("apr_service_activation_recovery_transaction_invalid");
   if (transaction.phase === "COMPLETE") return { activationId: input.activationId, phase: "COMPLETE" as const, idempotent: true as const };
-  const plistPointer = path.join(path.resolve(input.activationRoot), "current"); const bundlePointer = path.join(input.promotionReceipt.localMetadata!.promotionRoot, "current");
+  const plistPointer = path.join(path.resolve(input.activationRoot), "current");
   if (transaction.phase === "POINTER_SWITCHED") {
     const runtime = input.controller.activate(transaction.request); const health = verifyAprServiceRuntimeHealth({ request: transaction.request, runtime });
     if (health.status === "PASS") {
@@ -115,10 +113,10 @@ export function recoverAprServiceActivation(input: { activationRoot: string; pro
       return { activationId: input.activationId, phase: "COMPLETE" as const, idempotent: false as const, health };
     }
     writeTransaction(input.activationRoot, { ...transaction, phase: "ROLLING_BACK", healthStatus: "FAIL" });
-    replaceSymlink(bundlePointer, transaction.previousBundleTarget); replaceSymlink(plistPointer, transaction.previousPlistTarget);
+    replaceSymlink(plistPointer, transaction.previousPlistTarget);
   }
   const rollback = input.controller.rollback(transaction.request);
-  const verified = rollback.restored && currentSymlinkTarget(bundlePointer) === transaction.previousBundleTarget && currentSymlinkTarget(plistPointer) === transaction.previousPlistTarget;
+  const verified = rollback.restored && currentSymlinkTarget(plistPointer) === transaction.previousPlistTarget;
   if (!verified) throw new Error("apr_service_activation_recovery_rollback_not_verified");
   const recoveredHealth: AprRuntimeHealthGate = { status: "FAIL", reasons: ["recovered_failed_health_gate"], dashboardResponding: false, roles: transaction.request.roles.map((item) => ({ role: item.role, pidOk: false, heartbeatAdvanced: false, checkpointAdvanced: false, bundleVersionOk: false })) };
   persistAprServiceActivationReceipt({ activationRoot: input.activationRoot, activationId: transaction.activationId, promotionReceiptId: input.promotionReceipt.payload.receiptId, timestamp: transaction.startedAt, gitCommit: input.promotionReceipt.payload.gitCommit, runtimeRevision: input.promotionReceipt.payload.runtimeRevision, status: "FAIL", healthGate: recoveredHealth, observations: [], dashboardResponding: false, reasons: recoveredHealth.reasons, rollback: { performed: true, verified: true } });

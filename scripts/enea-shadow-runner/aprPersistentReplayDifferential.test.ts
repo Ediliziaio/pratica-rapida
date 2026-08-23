@@ -31,4 +31,15 @@ describe("APR persistent replay differential", () => {
     expect(persisted.artifact.payload.report.payload.rows).toHaveLength(40);
     expect(persisted.artifact.payload.report.payload.rows[39]).toMatchObject({ classification: "REGRESSED", critical: true });
   });
+
+  it("include commit e runtimeRevision nel payload canonico che determina artifactId", () => {
+    const firstRoot = mkdtempSync(path.join(os.tmpdir(), "apr-replay-differential-identity-a-"));
+    const secondRoot = mkdtempSync(path.join(os.tmpdir(), "apr-replay-differential-identity-b-"));
+    const common = { baseline: snapshot("baseline"), candidate: snapshot("candidate"), now: new Date("2026-08-23T21:00:00.000Z") };
+    const first = persistAprReplayDifferential({ targetRoot: firstRoot, ...common, gitCommit: "abcdef1", runtimeRevision: "runtime-a" });
+    const second = persistAprReplayDifferential({ targetRoot: secondRoot, ...common, gitCommit: "abcdef2", runtimeRevision: "runtime-b" });
+    expect(first.artifact.artifactId).not.toBe(second.artifact.artifactId);
+    expect(first.artifact.payload).toMatchObject({ gitCommit: "abcdef1", runtimeRevision: "runtime-a" });
+    expect(second.artifact.payload).toMatchObject({ gitCommit: "abcdef2", runtimeRevision: "runtime-b" });
+  });
 });

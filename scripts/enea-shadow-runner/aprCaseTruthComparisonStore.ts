@@ -44,9 +44,7 @@ export function compareAprParallelCaseTruth(input: {
 }): AprCaseTruthComparison {
   const createdAt = (input.now ?? new Date()).toISOString();
   const oldNormalizedStatus = normalizeOldStatus(input.oldTruth.status);
-  const newTruth = input.collected.status === "COLLECTED"
-    ? resolveAprCaseStatusTruth(input.collected.observations)
-    : { status: "INCONSISTENT" as const, reason: `Raccolta osservazioni rifiutata: ${input.collected.errors.join(", ")}.`, disagreement: input.collected.observations, matchedTransitionId: null };
+  const newTruth = resolveAprCaseStatusTruth(input.collected.observations);
   let classification: AprTruthComparisonClassification;
   let reason: string;
   if (input.collected.status === "REJECTED" || /fonte obbligatoria mancante/i.test(newTruth.reason)) {

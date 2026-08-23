@@ -34,7 +34,9 @@ describe("APR persistent parallel truth comparison", () => {
   });
 
   it("classifica MISSING_SOURCE", () => {
-    expect(compareAprParallelCaseTruth({ oldTruth: oldTruth(), collected: collected([], "REJECTED", ["case_missing_from_common_preflight"]) }).payload.classification).toBe("MISSING_SOURCE");
+    const result = compareAprParallelCaseTruth({ oldTruth: oldTruth(), collected: collected([], "REJECTED", ["case_missing_from_common_preflight"]) });
+    expect(result.payload.classification).toBe("MISSING_SOURCE");
+    expect(result.payload.newTruth.reason).toMatch(/Nessuna osservazione disponibile/);
   });
 
   it("persiste in modo idempotente, rilegge dopo riavvio e rifiuta envelope alterati", () => {

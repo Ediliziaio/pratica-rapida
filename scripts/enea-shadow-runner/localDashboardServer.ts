@@ -35,6 +35,7 @@ import { PersistentAprInfissiLocalMappingPreflight } from "./infissiLocalMapping
 import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import { PersistentAprDeepCaseReview } from "./deepCaseReview";
 import { infissiExecutionGateReady } from "./infissiExecutionGate";
+import { APR_CASE_TRUTH_COMPARISON_VERSION, PersistentAprCaseTruthComparisonStore } from "./aprCaseTruthComparisonStore";
 import { supervise } from "./supervisor";
 import {
   SupervisorRuntimeStore,
@@ -457,6 +458,18 @@ export class LocalDashboardSupervisor {
           const executionItem = this.eneaDraftExecution.snapshot(this.now()).items.find((candidate) => candidate.customerKey === customerKey);
           sendJson(response, 200, reconcileAprCaseTruthWithDraftExecution(preflightTruth, executionItem));
         }
+      } else if (requestUrl.pathname === "/api/case-truth-comparison") {
+        const store = new PersistentAprCaseTruthComparisonStore(this.rootDirectory);
+        const artifactId = requestUrl.searchParams.get("artifactId")?.trim() ?? "";
+        const customerKey = requestUrl.searchParams.get("customerKey")?.trim() ?? "";
+        if (artifactId) {
+          if (!/^[a-f0-9]{64}$/.test(artifactId)) sendJson(response, 400, { error: "artifact_id_invalid" });
+          else {
+            const comparison = store.list().find((item) => item.artifactId === artifactId);
+            if (!comparison) sendJson(response, 404, { error: "comparison_not_found" });
+            else sendJson(response, 200, comparison);
+          }
+        } else sendJson(response, 200, { version: APR_CASE_TRUTH_COMPARISON_VERSION, items: store.list(customerKey || undefined) });
       } else if (requestUrl.pathname === "/api/infissi-local-mapping") {
         sendJson(response, 200, this.infissiLocalMapping.snapshot(this.now()));
       } else if (requestUrl.pathname === "/api/infissi-batch-preflight") {

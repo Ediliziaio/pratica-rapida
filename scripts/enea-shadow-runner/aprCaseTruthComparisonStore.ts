@@ -1,4 +1,4 @@
-import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
+import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { AprCaseStatusTruth } from "./caseStatusTruth";
 import type { AprCollectedCaseObservations } from "./aprCaseObservationCollector";
@@ -101,8 +101,18 @@ export class PersistentAprCaseTruthComparisonStore {
   }
 
   load(artifactId: string): AprCaseTruthComparison {
+    if (!/^[a-f0-9]{64}$/.test(artifactId)) throw new Error("apr_case_truth_comparison_artifact_id_invalid");
     const value = JSON.parse(readFileSync(path.join(this.directory, `${artifactId}.json`), "utf8")) as AprCaseTruthComparison;
     if (!verifyImmutableArtifactEnvelope(value)) throw new Error("apr_case_truth_comparison_persisted_invalid");
     return value;
+  }
+
+  list(customerKey?: string): AprCaseTruthComparison[] {
+    if (!existsSync(this.directory)) return [];
+    return readdirSync(this.directory)
+      .filter((name) => /^[a-f0-9]{64}\.json$/.test(name))
+      .map((name) => this.load(name.slice(0, -5)))
+      .filter((comparison) => !customerKey || comparison.payload.customerKey === customerKey)
+      .sort((left, right) => left.payload.createdAt.localeCompare(right.payload.createdAt) || left.artifactId.localeCompare(right.artifactId));
   }
 }

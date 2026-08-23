@@ -18,6 +18,10 @@ import { APR_READY_PIPELINE } from "../../src/features/enea-shadow-crm/aprCrmInt
 import { PersistentAprCrmIntegrationWorkflow } from "./crmIntegrationWorkflow";
 import { APR_REQUIRED_INFISSI_VALIDATION_REVISIONS } from "./infissiExecutionGate";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
+import { compareAprParallelCaseTruth, PersistentAprCaseTruthComparisonStore } from "./aprCaseTruthComparisonStore";
+import type { AprCollectedCaseObservations } from "./aprCaseObservationCollector";
+import type { AprCaseStatusObservation } from "./aprMonotonicArtifacts";
+import { canonicalSha256 } from "./aprMonotonicArtifacts";
 
 const temporaryDirectories: string[] = [];
 const runningSupervisors: LocalDashboardSupervisor[] = [];
@@ -265,6 +269,38 @@ describe("dashboard HTTP e supervisore persistente", () => {
     expect(mapping).toMatchObject({ status: "ready_for_portal_mapping", item: { caseTruth: "READY" } });
     const truth = await (await fetch(`${url}/api/case-truth?customerKey=cristina-fabbro`)).json() as { status: string; hasProblem: boolean };
     expect(truth).toMatchObject({ status: "READY", hasProblem: false });
+  });
+
+  it("espone il confronto parallelo da un endpoint separato senza cambiare la verita pubblica", async () => {
+    const directory = temporaryStateDirectory();
+    new PersistentEneaRunner(directory).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);
+    const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000 });
+    supervisor.infissiLocalMapping.run({
+      practiceId: "practice-comparison", customerKey: "fixture-comparison", displayName: "Fixture Comparison",
+      invoiceDimensionSource: { sourceId: "fattura", text: "1200 mm x 1400 mm" },
+      invoiceFinancialSources: [{ sourceId: "fattura", text: "TOTALE 1.000,00(EUR)" }],
+      technicalDocumentSource: { sourceId: "dop", text: "WEB/24/1 - 001\nTrasmittanza termica Uw [W/m K] 1.3" },
+      verifiedTechnicalPageDimensions: [{ pageId: "001", widthMm: 1200, heightMm: 1400, verificationMethod: "visual_pdf_page_verified" }],
+      form: { explicitNewFrameMaterial: "PVC", explicitGlassType: "Triplo vetro basso emissivo", alsoInstalledClosures: false, sourceId: "form" },
+    }, new Date("2026-08-23T20:00:00.000Z"));
+    const observation = (source: AprCaseStatusObservation["source"], status: AprCaseStatusObservation["status"]): AprCaseStatusObservation => ({
+      source, stage: source === "preflight_common" ? "COMMON_PREFLIGHT" : source === "product_gate" ? "PRODUCT_GATE" : source === "report_blockers" ? "EVIDENCE" : source === "checkpoint" ? "SERVER_VERIFICATION" : source === "deep_review" ? "DEEP_REVIEW" : "EXECUTION",
+      customerKey: "fixture-comparison", runId: "run-comparison", status, blockerCodes: [], classification: "NONE", observedAt: "2026-08-23T20:00:00.000Z", sourceFingerprint: canonicalSha256({ source, status }),
+    });
+    const observations = [observation("preflight_common", "PASS"), observation("product_gate", "PASS"), observation("deep_review", "NOT_APPLICABLE"), observation("execution", "NOT_APPLICABLE"), observation("checkpoint", "NOT_APPLICABLE"), observation("report_blockers", "PASS")];
+    const collected: AprCollectedCaseObservations = { status: "COLLECTED", customerKey: "fixture-comparison", runId: "run-comparison", corpusFingerprint: "corpus-comparison", sourceAggregateFingerprint: canonicalSha256(observations), observations, errors: [] };
+    const comparison = compareAprParallelCaseTruth({ oldTruth: { version: "apr-case-status-truth-v1", ruleId: "system-apr-case-status-truth", customerKey: "fixture-comparison", displayName: "Fixture Comparison", status: "READY", hasProblem: false, blockerCount: 0, blockerCodes: [], statement: "ready", sourceState: "ready_local_plan", reportOutcome: "ready_local_plan" }, collected, now: new Date("2026-08-23T20:00:01.000Z") });
+    new PersistentAprCaseTruthComparisonStore(directory).persist(comparison);
+    runningSupervisors.push(supervisor);
+    const url = await supervisor.start();
+    const truthBefore = await (await fetch(`${url}/api/case-truth?customerKey=fixture-comparison`)).json();
+    const list = await (await fetch(`${url}/api/case-truth-comparison?customerKey=fixture-comparison`)).json() as { items: Array<{ artifactId: string }> };
+    const detail = await (await fetch(`${url}/api/case-truth-comparison?artifactId=${comparison.artifactId}`)).json() as { artifactId: string };
+    const truthAfter = await (await fetch(`${url}/api/case-truth?customerKey=fixture-comparison`)).json();
+    expect(list.items.map((item) => item.artifactId)).toEqual([comparison.artifactId]);
+    expect(detail.artifactId).toBe(comparison.artifactId);
+    expect(truthAfter).toEqual(truthBefore);
+    expect((await fetch(`${url}/api/case-truth-comparison?artifactId=../checkpoint`)).status).toBe(400);
   });
 
   it("ripristina il supervisore dopo crash e lease scaduta conservando la revisione runner", async () => {

@@ -45,5 +45,8 @@ describe("APR persistent parallel truth comparison", () => {
     expect(new PersistentAprCaseTruthComparisonStore(root).load(comparison.artifactId)).toEqual(comparison);
     const altered = { ...comparison, payload: { ...comparison.payload, reason: "altered" } };
     expect(() => firstStore.persist(altered)).toThrow(/envelope_invalid/);
+    expect(firstStore.list("fixture-a")).toEqual([comparison]);
+    expect(firstStore.list("fixture-assente")).toEqual([]);
+    expect(() => firstStore.load("../checkpoint")).toThrow(/artifact_id_invalid/);
   });
 });

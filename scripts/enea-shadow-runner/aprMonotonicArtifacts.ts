@@ -26,7 +26,8 @@ export type AprPipelineStage =
   | "PRODUCT_GATE"
   | "DEEP_REVIEW"
   | "EXECUTION"
-  | "SERVER_VERIFICATION";
+  | "SERVER_VERIFICATION"
+  | "EVIDENCE";
 
 export type AprCaseObservationSource =
   | "preflight_common"

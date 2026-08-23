@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -44,7 +44,7 @@ function fixture() {
   for (const filename of ["apr-supervisor.mjs", "apr-enea-worker.mjs", "apr-watchdog.mjs"]) writeFileSync(path.join(stagingDirectory, filename), `// ${filename}\n`);
   const certificate = createAprMonotonicPreDeployCertificate({ repositoryRoot, baselinePath, differentialReportPath: differential.path, testEvidenceRoot: root, stagingDirectory, runtimeRevision: "runtime-verify", inputCorpusFingerprint: corpus, newRuleIds: ["rule-verify"], now: new Date("2026-08-23T22:30:04.000Z") });
   const persisted = persistAprMonotonicPreDeployCertificate(path.join(root, "certificates"), certificate);
-  return { root, repositoryRoot, certificatePath: persisted.path, stagingDirectory };
+  return { root, repositoryRoot, certificatePath: persisted.path, stagingDirectory, baselinePath };
 }
 
 describe("APR independent pre-deploy verification and installation guard", () => {
@@ -58,6 +58,17 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     const value = fixture(); const certificate = JSON.parse(readFileSync(value.certificatePath, "utf8")); certificate.payload.runtimeRevision = "altered";
     writeFileSync(value.certificatePath, `${canonicalJson(certificate)}\n`);
     expect(() => verifyPreDeployCertificate(value.certificatePath)).toThrow(/certificate_hash_mismatch/);
+  });
+
+  it("rifiuta baseline mancante, alterata o sostituita dopo la certificazione", () => {
+    const missing = fixture(); unlinkSync(missing.baselinePath);
+    expect(() => verifyPreDeployCertificate(missing.certificatePath)).toThrow();
+    const altered = fixture(); const baseline = JSON.parse(readFileSync(altered.baselinePath, "utf8")); baseline.payload.bundleHashes[0].stagedSha256 = sha("0");
+    writeFileSync(altered.baselinePath, `${canonicalJson(baseline)}\n`);
+    expect(() => verifyPreDeployCertificate(altered.certificatePath)).toThrow(/baseline_envelope_invalid/);
+    const replaced = fixture(); const replacement = envelopeImmutableArtifact({ ...JSON.parse(readFileSync(replaced.baselinePath, "utf8")).payload, createdAt: "2026-08-23T22:30:00.001Z" });
+    writeFileSync(replaced.baselinePath, `${canonicalJson(replacement)}\n`);
+    expect(() => verifyPreDeployCertificate(replaced.certificatePath)).toThrow(/baseline_replaced/);
   });
 
   it("rifiuta se il commit checked out è differente", () => {

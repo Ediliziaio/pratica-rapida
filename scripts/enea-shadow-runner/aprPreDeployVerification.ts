@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { canonicalBundleHashEvidence, computeStagedBundleHashes } from "./aprBundleHashEvidence";
+import { assertAprInputCorpusMatchesBaseline } from "./aprCorpusFingerprint";
+import type { AprMonotonicBootstrapBaseline } from "./aprMonotonicBootstrapBaseline";
 import { inspectAprPreDeployGitState } from "./aprPreDeployCertificate";
 import { PersistentAprTestEvidenceStore } from "./aprPersistedTestEvidence";
 import { canonicalJson, verifyImmutableArtifactEnvelope, type AprMonotonicPreDeployCertificate } from "./aprMonotonicArtifacts";
@@ -8,6 +10,21 @@ import type { AprPersistentReplayDifferential } from "./aprPersistentReplayDiffe
 
 export const APR_PREDEPLOY_VERIFICATION_VERSION = "apr-predeploy-verification-v1" as const;
 const verifiedResults = new WeakSet<object>();
+const SHA256 = /^[a-f0-9]{64}$/;
+
+function verifyBaselineFromDisk(certificate: AprMonotonicPreDeployCertificate) {
+  const baseline = JSON.parse(readFileSync(certificate.localMetadata!.baselinePath, "utf8")) as AprMonotonicBootstrapBaseline;
+  if (!verifyImmutableArtifactEnvelope(baseline) || baseline.payload.status !== "FROZEN") throw new Error("apr_predeploy_verification_baseline_envelope_invalid");
+  if (baseline.artifactId !== certificate.payload.baselineId) throw new Error("apr_predeploy_verification_baseline_replaced");
+  try { assertAprInputCorpusMatchesBaseline(baseline.payload.inputCorpusFingerprint, certificate.payload.inputCorpusFingerprint); }
+  catch { throw new Error("apr_predeploy_verification_baseline_corpus_mismatch"); }
+  const roles = baseline.payload.bundleHashes.map((item) => item.role).sort();
+  if (canonicalJson(roles) !== canonicalJson(["supervisor", "watchdog", "worker"])
+    || baseline.payload.bundleHashes.some((item) => !item.stagedRef || !SHA256.test(item.stagedSha256))) {
+    throw new Error("apr_predeploy_verification_baseline_bundle_hashes_invalid");
+  }
+  return baseline;
+}
 
 export interface AprVerifiedPreDeployCertificate {
   version: typeof APR_PREDEPLOY_VERIFICATION_VERSION;
@@ -25,6 +42,7 @@ export function verifyPreDeployCertificate(certificatePath: string, options: { r
   if (!verifyImmutableArtifactEnvelope(certificate)) throw new Error("apr_predeploy_verification_certificate_hash_mismatch");
   if (!certificate.localMetadata) throw new Error("apr_predeploy_verification_local_metadata_missing");
   if (certificate.payload.status !== "PASS" || certificate.payload.rejectionReasons.length > 0) throw new Error("apr_predeploy_verification_certificate_not_pass");
+  verifyBaselineFromDisk(certificate);
   const repositoryRoot = path.resolve(options.repositoryRoot ?? certificate.localMetadata.repositoryRoot);
   const git = inspectAprPreDeployGitState(repositoryRoot);
   if (git.gitCommit !== certificate.payload.gitCommit) throw new Error("apr_predeploy_verification_git_commit_mismatch");

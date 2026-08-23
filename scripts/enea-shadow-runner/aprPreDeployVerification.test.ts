@@ -52,6 +52,13 @@ function fixture() {
   return { root, repositoryRoot, certificatePath: persisted.path, stagingDirectory, baselinePath };
 }
 
+function activationFixture(attemptId: string) {
+  const value = fixture(); const verified = verifyPreDeployCertificate(value.certificatePath);
+  const promoted = promoteAprBundles(verified, { attemptId });
+  const prepared = prepareVerifiedAprCohortLaunchAgents(guardAprInstallation(verified), promoted.receipt, { cohortNumber: 61, stateDirectory: path.join(value.root, "state"), installDirectory: path.join(value.root, "plist-staging"), nodeExecutable: process.execPath, dashboardPort: 4493 });
+  return { value, verified, promoted, prepared };
+}
+
 describe("APR independent pre-deploy verification and installation guard", () => {
   it("rilegge e verifica da disco certificato, prove, Git, differenziale e bundle", () => {
     const value = fixture(); const verified = verifyPreDeployCertificate(value.certificatePath, { now: new Date("2026-08-23T22:31:00.000Z") });
@@ -167,6 +174,36 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     expect(() => prepareVerifiedAprCohortLaunchAgents(guardAprInstallation(verified), failedReceipt, { ...options, installDirectory: path.join(value.root, "failed") })).toThrow(/receipt_not_pass/);
     const mismatchedReceipt = envelopeImmutableArtifact({ ...promoted.receipt.payload, receiptId: "mismatched-receipt", preDeployCertificateId: sha("9") }, promoted.receipt.localMetadata);
     expect(() => prepareVerifiedAprCohortLaunchAgents(guardAprInstallation(verified), mismatchedReceipt, { ...options, installDirectory: path.join(value.root, "mismatched") })).toThrow(/certificate_mismatch/);
+  });
+
+  it("non riattiva i servizi se trova una receipt PASS scritta prima del crash", () => {
+    const { value, promoted, prepared } = activationFixture("recovery-pass-receipt"); let activationCalls = 0;
+    const controller: AprServiceController = { activate: (request) => { activationCalls += 1; return { observations: request.roles.map((role, index) => ({ role: role.role, pid: 700 + index, bundlePath: role.bundlePath, heartbeatAt: new Date(Date.parse(request.startedAt) + 1_000).toISOString(), checkpointRevision: 2 })), dashboardResponding: true }; }, rollback: () => ({ restored: true }) };
+    const activationRoot = path.join(value.root, "pass-receipt-crash");
+    expect(() => activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot, promotionVersionId: promoted.versionId, controller, activationId: "pass-receipt-crash", crashAt: "after_receipt", now: new Date("2026-08-24T01:00:00.000Z") })).toThrow(/simulated_crash_after_receipt/);
+    expect(activationCalls).toBe(1);
+    expect(recoverAprServiceActivation({ activationRoot, promotionReceipt: promoted.receipt, controller, activationId: "pass-receipt-crash" })).toMatchObject({ idempotent: true, receipt: { payload: { status: "PASS" } } });
+    expect(activationCalls).toBe(1);
+  });
+
+  it("non ripete il rollback se trova una receipt FAIL scritta prima del crash", () => {
+    const { value, promoted, prepared } = activationFixture("recovery-fail-receipt"); let activationCalls = 0; let rollbackCalls = 0;
+    const controller: AprServiceController = { activate: (request) => { activationCalls += 1; return { observations: request.roles.map((role) => ({ role: role.role, pid: null, bundlePath: role.bundlePath, heartbeatAt: null, checkpointRevision: null })), dashboardResponding: false }; }, rollback: () => { rollbackCalls += 1; return { restored: true }; } };
+    const activationRoot = path.join(value.root, "fail-receipt-crash");
+    expect(() => activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot, promotionVersionId: promoted.versionId, controller, activationId: "fail-receipt-crash", crashAt: "after_receipt", now: new Date("2026-08-24T01:01:00.000Z") })).toThrow(/simulated_crash_after_receipt/);
+    expect({ activationCalls, rollbackCalls }).toEqual({ activationCalls: 1, rollbackCalls: 1 });
+    expect(recoverAprServiceActivation({ activationRoot, promotionReceipt: promoted.receipt, controller, activationId: "fail-receipt-crash" })).toMatchObject({ idempotent: true, receipt: { payload: { status: "FAIL", rollback: { performed: true, verified: true } } } });
+    expect({ activationCalls, rollbackCalls }).toEqual({ activationCalls: 1, rollbackCalls: 1 });
+  });
+
+  it("riusa durante la recovery la deadline originale persistita", () => {
+    const { value, promoted, prepared } = activationFixture("recovery-original-deadline"); let observedDeadline: string | null = null;
+    const controller: AprServiceController = { activate: (request) => { observedDeadline = request.healthDeadlineAt; return { observations: request.roles.map((role, index) => ({ role: role.role, pid: 800 + index, bundlePath: role.bundlePath, heartbeatAt: "2020-01-01T00:00:01.000Z", checkpointRevision: 2 })), dashboardResponding: true }; }, rollback: () => ({ restored: true }) };
+    const activationRoot = path.join(value.root, "original-deadline-crash");
+    expect(() => activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot, promotionVersionId: promoted.versionId, controller, activationId: "original-deadline-crash", crashAt: "after_pointer", now: new Date("2020-01-01T00:00:00.000Z"), healthWindowMs: 30_000 })).toThrow(/simulated_crash_after_pointer/);
+    expect(observedDeadline).toBeNull();
+    expect(recoverAprServiceActivation({ activationRoot, promotionReceipt: promoted.receipt, controller, activationId: "original-deadline-crash" })).toMatchObject({ health: { status: "PASS" } });
+    expect(observedDeadline).toBe("2020-01-01T00:00:30.000Z");
   });
 
   it("non sposta il puntatore attivo se un hash post-copy non coincide", () => {

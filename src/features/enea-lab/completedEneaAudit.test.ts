@@ -117,7 +117,20 @@ describe("audit storico PDF ENEA conclusivo", () => {
     expect(snapshot.screeningCount).toBe(-1);
   });
 
-  it("segnala come differenza un valore presente nel PDF ma non pronto nel mapper", () => {
+  it("rilegge la tipologia ENEA Persiane avvolgibili nel riepilogo", () => {
+    const source = COMPLETED_ENEA_TECHNICAL_EXCERPT.replace(
+      "1 Altra schermatura solare Esterna 3.7 2.9 0.08 Sud Dichiarato dal fornitore 0.13 Misto Manuale",
+      "1 Persiane avvolgibili Esterna 3.7 2.9 0.17 Sud Dichiarato dal fornitore 0.08 Metallo Manuale",
+    );
+    const snapshot = parseCompletedEneaText(source);
+    expect(snapshot.fields["schermature.0.tipo"]).toBe("Persiane avvolgibili");
+    expect(snapshot.fields["schermature.0.superficie"]).toBe("3.7");
+    expect(snapshot.fields["schermature.0.gtot"]).toBe("0.08");
+    expect(snapshot.fields["schermature.0.materiale"]).toBe("Metallo");
+    expect(snapshot.screeningCount).toBe(5);
+  });
+
+  it("segnala come differenza un valore benchmark diverso dalla policy operativa del mapper", () => {
     const source = ENEA_LAB_MOCK_PRACTICES[0];
     const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id]);
     const completed = {
@@ -137,7 +150,7 @@ describe("audit storico PDF ENEA conclusivo", () => {
     expect(audit.differences[0]).toMatchObject({
       fieldId: "schermature.0.superficie_finestrata",
       completedValue: "2.9",
-      mappedValue: "Intervento umano richiesto",
+      mappedValue: "2,6 m²",
     });
   });
 

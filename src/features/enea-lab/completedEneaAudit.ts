@@ -7,6 +7,7 @@ export interface CompletedEneaSnapshot {
   cpid: string | null;
   fields: Record<string, string>;
   screeningCount: number;
+  infissiCount?: number;
 }
 
 export interface CompletedEneaDifference {
@@ -28,7 +29,7 @@ export interface CompletedEneaAuditResult {
   matchedFieldIds?: string[];
 }
 
-const NUMERIC_FIELD = /^(?:immobile\.superficie|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.(?:numero|spesa)|schermature\.\d+\.(?:superficie|superficie_finestrata|gtot))$/;
+const NUMERIC_FIELD = /^(?:immobile\.superficie|intervento\.unita_oggetto|impianto\.(?:numero_generatori|rendimento|potenza)|schermature\.(?:numero|spesa)|schermature\.\d+\.(?:superficie|superficie_finestrata|gtot)|infissi\.(?:numero|spesa)|infissi\.\d+\.(?:trasmittanza_vecchio|superficie|trasmittanza_nuovo))$/;
 const DATE_FIELD = /^(?:beneficiario\.data_nascita|intervento\.(?:data_inizio|data_fine))$/;
 
 function compact(text: string): string {
@@ -201,7 +202,7 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   // di sparire dal conteggio e produrre un falso match sul numero schermature.
   const screeningRowPattern = /(?:^|\s)(\d+)\s+(?=[A-Za-zÀ-ÿ])/g;
   const screeningOrdinals = Array.from(screeningText.matchAll(screeningRowPattern), (match) => Number(match[1]));
-  const screeningPattern = /(\d+)\s+(Tenda o veneziana|Altra schermatura solare)\s+(Esterna)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Sud-Est|Sud-Ovest|Est|Sud|Ovest)\s+(Dichiarato dal fornitore)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Tessuto|PVC|Metallo|Misto)\s+(Manuale|Automatico)/gi;
+  const screeningPattern = /(\d+)\s+(Persiane avvolgibili|Persiana|Tenda o veneziana|Altra schermatura solare)\s+(Esterna)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Sud-Est|Sud-Ovest|Est|Sud|Ovest)\s+(Dichiarato dal fornitore)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Tessuto|PVC|Metallo|Misto)\s+(Manuale|Automatico)/gi;
   const parsedScreeningOrdinals: number[] = [];
   for (const match of screeningText.matchAll(screeningPattern)) {
     const ordinal = Number(match[1]);
@@ -218,6 +219,50 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
     fields[`schermature.${index}.materiale`] = match[10];
     fields[`schermature.${index}.regolazione`] = match[11];
   }
+
+  const infissiStart = source.indexOf("IN. Serramenti e infissi");
+  const infissiEnd = source.indexOf("Spese congrue sostenute", infissiStart);
+  const infissiText = infissiStart >= 0
+    ? source.slice(infissiStart, infissiEnd > infissiStart ? infissiEnd : undefined)
+    : "";
+  const infissiPattern = /(\d+)\s+(Legno|PVC|Metallo,? taglio termico|Metallo,? no taglio termico|Misto)\s+(Singolo|Doppio|Triplo|Pannello(?: opaco)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Legno|PVC|Metallo,? taglio termico|Metallo,? no taglio termico|Misto)\s+(Singolo|Doppio|Triplo|Pannello(?: opaco)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Verso esterno|Verso ambiente non climatizzato)\s+(Sì|Si|No)/gi;
+  // Nei PDF reali le etichette "A bassa emissione" e "Verso esterno"
+  // possono essere spezzate prima/dopo la riga numerata. Il nucleo stabile
+  // della riga resta: numero, telaio/vetro/U vecchi, superficie e telaio nuovo.
+  // Lo usiamo come prova strutturale e per non perdere cardinalita' o dati
+  // vecchio infisso quando il layout a colonne spezza i campi successivi.
+  const infissiCorePattern = /(\d+)\s+(Legno|PVC|Metallo,? taglio termico|Metallo,? no taglio termico|Misto)\s+(Singolo|Doppio|Triplo|Pannello(?: opaco)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Legno|PVC|Metallo,? taglio termico|Metallo,? no taglio termico|Misto)\b/gi;
+  const infissiOrdinals: number[] = [];
+  for (const match of infissiText.matchAll(infissiCorePattern)) {
+    const ordinal = Number(match[1]);
+    if (!Number.isInteger(ordinal) || ordinal < 1) continue;
+    const index = ordinal - 1;
+    infissiOrdinals.push(ordinal);
+    fields[`infissi.${index}.telaio_vecchio`] = match[2];
+    fields[`infissi.${index}.vetro_vecchio`] = match[3];
+    fields[`infissi.${index}.trasmittanza_vecchio`] = match[4];
+    fields[`infissi.${index}.superficie`] = match[5];
+    fields[`infissi.${index}.telaio_nuovo`] = match[6];
+  }
+  for (const match of infissiText.matchAll(infissiPattern)) {
+    const ordinal = Number(match[1]);
+    if (!Number.isInteger(ordinal) || ordinal < 1) continue;
+    const index = ordinal - 1;
+    fields[`infissi.${index}.telaio_vecchio`] = match[2];
+    fields[`infissi.${index}.vetro_vecchio`] = match[3];
+    fields[`infissi.${index}.trasmittanza_vecchio`] = match[4];
+    fields[`infissi.${index}.superficie`] = match[5];
+    fields[`infissi.${index}.telaio_nuovo`] = match[6];
+    fields[`infissi.${index}.vetro_nuovo`] = match[7];
+    fields[`infissi.${index}.trasmittanza_nuovo`] = match[8];
+    fields[`infissi.${index}.confine`] = match[9];
+    fields[`infissi.${index}.chiusura_oscurante`] = /^s(?:ì|i)$/i.test(match[10]) ? "Sì" : "No";
+  }
+  const infissiCount = infissiOrdinals.length ? Math.max(...infissiOrdinals) : 0;
+  if (infissiCount) {
+    fields["infissi.numero"] = String(infissiCount);
+    set(fields, "infissi.spesa", capture(source.slice(infissiStart), /Spese congrue sostenute\s*\[\s*€\s*\]\s*([0-9]+(?:[.,][0-9]+)?)/i));
+  }
   const uniqueScreeningOrdinals = new Set(screeningOrdinals);
   const uniqueParsedScreeningOrdinals = new Set(parsedScreeningOrdinals);
   const orderedScreeningOrdinals = [...uniqueScreeningOrdinals].sort((left, right) => left - right);
@@ -232,7 +277,7 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   const screeningCount = screeningStructureValid ? orderedScreeningOrdinals.length : -1;
   set(fields, "schermature.spesa", capture(source, /Spese congrue sostenute \[€\]\s+([0-9]+(?:[.,][0-9]+)?)/i));
 
-  return { cpid, fields, screeningCount };
+  return { cpid, fields, screeningCount, infissiCount };
 }
 
 export function compareMappedToCompletedEnea(

@@ -1,6 +1,7 @@
 import type { EneaLabMappedPractice } from "./types";
 import { buildEneaBeneficiaryPortalScript } from "./portalBeneficiary";
 import { buildEneaBuildingPortalScript } from "./portalBuilding";
+import { buildEneaCalculationPortalScript } from "./portalCalculation";
 import { buildEneaGeneratorPortalScript } from "./portalGenerator";
 import { buildEneaInterventionPortalScript } from "./portalIntervention";
 import { buildEneaPlantPortalScript } from "./portalPlant";
@@ -17,6 +18,9 @@ export interface EneaPortalWorkflowPreparation {
   supportedPages: string[];
   screeningItemCount: number;
   mode: "test" | "official";
+  steps: EneaPortalWorkflowStep[];
+  screeningSteps: EneaPortalWorkflowStep[];
+  preparedFieldIds: string[];
 }
 
 function screeningIndexes(mapped: EneaLabMappedPractice): number[] {
@@ -52,6 +56,7 @@ export function buildEneaPortalWorkflowScript(
   const intervention = buildEneaInterventionPortalScript(mapped);
   const plant = buildEneaPlantPortalScript(mapped);
   const summary = buildEneaScreeningSummaryPortalScript(mapped);
+  const calculation = buildEneaCalculationPortalScript(mapped);
   const steps: EneaPortalWorkflowStep[] = [
     step("generator", generator.runtime),
     step("beneficiary", beneficiary.runtime),
@@ -59,21 +64,42 @@ export function buildEneaPortalWorkflowScript(
     step("intervention", intervention.runtime),
     step("plant", plant.runtime),
     step("screening-summary", summary.runtime),
+    ...(calculation.allocationRuntime ? [step("calculation-expense-allocation", calculation.allocationRuntime)] : []),
+    step("calculation", calculation.runtime),
   ];
-  const screeningSteps = indexes.map((index) => {
-    const preparation = buildEneaScreeningPortalScript(mapped, index);
-    return step(`screening-${index + 1}`, preparation.runtime);
+  const screeningPreparations = indexes.map((index) => {
+    const preparation = buildEneaScreeningPortalScript(mapped, index, mode === "test");
+    return preparation;
   });
+  const screeningSteps = screeningPreparations.map((preparation, position) => {
+    return step(`screening-${indexes[position] + 1}`, preparation.runtime);
+  });
+  const preparedFieldIds = [
+    ...generator.readyFieldIds,
+    ...beneficiary.readyFieldIds,
+    ...building.readyFieldIds,
+    ...intervention.readyFieldIds,
+    ...plant.readyFieldIds,
+    ...summary.readyFieldIds,
+    ...calculation.readyFieldIds,
+    ...screeningPreparations.flatMap(({ readyFieldIds }) => readyFieldIds),
+  ];
 
   return {
     script: buildEneaPortalWorkflowRuntimeScript({
       practiceCode: mapped.source.code,
-      steps,
+      // L'allocazione economica richiede un Salva auditato e resta quindi una
+      // capability del worker persistente, non del comando manuale di sola
+      // preparazione dei campi.
+      steps: steps.filter((candidate) => !candidate.expenseAllocation),
       screeningSteps,
     }),
     supportedPages: steps.map(({ pageName }) => pageName),
     screeningItemCount: screeningSteps.length,
     mode,
+    steps,
+    screeningSteps,
+    preparedFieldIds,
   };
 }
 

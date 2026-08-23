@@ -59,4 +59,22 @@ describe("sicurezza gTot ENEA", () => {
       value: "0,20",
     }));
   });
+
+  it("accetta un fallback permanente soltanto con ID regola autorizzata e provenienza distinta", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    if (source.form.prodotto.tipo !== "schermature") throw new Error("Mock non schermature");
+    source.form.prodotto.items = [source.form.prodotto.items[0]];
+    const analysis = {
+      items: [{ widthMm: 1200, heightMm: 1000, surfaceM2: 1.2, gTot: null, description: "Tenda da sole", sourcePath: "fattura.pdf" }],
+      invoiceTotal: 1000, creditTotal: 0, eligibleExpense: 1000, firstInvoiceDate: "2026-07-01", lastInvoiceDate: "2026-07-01", documents: [], blockers: [], warnings: [],
+    };
+    const mapped = mapSchermaturaPractice(source, analysis, {
+      resolvedScreeningGTot: [{ value: 0.33, source: "authorized_fallback", ruleId: "user-2026-08-14-tenda-screening-gtot-033-fallback" }],
+    });
+    const issues = validatePreparedPractice(source, mapped, analysis);
+    const field = mapped.sections.flatMap((section) => section.fields).find(({ id }) => id === "schermature.0.gtot");
+
+    expect(field).toMatchObject({ value: "0,33", source: "Regola controllata", appliedRuleIds: ["user-2026-08-14-tenda-screening-gtot-033-fallback"] });
+    expect(issues.some(({ code }) => code === "unverified-gtot-0" || code === "invalid-gtot-0")).toBe(false);
+  });
 });

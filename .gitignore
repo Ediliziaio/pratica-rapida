@@ -13,9 +13,19 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.enea-shadow-runtime/
 dist
 dist-ssr
 *.local
+*.tsbuildinfo
+
+# Runtime e cache locali APR (mai versionare checkpoint, dossier o credenziali)
+.artifacts/
+.pnpm-store/
+tmp/
+--out-dir/
+config/apr/
+config/apr-*.json
 
 # Editor directories and files
 .vscode/*

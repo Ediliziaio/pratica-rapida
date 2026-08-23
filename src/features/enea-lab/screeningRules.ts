@@ -1,7 +1,10 @@
 import type { SchermaturaTipo } from "@/types/form-cliente";
+import { resolveScreeningMechanism } from "@/features/enea-shadow-crm/operationalRules";
 
 export const ENEA_SCREENING_TYPE = {
   awning: "Tenda o veneziana",
+  persiana: "Persiana",
+  rollerShutter: "Persiane avvolgibili",
   otherSolarScreening: "Altra schermatura solare",
 } as const;
 
@@ -33,6 +36,8 @@ export interface EneaScreeningRuleResult {
   calculation: string;
   material: string;
   regulation: string;
+  regulationConflict: boolean;
+  supplementaryThermalResistance: number | null;
 }
 
 function normalize(value: string): string {
@@ -50,6 +55,10 @@ function isShutter(description: string): boolean {
   return /tapparell|avvolgibil/.test(normalize(description));
 }
 
+function isPersiana(description: string): boolean {
+  return /persian[ae]/.test(normalize(description));
+}
+
 export function screeningRules(
   declaredType: SchermaturaTipo | "",
   description: string,
@@ -58,6 +67,7 @@ export function screeningRules(
   const normalized = normalize(description);
   const zanzariera = isZanzariera(description);
   const shutter = isShutter(description);
+  const persiana = isPersiana(description);
   const pergotenda = declaredType === "pergotenda" || /pergotend/.test(normalized);
   const pergola = declaredType === "pergola" || /pergola/.test(normalized);
   const awning = declaredType === "tende_da_sole"
@@ -68,24 +78,34 @@ export function screeningRules(
     && documentedGTot <= 0.35;
 
   let material = "";
-  if (zanzariera) material = ENEA_SCREENING_MATERIAL.mixed;
+  if (persiana || shutter) material = ENEA_SCREENING_MATERIAL.metal;
+  else if (zanzariera) material = ENEA_SCREENING_MATERIAL.mixed;
   else if (pergotenda) material = ENEA_SCREENING_MATERIAL.pvc;
   else if (pergola) material = ENEA_SCREENING_MATERIAL.metal;
   else if (/\bpvc\b/.test(normalized)) material = ENEA_SCREENING_MATERIAL.pvc;
   else if (/allumini|metall/.test(normalized)) material = ENEA_SCREENING_MATERIAL.metal;
   else if (awning) material = ENEA_SCREENING_MATERIAL.fabric;
 
-  const explicitlyMotorized = /motoriz|motore|automatic/.test(normalized);
-  const regulation = zanzariera
+  const describedMechanism = resolveScreeningMechanism(description);
+  const explicitlyMotorized = describedMechanism.value === "automatico";
+  const regulation = describedMechanism.value === "manuale"
     ? ENEA_SCREENING_REGULATION.manual
-    : pergotenda || pergola || explicitlyMotorized
+    : explicitlyMotorized
       ? ENEA_SCREENING_REGULATION.automatic
-      : awning || shutter
+      : zanzariera
+        ? ENEA_SCREENING_REGULATION.manual
+      : pergotenda || pergola
+        ? ENEA_SCREENING_REGULATION.automatic
+      : awning || shutter || persiana
         ? ENEA_SCREENING_REGULATION.manual
         : "";
 
   return {
-    type: awning && !zanzariera && !shutter && !pergotenda && !pergola
+    type: persiana
+      ? ENEA_SCREENING_TYPE.persiana
+      : shutter
+        ? ENEA_SCREENING_TYPE.rollerShutter
+      : awning && !zanzariera && !shutter && !pergotenda && !pergola
       ? ENEA_SCREENING_TYPE.awning
       : declaredType || zanzariera || shutter || pergotenda || pergola
         ? ENEA_SCREENING_TYPE.otherSolarScreening
@@ -93,12 +113,14 @@ export function screeningRules(
     installation: declaredType || description.trim()
       ? ENEA_SCREENING_INSTALLATION.external
       : "",
-    gTot: validDocumentedGTot ? documentedGTot : zanzariera ? 0.33 : 0.06,
+    gTot: validDocumentedGTot ? documentedGTot : persiana || shutter ? 0.08 : zanzariera ? 0.33 : 0.06,
     gTotFromDocument: validDocumentedGTot,
     calculation: declaredType || description.trim()
       ? ENEA_SCREENING_CALCULATION.supplierDeclared
       : "",
     material,
     regulation,
+    regulationConflict: describedMechanism.conflict,
+    supplementaryThermalResistance: persiana || shutter ? 0.17 : null,
   };
 }

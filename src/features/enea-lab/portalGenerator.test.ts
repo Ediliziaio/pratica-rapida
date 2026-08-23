@@ -20,6 +20,7 @@ describe("compilazione finestra generatore ENEA", () => {
       "impianto.rendimento",
       "impianto.potenza",
     ]);
+    expect(buildEneaGeneratorPortalScript(mapped, true).runtime).toMatchObject({ hostRoute: "impianto_esistente", activationLabel: expect.any(String) });
   });
 
   it("rifiuta valori numerici non validi anche se arrivano da una correzione locale", () => {
@@ -35,6 +36,35 @@ describe("compilazione finestra generatore ENEA", () => {
 
     expect(buildEneaGeneratorPortalScript(mapped, true).readyFieldIds).toEqual([]);
     expect(buildEneaGeneratorPortalScript(mapped).readyFieldIds).toEqual([]);
+  });
+
+  it("compila Nome generatori quando ENEA traduce Energia elettrica nella riga tecnica Altro", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.impianto.tipo_caldaia = "energia_elettrica";
+    const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id], {
+      includeTestConventions: true,
+    });
+
+    const preparation = buildEneaGeneratorPortalScript(mapped, true);
+    expect(preparation.runtime.activationLabel).toBe("Energia elettrica");
+    expect(preparation.runtime.fields).toContainEqual({ portalId: "id-altro", control: "input", value: "Energia elettrica" });
+    expect(preparation.readyFieldIds).toContain("impianto.generatore");
+  });
+
+  it("usa il controllo P.E.A. osservato per Pompa di calore / Impianto geotermico", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.impianto.tipo_caldaia = "impianto_geotermico";
+    const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id], {
+      includeTestConventions: true,
+    });
+
+    const preparation = buildEneaGeneratorPortalScript(mapped, true);
+    expect(preparation.runtime.activationLabel).toBe("Impianto geotermico");
+    expect(preparation.runtime.markerIds).toEqual(["id-num", "id-pea", "id-pn"]);
+    expect(preparation.runtime.fields).toEqual(expect.arrayContaining([
+      expect.objectContaining({ portalId: "id-pea", control: "input" }),
+    ]));
+    expect(preparation.runtime.fields.some((field) => field.portalId === "id-n")).toBe(false);
   });
 
   it("compila la finestra aperta senza premere Salva", async () => {

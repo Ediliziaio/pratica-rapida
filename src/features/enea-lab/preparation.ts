@@ -1,5 +1,6 @@
 import { buildEneaBeneficiaryPortalScript } from "./portalBeneficiary";
 import { buildEneaBuildingPortalScript } from "./portalBuilding";
+import { buildEneaCalculationPortalScript } from "./portalCalculation";
 import { buildEneaGeneratorPortalScript } from "./portalGenerator";
 import { buildEneaInterventionPortalScript } from "./portalIntervention";
 import { buildEneaPlantPortalScript } from "./portalPlant";
@@ -12,6 +13,21 @@ import type {
   EneaLabPayload,
   EneaLabSourcePractice,
 } from "./types";
+import { USER_AUTHORIZED_RULE_IDS } from "@/features/enea-shadow-crm/operationalRegistry";
+
+const AUTHORIZED_GTOT_FALLBACK_RULES = new Set<string>([
+  USER_AUTHORIZED_RULE_IDS.pergolaScreening,
+  USER_AUTHORIZED_RULE_IDS.cristalScreening,
+  USER_AUTHORIZED_RULE_IDS.zanzarieraScreening,
+  USER_AUTHORIZED_RULE_IDS.genericAwningScreening,
+  USER_AUTHORIZED_RULE_IDS.persianaScreening,
+  USER_AUTHORIZED_RULE_IDS.avvolgibileScreening,
+]);
+
+function authorizedGTotFallback(field: ReturnType<typeof fieldById>): boolean {
+  return field?.source === "Regola controllata"
+    && Boolean(field.appliedRuleIds?.some((ruleId) => AUTHORIZED_GTOT_FALLBACK_RULES.has(ruleId)));
+}
 
 function requiredFields(mapped: EneaLabMappedPractice) {
   return mapped.sections.flatMap((section) => section.fields).filter((field) => field.required);
@@ -103,7 +119,7 @@ function isInternalPlaceholder(value: string): boolean {
   return normalized === "non indicato" || normalized === "intervento umano richiesto";
 }
 
-function officialPortalReadyFieldIds(mapped: EneaLabMappedPractice): ReadonlySet<string> {
+function portalReadyFieldIds(mapped: EneaLabMappedPractice, includeTestConventions: boolean): ReadonlySet<string> {
   const screeningIndexes = mapped.sections
     .flatMap((section) => section.fields)
     .flatMap((field) => {
@@ -116,8 +132,9 @@ function officialPortalReadyFieldIds(mapped: EneaLabMappedPractice): ReadonlySet
     ...buildEneaBuildingPortalScript(mapped).readyFieldIds,
     ...buildEneaInterventionPortalScript(mapped).readyFieldIds,
     ...buildEneaPlantPortalScript(mapped).readyFieldIds,
-    ...buildEneaGeneratorPortalScript(mapped, false).readyFieldIds,
+    ...buildEneaGeneratorPortalScript(mapped, includeTestConventions).readyFieldIds,
     ...buildEneaScreeningSummaryPortalScript(mapped).readyFieldIds,
+    ...buildEneaCalculationPortalScript(mapped).readyFieldIds,
     ...screeningIndexes.flatMap((index) => buildEneaScreeningPortalScript(mapped, index).readyFieldIds),
   ]);
 }
@@ -156,7 +173,7 @@ export function validatePreparedPractice(
     .flatMap((section) => section.fields)
     .filter((field) => /^schermature\.\d+\.gtot$/.test(field.id))
     .forEach((field) => {
-      const verifiedSource = field.source === "Fattura" || field.source === "Inserimento operatore";
+      const verifiedSource = field.source === "Fattura" || field.source === "Inserimento operatore" || authorizedGTotFallback(field);
       if (!verifiedSource) {
         const index = Number(field.id.match(/^schermature\.(\d+)\./)?.[1] ?? 0);
         issues.push({
@@ -200,7 +217,7 @@ export function validatePreparedPractice(
       const fieldId = `schermature.${index}.gtot`;
       const mappedGTot = fieldById(mapped, fieldId);
       if (!mappedGTot) return;
-      if ((item.gTot === null || item.gTot <= 0 || item.gTot > 0.35) && !manuallyVerified(mapped, fieldId)) {
+      if ((item.gTot === null || item.gTot <= 0 || item.gTot > 0.35) && !manuallyVerified(mapped, fieldId) && !authorizedGTotFallback(mappedGTot)) {
         issues.push({
           code: `invalid-gtot-${index}`,
           severity: "blocker",
@@ -267,7 +284,7 @@ export function validatePreparedPractice(
 export function buildEneaPayload(
   mapped: EneaLabMappedPractice,
   issues: EneaLabIssue[],
-  mode: "test" | "official",
+  mode: "test" | "draft_test" | "official",
   now = new Date(),
 ): EneaLabPayload {
   const fields = mapped.sections.flatMap((section) => section.fields);
@@ -275,12 +292,17 @@ export function buildEneaPayload(
   const hasUnverifiedRequiredFields = fields.some(
     (field) => field.required && (field.status !== "ready" || isInternalPlaceholder(field.value)),
   );
-  const officialPortalIds = mode === "official" ? officialPortalReadyFieldIds(mapped) : null;
+  const hasRequiredTestFields = fields.some((field) => field.required && field.testOnly);
+  const portalIds = mode === "official"
+    ? portalReadyFieldIds(mapped, false)
+    : mode === "draft_test"
+      ? portalReadyFieldIds(mapped, true)
+      : null;
   const selectedFields = mode === "test"
     ? fields
     : fields.filter((field) =>
-      Boolean(officialPortalIds?.has(field.id))
-      && !field.testOnly
+      Boolean(portalIds?.has(field.id))
+      && (mode === "draft_test" || !field.testOnly)
       && field.status === "ready"
       && Boolean(field.value.trim())
       && !isInternalPlaceholder(field.value),
@@ -301,9 +323,13 @@ export function buildEneaPayload(
   return {
     schemaVersion: 1,
     mode,
-    readyForOfficialSubmission: mode === "official"
+    readyForDraftSave: mode === "draft_test"
       && blockers.length === 0
       && !hasUnverifiedRequiredFields,
+    readyForOfficialSubmission: mode === "official"
+      && blockers.length === 0
+      && !hasUnverifiedRequiredFields
+      && !hasRequiredTestFields,
     generatedAt: now.toISOString(),
     practiceCode: mapped.source.code,
     fields: Object.fromEntries(selectedFields.map((field) => [field.id, field.value])),
@@ -311,7 +337,7 @@ export function buildEneaPayload(
     excludedTestFields: mode === "official"
       ? fields.filter((field) => field.testOnly).map((field) => field.id)
       : [],
-    excludedUnverifiedFields: mode === "official"
+    excludedUnverifiedFields: mode === "official" || mode === "draft_test"
       ? fields.filter((field) => !field.testOnly && field.status !== "ready").map((field) => field.id)
       : [],
     interventionRequired: blockers.map((issue) => issue.message),

@@ -1,6 +1,8 @@
 import type { EneaLabMappedPractice } from "./types";
+import { resolveForeignBirthCountryFromFiscalCode } from "@/features/enea-shadow-crm/operationalRules";
 import {
   buildEneaPortalRuntimeScript,
+  type EneaCoBeneficiaryPerson,
   type EneaPortalControl,
   type EneaPortalScriptOptions,
 } from "./portalScript";
@@ -16,6 +18,20 @@ export interface EneaBeneficiaryPortalPreparation {
   readyFieldIds: string[];
   skippedFieldIds: string[];
   runtime: EneaPortalScriptOptions;
+}
+
+function coBeneficiaryPerson(fieldsById: Map<string, EneaLabMappedPractice["sections"][number]["fields"][number]>): EneaCoBeneficiaryPerson | undefined {
+  const name = fieldsById.get("beneficiario.cointestatario_nome");
+  const surname = fieldsById.get("beneficiario.cointestatario_cognome");
+  const taxCode = fieldsById.get("beneficiario.cointestatario_cf");
+  if (![name, surname, taxCode].every((field) => field?.status === "ready" && !field.testOnly && !isInternalPlaceholder(field.value))) return undefined;
+  return {
+    name: name!.value,
+    surname: surname!.value,
+    taxCode: taxCode!.value.replace(/\s+/g, "").toUpperCase(),
+    sourceIds: [...new Set([name!.source, surname!.source, taxCode!.source].filter(Boolean))],
+    appliedRuleIds: [...new Set([...(name!.appliedRuleIds ?? []), ...(surname!.appliedRuleIds ?? []), ...(taxCode!.appliedRuleIds ?? [])])],
+  };
 }
 
 /**
@@ -49,29 +65,68 @@ export function buildEneaBeneficiaryPortalScript(
   const fieldsById = new Map(
     mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]),
   );
+  const verifiedForeignBirth = resolveForeignBirthCountryFromFiscalCode(fieldsById.get("beneficiario.cf")?.value);
+  const nationIsItaly = (fieldId: string) =>
+    fieldsById.get(fieldId)?.value.trim().toLocaleLowerCase("it") === "italia";
   const readyFields = ENEA_BENEFICIARY_PORTAL_FIELDS.flatMap((definition) => {
     const field = fieldsById.get(definition.fieldId);
     if (!field || field.status !== "ready" || field.testOnly || isInternalPlaceholder(field.value)) return [];
-    return [{ ...definition, value: field.value }];
+    // Sul portale ENEA il Comune italiano richiede una scelta dalla lista,
+    // mentre il luogo estero e' un testo libero validato insieme alla Nazione.
+    // Trattarlo comunque come autocomplete produce un falso blocco anche con
+    // valore esatto e aria-invalid=false (caso reale Tychy/Polonia).
+    const control = definition.fieldId === "beneficiario.comune_nascita"
+      && !nationIsItaly("beneficiario.nazione_nascita")
+      ? "input"
+      : definition.fieldId === "beneficiario.comune_residenza"
+        && !nationIsItaly("beneficiario.nazione_residenza")
+        ? "input"
+        : definition.control;
+    const selectValue = definition.fieldId === "beneficiario.nazione_nascita"
+      ? (nationIsItaly("beneficiario.nazione_nascita") ? "ita" : verifiedForeignBirth?.selectValue)
+      : definition.fieldId === "beneficiario.nazione_residenza" && nationIsItaly("beneficiario.nazione_residenza")
+        ? "ita"
+        : undefined;
+    const autocompleteQualifier = definition.fieldId === "beneficiario.comune_nascita"
+      && nationIsItaly("beneficiario.nazione_nascita")
+      && fieldsById.get("beneficiario.provincia_nascita")?.status === "ready"
+      ? fieldsById.get("beneficiario.provincia_nascita")!.value.trim().toUpperCase()
+      : undefined;
+    return [{
+      ...definition,
+      control,
+      value: field.value,
+      ...(selectValue ? { selectValue } : {}),
+      ...(autocompleteQualifier ? { autocompleteQualifier } : {}),
+    }];
   });
   const readyFieldIds = readyFields.map(({ fieldId }) => fieldId);
   const readySet = new Set(readyFieldIds);
   const skippedFieldIds = ENEA_BENEFICIARY_PORTAL_FIELDS
     .map(({ fieldId }) => fieldId)
     .filter((fieldId) => !readySet.has(fieldId));
-  const data = JSON.stringify(readyFields.map(({ portalId, control, value }) => ({
+  const data = JSON.stringify(readyFields.map(({ portalId, control, value, selectValue, autocompleteQualifier }) => ({
     portalId,
     control,
     value,
+    ...(selectValue ? { selectValue } : {}),
+    ...(autocompleteQualifier ? { autocompleteQualifier } : {}),
   })));
+  const coBeneficiary = coBeneficiaryPerson(fieldsById);
 
   const runtime: EneaPortalScriptOptions = {
     fields: JSON.parse(data),
     pageName: "Anagrafica Beneficiario",
     markerIds: ["id-nome", "id-codice_fiscale"],
     successMessage: "ENEA Lab: compilazione anagrafica conclusa. Nessun salvataggio o invio eseguito.",
+    ...(coBeneficiary ? { coBeneficiary } : {}),
   };
   const script = buildEneaPortalRuntimeScript(runtime);
 
-  return { script, readyFieldIds, skippedFieldIds, runtime };
+  return {
+    script,
+    readyFieldIds: coBeneficiary ? [...readyFieldIds, "beneficiario.cointestatario_nome", "beneficiario.cointestatario_cognome", "beneficiario.cointestatario_cf"] : readyFieldIds,
+    skippedFieldIds,
+    runtime,
+  };
 }

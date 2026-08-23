@@ -7,6 +7,33 @@ import { parseCompletedEneaText } from "./completedEneaAudit";
  * etichette e valori tecnici rappresentativi, senza dati personali reali.
  */
 describe("audit storico ENEA - PDF conclusivo 2026 osservato", () => {
+  it("preserva tutte le righe Infissi quando il layout spezza vetro nuovo e confine", () => {
+    const snapshot = parseCompletedEneaText(`
+      IN. Serramenti e infissi
+      A bassa Verso
+      1 Legno Doppio 3 1.2 PVC 1.3 No emissione esterno
+      Verso
+      2 Legno Doppio 3 2 PVC Doppio 1.3 No esterno
+      A bassa Verso
+      3 Legno Doppio 3 1.7 PVC 1.3 No emissione esterno
+      A bassa Verso
+      4 Legno Doppio 3 2.2 PVC 1.3 No emissione esterno
+      A bassa Verso
+      5 Legno Doppio 3 0.7 PVC 1.3 No emissione esterno
+      A bassa Verso
+      6 Legno Doppio 3 1.8 PVC 1.3 No emissione esterno
+      A bassa Verso
+      7 Legno Doppio 3 2.2 PVC 1.3 No emissione esterno
+      Spese congrue sostenute [€] 9674.6
+    `);
+
+    expect(snapshot.infissiCount).toBe(7);
+    expect(snapshot.fields["infissi.numero"]).toBe("7");
+    expect(snapshot.fields["infissi.0.vetro_vecchio"]).toBe("Doppio");
+    expect(snapshot.fields["infissi.6.trasmittanza_vecchio"]).toBe("3");
+    expect(snapshot.fields["infissi.6.superficie"]).toBe("2.2");
+  });
+
   it("legge anagrafica, impianto e tutte le righe schermatura dal formato reale", () => {
     const snapshot = parseCompletedEneaText(`
       Ecobonus 2026

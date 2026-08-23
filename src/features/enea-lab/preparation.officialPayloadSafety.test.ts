@@ -3,6 +3,7 @@ import { ENEA_LAB_MOCK_ANALYSIS, ENEA_LAB_MOCK_PRACTICES } from "./mockPractices
 import { mapSchermaturaPractice } from "./mapper";
 import { buildEneaBeneficiaryPortalScript } from "./portalBeneficiary";
 import { buildEneaBuildingPortalScript } from "./portalBuilding";
+import { buildEneaCalculationPortalScript } from "./portalCalculation";
 import { buildEneaGeneratorPortalScript } from "./portalGenerator";
 import { buildEneaInterventionPortalScript } from "./portalIntervention";
 import { buildEneaPlantPortalScript } from "./portalPlant";
@@ -40,6 +41,7 @@ describe("payload ufficiale ENEA - campi non applicabili", () => {
       ...buildEneaPlantPortalScript(mapped).readyFieldIds,
       ...buildEneaGeneratorPortalScript(mapped, false).readyFieldIds,
       ...buildEneaScreeningSummaryPortalScript(mapped).readyFieldIds,
+      ...buildEneaCalculationPortalScript(mapped).readyFieldIds,
       ...screeningIndexes.flatMap((index) => buildEneaScreeningPortalScript(mapped, index).readyFieldIds),
     ]);
 

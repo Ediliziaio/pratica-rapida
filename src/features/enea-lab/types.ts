@@ -1,4 +1,4 @@
-import type { FormClienteData } from "@/types/form-cliente";
+import type { FormClienteData, SchermaturaDirezione } from "@/types/form-cliente";
 
 export type EneaLabFieldStatus = "ready" | "review" | "missing";
 export type EneaLabQueueStatus = "waiting_client" | "ready" | "historical";
@@ -9,7 +9,8 @@ export type EneaLabFieldSource =
   | "Calcolo ENEA"
   | "Regola controllata"
   | "Convenzione di prova"
-  | "Inserimento operatore";
+  | "Inserimento operatore"
+  | "Portale ENEA";
 
 export type EneaLabDocumentKind =
   | "invoice"
@@ -29,6 +30,14 @@ export interface EneaLabScreeningItem {
   gTot: number | null;
   description: string;
   sourcePath: string;
+  measurementAudit?: {
+    widthOriginal: number;
+    heightOriginal: number;
+    explicitUnit: "cm" | "mm" | null;
+    widthResolution: "explicit_cm" | "explicit_mm" | "inferred_cm" | "inferred_mm" | "ambiguous";
+    heightResolution: "explicit_cm" | "explicit_mm" | "inferred_cm" | "inferred_mm" | "ambiguous";
+    ruleId: string;
+  };
 }
 
 export interface EneaLabDocumentResult {
@@ -80,6 +89,7 @@ export interface EneaLabField {
   required: boolean;
   editable: boolean;
   testOnly: boolean;
+  appliedRuleIds?: string[];
   note?: string;
 }
 
@@ -109,6 +119,20 @@ export interface EneaLabMapOptions {
   overrides?: EneaLabOverrides;
   confirmedFieldIds?: ReadonlySet<string>;
   includeTestConventions?: boolean;
+  documentFiscalCode?: string;
+  documentFiscalCodeCoherentWithIdentity?: boolean;
+  reconciledEligibleExpense?: number;
+  financialReconciliationVerified?: boolean;
+  resolvedScreeningGTot?: Array<{
+    value: number;
+    source: "invoice_explicit" | "authorized_fallback";
+    ruleId: string;
+  }>;
+  resolvedScreeningMaterial?: Array<{ value: string; ruleId: string }>;
+  resolvedScreeningRegulation?: Array<{ value: string; ruleId: string }>;
+  resolvedScreeningExposure?: Array<{ value: SchermaturaDirezione; source: "paper_form_explicit" | "linea_sole_potito_fallback"; ruleId: string } | undefined>;
+  resolvedProtectedWindowSurface?: Array<{ value: number; source: "paper_form_explicit" | "linea_sole_potito_fallback" | "derived_product_surface"; ruleId: string; note?: string } | undefined>;
+  acceptTestConventionsForDraft?: boolean;
 }
 
 export interface EneaLabPreparedSnapshot {
@@ -118,7 +142,8 @@ export interface EneaLabPreparedSnapshot {
 
 export interface EneaLabPayload {
   schemaVersion: 1;
-  mode: "test" | "official";
+  mode: "test" | "draft_test" | "official";
+  readyForDraftSave: boolean;
   readyForOfficialSubmission: boolean;
   generatedAt: string;
   practiceCode: string;

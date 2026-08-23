@@ -1,0 +1,7 @@
+[
+  {
+    "displayName": "Dossier TEST locale Rinaldi",
+    "customerKey": "fixture-rinaldi-misto-001",
+    "dossierPath": "scripts/enea-shadow-runner/fixtures/localCrmDossier.json"
+  }
+]

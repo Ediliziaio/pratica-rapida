@@ -12,8 +12,8 @@ export const ENEA_INTERVENTION_TYPE = {
   heatPump: "Comma 347A - Sostituzione di impianto di climatizzazione",
 } as const;
 
-export function interventionScopeFromUnitCount(value: string): string {
-  const count = Number(value.trim());
+export function interventionScopeFromUnitCount(value: string | number | null | undefined): string {
+  const count = Number(String(value ?? "").trim());
   if (!Number.isInteger(count) || count < 1) return "";
   return count === 1
     ? ENEA_INTERVENTION_SCOPE.singleUnitBuilding

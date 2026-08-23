@@ -1,10 +1,29 @@
-export type EneaPortalControl = "input" | "select" | "autocomplete" | "button";
+export type EneaPortalControl = "input" | "select" | "autocomplete" | "button" | "checkbox";
 
 export interface EneaPortalRuntimeField {
   portalId: string;
   control: EneaPortalControl;
   value: string;
   selectValue?: string;
+  /** Qualificatore documentato usato soltanto per disambiguare una voce
+   * autorevole dell'autocomplete (per i Comuni italiani: sigla provincia). */
+  autocompleteQualifier?: string;
+}
+
+export interface EneaCalculationExpenseAllocation {
+  fieldId: string;
+  interventionLabel: string;
+  value: string;
+  rate: 36;
+  appliedRuleIds: string[];
+}
+
+export interface EneaCoBeneficiaryPerson {
+  name: string;
+  surname: string;
+  taxCode: string;
+  sourceIds: string[];
+  appliedRuleIds: string[];
 }
 
 export interface EneaPortalScriptOptions {
@@ -12,6 +31,10 @@ export interface EneaPortalScriptOptions {
   pageName: string;
   markerIds: string[];
   successMessage: string;
+  activationLabel?: string;
+  hostRoute?: string;
+  expenseAllocation?: EneaCalculationExpenseAllocation;
+  coBeneficiary?: EneaCoBeneficiaryPerson;
 }
 
 export interface EneaPortalWorkflowStep extends EneaPortalScriptOptions {

@@ -103,6 +103,11 @@ export function buildEneaBuildingPortalScript(
       control: definition.control,
       value,
       ...(selectValue ? { selectValue } : {}),
+      ...(definition.fieldId === "immobile.comune"
+        && fieldsById.get("immobile.provincia")?.status === "ready"
+        && /^[A-Z]{2}$/i.test(fieldsById.get("immobile.provincia")!.value.trim())
+        ? { autocompleteQualifier: fieldsById.get("immobile.provincia")!.value.trim().toUpperCase() }
+        : {}),
     };
     return [{ ...definition, prepared }];
   });

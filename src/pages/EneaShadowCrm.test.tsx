@@ -10,6 +10,42 @@ describe("CRM ombra ENEA locale", () => {
     vi.restoreAllMocks();
   });
 
+  it("mostra sei snapshot persistenti, con Patrizia separata dai cinque ticket operatore e senza rete", () => {
+    const fetchSpy = vi.fn();
+    const xhrSpy = vi.fn();
+    const socketSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    vi.stubGlobal("XMLHttpRequest", xhrSpy);
+    vi.stubGlobal("WebSocket", socketSpy);
+    const { unmount } = render(<EneaShadowCrm />);
+    const queue = screen.getByRole("region", { name: "Intervento operatore richiesto" });
+    for (const name of ["Sara Agostinelli", "Samuele Colombo", "Patrizia Vaccani", "Vito Fusillo", "Zeno Righetti", "Matteo Maranesi"]) {
+      expect(queue).toHaveTextContent(name);
+    }
+    expect(queue).toHaveTextContent("6 snapshot minimizzati");
+    expect(queue).toHaveTextContent("enea-operational-queue-v1");
+    expect(queue).toHaveTextContent("Checkpoint:");
+    expect(queue).toHaveTextContent("Fonti conservate:");
+    expect(queue).toHaveTextContent("Ultimo audit:");
+    expect(queue).toHaveTextContent("comunicazioni bloccate");
+    expect(queue).toHaveTextContent("Motivazione:");
+    expect(queue).toHaveTextContent("Classificazione documentale:");
+    unmount();
+    render(<EneaShadowCrm />);
+    expect(screen.getAllByText("Richiesto intervento operatore")).toHaveLength(5);
+    expect(screen.getByText("Invio manuale eccezionale · verifica server/CPID pendente")).toBeInTheDocument();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(xhrSpy).not.toHaveBeenCalled();
+    expect(socketSpy).not.toHaveBeenCalled();
+  });
+
+  it("blocca l'avvio coda quando il session-readiness contract non è verde",()=>{
+    render(<EneaShadowCrm />);
+    expect(screen.getByRole("region",{name:"Stato sessioni coda"})).toHaveTextContent("SESSIONE NON PRONTA");
+    expect(screen.getByRole("button",{name:"Pronto a lavorare la coda"})).toBeDisabled();
+    expect(screen.getByRole("region",{name:"Stato sessioni coda"})).toHaveTextContent("Browser laboratorio unico");
+  });
+
   it("lavora più pratiche fixture senza rete né invio email", () => {
     const fetchSpy = vi.fn();
     const xhrSpy = vi.fn();
@@ -38,7 +74,7 @@ describe("CRM ombra ENEA locale", () => {
     fireEvent.click(screen.getByRole("button", { name: "Crea bozza aggiornamento" }));
     fireEvent.click(screen.getByRole("button", { name: "Crea bozza aggiornamento" }));
     fireEvent.click(screen.getByRole("button", { name: "Crea bozza documenti mancanti" }));
-    expect(screen.getByText("Readiness pilot interno: PRONTA")).toBeInTheDocument();
+    expect(screen.getByText("Readiness pilot interno: NON PRONTA")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Concludi pratica locale" }));
     fireEvent.click(screen.getByRole("button", { name: "Esporta audit locale JSON" }));
     fireEvent.click(screen.getByRole("button", { name: "Stampa riepilogo locale" }));

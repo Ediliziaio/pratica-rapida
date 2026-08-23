@@ -66,6 +66,7 @@ describe("contratto osservato portale ENEA 2026", () => {
       "id-inst",
       "id-sup_s",
       "id-sup_f",
+      "id-rsup",
       "id-esp",
       "id-calc",
       "id-gtot",

@@ -1,0 +1,51 @@
+{
+  "version": "crm-enea-local-dossier-v1",
+  "dossierId": "fixture-rinaldi-misto-001",
+  "displayName": "Dossier TEST locale Rinaldi",
+  "mode": "test",
+  "scheme": "ecobonus",
+  "processingDate": "2026-08-14",
+  "form": {
+    "sourceId": "form-fixture-001",
+    "taxCode": "RSSMRA80A01F205X",
+    "completionDate": null,
+    "declaredExpense": 15000,
+    "property": {
+      "address": "Via Locale 1, Milano",
+      "cadastralSheet": "12",
+      "cadastralParcel": "345",
+      "buildingType": "single_house",
+      "units": 1,
+      "floors": 3
+    }
+  },
+  "invoices": [
+    {
+      "sourceId": "invoice-rinaldi-100",
+      "supplierId": "rinaldi",
+      "supplierName": "Rinaldi",
+      "documentNumber": "100/26",
+      "date": "2026-02-15",
+      "grossTotal": 12000,
+      "explicitDeductibleLines": [
+        { "lineId": "invoice-rinaldi-100:deductible", "lineNumber": 99, "text": "Totale massimo detraibile", "amount": 8000, "extractionConfidence": "certain" }
+      ],
+      "lines": [
+        { "lineId": "invoice-rinaldi-100:pergola", "lineNumber": 1, "text": "Pergola bioclimatica", "classification": "pergola", "quantity": 2, "widthCm": 400, "heightCm": 300, "grossAmount": 8000, "documentedGTot": 0.12, "exposure": "SUD", "material": "Alluminio", "movement": "Manuale" },
+        { "lineId": "invoice-rinaldi-100:vepa", "lineNumber": 2, "text": "Fornitura VEPA", "classification": "vepa", "quantity": 1, "widthCm": 400, "heightCm": 250, "grossAmount": 4000 }
+      ]
+    },
+    {
+      "sourceId": "invoice-schermi-200",
+      "supplierId": "fornitore-locale",
+      "supplierName": "Fornitore Locale",
+      "documentNumber": "200/26",
+      "date": "2026-03-01",
+      "grossTotal": 3000,
+      "lines": [
+        { "lineId": "invoice-schermi-200:zanzariere", "lineNumber": 1, "text": "Zanzariera", "classification": "zanzariera", "quantity": 2, "widthCm": 100, "heightCm": 150, "grossAmount": 1000, "exposure": "EST" },
+        { "lineId": "invoice-schermi-200:tende", "lineNumber": 2, "text": "Tenda da sole", "classification": "tenda", "quantity": 2, "widthCm": 250, "heightCm": 200, "grossAmount": 2000, "exposure": "OVEST" }
+      ]
+    }
+  ]
+}

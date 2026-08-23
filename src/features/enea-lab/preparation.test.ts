@@ -78,7 +78,7 @@ describe("preparazione pacchetto ENEA", () => {
     const mapped = structuredClone(mapSchermaturaPractice(source)) as EneaLabMappedPractice;
     const requiredFields = mapped.sections.flatMap((section) => section.fields).filter((field) => field.required);
     requiredFields.forEach((field) => { field.status = "ready"; });
-    const fieldToReview = requiredFields.find((field) => field.id === "documenti.fatture");
+    const fieldToReview = requiredFields.find((field) => field.id === "beneficiario.nazione_nascita");
     expect(fieldToReview).toBeDefined();
     fieldToReview!.status = "review";
 
@@ -86,7 +86,7 @@ describe("preparazione pacchetto ENEA", () => {
     const payload = buildEneaPayload(mapped, issues, "official");
 
     expect(issues).toContainEqual(expect.objectContaining({
-      code: "review-documenti.fatture",
+      code: "review-beneficiario.nazione_nascita",
       severity: "blocker",
     }));
     expect(payload.readyForOfficialSubmission).toBe(false);

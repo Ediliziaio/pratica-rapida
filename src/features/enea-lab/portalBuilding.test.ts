@@ -94,4 +94,18 @@ describe("compilazione pagina immobile ENEA", () => {
     expect(result.notSelected).toEqual([]);
     expect(submitCount).toBe(0);
   });
+
+  it("porta la provincia documentata come qualificatore dell'autocomplete Comune", () => {
+    const mapped = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0], undefined, {
+      confirmedFieldIds: new Set([
+        "immobile.destinazione_generale",
+        "immobile.destinazione_particolare",
+      ]),
+    });
+    const preparation = buildEneaBuildingPortalScript(mapped);
+    expect(preparation.runtime.fields).toContainEqual(expect.objectContaining({
+      portalId: "id-comune",
+      autocompleteQualifier: "ZZ",
+    }));
+  });
 });

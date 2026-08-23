@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.praticarapida.apr-enea-browser-worker</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>{{NODE_EXECUTABLE}}</string>
+    <string>{{WORKER_BUNDLE}}</string>
+    <string>serve</string>
+    <string>--state-dir</string>
+    <string>{{STATE_DIRECTORY}}</string>
+    <string>--interval-ms</string>
+    <string>2000</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>{{INSTALL_DIRECTORY}}</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>NODE_ENV</key>
+    <string>production</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>15</integer>
+  <key>ExitTimeOut</key>
+  <integer>10</integer>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>Umask</key>
+  <integer>63</integer>
+  <key>StandardOutPath</key>
+  <string>{{STDOUT_LOG}}</string>
+  <key>StandardErrorPath</key>
+  <string>{{STDERR_LOG}}</string>
+</dict>
+</plist>

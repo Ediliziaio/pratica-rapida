@@ -111,11 +111,11 @@ describe("EneaLab", () => {
     render(<EneaLab />);
 
     fireEvent.click(screen.getByRole("button", {
-      name: "Codice nazionale del Comune: Intervento umano richiesto.",
+      name: "Codice fiscale: Intervento umano richiesto.",
     }));
 
-    expect(screen.getByRole("tab", { name: "2. Immobile" })).toHaveAttribute("data-state", "active");
-    expect(screen.getByRole("textbox", { name: "Correzione Codice nazionale del Comune" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "1. Beneficiario" })).toHaveAttribute("data-state", "active");
+    expect(screen.getByRole("textbox", { name: "Correzione Codice fiscale" })).toBeInTheDocument();
   });
 
   it("permette di correggere anche un dato estratto che risultava gia pronto", () => {

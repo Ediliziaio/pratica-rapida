@@ -23,5 +23,7 @@ describe("APR fresh learning replay", () => {
     expect(source).toContain("routingEvidence: { screening: routing.screeningEvidence, infissi: routing.infissiEvidence }");
     expect(source).toContain("appliedRuleIds: routing.appliedRuleIds");
     expect(source).toContain('productModule === "mixed" ? [commonSource, infissiSource]');
+    expect(source).toContain("persistAprReplayDifferential");
+    expect(source).toContain("apr_learning_replay_explicit_baseline_required");
   });
 });

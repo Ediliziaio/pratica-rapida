@@ -6,6 +6,10 @@ import { PersistentAprCrmDocumentAnalysis, analyzePdfLocally, resolveAprPdfOcrEx
 import { PersistentAprCrmLocalPreflight } from "./crmLocalPreflight";
 import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import { resolveAprDocumentedProductRouting } from "../../src/features/enea-shadow-crm/documentedProductRouting";
+import { canonicalSha256, type AprInputCorpusFingerprint } from "./aprMonotonicArtifacts";
+import { computeAprInputCorpusFingerprint } from "./aprCorpusFingerprint";
+import type { AprDifferentialSnapshot } from "./aprDifferentialReport";
+import { persistAprReplayDifferential } from "./aprPersistentReplayDifferential";
 
 export const APR_LEARNING_REPLAY_VERSION = "apr-learning-replay-v1" as const;
 
@@ -37,6 +41,7 @@ export interface AprLearningReplayResult {
   sourceRoot: string;
   targetRoot: string;
   corpusFingerprint: string;
+  inputCorpusFingerprint: AprInputCorpusFingerprint;
   startedAt: string;
   endedAt: string;
   freshStateVerified: true;
@@ -51,6 +56,13 @@ export interface AprLearningReplayResult {
     state: "READY" | "OPERATOR_REQUIRED" | "INCONSISTENT";
     blockerCodes: string[];
   }>;
+  differentialReport: { artifactId: string; reportArtifactId: string; status: "PASS" | "FAIL"; rowCount: 40 };
+}
+
+export interface AprLearningReplayDifferentialOptions {
+  baseline: AprDifferentialSnapshot;
+  gitCommit: string;
+  runtimeRevision?: string;
 }
 
 export class PersistentAprLearningReplay {
@@ -61,9 +73,10 @@ export class PersistentAprLearningReplay {
     this.targetRoot = path.resolve(targetRoot);
   }
 
-  async run(now = new Date()): Promise<AprLearningReplayResult> {
+  async run(now = new Date(), differential?: AprLearningReplayDifferentialOptions): Promise<AprLearningReplayResult> {
     const forbidden = ["crm-document-analysis", "crm-local-preflight", "infissi-batch-preflight"];
     if (forbidden.some((directory) => existsSync(path.join(this.targetRoot, directory)))) throw new Error("apr_learning_replay_target_not_fresh");
+    if (!differential) throw new Error("apr_learning_replay_explicit_baseline_required");
     const sourceAcquisition = json<SourceAcquisition>(path.join(this.sourceRoot, "crm-acquisition", "checkpoint.json"));
     const sourceDocuments = json<SourceDocuments>(path.join(this.sourceRoot, "crm-original-documents", "checkpoint.json"));
     const sourceSeed = json<Record<string, unknown>>(path.join(this.sourceRoot, "cohort-seed", "checkpoint.json"));
@@ -89,6 +102,22 @@ export class PersistentAprLearningReplay {
       dossiers: acquired.map((item) => [item.customerKey, item.responseSha256]),
       documents: documents.map((item) => [item.documentKey, item.responseSha256]),
     });
+    const documentHashesByCustomer = new Map<string, Array<[string, string]>>();
+    for (const document of documents) {
+      const current = documentHashesByCustomer.get(document.customerKey) ?? [];
+      current.push([document.documentKey, document.responseSha256]);
+      documentHashesByCustomer.set(document.customerKey, current);
+    }
+    const inputCorpusFingerprint = acquired.length === 40
+      ? computeAprInputCorpusFingerprint({
+        corpusVersion: differential.baseline.inputCorpusFingerprint.corpusVersion,
+        cases: acquired.map((item) => ({
+          customerKey: item.customerKey,
+          dossierSha256: item.responseSha256!,
+          originalDocumentSetSha256: canonicalSha256((documentHashesByCustomer.get(item.customerKey) ?? []).sort(([left], [right]) => left.localeCompare(right))),
+        })),
+      })
+      : differential.baseline.inputCorpusFingerprint;
     atomicJson(path.join(this.targetRoot, "cohort-seed", "checkpoint.json"), { ...sourceSeed, replaySourceFingerprint: corpusFingerprint, createdAt: now.toISOString() });
     atomicJson(path.join(this.targetRoot, "crm-acquisition", "checkpoint.json"), {
       version: "apr-crm-acquisition-v1", revision: acquired.length + 1, status: "completed", candidateFingerprint: corpusFingerprint,
@@ -142,8 +171,14 @@ export class PersistentAprLearningReplay {
         blockerCodes,
       };
     });
+    const candidateSnapshot: AprDifferentialSnapshot = {
+      runId: `apr-learning-replay:${corpusFingerprint}:${now.toISOString()}`,
+      inputCorpusFingerprint,
+      cases: cases.map((item) => ({ customerKey: item.customerKey, status: item.state, blockerCodes: item.blockerCodes, payloadFingerprint: null, appliedRuleIds: item.appliedRuleIds })),
+    };
+    const differentialArtifact = persistAprReplayDifferential({ targetRoot: this.targetRoot, baseline: differential.baseline, candidate: candidateSnapshot, gitCommit: differential.gitCommit, runtimeRevision: differential.runtimeRevision, now: new Date() });
     const result: AprLearningReplayResult = {
-      version: APR_LEARNING_REPLAY_VERSION, sourceRoot: this.sourceRoot, targetRoot: this.targetRoot, corpusFingerprint,
+      version: APR_LEARNING_REPLAY_VERSION, sourceRoot: this.sourceRoot, targetRoot: this.targetRoot, corpusFingerprint, inputCorpusFingerprint,
       startedAt: now.toISOString(), endedAt: new Date().toISOString(), freshStateVerified: true,
       counts: {
         total: cases.length, ready: cases.filter((item) => item.state === "READY").length,
@@ -153,6 +188,7 @@ export class PersistentAprLearningReplay {
         infissiReady: cases.filter((item) => item.productModule === "infissi" && item.state === "READY").length,
         mixedReady: cases.filter((item) => item.productModule === "mixed" && item.state === "READY").length,
       }, cases,
+      differentialReport: { artifactId: differentialArtifact.artifact.artifactId, reportArtifactId: differentialArtifact.artifact.payload.reportArtifactId, status: differentialArtifact.artifact.payload.report.payload.status, rowCount: 40 },
     };
     atomicJson(path.join(this.targetRoot, "learning-replay", "checkpoint.json"), result);
     return result;

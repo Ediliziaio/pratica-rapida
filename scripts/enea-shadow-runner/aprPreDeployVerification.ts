@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { computeStagedBundleHashes } from "./aprBundleHashEvidence";
+import { canonicalBundleHashEvidence, computeStagedBundleHashes } from "./aprBundleHashEvidence";
 import { inspectAprPreDeployGitState } from "./aprPreDeployCertificate";
 import { PersistentAprTestEvidenceStore } from "./aprPersistedTestEvidence";
 import { canonicalJson, verifyImmutableArtifactEnvelope, type AprMonotonicPreDeployCertificate } from "./aprMonotonicArtifacts";
@@ -23,18 +23,19 @@ export function verifyPreDeployCertificate(certificatePath: string, options: { r
   const resolvedPath = path.resolve(certificatePath);
   const certificate = JSON.parse(readFileSync(resolvedPath, "utf8")) as AprMonotonicPreDeployCertificate;
   if (!verifyImmutableArtifactEnvelope(certificate)) throw new Error("apr_predeploy_verification_certificate_hash_mismatch");
+  if (!certificate.localMetadata) throw new Error("apr_predeploy_verification_local_metadata_missing");
   if (certificate.payload.status !== "PASS" || certificate.payload.rejectionReasons.length > 0) throw new Error("apr_predeploy_verification_certificate_not_pass");
-  const repositoryRoot = path.resolve(options.repositoryRoot ?? certificate.payload.repositoryRoot);
+  const repositoryRoot = path.resolve(options.repositoryRoot ?? certificate.localMetadata.repositoryRoot);
   const git = inspectAprPreDeployGitState(repositoryRoot);
   if (git.gitCommit !== certificate.payload.gitCommit) throw new Error("apr_predeploy_verification_git_commit_mismatch");
   if (git.treeHash !== certificate.payload.treeHash) throw new Error("apr_predeploy_verification_git_tree_mismatch");
   if (!git.workingTreeEvidence.clean) throw new Error("apr_predeploy_verification_worktree_dirty");
-  const testStore = new PersistentAprTestEvidenceStore(certificate.payload.testEvidenceRoot);
+  const testStore = new PersistentAprTestEvidenceStore(certificate.localMetadata.testEvidenceRoot);
   const reverifiedRules = certificate.payload.newRuleIds.map((ruleId) => testStore.verifyTestEvidence(ruleId, certificate.payload.gitCommit, certificate.payload.runtimeRevision));
   if (canonicalJson(reverifiedRules) !== canonicalJson(certificate.payload.ruleTestEvidence)) throw new Error("apr_predeploy_verification_test_evidence_mismatch");
-  const staged = computeStagedBundleHashes(certificate.payload.stagingDirectory);
+  const staged = canonicalBundleHashEvidence(computeStagedBundleHashes(certificate.localMetadata.stagingDirectory));
   if (canonicalJson(staged) !== canonicalJson(certificate.payload.bundleHashEvidence)) throw new Error("apr_predeploy_verification_bundle_hash_mismatch");
-  const differential = JSON.parse(readFileSync(certificate.payload.differentialReport.path, "utf8")) as AprPersistentReplayDifferential;
+  const differential = JSON.parse(readFileSync(certificate.localMetadata.differentialReportPath, "utf8")) as AprPersistentReplayDifferential;
   if (!verifyImmutableArtifactEnvelope(differential) || !verifyImmutableArtifactEnvelope(differential.payload.report)
     || differential.artifactId !== certificate.payload.differentialReport.artifactId
     || differential.payload.report.payload.status !== "PASS"

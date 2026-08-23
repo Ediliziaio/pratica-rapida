@@ -81,16 +81,23 @@ export interface AprRuleTestEvidenceReference {
 
 export interface AprStagedBundleHash {
   role: "supervisor" | "worker" | "watchdog";
-  stagedPath: string;
+  stagedRef: string;
   stagedSha256: string;
+}
+
+export interface AprMonotonicPreDeployCertificateLocalMetadata {
+  repositoryRoot: string;
+  testEvidenceRoot: string;
+  stagingDirectory: string;
+  baselinePath: string;
+  differentialReportPath: string;
+  promotionRoot: string;
 }
 
 export interface AprMonotonicPreDeployCertificatePayload {
   schemaVersion: "apr-monotonic-predeploy-certificate-v1";
   issuedAt: string;
-  repositoryRoot: string;
-  testEvidenceRoot: string;
-  stagingDirectory: string;
+  locationRefs: { repository: "repository"; testEvidence: "monotonic-test-evidence"; staging: "apr-bundle-staging"; baseline: "bootstrap-baseline"; differential: "replay-differential"; installed: "apr-bundle-installation" };
   gitCommit: string;
   treeHash: string;
   workingTreeEvidence: { command: "git status --porcelain=v1 --untracked-files=all"; output: string; outputSha256: string; clean: boolean };
@@ -99,17 +106,18 @@ export interface AprMonotonicPreDeployCertificatePayload {
   baselineId: string;
   newRuleIds: readonly string[];
   ruleTestEvidence: readonly AprVerifiedRuleTestEvidence[];
-  differentialReport: { artifactId: string; path: string; status: "PASS" | "FAIL"; hasCriticalRegression: boolean };
+  differentialReport: { artifactId: string; ref: "replay-differential"; status: "PASS" | "FAIL"; hasCriticalRegression: boolean };
   bundleHashEvidence: readonly AprBundleHashEvidence[];
   status: "PASS" | "FAIL";
   rejectionReasons: readonly string[];
 }
 
-export type AprMonotonicPreDeployCertificate = AprImmutableArtifactEnvelope<AprMonotonicPreDeployCertificatePayload>;
+export type AprMonotonicPreDeployCertificate = AprImmutableArtifactEnvelope<AprMonotonicPreDeployCertificatePayload, AprMonotonicPreDeployCertificateLocalMetadata>;
 
-export interface AprImmutableArtifactEnvelope<TPayload> {
+export interface AprImmutableArtifactEnvelope<TPayload, TLocalMetadata = never> {
   artifactId: string;
   payload: TPayload;
+  localMetadata?: TLocalMetadata;
 }
 
 type CanonicalJson = null | boolean | number | string | CanonicalJson[] | { [key: string]: CanonicalJson };
@@ -147,10 +155,10 @@ export function canonicalSha256(value: unknown) {
   return createHash("sha256").update(canonicalJson(value)).digest("hex");
 }
 
-export function envelopeImmutableArtifact<TPayload>(payload: TPayload): AprImmutableArtifactEnvelope<TPayload> {
-  return { artifactId: canonicalSha256(payload), payload };
+export function envelopeImmutableArtifact<TPayload, TLocalMetadata = never>(payload: TPayload, localMetadata?: TLocalMetadata): AprImmutableArtifactEnvelope<TPayload, TLocalMetadata> {
+  return localMetadata === undefined ? { artifactId: canonicalSha256(payload), payload } : { artifactId: canonicalSha256(payload), payload, localMetadata };
 }
 
-export function verifyImmutableArtifactEnvelope<TPayload>(envelope: AprImmutableArtifactEnvelope<TPayload>) {
+export function verifyImmutableArtifactEnvelope<TPayload>(envelope: AprImmutableArtifactEnvelope<TPayload, unknown>) {
   return envelope.artifactId === canonicalSha256(envelope.payload);
 }

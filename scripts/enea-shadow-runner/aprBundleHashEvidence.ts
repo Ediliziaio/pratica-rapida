@@ -8,11 +8,13 @@ export type AprBundleRole = "supervisor" | "worker" | "watchdog";
 export interface AprBundleHashEvidence {
   schemaVersion: typeof APR_BUNDLE_HASH_EVIDENCE_VERSION;
   role: AprBundleRole;
-  stagedPath: string;
-  installedPath: string | null;
+  stagedRef: string;
+  installedRef: string | null;
   stagedSha256: string;
   installedSha256: string | null;
 }
+
+export interface AprResolvedBundleHashEvidence extends AprBundleHashEvidence { stagedPath: string; installedPath: string | null }
 
 const BUNDLE_FILES: Record<AprBundleRole, string> = {
   supervisor: "apr-supervisor.mjs",
@@ -22,7 +24,7 @@ const BUNDLE_FILES: Record<AprBundleRole, string> = {
 
 const sha256File = (target: string) => createHash("sha256").update(readFileSync(target)).digest("hex");
 
-export function computeStagedBundleHashes(stagingDirectory: string): AprBundleHashEvidence[] {
+export function computeStagedBundleHashes(stagingDirectory: string): AprResolvedBundleHashEvidence[] {
   const root = path.resolve(stagingDirectory);
   return (Object.entries(BUNDLE_FILES) as Array<[AprBundleRole, string]>).map(([role, filename]) => {
     const stagedPath = path.join(root, filename);
@@ -30,6 +32,8 @@ export function computeStagedBundleHashes(stagingDirectory: string): AprBundleHa
     return {
       schemaVersion: APR_BUNDLE_HASH_EVIDENCE_VERSION,
       role,
+      stagedRef: filename,
+      installedRef: null,
       stagedPath,
       installedPath: null,
       stagedSha256: sha256File(stagedPath),
@@ -38,7 +42,11 @@ export function computeStagedBundleHashes(stagingDirectory: string): AprBundleHa
   });
 }
 
-export function verifyStagedBundleHashEvidence(evidence: readonly AprBundleHashEvidence[]) {
+export function canonicalBundleHashEvidence(evidence: readonly AprResolvedBundleHashEvidence[]): AprBundleHashEvidence[] {
+  return evidence.map(({ stagedPath: _stagedPath, installedPath: _installedPath, ...item }) => item);
+}
+
+export function verifyStagedBundleHashEvidence(evidence: readonly AprResolvedBundleHashEvidence[]) {
   const roles = new Map(evidence.map((item) => [item.role, item]));
   for (const role of Object.keys(BUNDLE_FILES) as AprBundleRole[]) {
     const item = roles.get(role);

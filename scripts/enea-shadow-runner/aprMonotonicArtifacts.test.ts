@@ -15,6 +15,16 @@ describe("APR monotonic immutable artifacts", () => {
     expect(verifyImmutableArtifactEnvelope({ ...envelope, payload: { ...envelope.payload, value: 43 } })).toBe(false);
   });
 
+  it("mantiene lo stesso artifactId con percorsi locali differenti", () => {
+    const payload = { schemaVersion: "fixture-v1", logicalRef: "apr-bundle-staging" };
+    const first = envelopeImmutableArtifact(payload, { root: "/machine-a/worktree" });
+    const second = envelopeImmutableArtifact(payload, { root: "/machine-b/worktree" });
+    expect(first.artifactId).toBe(second.artifactId);
+    expect(first.localMetadata).not.toEqual(second.localMetadata);
+    expect(verifyImmutableArtifactEnvelope(first)).toBe(true);
+    expect(verifyImmutableArtifactEnvelope(second)).toBe(true);
+  });
+
   it("rifiuta valori non canonici invece di produrre hash ambigui", () => {
     expect(() => canonicalJson({ missing: undefined })).toThrow(/undefined/);
     expect(() => canonicalJson({ invalid: Number.NaN })).toThrow(/non_finite/);

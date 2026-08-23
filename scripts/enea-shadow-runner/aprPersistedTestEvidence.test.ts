@@ -52,7 +52,7 @@ describe("APR persisted structured test evidence", () => {
   it("rifiuta la manomissione dell'envelope del report persistito", () => {
     const { root, store } = fixture();
     const runs = path.join(root, "monotonic-test-evidence", "runs");
-    const reportPath = store.loadManifest().payload.rules[0].records[0].testRunReportPath;
+    const reportPath = store.loadManifest().localMetadata!.records[0].testRunReportPath;
     const value = JSON.parse(readFileSync(reportPath, "utf8")); value.payload.command = "altered";
     mkdirSync(runs, { recursive: true }); writeFileSync(reportPath, `${canonicalJson(value)}\n`);
     expect(() => store.verifyTestEvidence("rule-fixture", "abcdef1", "runtime-a")).toThrow(/envelope_invalid/);

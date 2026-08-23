@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { computeStagedBundleHashes, type AprBundleHashEvidence } from "./aprBundleHashEvidence";
+import { canonicalBundleHashEvidence, computeStagedBundleHashes, type AprBundleHashEvidence } from "./aprBundleHashEvidence";
 import { assertAprInputCorpusMatchesBaseline } from "./aprCorpusFingerprint";
 import type { AprMonotonicBootstrapBaseline } from "./aprMonotonicBootstrapBaseline";
 import type { AprPersistentReplayDifferential } from "./aprPersistentReplayDifferential";
@@ -49,6 +49,7 @@ export function createAprMonotonicPreDeployCertificate(input: {
   differentialReportPath: string;
   testEvidenceRoot: string;
   stagingDirectory: string;
+  promotionRoot?: string;
   runtimeRevision: string;
   inputCorpusFingerprint: AprInputCorpusFingerprint;
   newRuleIds: readonly string[];
@@ -81,15 +82,13 @@ export function createAprMonotonicPreDeployCertificate(input: {
     catch (error) { reasons.push(`rule_test_evidence_invalid:${ruleId}:${error instanceof Error ? error.message : String(error)}`); }
   }
   let bundleHashEvidence: AprBundleHashEvidence[] = [];
-  try { bundleHashEvidence = computeStagedBundleHashes(input.stagingDirectory); }
+  try { bundleHashEvidence = canonicalBundleHashEvidence(computeStagedBundleHashes(input.stagingDirectory)); }
   catch (error) { reasons.push(`bundle_staging_invalid:${error instanceof Error ? error.message : String(error)}`); }
   const rejectionReasons = [...new Set(reasons)].sort();
   return envelopeImmutableArtifact({
     schemaVersion: APR_MONOTONIC_PREDEPLOY_CERTIFICATE_VERSION,
     issuedAt: (input.now ?? new Date()).toISOString(),
-    repositoryRoot: path.resolve(input.repositoryRoot),
-    testEvidenceRoot: path.resolve(input.testEvidenceRoot),
-    stagingDirectory: path.resolve(input.stagingDirectory),
+    locationRefs: { repository: "repository", testEvidence: "monotonic-test-evidence", staging: "apr-bundle-staging", baseline: "bootstrap-baseline", differential: "replay-differential", installed: "apr-bundle-installation" },
     gitCommit: gitState.gitCommit,
     treeHash: gitState.treeHash,
     workingTreeEvidence: gitState.workingTreeEvidence,
@@ -99,11 +98,18 @@ export function createAprMonotonicPreDeployCertificate(input: {
     newRuleIds: [...new Set(input.newRuleIds)].sort(),
     ruleTestEvidence,
     differentialReport: differential
-      ? { artifactId: differential.artifactId, path: path.resolve(input.differentialReportPath), status: differential.payload.report.payload.status, hasCriticalRegression: differential.payload.report.payload.hasCriticalRegression }
-      : { artifactId: "INVALID_DIFFERENTIAL", path: path.resolve(input.differentialReportPath), status: "FAIL", hasCriticalRegression: true },
+      ? { artifactId: differential.artifactId, ref: "replay-differential", status: differential.payload.report.payload.status, hasCriticalRegression: differential.payload.report.payload.hasCriticalRegression }
+      : { artifactId: "INVALID_DIFFERENTIAL", ref: "replay-differential", status: "FAIL", hasCriticalRegression: true },
     bundleHashEvidence,
     status: rejectionReasons.length === 0 ? "PASS" : "FAIL",
     rejectionReasons,
+  }, {
+    repositoryRoot: path.resolve(input.repositoryRoot),
+    testEvidenceRoot: path.resolve(input.testEvidenceRoot),
+    stagingDirectory: path.resolve(input.stagingDirectory),
+    baselinePath: path.resolve(input.baselinePath),
+    differentialReportPath: path.resolve(input.differentialReportPath),
+    promotionRoot: path.resolve(input.promotionRoot ?? path.join(path.dirname(input.stagingDirectory), "installed")),
   });
 }
 

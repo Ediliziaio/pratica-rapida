@@ -27,7 +27,7 @@ function fixture(options: { dirty?: boolean; changedCorpus?: boolean; regression
     schemaVersion: "apr-monotonic-bootstrap-baseline-v1", createdAt: "2026-08-23T22:00:00.000Z", sourceCommit: gitCommit, sourceTree: treeHash,
     runtimeRevision: "runtime-a", inputCorpusFingerprint: corpus(),
     caseOutputs: keys.map((customerKey) => ({ customerKey, publicStatus: "READY", payloadSha256: sha("c"), blockerSetSha256: sha("e"), appliedRuleSetSha256: sha("f") })),
-    bundleHashes: (["supervisor", "worker", "watchdog"] as const).map((role) => ({ role, stagedPath: `/staging/${role}.mjs`, stagedSha256: sha("a") })),
+    bundleHashes: (["supervisor", "worker", "watchdog"] as const).map((role) => ({ role, stagedRef: `${role}.mjs`, stagedSha256: sha("a") })),
     testEvidenceIds: ["fixture"], status: "FROZEN",
   });
   const baselinePath = path.join(evidenceRoot, "baseline.json"); writeFileSync(baselinePath, `${canonicalJson(baseline)}\n`);

@@ -30,7 +30,7 @@ function fixture() {
   const root = mkdtempSync(path.join(os.tmpdir(), "apr-verify-evidence-"));
   const baseline: AprMonotonicBootstrapBaseline = envelopeImmutableArtifact({ schemaVersion: "apr-monotonic-bootstrap-baseline-v1", createdAt: "2026-08-23T22:30:00.000Z", sourceCommit: gitCommit, sourceTree: treeHash, runtimeRevision: "runtime-verify", inputCorpusFingerprint: corpus,
     caseOutputs: keys.map((customerKey) => ({ customerKey, publicStatus: "READY", payloadSha256: sha("c"), blockerSetSha256: sha("d"), appliedRuleSetSha256: sha("e") })),
-    bundleHashes: (["supervisor", "worker", "watchdog"] as const).map((role) => ({ role, stagedPath: role, stagedSha256: sha("f") })), testEvidenceIds: ["verify"], status: "FROZEN" });
+    bundleHashes: (["supervisor", "worker", "watchdog"] as const).map((role) => ({ role, stagedRef: role, stagedSha256: sha("f") })), testEvidenceIds: ["verify"], status: "FROZEN" });
   const baselinePath = path.join(root, "baseline.json"); writeFileSync(baselinePath, `${canonicalJson(baseline)}\n`);
   const differential = persistAprReplayDifferential({ targetRoot: root, baseline: snapshot("baseline"), candidate: snapshot("candidate"), gitCommit, runtimeRevision: "runtime-verify", now: new Date("2026-08-23T22:30:01.000Z") });
   const testFile = path.join(root, "verify.test.ts"); writeFileSync(testFile, "// test\n");
@@ -72,7 +72,7 @@ describe("APR independent pre-deploy verification and installation guard", () =>
 
   it("rifiuta il report differenziale manomesso dopo la certificazione", () => {
     const value = fixture(); const certificate = JSON.parse(readFileSync(value.certificatePath, "utf8"));
-    const differentialPath = certificate.payload.differentialReport.path;
+    const differentialPath = certificate.localMetadata.differentialReportPath;
     const differential = JSON.parse(readFileSync(differentialPath, "utf8")); differential.payload.runtimeRevision = "altered";
     writeFileSync(differentialPath, `${canonicalJson(differential)}\n`);
     expect(() => verifyPreDeployCertificate(value.certificatePath)).toThrow(/differential_mismatch/);

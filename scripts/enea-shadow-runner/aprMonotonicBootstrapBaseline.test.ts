@@ -13,7 +13,7 @@ const sha = (character: string) => character.repeat(64);
 const corpusCases = Array.from({ length: 40 }, (_, index) => ({ customerKey: `fixture-${index + 1}`, dossierSha256: sha("a"), originalDocumentSetSha256: sha("b") }));
 const corpus = () => computeAprInputCorpusFingerprint({ corpusVersion: "fixed-40-v1", cases: corpusCases });
 const outputs = (): AprCaseOutputFingerprint[] => corpusCases.map((item) => ({ customerKey: item.customerKey, publicStatus: "READY", payloadSha256: sha("c"), blockerSetSha256: sha("d"), appliedRuleSetSha256: sha("e") }));
-const bundles = (): AprStagedBundleHash[] => (["supervisor", "worker", "watchdog"] as const).map((role) => ({ role, stagedPath: `/staging/${role}.mjs`, stagedSha256: sha("f") }));
+const bundles = (): AprStagedBundleHash[] => (["supervisor", "worker", "watchdog"] as const).map((role) => ({ role, stagedRef: `${role}.mjs`, stagedSha256: sha("f") }));
 
 function repository() {
   const root = mkdtempSync(path.join(os.tmpdir(), "apr-baseline-git-"));

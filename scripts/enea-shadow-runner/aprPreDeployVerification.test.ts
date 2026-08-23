@@ -134,6 +134,8 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     expect(activationRoles.every((role) => readFileSync(role.plistPath, "utf8").includes(role.bundlePath))).toBe(true);
     expect(activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "service-activation"), promotionVersionId: promoted.versionId, controller, activationId: "activation-ok" })).toMatchObject({ idempotent: true, receipt: { payload: { status: "PASS" } } });
     expect(activationCalls).toBe(1);
+    expect(() => activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "invalid-id"), promotionVersionId: promoted.versionId, controller, activationId: "../escape" })).toThrow(/activation_id_invalid/);
+    expect(() => activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "wrong-version"), promotionVersionId: "wrong-version", controller, activationId: "wrong-version" })).toThrow(/promotion_binding_mismatch/);
     let rollbackCalled = false;
     const failingController: AprServiceController = { activate: (request) => ({ observations: request.roles.map((role) => ({ role: role.role, pid: null, bundlePath: role.bundlePath, heartbeatAt: null, checkpointRevision: null })), dashboardResponding: false }), rollback: () => { rollbackCalled = true; return { restored: true }; } };
     const failed = activatePreparedAprServices({ prepared, promotionReceipt: promoted.receipt, activationRoot: path.join(value.root, "service-activation"), promotionVersionId: promoted.versionId, controller: failingController, activationId: "activation-fail" });

@@ -4,7 +4,7 @@ import type { AprBundlePromotionReceipt } from "./aprBundlePromotionReceipt";
 import { verifyImmutableArtifactEnvelope } from "./aprMonotonicArtifacts";
 import { assertAprInstallationGuard, type AprInstallationGuard } from "./aprPreDeployVerification";
 
-const verifiedPreparations = new WeakSet<object>();
+const verifiedPreparations = new WeakMap<object, { promotionReceiptArtifactId: string; promotionVersionId: string }>();
 
 export interface AprCohortLaunchAgentOptions {
   cohortNumber: number;
@@ -99,12 +99,14 @@ export function prepareVerifiedAprCohortLaunchAgents(guard: AprInstallationGuard
     workerBundle: resolveInstalledBundle("worker"),
     watchdogBundle: resolveInstalledBundle("watchdog"),
   });
-  verifiedPreparations.add(prepared);
+  verifiedPreparations.set(prepared, { promotionReceiptArtifactId: receipt.artifactId, promotionVersionId: receipt.payload.versionId });
   return prepared;
 }
 
 export type AprVerifiedCohortLaunchAgentPreparation = ReturnType<typeof prepareVerifiedAprCohortLaunchAgents>;
 
 export function assertVerifiedAprCohortLaunchAgentPreparation(prepared: AprVerifiedCohortLaunchAgentPreparation) {
-  if (!prepared || !verifiedPreparations.has(prepared)) throw new Error("apr_cohort_launch_agent_preparation_not_verified");
+  const binding = prepared ? verifiedPreparations.get(prepared) : undefined;
+  if (!binding) throw new Error("apr_cohort_launch_agent_preparation_not_verified");
+  return binding;
 }

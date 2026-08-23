@@ -31,13 +31,16 @@ function copyAtomic(source: string, target: string) {
 function currentSymlinkTarget(pointer: string) { return existsSync(pointer) && lstatSync(pointer).isSymbolicLink() ? readlinkSync(pointer) : null; }
 function replaceSymlink(pointer: string, target: string | null) {
   mkdirSync(path.dirname(pointer), { recursive: true, mode: 0o700 });
-  if (target === null) { if (existsSync(pointer)) unlinkSync(pointer); return; }
+  if (target === null) { if (existsSync(pointer)) unlinkSync(pointer); const directory = openSync(path.dirname(pointer), "r"); try { fsyncSync(directory); } finally { closeSync(directory); } return; }
   const temporary = `${pointer}.${randomUUID()}.tmp`; symlinkSync(target, temporary); renameSync(temporary, pointer);
+  const directory = openSync(path.dirname(pointer), "r"); try { fsyncSync(directory); } finally { closeSync(directory); }
 }
 function transactionPath(root: string, activationId: string) { return path.join(path.resolve(root), "transactions", `${activationId}.json`); }
 function writeTransaction(root: string, transaction: AprActivationTransaction) {
   const target = transactionPath(root, transaction.activationId); mkdirSync(path.dirname(target), { recursive: true, mode: 0o700 });
-  const temporary = `${target}.${randomUUID()}.tmp`; writeFileSync(temporary, `${canonicalJson(transaction)}\n`, { mode: 0o600 }); renameSync(temporary, target);
+  const temporary = `${target}.${randomUUID()}.tmp`; const descriptor = openSync(temporary, "wx", 0o600);
+  try { writeFileSync(descriptor, `${canonicalJson(transaction)}\n`, "utf8"); fsyncSync(descriptor); } finally { closeSync(descriptor); }
+  renameSync(temporary, target); const directory = openSync(path.dirname(target), "r"); try { fsyncSync(directory); } finally { closeSync(directory); }
 }
 
 export function verifyAprServiceRuntimeHealth(input: { request: AprServiceActivationRequest; runtime: ReturnType<AprServiceController["activate"]>; baseline?: AprRuntimeBaseline }): AprRuntimeHealthGate {
@@ -56,8 +59,10 @@ export function verifyAprServiceRuntimeHealth(input: { request: AprServiceActiva
 }
 
 export function activatePreparedAprServices(input: { prepared: AprVerifiedCohortLaunchAgentPreparation; promotionReceipt: AprBundlePromotionReceipt; activationRoot: string; promotionVersionId: string; controller: AprServiceController; activationId?: string; runtimeBaseline?: AprRuntimeBaseline; crashAt?: "after_pointer" | "during_rollback" }) {
-  assertVerifiedAprCohortLaunchAgentPreparation(input.prepared);
+  const binding = assertVerifiedAprCohortLaunchAgentPreparation(input.prepared);
+  if (binding.promotionReceiptArtifactId !== input.promotionReceipt.artifactId || binding.promotionVersionId !== input.promotionVersionId || input.promotionReceipt.payload.versionId !== input.promotionVersionId) throw new Error("apr_service_activation_promotion_binding_mismatch");
   const activationId = input.activationId ?? `activation-${input.promotionReceipt.payload.receiptId}`;
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(activationId) || activationId.includes("..")) throw new Error("apr_service_activation_id_invalid");
   const existingTransactionPath = transactionPath(input.activationRoot, activationId);
   if (existsSync(existingTransactionPath)) {
     const existing = JSON.parse(readFileSync(existingTransactionPath, "utf8")) as AprActivationTransaction;

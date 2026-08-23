@@ -88,6 +88,9 @@ export interface AprStagedBundleHash {
 export interface AprMonotonicPreDeployCertificatePayload {
   schemaVersion: "apr-monotonic-predeploy-certificate-v1";
   issuedAt: string;
+  repositoryRoot: string;
+  testEvidenceRoot: string;
+  stagingDirectory: string;
   gitCommit: string;
   treeHash: string;
   workingTreeEvidence: { command: "git status --porcelain=v1 --untracked-files=all"; output: string; outputSha256: string; clean: boolean };

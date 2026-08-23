@@ -87,6 +87,9 @@ export function createAprMonotonicPreDeployCertificate(input: {
   return envelopeImmutableArtifact({
     schemaVersion: APR_MONOTONIC_PREDEPLOY_CERTIFICATE_VERSION,
     issuedAt: (input.now ?? new Date()).toISOString(),
+    repositoryRoot: path.resolve(input.repositoryRoot),
+    testEvidenceRoot: path.resolve(input.testEvidenceRoot),
+    stagingDirectory: path.resolve(input.stagingDirectory),
     gitCommit: gitState.gitCommit,
     treeHash: gitState.treeHash,
     workingTreeEvidence: gitState.workingTreeEvidence,

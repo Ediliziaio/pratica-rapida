@@ -11,7 +11,7 @@ import { persistAprReplayDifferential } from "./aprPersistentReplayDifferential"
 import { createAprPersistedTestRunReport, createAprRuleTestEvidenceManifest, PersistentAprTestEvidenceStore } from "./aprPersistedTestEvidence";
 import { createAprMonotonicPreDeployCertificate, persistAprMonotonicPreDeployCertificate } from "./aprPreDeployCertificate";
 import { guardAprInstallation, verifyAprStagingImmediatelyBeforePromotion, verifyPreDeployCertificate, type AprVerifiedPreDeployCertificate } from "./aprPreDeployVerification";
-import { promoteAprBundles } from "./aprBundlePromotion";
+import { promoteAprBundles, recoverAprBundlePromotion } from "./aprBundlePromotion";
 
 const sha = (character: string) => character.repeat(64);
 const keys = Array.from({ length: 40 }, (_, index) => `verify-${String(index + 1).padStart(2, "0")}`);
@@ -117,5 +117,15 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     expect(() => readFileSync(path.join(value.root, "installed", "current"))).toThrow();
     const receipts = path.join(value.root, "installed", "receipts", `promotion-${verified.certificateArtifactId}.json`);
     expect(JSON.parse(readFileSync(receipts, "utf8")).payload.status).toBe("FAIL");
+  });
+
+  it("riprende dopo crash tra pointer e receipt senza duplicare la promozione", () => {
+    const value = fixture(); const verified = verifyPreDeployCertificate(value.certificatePath);
+    expect(() => promoteAprBundles(verified, { now: new Date("2026-08-23T22:41:00.000Z"), crashAfterPointerSwitch: true })).toThrow(/simulated_crash/);
+    const recovered = recoverAprBundlePromotion(verified);
+    const repeated = promoteAprBundles(verified, { now: new Date("2026-08-23T23:00:00.000Z") });
+    expect(recovered.receipt.artifactId).toBe(repeated.receipt.artifactId);
+    expect(recovered.installed.map((item) => item.installedSha256)).toEqual(repeated.installed.map((item) => item.installedSha256));
+    expect(repeated.receipt.payload.promotedAt).toBe("2026-08-23T22:41:00.000Z");
   });
 });

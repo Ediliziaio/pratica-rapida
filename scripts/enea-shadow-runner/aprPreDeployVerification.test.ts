@@ -22,7 +22,9 @@ const git = (root: string, args: string[]) => execFileSync("git", args, { cwd: r
 function repository(contents = "baseline\n") {
   const root = mkdtempSync(path.join(os.tmpdir(), "apr-verify-repo-")); git(root, ["init", "-q"]);
   git(root, ["config", "user.email", "fixture@example.invalid"]); git(root, ["config", "user.name", "APR Fixture"]);
-  writeFileSync(path.join(root, "tracked.txt"), contents); git(root, ["add", "tracked.txt"]); git(root, ["commit", "-qm", "baseline"]);
+  writeFileSync(path.join(root, "tracked.txt"), contents);
+  const testFile = path.join(root, "tests", "verify.test.ts"); mkdirSync(path.dirname(testFile), { recursive: true }); writeFileSync(testFile, "// test\n");
+  git(root, ["add", "tracked.txt", "tests/verify.test.ts"]); git(root, ["commit", "-qm", "baseline"]);
   return root;
 }
 
@@ -34,10 +36,10 @@ function fixture() {
     bundleHashes: (["supervisor", "worker", "watchdog"] as const).map((role) => ({ role, stagedRef: role, stagedSha256: sha("f") })), testEvidenceIds: ["verify"], status: "FROZEN" });
   const baselinePath = path.join(root, "baseline.json"); writeFileSync(baselinePath, `${canonicalJson(baseline)}\n`);
   const differential = persistAprReplayDifferential({ targetRoot: root, baseline: snapshot("baseline"), candidate: snapshot("candidate"), gitCommit, runtimeRevision: "runtime-verify", now: new Date("2026-08-23T22:30:01.000Z") });
-  const testFile = path.join(root, "verify.test.ts"); writeFileSync(testFile, "// test\n");
+  const testFile = path.join(repositoryRoot, "tests", "verify.test.ts");
   const rawReportPath = path.join(root, "vitest.json"); writeFileSync(rawReportPath, JSON.stringify({ success: true, testResults: [{ name: testFile, assertionResults: [{ fullName: "verify positive", status: "passed" }, { fullName: "verify negative", status: "passed" }] }] }));
   const testStore = new PersistentAprTestEvidenceStore(root); const run = testStore.persistRunReport(createAprPersistedTestRunReport({ commit: gitCommit, treeHash, runtimeRevision: "runtime-verify", command: "vitest --reporter=json", exitCode: 0, timestamp: "2026-08-23T22:30:02.000Z", rawReportPath }));
-  testStore.persistManifest(createAprRuleTestEvidenceManifest({ createdAt: "2026-08-23T22:30:03.000Z", rules: [{ ruleId: "rule-verify", records: [
+  testStore.persistManifest(createAprRuleTestEvidenceManifest({ repositoryRoot, createdAt: "2026-08-23T22:30:03.000Z", rules: [{ ruleId: "rule-verify", records: [
     { polarity: "POSITIVE", testFile, testId: "verify positive", result: "passed", testRunReportPath: run.path },
     { polarity: "NEGATIVE", testFile, testId: "verify negative", result: "passed", testRunReportPath: run.path },
   ] }] }));

@@ -78,7 +78,7 @@ export function createAprMonotonicPreDeployCertificate(input: {
   const ruleTestEvidence: AprVerifiedRuleTestEvidence[] = [];
   const testStore = new PersistentAprTestEvidenceStore(input.testEvidenceRoot);
   for (const ruleId of [...new Set(input.newRuleIds)].sort()) {
-    try { ruleTestEvidence.push(testStore.verifyTestEvidence(ruleId, gitState.gitCommit, input.runtimeRevision)); }
+    try { ruleTestEvidence.push(testStore.verifyTestEvidence(ruleId, gitState.gitCommit, input.runtimeRevision, input.repositoryRoot)); }
     catch (error) { reasons.push(`rule_test_evidence_invalid:${ruleId}:${error instanceof Error ? error.message : String(error)}`); }
   }
   let bundleHashEvidence: AprBundleHashEvidence[] = [];

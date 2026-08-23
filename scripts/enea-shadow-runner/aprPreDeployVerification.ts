@@ -49,7 +49,7 @@ export function verifyPreDeployCertificate(certificatePath: string, options: { r
   if (git.treeHash !== certificate.payload.treeHash) throw new Error("apr_predeploy_verification_git_tree_mismatch");
   if (!git.workingTreeEvidence.clean) throw new Error("apr_predeploy_verification_worktree_dirty");
   const testStore = new PersistentAprTestEvidenceStore(certificate.localMetadata.testEvidenceRoot);
-  const reverifiedRules = certificate.payload.newRuleIds.map((ruleId) => testStore.verifyTestEvidence(ruleId, certificate.payload.gitCommit, certificate.payload.runtimeRevision));
+  const reverifiedRules = certificate.payload.newRuleIds.map((ruleId) => testStore.verifyTestEvidence(ruleId, certificate.payload.gitCommit, certificate.payload.runtimeRevision, repositoryRoot));
   if (canonicalJson(reverifiedRules) !== canonicalJson(certificate.payload.ruleTestEvidence)) throw new Error("apr_predeploy_verification_test_evidence_mismatch");
   const staged = canonicalBundleHashEvidence(computeStagedBundleHashes(certificate.localMetadata.stagingDirectory));
   if (canonicalJson(staged) !== canonicalJson(certificate.payload.bundleHashEvidence)) throw new Error("apr_predeploy_verification_bundle_hash_mismatch");

@@ -20,7 +20,9 @@ const git = (root: string, args: string[]) => execFileSync("git", args, { cwd: r
 function fixture(options: { dirty?: boolean; changedCorpus?: boolean; regression?: boolean; missingBundle?: boolean } = {}) {
   const repositoryRoot = mkdtempSync(path.join(os.tmpdir(), "apr-cert-repo-"));
   git(repositoryRoot, ["init", "-q"]); git(repositoryRoot, ["config", "user.email", "fixture@example.invalid"]); git(repositoryRoot, ["config", "user.name", "APR Fixture"]);
-  writeFileSync(path.join(repositoryRoot, "tracked.txt"), "baseline\n"); git(repositoryRoot, ["add", "tracked.txt"]); git(repositoryRoot, ["commit", "-qm", "baseline"]);
+  writeFileSync(path.join(repositoryRoot, "tracked.txt"), "baseline\n");
+  const testFile = path.join(repositoryRoot, "tests", "fixture.test.ts"); mkdirSync(path.dirname(testFile), { recursive: true }); writeFileSync(testFile, "// fixture\n");
+  git(repositoryRoot, ["add", "tracked.txt", "tests/fixture.test.ts"]); git(repositoryRoot, ["commit", "-qm", "baseline"]);
   const gitCommit = git(repositoryRoot, ["rev-parse", "HEAD"]); const treeHash = git(repositoryRoot, ["rev-parse", "HEAD^{tree}"]);
   const evidenceRoot = mkdtempSync(path.join(os.tmpdir(), "apr-cert-evidence-"));
   const baseline: AprMonotonicBootstrapBaseline = envelopeImmutableArtifact({
@@ -32,11 +34,10 @@ function fixture(options: { dirty?: boolean; changedCorpus?: boolean; regression
   });
   const baselinePath = path.join(evidenceRoot, "baseline.json"); writeFileSync(baselinePath, `${canonicalJson(baseline)}\n`);
   const differential = persistAprReplayDifferential({ targetRoot: evidenceRoot, baseline: snapshot("baseline"), candidate: snapshot("candidate", options.regression), gitCommit, runtimeRevision: "runtime-a", now: new Date("2026-08-23T22:00:01.000Z") });
-  const testFile = path.join(evidenceRoot, "fixture.test.ts"); writeFileSync(testFile, "// fixture\n");
   const rawReportPath = path.join(evidenceRoot, "vitest.json"); writeFileSync(rawReportPath, JSON.stringify({ success: true, testResults: [{ name: testFile, assertionResults: [{ fullName: "fixture positive", status: "passed" }, { fullName: "fixture negative", status: "passed" }] }] }));
   const testStore = new PersistentAprTestEvidenceStore(evidenceRoot);
   const run = testStore.persistRunReport(createAprPersistedTestRunReport({ commit: gitCommit, treeHash, runtimeRevision: "runtime-a", command: "vitest --reporter=json", exitCode: 0, timestamp: "2026-08-23T22:00:02.000Z", rawReportPath }));
-  testStore.persistManifest(createAprRuleTestEvidenceManifest({ createdAt: "2026-08-23T22:00:03.000Z", rules: [{ ruleId: "rule-fixture", records: [
+  testStore.persistManifest(createAprRuleTestEvidenceManifest({ repositoryRoot, createdAt: "2026-08-23T22:00:03.000Z", rules: [{ ruleId: "rule-fixture", records: [
     { polarity: "POSITIVE", testFile, testId: "fixture positive", result: "passed", testRunReportPath: run.path },
     { polarity: "NEGATIVE", testFile, testId: "fixture negative", result: "passed", testRunReportPath: run.path },
   ] }] }));

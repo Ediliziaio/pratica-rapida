@@ -63,6 +63,16 @@ type VitestJsonReport = {
 
 const fileSha256 = (target: string) => createHash("sha256").update(readFileSync(target)).digest("hex");
 
+function repositoryRelativeRef(repositoryRoot: string, target: string) {
+  const root = path.resolve(repositoryRoot);
+  const resolvedTarget = path.isAbsolute(target) ? path.resolve(target) : path.resolve(root, target);
+  const relative = path.relative(root, resolvedTarget);
+  if (!relative || path.isAbsolute(relative) || relative === ".." || relative.startsWith(`..${path.sep}`)) {
+    throw new Error(`apr_test_evidence_file_outside_repository:${target}`);
+  }
+  return relative.split(path.sep).join("/");
+}
+
 function persistExclusive<T, TLocalMetadata>(target: string, artifact: AprImmutableArtifactEnvelope<T, TLocalMetadata>) {
   if (!verifyImmutableArtifactEnvelope(artifact)) throw new Error("apr_test_evidence_envelope_invalid");
   mkdirSync(path.dirname(target), { recursive: true, mode: 0o700 });
@@ -106,7 +116,7 @@ export class PersistentAprTestEvidenceStore {
     return manifest;
   }
 
-  verifyTestEvidence(ruleId: string, expectedCommit: string, expectedRuntimeRevision: string): AprVerifiedRuleTestEvidence {
+  verifyTestEvidence(ruleId: string, expectedCommit: string, expectedRuntimeRevision: string, repositoryRoot: string): AprVerifiedRuleTestEvidence {
     const manifest = this.loadManifest();
     const rule = manifest.payload.rules.find((item) => item.ruleId === ruleId);
     if (!rule) throw new Error(`apr_test_evidence_rule_missing:${ruleId}`);
@@ -126,7 +136,12 @@ export class PersistentAprTestEvidenceStore {
       const rawReportPath = run.localMetadata?.rawReportPath;
       if (!rawReportPath || fileSha256(rawReportPath) !== run.payload.rawReportSha256) throw new Error(`apr_test_run_raw_report_hash_mismatch:${ruleId}:${polarity}`);
       const raw = JSON.parse(readFileSync(rawReportPath, "utf8")) as VitestJsonReport;
-      const testFile = raw.testResults.find((item) => path.basename(item.name) === record.testFileRef);
+      const matchingTestFiles = raw.testResults.filter((item) => {
+        try { return repositoryRelativeRef(repositoryRoot, item.name) === record.testFileRef; }
+        catch { return false; }
+      });
+      if (matchingTestFiles.length !== 1) throw new Error(`apr_test_run_test_file_not_unique:${ruleId}:${polarity}:${record.testFileRef}`);
+      const testFile = matchingTestFiles[0];
       const assertion = testFile?.assertionResults.find((item) => item.fullName === record.testId);
       if (!raw.success || !testFile || assertion?.status !== "passed") throw new Error(`apr_test_run_assertion_not_passed:${ruleId}:${polarity}`);
       return { ...record, testRunReportArtifactId: run.artifactId, rawReportSha256: run.payload.rawReportSha256 };
@@ -135,13 +150,13 @@ export class PersistentAprTestEvidenceStore {
   }
 }
 
-export function createAprRuleTestEvidenceManifest(input: { createdAt: string; rules: Array<{ ruleId: string; records: AprRuleTestEvidenceRecord[] }> }) {
+export function createAprRuleTestEvidenceManifest(input: { repositoryRoot: string; createdAt: string; rules: Array<{ ruleId: string; records: AprRuleTestEvidenceRecord[] }> }) {
   const locations: AprRuleTestEvidenceManifestLocalMetadata["records"] = [];
   const rules = input.rules.map((rule) => ({ ruleId: rule.ruleId, records: rule.records.map((record) => {
     const run = JSON.parse(readFileSync(record.testRunReportPath, "utf8")) as AprPersistedTestRunReport;
     if (!verifyImmutableArtifactEnvelope(run)) throw new Error(`apr_test_run_envelope_invalid:${rule.ruleId}:${record.polarity}`);
     locations.push({ ruleId: rule.ruleId, polarity: record.polarity, testFilePath: path.resolve(record.testFile), testRunReportPath: path.resolve(record.testRunReportPath) });
-    return { polarity: record.polarity, testFileRef: path.basename(record.testFile), testId: record.testId, result: record.result, testRunReportArtifactId: run.artifactId };
+    return { polarity: record.polarity, testFileRef: repositoryRelativeRef(input.repositoryRoot, record.testFile), testId: record.testId, result: record.result, testRunReportArtifactId: run.artifactId };
   }) }));
   return envelopeImmutableArtifact({ createdAt: input.createdAt, rules, schemaVersion: APR_RULE_TEST_EVIDENCE_MANIFEST_VERSION }, { records: locations });
 }

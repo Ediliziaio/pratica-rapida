@@ -11,6 +11,7 @@ import { persistAprReplayDifferential } from "./aprPersistentReplayDifferential"
 import { createAprPersistedTestRunReport, createAprRuleTestEvidenceManifest, PersistentAprTestEvidenceStore } from "./aprPersistedTestEvidence";
 import { createAprMonotonicPreDeployCertificate, persistAprMonotonicPreDeployCertificate } from "./aprPreDeployCertificate";
 import { guardAprInstallation, verifyAprStagingImmediatelyBeforePromotion, verifyPreDeployCertificate, type AprVerifiedPreDeployCertificate } from "./aprPreDeployVerification";
+import { promoteAprBundles } from "./aprBundlePromotion";
 
 const sha = (character: string) => character.repeat(64);
 const keys = Array.from({ length: 40 }, (_, index) => `verify-${String(index + 1).padStart(2, "0")}`);
@@ -99,5 +100,19 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     expect(verifyAprStagingImmediatelyBeforePromotion(verified).observed).toHaveLength(3);
     writeFileSync(path.join(value.stagingDirectory, "apr-supervisor.mjs"), "// changed after verification\n");
     expect(() => verifyAprStagingImmediatelyBeforePromotion(verified)).toThrow(/staging_changed_after_verification/);
+  });
+
+  it("promuove i tre bundle in una versione atomica e conserva la versione precedente", () => {
+    const first = fixture(); const verified = verifyPreDeployCertificate(first.certificatePath);
+    const promoted = promoteAprBundles(verified);
+    expect(promoted.installed).toHaveLength(3);
+    expect(readFileSync(path.join(promoted.activePointer, "apr-enea-worker.mjs"), "utf8")).toContain("apr-enea-worker");
+    expect(promoted.previousTarget).toBeNull();
+  });
+
+  it("non sposta il puntatore attivo se un hash post-copy non coincide", () => {
+    const value = fixture(); const verified = verifyPreDeployCertificate(value.certificatePath);
+    expect(() => promoteAprBundles(verified, { afterCopy: (role, target) => { if (role === "worker") writeFileSync(target, "corrupt\n"); } })).toThrow(/post_copy_hash_mismatch:worker/);
+    expect(() => readFileSync(path.join(value.root, "installed", "current"))).toThrow();
   });
 });

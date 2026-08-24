@@ -3,7 +3,7 @@ import type { AprInfissiBatchItem } from "./infissiBatchPreflight";
 import type { AprInfissiLocalMappingState } from "./infissiLocalMappingPreflight";
 import type { DeepReviewItem } from "./deepCaseReview";
 import type { AprEneaDraftExecutionItem } from "./eneaDraftExecution";
-import type { AprCaseStatusObservation } from "./aprMonotonicArtifacts";
+import type { AprCaseBlockerApplicability, AprCaseStatusObservation } from "./aprMonotonicArtifacts";
 import { canonicalSha256 } from "./aprMonotonicArtifacts";
 
 export const APR_CASE_STATUS_OBSERVATION_ADAPTERS_VERSION = "apr-case-status-observation-adapters-v1" as const;
@@ -21,6 +21,17 @@ function observation(input: Omit<AprCaseStatusObservation, "sourceFingerprint"> 
   return { ...value, sourceFingerprint: canonicalSha256(fingerprintSource) };
 }
 
+function commonBlockerApplicability(blocker: { code: string; field?: string | null; reason?: string; message?: string }): AprCaseBlockerApplicability {
+  const evidence = `${blocker.code} ${blocker.field ?? ""} ${blocker.reason ?? blocker.message ?? ""}`.toLowerCase();
+  const screeningOnly = blocker.field === "screenings"
+    || blocker.code === "crm-source-not-screening"
+    || /schermatur/.test(evidence);
+  return {
+    code: blocker.code,
+    productModules: screeningOnly ? ["screening"] : ["screening", "infissi"],
+  };
+}
+
 export function observeAprCommonPreflight(item: AprCrmLocalPreflightItem, input: ObservationContext): AprCaseStatusObservation {
   context(input);
   const blockers = [...(item.report?.blockers ?? []), ...(item.report?.eneaPayloadAudit?.blockers ?? [])];
@@ -30,7 +41,9 @@ export function observeAprCommonPreflight(item: AprCrmLocalPreflightItem, input:
       : item.state === "queued" || item.state === "processing" ? "IN_PROGRESS"
         : item.state === "deferred_operator" ? "DEFERRED" : "INCONSISTENT";
   return observation({ source: "preflight_common", stage: "COMMON_PREFLIGHT", customerKey: item.customerKey, ...input, status,
-    blockerCodes, classification: status === "BLOCKED" ? "UNCLASSIFIED" : "NONE", fingerprintSource: { state: item.state, report: item.report } });
+    blockerCodes, classification: status === "BLOCKED" ? "UNCLASSIFIED" : "NONE",
+    blockerApplicability: blockers.map(commonBlockerApplicability),
+    fingerprintSource: { state: item.state, report: item.report } });
 }
 
 export function observeAprScreeningProductGate(item: AprCrmLocalPreflightItem, input: ObservationContext): AprCaseStatusObservation | null {
@@ -54,6 +67,7 @@ export function observeAprScreeningProductGate(item: AprCrmLocalPreflightItem, i
     : blockerCodes.length > 0 ? "BLOCKED" : "INCONSISTENT";
   return observation({ source: "product_gate", stage: "PRODUCT_GATE", customerKey: item.customerKey, ...input, status,
     blockerCodes, classification: status === "BLOCKED" ? "UNCLASSIFIED" : "NONE",
+    productModule: "screening",
     fingerprintSource: { state: item.state, outcome: report.outcome, products: report.products, payloadAudit } });
 }
 
@@ -64,7 +78,7 @@ export function observeAprInfissiBatchProductGate(item: AprInfissiBatchItem, inp
     : item.state === "blocked_case" && item.report?.outcome === "blocked_case" && blockerCodes.length > 0 ? "BLOCKED"
       : item.state === "queued" ? "IN_PROGRESS" : "INCONSISTENT";
   return observation({ source: "product_gate", stage: "PRODUCT_GATE", customerKey: item.customerKey, ...input, status,
-    blockerCodes, classification: status === "BLOCKED" ? "UNCLASSIFIED" : "NONE", fingerprintSource: { state: item.state, report: item.report } });
+    blockerCodes, classification: status === "BLOCKED" ? "UNCLASSIFIED" : "NONE", productModule: "infissi", fingerprintSource: { state: item.state, report: item.report } });
 }
 
 export function observeAprInfissiMappingProductGate(state: AprInfissiLocalMappingState, input: ObservationContext): AprCaseStatusObservation | null {
@@ -74,7 +88,7 @@ export function observeAprInfissiMappingProductGate(state: AprInfissiLocalMappin
   const status = state.item.caseTruth === "READY" && state.item.report.outcome === "ready_local_plan" && blockerCodes.length === 0 ? "PASS"
     : state.item.caseTruth === "OPERATOR_REQUIRED" && state.item.report.outcome === "blocked_case" && blockerCodes.length > 0 ? "BLOCKED" : "INCONSISTENT";
   return observation({ source: "product_gate", stage: "PRODUCT_GATE", customerKey: state.item.customerKey, ...input, status,
-    blockerCodes, classification: status === "BLOCKED" ? "UNCLASSIFIED" : "NONE", fingerprintSource: { state: state.status, item: state.item } });
+    blockerCodes, classification: status === "BLOCKED" ? "UNCLASSIFIED" : "NONE", productModule: "infissi", fingerprintSource: { state: state.status, item: state.item } });
 }
 
 export function observeAprDeepReview(item: DeepReviewItem, input: ObservationContext): AprCaseStatusObservation {
@@ -86,7 +100,7 @@ export function observeAprDeepReview(item: DeepReviewItem, input: ObservationCon
     : item.state === "operator_required" ? "OPERATOR"
       : item.state === "business_rule_required" ? "BUSINESS" : "NONE";
   return observation({ source: "deep_review", stage: "DEEP_REVIEW", customerKey: item.customerKey, ...input, status,
-    blockerCodes: [...new Set(item.blockerCodes)].sort(), classification, fingerprintSource: item });
+    blockerCodes: [...new Set(item.blockerCodes)].sort(), classification, productModule: item.productModule, fingerprintSource: item });
 }
 
 export function observeAprDraftExecution(item: AprEneaDraftExecutionItem, input: ObservationContext): AprCaseStatusObservation {

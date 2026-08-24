@@ -39,6 +39,13 @@ export type AprCaseObservationSource =
   | "report_blockers"
   | "checkpoint";
 
+export type AprCaseProductModule = "screening" | "infissi" | "mixed" | "unresolved";
+
+export interface AprCaseBlockerApplicability {
+  code: string;
+  productModules: readonly Exclude<AprCaseProductModule, "mixed" | "unresolved">[];
+}
+
 export interface AprCaseStatusObservation {
   source: AprCaseObservationSource;
   stage: AprPipelineStage;
@@ -49,6 +56,8 @@ export interface AprCaseStatusObservation {
   classification: "BUSINESS" | "OPERATOR" | "TECHNICAL" | "UNCLASSIFIED" | "NONE";
   observedAt: string;
   sourceFingerprint: string;
+  productModule?: AprCaseProductModule;
+  blockerApplicability?: readonly AprCaseBlockerApplicability[];
 }
 
 export interface AprInputCorpusCaseFingerprint {

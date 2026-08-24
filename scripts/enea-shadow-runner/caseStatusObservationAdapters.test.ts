@@ -23,7 +23,23 @@ describe("APR case status observation adapters", () => {
       outcome: "ready_local_plan", blockers: [], products: [{ rowId: "screening-1" }],
       eneaPayloadAudit: { draftReady: true, blockers: [], portalGate: { status: "ready", screeningItemCount: 1, supportedPages: ["Schermature solari"] } },
     } } as unknown as AprCrmLocalPreflightItem;
-    expect(observeAprScreeningProductGate(item, at)).toMatchObject({ source: "product_gate", stage: "PRODUCT_GATE", status: "PASS", blockerCodes: [] });
+    expect(observeAprScreeningProductGate(item, at)).toMatchObject({ source: "product_gate", stage: "PRODUCT_GATE", status: "PASS", blockerCodes: [], productModule: "screening" });
+  });
+
+  it("marca come Schermature soltanto i blocker common esplicitamente legati a quella famiglia", () => {
+    const item = { customerKey: "infissi-with-screening-noise", state: "blocked_case", report: {
+      outcome: "blocked_case",
+      blockers: [
+        { code: "screenings_missing", field: "screenings", reason: "Nessuna schermatura riconciliata." },
+        { code: "identity_conflict", field: "beneficiary", reason: "Identità non coerente." },
+      ],
+      eneaPayloadAudit: { blockers: [{ code: "crm-source-not-screening", fieldId: null, message: "Non è una schermatura." }] },
+    } } as unknown as AprCrmLocalPreflightItem;
+    expect(observeAprCommonPreflight(item, at).blockerApplicability).toEqual([
+      { code: "screenings_missing", productModules: ["screening"] },
+      { code: "identity_conflict", productModules: ["screening", "infissi"] },
+      { code: "crm-source-not-screening", productModules: ["screening"] },
+    ]);
   });
 
   it("non inventa il gate Schermature quando lo stage non è presente", () => {

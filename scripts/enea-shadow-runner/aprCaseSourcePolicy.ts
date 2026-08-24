@@ -1,38 +1,79 @@
 import type {
+  AprCaseBlockerApplicability,
   AprCaseObservationSource,
+  AprCaseProductModule,
   AprCaseStatusObservation,
   AprNormalizedObservationStatus,
   AprPipelineStage,
 } from "./aprMonotonicArtifacts";
 import { canonicalSha256 } from "./aprMonotonicArtifacts";
 
-export const APR_CASE_SOURCE_POLICY_VERSION = "apr-case-source-policy-v1" as const;
+export const APR_CASE_SOURCE_POLICY_VERSION = "apr-case-source-policy-v2" as const;
 
 export type AprCaseSourceRequirement = "required" | "not_applicable_expected";
 export type AprCaseSourcePolicy = Record<"preflight_common" | "product_gate" | "deep_review" | "execution" | "server_verification", AprCaseSourceRequirement>;
 
-export function deriveAprCaseSourcePolicy(input: {
+export interface AprCaseSourcePolicyResolution {
+  policy: AprCaseSourcePolicy;
+  effectiveCommonStatus: AprNormalizedObservationStatus;
+  ignoredCommonBlockerCodes: readonly string[];
+}
+
+function moduleApplies(routedProductModule: AprCaseProductModule, applicability: AprCaseBlockerApplicability) {
+  if (routedProductModule === "mixed" || routedProductModule === "unresolved") return true;
+  return applicability.productModules.includes(routedProductModule);
+}
+
+export function resolveAprCaseSourcePolicy(input: {
   commonStatus: AprNormalizedObservationStatus;
+  commonBlockerCodes?: readonly string[];
+  commonBlockerApplicability?: readonly AprCaseBlockerApplicability[];
+  routedProductModule?: AprCaseProductModule;
   productStatus?: AprNormalizedObservationStatus;
   executionPresent: boolean;
   serverVerificationPresent: boolean;
-}): AprCaseSourcePolicy {
-  const result: AprCaseSourcePolicy = {
+}): AprCaseSourcePolicyResolution {
+  const applicabilityByCode = new Map((input.commonBlockerApplicability ?? []).map((item) => [item.code, item]));
+  const ignoredCommonBlockerCodes = input.commonStatus === "BLOCKED" && input.routedProductModule
+    ? (input.commonBlockerCodes ?? []).filter((code) => {
+      const applicability = applicabilityByCode.get(code);
+      return applicability ? !moduleApplies(input.routedProductModule!, applicability) : false;
+    })
+    : [];
+  const effectiveCommonStatus = input.commonStatus === "BLOCKED"
+    && (input.commonBlockerCodes?.length ?? 0) > 0
+    && ignoredCommonBlockerCodes.length === input.commonBlockerCodes!.length
+    ? "PASS"
+    : input.commonStatus;
+
+  const policy: AprCaseSourcePolicy = {
     preflight_common: "required",
     product_gate: "not_applicable_expected",
     deep_review: "not_applicable_expected",
     execution: "not_applicable_expected",
     server_verification: "not_applicable_expected",
   };
-  if (input.commonStatus === "PASS") {
-    result.product_gate = "required";
-    if (input.productStatus === "BLOCKED") result.deep_review = "required";
-    if (input.productStatus === "PASS" && input.executionPresent) result.execution = "required";
-    if (input.productStatus === "PASS" && input.serverVerificationPresent) result.server_verification = "required";
-  } else if (input.commonStatus === "BLOCKED") {
-    result.deep_review = "required";
+  if (effectiveCommonStatus === "PASS") {
+    policy.product_gate = "required";
+    if (input.productStatus === "BLOCKED") policy.deep_review = "required";
+    if (input.productStatus === "PASS" && input.executionPresent) policy.execution = "required";
+    if (input.productStatus === "PASS" && input.serverVerificationPresent) policy.server_verification = "required";
+  } else if (effectiveCommonStatus === "BLOCKED") {
+    policy.deep_review = "required";
   }
-  return result;
+  return { policy, effectiveCommonStatus, ignoredCommonBlockerCodes };
+}
+
+export function deriveAprCaseSourcePolicy(input: {
+  commonStatus: AprNormalizedObservationStatus;
+  commonBlockerCodes?: readonly string[];
+  commonBlockerApplicability?: readonly AprCaseBlockerApplicability[];
+  routedProductModule?: AprCaseProductModule;
+  productStatus?: AprNormalizedObservationStatus;
+  executionPresent: boolean;
+  serverVerificationPresent: boolean;
+}): AprCaseSourcePolicy {
+  return resolveAprCaseSourcePolicy(input).policy;
 }
 
 const stageFor = (source: AprCaseObservationSource): AprPipelineStage => {

@@ -47,6 +47,39 @@ describe("APR unique pure case status resolver", () => {
     expect(resolveAprCaseStatusTruth([obs("preflight_common", "BLOCKED", { blockerCodes: ["x"], classification: "UNCLASSIFIED" }), obs("product_gate", "PASS"), blockers("x")])).toMatchObject({ status: "INCONSISTENT", reason: expect.stringContaining("non applicabile") });
   });
 
+  it.each([
+    "sebastian-costel-volf",
+    "donata-zangrossi",
+    "eleonora-meggiarin",
+    "flavia-cipriani",
+  ])("risolve COMPLETED per %s quando il routing Infissi rende irrilevanti i soli blocker Schermature", (customerKey) => {
+    const common = obs("preflight_common", "BLOCKED", {
+      customerKey,
+      blockerCodes: ["screenings_missing", "invoice_screening"],
+      blockerApplicability: [
+        { code: "screenings_missing", productModules: ["screening"] },
+        { code: "invoice_screening", productModules: ["screening"] },
+      ],
+      classification: "UNCLASSIFIED",
+    });
+    const product = obs("product_gate", "PASS", { customerKey, productModule: "infissi" });
+    const done = obs("execution", "COMPLETED", { customerKey });
+    const evidence = obs("report_blockers", "BLOCKED", { customerKey, blockerCodes: ["screenings_missing", "invoice_screening"] });
+    expect(resolveAprCaseStatusTruth([common, product, done, evidence])).toMatchObject({ status: "COMPLETED", matchedTransitionId: "draft_completed" });
+  });
+
+  it("non ignora un blocker common trasversale nel percorso Infissi", () => {
+    expect(resolveAprCaseStatusTruth([
+      obs("preflight_common", "BLOCKED", {
+        blockerCodes: ["identity_conflict"],
+        blockerApplicability: [{ code: "identity_conflict", productModules: ["screening", "infissi"] }],
+        classification: "UNCLASSIFIED",
+      }),
+      obs("product_gate", "PASS", { productModule: "infissi" }),
+      blockers("identity_conflict"),
+    ])).toMatchObject({ status: "INCONSISTENT", reason: expect.stringContaining("non applicabile") });
+  });
+
   it("rifiuta execution COMPLETED con blocker a monte", () => {
     expect(resolveAprCaseStatusTruth([
       obs("preflight_common", "BLOCKED", { blockerCodes: ["x"], classification: "UNCLASSIFIED" }),

@@ -173,6 +173,8 @@ export function collectAprCaseObservations(
   const productObservations = observations.filter((item) => item.source === "product_gate");
   if (commonObservation && productObservations.length <= 1) {
     const policy = deriveAprCaseSourcePolicy({ commonStatus: commonObservation.status, productStatus: productObservations[0]?.status,
+      commonBlockerCodes: commonObservation.blockerCodes, commonBlockerApplicability: commonObservation.blockerApplicability,
+      routedProductModule: productObservations[0]?.productModule,
       executionPresent: Boolean(executionItem), serverVerificationPresent: false });
     if (!productObservations.length && policy.product_gate === "not_applicable_expected") observations.push(createAprNotApplicableObservation({ source: "product_gate", customerKey, ...at }));
     if (!deepItem && policy.deep_review === "not_applicable_expected") observations.push(createAprNotApplicableObservation({ source: "deep_review", customerKey, ...at }));

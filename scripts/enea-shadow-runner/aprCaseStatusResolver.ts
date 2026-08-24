@@ -5,9 +5,9 @@ import type {
 } from "./aprMonotonicArtifacts";
 import type { AprTransitionToken } from "./aprCaseTransitionMatrix";
 import { matchAprCaseTransition } from "./aprCaseTransitionMatrix";
-import { deriveAprCaseSourcePolicy } from "./aprCaseSourcePolicy";
+import { resolveAprCaseSourcePolicy } from "./aprCaseSourcePolicy";
 
-export const APR_CASE_STATUS_RESOLVER_VERSION = "apr-case-status-resolver-v1" as const;
+export const APR_CASE_STATUS_RESOLVER_VERSION = "apr-case-status-resolver-v2" as const;
 
 export interface AprResolvedCaseStatus {
   status: AprPublicCaseStatus;
@@ -46,12 +46,16 @@ export function resolveAprCaseStatusTruth(observations: readonly AprCaseStatusOb
   const common = bySource.get("preflight_common");
   if (!common) return inconsistent("Fonte obbligatoria mancante: preflight_common.", observations);
   const product = bySource.get("product_gate");
-  const policy = deriveAprCaseSourcePolicy({
+  const policyResolution = resolveAprCaseSourcePolicy({
     commonStatus: common.status,
+    commonBlockerCodes: common.blockerCodes,
+    commonBlockerApplicability: common.blockerApplicability,
+    routedProductModule: product?.productModule,
     productStatus: product?.status,
     executionPresent: bySource.has("execution"),
     serverVerificationPresent: bySource.has("checkpoint"),
   });
+  const policy = policyResolution.policy;
 
   for (const source of MATRIX_SOURCES) {
     const requirement = policy[policyKey(source)];
@@ -75,7 +79,9 @@ export function resolveAprCaseStatusTruth(observations: readonly AprCaseStatusOb
   }
 
   const pattern = matchAprCaseTransition({
-    commonPreflight: token(common),
+    commonPreflight: policyResolution.effectiveCommonStatus === common.status
+      ? token(common)
+      : policyResolution.effectiveCommonStatus,
     productGate: token(product),
     deepReview: token(bySource.get("deep_review")),
     execution: token(bySource.get("execution")),

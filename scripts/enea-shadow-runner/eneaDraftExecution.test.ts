@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
-import { PersistentAprEneaDraftExecution } from "./eneaDraftExecution";
+import { PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible } from "./eneaDraftExecution";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 
 const directories: string[] = [];
@@ -2335,6 +2335,7 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     corrected.items[0].report.buildingUnitCount = 1;
     corrected.items[0].report.eneaPayloadAudit.mappingFingerprint = "mapping-lorena-saved-single";
     corrected.items[0].report.eneaPayloadAudit.portalGate.workflowFingerprint = "workflow-lorena-saved-single";
+    runner.recordSavedPayloadPostCompletionVerificationIntent("lorena-brendas", "mapping-lorena-saved-single", "saved-single:verification-intent:v1");
     const requeued = runner.requeueSavedDraftPageAfterVerifiedPayloadCorrection(corrected, "lorena-brendas", "page:Immobile", "readonly-old-building-type", "saved-single:requeue:v1");
     expect(requeued.items[0]).toMatchObject({ state: "recovery_queued", draftId: "DRAFT-SAVED-SINGLE", saveAttemptCount: 0, savedAt: null, mappingFingerprint: "mapping-lorena-saved-single" });
     expect(requeued.items[0].completedPageIds).not.toContain("page:Immobile");
@@ -2346,6 +2347,80 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     expect(claimed).toMatchObject({ status: "running", currentCustomerKey: "lorena-brendas" });
     expect(claimed.items[0]).toMatchObject({ state: "filling", draftId: "DRAFT-SAVED-SINGLE" });
     expect(claimed.items[0].pageCheckpoints.find((page) => page.pageId === "page:Immobile")).toMatchObject({ state: "pending", saveAttemptCount: 0 });
+  });
+
+  it("termina e persiste una verifica post-completamento inconcludente senza ripetere letture o mutazioni", () => {
+    const directory = temporaryDirectory();
+    const original = preflightFixture() as any;
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare(original);
+    runner.recordSessionReady("session-proof", "post-completion:session");
+    runner.recordCreateIntent("lorena-brendas", "post-completion:create");
+    runner.recordDraftCreated("lorena-brendas", "DRAFT-POST-COMPLETION", "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/DRAFT-POST-COMPLETION", "draft-proof", "post-completion:created");
+    const pages = runner.snapshot().items[0].expectedPageIds;
+    for (const [index, pageId] of pages.entries()) {
+      runner.recordPagePrepared("lorena-brendas", "DRAFT-POST-COMPLETION", pageId, `prepared-${index}`, `post-completion:prepared:${index}`);
+      runner.recordPageSaveIntent("lorena-brendas", "DRAFT-POST-COMPLETION", pageId, `post-completion:intent:${index}`);
+      runner.recordPageSaved("lorena-brendas", "DRAFT-POST-COMPLETION", pageId, `saved-${index}`, `post-completion:saved:${index}`);
+    }
+    runner.recordSaveIntent("lorena-brendas", "DRAFT-POST-COMPLETION", "post-completion:final-intent");
+    runner.recordDraftSaved("lorena-brendas", "DRAFT-POST-COMPLETION", "https://bonusfiscali.enea.it/pratica/ecobonus/2026/calcolo/DRAFT-POST-COMPLETION", "final-server-proof", "post-completion:final-saved");
+
+    const expectedMappingFingerprint = "mapping-lorena-updated";
+    const before = runner.snapshot().items[0];
+    expect(savedPayloadPostCompletionVerificationEligible(before, expectedMappingFingerprint)).toBe(true);
+
+    const intentCommandId = "post-completion:verification-intent:v1";
+    runner.recordSavedPayloadPostCompletionVerificationIntent("lorena-brendas", expectedMappingFingerprint, intentCommandId, new Date("2026-08-24T14:20:00.000Z"));
+    const afterIntent = new PersistentAprEneaDraftExecution(directory).snapshot();
+    expect(afterIntent.items[0]).toMatchObject({
+      state: "saved",
+      draftId: "DRAFT-POST-COMPLETION",
+      createAttemptCount: 1,
+      saveAttemptCount: 1,
+      postCompletionVerification: {
+        status: "intent_recorded",
+        expectedMappingFingerprint,
+        evidenceId: null,
+      },
+    });
+    expect(savedPayloadPostCompletionVerificationEligible(afterIntent.items[0], expectedMappingFingerprint)).toBe(false);
+    for (let simulatedWorkerTick = 0; simulatedWorkerTick < 100; simulatedWorkerTick += 1) {
+      expect(savedPayloadPostCompletionVerificationEligible(new PersistentAprEneaDraftExecution(directory).snapshot().items[0], expectedMappingFingerprint)).toBe(false);
+    }
+
+    runner.recordSavedPayloadPostCompletionVerificationInconclusive(
+      "lorena-brendas",
+      "readonly-no-correctable-dom-difference",
+      [],
+      "post-completion:verification-inconclusive:v1",
+      new Date("2026-08-24T14:20:05.000Z"),
+    );
+    const terminal = new PersistentAprEneaDraftExecution(directory).snapshot();
+    expect(terminal.items[0]).toMatchObject({
+      state: "saved",
+      draftId: "DRAFT-POST-COMPLETION",
+      createAttemptCount: 1,
+      saveAttemptCount: 1,
+      completedPageIds: pages,
+      postCompletionVerification: {
+        status: "verification_inconclusive",
+        completedAt: "2026-08-24T14:20:05.000Z",
+        evidenceId: "readonly-no-correctable-dom-difference",
+        mismatchedPortalIds: [],
+      },
+    });
+    expect(terminal.items[0].pageCheckpoints).toEqual(before.pageCheckpoints);
+    expect(savedPayloadPostCompletionVerificationEligible(terminal.items[0], expectedMappingFingerprint)).toBe(false);
+    expect(terminal.audit.slice(-2).map((event) => event.type)).toEqual([
+      "post_completion_verification_intent_recorded",
+      "post_completion_verification_inconclusive",
+    ]);
+
+    const terminalRevision = terminal.revision;
+    const idempotent = runner.recordSavedPayloadPostCompletionVerificationIntent("lorena-brendas", expectedMappingFingerprint, intentCommandId);
+    expect(idempotent.revision).toBe(terminalRevision);
+    expect(idempotent.items[0].postCompletionVerification?.status).toBe("verification_inconclusive");
   });
 
   it("recupera il gate finale dalla prova per-pagina durevole senza ripetere Salva", () => {

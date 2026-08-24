@@ -92,6 +92,18 @@ export interface AprUncertainPageSaveResolution {
   nextAction: string;
 }
 
+export interface AprPostCompletionVerification {
+  kind: "saved_payload_correction";
+  status: "intent_recorded" | "verification_inconclusive" | "resolved_requeued";
+  originalMappingFingerprint: string;
+  expectedMappingFingerprint: string;
+  startedAt: string;
+  completedAt: string | null;
+  evidenceId: string | null;
+  mismatchedPortalIds: string[];
+  reason: string;
+}
+
 export interface AprEneaDraftExecutionItem {
   generationId: string;
   requiresFreshDraft: boolean;
@@ -115,6 +127,7 @@ export interface AprEneaDraftExecutionItem {
   completedPageIds: string[];
   pageCheckpoints: AprEneaDraftPageCheckpoint[];
   uncertainPageSave: AprUncertainPageSaveResolution | null;
+  postCompletionVerification: AprPostCompletionVerification | null;
   operatorGateBlockers: Array<{
     code: string;
     reason: string;
@@ -203,6 +216,8 @@ export interface AprEneaDraftExecutionAuditEvent {
     | "authorized_recovery_package_available"
     | "authorized_recovery_transient_timeout_requeued"
     | "verified_payload_correction_requeued"
+    | "post_completion_verification_intent_recorded"
+    | "post_completion_verification_inconclusive"
     | "verified_infissi_package_correction_requeued"
     | "legacy_infissi_rows_requeued_before_summary"
     | "verified_deleted_draft_requeued"
@@ -316,6 +331,14 @@ function validState(value: AprEneaDraftExecutionState) {
   if (value.items.some((item, index) => value.items.findIndex((candidate) => candidate.customerKey === item.customerKey) !== index) || activeCustomers.size !== value.items.length) return false;
   if (value.items.some((item) => item.customerKey === "beatrice-ciotta" && item.state !== "deferred_operator")) return false;
   if (value.items.some((item) => item.createAttemptCount > 1 || item.saveAttemptCount > 1)) return false;
+  if (value.items.some((item) => item.postCompletionVerification !== null && (
+    item.postCompletionVerification.kind !== "saved_payload_correction"
+    || !["intent_recorded", "verification_inconclusive", "resolved_requeued"].includes(item.postCompletionVerification.status)
+    || !item.postCompletionVerification.originalMappingFingerprint
+    || !item.postCompletionVerification.expectedMappingFingerprint
+    || !item.postCompletionVerification.startedAt
+    || !Array.isArray(item.postCompletionVerification.mismatchedPortalIds)
+  ))) return false;
   if (value.items.some((item) => !Array.isArray(item.pageCheckpoints)
     || item.pageCheckpoints.length !== item.expectedPageIds.length
     || item.pageCheckpoints.some((checkpoint) => checkpoint.saveAttemptCount > 1 || checkpoint.recoverySaveAttemptCount > 1)
@@ -341,6 +364,7 @@ function normalizeState(value: AprEneaDraftExecutionState): AprEneaDraftExecutio
     item.requiresFreshDraft ??= false;
     item.recoverableCreateIntent ??= false;
     item.uncertainPageSave ??= null;
+    item.postCompletionVerification ??= null;
     item.operatorGateBlockers ??= [];
     if (!Array.isArray(item.pageCheckpoints)) {
       item.pageCheckpoints = item.expectedPageIds.map((pageId) => ({
@@ -398,6 +422,17 @@ function canonicalPortalPageIds(pageIds: string[]) {
 
 function requiresFinalCalculationPage(item: Pick<AprEneaDraftExecutionItem, "expectedPageIds">) {
   return item.expectedPageIds.some((pageId) => pageId.startsWith("screening:") || /schermatur|allocazione costi/i.test(pageId));
+}
+
+export function savedPayloadPostCompletionVerificationEligible(
+  item: AprEneaDraftExecutionItem,
+  expectedMappingFingerprint: string,
+) {
+  return item.state === "saved"
+    && Boolean(item.draftId)
+    && item.completedPageIds.length === item.expectedPageIds.length
+    && item.mappingFingerprint !== expectedMappingFingerprint
+    && item.postCompletionVerification === null;
 }
 
 export function detailedUncertainSaveOperatorInstruction(draftId: string | null, pageId: string) {
@@ -461,6 +496,7 @@ function draftItemFromPreflight(
     completedPageIds: [],
     pageCheckpoints: pageIds.map((pageId) => ({ pageId, state: "pending", saveAttemptCount: 0, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: null, preparedEvidenceId: null, savedEvidenceId: null })),
     uncertainPageSave: null,
+    postCompletionVerification: null,
     operatorGateBlockers: [],
     serverEvidenceIds: [],
     reason: deferred ? "Accantonata dal pilot su istruzione utente." : "Payload TEST e gate portale verdi; in attesa della sessione ENEA.",
@@ -494,6 +530,7 @@ function draftItemFromPackage(draftPackage: AprEneaDraftPackage, generationId?: 
     completedPageIds: [],
     pageCheckpoints: pageIds.map((pageId) => ({ pageId, state: "pending", saveAttemptCount: 0, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: null, preparedEvidenceId: null, savedEvidenceId: null })),
     uncertainPageSave: null,
+    postCompletionVerification: null,
     operatorGateBlockers: [],
     serverEvidenceIds: [],
     reason: "Payload TEST e gate portale del modulo verificati; in attesa della sessione ENEA.",
@@ -2553,6 +2590,65 @@ export class PersistentAprEneaDraftExecution {
     });
   }
 
+  recordSavedPayloadPostCompletionVerificationIntent(customerKey: string, expectedMappingFingerprint: string, commandId: string, now = new Date()) {
+    if (!customerKey.trim() || !expectedMappingFingerprint.trim()) throw new Error("enea_post_completion_verification_intent_invalid");
+    return this.transition("apr-enea-browser-worker", commandId, now, {
+      type: "post_completion_verification_intent_recorded",
+      customerKey,
+      reason: "Controllo post-completamento registrato prima della lettura DOM; un crash non potra ripetere indefinitamente l'ispezione.",
+      nextAction: "Eseguire una sola verifica read-only e persisterne l'esito terminale prima di qualsiasi altro controllo.",
+      appliedRuleIds: [SYSTEM_FAIL_CLOSED_RULE, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE],
+    }, (next) => {
+      const item = next.items.find((candidate) => candidate.customerKey === customerKey);
+      if (!item
+        || item.state !== "saved"
+        || !item.draftId
+        || item.createAttemptCount !== 1
+        || item.saveAttemptCount !== 1
+        || item.completedPageIds.length !== item.expectedPageIds.length
+        || item.mappingFingerprint === expectedMappingFingerprint
+        || item.postCompletionVerification !== null) throw new Error("enea_post_completion_verification_intent_state_invalid");
+      item.postCompletionVerification = {
+        kind: "saved_payload_correction",
+        status: "intent_recorded",
+        originalMappingFingerprint: item.mappingFingerprint ?? "<missing>",
+        expectedMappingFingerprint: expectedMappingFingerprint.trim(),
+        startedAt: now.toISOString(),
+        completedAt: null,
+        evidenceId: null,
+        mismatchedPortalIds: [],
+        reason: "Verifica post-completamento in corso; nessuna mutazione autorizzata.",
+      };
+      item.reason = item.postCompletionVerification.reason;
+      item.nextAction = "Una sola lettura DOM della pagina Immobile; in assenza di differenza isolata, fermarsi con esito inconcludente.";
+    });
+  }
+
+  recordSavedPayloadPostCompletionVerificationInconclusive(customerKey: string, evidenceId: string, mismatchedPortalIds: string[], commandId: string, now = new Date()) {
+    if (!customerKey.trim() || !evidenceId.trim()) throw new Error("enea_post_completion_verification_result_invalid");
+    return this.transition("apr-enea-browser-worker", commandId, now, {
+      type: "post_completion_verification_inconclusive",
+      customerKey,
+      reason: `La verifica post-completamento non ha isolato una correzione DOM applicabile (${mismatchedPortalIds.join(",") || "nessuna differenza DOM"}); controllo concluso senza mutazioni.`,
+      nextAction: "Conservare la bozza salvata e riesaminare il contratto offline; non ripetere automaticamente la lettura browser.",
+      appliedRuleIds: [SYSTEM_FAIL_CLOSED_RULE, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE],
+    }, (next) => {
+      const item = next.items.find((candidate) => candidate.customerKey === customerKey);
+      if (!item
+        || item.state !== "saved"
+        || !item.draftId
+        || item.postCompletionVerification?.status !== "intent_recorded") throw new Error("enea_post_completion_verification_result_state_invalid");
+      item.postCompletionVerification.status = "verification_inconclusive";
+      item.postCompletionVerification.completedAt = now.toISOString();
+      item.postCompletionVerification.evidenceId = evidenceId.trim();
+      item.postCompletionVerification.mismatchedPortalIds = [...mismatchedPortalIds];
+      item.postCompletionVerification.reason = "Verifica terminale inconcludente; la bozza resta salvata e APR non ripetera il controllo automaticamente.";
+      item.reason = item.postCompletionVerification.reason;
+      item.nextAction = "Revisione offline del mapping; nessuna ulteriore azione browser automatica su questa bozza.";
+      if (!item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
+    });
+  }
+
   requeueSavedDraftPageAfterVerifiedPayloadCorrection(preflight: PreflightSnapshot, customerKey: string, pageId: string, evidenceId: string, commandId: string, now = new Date()) {
     if (!customerKey.trim() || pageId !== "page:Immobile" || !evidenceId.trim()) throw new Error("enea_saved_payload_correction_evidence_required");
     const updated = preflight.items.find((candidate) => candidate.customerKey === customerKey);
@@ -2579,6 +2675,8 @@ export class PersistentAprEneaDraftExecution {
         || item.completedPageIds.length !== item.expectedPageIds.length
         || item.pageCheckpoints.some((candidate) => candidate.state !== "saved" || candidate.saveAttemptCount !== 1 || !candidate.savedEvidenceId)
         || !checkpoint
+        || item.postCompletionVerification?.status !== "intent_recorded"
+        || item.postCompletionVerification.expectedMappingFingerprint !== newMappingFingerprint
         || item.mappingFingerprint === newMappingFingerprint
         || newExpectedPageIds.length !== item.expectedPageIds.length
         || newExpectedPageIds.some((expectedPageId) => !item.expectedPageIds.includes(expectedPageId))) throw new Error("enea_saved_payload_correction_state_invalid");
@@ -2601,6 +2699,11 @@ export class PersistentAprEneaDraftExecution {
       item.reason = "Correzione verificata della sola pagina Immobile accodata sulla stessa bozza; nessuna duplicazione.";
       item.nextAction = "Compilare Immobile come costruzione isolata/unita unica e rileggere la bozza completa.";
       item.uncertainPageSave = null;
+      item.postCompletionVerification.status = "resolved_requeued";
+      item.postCompletionVerification.completedAt = now.toISOString();
+      item.postCompletionVerification.evidenceId = evidenceId.trim();
+      item.postCompletionVerification.mismatchedPortalIds = ["id-tipologia"];
+      item.postCompletionVerification.reason = "La GET ha isolato la sola tipologia edificio; correzione accodata sulla stessa bozza.";
       if (!item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
       next.currentCustomerKey = null;
       next.sessionEvidenceId = null;

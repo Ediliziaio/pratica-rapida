@@ -6,7 +6,7 @@ import { PersistentAprChromeRuntime } from "./cdpClient";
 import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
 import { PersistentAprCrmLocalPreflight } from "./crmLocalPreflight";
 import { PersistentAprCohortSeed } from "./aprCohortSeed";
-import { PersistentAprEneaDraftExecution } from "./eneaDraftExecution";
+import { PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible } from "./eneaDraftExecution";
 import { aprEneaKeepaliveInterval, isAprEneaKeepaliveDue, PersistentAprEneaWorkerService, shouldHoldAprEneaKeepaliveState } from "./aprEneaBrowserWorkerService";
 import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import { nestedUncertainPageSaveProbeAllowed } from "./infissiUncertainSavePolicy";
@@ -281,14 +281,15 @@ async function serve() {
             && updated.report.eneaPayloadAudit.mappingFingerprint !== item.mappingFingerprint);
         });
         const correctedSavedPayloadRecovery = executionBeforeTick.items.find((item) => {
-          if (item.state !== "saved" || !item.draftId || item.completedPageIds.length !== item.expectedPageIds.length) return false;
           const updated = preflightSnapshot.items.find((candidate) => candidate.customerKey === item.customerKey);
-          return Boolean(updated?.state === "ready_local_plan"
+          const expectedMappingFingerprint = updated?.report?.eneaPayloadAudit?.mappingFingerprint;
+          return Boolean(expectedMappingFingerprint
+            && savedPayloadPostCompletionVerificationEligible(item, expectedMappingFingerprint)
+            && updated?.state === "ready_local_plan"
             && updated.report?.buildingQualification === "single_unit"
             && updated.report?.buildingUnitCount === 1
             && updated.report?.eneaPayloadAudit?.draftReady
             && updated.report.eneaPayloadAudit.portalGate.status === "ready"
-            && updated.report.eneaPayloadAudit.mappingFingerprint
             && updated.report.eneaPayloadAudit.mappingFingerprint !== item.mappingFingerprint);
         });
         const reclassifiablePersistedFieldsProbe = executionBeforeTick.items.find((item) => item.state === "operator_intervention"
@@ -1029,6 +1030,11 @@ async function serve() {
         }
         if (executionBeforeTick.status === "completed" && correctedSavedPayloadRecovery?.draftId) {
           const correctedPackage = draftPackageFor(correctedSavedPayloadRecovery.customerKey) as unknown as AprEneaDraftPackage;
+          const expectedMappingFingerprint = preflightSnapshot.items.find((item) => item.customerKey === correctedSavedPayloadRecovery.customerKey)?.report?.eneaPayloadAudit?.mappingFingerprint;
+          if (!expectedMappingFingerprint) throw new Error(`enea_saved_payload_post_completion_mapping_fingerprint_missing:${correctedSavedPayloadRecovery.customerKey}`);
+          const intentCommandId = `service:post-completion-saved-payload-verification-intent:${correctedSavedPayloadRecovery.customerKey}:${correctedSavedPayloadRecovery.draftId}:${correctedPackage.workflowFingerprint}:v1`;
+          execution.recordSavedPayloadPostCompletionVerificationIntent(correctedSavedPayloadRecovery.customerKey, expectedMappingFingerprint, intentCommandId);
+          executionBeforeTick = execution.snapshot();
           await driver.rebindLegacyMappingReadOnly(correctedPackage, correctedSavedPayloadRecovery.draftId);
           const diagnostic = await driver.inspectPersistedPageValuesReadOnly(correctedPackage, correctedSavedPayloadRecovery.draftId, "page:Immobile");
           const mismatched = diagnostic.fields.filter((field) => !field.matches);
@@ -1042,6 +1048,9 @@ async function serve() {
             executionBeforeTick = execution.snapshot();
             service.record({ instanceId, processPid: process.pid, status: "running", type: "verified_payload_correction_requeued", reason: `${correctedSavedPayloadRecovery.displayName}: GET canonica ha isolato la classificazione condominio sulla sola pagina Immobile; stessa bozza riaccodata come unita unica.`, nextAction: "APR corregge Immobile, conserva tutte le altre pagine e riverifica l'intera bozza.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: diagnostic.evidenceId });
           } else {
+            const commandId = `service:post-completion-saved-payload-verification-inconclusive:${correctedSavedPayloadRecovery.customerKey}:${correctedSavedPayloadRecovery.draftId}:${correctedPackage.workflowFingerprint}:${diagnostic.evidenceId}:v1`;
+            execution.recordSavedPayloadPostCompletionVerificationInconclusive(correctedSavedPayloadRecovery.customerKey, diagnostic.evidenceId, mismatched.map((field) => field.portalId), commandId);
+            executionBeforeTick = execution.snapshot();
             service.record({ instanceId, processPid: process.pid, status: "technical_block", type: "saved_payload_correction_not_isolated", reason: `${correctedSavedPayloadRecovery.displayName}: la differenza del payload aggiornato non e isolata alla tipologia edificio (${mismatched.map((field) => field.portalId).join(",") || "nessuna differenza DOM"}); nessuna mutazione eseguita.`, nextAction: "Conservare la bozza e riesaminare il contratto senza ripetere Salva.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: diagnostic.evidenceId });
           }
         }

@@ -439,6 +439,7 @@ describe("APR browser worker persistente e autonomo", () => {
     corrected.items[0].report.buildingUnitCount = 1;
     corrected.items[0].report.eneaPayloadAudit.mappingFingerprint = "mapping-case-one-single-unit";
     corrected.items[0].report.eneaPayloadAudit.portalGate.workflowFingerprint = "workflow-case-one-single-unit";
+    execution.recordSavedPayloadPostCompletionVerificationIntent("case-one", "mapping-case-one-single-unit", "final-gate-recovery:verification-intent:v1");
     execution.requeueSavedDraftPageAfterVerifiedPayloadCorrection(corrected, "case-one", "page:Immobile", "readonly-old-building-type", "final-gate-recovery:requeue");
     execution.recordSessionReady("session-proof-correction", "final-gate-recovery:session");
     execution.claimVerifiedPayloadCorrectionRecovery("case-one", "final-gate-recovery:claim");

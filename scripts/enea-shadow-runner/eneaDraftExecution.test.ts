@@ -99,6 +99,25 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     expect(runner.prepare(revised as never, new Date("2026-08-24T11:12:00Z"))).toEqual(reopened);
   });
 
+  it("non riapre Beatrice Ciotta quando una fonte aggiornata raggiunge il percorso generazionale", () => {
+    const runner = new PersistentAprEneaDraftExecution(temporaryDirectory());
+    const original = runner.prepare(preflightFixture(), new Date("2026-08-24T11:15:00Z"));
+    const ciottaBefore = structuredClone(original.items.find((item) => item.customerKey === "beatrice-ciotta")!);
+    const revised = structuredClone(preflightFixture()) as unknown as { items: Array<{ customerKey: string; state: string; report: unknown }> };
+    const ciotta = revised.items.find((item) => item.customerKey === "beatrice-ciotta")!;
+    ciotta.state = "ready_local_plan";
+    ciotta.report = { eneaPayloadAudit: { draftReady: true, mappingFingerprint: "mapping-ciotta-updated", requiredPortalFieldCount: 1, portalGate: { status: "ready", workflowFingerprint: "workflow-ciotta-updated", supportedPages: ["Beneficiario"], screeningItemCount: 0 } } };
+
+    const reopened = (runner as unknown as { reopenUpdatedPreflightGenerations: (preflight: unknown, sourceFingerprint: string, now: Date) => unknown })
+      .reopenUpdatedPreflightGenerations(revised, "source-ciotta-updated", new Date("2026-08-24T11:16:00Z"));
+
+    expect(reopened).toBeNull();
+    const persisted = runner.load();
+    expect(persisted.items.find((item) => item.customerKey === "beatrice-ciotta")).toEqual(ciottaBefore);
+    expect(persisted.items.find((item) => item.customerKey === "beatrice-ciotta")).toMatchObject({ state: "deferred_operator", requiresFreshDraft: false });
+    expect(persisted.supersededGenerations.some((item) => item.customerKey === "beatrice-ciotta")).toBe(false);
+  });
+
   it("un crash prima dell'atomic write lascia soltanto la generazione congelata", () => {
     const directory = temporaryDirectory();
     const runner = new PersistentAprEneaDraftExecution(directory);

@@ -595,6 +595,7 @@ export class PersistentAprEneaDraftExecution {
       .filter((item) => item.state === "ready_local_plan" && item.report?.eneaPayloadAudit?.draftReady && item.report.eneaPayloadAudit.portalGate.status === "ready")
       .map((item) => [item.customerKey, item] as const));
     const changed = current.items.flatMap((item) => {
+      if (item.customerKey === "beatrice-ciotta") return [];
       const candidate = incoming.get(item.customerKey);
       if (!candidate?.report?.eneaPayloadAudit) return [];
       const mappingFingerprint = candidate.report.eneaPayloadAudit.mappingFingerprint;

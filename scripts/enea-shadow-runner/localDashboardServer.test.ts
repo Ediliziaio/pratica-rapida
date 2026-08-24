@@ -295,6 +295,10 @@ describe("dashboard HTTP e supervisore persistente", () => {
     expect(mapping).toMatchObject({ status: "ready_for_portal_mapping", item: { caseTruth: "READY" } });
     const truth = await (await fetch(`${url}/api/case-truth?customerKey=cristina-fabbro`)).json() as { status: string; hasProblem: boolean };
     expect(truth).toMatchObject({ status: "READY", hasProblem: false });
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    const comparisons = new PersistentAprCaseTruthComparisonStore(directory).list("cristina-fabbro");
+    expect(comparisons).toHaveLength(1);
+    expect(comparisons[0].payload).toMatchObject({ classification: "MISSING_SOURCE", oldTruth: { status: "READY" }, newTruth: { status: "INCONSISTENT" } });
   });
 
   it("espone il confronto parallelo da un endpoint separato senza cambiare la verita pubblica", async () => {
@@ -323,7 +327,8 @@ describe("dashboard HTTP e supervisore persistente", () => {
     const list = await (await fetch(`${url}/api/case-truth-comparison?customerKey=fixture-comparison`)).json() as { items: Array<{ artifactId: string }> };
     const detail = await (await fetch(`${url}/api/case-truth-comparison?artifactId=${comparison.artifactId}`)).json() as { artifactId: string };
     const truthAfter = await (await fetch(`${url}/api/case-truth?customerKey=fixture-comparison`)).json();
-    expect(list.items.map((item) => item.artifactId)).toEqual([comparison.artifactId]);
+    expect(list.items.map((item) => item.artifactId)).toContain(comparison.artifactId);
+    expect(list.items.length).toBeGreaterThanOrEqual(2);
     expect(detail.artifactId).toBe(comparison.artifactId);
     expect(truthAfter).toEqual(truthBefore);
     expect((await fetch(`${url}/api/case-truth-comparison?artifactId=../checkpoint`)).status).toBe(400);

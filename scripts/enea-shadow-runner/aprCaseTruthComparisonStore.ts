@@ -1,4 +1,5 @@
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { AprCaseStatusTruth } from "./caseStatusTruth";
 import type { AprCollectedCaseObservations } from "./aprCaseObservationCollector";
@@ -112,5 +113,15 @@ export class PersistentAprCaseTruthComparisonStore {
       .map((name) => this.load(name.slice(0, -5)))
       .filter((comparison) => !customerKey || comparison.payload.customerKey === customerKey)
       .sort((left, right) => left.payload.createdAt.localeCompare(right.payload.createdAt) || left.artifactId.localeCompare(right.artifactId));
+  }
+
+  persistSecondaryFailure(input: { customerKey: string; activeMode: "legacy" | "unified"; failedMode: "legacy" | "unified"; at: string; reason: string }) {
+    const directory = path.join(path.dirname(this.directory), "errors"); mkdirSync(directory, { recursive: true, mode: 0o700 });
+    const target = path.join(directory, `${input.at.replace(/[^0-9A-Za-z.-]/g, "-")}-${randomUUID()}.json`);
+    const descriptor = openSync(target, "wx", 0o600);
+    try { writeFileSync(descriptor, `${canonicalJson({ schemaVersion: "apr-case-truth-comparison-error-v1", ...input })}\n`, "utf8"); fsyncSync(descriptor); }
+    finally { closeSync(descriptor); }
+    const directoryDescriptor = openSync(directory, "r"); try { fsyncSync(directoryDescriptor); } finally { closeSync(directoryDescriptor); }
+    return target;
   }
 }

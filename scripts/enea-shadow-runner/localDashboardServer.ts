@@ -35,7 +35,7 @@ import { PersistentAprInfissiLocalMappingPreflight } from "./infissiLocalMapping
 import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import { PersistentAprDeepCaseReview } from "./deepCaseReview";
 import { infissiExecutionGateReady } from "./infissiExecutionGate";
-import { APR_CASE_TRUTH_COMPARISON_VERSION, PersistentAprCaseTruthComparisonStore } from "./aprCaseTruthComparisonStore";
+import { APR_CASE_TRUTH_COMPARISON_VERSION, compareAprParallelCaseTruth, PersistentAprCaseTruthComparisonStore } from "./aprCaseTruthComparisonStore";
 import { collectAprCurrentCaseObservations } from "./aprCaseObservationCollector";
 import { resolveAprCaseStatusTruth } from "./aprCaseStatusResolver";
 import { resolveAprCaseTruthMode, type AprCaseTruthMode } from "./aprCaseTruthMode";
@@ -251,7 +251,19 @@ export class LocalDashboardSupervisor {
       deepReview: this.deepCaseReview.snapshot(this.now()),
       execution: this.eneaDraftExecution.snapshot(this.now()),
     } });
-    return resolveAprCaseStatusTruth(collected.observations);
+    return { truth: resolveAprCaseStatusTruth(collected.observations), collected };
+  }
+
+  private scheduleCaseTruthComparison(customerKey: string, legacyTruth: AprCaseStatusTruth, preparedUnified?: ReturnType<LocalDashboardSupervisor["unifiedCaseTruth"]>) {
+    setImmediate(() => {
+      const store = new PersistentAprCaseTruthComparisonStore(this.rootDirectory);
+      try {
+        const unified = preparedUnified ?? this.unifiedCaseTruth(customerKey);
+        store.persist(compareAprParallelCaseTruth({ oldTruth: legacyTruth, collected: unified.collected, now: this.now() }));
+      } catch (error) {
+        store.persistSecondaryFailure({ customerKey, activeMode: this.caseTruthMode, failedMode: this.caseTruthMode === "legacy" ? "unified" : "legacy", at: this.now().toISOString(), reason: error instanceof Error ? error.message : String(error) });
+      }
+    });
   }
 
   get url() { return this.currentUrl; }
@@ -479,7 +491,14 @@ export class LocalDashboardSupervisor {
         const customerKey = requestUrl.searchParams.get("customerKey")?.trim() ?? "";
         const legacyTruth = customerKey ? this.legacyCaseTruth(customerKey) : null;
         if (!legacyTruth) sendJson(response, 404, { error: "case_not_found" });
-        else sendJson(response, 200, this.caseTruthMode === "legacy" ? legacyTruth : this.unifiedCaseTruth(customerKey));
+        else if (this.caseTruthMode === "legacy") {
+          sendJson(response, 200, legacyTruth);
+          this.scheduleCaseTruthComparison(customerKey, legacyTruth);
+        } else {
+          const unified = this.unifiedCaseTruth(customerKey);
+          sendJson(response, 200, unified.truth);
+          this.scheduleCaseTruthComparison(customerKey, legacyTruth, unified);
+        }
       } else if (requestUrl.pathname === "/api/case-truth-comparison") {
         const store = new PersistentAprCaseTruthComparisonStore(this.rootDirectory);
         const artifactId = requestUrl.searchParams.get("artifactId")?.trim() ?? "";

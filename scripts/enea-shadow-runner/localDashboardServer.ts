@@ -28,7 +28,7 @@ import { PersistentAprOperatorQuestions, type OperatorAnswerValue } from "./oper
 import { PersistentAprCrmIntegrationWorkflow } from "./crmIntegrationWorkflow";
 import { PersistentAprCrmIncomingReadOnly } from "./crmIncomingReadOnly";
 import { PersistentAprCrmLiveProcessing } from "./crmLiveProcessing";
-import { deriveAprCaseStatusTruth, deriveAprInfissiBatchCaseStatusTruth, deriveAprInfissiMappingCaseStatusTruth, reconcileAprCaseTruthWithDraftExecution } from "./caseStatusTruth";
+import { deriveAprCaseStatusTruth, deriveAprInfissiBatchCaseStatusTruth, deriveAprInfissiMappingCaseStatusTruth, reconcileAprCaseTruthWithDraftExecution, type AprCaseStatusTruth } from "./caseStatusTruth";
 import { PersistentAprShadowComparison } from "./shadowComparisonStore";
 import { PersistentAprShadowControl } from "./shadowControl";
 import { PersistentAprInfissiLocalMappingPreflight } from "./infissiLocalMappingPreflight";
@@ -36,6 +36,9 @@ import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import { PersistentAprDeepCaseReview } from "./deepCaseReview";
 import { infissiExecutionGateReady } from "./infissiExecutionGate";
 import { APR_CASE_TRUTH_COMPARISON_VERSION, PersistentAprCaseTruthComparisonStore } from "./aprCaseTruthComparisonStore";
+import { collectAprCurrentCaseObservations } from "./aprCaseObservationCollector";
+import { resolveAprCaseStatusTruth } from "./aprCaseStatusResolver";
+import { resolveAprCaseTruthMode, type AprCaseTruthMode } from "./aprCaseTruthMode";
 import { supervise } from "./supervisor";
 import {
   SupervisorRuntimeStore,
@@ -50,6 +53,7 @@ export interface LocalDashboardSupervisorOptions {
   now?: () => Date;
   notificationSink?: AprLocalNotificationSink;
   crmAuth?: PersistentAprCrmAuth;
+  caseTruthMode?: string;
 }
 
 export function shouldPollCrmIncoming(rootDirectory: string) {
@@ -174,6 +178,7 @@ export class LocalDashboardSupervisor {
   readonly infissiLocalMapping: PersistentAprInfissiLocalMappingPreflight;
   readonly infissiBatchPreflight: PersistentAprInfissiBatchPreflight;
   readonly deepCaseReview: PersistentAprDeepCaseReview;
+  readonly caseTruthMode: AprCaseTruthMode;
   private server: Server | null = null;
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private runtime: SupervisorRuntimeState | null = null;
@@ -195,6 +200,7 @@ export class LocalDashboardSupervisor {
     if (!Number.isFinite(this.heartbeatIntervalMs) || this.heartbeatIntervalMs < 100) throw new Error("Heartbeat supervisore minimo: 100 ms.");
     this.instanceId = options.instanceId ?? `supervisor-${process.pid}-${crypto.randomUUID()}`;
     this.now = options.now ?? (() => new Date());
+    this.caseTruthMode = resolveAprCaseTruthMode(options.caseTruthMode ?? process.env.APR_CASE_TRUTH_MODE);
     this.journal = new JournalStore(rootDirectory);
     this.runtimeStore = new SupervisorRuntimeStore(rootDirectory);
     this.readinessStore = new PersistentReadinessLease(rootDirectory);
@@ -220,6 +226,32 @@ export class LocalDashboardSupervisor {
     this.infissiLocalMapping = new PersistentAprInfissiLocalMappingPreflight(rootDirectory);
     this.infissiBatchPreflight = new PersistentAprInfissiBatchPreflight(rootDirectory);
     this.deepCaseReview = new PersistentAprDeepCaseReview(rootDirectory);
+  }
+
+  private legacyCaseTruth(customerKey: string): AprCaseStatusTruth | null {
+    const item = this.crmLocalPreflight.snapshot(this.now()).items.find((candidate) => candidate.customerKey === customerKey);
+    const infissiBatchItem = this.infissiBatchPreflight.snapshot(this.now()).items.find((candidate) => candidate.customerKey === customerKey);
+    const infissiTruth = deriveAprInfissiMappingCaseStatusTruth(this.infissiLocalMapping.load(this.now()));
+    if (!item && !infissiBatchItem && infissiTruth?.customerKey !== customerKey) return null;
+    const preflightTruth = infissiBatchItem
+      ? deriveAprInfissiBatchCaseStatusTruth(infissiBatchItem)
+      : infissiTruth?.customerKey === customerKey
+        ? infissiTruth
+        : deriveAprCaseStatusTruth(item!);
+    const executionItem = this.eneaDraftExecution.snapshot(this.now()).items.find((candidate) => candidate.customerKey === customerKey);
+    return reconcileAprCaseTruthWithDraftExecution(preflightTruth, executionItem);
+  }
+
+  private unifiedCaseTruth(customerKey: string) {
+    const observedAt = this.now().toISOString();
+    const collected = collectAprCurrentCaseObservations({ customerKey, observedAt, runId: `dashboard-${crypto.randomUUID()}`, sources: {
+      common: this.crmLocalPreflight.snapshot(this.now()),
+      infissiBatch: this.infissiBatchPreflight.snapshot(this.now()),
+      infissiMapping: this.infissiLocalMapping.load(this.now()),
+      deepReview: this.deepCaseReview.snapshot(this.now()),
+      execution: this.eneaDraftExecution.snapshot(this.now()),
+    } });
+    return resolveAprCaseStatusTruth(collected.observations);
   }
 
   get url() { return this.currentUrl; }
@@ -445,19 +477,9 @@ export class LocalDashboardSupervisor {
         sendJson(response, 200, this.crmLocalPreflight.snapshot(this.now()));
       } else if (requestUrl.pathname === "/api/case-truth") {
         const customerKey = requestUrl.searchParams.get("customerKey")?.trim() ?? "";
-        const item = this.crmLocalPreflight.snapshot(this.now()).items.find((candidate) => candidate.customerKey === customerKey);
-        const infissiBatchItem = this.infissiBatchPreflight.snapshot(this.now()).items.find((candidate) => candidate.customerKey === customerKey);
-        const infissiTruth = deriveAprInfissiMappingCaseStatusTruth(this.infissiLocalMapping.load(this.now()));
-        if (!customerKey || (!item && !infissiBatchItem && infissiTruth?.customerKey !== customerKey)) sendJson(response, 404, { error: "case_not_found" });
-        else {
-          const preflightTruth = infissiBatchItem
-            ? deriveAprInfissiBatchCaseStatusTruth(infissiBatchItem)
-            : infissiTruth?.customerKey === customerKey
-              ? infissiTruth
-              : deriveAprCaseStatusTruth(item!);
-          const executionItem = this.eneaDraftExecution.snapshot(this.now()).items.find((candidate) => candidate.customerKey === customerKey);
-          sendJson(response, 200, reconcileAprCaseTruthWithDraftExecution(preflightTruth, executionItem));
-        }
+        const legacyTruth = customerKey ? this.legacyCaseTruth(customerKey) : null;
+        if (!legacyTruth) sendJson(response, 404, { error: "case_not_found" });
+        else sendJson(response, 200, this.caseTruthMode === "legacy" ? legacyTruth : this.unifiedCaseTruth(customerKey));
       } else if (requestUrl.pathname === "/api/case-truth-comparison") {
         const store = new PersistentAprCaseTruthComparisonStore(this.rootDirectory);
         const artifactId = requestUrl.searchParams.get("artifactId")?.trim() ?? "";

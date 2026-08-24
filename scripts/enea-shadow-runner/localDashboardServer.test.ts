@@ -19,6 +19,7 @@ import { PersistentAprCrmIntegrationWorkflow } from "./crmIntegrationWorkflow";
 import { APR_REQUIRED_INFISSI_VALIDATION_REVISIONS } from "./infissiExecutionGate";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 import { compareAprParallelCaseTruth, PersistentAprCaseTruthComparisonStore } from "./aprCaseTruthComparisonStore";
+import { resolveAprCaseTruthMode } from "./aprCaseTruthMode";
 import type { AprCollectedCaseObservations } from "./aprCaseObservationCollector";
 import type { AprCaseStatusObservation } from "./aprMonotonicArtifacts";
 import { canonicalSha256 } from "./aprMonotonicArtifacts";
@@ -40,6 +41,31 @@ afterEach(async () => {
 });
 
 describe("dashboard HTTP e supervisore persistente", () => {
+  it("usa legacy come default e rifiuta configurazioni case-truth non valide", () => {
+    expect(resolveAprCaseTruthMode(undefined)).toBe("legacy");
+    expect(resolveAprCaseTruthMode("legacy")).toBe("legacy");
+    expect(resolveAprCaseTruthMode("unified")).toBe("unified");
+    expect(() => resolveAprCaseTruthMode("automatic")).toThrow(/case_truth_mode_invalid/);
+    expect(() => new LocalDashboardSupervisor(temporaryStateDirectory(), { caseTruthMode: "automatic" })).toThrow(/case_truth_mode_invalid/);
+  });
+
+  it("serve la verita unificata soltanto quando configurata esplicitamente", async () => {
+    const directory = temporaryStateDirectory();
+    new PersistentEneaRunner(directory).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);
+    const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000, caseTruthMode: "unified" });
+    supervisor.infissiLocalMapping.run({
+      practiceId: "practice-unified", customerKey: "fixture-unified", displayName: "Fixture Unified",
+      invoiceDimensionSource: { sourceId: "fattura", text: "1200 mm x 1400 mm" },
+      invoiceFinancialSources: [{ sourceId: "fattura", text: "TOTALE 1.000,00(EUR)" }],
+      technicalDocumentSource: { sourceId: "dop", text: "WEB/24/1 - 001\nTrasmittanza termica Uw [W/m K] 1.3" },
+      verifiedTechnicalPageDimensions: [{ pageId: "001", widthMm: 1200, heightMm: 1400, verificationMethod: "visual_pdf_page_verified" }],
+      form: { explicitNewFrameMaterial: "PVC", explicitGlassType: "Triplo vetro basso emissivo", alsoInstalledClosures: false, sourceId: "form" },
+    }, new Date("2026-08-23T20:00:00.000Z"));
+    runningSupervisors.push(supervisor); const url = await supervisor.start();
+    const truth = await (await fetch(`${url}/api/case-truth?customerKey=fixture-unified`)).json() as { status: string; reason: string; matchedTransitionId: string | null; version?: string };
+    expect(truth).toMatchObject({ status: "INCONSISTENT", reason: expect.stringContaining("preflight_common"), matchedTransitionId: null });
+    expect(truth.version).toBeUndefined();
+  });
   it("non interroga Pronte da fare prima del via e consente l'ingresso installato dopo il comando esplicito", () => {
     const liveDirectory = temporaryStateDirectory();
     expect(shouldRunShadowIntake(liveDirectory, false)).toBe(false);

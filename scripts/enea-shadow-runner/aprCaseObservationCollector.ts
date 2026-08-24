@@ -18,13 +18,17 @@ import { createAprNotApplicableObservation, deriveAprCaseSourcePolicy, observeAp
 
 export const APR_CASE_OBSERVATION_COLLECTOR_VERSION = "apr-case-observation-collector-v1" as const;
 
+export interface AprLiveCaseTruthCorpusFingerprint extends Omit<AprInputCorpusFingerprint, "caseCount"> {
+  caseCount: number;
+}
+
 type SourceName = "common" | "infissiBatch" | "infissiMapping" | "deepReview" | "execution";
 
 export interface AprReplayRunManifest {
   version: "apr-replay-run-manifest-v1";
   runId: string;
   createdAt: string;
-  inputCorpusFingerprint: AprInputCorpusFingerprint;
+  inputCorpusFingerprint: AprInputCorpusFingerprint | AprLiveCaseTruthCorpusFingerprint;
   sourceFingerprints: Partial<Record<SourceName, string>>;
 }
 
@@ -53,6 +57,14 @@ export interface AprCollectedCaseObservations {
   errors: string[];
 }
 
+export interface AprCurrentCaseObservationSources {
+  common: AprCrmLocalPreflightState;
+  infissiBatch: AprInfissiBatchPreflightState;
+  infissiMapping: AprInfissiLocalMappingState;
+  deepReview: DeepReviewState;
+  execution: AprEneaDraftExecutionState;
+}
+
 const readJson = <T>(target: string): T | undefined => existsSync(target) ? JSON.parse(readFileSync(target, "utf8")) as T : undefined;
 const corpusFingerprint = (manifest: AprReplayRunManifest) => canonicalSha256(manifest.inputCorpusFingerprint);
 
@@ -76,6 +88,41 @@ function stateFingerprint(source: SourceName, state: unknown): string | null {
   const value = state as unknown as Record<string, unknown>;
   if (source === "infissiMapping") return typeof value.sourceSignature === "string" ? value.sourceSignature : null;
   return typeof value.sourceFingerprint === "string" ? value.sourceFingerprint : null;
+}
+
+export function collectAprCurrentCaseObservations(input: {
+  sources: AprCurrentCaseObservationSources;
+  customerKey: string;
+  runId: string;
+  observedAt: string;
+}): AprCollectedCaseObservations {
+  const sourceEntries = (Object.entries(input.sources) as Array<[SourceName, AprCurrentCaseObservationSources[SourceName]]>);
+  const sourceFingerprints = Object.fromEntries(sourceEntries.flatMap(([source, state]) => {
+    const fingerprint = stateFingerprint(source, state);
+    return fingerprint ? [[source, fingerprint]] : [];
+  })) as AprReplayRunManifest["sourceFingerprints"];
+  const perCaseSources = [{
+    customerKey: input.customerKey,
+    dossierSha256: canonicalSha256({ common: input.sources.common, infissiBatch: input.sources.infissiBatch }),
+    originalDocumentSetSha256: canonicalSha256({ infissiMapping: input.sources.infissiMapping, deepReview: input.sources.deepReview, execution: input.sources.execution }),
+  }];
+  const inputCorpusFingerprint: AprLiveCaseTruthCorpusFingerprint = {
+    corpusVersion: "apr-live-case-truth-v1",
+    caseCount: 1,
+    customerKeysSha256: canonicalSha256([input.customerKey]),
+    sourceSetSha256: canonicalSha256(perCaseSources),
+    perCaseSources,
+  };
+  const manifest: AprReplayRunManifest = { version: "apr-replay-run-manifest-v1", runId: input.runId, createdAt: input.observedAt, inputCorpusFingerprint, sourceFingerprints };
+  const corpus = corpusFingerprint(manifest);
+  return collectAprCaseObservations({
+    manifest,
+    common: { runId: input.runId, corpusFingerprint: corpus, state: input.sources.common },
+    infissiBatch: { runId: input.runId, corpusFingerprint: corpus, state: input.sources.infissiBatch },
+    infissiMapping: { runId: input.runId, corpusFingerprint: corpus, state: input.sources.infissiMapping },
+    deepReview: { runId: input.runId, corpusFingerprint: corpus, state: input.sources.deepReview },
+    execution: { runId: input.runId, corpusFingerprint: corpus, state: input.sources.execution },
+  }, input.customerKey);
 }
 
 export function collectAprCaseObservations(

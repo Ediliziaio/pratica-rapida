@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { PersistentAprDeepCaseReview } from "./deepCaseReview";
@@ -53,6 +53,31 @@ describe("revisione profonda persistente APR", () => {
     common.items.push({ customerKey: "missing-measures", displayName: "Misure mancanti", practiceId: "p-measures", dossierPath: dossier, state: "blocked_case", report: { outcome: "blocked_case", sourceIds: ["fattura"], financial: { appliedRuleIds: ["core-gross-triple-reconciliation"] }, blockers: [{ code: "screening_primary_measurements_missing", field: "screenings.dimensions", sourceIds: ["fattura"], appliedRuleIds: ["system-screening-primary-measurements-operator-routing"] }] } }); writeFileSync(commonPath, JSON.stringify(common));
     const final = new PersistentAprDeepCaseReview(root).runToCompletion(new Date("2026-08-23T08:04:00Z"));
     expect(final.items.find((item) => item.customerKey === "missing-measures")).toMatchObject({ classification: "OPERATOR_REQUIRED", operatorCodes: ["screening_primary_measurements_missing"], nextAction: expect.stringContaining("misure fisiche") });
+  });
+  it("raggiunge Marco Colombo tramite la fonte Schermature anche se il seed storico lo etichetta Infissi", () => {
+    const root = fixture(); const dossier = path.join(root, "dossiers/case.json");
+    const seedPath = path.join(root, "cohort-seed/checkpoint.json"); const seed = JSON.parse(readFileSync(seedPath, "utf8"));
+    seed.candidates.push({ customerKey: "marco-colombo", displayName: "Marco Colombo", practiceId: "p-marco", productModule: "infissi" }); writeFileSync(seedPath, JSON.stringify(seed));
+    const commonPath = path.join(root, "crm-local-preflight/checkpoint.json"); const common = JSON.parse(readFileSync(commonPath, "utf8"));
+    common.items.push({ customerKey: "marco-colombo", displayName: "Marco Colombo", practiceId: "p-marco", dossierPath: dossier, state: "blocked_case", report: { outcome: "blocked_case", sourceIds: ["fattura-marco"], financial: { appliedRuleIds: ["core-gross-triple-reconciliation"] }, blockers: [
+      { code: "screenings_missing", field: "screenings", sourceIds: ["fattura-marco"], appliedRuleIds: ["user-2026-08-14-preserve-technical-product-cardinality"] },
+      { code: "screening_primary_measurements_missing", field: "screenings.dimensions", sourceIds: ["fattura-marco"], appliedRuleIds: ["system-screening-primary-measurements-operator-routing"] },
+    ] } }); writeFileSync(commonPath, JSON.stringify(common));
+
+    const final = new PersistentAprDeepCaseReview(root).runToCompletion(new Date("2026-08-24T18:00:00Z"));
+    expect(final.items.find((item) => item.customerKey === "marco-colombo")).toMatchObject({
+      productModule: "screening",
+      classification: "OPERATOR_REQUIRED",
+      operatorCodes: ["screening_primary_measurements_missing"],
+      nextAction: expect.stringContaining("misure fisiche"),
+    });
+  });
+  it("esegue la deep review Schermature anche quando non esiste alcun checkpoint Infissi", () => {
+    const root = fixture();
+    rmSync(path.join(root, "infissi-batch-preflight", "checkpoint.json"));
+    const final = new PersistentAprDeepCaseReview(root).runToCompletion(new Date("2026-08-24T18:01:00Z"));
+    expect(final.items.map((item) => item.customerKey)).toEqual(["technical", "operator"]);
+    expect(final.items.find((item) => item.customerKey === "operator")).toMatchObject({ classification: "OPERATOR_REQUIRED" });
   });
   it("riesamina una pratica mista secondo le fonti documentali e unisce i blocker dei due moduli", () => {
     const root = fixture(); const dossier = path.join(root, "dossiers/case.json");

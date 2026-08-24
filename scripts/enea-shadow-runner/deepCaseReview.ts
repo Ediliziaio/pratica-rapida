@@ -6,7 +6,7 @@ import { registryRule } from "../../src/features/enea-shadow-crm/operationalRegi
 // Incrementare la versione quando cambia la classificazione dei blocker: il
 // checkpoint precedente deve essere rigiocato, non riusato con una semantica
 // ormai superata.
-export const APR_DEEP_CASE_REVIEW_VERSION = "apr-deep-case-review-v3" as const;
+export const APR_DEEP_CASE_REVIEW_VERSION = "apr-deep-case-review-v4" as const;
 export const APR_DEEP_REVIEW_RULE_IDS = Object.freeze([
   "system-apr-deep-review-before-operator",
   "system-apr-technical-repair-queue",
@@ -146,6 +146,10 @@ function blockerRows(report: Json | null) {
   return array(report?.blockers).map((value) => object(value)).filter(Boolean) as Json[];
 }
 
+function commonReportDocumentsScreening(report: Json | null) {
+  return blockerRows(report).some((blocker) => text(blocker.code).startsWith("screening_") || /^screenings(?:\.|$)/.test(text(blocker.field)));
+}
+
 function mergedReports(reports: Array<Json | null>): Json | null {
   const present = reports.filter((report): report is Json => Boolean(report));
   if (!present.length) return null;
@@ -233,18 +237,23 @@ export class PersistentAprDeepCaseReview {
     const seed = readJson(path.join(this.rootDirectory, "cohort-seed", "checkpoint.json"));
     const common = readJson(path.join(this.rootDirectory, "crm-local-preflight", "checkpoint.json"));
     const infissi = readJson(path.join(this.rootDirectory, "infissi-batch-preflight", "checkpoint.json"));
-    if (!seed || common?.status !== "completed" || infissi?.status !== "completed" || !array(seed.candidates).length) return current;
+    if (!seed || common?.status !== "completed" || (infissi && infissi.status !== "completed") || !array(seed.candidates).length) return current;
     const commonByKey = new Map(array(common.items).map((value) => object(value)).filter(Boolean).map((item) => [text(item!.customerKey), item!]));
-    const infissiByKey = new Map(array(infissi.items).map((value) => object(value)).filter(Boolean).map((item) => [text(item!.customerKey), item!]));
+    const infissiByKey = new Map(array(infissi?.items).map((value) => object(value)).filter(Boolean).map((item) => [text(item!.customerKey), item!]));
     const replay = readJson(path.join(this.rootDirectory, "learning-replay", "checkpoint.json"));
     const routedModuleByKey = new Map(array(replay?.cases).map((value) => object(value)).filter(Boolean).map((item) => [text(item!.customerKey), text(item!.productModule)]));
     const candidates = array(seed.candidates).map((value) => object(value)).filter(Boolean) as Json[];
     const blocked = candidates.flatMap((candidate) => {
       const customerKey = text(candidate.customerKey);
       const routedModule = routedModuleByKey.get(customerKey);
-      const module: DeepReviewItem["productModule"] = routedModule === "mixed" || routedModule === "screening" || routedModule === "infissi"
-        ? routedModule : candidate.productModule === "infissi" ? "infissi" : "screening";
       const commonSource = commonByKey.get(customerKey); const infissiSource = infissiByKey.get(customerKey);
+      const commonReport = object(commonSource?.report);
+      const module: DeepReviewItem["productModule"] = routedModule === "mixed" || routedModule === "screening" || routedModule === "infissi"
+        ? routedModule
+        : infissiSource?.productModule === "mixed" ? "mixed"
+          : infissiSource ? "infissi"
+            : commonReportDocumentsScreening(commonReport) ? "screening"
+              : candidate.productModule === "infissi" ? "infissi" : "screening";
       const sources = module === "mixed" ? [commonSource, infissiSource] : module === "infissi" ? [infissiSource] : [commonSource];
       const blockedSources = sources.filter((source): source is Json => Boolean(source && source.state === "blocked_case" && object(source.report)));
       if (!blockedSources.length) return [];
@@ -253,7 +262,7 @@ export class PersistentAprDeepCaseReview {
       const sourceFingerprint = sha256({ customerKey, module, dossierPath: source.dossierPath, blockerCodes, reports: blockedSources.map((item) => item.report) });
       return [{ customerKey, displayName: text(source.displayName) || text(candidate.displayName), practiceId: text(source.practiceId) || text(candidate.practiceId), productModule: module, dossierPath: text(source.dossierPath), state: "queued" as const, classification: null, attemptCount: 0, startedAt: null, endedAt: null, blockerCodes, technicalRepairCodes: [], operatorCodes: [], businessRuleCodes: [], matchedRuleIds: [], evidencePasses: [], sourceFingerprint, reason: "In coda per revisione profonda locale prima dell'intervento operatore.", nextAction: "Verificare inventario fonti, estrazione documenti e regole gia autorizzate." } satisfies DeepReviewItem];
     });
-    const sourceFingerprint = sha256({ seed: seed.candidateFingerprint, common: common.sourceFingerprint, commonRevision: common.revision, infissi: infissi.sourceFingerprint, infissiRevision: infissi.revision, blocked: blocked.map((item) => [item.customerKey, item.sourceFingerprint]) });
+    const sourceFingerprint = sha256({ seed: seed.candidateFingerprint, common: common.sourceFingerprint, commonRevision: common.revision, infissi: infissi?.sourceFingerprint ?? null, infissiRevision: infissi?.revision ?? null, blocked: blocked.map((item) => [item.customerKey, item.sourceFingerprint]) });
     if (current.sourceFingerprint === sourceFingerprint) return current;
     if (current.sourceFingerprint && current.status !== "completed") return current;
     const previousByKey = new Map(current.items.map((item) => [item.customerKey, item]));

@@ -12,6 +12,7 @@ import { buildAprInfissiDraftPackage } from "./infissiDraftPackage";
 import { resolveAprDocumentedProductRouting } from "../../src/features/enea-shadow-crm/documentedProductRouting";
 
 export const APR_INFISSI_BATCH_PREFLIGHT_VERSION = "apr-infissi-batch-preflight-v1" as const;
+export type AprInfissiCheckpointMode = "resume" | "migrate";
 
 type JsonObject = Record<string, unknown>;
 const object = (value: unknown): JsonObject | null => value && typeof value === "object" && !Array.isArray(value) ? value as JsonObject : null;
@@ -244,6 +245,90 @@ export class PersistentAprInfissiBatchPreflight {
     });
   }
 
+  reconcileDocumentedProductRouting(checkpointMode: AprInfissiCheckpointMode = "resume", now = new Date()) {
+    const current = this.initialize(now);
+    if (checkpointMode !== "migrate" || !current.sourceFingerprint) return current;
+    const acquisitionPath = path.join(this.rootDirectory, "crm-acquisition", "checkpoint.json");
+    const analysisPath = path.join(this.rootDirectory, "crm-document-analysis", "checkpoint.json");
+    if (![acquisitionPath, analysisPath].every(existsSync)) return current;
+    const acquisition = JSON.parse(readFileSync(acquisitionPath, "utf8")) as { status?: string; items?: Array<Record<string, unknown>> };
+    const analysis = JSON.parse(readFileSync(analysisPath, "utf8")) as { status?: string; items?: Array<Record<string, unknown>> };
+    if (acquisition.status !== "completed" || analysis.status !== "completed") return current;
+
+    const routingByKey = new Map<string, { declaredModule: "screening" | "infissi" | null; resolvedModule: "screening" | "infissi" | "mixed" | "unresolved" }>();
+    const acquired = (acquisition.items ?? []).filter((item) => {
+      if (item.state !== "acquired") return false;
+      const sources = (analysis.items ?? []).filter((source) => source.customerKey === item.customerKey && source.state === "analyzed" && text(source.textPath))
+        .map((source) => ({ sourceId: text(source.documentKey), text: readFileSync(text(source.textPath), "utf8") }));
+      const declaredModule = item.productModule === "screening" || item.productModule === "infissi" ? item.productModule : null;
+      const resolvedModule = resolveAprDocumentedProductRouting({ declaredModule, sources }).module;
+      routingByKey.set(text(item.customerKey), { declaredModule, resolvedModule });
+      return resolvedModule !== "screening";
+    });
+    const fingerprint = sha256(acquired.map((item) => [item.customerKey, item.practiceId, item.responseSha256]));
+    const previousByKey = new Map(current.items.map((item) => [item.customerKey, item]));
+    if (current.sourceFingerprint !== fingerprint) {
+      const previousKeys = new Set(current.items.map((item) => item.customerKey));
+      const previousSourceProjection = (acquisition.items ?? []).filter((item) => previousKeys.has(text(item.customerKey)) && item.state === "acquired");
+      const previousFingerprint = sha256(previousSourceProjection.map((item) => [item.customerKey, item.practiceId, item.responseSha256]));
+      if (previousFingerprint !== current.sourceFingerprint) throw new Error("infissi_batch_source_set_immutable");
+    }
+
+    const items: AprInfissiBatchItem[] = acquired.map((item) => {
+      const customerKey = text(item.customerKey);
+      const productModule = routingByKey.get(customerKey)?.resolvedModule === "mixed" ? "mixed" as const : "infissi" as const;
+      const previous = previousByKey.get(customerKey);
+      return previous ? { ...previous, productModule } : {
+        customerKey,
+        displayName: text(item.displayName),
+        practiceId: text(item.practiceId),
+        dossierPath: text(item.dossierPath),
+        productModule,
+        state: "queued",
+        startedAt: null,
+        endedAt: null,
+        reason: "In coda per preflight Infissi dopo riconciliazione esplicita del routing documentale.",
+        report: null,
+      };
+    });
+    const changedKeys = [
+      ...items.filter((item) => !previousByKey.has(item.customerKey)).map((item) => item.customerKey),
+      ...current.items.filter((item) => !items.some((candidate) => candidate.customerKey === item.customerKey)).map((item) => item.customerKey),
+    ];
+    if (changedKeys.length > 0 && !changedKeys.every((customerKey) => {
+      const routing = routingByKey.get(customerKey);
+      return routing?.declaredModule != null && routing.declaredModule !== routing.resolvedModule;
+    })) throw new Error("infissi_batch_source_set_immutable");
+    const routingChanged = current.sourceFingerprint !== fingerprint
+      || items.length !== current.items.length
+      || items.some((item, index) => item.customerKey !== current.items[index]?.customerKey || item.productModule !== current.items[index]?.productModule);
+    if (!routingChanged) return current;
+
+    const revision = current.revision + 1;
+    const added = items.filter((item) => !previousByKey.has(item.customerKey)).length;
+    const removed = current.items.filter((item) => !items.some((candidate) => candidate.customerKey === item.customerKey)).length;
+    const reason = `Migrazione routing documentale esplicita: ${added} aggiunte, ${removed} rimosse; fonti ed esiti esistenti conservati.`;
+    return this.write({
+      ...current,
+      revision,
+      status: items.some((item) => item.state === "queued") ? "working" : "completed",
+      sourceFingerprint: fingerprint,
+      currentCustomerKey: null,
+      items,
+      progress: progress(items),
+      reason,
+      nextAction: items.some((item) => item.state === "queued") ? "Elaborare i soli dossier ammessi dalla migrazione esplicita." : "Routing documentale migrato; nessun caso da rielaborare.",
+      audit: [...current.audit, {
+        revision,
+        at: now.toISOString(),
+        type: "routing_reconciled",
+        customerKey: null,
+        reason,
+        appliedRuleIds: [...SYSTEM_RULE_IDS, USER_AUTHORIZED_RULE_IDS.documentedProductModuleOverLabel],
+      }],
+    });
+  }
+
   tick(now = new Date()) {
     const acquisitionPath = path.join(this.rootDirectory, "crm-acquisition", "checkpoint.json");
     const analysisPath = path.join(this.rootDirectory, "crm-document-analysis", "checkpoint.json");
@@ -293,92 +378,6 @@ export class PersistentAprInfissiBatchPreflight {
         reason,
         nextAction: items[0] ? `Reclamare ${items[0].displayName} e verificare form, fatture e documenti tecnici.` : "Coda vuota.",
         audit: [...state.audit, { revision: state.revision + 1, at: now.toISOString(), type: "batch_prepared", customerKey: null, reason, appliedRuleIds: [...SYSTEM_RULE_IDS] }],
-      });
-    }
-    if (state.sourceFingerprint === fingerprint) {
-      const routedItems = state.items.map((item) => ({
-        ...item,
-        productModule: routingByKey.get(item.customerKey)?.resolvedModule === "mixed" ? "mixed" as const : "infissi" as const,
-      }));
-      const routingChanged = routedItems.some((item, index) => item.productModule !== state.items[index]?.productModule);
-      if (routingChanged) {
-        const revision = state.revision + 1;
-        const reason = "Routing prodotto persistito sui dossier Infissi esistenti senza mutare fonti, esiti o coda.";
-        state = this.write({
-          ...state,
-          revision,
-          items: routedItems,
-          reason,
-          audit: [...state.audit, {
-            revision,
-            at: now.toISOString(),
-            type: "routing_reconciled",
-            customerKey: null,
-            reason,
-            appliedRuleIds: [...SYSTEM_RULE_IDS, USER_AUTHORIZED_RULE_IDS.documentedProductModuleOverLabel],
-          }],
-        });
-      }
-    }
-    if (state.sourceFingerprint !== fingerprint) {
-      // A deployment can legitimately change only the module membership (for
-      // example a dossier labelled Infissi whose invoice documents persiane).
-      // Prove that the already frozen source records did not change before
-      // reconciling the queue; any actual source mutation remains fail-closed.
-      const previousKeys = new Set(state.items.map((item) => item.customerKey));
-      const previousSourceProjection = (acquisition.items ?? []).filter((item) => previousKeys.has(text(item.customerKey)) && item.state === "acquired");
-      const previousFingerprint = sha256(previousSourceProjection.map((item) => [item.customerKey, item.practiceId, item.responseSha256]));
-      if (previousFingerprint !== state.sourceFingerprint) throw new Error("infissi_batch_source_set_immutable");
-
-      const previousByKey = new Map(state.items.map((item) => [item.customerKey, item]));
-      const items: AprInfissiBatchItem[] = acquired.map((item) => {
-        const customerKey = text(item.customerKey);
-        const productModule = routingByKey.get(customerKey)?.resolvedModule === "mixed" ? "mixed" as const : "infissi" as const;
-        const previous = previousByKey.get(customerKey);
-        return previous ? { ...previous, productModule } : {
-          customerKey,
-          displayName: text(item.displayName),
-          practiceId: text(item.practiceId),
-          dossierPath: text(item.dossierPath),
-          productModule,
-          state: "queued",
-          startedAt: null,
-          endedAt: null,
-          reason: "In coda per preflight Infissi dopo riconciliazione del routing documentale.",
-          report: null,
-        };
-      });
-      const revision = state.revision + 1;
-      const added = items.filter((item) => !previousByKey.has(item.customerKey)).length;
-      const removed = state.items.filter((item) => !items.some((candidate) => candidate.customerKey === item.customerKey)).length;
-      const changedKeys = [
-        ...items.filter((item) => !previousByKey.has(item.customerKey)).map((item) => item.customerKey),
-        ...state.items.filter((item) => !items.some((candidate) => candidate.customerKey === item.customerKey)).map((item) => item.customerKey),
-      ];
-      const routingOnlyChange = changedKeys.length > 0 && changedKeys.every((customerKey) => {
-        const routing = routingByKey.get(customerKey);
-        return routing?.declaredModule != null && routing.declaredModule !== routing.resolvedModule;
-      });
-      if (!routingOnlyChange) throw new Error("infissi_batch_source_set_immutable");
-      const reason = `Routing documentale riconciliato senza mutare le fonti congelate: ${added} aggiunte, ${removed} rimosse dal gate Infissi.`;
-      state = this.write({
-        ...state,
-        revision,
-        status: items.some((item) => item.state === "queued") ? "working" : "completed",
-        sourceFingerprint: fingerprint,
-        currentCustomerKey: null,
-        items,
-        progress: progress(items),
-        reason,
-        nextAction: items.some((item) => item.state === "queued") ? "Elaborare i soli dossier appena ammessi dal routing documentale." : "Nessun nuovo dossier Infissi da elaborare.",
-        audit: [...state.audit, {
-          revision,
-          at: now.toISOString(),
-          type: "routing_reconciled",
-          customerKey: null,
-          reason,
-          appliedRuleIds: [...SYSTEM_RULE_IDS, USER_AUTHORIZED_RULE_IDS.documentedProductModuleOverLabel],
-        }],
       });
     }
     const nextIndex = state.items.findIndex((item) => item.state === "queued");

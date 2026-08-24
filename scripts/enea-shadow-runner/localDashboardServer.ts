@@ -714,6 +714,7 @@ export class LocalDashboardSupervisor {
       const completedPreflight = this.crmLocalPreflight.snapshot(now);
       if (completedPreflight.status === "completed" && completedPreflight.items.some((item) => item.customerKey === "beatrice-ciotta" && item.state !== "deferred_operator")) this.crmLocalPreflight.deferCiottaForPilot("user-2026-08-15-ciotta-leave-aside", "Accantonata dal pilot su istruzione utente; report e fonti conservati, nessuna azione CRM o ENEA.", now);
       this.operatorQuestions.discoverMeasurementUnitAmbiguities(this.crmLocalPreflight.snapshot(now), analyzed, now);
+      if (this.checkpointMigrationPending) this.infissiBatchPreflight.reconcileDocumentedProductRouting("migrate", now);
       if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-vertical-totals-and-table-identity-v1", now);
       if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-bank-transfer-invoice-authority-v12", now);
       if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-enea-2026-june25-deadline-window-v13", now);
@@ -910,6 +911,7 @@ export class LocalDashboardSupervisor {
         if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("enea-2026-june25-deadline-window-v36", now);
         if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("documented-product-module-over-label-v65", now);
         this.operatorQuestions.discoverMeasurementUnitAmbiguities(this.crmLocalPreflight.snapshot(now), analyzed, now);
+        if (this.checkpointMigrationPending) this.infissiBatchPreflight.reconcileDocumentedProductRouting("migrate", now);
         if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-vertical-totals-and-table-identity-v1", now);
         if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-bank-transfer-invoice-authority-v12", now);
         if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-enea-2026-june25-deadline-window-v13", now);

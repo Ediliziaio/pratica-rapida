@@ -33,7 +33,7 @@ function fixtureRoot() {
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
 
 describe("APR Infissi · batch preflight persistente", () => {
-  it("riconcilia un checkpoint storico solo quando la differenza deriva dal routing documentale", () => {
+  it("riconcilia un checkpoint storico solo con migrate esplicito", () => {
     const root = fixtureRoot();
     const batch = new PersistentAprInfissiBatchPreflight(root);
     batch.tick(new Date("2026-08-23T00:00:00Z"));
@@ -61,7 +61,12 @@ describe("APR Infissi · batch preflight persistente", () => {
     checkpoint.sourceFingerprint = createHash("sha256").update(JSON.stringify(acquisition.items.map((item: Record<string, unknown>) => [item.customerKey, item.practiceId, item.responseSha256]))).digest("hex");
     writeJson(batch.checkpointPath, checkpoint);
 
-    batch.tick(new Date("2026-08-23T00:01:00Z"));
+    const beforeResume = batch.snapshot();
+    batch.reconcileDocumentedProductRouting("resume", new Date("2026-08-23T00:01:00Z"));
+    expect(batch.snapshot()).toEqual(beforeResume);
+    expect(batch.snapshot().items.map((item) => item.customerKey)).toEqual(["ready", "blocked", "persiana"]);
+
+    batch.reconcileDocumentedProductRouting("migrate", new Date("2026-08-23T00:02:00Z"));
     expect(batch.snapshot().items.map((item) => item.customerKey)).toEqual(["ready", "blocked"]);
     expect(batch.snapshot().audit.find((event) => event.type === "routing_reconciled")).toMatchObject({
       type: "routing_reconciled",
@@ -115,7 +120,7 @@ describe("APR Infissi · batch preflight persistente", () => {
       .toMatchObject({ productModule: "mixed" });
   });
 
-  it("migra il routing di un checkpoint storico senza rielaborare il caso", () => {
+  it("non migra il routing storico su resume e lo persiste solo su migrate", () => {
     const root = fixtureRoot();
     const batch = new PersistentAprInfissiBatchPreflight(root);
     batch.tick(new Date("2026-08-23T00:00:00Z"));
@@ -132,6 +137,17 @@ describe("APR Infissi · batch preflight persistente", () => {
 
     const resumed = new PersistentAprInfissiBatchPreflight(root);
     resumed.tick(new Date("2026-08-23T00:01:00Z"));
+    expect(resumed.snapshot()).toMatchObject({
+      revision: priorRevision,
+      items: [
+        { customerKey: "ready", state: priorStates[0] },
+        { customerKey: "blocked", state: priorStates[1] },
+      ],
+    });
+    expect(resumed.snapshot().items.every((item) => item.productModule === undefined)).toBe(true);
+    expect(resumed.snapshot().audit.some((event) => event.type === "routing_reconciled")).toBe(false);
+
+    resumed.reconcileDocumentedProductRouting("migrate", new Date("2026-08-23T00:02:00Z"));
     expect(resumed.snapshot()).toMatchObject({
       revision: priorRevision + 1,
       items: [

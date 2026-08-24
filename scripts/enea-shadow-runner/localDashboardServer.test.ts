@@ -87,6 +87,7 @@ describe("dashboard HTTP e supervisore persistente", () => {
     const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000 });
     const commonMigration = vi.spyOn(supervisor.crmLocalPreflight, "applyValidationRevision");
     const productMigration = vi.spyOn(supervisor.infissiBatchPreflight, "applyValidationRevision");
+    const routingMigration = vi.spyOn(supervisor.infissiBatchPreflight, "reconcileDocumentedProductRouting");
     const parserMigration = vi.spyOn(supervisor.crmDocumentAnalysis, "applyParserRevision");
     runningSupervisors.push(supervisor);
     await supervisor.start();
@@ -94,6 +95,7 @@ describe("dashboard HTTP e supervisore persistente", () => {
     expect(supervisor.checkpointMode).toBe("resume");
     expect(commonMigration).not.toHaveBeenCalled();
     expect(productMigration).not.toHaveBeenCalled();
+    expect(routingMigration).not.toHaveBeenCalled();
     expect(parserMigration).not.toHaveBeenCalled();
   });
   it("un rollback MIGRATE conserva gli avanzamenti RESUME gia persistiti", async () => {

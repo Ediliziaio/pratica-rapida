@@ -61,9 +61,9 @@ describe("APR Infissi · batch preflight persistente", () => {
     checkpoint.sourceFingerprint = createHash("sha256").update(JSON.stringify(acquisition.items.map((item: Record<string, unknown>) => [item.customerKey, item.practiceId, item.responseSha256]))).digest("hex");
     writeJson(batch.checkpointPath, checkpoint);
 
-    const beforeResume = batch.snapshot();
+    const beforeResume = readFileSync(batch.checkpointPath, "utf8");
     batch.reconcileDocumentedProductRouting("resume", new Date("2026-08-23T00:01:00Z"));
-    expect(batch.snapshot()).toEqual(beforeResume);
+    expect(readFileSync(batch.checkpointPath, "utf8")).toBe(beforeResume);
     expect(batch.snapshot().items.map((item) => item.customerKey)).toEqual(["ready", "blocked", "persiana"]);
 
     batch.reconcileDocumentedProductRouting("migrate", new Date("2026-08-23T00:02:00Z"));
@@ -136,7 +136,9 @@ describe("APR Infissi · batch preflight persistente", () => {
     writeJson(batch.checkpointPath, historical);
 
     const resumed = new PersistentAprInfissiBatchPreflight(root);
+    const checkpointBytesBeforeResume = readFileSync(batch.checkpointPath, "utf8");
     resumed.tick(new Date("2026-08-23T00:01:00Z"));
+    expect(readFileSync(batch.checkpointPath, "utf8")).toBe(checkpointBytesBeforeResume);
     expect(resumed.snapshot()).toMatchObject({
       revision: priorRevision,
       items: [

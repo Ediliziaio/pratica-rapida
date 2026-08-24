@@ -13,6 +13,7 @@ import {
   observeAprDraftExecution,
   observeAprInfissiBatchProductGate,
   observeAprInfissiMappingProductGate,
+  observeAprScreeningProductGate,
 } from "./caseStatusObservationAdapters";
 import { createAprNotApplicableObservation, deriveAprCaseSourcePolicy, observeAprStructuredBlockers } from "./aprCaseSourcePolicy";
 
@@ -159,12 +160,16 @@ export function collectAprCaseObservations(
     const mapping = observeAprInfissiMappingProductGate(bundle.infissiMapping.state, at);
     if (mapping) observations.push(mapping);
   }
+  const commonObservation = observations.find((item) => item.source === "preflight_common");
+  if (commonItem && commonObservation?.status === "PASS" && !observations.some((item) => item.source === "product_gate")) {
+    const screening = observeAprScreeningProductGate(commonItem, at);
+    if (screening) observations.push(screening);
+  }
   const deepItem = bundle.deepReview?.state.items.find((item) => item.customerKey === customerKey);
   if (deepItem) observations.push(observeAprDeepReview(deepItem, at));
   const executionItem = bundle.execution?.state.items.find((item) => item.customerKey === customerKey);
   if (executionItem) observations.push(observeAprDraftExecution(executionItem, at));
 
-  const commonObservation = observations.find((item) => item.source === "preflight_common");
   const productObservations = observations.filter((item) => item.source === "product_gate");
   if (commonObservation && productObservations.length <= 1) {
     const policy = deriveAprCaseSourcePolicy({ commonStatus: commonObservation.status, productStatus: productObservations[0]?.status,

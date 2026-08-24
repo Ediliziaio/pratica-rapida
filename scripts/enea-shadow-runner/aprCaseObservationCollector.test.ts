@@ -6,6 +6,7 @@ import type { AprEneaDraftExecutionState } from "./eneaDraftExecution";
 import { canonicalSha256 } from "./aprMonotonicArtifacts";
 import { computeAprInputCorpusFingerprint } from "./aprCorpusFingerprint";
 import { collectAprCaseObservations, type AprCaseObservationCheckpointBundle, type AprReplayRunManifest } from "./aprCaseObservationCollector";
+import { resolveAprCaseStatusTruth } from "./aprCaseStatusResolver";
 
 const sha = (character: string) => character.repeat(64);
 const inputCorpusFingerprint = computeAprInputCorpusFingerprint({ corpusVersion: "fixed-v1", cases: Array.from({ length: 40 }, (_, index) => ({ customerKey: `fixture-${index + 1}`, dossierSha256: sha("a"), originalDocumentSetSha256: sha("b") })) });
@@ -15,6 +16,12 @@ const common = (state: "ready_local_plan" | "blocked_case" = "ready_local_plan")
 const batch = () => ({ runId: manifest.runId, corpusFingerprint: corpus, state: { sourceFingerprint: sha("d"), items: [{ customerKey: "fixture-1", state: "ready_local_plan", report: { outcome: "ready_local_plan", blockers: [] } }] } as unknown as AprInfissiBatchPreflightState });
 const execution = () => ({ runId: manifest.runId, corpusFingerprint: corpus, state: { sourceFingerprint: sha("e"), items: [{ customerKey: "fixture-1", state: "saved", operatorGateBlockers: [], uncertainPageSave: null, reason: "saved" }] } as unknown as AprEneaDraftExecutionState });
 const bundle = (overrides: Partial<AprCaseObservationCheckpointBundle> = {}): AprCaseObservationCheckpointBundle => ({ manifest, common: common(), infissiBatch: batch(), ...overrides });
+const screeningCommon = (withPortalGate = true) => ({ runId: manifest.runId, corpusFingerprint: corpus, state: { sourceFingerprint: sha("c"), items: [{
+  customerKey: "fixture-1", state: "ready_local_plan", report: {
+    outcome: "ready_local_plan", blockers: [], products: [{ rowId: "screening-1" }],
+    ...(withPortalGate ? { eneaPayloadAudit: { draftReady: true, blockers: [], portalGate: { status: "ready", screeningItemCount: 1, supportedPages: ["Schermature solari"] } } } : {}),
+  },
+}] } as unknown as AprCrmLocalPreflightState });
 
 describe("APR local case observation collector", () => {
   it("raccoglie un caso READY e genera le fonti non applicabili", () => {
@@ -32,6 +39,18 @@ describe("APR local case observation collector", () => {
   it("raccoglie un caso COMPLETED", () => {
     const result = collectAprCaseObservations(bundle({ execution: execution() }), "fixture-1");
     expect(result.observations).toEqual(expect.arrayContaining([expect.objectContaining({ source: "execution", status: "COMPLETED" })]));
+  });
+
+  it("raccoglie il gate Schermature dal preflight comune e risolve READY", () => {
+    const result = collectAprCaseObservations(bundle({ common: screeningCommon(), infissiBatch: undefined }), "fixture-1");
+    expect(result.observations).toEqual(expect.arrayContaining([expect.objectContaining({ source: "product_gate", status: "PASS" })]));
+    expect(resolveAprCaseStatusTruth(result.observations)).toMatchObject({ status: "READY", matchedTransitionId: "ready_before_execution" });
+  });
+
+  it("mantiene MISSING_SOURCE quando il gate Schermature non è stato realmente raggiunto", () => {
+    const result = collectAprCaseObservations(bundle({ common: screeningCommon(false), infissiBatch: undefined }), "fixture-1");
+    expect(result.observations.some((item) => item.source === "product_gate")).toBe(false);
+    expect(resolveAprCaseStatusTruth(result.observations)).toMatchObject({ status: "INCONSISTENT", reason: expect.stringContaining("product_gate") });
   });
 
   it("conserva entrambi i gate prodotto duplicati senza scegliere per priorità", () => {

@@ -33,6 +33,30 @@ export function observeAprCommonPreflight(item: AprCrmLocalPreflightItem, input:
     blockerCodes, classification: status === "BLOCKED" ? "UNCLASSIFIED" : "NONE", fingerprintSource: { state: item.state, report: item.report } });
 }
 
+export function observeAprScreeningProductGate(item: AprCrmLocalPreflightItem, input: ObservationContext): AprCaseStatusObservation | null {
+  context(input);
+  const report = item.report;
+  const payloadAudit = report?.eneaPayloadAudit;
+  const portalGate = payloadAudit?.portalGate;
+  if (!report || !payloadAudit || !portalGate) return null;
+
+  const screeningIdentified = report.products.length > 0
+    || portalGate.screeningItemCount > 0
+    || portalGate.supportedPages.includes("Schermature solari");
+  if (!screeningIdentified) return null;
+
+  const blockerCodes = [...new Set(payloadAudit.blockers.map((blocker) => blocker.code))].sort();
+  const status = portalGate.status === "ready"
+    ? item.state === "ready_local_plan"
+      && report.outcome === "ready_local_plan"
+      && payloadAudit.draftReady
+      && blockerCodes.length === 0 ? "PASS" : "INCONSISTENT"
+    : blockerCodes.length > 0 ? "BLOCKED" : "INCONSISTENT";
+  return observation({ source: "product_gate", stage: "PRODUCT_GATE", customerKey: item.customerKey, ...input, status,
+    blockerCodes, classification: status === "BLOCKED" ? "UNCLASSIFIED" : "NONE",
+    fingerprintSource: { state: item.state, outcome: report.outcome, products: report.products, payloadAudit } });
+}
+
 export function observeAprInfissiBatchProductGate(item: AprInfissiBatchItem, input: ObservationContext): AprCaseStatusObservation {
   context(input);
   const blockerCodes = [...new Set(item.report?.blockers.map((blocker) => blocker.code) ?? [])].sort();

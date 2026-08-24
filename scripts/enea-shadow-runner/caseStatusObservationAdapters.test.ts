@@ -3,7 +3,7 @@ import type { AprCrmLocalPreflightItem } from "./crmLocalPreflight";
 import type { AprInfissiBatchItem } from "./infissiBatchPreflight";
 import type { DeepReviewItem } from "./deepCaseReview";
 import type { AprEneaDraftExecutionItem } from "./eneaDraftExecution";
-import { observeAprCommonPreflight, observeAprDeepReview, observeAprDraftExecution, observeAprInfissiBatchProductGate } from "./caseStatusObservationAdapters";
+import { observeAprCommonPreflight, observeAprDeepReview, observeAprDraftExecution, observeAprInfissiBatchProductGate, observeAprScreeningProductGate } from "./caseStatusObservationAdapters";
 
 const at = { runId: "run-fixed-40-v1", observedAt: "2026-08-23T20:00:00.000Z" };
 
@@ -16,6 +16,29 @@ describe("APR case status observation adapters", () => {
   it("emette BLOCKED dal gate prodotto soltanto con blocker persistiti", () => {
     const item = { customerKey: "fixture-b", state: "blocked_case", report: { outcome: "blocked_case", blockers: [{ code: "fixture_blocker" }] } } as unknown as AprInfissiBatchItem;
     expect(observeAprInfissiBatchProductGate(item, at)).toMatchObject({ source: "product_gate", stage: "PRODUCT_GATE", status: "BLOCKED", blockerCodes: ["fixture_blocker"] });
+  });
+
+  it("emette PASS dal portal gate Schermature realmente pronto", () => {
+    const item = { customerKey: "screening-ready", state: "ready_local_plan", report: {
+      outcome: "ready_local_plan", blockers: [], products: [{ rowId: "screening-1" }],
+      eneaPayloadAudit: { draftReady: true, blockers: [], portalGate: { status: "ready", screeningItemCount: 1, supportedPages: ["Schermature solari"] } },
+    } } as unknown as AprCrmLocalPreflightItem;
+    expect(observeAprScreeningProductGate(item, at)).toMatchObject({ source: "product_gate", stage: "PRODUCT_GATE", status: "PASS", blockerCodes: [] });
+  });
+
+  it("non inventa il gate Schermature quando lo stage non è presente", () => {
+    const item = { customerKey: "screening-not-reached", state: "ready_local_plan", report: {
+      outcome: "ready_local_plan", blockers: [], products: [{ rowId: "screening-1" }],
+    } } as unknown as AprCrmLocalPreflightItem;
+    expect(observeAprScreeningProductGate(item, at)).toBeNull();
+  });
+
+  it("preserva un portal gate Schermature bloccato senza convertirlo in PASS", () => {
+    const item = { customerKey: "screening-blocked", state: "blocked_case", report: {
+      outcome: "blocked_case", blockers: [{ code: "draft_payload_mapping_incomplete" }], products: [{ rowId: "screening-1" }],
+      eneaPayloadAudit: { draftReady: false, blockers: [{ code: "missing-screening-field" }], portalGate: { status: "blocked", screeningItemCount: 0, supportedPages: [] } },
+    } } as unknown as AprCrmLocalPreflightItem;
+    expect(observeAprScreeningProductGate(item, at)).toMatchObject({ source: "product_gate", status: "BLOCKED", blockerCodes: ["missing-screening-field"] });
   });
 
   it("preserva la classificazione tecnica della deep review", () => {

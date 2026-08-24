@@ -176,6 +176,20 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     expect(() => prepareVerifiedAprCohortLaunchAgents(guardAprInstallation(verified), mismatchedReceipt, { ...options, installDirectory: path.join(value.root, "mismatched") })).toThrow(/certificate_mismatch/);
   });
 
+  it("rifiuta un bundle installato manomesso dopo la promozione", () => {
+    const value = fixture(); const verified = verifyPreDeployCertificate(value.certificatePath);
+    const promoted = promoteAprBundles(verified, { attemptId: "tampered-installed-bundle" });
+    const worker = promoted.installed.find((item) => item.role === "worker"); if (!worker) throw new Error("expected_worker_bundle");
+    writeFileSync(worker.installedPath, "// tampered after promotion\n");
+    expect(() => prepareVerifiedAprCohortLaunchAgents(guardAprInstallation(verified), promoted.receipt, {
+      cohortNumber: 61,
+      stateDirectory: path.join(value.root, "tampered-state"),
+      installDirectory: path.join(value.root, "tampered-plist-staging"),
+      nodeExecutable: process.execPath,
+      dashboardPort: 4493,
+    })).toThrow(/installed_bundle_hash_mismatch:worker/);
+  });
+
   it("non riattiva i servizi se trova una receipt PASS scritta prima del crash", () => {
     const { value, promoted, prepared } = activationFixture("recovery-pass-receipt"); let activationCalls = 0;
     const controller: AprServiceController = { activate: (request) => { activationCalls += 1; return { observations: request.roles.map((role, index) => ({ role: role.role, pid: 700 + index, bundlePath: role.bundlePath, heartbeatAt: new Date(Date.parse(request.startedAt) + 1_000).toISOString(), checkpointRevision: 2 })), dashboardResponding: true }; }, rollback: () => ({ restored: true }) };

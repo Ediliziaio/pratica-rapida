@@ -1,4 +1,5 @@
 import { closeSync, constants, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, readlinkSync, realpathSync, renameSync, writeFileSync, accessSync } from "node:fs";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import type { AprBundlePromotionReceipt } from "./aprBundlePromotionReceipt";
 import { verifyImmutableArtifactEnvelope } from "./aprMonotonicArtifacts";
@@ -92,7 +93,13 @@ export function prepareVerifiedAprCohortLaunchAgents(guard: AprInstallationGuard
   if (!lstatSync(activeDirectory).isSymbolicLink()) throw new Error("apr_cohort_launch_agent_active_pointer_not_symlink");
   const activeTarget = readlinkSync(activeDirectory);
   if (activeTarget !== receipt.payload.activeTarget) throw new Error("apr_cohort_launch_agent_active_pointer_mismatch");
-  const resolveInstalledBundle = (role: "supervisor" | "worker" | "watchdog") => realpathSync(path.join(activeDirectory, bundleByRole.get(role)!.installedRef));
+  const resolveInstalledBundle = (role: "supervisor" | "worker" | "watchdog") => {
+    const bundle = bundleByRole.get(role)!;
+    const installedBundle = realpathSync(path.join(activeDirectory, bundle.installedRef));
+    const observedSha256 = createHash("sha256").update(readFileSync(installedBundle)).digest("hex");
+    if (observedSha256 !== bundle.installedSha256) throw new Error(`apr_cohort_launch_agent_installed_bundle_hash_mismatch:${role}`);
+    return installedBundle;
+  };
   const prepared = prepareAprCohortLaunchAgents({
     ...options,
     supervisorBundle: resolveInstalledBundle("supervisor"),

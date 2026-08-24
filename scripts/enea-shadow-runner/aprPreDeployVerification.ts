@@ -68,6 +68,7 @@ export function verifyPreDeployCertificate(certificatePath: string, options: { r
     verifiedAt: (options.now ?? new Date()).toISOString(),
     status: "VERIFIED_PASS",
   };
+  Object.freeze(result);
   verifiedResults.add(result);
   return result;
 }
@@ -81,6 +82,7 @@ export interface AprInstallationGuard {
 export function guardAprInstallation(verification: AprVerifiedPreDeployCertificate): AprInstallationGuard {
   if (!verification || verification.status !== "VERIFIED_PASS" || !verifiedResults.has(verification)) throw new Error("apr_installation_guard_unverified_certificate");
   const guard = { allowed: true as const, certificateArtifactId: verification.certificateArtifactId, verifiedAt: verification.verifiedAt };
+  Object.freeze(guard);
   installationGuards.add(guard);
   return guard;
 }

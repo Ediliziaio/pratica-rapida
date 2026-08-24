@@ -106,6 +106,30 @@ describe("APR independent pre-deploy verification and installation guard", () =>
     expect(() => guardAprInstallation(manual)).toThrow(/unverified_certificate/);
   });
 
+  it("congela il certificato verificato prima di registrarlo", () => {
+    const value = fixture(); const verification = verifyPreDeployCertificate(value.certificatePath);
+    expect(Object.isFrozen(verification)).toBe(true);
+    const originalArtifactId = verification.certificateArtifactId;
+    expect(() => { verification.certificateArtifactId = sha("9"); }).toThrow(TypeError);
+    expect(verification.certificateArtifactId).toBe(originalArtifactId);
+    expect(guardAprInstallation(verification)).toMatchObject({ certificateArtifactId: originalArtifactId });
+  });
+
+  it("congela la guardia d'installazione prima di registrarla", () => {
+    const value = fixture(); const verification = verifyPreDeployCertificate(value.certificatePath); const guard = guardAprInstallation(verification);
+    expect(Object.isFrozen(guard)).toBe(true);
+    const originalArtifactId = guard.certificateArtifactId;
+    expect(() => { guard.certificateArtifactId = sha("9"); }).toThrow(TypeError);
+    expect(guard.certificateArtifactId).toBe(originalArtifactId);
+    expect(() => prepareVerifiedAprCohortLaunchAgents(guard, promoteAprBundles(verification, { attemptId: "frozen-guard" }).receipt, {
+      cohortNumber: 61,
+      stateDirectory: path.join(value.root, "frozen-guard-state"),
+      installDirectory: path.join(value.root, "frozen-guard-plist-staging"),
+      nodeExecutable: process.execPath,
+      dashboardPort: 4493,
+    })).not.toThrow();
+  });
+
   it("riverifica lo staging immediatamente prima della promozione", () => {
     const value = fixture(); const verified = verifyPreDeployCertificate(value.certificatePath);
     expect(verifyAprStagingImmediatelyBeforePromotion(verified).observed).toHaveLength(3);

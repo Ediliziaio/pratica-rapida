@@ -78,7 +78,35 @@ export function observeAprInfissiBatchProductGate(item: AprInfissiBatchItem, inp
     : item.state === "blocked_case" && item.report?.outcome === "blocked_case" && blockerCodes.length > 0 ? "BLOCKED"
       : item.state === "queued" ? "IN_PROGRESS" : "INCONSISTENT";
   return observation({ source: "product_gate", stage: "PRODUCT_GATE", customerKey: item.customerKey, ...input, status,
-    blockerCodes, classification: status === "BLOCKED" ? "UNCLASSIFIED" : "NONE", productModule: "infissi", fingerprintSource: { state: item.state, report: item.report } });
+    blockerCodes, classification: status === "BLOCKED" ? "UNCLASSIFIED" : "NONE", productModule: item.productModule ?? "infissi", fingerprintSource: { state: item.state, productModule: item.productModule ?? "infissi", report: item.report } });
+}
+
+export function observeAprMixedProductGate(input: {
+  screening: AprCaseStatusObservation | null;
+  infissi: AprCaseStatusObservation;
+}, contextInput: ObservationContext): AprCaseStatusObservation {
+  context(contextInput);
+  const components = [input.screening, input.infissi].filter((item): item is AprCaseStatusObservation => Boolean(item));
+  const status = !input.screening ? "MISSING"
+    : components.some((item) => item.status === "INCONSISTENT" || item.status === "MISSING") ? "INCONSISTENT"
+      : components.some((item) => item.status === "BLOCKED") ? "BLOCKED"
+        : components.every((item) => item.status === "PASS") ? "PASS"
+          : components.some((item) => item.status === "IN_PROGRESS") ? "IN_PROGRESS" : "INCONSISTENT";
+  const blockerCodes = [...new Set(components.flatMap((item) => item.blockerCodes))].sort();
+  return observation({
+    source: "product_gate",
+    stage: "PRODUCT_GATE",
+    customerKey: input.infissi.customerKey,
+    ...contextInput,
+    status,
+    blockerCodes,
+    classification: status === "BLOCKED" ? "UNCLASSIFIED" : "NONE",
+    productModule: "mixed",
+    fingerprintSource: {
+      screening: input.screening?.sourceFingerprint ?? null,
+      infissi: input.infissi.sourceFingerprint,
+    },
+  });
 }
 
 export function observeAprInfissiMappingProductGate(state: AprInfissiLocalMappingState, input: ObservationContext): AprCaseStatusObservation | null {

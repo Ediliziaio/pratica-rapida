@@ -92,6 +92,56 @@ describe("APR Infissi · batch preflight persistente", () => {
     expect(batch.snapshot().progress.total).toBe(2);
   });
 
+  it("persiste mixed quando le fonti originarie documentano Infissi e avvolgibili", () => {
+    const root = fixtureRoot();
+    const acquisitionPath = path.join(root, "crm-acquisition", "checkpoint.json");
+    const acquisition = JSON.parse(readFileSync(acquisitionPath, "utf8"));
+    const dossierPath = path.join(root, "crm-acquisition", "dossiers", "armando-ranzoni.json");
+    writeJson(dossierPath, { row: { dati_form: { prodotto: {} } } });
+    acquisition.items.push({ customerKey: "armando-ranzoni", displayName: "Armando Ranzoni", practiceId: "practice-armando", dossierPath, state: "acquired", productModule: "infissi", responseSha256: "sha-armando" });
+    writeJson(acquisitionPath, acquisition);
+
+    const analysisPath = path.join(root, "crm-document-analysis", "checkpoint.json");
+    const analysis = JSON.parse(readFileSync(analysisPath, "utf8"));
+    const textPath = path.join(root, "crm-document-analysis", "text", "armando-ranzoni", "invoice.txt");
+    mkdirSync(path.dirname(textPath), { recursive: true });
+    writeFileSync(textPath, "Fattura per fornitura e posa di n. 1 tapparella in alluminio. Infissi PVC n. 1.");
+    analysis.items.push({ customerKey: "armando-ranzoni", documentKey: "armando-invoice", kind: "invoice", textPath, state: "analyzed" });
+    writeJson(analysisPath, analysis);
+
+    const batch = new PersistentAprInfissiBatchPreflight(root);
+    batch.tick(new Date("2026-08-23T00:00:00Z"));
+    expect(batch.snapshot().items.find((item) => item.customerKey === "armando-ranzoni"))
+      .toMatchObject({ productModule: "mixed" });
+  });
+
+  it("migra il routing di un checkpoint storico senza rielaborare il caso", () => {
+    const root = fixtureRoot();
+    const batch = new PersistentAprInfissiBatchPreflight(root);
+    batch.tick(new Date("2026-08-23T00:00:00Z"));
+    batch.tick(new Date("2026-08-23T00:00:10Z"));
+    batch.tick(new Date("2026-08-23T00:00:20Z"));
+    const checkpoint = batch.snapshot();
+    const priorRevision = checkpoint.revision;
+    const priorStates = checkpoint.items.map((item) => item.state);
+    const historical = {
+      ...checkpoint,
+      items: checkpoint.items.map(({ productModule: _productModule, ...item }) => item),
+    };
+    writeJson(batch.checkpointPath, historical);
+
+    const resumed = new PersistentAprInfissiBatchPreflight(root);
+    resumed.tick(new Date("2026-08-23T00:01:00Z"));
+    expect(resumed.snapshot()).toMatchObject({
+      revision: priorRevision + 1,
+      items: [
+        { customerKey: "ready", productModule: "infissi", state: priorStates[0] },
+        { customerKey: "blocked", productModule: "infissi", state: priorStates[1] },
+      ],
+      audit: expect.arrayContaining([expect.objectContaining({ type: "routing_reconciled" })]),
+    });
+  });
+
   it("riprende dopo riavvio, isola il blocker e non perde ne duplica la coda", () => {
     const root = fixtureRoot();
     const first = new PersistentAprInfissiBatchPreflight(root);

@@ -59,6 +59,27 @@ describe("APR local case observation collector", () => {
     expect(collectAprCaseObservations(duplicated, "fixture-1").observations.filter((item) => item.source === "product_gate")).toHaveLength(2);
   });
 
+  it("pubblica un solo gate autorevole per Armando quando le fonti instradano un prodotto misto", () => {
+    const commonState = screeningCommon();
+    commonState.state.items[0].customerKey = "fixture-1";
+    const mixedBatch = batch();
+    mixedBatch.state.items[0].productModule = "mixed";
+    const result = collectAprCaseObservations(bundle({ common: commonState, infissiBatch: mixedBatch }), "fixture-1");
+    expect(result.observations.filter((item) => item.source === "product_gate")).toEqual([
+      expect.objectContaining({ productModule: "mixed", status: "PASS", blockerCodes: [] }),
+    ]);
+  });
+
+  it("non usa il solo gate Infissi quando il routing misto non ha raggiunto Schermature", () => {
+    const mixedBatch = batch();
+    mixedBatch.state.items[0].productModule = "mixed";
+    const result = collectAprCaseObservations(bundle({ common: screeningCommon(false), infissiBatch: mixedBatch }), "fixture-1");
+    expect(result.observations.filter((item) => item.source === "product_gate")).toEqual([
+      expect.objectContaining({ productModule: "mixed", status: "MISSING" }),
+    ]);
+    expect(resolveAprCaseStatusTruth(result.observations)).toMatchObject({ status: "INCONSISTENT" });
+  });
+
   it("rifiuta checkpoint con runId diverso", () => {
     const result = collectAprCaseObservations(bundle({ common: { ...common(), runId: "other" } }), "fixture-1");
     expect(result).toMatchObject({ status: "REJECTED", observations: [], errors: ["checkpoint_run_id_mismatch:common"] });

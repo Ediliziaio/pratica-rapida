@@ -13,6 +13,7 @@ import {
   observeAprDraftExecution,
   observeAprInfissiBatchProductGate,
   observeAprInfissiMappingProductGate,
+  observeAprMixedProductGate,
   observeAprScreeningProductGate,
 } from "./caseStatusObservationAdapters";
 import { createAprNotApplicableObservation, deriveAprCaseSourcePolicy, observeAprStructuredBlockers } from "./aprCaseSourcePolicy";
@@ -155,7 +156,13 @@ export function collectAprCaseObservations(
   if (commonItem) observations.push(observeAprCommonPreflight(commonItem, at));
   else errors.push("case_missing_from_common_preflight");
   const batchItem = bundle.infissiBatch?.state.items.find((item) => item.customerKey === customerKey);
-  if (batchItem) observations.push(observeAprInfissiBatchProductGate(batchItem, at));
+  if (batchItem) {
+    const infissiGate = observeAprInfissiBatchProductGate(batchItem, at);
+    const productGate = infissiGate.productModule === "mixed"
+      ? observeAprMixedProductGate({ screening: commonItem ? observeAprScreeningProductGate(commonItem, at) : null, infissi: infissiGate }, at)
+      : infissiGate;
+    observations.push(productGate);
+  }
   if (bundle.infissiMapping?.state.item?.customerKey === customerKey) {
     const mapping = observeAprInfissiMappingProductGate(bundle.infissiMapping.state, at);
     if (mapping) observations.push(mapping);

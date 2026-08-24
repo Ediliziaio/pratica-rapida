@@ -33,6 +33,7 @@ export interface AprInfissiBatchItem {
   displayName: string;
   practiceId: string;
   dossierPath: string;
+  productModule?: "infissi" | "mixed";
   state: "queued" | "ready_local_plan" | "blocked_case";
   startedAt: string | null;
   endedAt: string | null;
@@ -274,6 +275,7 @@ export class PersistentAprInfissiBatchPreflight {
         displayName: text(item.displayName),
         practiceId: text(item.practiceId),
         dossierPath: text(item.dossierPath),
+        productModule: routingByKey.get(text(item.customerKey))?.resolvedModule === "mixed" ? "mixed" : "infissi",
         state: "queued",
         startedAt: null,
         endedAt: null,
@@ -293,6 +295,31 @@ export class PersistentAprInfissiBatchPreflight {
         audit: [...state.audit, { revision: state.revision + 1, at: now.toISOString(), type: "batch_prepared", customerKey: null, reason, appliedRuleIds: [...SYSTEM_RULE_IDS] }],
       });
     }
+    if (state.sourceFingerprint === fingerprint) {
+      const routedItems = state.items.map((item) => ({
+        ...item,
+        productModule: routingByKey.get(item.customerKey)?.resolvedModule === "mixed" ? "mixed" as const : "infissi" as const,
+      }));
+      const routingChanged = routedItems.some((item, index) => item.productModule !== state.items[index]?.productModule);
+      if (routingChanged) {
+        const revision = state.revision + 1;
+        const reason = "Routing prodotto persistito sui dossier Infissi esistenti senza mutare fonti, esiti o coda.";
+        state = this.write({
+          ...state,
+          revision,
+          items: routedItems,
+          reason,
+          audit: [...state.audit, {
+            revision,
+            at: now.toISOString(),
+            type: "routing_reconciled",
+            customerKey: null,
+            reason,
+            appliedRuleIds: [...SYSTEM_RULE_IDS, USER_AUTHORIZED_RULE_IDS.documentedProductModuleOverLabel],
+          }],
+        });
+      }
+    }
     if (state.sourceFingerprint !== fingerprint) {
       // A deployment can legitimately change only the module membership (for
       // example a dossier labelled Infissi whose invoice documents persiane).
@@ -304,17 +331,23 @@ export class PersistentAprInfissiBatchPreflight {
       if (previousFingerprint !== state.sourceFingerprint) throw new Error("infissi_batch_source_set_immutable");
 
       const previousByKey = new Map(state.items.map((item) => [item.customerKey, item]));
-      const items: AprInfissiBatchItem[] = acquired.map((item) => previousByKey.get(text(item.customerKey)) ?? ({
-        customerKey: text(item.customerKey),
-        displayName: text(item.displayName),
-        practiceId: text(item.practiceId),
-        dossierPath: text(item.dossierPath),
-        state: "queued",
-        startedAt: null,
-        endedAt: null,
-        reason: "In coda per preflight Infissi dopo riconciliazione del routing documentale.",
-        report: null,
-      }));
+      const items: AprInfissiBatchItem[] = acquired.map((item) => {
+        const customerKey = text(item.customerKey);
+        const productModule = routingByKey.get(customerKey)?.resolvedModule === "mixed" ? "mixed" as const : "infissi" as const;
+        const previous = previousByKey.get(customerKey);
+        return previous ? { ...previous, productModule } : {
+          customerKey,
+          displayName: text(item.displayName),
+          practiceId: text(item.practiceId),
+          dossierPath: text(item.dossierPath),
+          productModule,
+          state: "queued",
+          startedAt: null,
+          endedAt: null,
+          reason: "In coda per preflight Infissi dopo riconciliazione del routing documentale.",
+          report: null,
+        };
+      });
       const revision = state.revision + 1;
       const added = items.filter((item) => !previousByKey.has(item.customerKey)).length;
       const removed = state.items.filter((item) => !items.some((candidate) => candidate.customerKey === item.customerKey)).length;

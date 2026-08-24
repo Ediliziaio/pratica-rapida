@@ -3,7 +3,7 @@ import type { AprCrmLocalPreflightItem } from "./crmLocalPreflight";
 import type { AprInfissiBatchItem } from "./infissiBatchPreflight";
 import type { DeepReviewItem } from "./deepCaseReview";
 import type { AprEneaDraftExecutionItem } from "./eneaDraftExecution";
-import { observeAprCommonPreflight, observeAprDeepReview, observeAprDraftExecution, observeAprInfissiBatchProductGate, observeAprScreeningProductGate } from "./caseStatusObservationAdapters";
+import { observeAprCommonPreflight, observeAprDeepReview, observeAprDraftExecution, observeAprInfissiBatchProductGate, observeAprMixedProductGate, observeAprScreeningProductGate } from "./caseStatusObservationAdapters";
 
 const at = { runId: "run-fixed-40-v1", observedAt: "2026-08-23T20:00:00.000Z" };
 
@@ -16,6 +16,29 @@ describe("APR case status observation adapters", () => {
   it("emette BLOCKED dal gate prodotto soltanto con blocker persistiti", () => {
     const item = { customerKey: "fixture-b", state: "blocked_case", report: { outcome: "blocked_case", blockers: [{ code: "fixture_blocker" }] } } as unknown as AprInfissiBatchItem;
     expect(observeAprInfissiBatchProductGate(item, at)).toMatchObject({ source: "product_gate", stage: "PRODUCT_GATE", status: "BLOCKED", blockerCodes: ["fixture_blocker"] });
+  });
+
+  it("compone una fornitura documentata mista in un solo gate prodotto", () => {
+    const screeningItem = { customerKey: "armando-ranzoni", state: "blocked_case", report: {
+      outcome: "blocked_case", blockers: [{ code: "screening_blocker" }], products: [{ rowId: "screening-1" }],
+      eneaPayloadAudit: { draftReady: false, blockers: [{ code: "screening_blocker" }], portalGate: { status: "blocked", screeningItemCount: 1, supportedPages: ["Schermature solari"] } },
+    } } as unknown as AprCrmLocalPreflightItem;
+    const infissiItem = { customerKey: "armando-ranzoni", productModule: "mixed", state: "blocked_case", report: {
+      outcome: "blocked_case", blockers: [{ code: "infissi_blocker" }],
+    } } as unknown as AprInfissiBatchItem;
+    const result = observeAprMixedProductGate({
+      screening: observeAprScreeningProductGate(screeningItem, at),
+      infissi: observeAprInfissiBatchProductGate(infissiItem, at),
+    }, at);
+    expect(result).toMatchObject({ source: "product_gate", productModule: "mixed", status: "BLOCKED", blockerCodes: ["infissi_blocker", "screening_blocker"] });
+  });
+
+  it("resta fail-closed se al routing misto manca il gate Schermature", () => {
+    const infissiItem = { customerKey: "mixed-missing-screening", productModule: "mixed", state: "ready_local_plan", report: {
+      outcome: "ready_local_plan", blockers: [],
+    } } as unknown as AprInfissiBatchItem;
+    expect(observeAprMixedProductGate({ screening: null, infissi: observeAprInfissiBatchProductGate(infissiItem, at) }, at))
+      .toMatchObject({ productModule: "mixed", status: "MISSING", blockerCodes: [] });
   });
 
   it("emette PASS dal portal gate Schermature realmente pronto", () => {

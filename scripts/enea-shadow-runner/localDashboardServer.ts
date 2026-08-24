@@ -801,7 +801,6 @@ export class LocalDashboardSupervisor {
       this.crmLiveProcessing.initialize(now);
       this.eneaDraftExecution.initialize(now);
       this.checkpointMigration.recover(now);
-      if (this.checkpointMigrationPending) this.activeCheckpointMigration = this.checkpointMigration.begin(now);
       this.shadowComparison.initialize(now);
       this.shadowControl.initialize(now);
       const snapshot = supervise(state, now);
@@ -831,6 +830,21 @@ export class LocalDashboardSupervisor {
         this.crmDocumentAnalysis.prepare(documents.items.filter((item) => item.state === "downloaded" && item.localPath && item.responseSha256)
           .map((item) => ({ documentKey: item.documentKey, customerKey: item.customerKey, kind: item.kind, localPath: item.localPath!, responseSha256: item.responseSha256! })), documents.sourceSetFingerprint, now);
       }
+      // RESUME is deliberately completed before the migration transaction begins.
+      // A migration rollback must restore this post-resume generation, never undo
+      // legitimate queue progress made by tick() during startup.
+      const resumeAnalyzed = this.crmDocumentAnalysis.snapshot(now);
+      if (acquired.status === "completed" && acquired.progress.acquired > 0 && resumeAnalyzed.status === "completed" && resumeAnalyzed.sourceFingerprint) {
+        const resumePreflightFingerprint = createHash("sha256").update(JSON.stringify({ candidateFingerprint: acquired.candidateFingerprint, sourceFingerprint: resumeAnalyzed.sourceFingerprint, parserRevisionsApplied: resumeAnalyzed.parserRevisionsApplied })).digest("hex");
+        const resumePreflightBefore = this.crmLocalPreflight.snapshot(now);
+        if (!resumePreflightBefore.sourceFingerprint) {
+          this.crmLocalPreflight.prepare(acquired.items.filter((item) => item.state === "acquired"), resumePreflightFingerprint, now);
+        }
+        this.crmLocalPreflight.tick(now);
+      }
+      this.infissiBatchPreflight.tick(now);
+      prepareEneaDraftExecutionIfAbsent(this.eneaDraftExecution, this.crmLocalPreflight.snapshot(now), now, this.infissiBatchPreflight);
+      if (this.checkpointMigrationPending) this.activeCheckpointMigration = this.checkpointMigration.begin(now);
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v3-ciotta-and-historical-exclusion", now);
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v4-embedded-copy-deduplication", now);
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v5-rinaldi-ghitti-identity", now);
@@ -899,9 +913,7 @@ export class LocalDashboardSupervisor {
         if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-vertical-totals-and-table-identity-v1", now);
         if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-bank-transfer-invoice-authority-v12", now);
         if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-enea-2026-june25-deadline-window-v13", now);
-        this.infissiBatchPreflight.tick(now);
       }
-      prepareEneaDraftExecutionIfAbsent(this.eneaDraftExecution, this.crmLocalPreflight.snapshot(now), now, this.infissiBatchPreflight);
       if (this.activeCheckpointMigration) {
         this.checkpointMigration.commit(this.activeCheckpointMigration.transactionId, now);
         this.activeCheckpointMigration = null;

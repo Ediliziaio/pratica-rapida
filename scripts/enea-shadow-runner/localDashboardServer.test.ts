@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -95,6 +95,33 @@ describe("dashboard HTTP e supervisore persistente", () => {
     expect(commonMigration).not.toHaveBeenCalled();
     expect(productMigration).not.toHaveBeenCalled();
     expect(parserMigration).not.toHaveBeenCalled();
+  });
+  it("un rollback MIGRATE conserva gli avanzamenti RESUME gia persistiti", async () => {
+    const directory = temporaryStateDirectory();
+    new PersistentEneaRunner(directory).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);
+    const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000, checkpointMode: "migrate" });
+    const originalTick = supervisor.infissiBatchPreflight.tick.bind(supervisor.infissiBatchPreflight);
+    vi.spyOn(supervisor.infissiBatchPreflight, "tick").mockImplementation((now) => {
+      const state = originalTick(now);
+      const persisted = JSON.parse(readFileSync(supervisor.infissiBatchPreflight.checkpointPath, "utf8"));
+      persisted.resumeProof = "post-resume-before-migrate";
+      writeFileSync(supervisor.infissiBatchPreflight.checkpointPath, `${JSON.stringify(persisted, null, 2)}\n`);
+      return state;
+    });
+    const originalRevision = supervisor.crmDocumentAnalysis.applyParserRevision.bind(supervisor.crmDocumentAnalysis);
+    let migrationCalls = 0;
+    vi.spyOn(supervisor.crmDocumentAnalysis, "applyParserRevision").mockImplementation((revision, now) => {
+      migrationCalls += 1;
+      if (migrationCalls === 2) throw new Error("simulated_migration_crash");
+      return originalRevision(revision, now);
+    });
+
+    await expect(supervisor.start()).rejects.toThrow("simulated_migration_crash");
+
+    const postRollbackResume = JSON.parse(readFileSync(supervisor.infissiBatchPreflight.checkpointPath, "utf8"));
+    expect(postRollbackResume.resumeProof).toBe("post-resume-before-migrate");
+    expect(supervisor.crmDocumentAnalysis.snapshot().parserRevisionsApplied).not.toContain("invoice-parser-v3-ciotta-and-historical-exclusion");
+    expect(supervisor.checkpointMigration.load()).toMatchObject({ status: "rolled_back" });
   });
   it("preserva un checkpoint ENEA immutabile quando il preflight read-only viene revisionato", () => {
     const directory = temporaryStateDirectory();

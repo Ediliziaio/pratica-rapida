@@ -36,7 +36,7 @@ import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import { PersistentAprDeepCaseReview } from "./deepCaseReview";
 import { infissiExecutionGateReady } from "./infissiExecutionGate";
 import { APR_CASE_TRUTH_COMPARISON_VERSION, APR_CASE_TRUTH_COMPARISON_SUMMARY_VERSION, compareAprParallelCaseTruth, PersistentAprCaseTruthComparisonStore } from "./aprCaseTruthComparisonStore";
-import { collectAprCurrentCaseObservations } from "./aprCaseObservationCollector";
+import { collectAprCurrentCaseObservations, type AprCurrentCaseObservationSources } from "./aprCaseObservationCollector";
 import { resolveAprCaseStatusTruth } from "./aprCaseStatusResolver";
 import { resolveAprCaseTruthMode, type AprCaseTruthMode } from "./aprCaseTruthMode";
 import { supervise } from "./supervisor";
@@ -54,6 +54,13 @@ export interface LocalDashboardSupervisorOptions {
   notificationSink?: AprLocalNotificationSink;
   crmAuth?: PersistentAprCrmAuth;
   caseTruthMode?: string;
+  caseTruthComparisonScheduler?: (task: () => void) => void;
+}
+
+interface AprCaseTruthRequestSnapshot {
+  observedAt: string;
+  runId: string;
+  sources: AprCurrentCaseObservationSources;
 }
 
 export function shouldPollCrmIncoming(rootDirectory: string) {
@@ -179,6 +186,7 @@ export class LocalDashboardSupervisor {
   readonly infissiBatchPreflight: PersistentAprInfissiBatchPreflight;
   readonly deepCaseReview: PersistentAprDeepCaseReview;
   readonly caseTruthMode: AprCaseTruthMode;
+  readonly caseTruthComparisonScheduler: (task: () => void) => void;
   private server: Server | null = null;
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private runtime: SupervisorRuntimeState | null = null;
@@ -201,6 +209,7 @@ export class LocalDashboardSupervisor {
     this.instanceId = options.instanceId ?? `supervisor-${process.pid}-${crypto.randomUUID()}`;
     this.now = options.now ?? (() => new Date());
     this.caseTruthMode = resolveAprCaseTruthMode(options.caseTruthMode ?? process.env.APR_CASE_TRUTH_MODE);
+    this.caseTruthComparisonScheduler = options.caseTruthComparisonScheduler ?? ((task) => setImmediate(task));
     this.journal = new JournalStore(rootDirectory);
     this.runtimeStore = new SupervisorRuntimeStore(rootDirectory);
     this.readinessStore = new PersistentReadinessLease(rootDirectory);
@@ -228,37 +237,45 @@ export class LocalDashboardSupervisor {
     this.deepCaseReview = new PersistentAprDeepCaseReview(rootDirectory);
   }
 
-  private legacyCaseTruth(customerKey: string): AprCaseStatusTruth | null {
-    const item = this.crmLocalPreflight.snapshot(this.now()).items.find((candidate) => candidate.customerKey === customerKey);
-    const infissiBatchItem = this.infissiBatchPreflight.snapshot(this.now()).items.find((candidate) => candidate.customerKey === customerKey);
-    const infissiTruth = deriveAprInfissiMappingCaseStatusTruth(this.infissiLocalMapping.load(this.now()));
+  private captureCaseTruthRequestSnapshot(): AprCaseTruthRequestSnapshot {
+    const capturedAt = this.now();
+    return {
+      observedAt: capturedAt.toISOString(),
+      runId: `dashboard-${crypto.randomUUID()}`,
+      sources: {
+        common: this.crmLocalPreflight.snapshot(capturedAt),
+        infissiBatch: this.infissiBatchPreflight.snapshot(capturedAt),
+        infissiMapping: this.infissiLocalMapping.load(capturedAt),
+        deepReview: this.deepCaseReview.snapshot(capturedAt),
+        execution: this.eneaDraftExecution.snapshot(capturedAt),
+      },
+    };
+  }
+
+  private legacyCaseTruth(customerKey: string, captured: AprCaseTruthRequestSnapshot): AprCaseStatusTruth | null {
+    const item = captured.sources.common.items.find((candidate) => candidate.customerKey === customerKey);
+    const infissiBatchItem = captured.sources.infissiBatch.items.find((candidate) => candidate.customerKey === customerKey);
+    const infissiTruth = deriveAprInfissiMappingCaseStatusTruth(captured.sources.infissiMapping);
     if (!item && !infissiBatchItem && infissiTruth?.customerKey !== customerKey) return null;
     const preflightTruth = infissiBatchItem
       ? deriveAprInfissiBatchCaseStatusTruth(infissiBatchItem)
       : infissiTruth?.customerKey === customerKey
         ? infissiTruth
         : deriveAprCaseStatusTruth(item!);
-    const executionItem = this.eneaDraftExecution.snapshot(this.now()).items.find((candidate) => candidate.customerKey === customerKey);
+    const executionItem = captured.sources.execution.items.find((candidate) => candidate.customerKey === customerKey);
     return reconcileAprCaseTruthWithDraftExecution(preflightTruth, executionItem);
   }
 
-  private unifiedCaseTruth(customerKey: string) {
-    const observedAt = this.now().toISOString();
-    const collected = collectAprCurrentCaseObservations({ customerKey, observedAt, runId: `dashboard-${crypto.randomUUID()}`, sources: {
-      common: this.crmLocalPreflight.snapshot(this.now()),
-      infissiBatch: this.infissiBatchPreflight.snapshot(this.now()),
-      infissiMapping: this.infissiLocalMapping.load(this.now()),
-      deepReview: this.deepCaseReview.snapshot(this.now()),
-      execution: this.eneaDraftExecution.snapshot(this.now()),
-    } });
+  private unifiedCaseTruth(customerKey: string, captured: AprCaseTruthRequestSnapshot) {
+    const collected = collectAprCurrentCaseObservations({ customerKey, observedAt: captured.observedAt, runId: captured.runId, sources: captured.sources });
     return { truth: resolveAprCaseStatusTruth(collected.observations), collected };
   }
 
-  private scheduleCaseTruthComparison(customerKey: string, legacyTruth: AprCaseStatusTruth, preparedUnified?: ReturnType<LocalDashboardSupervisor["unifiedCaseTruth"]>) {
-    setImmediate(() => {
+  private scheduleCaseTruthComparison(customerKey: string, legacyTruth: AprCaseStatusTruth, captured: AprCaseTruthRequestSnapshot, preparedUnified?: ReturnType<LocalDashboardSupervisor["unifiedCaseTruth"]>) {
+    this.caseTruthComparisonScheduler(() => {
       const store = new PersistentAprCaseTruthComparisonStore(this.rootDirectory);
       try {
-        const unified = preparedUnified ?? this.unifiedCaseTruth(customerKey);
+        const unified = preparedUnified ?? this.unifiedCaseTruth(customerKey, captured);
         store.persist(compareAprParallelCaseTruth({ oldTruth: legacyTruth, collected: unified.collected, now: this.now() }));
       } catch (error) {
         store.persistSecondaryFailure({ customerKey, activeMode: this.caseTruthMode, failedMode: this.caseTruthMode === "legacy" ? "unified" : "legacy", at: this.now().toISOString(), reason: error instanceof Error ? error.message : String(error) });
@@ -489,15 +506,16 @@ export class LocalDashboardSupervisor {
         sendJson(response, 200, this.crmLocalPreflight.snapshot(this.now()));
       } else if (requestUrl.pathname === "/api/case-truth") {
         const customerKey = requestUrl.searchParams.get("customerKey")?.trim() ?? "";
-        const legacyTruth = customerKey ? this.legacyCaseTruth(customerKey) : null;
+        const captured = customerKey ? this.captureCaseTruthRequestSnapshot() : null;
+        const legacyTruth = captured ? this.legacyCaseTruth(customerKey, captured) : null;
         if (!legacyTruth) sendJson(response, 404, { error: "case_not_found" });
         else if (this.caseTruthMode === "legacy") {
           sendJson(response, 200, legacyTruth);
-          this.scheduleCaseTruthComparison(customerKey, legacyTruth);
+          this.scheduleCaseTruthComparison(customerKey, legacyTruth, captured!);
         } else {
-          const unified = this.unifiedCaseTruth(customerKey);
+          const unified = this.unifiedCaseTruth(customerKey, captured!);
           sendJson(response, 200, unified.truth);
-          this.scheduleCaseTruthComparison(customerKey, legacyTruth, unified);
+          this.scheduleCaseTruthComparison(customerKey, legacyTruth, captured!, unified);
         }
       } else if (requestUrl.pathname === "/api/case-truth-comparison") {
         const store = new PersistentAprCaseTruthComparisonStore(this.rootDirectory);

@@ -304,6 +304,40 @@ describe("dashboard HTTP e supervisore persistente", () => {
     expect(summary.period.from).toBeTruthy(); expect(summary.period.to).toBe(summary.period.from);
   });
 
+  it("confronta legacy e unified sulla stessa fotografia anche se lo store cambia prima del calcolo differito", async () => {
+    const directory = temporaryStateDirectory();
+    new PersistentEneaRunner(directory).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);
+    let deferredComparison: (() => void) | undefined;
+    const supervisor = new LocalDashboardSupervisor(directory, {
+      port: 0,
+      heartbeatIntervalMs: 10_000,
+      caseTruthComparisonScheduler: (task) => { deferredComparison = task; },
+    });
+    supervisor.infissiLocalMapping.run({
+      practiceId: "practice-shared-snapshot", customerKey: "fixture-shared-snapshot", displayName: "Fixture Shared Snapshot",
+      invoiceDimensionSource: { sourceId: "fattura", text: "1200 mm x 1400 mm" },
+      invoiceFinancialSources: [{ sourceId: "fattura", text: "TOTALE 1.000,00(EUR)" }],
+      technicalDocumentSource: { sourceId: "dop", text: "WEB/24/1 - 001\nTrasmittanza termica Uw [W/m K] 1.3" },
+      verifiedTechnicalPageDimensions: [{ pageId: "001", widthMm: 1200, heightMm: 1400, verificationMethod: "visual_pdf_page_verified" }],
+      form: { explicitNewFrameMaterial: "PVC", explicitGlassType: "Triplo vetro basso emissivo", alsoInstalledClosures: false, sourceId: "form" },
+    }, new Date("2026-08-23T20:00:00.000Z"));
+    runningSupervisors.push(supervisor);
+    const url = await supervisor.start();
+
+    const truth = await (await fetch(`${url}/api/case-truth?customerKey=fixture-shared-snapshot`)).json() as { status: string };
+    expect(truth.status).toBe("READY");
+    expect(deferredComparison).toBeTypeOf("function");
+
+    rmSync(supervisor.infissiLocalMapping.checkpointPath);
+    deferredComparison!();
+
+    const comparisons = new PersistentAprCaseTruthComparisonStore(directory).list("fixture-shared-snapshot");
+    expect(comparisons).toHaveLength(1);
+    expect(comparisons[0].payload.observations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ source: "product_gate", status: "PASS", customerKey: "fixture-shared-snapshot" }),
+    ]));
+  });
+
   it("espone il confronto parallelo da un endpoint separato senza cambiare la verita pubblica", async () => {
     const directory = temporaryStateDirectory();
     new PersistentEneaRunner(directory).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);

@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import { PersistentAprEneaDraftExecution } from "./eneaDraftExecution";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
@@ -58,13 +58,12 @@ function preflightFixture() {
 }
 
 describe("esecuzione persistente della sola bozza ENEA TEST", () => {
-  it("ignora e audita una nuova sorgente durante il resume di una execution congelata", () => {
+  it("ignora e audita una nuova sorgente senza differenze per-pratica durante il resume", () => {
     const directory = temporaryDirectory();
     const runner = new PersistentAprEneaDraftExecution(directory);
     const original = runner.prepare(preflightFixture(), new Date("2026-08-24T11:00:00Z"));
-    const revised = structuredClone(preflightFixture()) as unknown as { sourceFingerprint: string; items: Array<{ customerKey: string; report?: { eneaPayloadAudit?: { mappingFingerprint?: string } } }> };
+    const revised = structuredClone(preflightFixture()) as unknown as { sourceFingerprint: string };
     revised.sourceFingerprint = "preflight-source-after-restart";
-    revised.items[0].report!.eneaPayloadAudit!.mappingFingerprint = "mapping-after-restart";
 
     const resumed = runner.prepare(revised as never, new Date("2026-08-24T11:01:00Z"));
 
@@ -76,6 +75,48 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     })]);
     expect(() => runner.prepare(revised as never, new Date("2026-08-24T11:02:00Z"))).not.toThrow();
     expect(runner.loadFrozenSourceObservations().observations).toHaveLength(1);
+  });
+
+  it("riapre atomicamente una fonte aggiornata in una nuova generazione e conserva la precedente superseded", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    const original = runner.prepare(preflightFixture(), new Date("2026-08-24T11:10:00Z"));
+    const previous = structuredClone(original.items[0]);
+    const revised = structuredClone(preflightFixture()) as unknown as { sourceFingerprint: string; items: Array<{ report?: { eneaPayloadAudit?: { mappingFingerprint?: string } } }> };
+    revised.sourceFingerprint = "preflight-source-corrected-invoice";
+    revised.items[0].report!.eneaPayloadAudit!.mappingFingerprint = "mapping-corrected-invoice";
+
+    const reopened = runner.prepare(revised as never, new Date("2026-08-24T11:11:00Z"));
+    const active = reopened.items.find((item) => item.customerKey === previous.customerKey)!;
+    const historical = reopened.supersededGenerations.find((item) => item.customerKey === previous.customerKey)!;
+
+    expect(active).toMatchObject({ state: "queued", requiresFreshDraft: true, mappingFingerprint: "mapping-corrected-invoice" });
+    expect(active.generationId).not.toBe(previous.generationId);
+    expect(historical).toMatchObject({ generationId: previous.generationId, status: "superseded", supersededByGenerationId: active.generationId, reason: "updated_source_requeued", item: previous });
+    expect(reopened.items.filter((item) => item.customerKey === previous.customerKey)).toHaveLength(1);
+    expect(new Set(reopened.items.map((item) => item.customerKey)).size).toBe(reopened.items.length);
+    expect(reopened.audit.at(-1)).toMatchObject({ type: "source_generation_superseded", customerKey: previous.customerKey });
+    expect(runner.prepare(revised as never, new Date("2026-08-24T11:12:00Z"))).toEqual(reopened);
+  });
+
+  it("un crash prima dell'atomic write lascia soltanto la generazione congelata", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    const original = runner.prepare(preflightFixture(), new Date("2026-08-24T11:20:00Z"));
+    const revised = structuredClone(preflightFixture()) as unknown as { sourceFingerprint: string; items: Array<{ report?: { eneaPayloadAudit?: { portalGate: { workflowFingerprint: string } } } }> };
+    revised.sourceFingerprint = "preflight-source-before-crash";
+    revised.items[0].report!.eneaPayloadAudit!.portalGate.workflowFingerprint = "workflow-corrected-before-crash";
+    const writeSpy = vi.spyOn(runner as unknown as { write: (state: unknown) => unknown }, "write").mockImplementationOnce(() => { throw new Error("simulated_generation_transition_crash"); });
+
+    expect(() => runner.prepare(revised as never, new Date("2026-08-24T11:21:00Z"))).toThrow("simulated_generation_transition_crash");
+    writeSpy.mockRestore();
+
+    const afterCrash = new PersistentAprEneaDraftExecution(directory).load();
+    expect(afterCrash).toEqual(original);
+    expect(afterCrash.supersededGenerations).toEqual([]);
+    const recovered = new PersistentAprEneaDraftExecution(directory).prepare(revised as never, new Date("2026-08-24T11:22:00Z"));
+    expect(recovered.items.find((item) => item.customerKey === original.items[0].customerKey)).toMatchObject({ requiresFreshDraft: true, workflowFingerprint: "workflow-corrected-before-crash" });
+    expect(recovered.supersededGenerations).toHaveLength(1);
   });
 
   it("ignora senza crash pacchetti nuovi quando la execution e gia congelata", () => {

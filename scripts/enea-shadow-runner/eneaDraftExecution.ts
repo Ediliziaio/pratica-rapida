@@ -93,6 +93,8 @@ export interface AprUncertainPageSaveResolution {
 }
 
 export interface AprEneaDraftExecutionItem {
+  generationId: string;
+  requiresFreshDraft: boolean;
   customerKey: string;
   displayName: string;
   practiceId: string;
@@ -124,6 +126,17 @@ export interface AprEneaDraftExecutionItem {
   nextAction: string;
 }
 
+export interface AprEneaDraftSupersededGeneration {
+  generationId: string;
+  customerKey: string;
+  sourceFingerprint: string;
+  status: "superseded";
+  supersededAt: string;
+  supersededByGenerationId: string;
+  reason: "updated_source_requeued";
+  item: AprEneaDraftExecutionItem;
+}
+
 export interface AprEneaDraftExecutionAuditEvent {
   revision: number;
   at: string;
@@ -131,6 +144,7 @@ export interface AprEneaDraftExecutionAuditEvent {
     | "initialized"
     | "prepared"
     | "validation_eligible_cases_appended"
+    | "source_generation_superseded"
     | "login_required"
     | "session_ready"
     | "create_intent_recorded"
@@ -222,6 +236,7 @@ export interface AprEneaDraftExecutionState {
   sessionEvidenceId: string | null;
   sessionVerifiedAt: string | null;
   items: AprEneaDraftExecutionItem[];
+  supersededGenerations: AprEneaDraftSupersededGeneration[];
   reason: string;
   nextAction: string;
   createCapability: "one_attempt_after_persistent_intent";
@@ -264,6 +279,7 @@ function initialState(now: Date): AprEneaDraftExecutionState {
     sessionEvidenceId: null,
     sessionVerifiedAt: null,
     items: [],
+    supersededGenerations: [],
     reason,
     nextAction: "Attendere una coorte TEST di almeno due casi con almeno un payload verde; i casi bloccati devono restare isolati e Beatrice Ciotta esclusa.",
     createCapability: "one_attempt_after_persistent_intent",
@@ -288,9 +304,16 @@ function initialState(now: Date): AprEneaDraftExecutionState {
 function validState(value: AprEneaDraftExecutionState) {
   if (value.version !== APR_ENEA_DRAFT_EXECUTION_VERSION || !Number.isInteger(value.revision)) return false;
   if (value.previewAllowed !== false || value.submitAllowed !== false || value.communicationsAllowed !== false) return false;
-  if (!Array.isArray(value.items) || !Array.isArray(value.audit) || !Array.isArray(value.processedCommandIds) || !Array.isArray(value.sourceRevisionFingerprints)) return false;
+  if (!Array.isArray(value.items) || !Array.isArray(value.supersededGenerations) || !Array.isArray(value.audit) || !Array.isArray(value.processedCommandIds) || !Array.isArray(value.sourceRevisionFingerprints)) return false;
   if (new Set(value.sourceRevisionFingerprints).size !== value.sourceRevisionFingerprints.length) return false;
   if (new Set(value.items.map((item) => item.customerKey)).size !== value.items.length) return false;
+  if (new Set(value.items.map((item) => item.generationId)).size !== value.items.length) return false;
+  if (value.items.some((item) => !item.generationId || typeof item.requiresFreshDraft !== "boolean")) return false;
+  if (value.supersededGenerations.some((generation) => generation.status !== "superseded" || generation.item.generationId !== generation.generationId)) return false;
+  const allGenerationIds = [...value.items.map((item) => item.generationId), ...value.supersededGenerations.map((item) => item.generationId)];
+  if (new Set(allGenerationIds).size !== allGenerationIds.length) return false;
+  const activeCustomers = new Set(value.items.map((item) => item.customerKey));
+  if (value.items.some((item, index) => value.items.findIndex((candidate) => candidate.customerKey === item.customerKey) !== index) || activeCustomers.size !== value.items.length) return false;
   if (value.items.some((item) => item.customerKey === "beatrice-ciotta" && item.state !== "deferred_operator")) return false;
   if (value.items.some((item) => item.createAttemptCount > 1 || item.saveAttemptCount > 1)) return false;
   if (value.items.some((item) => !Array.isArray(item.pageCheckpoints)
@@ -312,7 +335,10 @@ function validState(value: AprEneaDraftExecutionState) {
 
 function normalizeState(value: AprEneaDraftExecutionState): AprEneaDraftExecutionState {
   value.sourceRevisionFingerprints ??= [];
+  value.supersededGenerations ??= [];
   for (const item of value.items ?? []) {
+    item.generationId ??= `legacy-${fingerprint({ customerKey: item.customerKey, practiceId: item.practiceId, mappingFingerprint: item.mappingFingerprint, workflowFingerprint: item.workflowFingerprint }).slice(0, 24)}`;
+    item.requiresFreshDraft ??= false;
     item.recoverableCreateIntent ??= false;
     item.uncertainPageSave ??= null;
     item.operatorGateBlockers ??= [];
@@ -407,10 +433,14 @@ function expectedPageIdsFromPackage(draftPackage: AprEneaDraftPackage) {
 function draftItemFromPreflight(
   item: PreflightSnapshot["items"][number],
   deferred = item.customerKey === "beatrice-ciotta",
+  generationId?: string,
+  requiresFreshDraft = false,
 ): AprEneaDraftExecutionItem {
   const report = item.report;
   const pageIds = report?.eneaPayloadAudit ? expectedPageIds(report) : [];
   return {
+    generationId: generationId ?? `generation-${fingerprint({ customerKey: item.customerKey, practiceId: item.practiceId, mappingFingerprint: report?.eneaPayloadAudit?.mappingFingerprint ?? null, workflowFingerprint: report?.eneaPayloadAudit?.portalGate.workflowFingerprint ?? null }).slice(0, 24)}`,
+    requiresFreshDraft,
     customerKey: item.customerKey,
     displayName: item.displayName,
     practiceId: item.practiceId,
@@ -438,9 +468,11 @@ function draftItemFromPreflight(
   };
 }
 
-function draftItemFromPackage(draftPackage: AprEneaDraftPackage): AprEneaDraftExecutionItem {
+function draftItemFromPackage(draftPackage: AprEneaDraftPackage, generationId?: string, requiresFreshDraft = false): AprEneaDraftExecutionItem {
   const pageIds = expectedPageIdsFromPackage(draftPackage);
   return {
+    generationId: generationId ?? `generation-${fingerprint({ customerKey: draftPackage.customerKey, practiceId: draftPackage.practiceId, packageFingerprint: draftPackage.packageFingerprint, workflowFingerprint: draftPackage.workflowFingerprint }).slice(0, 24)}`,
+    requiresFreshDraft,
     customerKey: draftPackage.customerKey,
     displayName: draftPackage.displayName,
     practiceId: draftPackage.practiceId,
@@ -557,6 +589,76 @@ export class PersistentAprEneaDraftExecution {
     }, null, 2)}\n`);
   }
 
+  private reopenUpdatedPreflightGenerations(preflight: PreflightSnapshot, sourceFingerprint: string, now: Date) {
+    const current = this.initialize(now);
+    const incoming = new Map(preflight.items
+      .filter((item) => item.state === "ready_local_plan" && item.report?.eneaPayloadAudit?.draftReady && item.report.eneaPayloadAudit.portalGate.status === "ready")
+      .map((item) => [item.customerKey, item] as const));
+    const changed = current.items.flatMap((item) => {
+      const candidate = incoming.get(item.customerKey);
+      if (!candidate?.report?.eneaPayloadAudit) return [];
+      const mappingFingerprint = candidate.report.eneaPayloadAudit.mappingFingerprint;
+      const workflowFingerprint = candidate.report.eneaPayloadAudit.portalGate.workflowFingerprint;
+      return item.mappingFingerprint !== mappingFingerprint || item.workflowFingerprint !== workflowFingerprint ? [{ item, candidate }] : [];
+    });
+    if (changed.length === 0) return null;
+    const commandId = `system:draft-execution:reopen-source:${fingerprint({ sourceFingerprint, cases: changed.map(({ item, candidate }) => ({ customerKey: item.customerKey, previousGenerationId: item.generationId, mappingFingerprint: candidate.report!.eneaPayloadAudit!.mappingFingerprint, workflowFingerprint: candidate.report!.eneaPayloadAudit!.portalGate.workflowFingerprint })) })}`;
+    return this.transition("supervisor", commandId, now, {
+      type: "source_generation_superseded",
+      customerKey: changed.length === 1 ? changed[0].item.customerKey : null,
+      reason: `${changed.length} pratiche con fonte aggiornata riaperte in una nuova generazione persistente; le generazioni congelate restano superseded nell'audit.`,
+      nextAction: "Il browser worker dovra creare una nuova bozza soltanto quando consumera requiresFreshDraft; nessuna azione ENEA eseguita da questa transizione.",
+      appliedRuleIds: [SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE],
+    }, (next) => {
+      for (const { item, candidate } of changed) {
+        const nextGenerationId = `generation-${fingerprint({ customerKey: item.customerKey, previousGenerationId: item.generationId, sourceFingerprint }).slice(0, 24)}`;
+        next.supersededGenerations.push({
+          generationId: item.generationId,
+          customerKey: item.customerKey,
+          sourceFingerprint: current.sourceFingerprint!,
+          status: "superseded",
+          supersededAt: now.toISOString(),
+          supersededByGenerationId: nextGenerationId,
+          reason: "updated_source_requeued",
+          item: structuredClone(item),
+        });
+        const index = next.items.findIndex((existing) => existing.customerKey === item.customerKey);
+        next.items[index] = draftItemFromPreflight(candidate, false, nextGenerationId, true);
+        if (next.currentCustomerKey === item.customerKey) next.currentCustomerKey = null;
+      }
+      next.sourceFingerprint = sourceFingerprint;
+      next.status = "ready";
+    });
+  }
+
+  private reopenUpdatedPackageGenerations(packages: readonly AprEneaDraftPackage[], sourceFingerprint: string, now: Date) {
+    const current = this.initialize(now);
+    const incoming = new Map(packages.map((item) => [item.customerKey, item] as const));
+    const changed = current.items.flatMap((item) => {
+      const candidate = incoming.get(item.customerKey);
+      return candidate && (item.mappingFingerprint !== candidate.packageFingerprint || item.workflowFingerprint !== candidate.workflowFingerprint) ? [{ item, candidate }] : [];
+    });
+    if (changed.length === 0) return null;
+    const commandId = `system:draft-execution:reopen-packages:${fingerprint({ sourceFingerprint, cases: changed.map(({ item, candidate }) => ({ customerKey: item.customerKey, previousGenerationId: item.generationId, packageFingerprint: candidate.packageFingerprint, workflowFingerprint: candidate.workflowFingerprint })) })}`;
+    return this.transition("supervisor", commandId, now, {
+      type: "source_generation_superseded",
+      customerKey: changed.length === 1 ? changed[0].item.customerKey : null,
+      reason: `${changed.length} pacchetti aggiornati riaperti in una nuova generazione persistente; le generazioni congelate restano superseded nell'audit.`,
+      nextAction: "Il browser worker dovra creare una nuova bozza soltanto quando consumera requiresFreshDraft; nessuna azione ENEA eseguita da questa transizione.",
+      appliedRuleIds: [SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE],
+    }, (next) => {
+      for (const { item, candidate } of changed) {
+        const nextGenerationId = `generation-${fingerprint({ customerKey: item.customerKey, previousGenerationId: item.generationId, sourceFingerprint }).slice(0, 24)}`;
+        next.supersededGenerations.push({ generationId: item.generationId, customerKey: item.customerKey, sourceFingerprint: current.sourceFingerprint!, status: "superseded", supersededAt: now.toISOString(), supersededByGenerationId: nextGenerationId, reason: "updated_source_requeued", item: structuredClone(item) });
+        const index = next.items.findIndex((existing) => existing.customerKey === item.customerKey);
+        next.items[index] = draftItemFromPackage(candidate, nextGenerationId, true);
+        if (next.currentCustomerKey === item.customerKey) next.currentCustomerKey = null;
+      }
+      next.sourceFingerprint = sourceFingerprint;
+      next.status = "ready";
+    });
+  }
+
   private withLock<T>(ownerId: string, now: Date, action: () => T): T {
     mkdirSync(this.directory, { recursive: true, mode: 0o700 });
     try {
@@ -624,6 +726,8 @@ export class PersistentAprEneaDraftExecution {
     const current = this.initialize(now);
     if (current.sourceFingerprint === sourceFingerprint) return current;
     if (current.sourceFingerprint) {
+      const reopened = this.reopenUpdatedPreflightGenerations(preflight, sourceFingerprint, now);
+      if (reopened) return reopened;
       this.recordFrozenSourceObservation("prepare", current.sourceFingerprint, sourceFingerprint, now);
       return current;
     }
@@ -652,6 +756,8 @@ export class PersistentAprEneaDraftExecution {
     const current = this.initialize(now);
     if (current.sourceFingerprint === durableFingerprint) return current;
     if (current.sourceFingerprint) {
+      const reopened = this.reopenUpdatedPackageGenerations(packages, durableFingerprint, now);
+      if (reopened) return reopened;
       this.recordFrozenSourceObservation("prepare_packages", current.sourceFingerprint, durableFingerprint, now);
       return current;
     }
@@ -664,7 +770,7 @@ export class PersistentAprEneaDraftExecution {
     }, (next) => {
       next.status = "ready";
       next.sourceFingerprint = durableFingerprint;
-      next.items = packages.map(draftItemFromPackage);
+      next.items = packages.map((draftPackage) => draftItemFromPackage(draftPackage));
     });
   }
 
@@ -795,7 +901,7 @@ export class PersistentAprEneaDraftExecution {
       appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE],
     }, (next) => {
       next.sourceRevisionFingerprints.push(sourceRevisionFingerprint);
-      next.items.push(...eligible.map(draftItemFromPackage));
+      next.items.push(...eligible.map((draftPackage) => draftItemFromPackage(draftPackage)));
       if (["completed", "blocked_preflight"].includes(next.status)) next.status = "ready";
     });
   }

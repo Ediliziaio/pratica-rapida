@@ -299,6 +299,9 @@ describe("dashboard HTTP e supervisore persistente", () => {
     const comparisons = new PersistentAprCaseTruthComparisonStore(directory).list("cristina-fabbro");
     expect(comparisons).toHaveLength(1);
     expect(comparisons[0].payload).toMatchObject({ classification: "MISSING_SOURCE", oldTruth: { status: "READY" }, newTruth: { status: "INCONSISTENT" } });
+    const summary = await (await fetch(`${url}/api/case-truth-comparison-summary`)).json() as { total: number; counts: Record<string, number>; period: { from: string | null; to: string | null } };
+    expect(summary).toMatchObject({ total: 1, counts: { AGREE: 0, EXPECTED_STRICTER: 0, DISAGREE: 0, MISSING_SOURCE: 1 } });
+    expect(summary.period.from).toBeTruthy(); expect(summary.period.to).toBe(summary.period.from);
   });
 
   it("espone il confronto parallelo da un endpoint separato senza cambiare la verita pubblica", async () => {

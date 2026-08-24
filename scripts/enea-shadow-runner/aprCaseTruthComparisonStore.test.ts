@@ -51,4 +51,20 @@ describe("APR persistent parallel truth comparison", () => {
     expect(firstStore.list("fixture-assente")).toEqual([]);
     expect(() => firstStore.load("../checkpoint")).toThrow(/artifact_id_invalid/);
   });
+
+  it("riassume le quattro classificazioni e il periodo accumulato", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-truth-summary-")); const store = new PersistentAprCaseTruthComparisonStore(root);
+    const agree = compareAprParallelCaseTruth({ oldTruth: oldTruth(), collected: ready(), now: new Date("2026-08-23T20:00:00.000Z") });
+    const duplicate = ready(); duplicate.observations = [...duplicate.observations, obs("product_gate", "PASS")];
+    const stricter = compareAprParallelCaseTruth({ oldTruth: oldTruth(), collected: duplicate, now: new Date("2026-08-23T20:01:00.000Z") });
+    const blocked = collected([obs("preflight_common", "PASS"), obs("product_gate", "BLOCKED", { blockerCodes: ["x"], classification: "UNCLASSIFIED" }), obs("deep_review", "BLOCKED", { blockerCodes: ["x"], classification: "OPERATOR" }), obs("report_blockers", "BLOCKED", { blockerCodes: ["x"] })]);
+    const disagree = compareAprParallelCaseTruth({ oldTruth: oldTruth(), collected: blocked, now: new Date("2026-08-23T20:02:00.000Z") });
+    const missing = compareAprParallelCaseTruth({ oldTruth: oldTruth(), collected: collected([], "REJECTED", ["case_missing_from_common_preflight"]), now: new Date("2026-08-23T20:03:00.000Z") });
+    for (const comparison of [agree, stricter, disagree, missing]) store.persist(comparison);
+    expect(store.summary()).toEqual({
+      version: "apr-case-truth-comparison-summary-v1", customerKey: null, total: 4,
+      counts: { AGREE: 1, EXPECTED_STRICTER: 1, DISAGREE: 1, MISSING_SOURCE: 1 },
+      period: { from: "2026-08-23T20:00:00.000Z", to: "2026-08-23T20:03:00.000Z" },
+    });
+  });
 });

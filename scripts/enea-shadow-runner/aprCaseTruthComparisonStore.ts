@@ -8,6 +8,7 @@ import { canonicalJson, envelopeImmutableArtifact, verifyImmutableArtifactEnvelo
 import { resolveAprCaseStatusTruth, type AprResolvedCaseStatus } from "./aprCaseStatusResolver";
 
 export const APR_CASE_TRUTH_COMPARISON_VERSION = "apr-case-truth-comparison-v1" as const;
+export const APR_CASE_TRUTH_COMPARISON_SUMMARY_VERSION = "apr-case-truth-comparison-summary-v1" as const;
 export type AprTruthComparisonClassification = "AGREE" | "EXPECTED_STRICTER" | "DISAGREE" | "MISSING_SOURCE";
 
 export interface AprCaseTruthComparisonPayload {
@@ -113,6 +114,19 @@ export class PersistentAprCaseTruthComparisonStore {
       .map((name) => this.load(name.slice(0, -5)))
       .filter((comparison) => !customerKey || comparison.payload.customerKey === customerKey)
       .sort((left, right) => left.payload.createdAt.localeCompare(right.payload.createdAt) || left.artifactId.localeCompare(right.artifactId));
+  }
+
+  summary(customerKey?: string) {
+    const items = this.list(customerKey);
+    const counts: Record<AprTruthComparisonClassification, number> = { AGREE: 0, EXPECTED_STRICTER: 0, DISAGREE: 0, MISSING_SOURCE: 0 };
+    for (const item of items) counts[item.payload.classification] += 1;
+    return {
+      version: APR_CASE_TRUTH_COMPARISON_SUMMARY_VERSION,
+      customerKey: customerKey ?? null,
+      total: items.length,
+      counts,
+      period: { from: items[0]?.payload.createdAt ?? null, to: items.at(-1)?.payload.createdAt ?? null },
+    };
   }
 
   persistSecondaryFailure(input: { customerKey: string; activeMode: "legacy" | "unified"; failedMode: "legacy" | "unified"; at: string; reason: string }) {

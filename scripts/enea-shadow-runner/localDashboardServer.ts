@@ -35,7 +35,7 @@ import { PersistentAprInfissiLocalMappingPreflight } from "./infissiLocalMapping
 import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import { PersistentAprDeepCaseReview } from "./deepCaseReview";
 import { infissiExecutionGateReady } from "./infissiExecutionGate";
-import { APR_CASE_TRUTH_COMPARISON_VERSION, compareAprParallelCaseTruth, PersistentAprCaseTruthComparisonStore } from "./aprCaseTruthComparisonStore";
+import { APR_CASE_TRUTH_COMPARISON_VERSION, APR_CASE_TRUTH_COMPARISON_SUMMARY_VERSION, compareAprParallelCaseTruth, PersistentAprCaseTruthComparisonStore } from "./aprCaseTruthComparisonStore";
 import { collectAprCurrentCaseObservations } from "./aprCaseObservationCollector";
 import { resolveAprCaseStatusTruth } from "./aprCaseStatusResolver";
 import { resolveAprCaseTruthMode, type AprCaseTruthMode } from "./aprCaseTruthMode";
@@ -511,6 +511,10 @@ export class LocalDashboardSupervisor {
             else sendJson(response, 200, comparison);
           }
         } else sendJson(response, 200, { version: APR_CASE_TRUTH_COMPARISON_VERSION, items: store.list(customerKey || undefined) });
+      } else if (requestUrl.pathname === "/api/case-truth-comparison-summary") {
+        const store = new PersistentAprCaseTruthComparisonStore(this.rootDirectory);
+        const customerKey = requestUrl.searchParams.get("customerKey")?.trim() ?? "";
+        sendJson(response, 200, { ...store.summary(customerKey || undefined), version: APR_CASE_TRUTH_COMPARISON_SUMMARY_VERSION });
       } else if (requestUrl.pathname === "/api/infissi-local-mapping") {
         sendJson(response, 200, this.infissiLocalMapping.snapshot(this.now()));
       } else if (requestUrl.pathname === "/api/infissi-batch-preflight") {

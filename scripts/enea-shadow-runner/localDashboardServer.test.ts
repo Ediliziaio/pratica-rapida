@@ -1,9 +1,9 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_AUDITED_OPERATOR_QUEUE } from "../../src/features/enea-shadow-crm/auditedOperatorQueue";
-import { LocalDashboardSupervisor, prepareEneaDraftExecutionIfAbsent, shouldRunShadowIntake } from "./localDashboardServer";
+import { LocalDashboardSupervisor, prepareEneaDraftExecutionIfAbsent, resolveAprCheckpointMode, shouldRunCheckpointMigration, shouldRunShadowIntake } from "./localDashboardServer";
 import { PersistentEneaRunner } from "./runner";
 import { SupervisorBusyError } from "./supervisorRuntime";
 import { PersistentReadOnlyAdapter } from "./readOnlyAdapter";
@@ -75,6 +75,26 @@ describe("dashboard HTTP e supervisore persistente", () => {
     writeFileSync(path.join(historicalDirectory, "cohort-seed", "checkpoint.json"), "{}\n");
     expect(shouldRunShadowIntake(historicalDirectory, false)).toBe(false);
     expect(shouldRunShadowIntake(historicalDirectory, true)).toBe(true);
+  });
+  it("separa il resume automatico dalla migrazione esplicita", async () => {
+    expect(resolveAprCheckpointMode(undefined)).toBe("resume");
+    expect(shouldRunCheckpointMigration("resume")).toBe(false);
+    expect(shouldRunCheckpointMigration("migrate")).toBe(true);
+    expect(() => resolveAprCheckpointMode("automatic")).toThrow(/apr_checkpoint_mode_invalid/);
+
+    const directory = temporaryStateDirectory();
+    new PersistentEneaRunner(directory).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);
+    const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000 });
+    const commonMigration = vi.spyOn(supervisor.crmLocalPreflight, "applyValidationRevision");
+    const productMigration = vi.spyOn(supervisor.infissiBatchPreflight, "applyValidationRevision");
+    const parserMigration = vi.spyOn(supervisor.crmDocumentAnalysis, "applyParserRevision");
+    runningSupervisors.push(supervisor);
+    await supervisor.start();
+
+    expect(supervisor.checkpointMode).toBe("resume");
+    expect(commonMigration).not.toHaveBeenCalled();
+    expect(productMigration).not.toHaveBeenCalled();
+    expect(parserMigration).not.toHaveBeenCalled();
   });
   it("preserva un checkpoint ENEA immutabile quando il preflight read-only viene revisionato", () => {
     const directory = temporaryStateDirectory();

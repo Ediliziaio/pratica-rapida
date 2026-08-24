@@ -94,7 +94,7 @@ try {
   } else if (mode === "serve" || mode === "watch") {
     const port = Number(option("--port") ?? "4317");
     const intervalMs = Number(option("--interval-ms") ?? "5000");
-    const supervisor = new LocalDashboardSupervisor(rootDirectory, { port, heartbeatIntervalMs: intervalMs });
+    const supervisor = new LocalDashboardSupervisor(rootDirectory, { port, heartbeatIntervalMs: intervalMs, checkpointMode: option("--checkpoint-mode") as "resume" | "migrate" | undefined });
     const url = await supervisor.start();
     const executionLoop = new PersistentLocalDossierBatch(rootDirectory).createAutonomousLoop(`launch-agent-${process.pid}`, intervalMs);
     executionLoop.start();

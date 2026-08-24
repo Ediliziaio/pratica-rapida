@@ -106,7 +106,7 @@ if (command === "dossier") {
   if (!existsSync(path.join(rootDirectory, "HEAD"))) initializeAprLocal();
   const doctor = inspectAprLocalRuntime(rootDirectory);
   if (!doctor.readyForDashboard) throw new Error(`APR dashboard non avviabile: ${doctor.checks.filter((check) => ["state_directory", "journal", "dashboard_static"].includes(check.id) && !check.ok).map((check) => check.id).join(", ")}`);
-  const port = Number(option("--port") ?? "4317"); const supervisor = new LocalDashboardSupervisor(rootDirectory, { port, heartbeatIntervalMs: Number(option("--interval-ms") ?? "5000") });
+  const port = Number(option("--port") ?? "4317"); const supervisor = new LocalDashboardSupervisor(rootDirectory, { port, heartbeatIntervalMs: Number(option("--interval-ms") ?? "5000"), checkpointMode: option("--checkpoint-mode") as "resume" | "migrate" | undefined });
   const url = await supervisor.start(); process.stdout.write(`APR_DASHBOARD_URL=${url}\nAPR_STATUS_API=${url}/api/status\nAPR_DOCTOR=ready_local_only\nEXTERNAL_ACTION_ALLOWED=false\n`);
   const shutdown = async (signal: string) => { await supervisor.stop(`Stop APR locale: ${signal}.`); process.exitCode = 0; };
   process.once("SIGINT", () => { void shutdown("SIGINT"); }); process.once("SIGTERM", () => { void shutdown("SIGTERM"); });

@@ -58,6 +58,42 @@ function preflightFixture() {
 }
 
 describe("esecuzione persistente della sola bozza ENEA TEST", () => {
+  it("ignora e audita una nuova sorgente durante il resume di una execution congelata", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    const original = runner.prepare(preflightFixture(), new Date("2026-08-24T11:00:00Z"));
+    const revised = structuredClone(preflightFixture()) as unknown as { sourceFingerprint: string; items: Array<{ customerKey: string; report?: { eneaPayloadAudit?: { mappingFingerprint?: string } } }> };
+    revised.sourceFingerprint = "preflight-source-after-restart";
+    revised.items[0].report!.eneaPayloadAudit!.mappingFingerprint = "mapping-after-restart";
+
+    const resumed = runner.prepare(revised as never, new Date("2026-08-24T11:01:00Z"));
+
+    expect(resumed).toEqual(original);
+    expect(runner.loadFrozenSourceObservations().observations).toEqual([expect.objectContaining({
+      operation: "prepare",
+      frozenSourceFingerprint: original.sourceFingerprint,
+      reason: "resume_ignored_frozen_execution",
+    })]);
+    expect(() => runner.prepare(revised as never, new Date("2026-08-24T11:02:00Z"))).not.toThrow();
+    expect(runner.loadFrozenSourceObservations().observations).toHaveLength(1);
+  });
+
+  it("ignora senza crash pacchetti nuovi quando la execution e gia congelata", () => {
+    const runner = new PersistentAprEneaDraftExecution(temporaryDirectory());
+    const draftPackage: AprEneaDraftPackage = {
+      module: "infissi", customerKey: "case-a", displayName: "Case A", practiceId: "crm-a",
+      packageFingerprint: "package-a", workflowFingerprint: "workflow-a",
+      workflow: { supportedPages: ["Serramenti e infissi"], screeningItemCount: 1, steps: [], screeningSteps: [] },
+      safety: { createAllowedAfterPersistentIntent: true, saveAllowedAfterAllPageCheckpoints: true, previewAllowed: false, submitAllowed: false, communicationsAllowed: false },
+    };
+    const original = runner.preparePackages([draftPackage, { ...draftPackage, customerKey: "case-b", displayName: "Case B", practiceId: "crm-b", packageFingerprint: "package-b" }], "source-a");
+
+    const resumed = runner.preparePackages([draftPackage, { ...draftPackage, customerKey: "case-c", displayName: "Case C", practiceId: "crm-c", packageFingerprint: "package-c" }], "source-b", new Date("2026-08-24T11:03:00Z"));
+
+    expect(resumed).toEqual(original);
+    expect(runner.loadFrozenSourceObservations().observations).toEqual([expect.objectContaining({ operation: "prepare_packages", reason: "resume_ignored_frozen_execution" })]);
+  });
+
   it("aggiunge pacchetti Infissi a una coda Schermature gia preparata senza duplicare alcun cliente", () => {
     const runner = new PersistentAprEneaDraftExecution(temporaryDirectory());
     const screening = preflightFixture() as { items: Array<{ customerKey: string }> };

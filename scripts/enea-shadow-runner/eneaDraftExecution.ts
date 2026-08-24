@@ -20,11 +20,25 @@ import type { PersistentAprCrmLocalPreflight } from "./crmLocalPreflight";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 
 export const APR_ENEA_DRAFT_EXECUTION_VERSION = "apr-enea-draft-execution-v1" as const;
+export const APR_ENEA_FROZEN_SOURCE_OBSERVATIONS_VERSION = "apr-enea-frozen-source-observations-v1" as const;
 
 const SYSTEM_RESUME_RULE = "system-atomic-checkpoint-resume";
 const SYSTEM_SINGLE_RULE = "system-single-active-practice";
 const SYSTEM_FAIL_CLOSED_RULE = "system-operator-block-fail-closed";
 const LOCK_LEASE_MS = 10_000;
+
+export interface AprEneaFrozenSourceObservation {
+  observedAt: string;
+  operation: "prepare" | "prepare_packages";
+  frozenSourceFingerprint: string;
+  ignoredSourceFingerprint: string;
+  reason: "resume_ignored_frozen_execution";
+}
+
+export interface AprEneaFrozenSourceObservations {
+  version: typeof APR_ENEA_FROZEN_SOURCE_OBSERVATIONS_VERSION;
+  observations: AprEneaFrozenSourceObservation[];
+}
 
 type PreflightSnapshot = ReturnType<PersistentAprCrmLocalPreflight["snapshot"]>;
 
@@ -459,6 +473,7 @@ export class PersistentAprEneaDraftExecution {
   readonly rootDirectory: string;
   readonly directory: string;
   readonly checkpointPath: string;
+  readonly frozenSourceObservationsPath: string;
   readonly lockDirectory: string;
 
   readonly allowedPortalOrigin: string;
@@ -467,6 +482,7 @@ export class PersistentAprEneaDraftExecution {
     this.rootDirectory = path.resolve(rootDirectory);
     this.directory = path.join(this.rootDirectory, "enea-draft-execution");
     this.checkpointPath = path.join(this.directory, "checkpoint.json");
+    this.frozenSourceObservationsPath = path.join(this.directory, "frozen-source-observations.json");
     this.lockDirectory = path.join(this.directory, "transition.lock");
     this.allowedPortalOrigin = new URL(options.allowedPortalOrigin ?? "https://bonusfiscali.enea.it").origin;
   }
@@ -503,6 +519,42 @@ export class PersistentAprEneaDraftExecution {
     if (!validState(state)) throw new Error("enea_draft_execution_checkpoint_invalid");
     atomicWrite(this.checkpointPath, `${JSON.stringify(state, null, 2)}\n`);
     return state;
+  }
+
+  loadFrozenSourceObservations(): AprEneaFrozenSourceObservations {
+    if (!existsSync(this.frozenSourceObservationsPath)) {
+      return { version: APR_ENEA_FROZEN_SOURCE_OBSERVATIONS_VERSION, observations: [] };
+    }
+    try {
+      const value = JSON.parse(readFileSync(this.frozenSourceObservationsPath, "utf8")) as AprEneaFrozenSourceObservations;
+      if (value.version !== APR_ENEA_FROZEN_SOURCE_OBSERVATIONS_VERSION || !Array.isArray(value.observations)) throw new Error("invalid");
+      return value;
+    } catch {
+      return { version: APR_ENEA_FROZEN_SOURCE_OBSERVATIONS_VERSION, observations: [] };
+    }
+  }
+
+  private recordFrozenSourceObservation(
+    operation: AprEneaFrozenSourceObservation["operation"],
+    frozenSourceFingerprint: string,
+    ignoredSourceFingerprint: string,
+    now: Date,
+  ) {
+    const current = this.loadFrozenSourceObservations();
+    const duplicate = current.observations.some((item) => item.operation === operation
+      && item.frozenSourceFingerprint === frozenSourceFingerprint
+      && item.ignoredSourceFingerprint === ignoredSourceFingerprint);
+    if (duplicate) return;
+    atomicWrite(this.frozenSourceObservationsPath, `${JSON.stringify({
+      version: APR_ENEA_FROZEN_SOURCE_OBSERVATIONS_VERSION,
+      observations: [...current.observations, {
+        observedAt: now.toISOString(),
+        operation,
+        frozenSourceFingerprint,
+        ignoredSourceFingerprint,
+        reason: "resume_ignored_frozen_execution",
+      }],
+    }, null, 2)}\n`);
   }
 
   private withLock<T>(ownerId: string, now: Date, action: () => T): T {
@@ -571,7 +623,10 @@ export class PersistentAprEneaDraftExecution {
     });
     const current = this.initialize(now);
     if (current.sourceFingerprint === sourceFingerprint) return current;
-    if (current.sourceFingerprint) throw new Error("enea_draft_execution_source_immutable");
+    if (current.sourceFingerprint) {
+      this.recordFrozenSourceObservation("prepare", current.sourceFingerprint, sourceFingerprint, now);
+      return current;
+    }
     return this.transition("supervisor", "system:draft-execution:prepare:v1", now, {
       type: "prepared",
       customerKey: null,
@@ -596,7 +651,10 @@ export class PersistentAprEneaDraftExecution {
     const durableFingerprint = fingerprint({ sourceFingerprint, packages: packages.map((item) => ({ customerKey: item.customerKey, packageFingerprint: item.packageFingerprint, workflowFingerprint: item.workflowFingerprint })) });
     const current = this.initialize(now);
     if (current.sourceFingerprint === durableFingerprint) return current;
-    if (current.sourceFingerprint) throw new Error("enea_draft_execution_source_immutable");
+    if (current.sourceFingerprint) {
+      this.recordFrozenSourceObservation("prepare_packages", current.sourceFingerprint, durableFingerprint, now);
+      return current;
+    }
     return this.transition("supervisor", `system:draft-execution:prepare-packages:${durableFingerprint}`, now, {
       type: "prepared",
       customerKey: null,

@@ -1618,11 +1618,12 @@ async function serve() {
             const transientPersistedProbe = migrated.uncertainPageSave.probes.find((probe) => probe.method === "persisted_fields_get"
               && probe.outcome === "inconclusive"
               && /apr_cdp_(?:command_timeout:Runtime\.evaluate|connection_closed|protocol_error:-32000)/.test(probe.reason));
-            if (page.pageId.startsWith("screening:") && draftPackage.module === "infissi" && transientPersistedProbe) {
+            const transientPersistedProbeRetryAvailable = (migrated.uncertainPageSave.transientProbeRetryCounts?.persisted_fields_get ?? 0) === 0;
+            if (page.pageId.startsWith("screening:") && nestedUncertainPageSaveProbeAllowed(draftPackage.module, page.pageId) && transientPersistedProbe && transientPersistedProbeRetryAvailable) {
               execution.requeueTransientUncertainPageSaveProbe(
                 migrated.customerKey,
                 "persisted_fields_get",
-                `service:requeue-transient-infissi-row-probe:${migrated.customerKey}:${migrated.draftId}:${page.pageId}:${transientPersistedProbe.evidenceId}:v1`,
+                `service:requeue-transient-nested-row-probe:${migrated.customerKey}:${migrated.draftId}:${page.pageId}:persisted_fields_get:v2`,
               );
               executionBeforeTick = execution.snapshot();
               migrated = executionBeforeTick.items.find((item) => item.customerKey === uncertainPageSaveVerification.customerKey)!;

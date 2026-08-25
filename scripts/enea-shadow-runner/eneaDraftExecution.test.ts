@@ -1667,12 +1667,19 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     const requeued = runner.requeueTransientUncertainPageSaveProbe("lorena-brendas", "persisted_fields_get", "transient-probe:requeue");
     expect(requeued.items[0]).toMatchObject({
       state: "operator_intervention",
-      uncertainPageSave: { status: "probing", probes: [] },
+      uncertainPageSave: { status: "probing", probes: [], transientProbeRetryCounts: { persisted_fields_get: 1 } },
       pageCheckpoints: expect.arrayContaining([expect.objectContaining({ pageId, state: "save_intent_recorded", saveAttemptCount: 1, recoverySaveAttemptCount: 0 })]),
     });
     expect(requeued.audit.at(-1)).toMatchObject({ type: "uncertain_page_save_transient_probe_requeued" });
     expect(runner.requeueTransientUncertainPageSaveProbe("lorena-brendas", "persisted_fields_get", "transient-probe:requeue").revision).toBe(requeued.revision);
+    runner.recordUncertainPageSaveProbe("lorena-brendas", {
+      method: "persisted_fields_get",
+      outcome: "inconclusive",
+      evidenceId: "transport-timeout-second",
+      reason: "La sonda read-only non ha risposto: apr_cdp_connection_closed",
+    }, "transient-probe:second-read");
     expect(() => runner.requeueTransientUncertainPageSaveProbe("lorena-brendas", "persisted_fields_get", "transient-probe:requeue-other")).toThrow("enea_uncertain_page_save_transient_probe_requeue_state_invalid");
+    expect(runner.load().items[0].pageCheckpoints[0]).toMatchObject({ saveAttemptCount: 1, recoverySaveAttemptCount: 0 });
   });
 
   it("riapre le sole sonde Infissi dopo la correzione del classificatore N-1 senza ripetere Salva", () => {

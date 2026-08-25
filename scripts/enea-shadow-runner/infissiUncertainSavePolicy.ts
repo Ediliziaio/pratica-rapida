@@ -1,6 +1,6 @@
 export function nestedUncertainPageSaveProbeAllowed(module: string | undefined, pageId: string) {
   if (!pageId.startsWith("screening:")) return true;
-  return module === "infissi";
+  return module === "infissi" || module === "screening";
 }
 
 export function infissiRowPersistenceSurfaceOutcome(pageId: string, rowCount: number, surfaceReady: boolean): "present" | "absent" | "inconclusive" {

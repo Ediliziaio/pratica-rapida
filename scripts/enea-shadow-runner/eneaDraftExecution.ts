@@ -81,6 +81,7 @@ export interface AprUncertainPageSaveResolution {
   detectedAt: string;
   detectedEvidenceId: string;
   probes: AprUncertainPageSaveProbe[];
+  transientProbeRetryCounts?: Partial<Record<AprUncertainPageSaveProbeMethod, number>>;
   operatorDecision: null | {
     decision: "saved" | "not_saved" | "indeterminate";
     operatorId: string;
@@ -364,6 +365,7 @@ function normalizeState(value: AprEneaDraftExecutionState): AprEneaDraftExecutio
     item.requiresFreshDraft ??= false;
     item.recoverableCreateIntent ??= false;
     item.uncertainPageSave ??= null;
+    if (item.uncertainPageSave) item.uncertainPageSave.transientProbeRetryCounts ??= {};
     item.postCompletionVerification ??= null;
     item.operatorGateBlockers ??= [];
     if (!Array.isArray(item.pageCheckpoints)) {
@@ -1529,7 +1531,10 @@ export class PersistentAprEneaDraftExecution {
       const resolution = item?.uncertainPageSave;
       const checkpoint = resolution ? item?.pageCheckpoints.find((candidate) => candidate.pageId === resolution.pageId) : null;
       const probe = resolution?.probes.find((candidate) => candidate.method === method);
-      if (!item || item.state !== "operator_intervention" || !item.draftId || !resolution || resolution.status !== "probing" || !checkpoint || checkpoint.state !== "save_intent_recorded" || checkpoint.saveAttemptCount !== 1 || checkpoint.recoverySaveAttemptCount !== 0 || !probe || probe.outcome !== "inconclusive" || !/apr_cdp_(?:command_timeout:Runtime\.evaluate|connection_closed|protocol_error:-32000)/.test(probe.reason)) throw new Error("enea_uncertain_page_save_transient_probe_requeue_state_invalid");
+      const retryCount = resolution?.transientProbeRetryCounts?.[method] ?? 0;
+      if (!item || item.state !== "operator_intervention" || !item.draftId || !resolution || resolution.status !== "probing" || !checkpoint || checkpoint.state !== "save_intent_recorded" || checkpoint.saveAttemptCount !== 1 || checkpoint.recoverySaveAttemptCount !== 0 || retryCount !== 0 || !probe || probe.outcome !== "inconclusive" || !/apr_cdp_(?:command_timeout:Runtime\.evaluate|connection_closed|protocol_error:-32000)/.test(probe.reason)) throw new Error("enea_uncertain_page_save_transient_probe_requeue_state_invalid");
+      resolution.transientProbeRetryCounts ??= {};
+      resolution.transientProbeRetryCounts[method] = 1;
       resolution.probes = resolution.probes.filter((candidate) => candidate.method !== method);
       resolution.reason = `Prova ${method} riaperta dopo timeout di trasporto; nessun nuovo Salva autorizzato.`;
       resolution.nextAction = "Ripetere la sola lettura server e classificare la persistenza della pagina.";

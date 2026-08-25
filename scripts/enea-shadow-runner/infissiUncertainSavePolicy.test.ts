@@ -6,8 +6,12 @@ describe("ripresa sicura del Salva incerto per le righe Infissi", () => {
     expect(nestedUncertainPageSaveProbeAllowed("infissi", "screening:10")).toBe(true);
   });
 
-  it("conserva il divieto legacy per le schermature annidate", () => {
-    expect(nestedUncertainPageSaveProbeAllowed("screening", "screening:10")).toBe(false);
+  it("ammette la stessa sola verifica read-only per le schermature annidate", () => {
+    expect(nestedUncertainPageSaveProbeAllowed("screening", "screening:10")).toBe(true);
+  });
+
+  it("rifiuta moduli sconosciuti sulle righe tecniche annidate", () => {
+    expect(nestedUncertainPageSaveProbeAllowed("unknown", "screening:10")).toBe(false);
   });
 
   it("non modifica la politica delle pagine standard", () => {

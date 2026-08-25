@@ -24,6 +24,7 @@ function observation(input: Omit<AprCaseStatusObservation, "sourceFingerprint"> 
 function commonBlockerApplicability(blocker: { code: string; field?: string | null; reason?: string; message?: string }): AprCaseBlockerApplicability {
   const evidence = `${blocker.code} ${blocker.field ?? ""} ${blocker.reason ?? blocker.message ?? ""}`.toLowerCase();
   const screeningOnly = blocker.field === "screenings"
+    || blocker.field?.startsWith("screenings.")
     || blocker.code === "crm-source-not-screening"
     || /schermatur/.test(evidence);
   return {

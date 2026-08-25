@@ -135,6 +135,40 @@ export interface AprCrmLocalPreflightState {
   audit: Array<{ revision: number; at: string; type: "initialized" | "prepared" | "claimed" | "case_ready" | "case_blocked" | "case_deferred" | "source_revision_applied" | "validation_recomputed" | "operator_resolution_requeued" | "completed"; customerKey: string | null; reason: string; appliedRuleIds: string[] }>;
 }
 
+type AprCrmLocalPreflightBlocker = AprCrmLocalPreflightReport["blockers"][number];
+
+function isScreeningComponentBlocker(blocker: AprCrmLocalPreflightBlocker) {
+  return blocker.field === "screenings" || blocker.field.startsWith("screenings.");
+}
+
+export function invalidateCrmEneaPayloadAuditForScreeningBlockers(
+  audit: CrmEneaPayloadAuditResult,
+  blockers: readonly AprCrmLocalPreflightBlocker[],
+): CrmEneaPayloadAuditResult {
+  const screeningBlockers = blockers.filter(isScreeningComponentBlocker);
+  if (screeningBlockers.length === 0) return audit;
+  const auditBlockers = [...audit.blockers];
+  for (const blocker of screeningBlockers) {
+    if (auditBlockers.some((item) => item.code === blocker.code)) continue;
+    auditBlockers.push({ code: blocker.code, fieldId: blocker.field, message: blocker.reason });
+  }
+  return {
+    ...audit,
+    status: "payload_incomplete",
+    blockerCount: auditBlockers.length,
+    blockers: auditBlockers,
+    draftReady: false,
+    portalGate: {
+      ...audit.portalGate,
+      status: "blocked",
+      reason: "screening-component-blocked",
+      workflowFingerprint: null,
+      supportedPages: [],
+    },
+    reason: `${screeningBlockers.length} blocker della componente Schermature invalidano il payload della bozza TEST.`,
+  };
+}
+
 function atomicWrite(target: string, contents: string) {
   mkdirSync(path.dirname(target), { recursive: true, mode: 0o700 });
   const temporary = `${target}.tmp-${process.pid}-${crypto.randomUUID()}`;
@@ -961,7 +995,7 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
   // dashboard non deve perdere il valore tecnico verificato e tornare al lordo.
   const eligibleTechnicalExpense = bundledProfessionalExpense.status !== "operator_required"
     ? bundledProfessionalExpense.eligibleTechnicalExpense : null;
-  const eneaPayloadAudit = buildCrmEneaPayloadAudit({
+  const baseEneaPayloadAudit = buildCrmEneaPayloadAudit({
     customerKey,
     dossierValue: dossier && row && form ? { ...dossier, row: { ...row, dati_form: form } } : dossierValue,
     resolvedTaxCode,
@@ -979,6 +1013,7 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
     resolvedCoBeneficiary: coBeneficiaryResolution.identity ? { ...coBeneficiaryResolution.identity, sourceIds: coBeneficiaryResolution.sourceIds } : null,
     analysis,
   });
+  const eneaPayloadAudit = invalidateCrmEneaPayloadAuditForScreeningBlockers(baseEneaPayloadAudit, uniqueBlockers);
   const finalBlockers = [...uniqueBlockers];
   if (finalBlockers.length === 0 && !eneaPayloadAudit.draftReady) finalBlockers.push({
     code: "draft_payload_mapping_incomplete",

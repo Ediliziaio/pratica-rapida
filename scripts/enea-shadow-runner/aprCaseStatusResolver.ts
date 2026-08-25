@@ -111,7 +111,7 @@ export function resolveAprCaseStatusTruth(observations: readonly AprCaseStatusOb
   }
 
 
-  if (common.status === "BLOCKED" && product?.status === "BLOCKED") {
+  if (policyResolution.effectiveCommonStatus === "BLOCKED" && product?.status === "BLOCKED") {
     const disagreement = dualBlockedOperatorDisagreement({
       common,
       product,

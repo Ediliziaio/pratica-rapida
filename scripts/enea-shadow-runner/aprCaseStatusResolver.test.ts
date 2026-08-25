@@ -112,6 +112,20 @@ describe("APR unique pure case status resolver", () => {
     ])).toMatchObject({ status: "INCONSISTENT", reason: expect.stringContaining("non applicabile") });
   });
 
+  it("ignora il blocker Schermature per il gate Infissi bloccato e conserva la decisione operatore coerente", () => {
+    const infissiCode = "infissi_invoice_certificate_cardinality_mismatch";
+    expect(resolveAprCaseStatusTruth([
+      obs("preflight_common", "BLOCKED", {
+        blockerCodes: ["avvolgibile_measurement_ambiguous_2"],
+        blockerApplicability: [{ code: "avvolgibile_measurement_ambiguous_2", productModules: ["screening"] }],
+        classification: "UNCLASSIFIED",
+      }),
+      obs("product_gate", "BLOCKED", { blockerCodes: [infissiCode], classification: "UNCLASSIFIED", productModule: "infissi" }),
+      obs("deep_review", "BLOCKED", { blockerCodes: [infissiCode], classification: "OPERATOR", productModule: "infissi" }),
+      blockers("avvolgibile_measurement_ambiguous_2", infissiCode),
+    ])).toMatchObject({ status: "OPERATOR_REQUIRED", matchedTransitionId: "product_block_operator" });
+  });
+
   it("rifiuta execution COMPLETED con blocker a monte", () => {
     expect(resolveAprCaseStatusTruth([
       obs("preflight_common", "BLOCKED", { blockerCodes: ["x"], classification: "UNCLASSIFIED" }),

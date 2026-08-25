@@ -54,12 +54,14 @@ describe("APR case status observation adapters", () => {
       outcome: "blocked_case",
       blockers: [
         { code: "screenings_missing", field: "screenings", reason: "Nessuna schermatura riconciliata." },
+        { code: "screening_measurement_ambiguous", field: "screenings.2.dimensions", reason: "Misura avvolgibile ambigua." },
         { code: "identity_conflict", field: "beneficiary", reason: "Identità non coerente." },
       ],
       eneaPayloadAudit: { blockers: [{ code: "crm-source-not-screening", fieldId: null, message: "Non è una schermatura." }] },
     } } as unknown as AprCrmLocalPreflightItem;
     expect(observeAprCommonPreflight(item, at).blockerApplicability).toEqual([
       { code: "screenings_missing", productModules: ["screening"] },
+      { code: "screening_measurement_ambiguous", productModules: ["screening"] },
       { code: "identity_conflict", productModules: ["screening", "infissi"] },
       { code: "crm-source-not-screening", productModules: ["screening"] },
     ]);

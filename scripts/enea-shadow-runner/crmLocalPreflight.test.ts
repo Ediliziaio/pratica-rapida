@@ -5,12 +5,64 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
-import { CASE_SPECIFIC_FINANCIAL_RESOLUTIONS, PersistentAprCrmLocalPreflight, assessEnea2026SubmissionDeadline, buildCrmLocalPreflightReport, completionDateOperatorBlockers, isPersianaDimensionPlausible, missingExplicitAdvanceInvoiceReferences, resolveBundledProfessionalExpense, resolveCoBeneficiaryFromOriginalInvoices, resolveFormScreeningMappings, resolveInvoiceWorkDates, resolveOriginalDocumentFiscalCode, resolvePrimaryBeneficiaryFromOriginalInvoices, resolveProductTechnicalAttributes, screeningProductMeasurementEvidenceStatus } from "./crmLocalPreflight";
+import { CASE_SPECIFIC_FINANCIAL_RESOLUTIONS, PersistentAprCrmLocalPreflight, assessEnea2026SubmissionDeadline, buildCrmLocalPreflightReport, completionDateOperatorBlockers, invalidateCrmEneaPayloadAuditForScreeningBlockers, isPersianaDimensionPlausible, missingExplicitAdvanceInvoiceReferences, resolveBundledProfessionalExpense, resolveCoBeneficiaryFromOriginalInvoices, resolveFormScreeningMappings, resolveInvoiceWorkDates, resolveOriginalDocumentFiscalCode, resolvePrimaryBeneficiaryFromOriginalInvoices, resolveProductTechnicalAttributes, screeningProductMeasurementEvidenceStatus } from "./crmLocalPreflight";
+import type { CrmEneaPayloadAuditResult } from "./crmEneaPayloadAudit";
 
 const directories: string[] = [];
 afterEach(() => { for (const directory of directories.splice(0)) rmSync(directory, { recursive: true, force: true }); });
 
 describe("preflight locale durevole fino a quindici dossier CRM", () => {
+  const readyScreeningAudit = (): CrmEneaPayloadAuditResult => ({
+    status: "payload_complete",
+    mappingFingerprint: "mapping-screening-ready",
+    fieldSummary: { ready: 12, review: 0, missing: 0 },
+    requiredPortalFieldCount: 12,
+    blockerCount: 0,
+    blockers: [],
+    excludedUnverifiedFields: [],
+    draftReady: true,
+    officialSubmissionAllowed: false,
+    portalGate: {
+      status: "ready",
+      reason: null,
+      workflowFingerprint: "workflow-screening-ready",
+      supportedPages: ["Schermature solari"],
+      screeningItemCount: 1,
+      saveAllowedOnlyBySeparateCapability: true,
+      previewAllowed: false,
+      submitAllowed: false,
+    },
+    externalActionAllowed: false,
+    reason: "Payload pronto.",
+  });
+
+  it("invalida l'audit Schermature quando il preflight blocca una misura della componente", () => {
+    expect(invalidateCrmEneaPayloadAuditForScreeningBlockers(readyScreeningAudit(), [{
+      code: "avvolgibile_measurement_ambiguous_2",
+      field: "screenings.2.dimensions",
+      reason: "Misura avvolgibile ambigua.",
+      sourceIds: ["invoice-1"],
+      appliedRuleIds: ["system-apr-operator-intervention-routing"],
+    }])).toMatchObject({
+      status: "payload_incomplete",
+      blockerCount: 1,
+      draftReady: false,
+      blockers: [{ code: "avvolgibile_measurement_ambiguous_2", fieldId: "screenings.2.dimensions" }],
+      portalGate: { status: "blocked", workflowFingerprint: null, supportedPages: [] },
+    });
+  });
+
+  it("non invalida l'audit Schermature per un blocker estraneo alla componente", () => {
+    const audit = readyScreeningAudit();
+    expect(invalidateCrmEneaPayloadAuditForScreeningBlockers(audit, [{
+      code: "beneficiary_identity_conflict",
+      field: "beneficiary.taxCode",
+      reason: "Identita non coerente.",
+      sourceIds: ["invoice-1"],
+      appliedRuleIds: ["system-apr-operator-intervention-routing"],
+    }])).toBe(audit);
+  });
+
   it("mantiene il materiale dell'avvolgibile isolato dalle righe Infissi della stessa fattura", () => {
     const result = resolveProductTechnicalAttributes("Tapparella in alluminio", "Infissi PVC esterno bianco", null);
     expect(result).toMatchObject({ material: "Metallo", gTot: 0.08, ruleId: USER_AUTHORIZED_RULE_IDS.avvolgibileScreening });

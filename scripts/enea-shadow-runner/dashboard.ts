@@ -29,6 +29,7 @@ import type { PersistentAprShadowControl } from "./shadowControl";
 import type { PersistentAprInfissiLocalMappingPreflight } from "./infissiLocalMappingPreflight";
 import type { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import type { PersistentAprDeepCaseReview } from "./deepCaseReview";
+import type { AprPublicRuntimeStatus } from "./aprWatchdog";
 import { aprShadowOperatingPlanSnapshot } from "../../src/features/enea-shadow-crm/shadowOperatingModel";
 
 type LocalDossierSnapshot = ReturnType<typeof localDossierDashboardSnapshot>;
@@ -80,9 +81,89 @@ function healthLabel(health: SupervisorSnapshot["health"]) {
     runner_off: "Runner spento",
     checkpoint_resumable: "Checkpoint riprendibile",
     enea_lease_unavailable: "Lease ENEA non disponibile",
+    technical_block: "Blocco tecnico",
     operator_intervention: "Intervento operatore",
     run_completed: "Run completato",
   } as const)[health];
+}
+
+export interface DashboardOperationalStatus {
+  publicStatus: AprPublicRuntimeStatus | null;
+  source: "watchdog" | "worker" | "legacy_runner";
+  health: SupervisorSnapshot["health"];
+  title: string;
+  reason: string;
+  nextAction: string;
+  currentPracticeId: string | null;
+}
+
+function recentHeartbeat(heartbeatAt: string | null | undefined, processPid: number | null | undefined, now: Date) {
+  const heartbeat = heartbeatAt ? Date.parse(heartbeatAt) : Number.NaN;
+  const age = now.getTime() - heartbeat;
+  return Boolean(processPid && processPid > 0 && Number.isFinite(age) && age >= 0 && age <= 30_000);
+}
+
+/**
+ * The historical runner journal is not the operational authority for the
+ * persistent ENEA worker.  Prefer the independently persisted watchdog while
+ * its PID/heartbeat evidence is fresh, then the worker, and only then the
+ * legacy runner.  This keeps the HTML and status.json on the same truth source.
+ */
+export function deriveDashboardOperationalStatus(
+  legacy: SupervisorSnapshot,
+  now: Date,
+  eneaBrowserWorker?: EneaBrowserWorkerSnapshot | null,
+  watchdog?: AprWatchdogSnapshot | null,
+): DashboardOperationalStatus {
+  if (watchdog && recentHeartbeat(watchdog.heartbeatAt, watchdog.processPid, now)) {
+    const health: SupervisorSnapshot["health"] = watchdog.status === "WORKING"
+      ? "runner_active"
+      : watchdog.status === "OPERATOR_REQUIRED"
+        ? "operator_intervention"
+        : watchdog.status === "TECHNICAL_BLOCK"
+          ? "technical_block"
+          : "run_completed";
+    const suffix = watchdog.status === "WORKING"
+      ? ` — ${watchdog.currentDisplayName ?? "processo APR"} · ${watchdog.currentPhase}`
+      : watchdog.status === "IDLE" ? " — coda vuota" : "";
+    return {
+      publicStatus: watchdog.status,
+      source: "watchdog",
+      health,
+      title: `${watchdog.status}${suffix}`,
+      reason: watchdog.reason,
+      nextAction: watchdog.nextAction,
+      currentPracticeId: watchdog.currentCustomerKey,
+    };
+  }
+
+  const service = eneaBrowserWorker?.service;
+  if (service && recentHeartbeat(service.heartbeatAt, service.processPid, now) && !["disabled", "stopped"].includes(service.status)) {
+    const publicStatus: AprPublicRuntimeStatus = service.status === "running"
+      ? "WORKING"
+      : service.status === "technical_block" || service.status === "login_required"
+        ? "TECHNICAL_BLOCK"
+        : "IDLE";
+    return {
+      publicStatus,
+      source: "worker",
+      health: publicStatus === "WORKING" ? "runner_active" : publicStatus === "TECHNICAL_BLOCK" ? "technical_block" : "run_completed",
+      title: publicStatus === "WORKING" ? "WORKING — processo APR" : publicStatus === "IDLE" ? "IDLE — coda vuota" : "TECHNICAL_BLOCK — controllo tecnico necessario",
+      reason: service.reason,
+      nextAction: service.nextAction,
+      currentPracticeId: null,
+    };
+  }
+
+  return {
+    publicStatus: null,
+    source: "legacy_runner",
+    health: legacy.health,
+    title: healthLabel(legacy.health),
+    reason: legacy.reason,
+    nextAction: legacy.nextAction,
+    currentPracticeId: legacy.currentPracticeId,
+  };
 }
 
 export function renderDashboardHtml(
@@ -119,6 +200,7 @@ export function renderDashboardHtml(
   deepCaseReview?: AprDeepCaseReviewSnapshot | null,
 ) {
   const snapshot = supervise(state, now);
+  const operational = deriveDashboardOperationalStatus(snapshot, now, eneaBrowserWorker, watchdog);
   const counts = state.queue.reduce<Record<string, number>>((result, job) => {
     result[job.executionState] = (result[job.executionState] ?? 0) + 1;
     return result;
@@ -136,23 +218,13 @@ export function renderDashboardHtml(
     && !["disabled", "stopped"].includes(eneaBrowserWorker.service.status));
   const eneaExecutionCurrent = eneaDraftExecution?.items.find((item) => item.customerKey === eneaDraftExecution.currentCustomerKey) ?? null;
   const eneaLastSaved = [...(eneaDraftExecution?.items ?? [])].reverse().find((item) => item.state === "saved") ?? null;
-  const eneaWorkerPublicTitle = eneaBrowserWorker?.service.status === "running"
-    ? `WORKING — ${eneaExecutionCurrent?.displayName ?? "processo APR"}`
-    : eneaBrowserWorker?.service.status === "technical_block"
-      ? "TECHNICAL_BLOCK — controllo tecnico necessario"
-      : eneaBrowserWorker?.service.status === "login_required"
-        ? "TECHNICAL_BLOCK — login ENEA richiesto"
-        : eneaWorkerObservable
-          ? "APR ATTIVO — IDLE, coda vuota"
-          : null;
-  const displayedReason = eneaWorkerObservable
-    ? eneaBrowserWorker!.service.reason
+  const eneaWorkerPublicTitle = operational.source !== "legacy_runner" ? operational.title : null;
+  const displayedReason = operational.source !== "legacy_runner"
+    ? operational.reason
     : draftExecutionActive ? eneaDraftExecution!.reason : readiness && !readiness.queueMayRun && !practiceCheckpointActive ? readiness.reason : snapshot.reason;
-  const displayedNextAction = eneaWorkerObservable && eneaBrowserWorker!.service.status === "completed"
-    ? "Attendere nuove pratiche dalla pipeline CRM Pronte da fare; il processo persistente resta attivo."
-    : eneaWorkerObservable
-      ? eneaBrowserWorker!.service.nextAction
-      : draftExecutionActive ? eneaDraftExecution!.nextAction : readiness && !readiness.queueMayRun && !practiceCheckpointActive ? readiness.nextAction : snapshot.nextAction;
+  const displayedNextAction = operational.source !== "legacy_runner"
+    ? operational.nextAction
+    : draftExecutionActive ? eneaDraftExecution!.nextAction : readiness && !readiness.queueMayRun && !practiceCheckpointActive ? readiness.nextAction : snapshot.nextAction;
   const queueRows = state.queue.map((job) => `<tr${job.practice.id === snapshot.currentPracticeId ? ` class="current"` : ""}><td><strong>${escapeHtml(job.practice.code)}</strong><span>${escapeHtml(job.practice.displayName)}</span></td><td><span class="state-pill">${escapeHtml(job.executionState)}</span></td><td>${escapeHtml(job.checkpoint.step)} · r${job.checkpoint.practiceRevision}</td><td>${escapeHtml(job.practice.nextAction)}</td></tr>`).join("");
   const auditRows = state.audit.slice(-8).reverse().map((event) => `<li><div><strong>${escapeHtml(event.type)}</strong><time>${escapeHtml(event.at)}</time></div><p>${escapeHtml(event.reason)}</p><small>${escapeHtml(event.appliedRuleIds.join(" · "))}</small></li>`).join("");
   const timingJob = current ?? [...state.queue].reverse().find((job) => job.workflowTiming) ?? null;
@@ -296,7 +368,7 @@ export function renderDashboardHtml(
 <body><main>
   <header class="masthead"><p class="eyebrow">APR · primo modulo ENEA · test controllato</p><h1>Automazione PraticaRapida</h1><p class="sub">Dossier verificati, regole versionate, coda durevole e bozze idempotenti. La capability ENEA autorizzata può soltanto creare, compilare e salvare una bozza TEST; anteprima, submit e comunicazioni restano vietati.</p><div class="live">Supervisore ${escapeHtml(supervisorStatus)}</div></header>
   <div class="grid">
-    <section class="card status" aria-labelledby="health-title"><p class="label" id="health-title">Salute operativa</p><div class="health" data-health="${escapeHtml(eneaWorkerObservable ? "runner_active" : snapshot.health)}">${escapeHtml(eneaWorkerPublicTitle ?? healthLabel(snapshot.health))}</div><p class="reason">${escapeHtml(displayedReason)}</p><p class="next"><strong>Prossima azione</strong><br>${escapeHtml(displayedNextAction)}</p></section>
+    <section class="card status" aria-labelledby="health-title"><p class="label" id="health-title">Salute operativa</p><div class="health" data-health="${escapeHtml(operational.health)}">${escapeHtml(eneaWorkerPublicTitle ?? healthLabel(snapshot.health))}</div><p class="reason">${escapeHtml(displayedReason)}</p><p class="next"><strong>Prossima azione</strong><br>${escapeHtml(displayedNextAction)}</p></section>
     <section class="card numbers" aria-labelledby="summary-title"><p class="label" id="summary-title">Run revision ${snapshot.revision}</p><div class="stats"><div class="stat"><strong>${eneaDraftExecution?.items.length ?? state.queue.length}</strong><span>pratiche totali</span></div><div class="stat"><strong>${eneaDraftExecution?.progress.saved ?? completed}</strong><span>completate con prova</span></div><div class="stat"><strong>${state.audit.length}</strong><span>eventi audit</span></div><div class="stat"><strong>${runtime?.restartCount ?? 0}</strong><span>ripristini supervisore</span></div></div><div class="current-box"><span>${escapeHtml(eneaExecutionCurrent ? "Pratica corrente" : eneaLastSaved ? "Ultimo caso concluso" : "Pratica corrente")}</span><strong>${escapeHtml(eneaExecutionCurrent?.displayName ?? eneaLastSaved?.displayName ?? (current ? `${current.practice.code} · ${current.practice.displayName}` : "Nessuna"))}</strong><span>${escapeHtml(eneaExecutionCurrent ? `${eneaExecutionCurrent.completedPageIds.length}/${eneaExecutionCurrent.expectedPageIds.length} pagine · ${eneaExecutionCurrent.state}` : eneaLastSaved ? `bozza ${eneaLastSaved.draftId ?? "—"} · ${eneaLastSaved.completedPageIds.length}/${eneaLastSaved.expectedPageIds.length} pagine` : current ? `${current.checkpoint.step} · ${current.executionState}` : "Coda non selezionata")}</span></div></section>
     ${shadowControlMarkup}
     ${readinessMarkup}
@@ -378,7 +450,23 @@ export function writeLocalDashboard(
   const directory = path.join(path.resolve(rootDirectory), "dashboard");
   mkdirSync(directory, { recursive: true, mode: 0o700 });
   const snapshot = supervise(state, now);
-  atomicWrite(path.join(directory, "status.json"), `${JSON.stringify(snapshot, null, 2)}\n`);
+  const operational = deriveDashboardOperationalStatus(snapshot, now, eneaBrowserWorker, watchdog);
+  const publicSnapshot = operational.source === "legacy_runner" ? {
+    ...snapshot,
+    publicStatus: operational.publicStatus,
+    statusSource: operational.source,
+  } : {
+    ...snapshot,
+    health: operational.health,
+    state: operational.publicStatus,
+    reason: operational.reason,
+    nextAction: operational.nextAction,
+    currentPracticeId: operational.currentPracticeId,
+    publicStatus: operational.publicStatus,
+    statusSource: operational.source,
+    legacyRunner: snapshot,
+  };
+  atomicWrite(path.join(directory, "status.json"), `${JSON.stringify(publicSnapshot, null, 2)}\n`);
   atomicWrite(path.join(directory, "index.html"), renderDashboardHtml(state, now, runtime, null, readiness, adapter, executionPlan, localDossier, batchReport, ruleMatrix, crmReadOnlyAdapter, pilotSample, notifications, crmAuth, crmAcquisition, crmDocuments, crmDocumentAnalysis, crmLocalPreflight, eneaDraftExecution, eneaBrowserWorker, watchdog, operatorQuestions, csrfToken, crmWorkflow, crmIncoming, crmLiveProcessing, shadowComparison, shadowControl, infissiLocalMapping, infissiBatchPreflight, deepCaseReview));
   return snapshot;
 }

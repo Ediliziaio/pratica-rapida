@@ -5,6 +5,7 @@ export type SupervisorHealth =
   | "runner_off"
   | "checkpoint_resumable"
   | "enea_lease_unavailable"
+  | "technical_block"
   | "operator_intervention"
   | "run_completed";
 

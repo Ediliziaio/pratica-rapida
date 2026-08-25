@@ -455,13 +455,19 @@ Totale documento 1.200,00 €`, "persiana-mm.pdf");
       measurementAudit: expect.objectContaining({ explicitUnit: "mm", widthResolution: "explicit_mm", heightResolution: "explicit_mm" }),
     })]);
   });
-  it("normalizza solo gli intervalli autorizzati per le persiane", () => {
+  it("normalizza cm e mm entro i limiti ampi di plausibilita refuso", () => {
     expect(normalizePersianaMeasure(120, "width", null)).toEqual({ millimeters: 1200, resolution: "inferred_cm" });
     expect(normalizePersianaMeasure(1200, "width", null)).toEqual({ millimeters: 1200, resolution: "inferred_mm" });
     expect(normalizePersianaMeasure(245, "height", null)).toEqual({ millimeters: 2450, resolution: "inferred_cm" });
     expect(normalizePersianaMeasure(2450, "height", null)).toEqual({ millimeters: 2450, resolution: "inferred_mm" });
-    expect(normalizePersianaMeasure(45, "width", null)).toBeNull();
-    expect(normalizePersianaMeasure(900, "height", null)).toBeNull();
+    expect(normalizePersianaMeasure(500, "width", "mm")).toEqual({ millimeters: 500, resolution: "explicit_mm" });
+    expect(normalizePersianaMeasure(4000, "width", "mm")).toEqual({ millimeters: 4000, resolution: "explicit_mm" });
+    expect(normalizePersianaMeasure(499, "width", "mm")).toBeNull();
+    expect(normalizePersianaMeasure(4001, "width", "mm")).toBeNull();
+    expect(normalizePersianaMeasure(450, "height", "mm")).toEqual({ millimeters: 450, resolution: "explicit_mm" });
+    expect(normalizePersianaMeasure(3200, "height", "mm")).toEqual({ millimeters: 3200, resolution: "explicit_mm" });
+    expect(normalizePersianaMeasure(449, "height", "mm")).toBeNull();
+    expect(normalizePersianaMeasure(3201, "height", "mm")).toBeNull();
   });
   it("non tratta una dichiarazione sostitutiva come seconda fattura", () => {
     const parsed = parseScreeningInvoiceText(`DICHIARAZIONE SOSTITUTIVA DELL’ATTO DI NOTORIETA’

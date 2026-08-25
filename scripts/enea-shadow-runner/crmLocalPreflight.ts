@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { isValidCodiceFiscale } from "../../src/components/form-cliente/validation-utils";
-import { combineDocumentResults, parseScreeningTechnicalSourceText, stripHistoricalEneaAppendix } from "../../src/features/enea-lab/invoiceParser";
+import { combineDocumentResults, parseScreeningTechnicalSourceText, PERSIANA_MEASURE_LIMITS_MM, stripHistoricalEneaAppendix } from "../../src/features/enea-lab/invoiceParser";
 import { fingerprintPreparedPractice } from "../../src/features/enea-lab/preparation";
 import { reconcileFinancialEvidence } from "../../src/features/enea-shadow-crm/financialReconciliation";
 import { USER_AUTHORIZED_RULE_IDS, registryRule } from "../../src/features/enea-shadow-crm/operationalRegistry";
@@ -532,8 +532,10 @@ export function screeningProductMeasurementEvidenceStatus(invoiceTexts: readonly
 
 export function isPersianaDimensionPlausible(widthMm: number, heightMm: number): boolean {
   return Number.isFinite(widthMm) && Number.isFinite(heightMm)
-    && widthMm >= 600 && widthMm <= 1_800
-    && heightMm >= 1_200 && heightMm <= 3_000;
+    && widthMm >= PERSIANA_MEASURE_LIMITS_MM.width.minimum
+    && widthMm <= PERSIANA_MEASURE_LIMITS_MM.width.maximum
+    && heightMm >= PERSIANA_MEASURE_LIMITS_MM.height.minimum
+    && heightMm <= PERSIANA_MEASURE_LIMITS_MM.height.maximum;
 }
 
 type FormScreeningMapping = { declared: JsonObject | null; source: "one_to_one" | "group_inheritance" | "group_invoice_type_override" | null };
@@ -874,7 +876,7 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
     const shutterRuleId = avvolgibileDescription ? USER_AUTHORIZED_RULE_IDS.avvolgibileScreening : USER_AUTHORIZED_RULE_IDS.persianaScreening;
     const shutterLabel = avvolgibileDescription ? "avvolgibile" : "persiana";
     if (shutterContractDescription && !isPersianaDimensionPlausible(item.widthMm, item.heightMm)) {
-      blockers.push({ code: `${shutterLabel}_measurement_ambiguous_${index + 1}`, field: `screenings.${index + 1}.dimensions`, reason: `Misura ${shutterLabel} ${item.widthMm}×${item.heightMm} mm fuori dagli intervalli autorizzati (larghezza 60-180 cm, altezza 120-300 cm). Richiesto intervento operatore senza inventare conversioni.`, sourceIds: [item.sourcePath], appliedRuleIds: [shutterRuleId, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality, "system-apr-operator-intervention-routing"] });
+      blockers.push({ code: `${shutterLabel}_measurement_ambiguous_${index + 1}`, field: `screenings.${index + 1}.dimensions`, reason: `Misura ${shutterLabel} ${item.widthMm}×${item.heightMm} mm fuori dai limiti ampi di plausibilita refuso (larghezza 500-4000 mm, altezza 450-3200 mm). Richiesto intervento operatore senza inventare conversioni.`, sourceIds: [item.sourcePath], appliedRuleIds: [shutterRuleId, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality, "system-apr-operator-intervention-routing"] });
       continue;
     }
     const rule = resolveProductTechnicalAttributes(item.description, attributeContext, item.gTot); const mapping = formMappings.mappings[index] ?? { declared: null, source: null }; const declared = mapping.declared;

@@ -10,6 +10,10 @@ const AVVOLGIBILE_RULE_ID = "user-2026-08-18-avvolgibile-screening-contract-v1";
 
 export type PersianaMeasureAxis = "width" | "height";
 export type PersianaMeasureResolution = "explicit_cm" | "explicit_mm" | "inferred_cm" | "inferred_mm" | "ambiguous";
+export const PERSIANA_MEASURE_LIMITS_MM = {
+  width: { minimum: 500, maximum: 4_000 },
+  height: { minimum: 450, maximum: 3_200 },
+} as const;
 
 export function normalizePersianaMeasure(
   rawValue: number,
@@ -17,12 +21,12 @@ export function normalizePersianaMeasure(
   explicitUnit: "cm" | "mm" | null,
 ): { millimeters: number; resolution: PersianaMeasureResolution } | null {
   if (!Number.isFinite(rawValue) || rawValue <= 0) return null;
-  const [minimumCm, maximumCm] = axis === "width" ? [60, 180] : [120, 300];
-  const withinCm = (centimeters: number) => centimeters >= minimumCm && centimeters <= maximumCm;
-  if (explicitUnit === "cm") return withinCm(rawValue) ? { millimeters: Math.round(rawValue * 10), resolution: "explicit_cm" } : null;
-  if (explicitUnit === "mm") return withinCm(rawValue / 10) ? { millimeters: Math.round(rawValue), resolution: "explicit_mm" } : null;
-  if (withinCm(rawValue)) return { millimeters: Math.round(rawValue * 10), resolution: "inferred_cm" };
-  if (withinCm(rawValue / 10)) return { millimeters: Math.round(rawValue), resolution: "inferred_mm" };
+  const limits = PERSIANA_MEASURE_LIMITS_MM[axis];
+  const withinLimits = (millimeters: number) => millimeters >= limits.minimum && millimeters <= limits.maximum;
+  if (explicitUnit === "cm") return withinLimits(rawValue * 10) ? { millimeters: Math.round(rawValue * 10), resolution: "explicit_cm" } : null;
+  if (explicitUnit === "mm") return withinLimits(rawValue) ? { millimeters: Math.round(rawValue), resolution: "explicit_mm" } : null;
+  if (withinLimits(rawValue * 10)) return { millimeters: Math.round(rawValue * 10), resolution: "inferred_cm" };
+  if (withinLimits(rawValue)) return { millimeters: Math.round(rawValue), resolution: "inferred_mm" };
   return null;
 }
 

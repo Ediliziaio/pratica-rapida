@@ -873,11 +873,32 @@ Totale documento 915,00 €`);
     expect(report.products.every((product) => product.appliedRuleIds.includes(USER_AUTHORIZED_RULE_IDS.avvolgibileScreening))).toBe(true);
   });
 
-  it("accetta soltanto le dimensioni persiana negli intervalli autorizzati", () => {
-    expect(isPersianaDimensionPlausible(600, 1200)).toBe(true);
-    expect(isPersianaDimensionPlausible(1800, 3000)).toBe(true);
-    expect(isPersianaDimensionPlausible(599, 2450)).toBe(false);
-    expect(isPersianaDimensionPlausible(900, 1199)).toBe(false);
+  it("applica i limiti ampi di plausibilita refuso alle dimensioni persiana", () => {
+    expect(isPersianaDimensionPlausible(500, 450)).toBe(true);
+    expect(isPersianaDimensionPlausible(4000, 3200)).toBe(true);
+    expect(isPersianaDimensionPlausible(499, 2450)).toBe(false);
+    expect(isPersianaDimensionPlausible(4001, 2450)).toBe(false);
+    expect(isPersianaDimensionPlausible(900, 449)).toBe(false);
+    expect(isPersianaDimensionPlausible(900, 3201)).toBe(false);
+  });
+
+  it("considera plausibile la misura originaria contestata 2835x1850 mm", () => {
+    expect(isPersianaDimensionPlausible(2835, 1850)).toBe(true);
+  });
+
+  it("riesegue la misura originaria contestata nel preflight senza il falso blocker dimensionale", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-avvolgibile-wide-measure-")); directories.push(root);
+    const textPath = path.join(root, "fattura.txt");
+    writeFileSync(textPath, `Fattura n. A-2835 del 20/08/2026
+Cliente Mario Rossi CF RSSMRA80A01H501U
+AVVOLGIBILE IN ALLUMINIO MISURE IN MM 2835 x 1850
+Totale documento 1.200,00 €`);
+    const report = buildCrmLocalPreflightReport({ row: { cliente_nome: "Mario", cliente_cognome: "Rossi", cliente_cf: "RSSMRA80A01H501U", dati_form: {
+      richiedente: { nome: "Mario", cognome: "Rossi", data_nascita: "1980-01-01", cf: "RSSMRA80A01H501U" },
+      edificio: { numero_appartamenti: 1 }, prodotto: {},
+    } } }, "regression-wide-avvolgibile", { items: [{ documentKey: "wide-measure-invoice", customerKey: "regression-wide-avvolgibile", kind: "invoice", state: "analyzed", textPath, extractionMode: "native_text", invoiceResult: { documentType: "invoice" }, screeningItems: [] }] } as never, new Date("2026-08-25T10:00:00Z"));
+    expect(report.products).toEqual([expect.objectContaining({ widthMm: 2835, heightMm: 1850, declaredType: "avvolgibile" })]);
+    expect(report.blockers.some((blocker) => blocker.code.startsWith("avvolgibile_measurement_ambiguous"))).toBe(false);
   });
 
   it("riprende un caso reclamato, registra blocchi per-pratica e non perde la coda", () => {

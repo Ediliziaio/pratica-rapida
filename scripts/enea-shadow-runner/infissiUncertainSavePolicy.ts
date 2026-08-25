@@ -1,4 +1,10 @@
-export function nestedUncertainPageSaveProbeAllowed(module: string | undefined, pageId: string) {
+import type { AprEneaProductModule } from "./aprEneaBrowserWorker";
+
+export function aprEneaProductModuleFromUnknown(value: unknown): AprEneaProductModule | undefined {
+  return value === "screening" || value === "infissi" ? value : undefined;
+}
+
+export function nestedUncertainPageSaveProbeAllowed(module: AprEneaProductModule | undefined, pageId: string) {
   if (!pageId.startsWith("screening:")) return true;
   return module === "infissi" || module === "screening";
 }

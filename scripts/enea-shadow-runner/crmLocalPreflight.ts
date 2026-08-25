@@ -14,11 +14,16 @@ import { extractBankTransferEvidences, reconcileBankTransfers } from "./bankTran
 import { extractLocalInvoiceFinancialEvidence } from "./localInvoiceFinancialEvidence";
 import { reconcileLocalInvoiceSegments, splitLocalInvoiceText } from "./localInvoiceSegmentation";
 import { isLineaSolePotitoPaperForm, lineaSolePotitoSupplierEvidence, PAPER_FORM_BIRTH_DATE_OCR_REPAIR_RULE_ID, parseLineaSolePotitoPaperForm, resolveLineaSolePotitoExposure, resolveLineaSolePotitoProtectedWindowSurface } from "./lineaSolePotitoPolicy";
+import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 
 export const APR_CRM_LOCAL_PREFLIGHT_VERSION = "apr-crm-local-preflight-v1" as const;
 const BASE_RULE_IDS = ["core-form-first", "core-economic-classification", "core-gross-triple-reconciliation", "core-mapping-complete", "system-single-active-practice", "system-atomic-checkpoint-resume", USER_AUTHORIZED_RULE_IDS.tenCaseMondayRestart];
 const sha256 = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 type PreflightBlocker = { code: string; field: string; reason: string; sourceIds: string[]; appliedRuleIds: string[] };
+
+export function asScreeningDraftPackage<T extends Omit<AprEneaDraftPackage, "module">>(draftPackage: T): T & { module: "screening" } {
+  return { ...draftPackage, module: "screening" };
+}
 
 export function assessEnea2026SubmissionDeadline(startDate: string | null, completionDate: string, now: Date) {
   const specialWindowApplied = Boolean(startDate
@@ -1192,7 +1197,7 @@ export class PersistentAprCrmLocalPreflight {
       workflowFingerprint: packageResult.portalGate.fingerprint,
       workflowScript: packageResult.portalGate.workflow.script,
     };
-    return {
+    const draftPackage = asScreeningDraftPackage({
       version: "apr-crm-enea-draft-package-v1" as const,
       customerKey,
       displayName: item.displayName,
@@ -1204,7 +1209,8 @@ export class PersistentAprCrmLocalPreflight {
       payload: packageResult.payload,
       workflow: packageResult.portalGate.workflow,
       safety: { createAllowedAfterPersistentIntent: true, saveAllowedAfterAllPageCheckpoints: true, previewAllowed: false, submitAllowed: false, communicationsAllowed: false } as const,
-    };
+    });
+    return draftPackage;
   }
   snapshot(now = new Date()) { const state = this.load(now); return { ...state, progress: { total: state.items.length, queued: state.items.filter((item) => item.state === "queued" || item.state === "processing").length, ready: state.items.filter((item) => item.state === "ready_local_plan").length, blocked: state.items.filter((item) => item.state === "blocked_case").length, deferred: state.items.filter((item) => item.state === "deferred_operator").length }, lastEvent: state.audit.at(-1)!, observedAt: now.toISOString() }; }
 }

@@ -27,12 +27,12 @@ function fieldVerificationRecoveryRevision(reason: string) {
 }
 
 function print(value: unknown) { process.stdout.write(`${JSON.stringify(value, null, 2)}\n`); }
-function loadDraftPackage(customerKey: string) {
+function loadDraftPackage(customerKey: string): AprEneaDraftPackage {
   const infissi = new PersistentAprInfissiBatchPreflight(rootDirectory);
   const infissiItem = infissi.snapshot().items.find((item) => item.customerKey === customerKey);
   if (infissiItem?.state === "ready_local_plan") return infissi.buildDraftExecutionPackage(customerKey);
   const analysis = new PersistentAprCrmDocumentAnalysis(rootDirectory);
-  return new PersistentAprCrmLocalPreflight(rootDirectory, analysis).buildDraftExecutionPackage(customerKey) as unknown as AprEneaDraftPackage;
+  return new PersistentAprCrmLocalPreflight(rootDirectory, analysis).buildDraftExecutionPackage(customerKey);
 }
 async function advanceRepeatDeletionGate(driver: CdpEneaBrowserDriver) {
   const seedStore = new PersistentAprCohortSeed(rootDirectory);
@@ -180,13 +180,13 @@ async function serve() {
           ? { ...preflightSnapshot, items: preflightSnapshot.items.filter((item) => !infissiCandidateKeys.has(item.customerKey)) }
           : preflightSnapshot;
         const infissiExecutionReady = infissiExecutionGateReady(infissiSnapshot);
-        const draftPackageFor = (customerKey: string) => {
+        const draftPackageFor = (customerKey: string): AprEneaDraftPackage => {
           const infissiItem = infissiSnapshot.items.find((item) => item.customerKey === customerKey);
           if (infissiItem) {
             if (!infissiExecutionReady || infissiItem.state !== "ready_local_plan") throw new Error("crm_enea_infissi_execution_gate_not_ready");
             return infissiPreflight.buildDraftExecutionPackage(customerKey);
           }
-          return preflight.buildDraftExecutionPackage(customerKey) as unknown as AprEneaDraftPackage;
+          return preflight.buildDraftExecutionPackage(customerKey);
         };
         execution.applyValidationOperatorGates(preflightSnapshot, "completion-date-operator-gate-v48-cross-module");
         if (infissiExecutionReady) {

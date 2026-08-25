@@ -2,16 +2,35 @@ import { createHash } from "node:crypto";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, expectTypeOf, it } from "vitest";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
-import { CASE_SPECIFIC_FINANCIAL_RESOLUTIONS, PersistentAprCrmLocalPreflight, assessEnea2026SubmissionDeadline, buildCrmLocalPreflightReport, completionDateOperatorBlockers, invalidateCrmEneaPayloadAuditForScreeningBlockers, isPersianaDimensionPlausible, missingExplicitAdvanceInvoiceReferences, resolveBundledProfessionalExpense, resolveCoBeneficiaryFromOriginalInvoices, resolveFormScreeningMappings, resolveInvoiceWorkDates, resolveOriginalDocumentFiscalCode, resolvePrimaryBeneficiaryFromOriginalInvoices, resolveProductTechnicalAttributes, screeningProductMeasurementEvidenceStatus } from "./crmLocalPreflight";
+import { CASE_SPECIFIC_FINANCIAL_RESOLUTIONS, PersistentAprCrmLocalPreflight, asScreeningDraftPackage, assessEnea2026SubmissionDeadline, buildCrmLocalPreflightReport, completionDateOperatorBlockers, invalidateCrmEneaPayloadAuditForScreeningBlockers, isPersianaDimensionPlausible, missingExplicitAdvanceInvoiceReferences, resolveBundledProfessionalExpense, resolveCoBeneficiaryFromOriginalInvoices, resolveFormScreeningMappings, resolveInvoiceWorkDates, resolveOriginalDocumentFiscalCode, resolvePrimaryBeneficiaryFromOriginalInvoices, resolveProductTechnicalAttributes, screeningProductMeasurementEvidenceStatus } from "./crmLocalPreflight";
 import type { CrmEneaPayloadAuditResult } from "./crmEneaPayloadAudit";
+import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
+import { nestedUncertainPageSaveProbeAllowed } from "./infissiUncertainSavePolicy";
 
 const directories: string[] = [];
 afterEach(() => { for (const directory of directories.splice(0)) rmSync(directory, { recursive: true, force: true }); });
 
 describe("preflight locale durevole fino a quindici dossier CRM", () => {
+  it("propaga il modulo Schermature dal pacchetto comune alla policy di ripresa annidata", () => {
+    const draftPackage = asScreeningDraftPackage({
+      customerKey: "fixture-screening-module",
+      displayName: "Fixture schermature",
+      practiceId: "practice-screening-module",
+      packageFingerprint: "package-screening-module",
+      workflowFingerprint: "workflow-screening-module",
+      workflow: { supportedPages: ["Schermature solari"], screeningItemCount: 1, steps: [], screeningSteps: [] },
+      safety: { createAllowedAfterPersistentIntent: true, saveAllowedAfterAllPageCheckpoints: true, previewAllowed: false, submitAllowed: false, communicationsAllowed: false },
+    });
+
+    expectTypeOf(draftPackage).toMatchTypeOf<AprEneaDraftPackage>();
+    expectTypeOf(draftPackage.module).toEqualTypeOf<"screening">();
+    expect(draftPackage.module).toBe("screening");
+    expect(nestedUncertainPageSaveProbeAllowed(draftPackage.module, "screening:2")).toBe(true);
+  });
+
   const readyScreeningAudit = (): CrmEneaPayloadAuditResult => ({
     status: "payload_complete",
     mappingFingerprint: "mapping-screening-ready",

@@ -33,6 +33,7 @@ function draftPackage(customerKey: string): AprEneaDraftPackage {
   const runtime = { pageName: "Beneficiario", markerIds: ["id-cf"], successMessage: "ok", fields: [{ portalId: "id-cf", control: "input" as const, value: "RSSMRA80A01H501U" }] };
   const calculation = { id: "calculation", pageName: "Calcolo costi e detrazioni", markerIds: ["id-risparmio"], successMessage: "ok", fields: [{ portalId: "id-risparmio", control: "input" as const, value: "336" }] };
   return {
+    module: "screening",
     customerKey, displayName: customerKey, practiceId: `crm-${customerKey}`, packageFingerprint: `package-${customerKey}`, workflowFingerprint: `workflow-${customerKey}`,
     workflow: { supportedPages: ["Beneficiario", "Calcolo costi e detrazioni"], screeningItemCount: 1, steps: [{ id: "beneficiary", ...runtime }, calculation], screeningSteps: [{ id: "screening-1", ...runtime, pageName: "Schermatura 1" }] },
     safety: { createAllowedAfterPersistentIntent: true, saveAllowedAfterAllPageCheckpoints: true, previewAllowed: false, submitAllowed: false, communicationsAllowed: false },
@@ -43,6 +44,7 @@ function allocationDraftPackage(customerKey: string): AprEneaDraftPackage {
   const allocation = { id: "allocation", pageName: "Allocazione costi e detrazioni", markerIds: ["id-costo2025p"], successMessage: "ok", fields: [{ portalId: "id-costo2025p", control: "input" as const, value: "3050" }] };
   const calculation = { id: "calculation", pageName: "Calcolo costi e detrazioni", markerIds: ["id-risparmio"], successMessage: "ok", fields: [{ portalId: "id-risparmio", control: "input" as const, value: "336" }] };
   return {
+    module: "screening",
     customerKey, displayName: customerKey, practiceId: `crm-${customerKey}`, packageFingerprint: `package-${customerKey}`, workflowFingerprint: `workflow-${customerKey}`,
     workflow: { supportedPages: ["Allocazione costi e detrazioni", "Calcolo costi e detrazioni"], screeningItemCount: 0, steps: [allocation, calculation], screeningSteps: [] },
     safety: { createAllowedAfterPersistentIntent: true, saveAllowedAfterAllPageCheckpoints: true, previewAllowed: false, submitAllowed: false, communicationsAllowed: false },

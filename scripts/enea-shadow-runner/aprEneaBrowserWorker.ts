@@ -26,8 +26,10 @@ const RULE_IDS = [
   "system-single-active-practice",
 ] as const;
 
+export type AprEneaProductModule = "screening" | "infissi";
+
 export interface AprEneaDraftPackage {
-  module?: "screenings" | "infissi";
+  module: AprEneaProductModule;
   customerKey: string;
   displayName: string;
   practiceId: string;

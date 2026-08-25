@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { infissiRowPersistenceSurfaceOutcome, infissiStagedRowOutcome, nestedUncertainPageSaveProbeAllowed } from "./infissiUncertainSavePolicy";
+import { aprEneaProductModuleFromUnknown, infissiRowPersistenceSurfaceOutcome, infissiStagedRowOutcome, nestedUncertainPageSaveProbeAllowed } from "./infissiUncertainSavePolicy";
 
 describe("ripresa sicura del Salva incerto per le righe Infissi", () => {
   it("ammette la sola verifica read-only delle righe Infissi", () => {
@@ -11,7 +11,7 @@ describe("ripresa sicura del Salva incerto per le righe Infissi", () => {
   });
 
   it("rifiuta moduli sconosciuti sulle righe tecniche annidate", () => {
-    expect(nestedUncertainPageSaveProbeAllowed("unknown", "screening:10")).toBe(false);
+    expect(nestedUncertainPageSaveProbeAllowed(aprEneaProductModuleFromUnknown("unknown"), "screening:10")).toBe(false);
   });
 
   it("non modifica la politica delle pagine standard", () => {

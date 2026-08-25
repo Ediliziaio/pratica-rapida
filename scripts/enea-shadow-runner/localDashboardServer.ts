@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import type { AddressInfo } from "node:net";
 import path from "node:path";
-import { renderDashboardHtml, writeLocalDashboard } from "./dashboard";
+import { deriveDashboardOperationalStatus, renderDashboardHtml, writeLocalDashboard } from "./dashboard";
 import { JournalStore } from "./journalStore";
 import { PersistentEneaRunner } from "./runner";
 import { PersistentReadinessLease } from "./readinessLease";
@@ -341,9 +341,11 @@ export class LocalDashboardSupervisor {
     const eneaDraftExecution = this.eneaDraftExecution.snapshot(this.now());
     const eneaBrowserWorker = this.eneaBrowserWorker.snapshot(this.now());
     const watchdog = this.watchdog.load(this.now());
+    const operationalStatus = deriveDashboardOperationalStatus(snapshot, this.now(), eneaBrowserWorker, watchdog);
     return {
       supervisor: this.runtime,
       runner: snapshot,
+      operationalStatus,
       readiness,
       adapter,
       executionPlan,

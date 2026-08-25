@@ -225,9 +225,9 @@ describe("dashboard HTTP e supervisore persistente", () => {
 
     expect(url).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);
     const statusResponse = await fetch(`${url}/api/status`);
-    const status = await statusResponse.json() as { runner: { health: string; revision: number }; supervisor: { url: string; status: string }; readiness: { queueMayRun: boolean; leaseState: string }; adapter: { status: string; queueMayRun: boolean } };
+    const status = await statusResponse.json() as { runner: { health: string; revision: number }; operationalStatus: { source: string; publicStatus: string | null }; supervisor: { url: string; status: string }; readiness: { queueMayRun: boolean; leaseState: string }; adapter: { status: string; queueMayRun: boolean } };
     expect(statusResponse.status).toBe(200);
-    expect(status).toMatchObject({ runner: { health: "runner_off", revision: before.revision }, supervisor: { url, status: "running" }, readiness: { queueMayRun: false, leaseState: "not_acquired" }, adapter: { status: "disconnected", queueMayRun: false } });
+    expect(status).toMatchObject({ runner: { health: "runner_off", revision: before.revision }, operationalStatus: { source: "legacy_runner", publicStatus: null }, supervisor: { url, status: "running" }, readiness: { queueMayRun: false, leaseState: "not_acquired" }, adapter: { status: "disconnected", queueMayRun: false } });
 
     new PersistentReadOnlyAdapter(directory).runLocalFixture(VERIFIED_LOCAL_READ_ONLY_FIXTURE, "dashboard:fixture", new Date("2026-08-14T13:00:01.000Z"));
     const adapterResponse = await fetch(`${url}/api/adapter`);

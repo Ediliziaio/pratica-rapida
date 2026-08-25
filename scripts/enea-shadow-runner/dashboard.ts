@@ -115,7 +115,12 @@ export function deriveDashboardOperationalStatus(
   eneaBrowserWorker?: EneaBrowserWorkerSnapshot | null,
   watchdog?: AprWatchdogSnapshot | null,
 ): DashboardOperationalStatus {
-  if (watchdog && recentHeartbeat(watchdog.heartbeatAt, watchdog.processPid, now)) {
+  // LocalDashboardSupervisor uses a read-only placeholder identity when no
+  // independent watchdog checkpoint exists.  It must never masquerade as the
+  // separate watchdog process required by APR continuity.
+  if (watchdog
+    && watchdog.instanceId !== "dashboard-readonly-watchdog"
+    && recentHeartbeat(watchdog.heartbeatAt, watchdog.processPid, now)) {
     const health: SupervisorSnapshot["health"] = watchdog.status === "WORKING"
       ? "runner_active"
       : watchdog.status === "OPERATOR_REQUIRED"

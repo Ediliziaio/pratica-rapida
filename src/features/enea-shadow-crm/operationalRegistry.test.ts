@@ -70,6 +70,11 @@ describe("registro operativo unico",()=>{
     });
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.testDraftPreviewSubmit)).toMatchObject({
       step: "submit_cpid", priority: 500, provenance: { authority: "user" },
+      lifecycle: {
+        status: "superseded",
+        generalGateEligible: false,
+        supersededByRuleId: USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft,
+      },
     });
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft)).toMatchObject({
       step: "preview", priority: 600, deterministicAction: expect.stringContaining("Disabilitare anteprima finale e submit"), provenance: pergola.provenance,
@@ -305,6 +310,10 @@ describe("registro operativo unico",()=>{
     expect(mixed.deterministicAction).toContain("Non propagare");
     expect(mixed.deterministicAction).toContain("Se la qualificazione è ambigua, fermare Zeno");
     expect(mixed.audit).toContain("classificazione inclusa/esclusa");
+    expect(mixed.lifecycle).toMatchObject({
+      status: "historical_override_non_propagable",
+      generalGateEligible: false,
+    });
   });
 
   it("fa prevalere l'unità unica esplicita sul numero descrittivo dei piani", () => {

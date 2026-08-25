@@ -90,6 +90,7 @@ export const APR_RULE_SOURCE_FINGERPRINT = crypto.createHash("sha256").update(JS
     sourcePrecedence: rule.sourcePrecedence,
     deterministicAction: rule.deterministicAction,
     outcome: rule.outcome,
+    lifecycle: rule.lifecycle ?? null,
   })),
 })).digest("hex");
 

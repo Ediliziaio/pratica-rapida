@@ -30,6 +30,12 @@ export interface OperationalRegistryRule {
     receivedAt: string;
     source: "delegated_user_instruction";
   }>;
+  lifecycle?: Readonly<{
+    status: "active" | "historical_override_non_propagable" | "superseded";
+    generalGateEligible: boolean;
+    supersededByRuleId?: string;
+    note: string;
+  }>;
 }
 
 export const USER_AUTHORIZED_RULE_IDS = Object.freeze({
@@ -804,6 +810,11 @@ export const ENEA_USER_AUTHORIZED_RULES: readonly OperationalRegistryRule[] = Ob
     outcome: "continue",
     priority: 975,
     provenance: USER_RULE_PROVENANCE,
+    lifecycle: {
+      status: "historical_override_non_propagable",
+      generalGateEligible: false,
+      note: "Override storico limitato al test Zeno Righetti; conservato per audit e non idoneo all'attivazione nel gate generale.",
+    },
   },
   {
     id: USER_AUTHORIZED_RULE_IDS.rinaldiPergolaVepaTestEcobonus,
@@ -912,6 +923,12 @@ export const ENEA_USER_AUTHORIZED_RULES: readonly OperationalRegistryRule[] = Ob
     outcome: "continue",
     priority: 500,
     provenance: USER_RULE_PROVENANCE,
+    lifecycle: {
+      status: "superseded",
+      generalGateEligible: false,
+      supersededByRuleId: USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft,
+      note: "Policy legacy archiviata; non attivabile insieme alla policy TEST corrente che termina alla bozza completa e salvata.",
+    },
   },
   {
     id: USER_AUTHORIZED_RULE_IDS.greenPreflightDraft,

@@ -478,10 +478,10 @@ async function serve() {
             : null;
           return item.state === "operator_intervention"
             && Boolean(item.draftId)
-            && ["recovery_authorized", "resolved_saved"].includes(item.uncertainPageSave?.status ?? "")
+            && ["recovery_authorized", "resolved_staged", "resolved_saved"].includes(item.uncertainPageSave?.status ?? "")
             && Boolean(pendingPage)
             && item.serverEvidenceIds.includes(pendingPage!.recoveryAuthorizedEvidenceId!)
-            && item.pageCheckpoints.every((checkpoint) => checkpoint.state === "pending" || checkpoint.state === "saved")
+            && item.pageCheckpoints.every((checkpoint) => checkpoint.state === "pending" || checkpoint.state === "staged" || checkpoint.state === "saved")
             && /apr_cdp_(?:command_timeout:Runtime\.evaluate|connection_closed|protocol_error:-32000:Inspected target navigated or closed)/.test(item.reason)
             && Boolean(commandId)
             && !executionBeforeTick.processedCommandIds.includes(commandId!);
@@ -507,7 +507,7 @@ async function serve() {
           && item.createAttemptCount === 1
           && item.saveAttemptCount === 0
           && item.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")).length > 0
-          && item.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")).every((checkpoint) => checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 0 && (checkpoint.state === "saved" || (checkpoint.state === "save_intent_recorded" && item.uncertainPageSave?.pageId === checkpoint.pageId)))
+          && item.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")).every((checkpoint) => checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 0 && (checkpoint.state === "staged" || (checkpoint.state === "save_intent_recorded" && item.uncertainPageSave?.pageId === checkpoint.pageId)))
           && item.pageCheckpoints.some((checkpoint) => !checkpoint.pageId.startsWith("screening:") && /schermatur|infiss/.test(checkpoint.pageId.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("it")) && checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0)
           && (/apr_cdp_enea_field_verification_failed:id-costo$/.test(item.reason) || Boolean(item.uncertainPageSave?.pageId.startsWith("screening:"))));
         const screeningNavigationRecovery = executionBeforeTick.items.find((item) => item.state === "operator_intervention" && Boolean(item.draftId) && item.createAttemptCount === 1 && item.saveAttemptCount === 0 && item.completedPageIds.length > 0 && item.pageCheckpoints.some((checkpoint) => checkpoint.pageId.startsWith("screening:") && checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0) && /apr_cdp_enea_(?:page_navigation_not_found|screening_activation_failed|screening_add_not_unique|screening_markers_missing):screening:1/.test(item.reason));

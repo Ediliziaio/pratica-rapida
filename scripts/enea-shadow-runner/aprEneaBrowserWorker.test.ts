@@ -24,18 +24,19 @@ function preflightFixture(keys = ["case-one", "case-two"]) {
       displayName: `Case ${index + 1}`,
       practiceId: `crm-${index + 1}`,
       state: "ready_local_plan",
-      report: { eneaPayloadAudit: { draftReady: true, mappingFingerprint: `mapping-${customerKey}`, requiredPortalFieldCount: 4, portalGate: { status: "ready", workflowFingerprint: `workflow-${customerKey}`, supportedPages: ["Beneficiario"], screeningItemCount: 1 } } },
+      report: { eneaPayloadAudit: { draftReady: true, mappingFingerprint: `mapping-${customerKey}`, requiredPortalFieldCount: 4, portalGate: { status: "ready", workflowFingerprint: `workflow-${customerKey}`, supportedPages: ["Beneficiario", "Schermature solari"], screeningItemCount: 1 } } },
     })),
   } as never;
 }
 
 function draftPackage(customerKey: string): AprEneaDraftPackage {
   const runtime = { pageName: "Beneficiario", markerIds: ["id-cf"], successMessage: "ok", fields: [{ portalId: "id-cf", control: "input" as const, value: "RSSMRA80A01H501U" }] };
+  const screeningSummary = { id: "screening-summary", pageName: "Schermature solari", markerIds: ["id-costo"], successMessage: "ok", fields: [{ portalId: "id-costo", control: "input" as const, value: "1000" }] };
   const calculation = { id: "calculation", pageName: "Calcolo costi e detrazioni", markerIds: ["id-risparmio"], successMessage: "ok", fields: [{ portalId: "id-risparmio", control: "input" as const, value: "336" }] };
   return {
     module: "screening",
     customerKey, displayName: customerKey, practiceId: `crm-${customerKey}`, packageFingerprint: `package-${customerKey}`, workflowFingerprint: `workflow-${customerKey}`,
-    workflow: { supportedPages: ["Beneficiario", "Calcolo costi e detrazioni"], screeningItemCount: 1, steps: [{ id: "beneficiary", ...runtime }, calculation], screeningSteps: [{ id: "screening-1", ...runtime, pageName: "Schermatura 1" }] },
+    workflow: { supportedPages: ["Beneficiario", "Schermature solari", "Calcolo costi e detrazioni"], screeningItemCount: 1, steps: [{ id: "beneficiary", ...runtime }, screeningSummary, calculation], screeningSteps: [{ id: "screening-1", ...runtime, pageName: "Schermatura 1" }] },
     safety: { createAllowedAfterPersistentIntent: true, saveAllowedAfterAllPageCheckpoints: true, previewAllowed: false, submitAllowed: false, communicationsAllowed: false },
   };
 }
@@ -423,6 +424,7 @@ describe("APR browser worker persistente e autonomo", () => {
     original.items[0].report.buildingQualification = "multi_unit";
     original.items[0].report.buildingUnitCount = 1;
     original.items[0].report.eneaPayloadAudit.portalGate.supportedPages = ["Beneficiario", "Immobile"];
+    original.items[0].report.eneaPayloadAudit.portalGate.screeningItemCount = 0;
     const execution = new PersistentAprEneaDraftExecution(directory);
     execution.prepare(original, new Date("2026-08-15T18:00:00.000Z"));
     const base = new PersistentSimulatedEneaPortalDriver(directory, { identity: "apr-profile-final-gate-recovery" });
@@ -430,7 +432,9 @@ describe("APR browser worker persistente e autonomo", () => {
       const value = draftPackage(customerKey);
       const beneficiary = value.workflow.steps[0]!;
       value.workflow.supportedPages = ["Beneficiario", "Immobile"];
-      value.workflow.steps.splice(1, 0, { ...beneficiary, id: "immobile", pageName: "Immobile" });
+      value.workflow.steps = [beneficiary, { ...beneficiary, id: "immobile", pageName: "Immobile" }];
+      value.workflow.screeningSteps = [];
+      value.workflow.screeningItemCount = 0;
       return value;
     };
     const worker = new PersistentAprEneaBrowserWorker(directory, execution, packageProvider, base, { instanceId: "apr-worker-final-gate-recovery", processPid: 4401 });

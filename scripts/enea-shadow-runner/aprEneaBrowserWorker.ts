@@ -138,6 +138,13 @@ function digest(value: unknown) {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
 }
 
+function nestedCheckpointBelongsToOuter(pageId: string, outerPageId: string) {
+  if (pageId === "page:Allocazione costi e detrazioni") return outerPageId === "page:Calcolo costi e detrazioni";
+  if (/Generatore/.test(pageId)) return outerPageId === "page:Impianto termico esistente";
+  if (pageId.startsWith("screening:")) return /Schermature solari|Serramenti e infissi/.test(outerPageId);
+  return false;
+}
+
 function commandPart(value: string) {
   return value.replace(/[^a-z0-9_.:-]/gi, "-").toLowerCase();
 }
@@ -456,7 +463,9 @@ export class PersistentAprEneaBrowserWorker {
       }
 
       if (!current.draftId) throw new Error("apr_enea_worker_active_draft_id_missing");
-      const unresolvedPage = current.pageCheckpoints.find((page) => page.state !== "saved");
+      // `staged` rows are complete only inside the current React table. They do
+      // not block moving to the owning outer page, but they are not server-saved.
+      const unresolvedPage = current.pageCheckpoints.find((page) => page.state !== "saved" && page.state !== "staged");
       if (unresolvedPage?.state === "pending") {
         const prepareGeneration = unresolvedPage.recoveryAuthorizedEvidenceId
           ? `${unresolvedPage.pageId}:recovery:${unresolvedPage.recoveryAuthorizedEvidenceId ?? "authorized"}:revision-${execution.revision}`
@@ -499,13 +508,11 @@ export class PersistentAprEneaBrowserWorker {
           const uncertainGeneration = digest(`${unresolvedPage.pageId}:${unresolvedPage.preparedEvidenceId ?? "not-prepared"}:${unresolvedPage.recoveryAuthorizedEvidenceId ?? "primary"}`).slice(0, 16);
           return this.handleUncertainPageSave(current.customerKey, current.draftId, unresolvedPage.pageId, `Esito non dimostrabile dopo ${clickEvidence.evidenceId}.`, `uncertain-page-${uncertainGeneration}`);
         }
-        if (unresolvedPage.pageId === "page:Calcolo costi e detrazioni") {
-          const stagedAllocation = current.pageCheckpoints.find((page) => page.pageId === "page:Allocazione costi e detrazioni" && page.state === "saved");
-          if (stagedAllocation) {
-            const allocationEvidence = await this.driver.verifyPageSaved(draftPackage, current.draftId, stagedAllocation.pageId);
-            if (!allocationEvidence) throw new Error("apr_enea_calculation_allocation_not_persisted_after_outer_save");
-            this.execution.recordNestedPageServerVerifiedAfterOuterSave(current.customerKey, current.draftId, stagedAllocation.pageId, unresolvedPage.pageId, allocationEvidence.evidenceId, this.actionId(current.customerKey, "execution-nested-page-server-verified", `${saveGeneration}:${allocationEvidence.evidenceId}`), this.now());
-          }
+        const stagedNestedPages = current.pageCheckpoints.filter((page) => page.state === "staged" && nestedCheckpointBelongsToOuter(page.pageId, unresolvedPage.pageId));
+        for (const stagedPage of stagedNestedPages) {
+          const nestedEvidence = await this.driver.verifyPageSaved(draftPackage, current.draftId, stagedPage.pageId);
+          if (!nestedEvidence) throw new Error(`apr_enea_nested_page_not_persisted_after_outer_save:${stagedPage.pageId}`);
+          this.execution.recordNestedPageServerVerifiedAfterOuterSave(current.customerKey, current.draftId, stagedPage.pageId, unresolvedPage.pageId, nestedEvidence.evidenceId, this.actionId(current.customerKey, "execution-nested-page-server-verified", `${saveGeneration}:${stagedPage.pageId}:${nestedEvidence.evidenceId}`), this.now());
         }
         if (/Generatore/.test(unresolvedPage.pageId) || unresolvedPage.pageId.startsWith("screening:")) this.execution.recordNestedPageStaged(current.customerKey, current.draftId, unresolvedPage.pageId, verifiedEvidence.evidenceId, this.actionId(current.customerKey, "execution-nested-page-staged", saveGeneration), this.now());
         else this.execution.recordPageSaved(current.customerKey, current.draftId, unresolvedPage.pageId, verifiedEvidence.evidenceId, this.actionId(current.customerKey, "execution-page-saved", unresolvedPage.pageId), this.now());

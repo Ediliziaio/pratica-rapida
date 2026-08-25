@@ -55,11 +55,13 @@ export type AprEneaDraftItemState =
 
 export interface AprEneaDraftPageCheckpoint {
   pageId: string;
-  state: "pending" | "prepared" | "save_intent_recorded" | "saved";
+  state: "pending" | "prepared" | "save_intent_recorded" | "staged" | "saved";
   saveAttemptCount: 0 | 1;
   recoverySaveAttemptCount: 0 | 1;
   recoveryAuthorizedEvidenceId: string | null;
   preparedEvidenceId: string | null;
+  /** DOM/table evidence only. It is never proof of server persistence. */
+  stagedEvidenceId?: string | null;
   savedEvidenceId: string | null;
 }
 
@@ -77,7 +79,7 @@ export interface AprUncertainPageSaveProbe {
 
 export interface AprUncertainPageSaveResolution {
   pageId: string;
-  status: "probing" | "operator_required" | "recovery_authorized" | "resolved_saved";
+  status: "probing" | "operator_required" | "recovery_authorized" | "resolved_staged" | "resolved_saved";
   detectedAt: string;
   detectedEvidenceId: string;
   probes: AprUncertainPageSaveProbe[];
@@ -343,6 +345,8 @@ function validState(value: AprEneaDraftExecutionState) {
   if (value.items.some((item) => !Array.isArray(item.pageCheckpoints)
     || item.pageCheckpoints.length !== item.expectedPageIds.length
     || item.pageCheckpoints.some((checkpoint) => checkpoint.saveAttemptCount > 1 || checkpoint.recoverySaveAttemptCount > 1)
+    || item.pageCheckpoints.some((checkpoint) => checkpoint.state === "staged" && (checkpoint.saveAttemptCount !== 1 || !checkpoint.stagedEvidenceId || checkpoint.savedEvidenceId !== null))
+    || item.completedPageIds.some((pageId) => item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === pageId)?.state !== "saved")
     || item.pageCheckpoints.some((checkpoint) => !item.expectedPageIds.includes(checkpoint.pageId)))) return false;
   if (value.items.some((item) => item.state === "saved" && (
     !item.draftId
@@ -391,8 +395,30 @@ function normalizeState(value: AprEneaDraftExecutionState): AprEneaDraftExecutio
       recoverySaveAttemptCount: 0,
       recoveryAuthorizedEvidenceId: null,
       preparedEvidenceId: null,
+      stagedEvidenceId: null,
       savedEvidenceId: null,
     } as AprEneaDraftPageCheckpoint));
+    // Legacy checkpoints used `saved` for a row that was only present in the
+    // client-side table.  If the owning outer page was never persisted, retain
+    // the evidence as staging evidence and remove the false completion claim.
+    if (item.state !== "saved") {
+      for (const checkpoint of item.pageCheckpoints) {
+        const outerPageId = outerPageForNestedCheckpoint(item.expectedPageIds, checkpoint.pageId);
+        const outer = outerPageId ? item.pageCheckpoints.find((candidate) => candidate.pageId === outerPageId) : null;
+        const legacyStaged = value.audit.some((event) => event.customerKey === item.customerKey
+          && event.type === "nested_page_staged"
+          && event.reason.includes(checkpoint.pageId));
+        const serverVerified = value.audit.some((event) => event.customerKey === item.customerKey
+          && event.type === "nested_page_server_verified_after_outer_save"
+          && event.reason.includes(checkpoint.pageId));
+        if (outer && outer.state !== "saved" && checkpoint.state === "saved" && legacyStaged && !serverVerified) {
+          checkpoint.state = "staged";
+          checkpoint.stagedEvidenceId = checkpoint.savedEvidenceId;
+          checkpoint.savedEvidenceId = null;
+          item.completedPageIds = item.completedPageIds.filter((pageId) => pageId !== checkpoint.pageId);
+        }
+      }
+    }
   }
   const cohortTerminal = value.items.length > 0
     && value.items.every((item) => ["saved", "operator_intervention", "deferred_operator"].includes(item.state));
@@ -404,6 +430,13 @@ function normalizeState(value: AprEneaDraftExecutionState): AprEneaDraftExecutio
     value.nextAction = "Consultare il report; nessuna ulteriore azione ENEA consentita per questa coda.";
   }
   return value;
+}
+
+function outerPageForNestedCheckpoint(expectedPageIds: string[], pageId: string) {
+  if (pageId === "page:Allocazione costi e detrazioni") return expectedPageIds.find((candidate) => candidate === "page:Calcolo costi e detrazioni") ?? null;
+  if (/Generatore/.test(pageId)) return expectedPageIds.find((candidate) => /Impianto termico esistente/.test(candidate)) ?? null;
+  if (pageId.startsWith("screening:")) return expectedPageIds.find((candidate) => !candidate.startsWith("screening:") && /schermatur|serrament|infiss/i.test(candidate)) ?? null;
+  return null;
 }
 
 function canonicalPortalPageIds(pageIds: string[]) {
@@ -1117,6 +1150,7 @@ export class PersistentAprEneaDraftExecution {
       const checkpoint = item.pageCheckpoints.find((candidate) => candidate.pageId === pageId);
       if (!checkpoint || checkpoint.state !== "save_intent_recorded" || checkpoint.saveAttemptCount !== 1) throw new Error("enea_draft_page_save_intent_missing");
       checkpoint.state = "saved";
+      checkpoint.stagedEvidenceId = null;
       checkpoint.savedEvidenceId = evidenceId.trim();
       if (item.uncertainPageSave?.pageId === pageId) {
         item.uncertainPageSave.status = "resolved_saved";
@@ -1144,20 +1178,20 @@ export class PersistentAprEneaDraftExecution {
       if (!item || item.state !== "save_intent_recorded" || item.draftId !== draftId) throw new Error("enea_nested_page_stage_intent_missing");
       const checkpoint = item.pageCheckpoints.find((candidate) => candidate.pageId === pageId);
       if (!checkpoint || checkpoint.state !== "save_intent_recorded" || checkpoint.saveAttemptCount !== 1) throw new Error("enea_nested_page_stage_intent_missing");
-      checkpoint.state = "saved";
-      checkpoint.savedEvidenceId = evidenceId.trim();
+      checkpoint.state = "staged";
+      checkpoint.stagedEvidenceId = evidenceId.trim();
+      checkpoint.savedEvidenceId = null;
       if (item.uncertainPageSave?.pageId === pageId) {
-        item.uncertainPageSave.status = "resolved_saved";
-        item.uncertainPageSave.reason = "Pagina annidata verificata salvata dopo il percorso di recupero auditato.";
-        item.uncertainPageSave.nextAction = "Riprendere dalla pagina successiva senza altri tentativi sulla pagina risolta.";
+        item.uncertainPageSave.status = "resolved_staged";
+        item.uncertainPageSave.reason = "Pagina annidata presente nella tabella, ma non ancora persistita dal Salva esterno.";
+        item.uncertainPageSave.nextAction = "Proseguire fino al Salva esterno e richiedere prova server conclusiva.";
       }
       item.state = "filling";
-      if (!item.completedPageIds.includes(pageId)) item.completedPageIds.push(pageId);
       // Il click del modale Allocazione non e una prova server: non emette
       // richieste mutative. La prova server viene aggiunta soltanto dopo il
       // Salva esterno della pagina Calcolo.
       if (pageId !== "page:Allocazione costi e detrazioni" && !item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
-      item.reason = `${item.completedPageIds.length}/${item.expectedPageIds.length} pagine completate; passaggio annidato staged, prova server ancora obbligatoria dopo il Salva esterno.`;
+      item.reason = `${pageId} inserita nella tabella; non ancora conteggiata come salvata finché il Salva esterno non è confermato dal server.`;
       item.nextAction = pageId === "page:Allocazione costi e detrazioni" ? "Proseguire direttamente con Calcolo costi e detrazioni senza ricaricare la pagina." : "Proseguire direttamente con la pagina esterna senza ricaricare la route.";
     });
   }
@@ -1174,8 +1208,15 @@ export class PersistentAprEneaDraftExecution {
       const item = next.items.find((candidate) => candidate.customerKey === customerKey);
       const nested = item?.pageCheckpoints.find((candidate) => candidate.pageId === nestedPageId);
       const outer = item?.pageCheckpoints.find((candidate) => candidate.pageId === outerPageId);
-      if (!item || item.draftId !== draftId || item.state !== "save_intent_recorded" || !nested || nested.state !== "saved" || !outer || outer.state !== "save_intent_recorded") throw new Error("enea_nested_page_outer_server_state_invalid");
+      if (!item || item.draftId !== draftId || item.state !== "save_intent_recorded" || !nested || nested.state !== "staged" || !nested.stagedEvidenceId || !outer || outer.state !== "save_intent_recorded") throw new Error("enea_nested_page_outer_server_state_invalid");
+      nested.state = "saved";
       nested.savedEvidenceId = evidenceId.trim();
+      if (!item.completedPageIds.includes(nestedPageId)) item.completedPageIds.push(nestedPageId);
+      if (item.uncertainPageSave?.pageId === nestedPageId) {
+        item.uncertainPageSave.status = "resolved_saved";
+        item.uncertainPageSave.reason = "La riga staged è stata confermata persistita dalla GET successiva al Salva esterno.";
+        item.uncertainPageSave.nextAction = "Proseguire senza ulteriori tentativi sulla riga verificata.";
+      }
       if (!item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
     });
   }
@@ -3054,8 +3095,8 @@ export class PersistentAprEneaDraftExecution {
         && Boolean(checkpoint.recoveryAuthorizedEvidenceId));
       if (!item || item.state !== "operator_intervention" || !item.draftId || !pendingRecovery
         || !item.serverEvidenceIds.includes(pendingRecovery.recoveryAuthorizedEvidenceId!)
-        || !["recovery_authorized", "resolved_saved"].includes(item.uncertainPageSave?.status ?? "")
-        || item.pageCheckpoints.some((checkpoint) => !(["pending", "saved"] as const).includes(checkpoint.state as "pending" | "saved"))
+        || !["recovery_authorized", "resolved_staged", "resolved_saved"].includes(item.uncertainPageSave?.status ?? "")
+        || item.pageCheckpoints.some((checkpoint) => !(["pending", "staged", "saved"] as const).includes(checkpoint.state as "pending" | "staged" | "saved"))
         || !/apr_cdp_(?:command_timeout:Runtime\.evaluate|connection_closed|protocol_error:-32000:Inspected target navigated or closed)/.test(item.reason)) throw new Error(`enea_screening_restage_timeout_case_invalid:${customerKey}`);
       if (!item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
       item.state = "filling";
@@ -3200,13 +3241,14 @@ export class PersistentAprEneaDraftExecution {
       const uncertainScreening = item?.uncertainPageSave?.pageId.startsWith("screening:") ? item.uncertainPageSave.pageId : null;
       const screeningsValid = screenings.every((checkpoint) => checkpoint.saveAttemptCount === 1
         && checkpoint.recoverySaveAttemptCount === 0
-        && ((checkpoint.state === "saved" && Boolean(checkpoint.savedEvidenceId)) || (checkpoint.pageId === uncertainScreening && checkpoint.state === "save_intent_recorded")));
+        && ((checkpoint.state === "staged" && Boolean(checkpoint.stagedEvidenceId)) || (checkpoint.pageId === uncertainScreening && checkpoint.state === "save_intent_recorded")));
       if (!item || item.state !== "operator_intervention" || !item.draftId || item.createAttemptCount !== 1 || item.saveAttemptCount !== 0 || screenings.length < 1 || !screeningsValid || !summary || summary.state !== "pending" || summary.saveAttemptCount !== 0 || (!/apr_cdp_enea_field_verification_failed:id-costo$/.test(item.reason) && !uncertainScreening)) throw new Error(`enea_screening_empty_summary_recovery_case_invalid:${customerKey}`);
       if (!item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
       for (const checkpoint of screenings) {
         checkpoint.state = "pending";
         checkpoint.recoveryAuthorizedEvidenceId = evidenceId.trim();
         checkpoint.preparedEvidenceId = null;
+        checkpoint.stagedEvidenceId = null;
         checkpoint.savedEvidenceId = null;
       }
       item.completedPageIds = item.completedPageIds.filter((pageId) => !pageId.startsWith("screening:"));
@@ -3244,13 +3286,14 @@ export class PersistentAprEneaDraftExecution {
       const untouchedSuffix = screenings.filter((checkpoint) => Number(checkpoint.pageId.slice("screening:".length)) > currentIndex);
       if (!item || item.state !== "operator_intervention" || !item.draftId || !summary || summary.state !== "pending" || summary.saveAttemptCount !== 0 || !uncertain || uncertain.status !== "operator_required" || currentIndex < 1
         || attemptedPrefix.length !== currentIndex
-        || attemptedPrefix.some((checkpoint) => checkpoint.saveAttemptCount !== 1 || checkpoint.recoverySaveAttemptCount !== 0 || !(checkpoint.state === "saved" || (checkpoint.pageId === uncertain.pageId && checkpoint.state === "save_intent_recorded")))
+        || attemptedPrefix.some((checkpoint) => checkpoint.saveAttemptCount !== 1 || checkpoint.recoverySaveAttemptCount !== 0 || !(checkpoint.state === "staged" || (checkpoint.pageId === uncertain.pageId && checkpoint.state === "save_intent_recorded")))
         || untouchedSuffix.some((checkpoint) => checkpoint.state !== "pending" || checkpoint.saveAttemptCount !== 0 || checkpoint.recoverySaveAttemptCount !== 0)) throw new Error(`enea_infissi_partial_empty_summary_case_invalid:${customerKey}`);
       if (!item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
       for (const checkpoint of attemptedPrefix) {
         checkpoint.state = "pending";
         checkpoint.recoveryAuthorizedEvidenceId = evidenceId.trim();
         checkpoint.preparedEvidenceId = null;
+        checkpoint.stagedEvidenceId = null;
         checkpoint.savedEvidenceId = null;
       }
       item.completedPageIds = item.completedPageIds.filter((pageId) => !pageId.startsWith("screening:"));
@@ -3660,15 +3703,15 @@ export class PersistentAprEneaDraftExecution {
       const checkpoint = item?.pageCheckpoints.find((candidate) => candidate.pageId === pageId);
       const uncertain = item?.uncertainPageSave;
       if (!item || item.state !== "operator_intervention" || !item.draftId || !checkpoint || checkpoint.state !== "save_intent_recorded" || checkpoint.saveAttemptCount !== 1 || checkpoint.recoverySaveAttemptCount !== 0 || checkpoint.savedEvidenceId || !uncertain || uncertain.pageId !== pageId || uncertain.status !== "probing" || !/Esito tecnico incerto dopo il Salva di screening:\d+/.test(item.reason)) throw new Error(`enea_screening_post_save_case_invalid:${customerKey}`);
-      checkpoint.state = "saved";
-      checkpoint.savedEvidenceId = evidenceId.trim();
-      uncertain.status = "resolved_saved";
-      uncertain.reason = "La tabella read-only successiva al click contiene una sola riga tecnica coincidente e la modale è chiusa.";
-      uncertain.nextAction = "Proseguire dalla riga successiva; nessun altro Salva sulla riga risolta.";
-      if (!item.completedPageIds.includes(pageId)) item.completedPageIds.push(pageId);
+      checkpoint.state = "staged";
+      checkpoint.stagedEvidenceId = evidenceId.trim();
+      checkpoint.savedEvidenceId = null;
+      uncertain.status = "resolved_staged";
+      uncertain.reason = "La tabella read-only successiva al click contiene la riga, ma la persistenza dipende ancora dal Salva esterno.";
+      uncertain.nextAction = "Proseguire fino al Salva esterno e verificare la persistenza server.";
       if (!item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
       item.state = "filling";
-      item.reason = `${pageId} verificata dal riepilogo read-only dopo l'unico Salva; bozza ${item.draftId} invariata.`;
+      item.reason = `${pageId} verificata nella tabella read-only; persistenza server ancora subordinata al Salva esterno.`;
       item.nextAction = "Riprendere dalla prima pagina o riga non completata senza ripetere salvataggi precedenti.";
       next.currentCustomerKey = customerKey;
       next.status = "running";
@@ -3693,15 +3736,15 @@ export class PersistentAprEneaDraftExecution {
       const uncertain = item?.uncertainPageSave;
       const hasInfissiSummary = item?.pageCheckpoints.some((candidate) => /infiss/i.test(candidate.pageId));
       if (!item || item.state !== "operator_intervention" || !item.draftId || !hasInfissiSummary || !checkpoint || checkpoint.state !== "save_intent_recorded" || checkpoint.saveAttemptCount !== 1 || checkpoint.recoverySaveAttemptCount !== 0 || checkpoint.savedEvidenceId || !uncertain || uncertain.pageId !== pageId || uncertain.status !== "operator_required") throw new Error(`enea_infissi_post_click_table_case_invalid:${customerKey}`);
-      checkpoint.state = "saved";
-      checkpoint.savedEvidenceId = evidenceId.trim();
-      uncertain.status = "resolved_saved";
+      checkpoint.state = "staged";
+      checkpoint.stagedEvidenceId = evidenceId.trim();
+      checkpoint.savedEvidenceId = null;
+      uncertain.status = "resolved_staged";
       uncertain.reason = `La tabella post-click mostra esattamente ${observedRowCount} righe tecniche dopo ${pageId}.`;
-      uncertain.nextAction = "Proseguire dalla riga successiva senza ripetere il Salva già emesso.";
-      if (!item.completedPageIds.includes(pageId)) item.completedPageIds.push(pageId);
+      uncertain.nextAction = "Proseguire fino al Salva esterno senza ripetere il click della riga.";
       if (!item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
       item.state = "filling";
-      item.reason = `${pageId} Infissi staged e verificata 1:1; bozza ${item.draftId} invariata.`;
+      item.reason = `${pageId} Infissi staged e verificata 1:1; non ancora dichiarata persistita sul server.`;
       item.nextAction = "Riprendere dalla prima riga o pagina non completata.";
       next.currentCustomerKey = customerKey;
       next.status = "running";
@@ -3731,22 +3774,22 @@ export class PersistentAprEneaDraftExecution {
         || checkpoint.recoverySaveAttemptCount !== 1
         || !checkpoint.recoveryAuthorizedEvidenceId
         || checkpoint.savedEvidenceId) throw new Error(`enea_screening_recovery_post_save_case_invalid:${customerKey}`);
-      checkpoint.state = "saved";
-      checkpoint.savedEvidenceId = evidenceId.trim();
+      checkpoint.state = "staged";
+      checkpoint.stagedEvidenceId = evidenceId.trim();
+      checkpoint.savedEvidenceId = null;
       item.uncertainPageSave = {
         pageId,
-        status: "resolved_saved",
+        status: "resolved_staged",
         detectedAt: now.toISOString(),
         detectedEvidenceId: evidenceId.trim(),
         probes: [],
         operatorDecision: null,
-        reason: "La tabella read-only contiene una sola riga tecnica coincidente dopo l'unico recupero autorizzato.",
-        nextAction: "Proseguire dalla riga successiva; nessun altro Salva sulla riga risolta.",
+        reason: "La tabella read-only contiene la riga ripristinata; la persistenza server resta da confermare dopo il Salva esterno.",
+        nextAction: "Proseguire fino al Salva esterno; nessun altro click sulla riga ripristinata.",
       };
-      if (!item.completedPageIds.includes(pageId)) item.completedPageIds.push(pageId);
       if (!item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
       item.state = "filling";
-      item.reason = `${pageId} ripristinata e verificata lato server; bozza ${item.draftId} invariata.`;
+      item.reason = `${pageId} ripristinata nella tabella; la persistenza server resta da confermare dopo il Salva esterno.`;
       item.nextAction = "Riprendere dalla prima riga o pagina non completata.";
       next.status = "running";
       next.sessionEvidenceId = null;

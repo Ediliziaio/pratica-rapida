@@ -776,7 +776,8 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     runner.recordCaseBlockedAndContinue("lorena-brendas", "Errore circoscritto alla pratica: apr_cdp_enea_field_verification_failed:id-costo", "disabled-cost", "blocked:disabled-cost");
     const resumed = runner.resumeCreatedDraftAfterScreeningOrderCorrection("lorena-brendas", "dom-disabled-cost-proof", "resume:screenings-before-summary");
     const item = resumed.items[0];
-    expect(item).toMatchObject({ state: "filling", draftId: "DRAFT-100", completedPageIds: expect.arrayContaining(["page:Beneficiario", "page:Immobile", "page:Intervento", "page:Generatore", "page:Impianto"]), createAttemptCount: 1, saveAttemptCount: 0 });
+    expect(item).toMatchObject({ state: "filling", draftId: "DRAFT-100", completedPageIds: expect.arrayContaining(["page:Beneficiario", "page:Immobile", "page:Intervento", "page:Impianto"]), createAttemptCount: 1, saveAttemptCount: 0 });
+    expect(item.pageCheckpoints.find((checkpoint) => /Generatore/.test(checkpoint.pageId))).toMatchObject({ state: "staged", savedEvidenceId: null });
     expect(item.expectedPageIds.indexOf("screening:1")).toBeLessThan(item.expectedPageIds.indexOf("page:Riepilogo schermature"));
     expect(item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === "screening:1")).toMatchObject({ state: "pending", saveAttemptCount: 0 });
   });
@@ -797,7 +798,8 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     runner.recordCaseBlockedAndContinue("lorena-brendas", "Errore circoscritto alla pratica: apr_cdp_enea_page_navigation_not_found:screening:1", "screening-navigation", "blocked:screening-navigation");
     const resumed = runner.resumeCreatedDraftAfterScreeningNavigationCorrection("lorena-brendas", "fixture-screening-reload-proof", "resume:screening-navigation-v20");
     expect(resumed).toMatchObject({ status: "running", currentCustomerKey: "lorena-brendas" });
-    expect(resumed.items[0]).toMatchObject({ state: "filling", draftId: "DRAFT-100", completedPageIds: expect.arrayContaining(["page:Beneficiario", "page:Immobile", "page:Intervento", "page:Generatore", "page:Impianto"]), createAttemptCount: 1, saveAttemptCount: 0 });
+    expect(resumed.items[0]).toMatchObject({ state: "filling", draftId: "DRAFT-100", completedPageIds: expect.arrayContaining(["page:Beneficiario", "page:Immobile", "page:Intervento", "page:Impianto"]), createAttemptCount: 1, saveAttemptCount: 0 });
+    expect(resumed.items[0].pageCheckpoints.find((checkpoint) => /Generatore/.test(checkpoint.pageId))).toMatchObject({ state: "staged", savedEvidenceId: null });
     expect(resumed.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === "screening:1")).toMatchObject({ state: "pending", saveAttemptCount: 0 });
   });
 
@@ -825,12 +827,12 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     expect(resumed).toMatchObject({ status: "running", currentCustomerKey: "lorena-brendas" });
     expect(item).toMatchObject({ state: "filling", draftId: "DRAFT-REACT", createAttemptCount: 1, saveAttemptCount: 0 });
     expect(item.pageCheckpoints.filter((checkpoint) => ["screening:1", "screening:2", "screening:3"].includes(checkpoint.pageId))).toEqual([
-      expect.objectContaining({ pageId: "screening:1", state: "saved", saveAttemptCount: 1 }),
-      expect.objectContaining({ pageId: "screening:2", state: "saved", saveAttemptCount: 1 }),
-      expect.objectContaining({ pageId: "screening:3", state: "saved", saveAttemptCount: 1 }),
+      expect.objectContaining({ pageId: "screening:1", state: "staged", saveAttemptCount: 1, savedEvidenceId: null }),
+      expect.objectContaining({ pageId: "screening:2", state: "staged", saveAttemptCount: 1, savedEvidenceId: null }),
+      expect.objectContaining({ pageId: "screening:3", state: "staged", saveAttemptCount: 1, savedEvidenceId: null }),
     ]);
     expect(item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === "screening:4")).toMatchObject({ state: "pending", saveAttemptCount: 0, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: "prepared-screening-react-4", preparedEvidenceId: null, savedEvidenceId: null });
-    expect(item.completedPageIds.filter((pageId) => pageId.startsWith("screening:"))).toEqual(["screening:1", "screening:2", "screening:3"]);
+    expect(item.completedPageIds.filter((pageId) => pageId.startsWith("screening:"))).toEqual([]);
     expect(resumed.audit.at(-1)).toMatchObject({ type: "screening_react_contract_requeued_preclick", appliedRuleIds: expect.arrayContaining(["system-atomic-checkpoint-resume", "system-single-active-practice"]) });
 
     runner = new PersistentAprEneaDraftExecution(directory);
@@ -859,8 +861,8 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     runner.recordUncertainPageSaveDetected("lorena-brendas", "screening:1", "timeout della sola verifica", "post-save-uncertain", "post-save:detected");
     const resolved = runner.recordScreeningStagedFromPostSaveReadOnly("lorena-brendas", "screening:1", "post-save-unique-row-proof", "post-save:resolved");
     expect(resolved).toMatchObject({ status: "running", currentCustomerKey: "lorena-brendas" });
-    expect(resolved.items[0]).toMatchObject({ state: "filling", draftId: "DRAFT-POST-SAVE", completedPageIds: ["screening:1"], uncertainPageSave: { pageId: "screening:1", status: "resolved_saved" } });
-    expect(resolved.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === "screening:1")).toMatchObject({ state: "saved", saveAttemptCount: 1, recoverySaveAttemptCount: 0, savedEvidenceId: "post-save-unique-row-proof" });
+    expect(resolved.items[0]).toMatchObject({ state: "filling", draftId: "DRAFT-POST-SAVE", completedPageIds: [], uncertainPageSave: { pageId: "screening:1", status: "resolved_staged" } });
+    expect(resolved.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === "screening:1")).toMatchObject({ state: "staged", saveAttemptCount: 1, recoverySaveAttemptCount: 0, stagedEvidenceId: "post-save-unique-row-proof", savedEvidenceId: null });
     expect(runner.recordScreeningStagedFromPostSaveReadOnly("lorena-brendas", "screening:1", "post-save-unique-row-proof", "post-save:resolved").revision).toBe(resolved.revision);
   });
 
@@ -889,8 +891,8 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     expect(recoveryIntent.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === first.pageId)).toMatchObject({ state: "save_intent_recorded", saveAttemptCount: 1, recoverySaveAttemptCount: 1, recoveryAuthorizedEvidenceId: "server-empty-summary-proof" });
     const verifiedRecovery = runner.recordScreeningRecoveryStagedFromPostSaveReadOnly("lorena-brendas", first.pageId, "server-unique-recovery-row", "verify:recovery:screening:1");
     expect(verifiedRecovery).toMatchObject({ status: "running", currentCustomerKey: "lorena-brendas" });
-    expect(verifiedRecovery.items[0]).toMatchObject({ state: "filling", uncertainPageSave: { pageId: "screening:1", status: "resolved_saved" } });
-    expect(verifiedRecovery.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === first.pageId)).toMatchObject({ state: "saved", saveAttemptCount: 1, recoverySaveAttemptCount: 1, savedEvidenceId: "server-unique-recovery-row" });
+    expect(verifiedRecovery.items[0]).toMatchObject({ state: "filling", uncertainPageSave: { pageId: "screening:1", status: "resolved_staged" } });
+    expect(verifiedRecovery.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === first.pageId)).toMatchObject({ state: "staged", saveAttemptCount: 1, recoverySaveAttemptCount: 1, stagedEvidenceId: "server-unique-recovery-row", savedEvidenceId: null });
   });
 
   it("ripristina tutte le righe annidate quando il crash sull'ultima lascia il riepilogo server vuoto", () => {
@@ -936,16 +938,16 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     const item = state.items[0];
     const screening = item.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:"));
     for (const checkpoint of screening.slice(0, 2)) {
-      checkpoint.state = "saved";
+      checkpoint.state = "staged";
       checkpoint.recoverySaveAttemptCount = 1;
-      checkpoint.savedEvidenceId = `verified-${checkpoint.pageId}`;
-      if (!item.completedPageIds.includes(checkpoint.pageId)) item.completedPageIds.push(checkpoint.pageId);
+      checkpoint.stagedEvidenceId = `verified-${checkpoint.pageId}`;
+      checkpoint.savedEvidenceId = null;
     }
     item.state = "operator_intervention";
     item.reason = "Errore circoscritto alla pratica: apr_cdp_command_timeout:Runtime.evaluate";
     item.uncertainPageSave = {
       pageId: screening.at(-1)!.pageId,
-      status: "resolved_saved",
+      status: "resolved_staged",
       detectedAt: new Date().toISOString(),
       detectedEvidenceId: "timeout-proof",
       probes: [],
@@ -961,7 +963,7 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     const recovered = resumed.items[0];
     expect(resumed).toMatchObject({ status: "running", currentCustomerKey: "lorena-brendas" });
     expect(recovered).toMatchObject({ state: "filling", draftId: "DRAFT-RESTAGE" });
-    expect(recovered.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")).slice(0, 2).every((checkpoint) => checkpoint.state === "saved" && checkpoint.recoverySaveAttemptCount === 1)).toBe(true);
+    expect(recovered.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")).slice(0, 2).every((checkpoint) => checkpoint.state === "staged" && checkpoint.recoverySaveAttemptCount === 1)).toBe(true);
     expect(recovered.pageCheckpoints.find((checkpoint) => checkpoint.pageId === screening[2].pageId)).toMatchObject({ state: "pending", saveAttemptCount: 1, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: "canonical-zero-rows" });
     expect(runner.resumeAuthorizedScreeningRestageAfterTransientTimeout("lorena-brendas", "canonical-zero-rows", "restage-timeout:resume").revision).toBe(resumed.revision);
   });
@@ -988,8 +990,8 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
 
     const recovered = runner.recordInfissiRowStagedFromPostClickTable("lorena-brendas", "screening:4", 4, "post-click-four-rows", "infissi-post-click:accept");
     expect(recovered).toMatchObject({ status: "running", currentCustomerKey: "lorena-brendas" });
-    expect(recovered.items[0]).toMatchObject({ state: "filling", uncertainPageSave: { pageId: "screening:4", status: "resolved_saved" } });
-    expect(recovered.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === "screening:4")).toMatchObject({ state: "saved", saveAttemptCount: 1, recoverySaveAttemptCount: 0, savedEvidenceId: "post-click-four-rows" });
+    expect(recovered.items[0]).toMatchObject({ state: "filling", uncertainPageSave: { pageId: "screening:4", status: "resolved_staged" } });
+    expect(recovered.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === "screening:4")).toMatchObject({ state: "staged", saveAttemptCount: 1, recoverySaveAttemptCount: 0, stagedEvidenceId: "post-click-four-rows", savedEvidenceId: null });
     expect(recovered.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === "page:Serramenti e infissi")).toMatchObject({ state: "pending", saveAttemptCount: 0 });
     expect(() => runner.recordInfissiRowStagedFromPostClickTable("lorena-brendas", "screening:4", 3, "wrong-row-count", "infissi-post-click:reject")).toThrow("enea_infissi_post_click_table_evidence_invalid");
   });
@@ -1003,8 +1005,8 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     const state = runner.load();
     const item = state.items[0];
     item.expectedPageIds = ["screening:1", "screening:2", "screening:3", "screening:4", "screening:5", "screening:6", "screening:7", "page:Serramenti e infissi"];
-    item.completedPageIds = ["screening:1", "screening:2", "screening:3", "screening:4"];
-    item.pageCheckpoints = [1, 2, 3, 4].map((index) => ({ pageId: `screening:${index}`, state: "saved" as const, saveAttemptCount: 1, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: null, preparedEvidenceId: `prepared-${index}`, savedEvidenceId: `saved-${index}` }));
+    item.completedPageIds = [];
+    item.pageCheckpoints = [1, 2, 3, 4].map((index) => ({ pageId: `screening:${index}`, state: "staged" as const, saveAttemptCount: 1, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: null, preparedEvidenceId: `prepared-${index}`, stagedEvidenceId: `staged-${index}`, savedEvidenceId: null }));
     item.pageCheckpoints.push({ pageId: "screening:5", state: "save_intent_recorded", saveAttemptCount: 1, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: null, preparedEvidenceId: "prepared-5", savedEvidenceId: null });
     for (const index of [6, 7]) item.pageCheckpoints.push({ pageId: `screening:${index}`, state: "pending", saveAttemptCount: 0, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: null, preparedEvidenceId: null, savedEvidenceId: null });
     item.pageCheckpoints.push({ pageId: "page:Serramenti e infissi", state: "pending", saveAttemptCount: 0, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: null, preparedEvidenceId: null, savedEvidenceId: null });
@@ -1378,9 +1380,10 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     runner.recordPageSaveIntent("lorena-brendas", "DRAFT-100", generatorPageId, "lorena:generator:save-intent");
     const staged = runner.recordNestedPageStaged("lorena-brendas", "DRAFT-100", generatorPageId, "generator-staged-dom", "lorena:generator:staged");
     const item = staged.items[0];
-    expect(item).toMatchObject({ state: "filling", completedPageIds: [generatorPageId], saveAttemptCount: 0 });
-    expect(item.reason).toContain("prova server ancora obbligatoria");
-    expect(item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === generatorPageId)).toMatchObject({ state: "saved", saveAttemptCount: 1, savedEvidenceId: "generator-staged-dom" });
+    expect(item).toMatchObject({ state: "filling", completedPageIds: [], saveAttemptCount: 0 });
+    expect(item.reason).toContain("non ancora conteggiata come salvata");
+    expect(item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === generatorPageId)).toMatchObject({ state: "staged", saveAttemptCount: 1, stagedEvidenceId: "generator-staged-dom", savedEvidenceId: null });
+    expect(() => runner.recordSaveIntent("lorena-brendas", "DRAFT-100", "lorena:final-save:must-reject-staged")).toThrow("enea_draft_pages_incomplete");
     expect(staged.audit.at(-1)).toMatchObject({ type: "nested_page_staged" });
   });
 

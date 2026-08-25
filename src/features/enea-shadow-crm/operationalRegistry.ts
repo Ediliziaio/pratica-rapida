@@ -1,6 +1,6 @@
 import { OPERATIONAL_RULES } from "./operationalRules";
 
-export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v78" as const;
+export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v79" as const;
 export const ENEA_GLOBAL_PREREQUISITE = Object.freeze({
   id: "browser-session-contract-v1",
   scope: "global_not_practice",
@@ -297,7 +297,7 @@ export const ENEA_USER_AUTHORIZED_RULES: readonly OperationalRegistryRule[] = Ob
     kind: "business",
     condition: "TEST o produzione: nella stessa pratica il numero di infissi documentati supera il numero di avvolgibili, tapparelle o chiusure oscuranti documentati in fattura.",
     sourcePrecedence: ["righe e quantita fisiche della fattura originaria", "ordine fisico degli infissi nella fattura", "risposta generale del form soltanto fuori dal pattern infissi maggiore di chiusure"],
-    deterministicAction: "Espandere prima gli infissi e le chiusure in prodotti fisici 1:1. Se gli infissi sono N e le chiusure M con 0 < M < N, assegnare Chiusure oscuranti aggiuntive=true esattamente ai primi M infissi nell'ordine delle righe fattura e false ai restanti N-M. Deduplicare acconto e saldo soltanto quando ripetono lo stesso identico elenco tecnico.",
+    deterministicAction: "Espandere prima gli infissi e le chiusure in prodotti fisici 1:1. Se gli infissi sono N e le chiusure M con 0 < M < N, assegnare Chiusure oscuranti aggiuntive=true esattamente ai primi M infissi nell'ordine delle righe fattura e false ai restanti N-M soltanto quando anche le righe tecniche selezionate conservano l'ordine della fattura. Se le righe tecniche provengono da un certificato o l'ordine fattura non e provato, non assegnare posizioni e richiedere verifica operatore. Deduplicare acconto e saldo soltanto quando ripetono lo stesso identico elenco tecnico.",
     audit: "practiceId, sourceId fatture, firme degli elenchi tecnici, numero infissi, numero chiusure, physicalRowId, posizione fattura, flag assegnato e ID regola.",
     outcome: "continue",
     priority: 1_218,

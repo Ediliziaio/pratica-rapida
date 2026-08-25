@@ -428,6 +428,7 @@ export class PersistentAprInfissiBatchPreflight {
     const shadingClosureAllocation = technical.status === "ready" ? resolveAprInfissiShadingClosureAllocation({
       physicalWindowCount: technical.rows.length,
       invoiceSources: sources.filter((source) => source.kind === "invoice").map((source) => ({ sourceId: source.sourceId, text: source.text })),
+      technicalRowSourceKind: technical.audit.selectedDimensionSource,
       formAlsoInstalledClosures: form.alsoInstalledClosures,
     }) : null;
     const commonItem = (common.items ?? []).find((item) => item.customerKey === queued.customerKey);
@@ -454,6 +455,7 @@ export class PersistentAprInfissiBatchPreflight {
       ...automatic.blockers.map((code) => ({ code, field: "technical_dimensions", sourceIds: sources.map((source) => source.sourceId) })),
       ...technical.blockers.map((code) => ({ code, field: "technical_rows", sourceIds: automatic.evidence ? [...automatic.evidence.sourceIds] : [] })),
       ...productRules.blockers.map((code) => ({ code, field: "shading_closures", sourceIds: [formSourceId] })),
+      ...(shadingClosureAllocation?.blocker ? [{ code: shadingClosureAllocation.blocker, field: "shading_closures", sourceIds: [...shadingClosureAllocation.sourceIds] }] : []),
       ...(invoiceCertificateCardinality.blocker ? [{
         code: invoiceCertificateCardinality.blocker.code,
         field: invoiceCertificateCardinality.blocker.field,

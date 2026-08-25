@@ -12,7 +12,7 @@ describe("registro operativo unico",()=>{
   });
   it("rende reperibili le regole solo per id",()=>expect(registryRule("core-form-first")?.step).toBe("customer_form"));
   it("registra le nuove regole utente con provenienza, precedenza e audit",()=>{
-    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v78");
+    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v79");
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.documentedProductModuleOverLabel)).toMatchObject({ outcome: "continue", provenance: { authority: "user", receivedAt: "2026-08-23" } });
     expect(registryRule("system-composite-invoice-bank-transfer-page-segmentation")).toMatchObject({ kind: "system", outcome: "continue" });
     expect(registryRule("system-draft-payload-mapping-completeness")).toMatchObject({ step: "enea_mapping", deterministicAction: expect.stringContaining("Non dichiarare READY") });

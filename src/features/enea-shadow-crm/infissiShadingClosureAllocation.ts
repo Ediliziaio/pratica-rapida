@@ -1,7 +1,7 @@
 import { parseScreeningInvoiceText } from "../enea-lab/invoiceParser";
 import { USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
 
-export const APR_INFISSI_SHADING_CLOSURE_ALLOCATION_VERSION = "apr-infissi-shading-closure-allocation-v1" as const;
+export const APR_INFISSI_SHADING_CLOSURE_ALLOCATION_VERSION = "apr-infissi-shading-closure-allocation-v2" as const;
 
 export interface AprInfissiInvoiceTextSource { sourceId: string; text: string }
 
@@ -15,6 +15,7 @@ export interface AprInfissiShadingClosureAllocation {
   audit: Readonly<{
     physicalWindowCount: number;
     documentedClosureCount: number;
+    technicalRowSourceKind: "invoice" | "technical_document" | null;
     invoiceDocumentSignatures: readonly string[];
     appliedRuleIds: readonly string[];
   }>;
@@ -59,28 +60,35 @@ export function countDocumentedShadingClosures(invoiceSources: readonly AprInfis
 export function resolveAprInfissiShadingClosureAllocation(input: {
   physicalWindowCount: number;
   invoiceSources: readonly AprInfissiInvoiceTextSource[];
+  technicalRowSourceKind: "invoice" | "technical_document" | null;
   formAlsoInstalledClosures?: boolean;
 }): AprInfissiShadingClosureAllocation {
   if (!Number.isInteger(input.physicalWindowCount) || input.physicalWindowCount < 1) throw new Error("infissi_physical_window_count_invalid");
   const documented = countDocumentedShadingClosures(input.invoiceSources);
   const partial = documented.count > 0 && documented.count < input.physicalWindowCount;
+  const invoiceOrderProven = input.technicalRowSourceKind === "invoice";
   const formKnown = typeof input.formAlsoInstalledClosures === "boolean";
-  const mode = partial ? "invoice_order_partial"
+  const mode = partial && !invoiceOrderProven ? "unresolved"
+    : partial ? "invoice_order_partial"
     : input.formAlsoInstalledClosures === true ? "form_all"
     : input.formAlsoInstalledClosures === false ? "form_none" : "unresolved";
-  const flags = partial
+  const flags = mode === "invoice_order_partial"
     ? Array.from({ length: input.physicalWindowCount }, (_, index) => index < documented.count)
-    : formKnown ? Array.from({ length: input.physicalWindowCount }, () => input.formAlsoInstalledClosures!) : [];
+    : mode === "form_all" ? Array.from({ length: input.physicalWindowCount }, () => true)
+    : mode === "form_none" ? Array.from({ length: input.physicalWindowCount }, () => false) : [];
   return Object.freeze({
     version: APR_INFISSI_SHADING_CLOSURE_ALLOCATION_VERSION,
     mode,
     flags: Object.freeze(flags),
     documentedClosureCount: documented.count,
     sourceIds: Object.freeze(documented.sourceIds),
-    blocker: mode === "unresolved" ? "infissi_shading_closures_form_answer_missing_or_ambiguous" : null,
+    blocker: partial && !invoiceOrderProven
+      ? "infissi_shading_closure_invoice_order_not_proven"
+      : mode === "unresolved" ? "infissi_shading_closures_form_answer_missing_or_ambiguous" : null,
     audit: Object.freeze({
       physicalWindowCount: input.physicalWindowCount,
       documentedClosureCount: documented.count,
+      technicalRowSourceKind: input.technicalRowSourceKind,
       invoiceDocumentSignatures: Object.freeze(documented.signatures),
       appliedRuleIds: Object.freeze(partial
         ? [USER_AUTHORIZED_RULE_IDS.infissiShadingClosureInvoiceOrderAllocation]

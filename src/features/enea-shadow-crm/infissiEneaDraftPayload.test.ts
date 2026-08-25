@@ -94,6 +94,7 @@ describe("payload tecnico locale Infissi per ENEA", () => {
     const allocation = resolveAprInfissiShadingClosureAllocation({
       physicalWindowCount: 3,
       invoiceSources: [{ sourceId: "fattura", text: "FATTURA Tapparella N° 1 da 100 x 180 cm N° 1 da 120 x 180 cm" }],
+      technicalRowSourceKind: "invoice",
       formAlsoInstalledClosures: true,
     });
     const payload = buildAprInfissiEneaDraftPayload({

@@ -3,6 +3,7 @@ import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, re
 import path from "node:path";
 import { extractAprInfissiAutomaticTechnicalEvidence } from "../../src/features/enea-shadow-crm/infissiAutomaticDocumentEvidence";
 import { buildAprInfissiEneaDraftPayload, type AprInfissiEneaDraftPayload } from "../../src/features/enea-shadow-crm/infissiEneaDraftPayload";
+import { resolveAprInfissiShadingClosureAllocation, type AprInfissiShadingClosureAllocation } from "../../src/features/enea-shadow-crm/infissiShadingClosureAllocation";
 import { resolveInfissiProductRules, type InfissiProductRulesResolution } from "../../src/features/enea-shadow-crm/infissiProductRules";
 import { resolveAprInfissiOldWindowSources, type AprInfissiOldWindowSourceResolution } from "../../src/features/enea-shadow-crm/infissiOldWindowSourceResolution";
 import { verifyAprInfissiInvoiceCertificateCardinality, type AprInfissiInvoiceCertificateCardinality } from "../../src/features/enea-shadow-crm/infissiInvoiceCertificateCardinality";
@@ -46,6 +47,7 @@ export interface AprInfissiBatchItem {
     invoiceGrossTotal: number | null;
     technical: InfissiTechnicalResolution;
     productRules: InfissiProductRulesResolution;
+    shadingClosureAllocation: AprInfissiShadingClosureAllocation | null;
     oldWindowSourceResolution: AprInfissiOldWindowSourceResolution;
     invoiceCertificateCardinality: AprInfissiInvoiceCertificateCardinality;
     eneaDraftPayload: AprInfissiEneaDraftPayload | null;
@@ -398,7 +400,11 @@ export class PersistentAprInfissiBatchPreflight {
     const analysisItems = (analysis.items ?? []).filter((item) => item.customerKey === queued.customerKey && item.state === "analyzed" && text(item.textPath));
     const sources = analysisItems.map((item) => ({ sourceId: text(item.documentKey), kind: text(item.kind), text: readFileSync(text(item.textPath), "utf8") }));
     const automatic = extractAprInfissiAutomaticTechnicalEvidence(sources);
-    const technical = resolveInfissiTechnicalSources({ practiceId: queued.practiceId, technicalDocuments: automatic.evidence ?? undefined });
+    const technical = resolveInfissiTechnicalSources({
+      practiceId: queued.practiceId,
+      invoice: automatic.evidence?.kind === "invoice" ? automatic.evidence : undefined,
+      technicalDocuments: automatic.evidence?.kind === "technical_document" ? automatic.evidence : undefined,
+    });
     const invoiceCertificateCardinality = verifyAprInfissiInvoiceCertificateCardinality(sources, technical.rows.length);
     const formSourceId = `${queued.practiceId}:crm-form`;
     const oldWindowSourceResolution = resolveAprInfissiOldWindowSources({
@@ -419,6 +425,11 @@ export class PersistentAprInfissiBatchPreflight {
       formAlsoInstalledClosures: form.alsoInstalledClosures,
       formSourceId,
     });
+    const shadingClosureAllocation = technical.status === "ready" ? resolveAprInfissiShadingClosureAllocation({
+      physicalWindowCount: technical.rows.length,
+      invoiceSources: sources.filter((source) => source.kind === "invoice").map((source) => ({ sourceId: source.sourceId, text: source.text })),
+      formAlsoInstalledClosures: form.alsoInstalledClosures,
+    }) : null;
     const commonItem = (common.items ?? []).find((item) => item.customerKey === queued.customerKey);
     const commonReport = object(commonItem?.report);
     const financial = object(commonReport?.financial);
@@ -456,13 +467,14 @@ export class PersistentAprInfissiBatchPreflight {
       })),
     ];
     const ready = blockers.length === 0 && automatic.status === "ready" && technical.status === "ready" && productRules.status === "ready" && invoiceGrossTotal !== null;
-    const eneaDraftPayload = ready ? buildAprInfissiEneaDraftPayload({ practiceId: queued.practiceId, technical, productRules, invoiceGrossTotal }) : null;
+    const eneaDraftPayload = ready ? buildAprInfissiEneaDraftPayload({ practiceId: queued.practiceId, technical, productRules, shadingClosureAllocation: shadingClosureAllocation!, invoiceGrossTotal }) : null;
     const sourceFingerprints = sources.map((source) => ({ sourceId: source.sourceId, sha256: sha256(source.text) }));
     const appliedRuleIds = [...new Set([
       ...SYSTEM_RULE_IDS,
       ...automatic.audit.appliedRuleIds,
       ...technical.audit.appliedRuleIds,
       ...productRules.audit.appliedRuleIds,
+      ...(shadingClosureAllocation?.audit.appliedRuleIds ?? []),
       ...oldWindowSourceResolution.audit.appliedRuleIds,
       ...invoiceCertificateCardinality.audit.appliedRuleIds,
       USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalVatIncluded,
@@ -485,6 +497,7 @@ export class PersistentAprInfissiBatchPreflight {
         invoiceGrossTotal,
         technical,
         productRules,
+        shadingClosureAllocation,
         oldWindowSourceResolution,
         invoiceCertificateCardinality,
         eneaDraftPayload,

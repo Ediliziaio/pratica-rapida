@@ -1,6 +1,7 @@
 import type { InfissiProductRulesResolution } from "./infissiProductRules";
 import type { InfissiTechnicalResolution } from "./infissiTechnicalSources";
 import { USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
+import type { AprInfissiShadingClosureAllocation } from "./infissiShadingClosureAllocation";
 
 export const APR_INFISSI_ENEA_DRAFT_PAYLOAD_VERSION = "apr-infissi-enea-draft-payload-v1" as const;
 export const APR_INFISSI_ENEA_MAX_NEW_WINDOW_TRANSMITTANCE_WM2K = 1.3 as const;
@@ -70,6 +71,7 @@ export function buildAprInfissiEneaDraftPayload(input: {
   practiceId: string;
   technical: InfissiTechnicalResolution;
   productRules: InfissiProductRulesResolution;
+  shadingClosureAllocation?: AprInfissiShadingClosureAllocation;
   invoiceGrossTotal: number;
 }): AprInfissiEneaDraftPayload {
   const practiceId = input.practiceId.trim();
@@ -83,10 +85,13 @@ export function buildAprInfissiEneaDraftPayload(input: {
   if (input.productRules.eneaShadingClosuresChecked === null) {
     throw new Error("infissi_shading_closures_unresolved");
   }
-  const shadingClosuresChecked = input.productRules.eneaShadingClosuresChecked;
+  if (input.shadingClosureAllocation?.blocker) throw new Error("infissi_shading_closures_unresolved");
+  if (input.shadingClosureAllocation && input.shadingClosureAllocation.flags.length !== input.technical.rows.length) {
+    throw new Error("infissi_shading_closure_allocation_cardinality_mismatch");
+  }
 
   const fieldEvidence: Array<{ physicalRowId: string | null; field: string; source: string; ruleId: string }> = [];
-  const windows = input.technical.rows.map((row) => {
+  const windows = input.technical.rows.map((row, index) => {
     const addEvidence = (field: string, source: string, ruleId: string) => {
       fieldEvidence.push({ physicalRowId: row.physicalRowId, field, source, ruleId });
     };
@@ -97,7 +102,15 @@ export function buildAprInfissiEneaDraftPayload(input: {
     addEvidence("oldWindowThermalTransmittanceWm2K", input.productRules.audit.oldWindowThermalTransmittance.source, USER_AUTHORIZED_RULE_IDS.infissiOldWindowTransmittanceMatrix);
     addEvidence("frameMaterial", input.productRules.audit.newFrameMaterialSource, USER_AUTHORIZED_RULE_IDS.infissiMaterialGlassFallbacks);
     addEvidence("glassType", input.productRules.audit.glassTypeSource, USER_AUTHORIZED_RULE_IDS.infissiMaterialGlassFallbacks);
-    addEvidence("shadingClosuresChecked", input.productRules.audit.formSourceId ?? "form_source_missing", USER_AUTHORIZED_RULE_IDS.infissiShadingClosuresFromForm);
+    const allocatedByInvoice = input.shadingClosureAllocation?.mode === "invoice_order_partial";
+    const shadingClosuresChecked = input.shadingClosureAllocation?.flags[index] ?? input.productRules.eneaShadingClosuresChecked!;
+    addEvidence(
+      "shadingClosuresChecked",
+      allocatedByInvoice
+        ? `invoice_order:${input.shadingClosureAllocation!.sourceIds.join(",")};closureCount=${input.shadingClosureAllocation!.documentedClosureCount};position=${index + 1}`
+        : input.productRules.audit.formSourceId ?? "form_source_missing",
+      allocatedByInvoice ? USER_AUTHORIZED_RULE_IDS.infissiShadingClosureInvoiceOrderAllocation : USER_AUTHORIZED_RULE_IDS.infissiShadingClosuresFromForm,
+    );
     return Object.freeze({
       physicalRowId: row.physicalRowId,
       widthM: row.widthM,
@@ -136,6 +149,7 @@ export function buildAprInfissiEneaDraftPayload(input: {
         USER_AUTHORIZED_RULE_IDS.infissiOldWindowTransmittanceMatrix,
         USER_AUTHORIZED_RULE_IDS.infissiMaterialGlassFallbacks,
         USER_AUTHORIZED_RULE_IDS.infissiShadingClosuresFromForm,
+        ...(input.shadingClosureAllocation?.mode === "invoice_order_partial" ? [USER_AUTHORIZED_RULE_IDS.infissiShadingClosureInvoiceOrderAllocation] : []),
         USER_AUTHORIZED_RULE_IDS.infissiPortalManagedEnergySavings,
       ]),
       fieldEvidence: Object.freeze(fieldEvidence),

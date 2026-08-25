@@ -22,7 +22,7 @@ function fixtureRoot() {
   const analysisItems = cases.map((item) => {
     const textPath = path.join(root, "crm-document-analysis", "text", item.key, "doc.txt");
     mkdirSync(path.dirname(textPath), { recursive: true }); writeFileSync(textPath, item.technical);
-    return { customerKey: item.key, documentKey: `${item.key}-doc`, kind: "additional", textPath, state: "analyzed" };
+    return { customerKey: item.key, documentKey: `${item.key}-doc`, kind: "third_party_certificate", textPath, state: "analyzed" };
   });
   writeJson(path.join(root, "crm-acquisition", "checkpoint.json"), { status: "completed", items: acquisitionItems });
   writeJson(path.join(root, "crm-document-analysis", "checkpoint.json"), { status: "completed", items: analysisItems });

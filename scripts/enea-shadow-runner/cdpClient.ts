@@ -23,19 +23,40 @@ interface CdpResponse {
 
 export class CdpPageClient {
   private socket: WebSocket | null = null;
+  private closeReported = false;
   private sequence = 0;
   private pending = new Map<number, { resolve: (value: unknown) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>();
   private eventListeners = new Map<string, Set<(params: unknown) => void>>();
 
-  constructor(readonly webSocketUrl: string, readonly timeoutMs = 15_000) {}
+  constructor(
+    readonly webSocketUrl: string,
+    readonly timeoutMs = 15_000,
+    private readonly onClosed: (() => void) | null = null,
+  ) {}
+
+  get connected() { return this.socket?.readyState === WebSocket.OPEN; }
+
+  private reportClosed() {
+    if (this.closeReported) return;
+    this.closeReported = true;
+    this.onClosed?.();
+  }
+
+  private rejectPending(reason: string) {
+    for (const pending of this.pending.values()) {
+      clearTimeout(pending.timer);
+      pending.reject(new Error(reason));
+    }
+    this.pending.clear();
+  }
 
   async connect() {
     if (this.socket?.readyState === WebSocket.OPEN) return this;
     const socket = new WebSocket(this.webSocketUrl);
     await new Promise<void>((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error("apr_cdp_connect_timeout")), this.timeoutMs);
+      const timer = setTimeout(() => { socket.close(); reject(new Error("apr_cdp_connect_timeout")); }, this.timeoutMs);
       socket.addEventListener("open", () => { clearTimeout(timer); resolve(); }, { once: true });
-      socket.addEventListener("error", () => { clearTimeout(timer); reject(new Error("apr_cdp_connect_failed")); }, { once: true });
+      socket.addEventListener("error", () => { clearTimeout(timer); socket.close(); reject(new Error("apr_cdp_connect_failed")); }, { once: true });
     });
     socket.addEventListener("message", (event) => {
       let message: CdpResponse;
@@ -51,8 +72,7 @@ export class CdpPageClient {
       else pending.resolve(message.result);
     });
     socket.addEventListener("close", () => {
-      for (const pending of this.pending.values()) { clearTimeout(pending.timer); pending.reject(new Error("apr_cdp_connection_closed")); }
-      this.pending.clear(); this.socket = null;
+      this.rejectPending("apr_cdp_connection_closed"); this.socket = null; this.reportClosed();
     });
     this.socket = socket;
     await this.send("Runtime.enable");
@@ -99,7 +119,14 @@ export class CdpPageClient {
     throw new Error("apr_cdp_navigation_timeout");
   }
 
-  close() { this.socket?.close(); this.socket = null; this.eventListeners.clear(); }
+  close() {
+    const socket = this.socket;
+    this.socket = null;
+    this.eventListeners.clear();
+    this.rejectPending("apr_cdp_connection_closed");
+    if (socket && socket.readyState !== WebSocket.CLOSED) socket.close();
+    this.reportClosed();
+  }
 }
 
 export interface AprChromeRuntimeOptions {
@@ -114,6 +141,10 @@ export class PersistentAprChromeRuntime {
   readonly port: number;
   private child: ChildProcess | null = null;
   private diagnostics = "";
+  private pageClients = new Map<string, { webSocketUrl: string; client: CdpPageClient }>();
+  private openingPageClients = new Map<string, { webSocketUrl: string; client: CdpPageClient; promise: Promise<CdpPageClient> }>();
+  private openedPageClientCount = 0;
+  private closedPageClientCount = 0;
 
   constructor(readonly options: AprChromeRuntimeOptions) {
     this.port = options.remoteDebuggingPort ?? 9331;
@@ -195,13 +226,74 @@ export class PersistentAprChromeRuntime {
 
   async pageClient(target: CdpTargetInfo) {
     if (!target.webSocketDebuggerUrl) throw new Error("apr_chrome_target_missing_websocket");
+    const existing = this.pageClients.get(target.id);
+    if (existing?.webSocketUrl === target.webSocketDebuggerUrl && existing.client.connected) return existing.client;
+    if (existing) this.closePageClient(target.id);
+    const opening = this.openingPageClients.get(target.id);
+    if (opening?.webSocketUrl === target.webSocketDebuggerUrl) return opening.promise;
+    if (opening) this.closePageClient(target.id);
     // Headless fixture Chrome can be deliberately throttled by macOS while it
     // has no visible surface. Give those local probes more time without
     // weakening the 15-second fail-closed deadline of the operational GUI.
-    return new CdpPageClient(target.webSocketDebuggerUrl, this.options.headless ? 90_000 : 15_000).connect();
+    let client: CdpPageClient;
+    let countedAsOpened = false;
+    client = new CdpPageClient(target.webSocketDebuggerUrl, this.options.headless ? 90_000 : 15_000, () => {
+      const registered = this.pageClients.get(target.id);
+      if (registered?.client === client) this.pageClients.delete(target.id);
+      if (countedAsOpened) this.closedPageClientCount += 1;
+    });
+    const promise = (async () => {
+      try {
+        await client.connect();
+        if (!client.connected) throw new Error("apr_cdp_connection_closed");
+        countedAsOpened = true;
+        this.pageClients.set(target.id, { webSocketUrl: target.webSocketDebuggerUrl!, client });
+        this.openedPageClientCount += 1;
+        return client;
+      } catch (error) {
+        client.close();
+        throw error;
+      } finally {
+        const registered = this.openingPageClients.get(target.id);
+        if (registered?.client === client) this.openingPageClients.delete(target.id);
+      }
+    })();
+    this.openingPageClients.set(target.id, { webSocketUrl: target.webSocketDebuggerUrl, client, promise });
+    return promise;
+  }
+
+  closePageClient(targetId: string) {
+    const opening = this.openingPageClients.get(targetId);
+    if (opening) {
+      this.openingPageClients.delete(targetId);
+      opening.client.close();
+    }
+    const registered = this.pageClients.get(targetId);
+    if (!registered) return;
+    this.pageClients.delete(targetId);
+    registered.client.close();
+  }
+
+  closePageClientsExcept(targetId: string) {
+    for (const candidateId of [...this.pageClients.keys()]) if (candidateId !== targetId) this.closePageClient(candidateId);
+  }
+
+  closeAllPageClients() {
+    for (const targetId of new Set([...this.openingPageClients.keys(), ...this.pageClients.keys()])) this.closePageClient(targetId);
+  }
+
+  connectionStats() {
+    for (const [targetId, registered] of this.pageClients) if (!registered.client.connected) this.pageClients.delete(targetId);
+    return {
+      active: this.pageClients.size,
+      opened: this.openedPageClientCount,
+      closed: this.closedPageClientCount,
+      targetIds: [...this.pageClients.keys()].sort(),
+    };
   }
 
   async stop() {
+    this.closeAllPageClients();
     const child = this.child;
     if (!child || child.exitCode !== null) return;
     child.kill("SIGTERM");

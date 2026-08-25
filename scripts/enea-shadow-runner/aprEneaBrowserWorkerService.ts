@@ -63,6 +63,7 @@ export interface AprEneaWorkerServiceState {
   profileFingerprint: string | null;
   sessionEvidenceId: string | null;
   workerRevision: number | null;
+  cdpConnections: { active: number; opened: number; closed: number; targetIds: string[]; observedAt: string };
   reason: string;
   nextAction: string;
   forbiddenActionCount: 0;
@@ -236,9 +237,10 @@ export class PersistentAprEneaWorkerService {
   loadState(now = new Date()): AprEneaWorkerServiceState {
     if (existsSync(this.statePath)) {
       const value = JSON.parse(readFileSync(this.statePath, "utf8")) as AprEneaWorkerServiceState;
+      value.cdpConnections ??= { active: 0, opened: 0, closed: 0, targetIds: [], observedAt: now.toISOString() };
       if (value.version === APR_ENEA_WORKER_SERVICE_VERSION && value.forbiddenActionCount === 0 && value.previewAttemptCount === 0 && value.submitAttemptCount === 0 && value.communicationAttemptCount === 0 && value.audit.every((event) => event.appliedRuleIds.length > 0)) return value;
     }
-    return { version: APR_ENEA_WORKER_SERVICE_VERSION, revision: 0, status: "disabled", instanceId: "not-started", processPid: 0, heartbeatAt: now.toISOString(), chromePid: null, profileFingerprint: null, sessionEvidenceId: null, workerRevision: null, reason: "Servizio browser APR non ancora avviato.", nextAction: "Completare collaudo locale e abilitare soltanto il setup del profilo dedicato.", forbiddenActionCount: 0, previewAttemptCount: 0, submitAttemptCount: 0, communicationAttemptCount: 0, audit: [{ revision: 0, at: now.toISOString(), type: "initialized", reason: "Stato fail-closed inizializzato.", appliedRuleIds: [...RULE_IDS] }] };
+    return { version: APR_ENEA_WORKER_SERVICE_VERSION, revision: 0, status: "disabled", instanceId: "not-started", processPid: 0, heartbeatAt: now.toISOString(), chromePid: null, profileFingerprint: null, sessionEvidenceId: null, workerRevision: null, cdpConnections: { active: 0, opened: 0, closed: 0, targetIds: [], observedAt: now.toISOString() }, reason: "Servizio browser APR non ancora avviato.", nextAction: "Completare collaudo locale e abilitare soltanto il setup del profilo dedicato.", forbiddenActionCount: 0, previewAttemptCount: 0, submitAttemptCount: 0, communicationAttemptCount: 0, audit: [{ revision: 0, at: now.toISOString(), type: "initialized", reason: "Stato fail-closed inizializzato.", appliedRuleIds: [...RULE_IDS] }] };
   }
 
   record(input: { instanceId: string; processPid: number; status: AprEneaWorkerServiceState["status"]; reason: string; nextAction: string; chromePid?: number | null; profileFingerprint?: string | null; sessionEvidenceId?: string | null; workerRevision?: number | null; type: string }, now = new Date()) {
@@ -249,6 +251,34 @@ export class PersistentAprEneaWorkerService {
     if (!heartbeatOnly) next.audit.push({ revision: next.revision, at: now.toISOString(), type: input.type, reason: input.reason, appliedRuleIds: [...RULE_IDS] });
     if (next.audit.length > 500) next.audit = [next.audit[0], ...next.audit.slice(-499)];
     atomicWrite(this.statePath, `${JSON.stringify(next, null, 2)}\n`); return next;
+  }
+
+  recordCdpConnections(input: { active: number; opened: number; closed: number; targetIds: string[] }, now = new Date()) {
+    if (![input.active, input.opened, input.closed].every((value) => Number.isInteger(value) && value >= 0)
+      || input.active > input.opened
+      || input.closed > input.opened
+      || input.targetIds.length !== input.active
+      || new Set(input.targetIds).size !== input.targetIds.length) throw new Error("apr_cdp_connection_stats_invalid");
+    const current = this.loadState(now);
+    const previous = current.cdpConnections;
+    const changed = previous.active !== input.active
+      || previous.opened !== input.opened
+      || previous.closed !== input.closed
+      || previous.targetIds.join("\u0000") !== input.targetIds.join("\u0000");
+    if (!changed) return current;
+    const next = structuredClone(current);
+    next.revision += 1;
+    next.cdpConnections = { ...input, targetIds: [...input.targetIds], observedAt: now.toISOString() };
+    next.audit.push({
+      revision: next.revision,
+      at: now.toISOString(),
+      type: "cdp_connection_count",
+      reason: `Connessioni CDP: ${input.active} attive, ${input.opened} aperte, ${input.closed} chiuse.`,
+      appliedRuleIds: [...RULE_IDS, "system-cdp-single-connection-per-target"],
+    });
+    if (next.audit.length > 500) next.audit = [next.audit[0], ...next.audit.slice(-499)];
+    atomicWrite(this.statePath, `${JSON.stringify(next, null, 2)}\n`);
+    return next;
   }
 
   snapshot(now = new Date()) { const config = this.loadConfig(now); const service = this.loadState(now); let worker: unknown = null; let driver: unknown = null; let minimumQueueGate: AprEneaMinimumQueueGateState | null = null; try { worker = JSON.parse(readFileSync(path.join(this.directory, "checkpoint.json"), "utf8")); } catch { /* non avviato */ } try { driver = JSON.parse(readFileSync(path.join(this.directory, "cdp-driver.json"), "utf8")); } catch { /* non collegato */ } try { minimumQueueGate = JSON.parse(readFileSync(this.queueGatePath, "utf8")) as AprEneaMinimumQueueGateState; } catch { /* primo tick non ancora osservato */ } return { config: { ...config, chromeExecutable: path.basename(config.chromeExecutable), profileDirectory: path.basename(config.profileDirectory) }, service, worker, driver, minimumQueueGate, observedAt: now.toISOString() } as const; }

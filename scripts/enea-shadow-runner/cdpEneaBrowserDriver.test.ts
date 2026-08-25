@@ -260,6 +260,65 @@ function generatorPlantPreflight() {
 }
 
 describe("driver Chrome persistente di APR", () => {
+  it.runIf(process.platform === "darwin")("riusa una sola connessione CDP per dieci keepalive e la chiude allo stop del worker", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-keepalive-reuse-")); directories.push(root);
+    const origin = await fixtureServer({ authenticatedRootEsci: true });
+    const runtime = new PersistentAprChromeRuntime({
+      chromeExecutable,
+      profileDirectory: path.join(root, "chrome-profile"),
+      remoteDebuggingPort: await freeTcpPort(),
+      headless: true,
+      initialUrl: `${origin}/`,
+    });
+    runtimes.push(runtime);
+    await runtime.ensureRunning();
+    const driver = new CdpEneaBrowserDriver(root, runtime, {
+      allowedOrigin: origin,
+      dashboardUrl: `${origin}/`,
+      allowOpenInitialPage: false,
+    });
+
+    for (let index = 0; index < 10; index += 1) {
+      expect(await driver.verifySession()).toMatchObject({ authenticated: true, serverLogoutProven: false });
+    }
+
+    expect(runtime.connectionStats()).toMatchObject({ active: 1, opened: 1, closed: 0 });
+    expect(runtime.connectionStats().targetIds).toHaveLength(1);
+    await runtime.stop();
+    expect(runtime.connectionStats()).toMatchObject({ active: 0, opened: 1, closed: 1, targetIds: [] });
+  }, 60_000);
+
+  it("chiude la connessione CDP trattenuta quando il keepalive fallisce", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-keepalive-error-")); directories.push(root);
+    let active = 0;
+    let closed = 0;
+    const target = {
+      id: "target-error",
+      type: "page",
+      title: "Bonus fiscali ENEA",
+      url: "https://bonusfiscali.enea.it/dashboard",
+      webSocketDebuggerUrl: "ws://127.0.0.1:1/devtools/page/target-error",
+    };
+    const runtime = {
+      profileFingerprint: "f".repeat(64),
+      targets: async () => [target],
+      pageClient: async () => {
+        active = 1;
+        return { evaluate: async () => { throw new Error("keepalive_fixture_failure"); } };
+      },
+      closePageClientsExcept: () => undefined,
+      closeAllPageClients: () => { active = 0; closed += 1; },
+    } as unknown as PersistentAprChromeRuntime;
+    const driver = new CdpEneaBrowserDriver(root, runtime, {
+      allowedOrigin: "https://bonusfiscali.enea.it",
+      dashboardUrl: "https://bonusfiscali.enea.it/dashboard",
+      allowOpenInitialPage: false,
+    });
+
+    await expect(driver.verifySession()).rejects.toThrow("keepalive_fixture_failure");
+    expect({ active, closed }).toEqual({ active: 0, closed: 1 });
+  });
+
   it("riconcilia prima la residenza e poi la nascita dopo un remount React, senza includere campi concordanti", () => {
     const fields = [
       { portalId: "id-comune_nascita", control: "autocomplete" as const, value: "Crotone" },
@@ -436,6 +495,8 @@ describe("driver Chrome persistente di APR", () => {
       profileFingerprint: "fixture-spid-profile",
       targets: async () => [{ id: "spid", type: "page", title: "SPID", url: "https://identity.example.test/login", webSocketDebuggerUrl: "ws://127.0.0.1/spid" }],
       openPage: async () => { openPageCalls += 1; throw new Error("unexpected_open_page"); },
+      closePageClientsExcept: () => undefined,
+      closeAllPageClients: () => undefined,
     } as unknown as PersistentAprChromeRuntime;
     const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: "https://bonusfiscali.enea.it", dashboardUrl: "https://bonusfiscali.enea.it/" });
     expect(await driver.inspectExternalAuthenticationJourneyReadOnly()).toMatchObject({ inProgress: true, evidenceId: expect.stringMatching(/^external-auth-/) });

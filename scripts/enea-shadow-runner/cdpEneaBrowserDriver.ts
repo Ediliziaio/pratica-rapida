@@ -417,6 +417,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     if (!target) target = targets.find((candidate) => candidate.type === "page" && candidate.webSocketDebuggerUrl && (() => { try { return new URL(candidate.url).origin === this.allowedOrigin; } catch { return false; } })()) ?? null;
     if (!target && this.allowOpenInitialPage) target = await this.runtime.openPage(this.dashboardUrl);
     if (!target) throw new Error("apr_cdp_enea_target_not_found");
+    this.runtime.closePageClientsExcept(target.id);
     if (target.id !== state.activeTargetId) { state.revision += 1; state.activeTargetId = target.id; this.write(state); }
     return target;
   }
@@ -455,6 +456,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
   }
 
   private selectTarget(targetId: string) {
+    this.runtime.closePageClientsExcept(targetId);
     const state = this.load();
     if (state.activeTargetId !== targetId) { state.revision += 1; state.activeTargetId = targetId; this.write(state); }
   }
@@ -493,19 +495,21 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
   }
 
   async verifySession(): Promise<AprEneaSessionEvidence> {
-    const activeTargetId = this.load().activeTargetId;
-    const targets = await this.allowedPageTargets();
-    const orderedTargets = [...targets].sort((left, right) => Number(right.id === activeTargetId) - Number(left.id === activeTargetId));
-    let target = orderedTargets[0]!;
-    let client = await this.runtime.pageClient(target);
-    for (const candidate of orderedTargets) {
-      const candidateClient = candidate.id === target.id ? client : await this.runtime.pageClient(candidate);
-      await this.ensureAllowedLocation(candidateClient);
-      const domAuthenticated = await candidateClient.evaluate<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const pageText=normalize(document.body?.innerText||"");const controls=[...document.querySelectorAll('a,button,input[type="button"],input[type="submit"]')];const exitControl=controls.some(node=>normalize(node.textContent||node.value)==="esci");const createCapability=[...document.querySelectorAll('a[href]')].some(a=>{try{return new URL(a.href,location.href).origin===location.origin&&new URL(a.href,location.href).pathname==="/pratica/ecobonus/2026/nuova"}catch{return false}});return Boolean(document.querySelector('[data-apr-authenticated="true"],[data-user-authenticated="true"]'))||Boolean(document.querySelector('a[href*="logout" i],form[action*="logout" i],button[name*="logout" i]'))||exitControl||createCapability||(/(utente connesso|connesso come|profilo utente)/.test(pageText)&&Boolean(document.querySelector('[class*="user" i],[id*="user" i],[class*="profile" i],[id*="profile" i]')) )})()`);
-      if (domAuthenticated) { target = candidate; client = candidateClient; break; }
-    }
-    await this.ensureAllowedLocation(client);
-    this.selectTarget(target.id);
+    let retainedTargetId: string | null = null;
+    try {
+      const activeTargetId = this.load().activeTargetId;
+      const targets = await this.allowedPageTargets();
+      const orderedTargets = [...targets].sort((left, right) => Number(right.id === activeTargetId) - Number(left.id === activeTargetId));
+      let target = orderedTargets[0]!;
+      let client = await this.runtime.pageClient(target);
+      for (const candidate of orderedTargets) {
+        const candidateClient = candidate.id === target.id ? client : await this.runtime.pageClient(candidate);
+        await this.ensureAllowedLocation(candidateClient);
+        const domAuthenticated = await candidateClient.evaluate<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const pageText=normalize(document.body?.innerText||"");const controls=[...document.querySelectorAll('a,button,input[type="button"],input[type="submit"]')];const exitControl=controls.some(node=>normalize(node.textContent||node.value)==="esci");const createCapability=[...document.querySelectorAll('a[href]')].some(a=>{try{return new URL(a.href,location.href).origin===location.origin&&new URL(a.href,location.href).pathname==="/pratica/ecobonus/2026/nuova"}catch{return false}});return Boolean(document.querySelector('[data-apr-authenticated="true"],[data-user-authenticated="true"]'))||Boolean(document.querySelector('a[href*="logout" i],form[action*="logout" i],button[name*="logout" i]'))||exitControl||createCapability||(/(utente connesso|connesso come|profilo utente)/.test(pageText)&&Boolean(document.querySelector('[class*="user" i],[id*="user" i],[class*="profile" i],[id*="profile" i]')) )})()`);
+        if (domAuthenticated) { target = candidate; client = candidateClient; break; }
+      }
+      await this.ensureAllowedLocation(client);
+      this.selectTarget(target.id);
     let result = await client.evaluate<{ authenticated: boolean; explicitLogin: boolean; url: string }>(`(async()=>{
       const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");
       const pageText=normalize(document.body?.innerText||"");
@@ -556,21 +560,28 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
         await new Promise((resolve) => setTimeout(resolve, 200));
       }
     }
-    const evidence = await this.capture(evidenceAction, target, client);
-    return { ...evidence, authenticated: result.authenticated, serverLogoutProven: result.explicitLogin && !result.authenticated };
+      const evidence = await this.capture(evidenceAction, target, client);
+      retainedTargetId = target.id;
+      return { ...evidence, authenticated: result.authenticated, serverLogoutProven: result.explicitLogin && !result.authenticated };
+    } finally {
+      if (retainedTargetId) this.runtime.closePageClientsExcept(retainedTargetId);
+      else this.runtime.closeAllPageClients();
+    }
   }
 
   async inspectPortalContractReadOnly() {
-    const activeTargetId = this.load().activeTargetId;
-    const targets = await this.allowedPageTargets();
-    const orderedTargets = [...targets].sort((left, right) => Number(right.id === activeTargetId) - Number(left.id === activeTargetId));
-    let target = orderedTargets[0]!;
-    let client = await this.runtime.pageClient(target);
-    let inventory: PortalContractInventory | null = null;
-    const inventoryExpression = `(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const nodes=[...document.querySelectorAll('a[href],button,input[type="button"],input[type="submit"]')];const createLabels=["nuova pratica","inserisci pratica","nuova dichiarazione","crea pratica"];const ecobonus2026Path="/pratica/ecobonus/2026/nuova";const forbidden=/anteprima|invia|submit|ricevuta|email|comunicazione|salva|elimina|cancella|logout|esci/;const mapped=nodes.map(node=>{const label=normalize(node.textContent||node.value).slice(0,120);let path="";try{const parsed=node.href?new URL(node.href,location.href):null;if(parsed&&parsed.origin===location.origin)path=parsed.pathname}catch{}return {tag:node.tagName.toLowerCase(),text:label,href:node.href||"",label,path}});return {url:location.href,createCandidates:mapped.filter(item=>createLabels.some(label=>item.text===label||item.text.startsWith(label+" "))||(item.path===ecobonus2026Path&&item.text.startsWith("inserisci nuova scheda descrittiva ecobonus"))),forbiddenCandidates:mapped.filter(item=>forbidden.test(item.text)),navigationCandidates:mapped.filter(item=>item.label&&item.path&&!forbidden.test(item.label)).slice(0,80).map(({tag,label,path})=>({tag,label,path}))}})()`;
-    for (const candidate of orderedTargets) {
-      const candidateClient = candidate.id === target.id ? client : await this.runtime.pageClient(candidate);
-      let candidateInventory = await candidateClient.evaluate<PortalContractInventory>(inventoryExpression);
+    let retainedTargetId: string | null = null;
+    try {
+      const activeTargetId = this.load().activeTargetId;
+      const targets = await this.allowedPageTargets();
+      const orderedTargets = [...targets].sort((left, right) => Number(right.id === activeTargetId) - Number(left.id === activeTargetId));
+      let target = orderedTargets[0]!;
+      let client = await this.runtime.pageClient(target);
+      let inventory: PortalContractInventory | null = null;
+      const inventoryExpression = `(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const nodes=[...document.querySelectorAll('a[href],button,input[type="button"],input[type="submit"]')];const createLabels=["nuova pratica","inserisci pratica","nuova dichiarazione","crea pratica"];const ecobonus2026Path="/pratica/ecobonus/2026/nuova";const forbidden=/anteprima|invia|submit|ricevuta|email|comunicazione|salva|elimina|cancella|logout|esci/;const mapped=nodes.map(node=>{const label=normalize(node.textContent||node.value).slice(0,120);let path="";try{const parsed=node.href?new URL(node.href,location.href):null;if(parsed&&parsed.origin===location.origin)path=parsed.pathname}catch{}return {tag:node.tagName.toLowerCase(),text:label,href:node.href||"",label,path}});return {url:location.href,createCandidates:mapped.filter(item=>createLabels.some(label=>item.text===label||item.text.startsWith(label+" "))||(item.path===ecobonus2026Path&&item.text.startsWith("inserisci nuova scheda descrittiva ecobonus"))),forbiddenCandidates:mapped.filter(item=>forbidden.test(item.text)),navigationCandidates:mapped.filter(item=>item.label&&item.path&&!forbidden.test(item.label)).slice(0,80).map(({tag,label,path})=>({tag,label,path}))}})()`;
+      for (const candidate of orderedTargets) {
+        const candidateClient = candidate.id === target.id ? client : await this.runtime.pageClient(candidate);
+        let candidateInventory = await candidateClient.evaluate<PortalContractInventory>(inventoryExpression);
       const safeDashboard = candidateInventory.navigationCandidates.find((item) => item.path === "/dashboard" && /^(area riservata|dashboard|cruscotto|accedi)$/.test(item.label));
       if (candidateInventory.createCandidates.length === 0 && safeDashboard && new URL(candidateInventory.url).pathname !== safeDashboard.path) {
         await candidateClient.navigate(`${this.allowedOrigin}${safeDashboard.path}`);
@@ -578,17 +589,22 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
         candidateInventory = await candidateClient.evaluate<PortalContractInventory>(inventoryExpression);
         await this.capture("navigate_dashboard_readonly_get", candidate, candidateClient);
       }
-      if (!inventory || candidateInventory.createCandidates.length > 0) { target = candidate; client = candidateClient; inventory = candidateInventory; }
-      if (candidateInventory.createCandidates.length > 0) break;
+        if (!inventory || candidateInventory.createCandidates.length > 0) { target = candidate; client = candidateClient; inventory = candidateInventory; }
+        if (candidateInventory.createCandidates.length > 0) break;
+      }
+      if (!inventory) throw new Error("apr_cdp_enea_contract_inventory_missing");
+      this.selectTarget(target.id);
+      safeUrl(inventory.url, this.allowedOrigin);
+      const evidence = await this.capture("inspect_portal_contract_readonly", target, client);
+      const createCandidateFingerprints = inventory.createCandidates.map((candidate) => sha256({ tag: candidate.tag, text: candidate.text, hrefOrigin: candidate.href ? new URL(candidate.href, inventory.url).origin : null })).sort();
+      const ready = createCandidateFingerprints.length >= 1;
+      const state = this.load(); state.revision += 1; state.contract = { observedAt: new Date().toISOString(), ready, operationalUrl: ready ? safeUrl(inventory.url, this.allowedOrigin) : null, createCandidateCount: createCandidateFingerprints.length, createCandidateFingerprints, forbiddenCandidateCount: inventory.forbiddenCandidates.length, navigationCandidates: inventory.navigationCandidates, evidenceId: evidence.evidenceId }; this.write(state);
+      retainedTargetId = target.id;
+      return state.contract;
+    } finally {
+      if (retainedTargetId) this.runtime.closePageClientsExcept(retainedTargetId);
+      else this.runtime.closeAllPageClients();
     }
-    if (!inventory) throw new Error("apr_cdp_enea_contract_inventory_missing");
-    this.selectTarget(target.id);
-    safeUrl(inventory.url, this.allowedOrigin);
-    const evidence = await this.capture("inspect_portal_contract_readonly", target, client);
-    const createCandidateFingerprints = inventory.createCandidates.map((candidate) => sha256({ tag: candidate.tag, text: candidate.text, hrefOrigin: candidate.href ? new URL(candidate.href, inventory.url).origin : null })).sort();
-    const ready = createCandidateFingerprints.length >= 1;
-    const state = this.load(); state.revision += 1; state.contract = { observedAt: new Date().toISOString(), ready, operationalUrl: ready ? safeUrl(inventory.url, this.allowedOrigin) : null, createCandidateCount: createCandidateFingerprints.length, createCandidateFingerprints, forbiddenCandidateCount: inventory.forbiddenCandidates.length, navigationCandidates: inventory.navigationCandidates, evidenceId: evidence.evidenceId }; this.write(state);
-    return state.contract;
   }
 
   async verifyDraftIdsAbsentReadOnly(draftIds: string[]) {
@@ -680,6 +696,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     const [{ target, id }] = candidates;
     const client = await this.runtime.pageClient(target);
     const evidence = await this.capture("discover_pending_draft_readonly", target, client, { customerKey: draftPackage.customerKey, draftId: id });
+    this.runtime.closePageClientsExcept(target.id);
     const next = this.load(); next.revision += 1; next.activeTargetId = target.id; next.mappings.push({ packageFingerprint: draftPackage.packageFingerprint, customerKey: draftPackage.customerKey, draftId: id, url: evidence.url, mappedAt: new Date().toISOString() }); next.pendingCreate = null; this.write(next);
     return { ...evidence, draftId: id };
   }

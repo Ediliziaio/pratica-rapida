@@ -44,19 +44,33 @@ async function advanceRepeatDeletionGate(driver: CdpEneaBrowserDriver) {
 async function serve() {
   if (!Number.isInteger(intervalMs) || intervalMs < 500) throw new Error("apr_enea_worker_interval_invalid");
   let running = true;
-  process.once("SIGINT", () => { running = false; }); process.once("SIGTERM", () => { running = false; });
+  let runtime: PersistentAprChromeRuntime | null = null;
+  let runtimeKey: string | null = null;
+  const stop = () => {
+    running = false;
+    runtime?.closeAllPageClients();
+    if (runtime) service.recordCdpConnections(runtime.connectionStats());
+  };
+  process.once("SIGINT", stop); process.once("SIGTERM", stop);
   while (running) {
     const config = service.loadConfig();
     if (!config.setupEnabled) {
+      runtime?.closeAllPageClients(); runtime = null; runtimeKey = null;
       service.record({ instanceId, processPid: process.pid, status: "disabled", type: "heartbeat_disabled", reason: "Servizio attivo ma setup browser disabilitato: nessuna finestra e nessuna azione ENEA.", nextAction: "Abilitare il setup soltanto dopo collaudo locale verde." });
       await new Promise((resolve) => setTimeout(resolve, intervalMs)); continue;
     }
-    const runtime = new PersistentAprChromeRuntime({ chromeExecutable: config.chromeExecutable, profileDirectory: config.profileDirectory, remoteDebuggingPort: config.remoteDebuggingPort, headless: false, initialUrl: config.dashboardUrl });
+    const nextRuntimeKey = JSON.stringify([config.chromeExecutable, config.profileDirectory, config.remoteDebuggingPort, config.dashboardUrl]);
+    if (!runtime || runtimeKey !== nextRuntimeKey) {
+      runtime?.closeAllPageClients();
+      runtime = new PersistentAprChromeRuntime({ chromeExecutable: config.chromeExecutable, profileDirectory: config.profileDirectory, remoteDebuggingPort: config.remoteDebuggingPort, headless: false, initialUrl: config.dashboardUrl });
+      runtimeKey = nextRuntimeKey;
+    }
+    const activeRuntime = runtime;
     try {
       if (!["starting_browser", "login_required", "setup_ready", "running", "completed", "technical_block"].includes(service.loadState().status)) service.record({ instanceId, processPid: process.pid, status: "starting_browser", type: "browser_starting", reason: "APR avvia o riaggancia il proprio Chrome persistente.", nextAction: "Verificare la sessione ENEA nel profilo APR." });
-      const browser = await runtime.ensureRunning();
+      const browser = await activeRuntime.ensureRunning();
       const chromePid = browser.pid ?? service.loadState().chromePid;
-      const driver = new CdpEneaBrowserDriver(rootDirectory, runtime, { allowedOrigin: config.allowedOrigin, dashboardUrl: config.dashboardUrl });
+      const driver = new CdpEneaBrowserDriver(rootDirectory, activeRuntime, { allowedOrigin: config.allowedOrigin, dashboardUrl: config.dashboardUrl });
       const authenticationJourney = await driver.inspectExternalAuthenticationJourneyReadOnly();
       if (authenticationJourney.inProgress) {
         service.record({
@@ -1724,9 +1738,13 @@ async function serve() {
     } catch (error) {
       process.stderr.write(`[apr-worker-error] ${error instanceof Error ? error.stack ?? error.message : String(error)}\n`);
       service.record({ instanceId, processPid: process.pid, status: "technical_block", type: "technical_block", reason: error instanceof Error ? error.message : String(error), nextAction: "Il servizio ritenterà soltanto operazioni idempotenti; nessun submit o retry mutativo alla cieca." });
+    } finally {
+      service.recordCdpConnections(activeRuntime.connectionStats());
     }
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
+  runtime?.closeAllPageClients();
+  if (runtime) service.recordCdpConnections(runtime.connectionStats());
   service.record({ instanceId, processPid: process.pid, status: "stopped", type: "stopped", reason: "Worker APR arrestato con segnale di sistema.", nextAction: "Il LaunchAgent lo riavvierà mantenendo checkpoint e profilo." });
 }
 

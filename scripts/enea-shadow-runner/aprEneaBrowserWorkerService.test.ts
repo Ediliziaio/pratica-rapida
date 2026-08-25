@@ -14,6 +14,29 @@ function writeServerProbeGate(root: string) {
 }
 
 describe("gate permanente del servizio browser APR", () => {
+  it("persiste e audita il conteggio delle connessioni CDP senza duplicare eventi invariati", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-cdp-count-")); directories.push(root);
+    const service = new PersistentAprEneaWorkerService(root);
+    const openedAt = new Date("2026-08-24T10:00:00.000Z");
+    const closedAt = new Date("2026-08-24T10:01:00.000Z");
+
+    service.recordCdpConnections({ active: 1, opened: 1, closed: 0, targetIds: ["target-1"] }, openedAt);
+    const opened = JSON.parse(readFileSync(service.statePath, "utf8"));
+    expect(opened.cdpConnections).toEqual({ active: 1, opened: 1, closed: 0, targetIds: ["target-1"], observedAt: openedAt.toISOString() });
+    expect(opened.audit.filter((event: { type: string }) => event.type === "cdp_connection_count")).toHaveLength(1);
+
+    service.recordCdpConnections({ active: 1, opened: 1, closed: 0, targetIds: ["target-1"] }, new Date("2026-08-24T10:00:30.000Z"));
+    const unchanged = JSON.parse(readFileSync(service.statePath, "utf8"));
+    expect(unchanged.audit.filter((event: { type: string }) => event.type === "cdp_connection_count")).toHaveLength(1);
+
+    service.recordCdpConnections({ active: 0, opened: 1, closed: 1, targetIds: [] }, closedAt);
+    const closed = JSON.parse(readFileSync(service.statePath, "utf8"));
+    expect(closed.cdpConnections).toEqual({ active: 0, opened: 1, closed: 1, targetIds: [], observedAt: closedAt.toISOString() });
+    expect(closed.audit.filter((event: { type: string }) => event.type === "cdp_connection_count")).toHaveLength(2);
+    expect(closed.audit.at(-1)).toMatchObject({ type: "cdp_connection_count" });
+    expect(closed.audit.at(-1).appliedRuleIds).toContain("system-cdp-single-connection-per-target");
+  });
+
   it("mantiene il keepalive anche con preflight bloccato senza ripeterlo prima della scadenza", () => {
     const lastKeepaliveAt = "2026-08-16T10:00:00.000Z";
     expect(isAprEneaKeepaliveDue({ lastKeepaliveAt: null, keepaliveIntervalMs: 240_000, now: new Date("2026-08-16T10:00:01.000Z") })).toBe(true);

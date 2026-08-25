@@ -443,6 +443,34 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     expect(saved.items.filter((item) => item.draftId === "DRAFT-100")).toHaveLength(1);
   });
 
+  it("mantiene valido un checkpoint storico terminale saved privo di stagedEvidenceId", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare(preflightFixture(), new Date("2026-08-25T08:10:00Z"));
+    runner.recordSessionReady("legacy-session-proof", "legacy:session");
+    runner.recordCreateIntent("lorena-brendas", "legacy:create:intent");
+    runner.recordDraftCreated("lorena-brendas", "LEGACY-SAVED-1", "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/LEGACY-SAVED-1", "legacy-created-proof", "legacy:created");
+    const pageIds = runner.snapshot().items.find((item) => item.customerKey === "lorena-brendas")!.expectedPageIds;
+    pageIds.forEach((pageId, index) => {
+      runner.recordPagePrepared("lorena-brendas", "LEGACY-SAVED-1", pageId, `legacy-prepared-${index}`, `legacy:prepared:${index}`);
+      runner.recordPageSaveIntent("lorena-brendas", "LEGACY-SAVED-1", pageId, `legacy:intent:${index}`);
+      runner.recordPageSaved("lorena-brendas", "LEGACY-SAVED-1", pageId, `legacy-saved-${index}`, `legacy:saved:${index}`);
+    });
+    runner.recordSaveIntent("lorena-brendas", "LEGACY-SAVED-1", "legacy:final-intent");
+    runner.recordDraftSaved("lorena-brendas", "LEGACY-SAVED-1", "https://bonusfiscali.enea.it/pratica/ecobonus/2026/calcolo/LEGACY-SAVED-1", "legacy-final-server-proof", "legacy:final-saved");
+
+    const historical = JSON.parse(readFileSync(runner.checkpointPath, "utf8"));
+    const terminal = historical.items.find((item: { customerKey: string }) => item.customerKey === "lorena-brendas");
+    for (const checkpoint of terminal.pageCheckpoints) delete checkpoint.stagedEvidenceId;
+    writeFileSync(runner.checkpointPath, `${JSON.stringify(historical, null, 2)}\n`, "utf8");
+
+    const reloaded = new PersistentAprEneaDraftExecution(directory).load();
+    const item = reloaded.items.find((candidate) => candidate.customerKey === "lorena-brendas")!;
+    expect(item).toMatchObject({ state: "saved", draftId: "LEGACY-SAVED-1", completedPageIds: pageIds });
+    expect(item.pageCheckpoints.every((checkpoint) => checkpoint.state === "saved" && checkpoint.saveAttemptCount === 1 && Boolean(checkpoint.savedEvidenceId))).toBe(true);
+    expect(item.pageCheckpoints.every((checkpoint) => !("stagedEvidenceId" in checkpoint))).toBe(true);
+  });
+
   it("riprende soltanto la verifica finale da una catena server già acquisita senza ripetere Salva", () => {
     const directory = temporaryDirectory();
     const runner = new PersistentAprEneaDraftExecution(directory);

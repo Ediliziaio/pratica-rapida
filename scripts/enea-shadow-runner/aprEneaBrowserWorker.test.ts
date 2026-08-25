@@ -93,6 +93,51 @@ describe("APR browser worker persistente e autonomo", () => {
     expect(execution.snapshot().audit.some((event) => event.type === "nested_page_server_verified_after_outer_save")).toBe(true);
   });
 
+  it("isola la pratica se la riga nested non e persistita dopo il Salva esterno e il worker continua", async () => {
+    const directory = temporaryDirectory();
+    const execution = new PersistentAprEneaDraftExecution(directory);
+    execution.prepare(preflightFixture(), new Date("2026-08-25T08:00:00.000Z"));
+    const base = new PersistentSimulatedEneaPortalDriver(directory, { identity: "apr-profile-nested-not-persisted" });
+    let caseOneScreeningVerificationCount = 0;
+    const driver: AprEneaBrowserDriver = {
+      ...base,
+      kind: base.kind,
+      identity: base.identity,
+      verifySession: base.verifySession.bind(base),
+      discoverExistingDraft: base.discoverExistingDraft.bind(base),
+      createDraft: base.createDraft.bind(base),
+      preparePage: base.preparePage.bind(base),
+      savePage: base.savePage.bind(base),
+      verifyPageSaved: async (draft, draftId, pageId) => {
+        if (draft.customerKey === "case-one" && pageId === "screening:1") {
+          caseOneScreeningVerificationCount += 1;
+          if (caseOneScreeningVerificationCount === 2) return null;
+        }
+        return base.verifyPageSaved(draft, draftId, pageId);
+      },
+      verifyDraftSaved: base.verifyDraftSaved.bind(base),
+    };
+    const worker = new PersistentAprEneaBrowserWorker(directory, execution, draftPackage, driver, { instanceId: "apr-worker-nested-not-persisted", processPid: 4218 });
+
+    await expect(worker.runUntilTerminal()).resolves.toMatchObject({
+      status: "completed",
+      blockedCustomerKeys: ["case-one"],
+      completedCustomerKeys: ["case-two"],
+    });
+
+    const queue = execution.snapshot();
+    expect(queue.items.find((item) => item.customerKey === "case-one")).toMatchObject({
+      state: "operator_intervention",
+      reason: "Errore circoscritto alla pratica: apr_enea_nested_page_not_persisted_after_outer_save:screening:1",
+    });
+    expect(queue.items.find((item) => item.customerKey === "case-two")).toMatchObject({ state: "saved" });
+    expect(worker.snapshot()).toMatchObject({ status: "completed", processPid: 4218, instanceId: "apr-worker-nested-not-persisted" });
+    expect(worker.snapshot().audit).toEqual(expect.arrayContaining([
+      expect.objectContaining({ event: "case_isolated", customerKey: "case-one", action: "isolate_case_and_continue" }),
+      expect.objectContaining({ event: "run_completed" }),
+    ]));
+  });
+
   it("esegue due pratiche consecutive e riprende da un crash senza perdita o duplicazione", async () => {
     const directory = temporaryDirectory();
     const execution = new PersistentAprEneaDraftExecution(directory);

@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -111,7 +111,13 @@ describe("APR browser worker persistente e autonomo", () => {
       verifyPageSaved: async (draft, draftId, pageId) => {
         if (draft.customerKey === "case-one" && pageId === "screening:1") {
           caseOneScreeningVerificationCount += 1;
-          if (caseOneScreeningVerificationCount === 2) return null;
+          if (caseOneScreeningVerificationCount === 2) {
+            const portal = JSON.parse(readFileSync(base.checkpointPath, "utf8"));
+            const persistedDraft = portal.drafts.find((item: { draftId: string }) => item.draftId === draftId);
+            persistedDraft.savedPageIds = persistedDraft.savedPageIds.filter((savedPageId: string) => !["screening:1", "page:Schermature solari"].includes(savedPageId));
+            writeFileSync(base.checkpointPath, `${JSON.stringify(portal, null, 2)}\n`, "utf8");
+            return null;
+          }
         }
         return base.verifyPageSaved(draft, draftId, pageId);
       },
@@ -136,6 +142,33 @@ describe("APR browser worker persistente e autonomo", () => {
       expect.objectContaining({ event: "case_isolated", customerKey: "case-one", action: "isolate_case_and_continue" }),
       expect.objectContaining({ event: "run_completed" }),
     ]));
+
+    const isolated = queue.items.find((item) => item.customerKey === "case-one")!;
+    const absenceEvidenceFor = (sequence: 1 | 2) => ({
+      evidenceId: `canonical-empty-${sequence}`,
+      observedAt: `2026-08-25T08:10:0${sequence}.000Z`,
+      url: `https://bonusfiscali.enea.it/pratica/ecobonus/2026/schermature/${isolated.draftId}`,
+      allowlistedOrigin: true,
+      authenticated: true,
+      expectedHeadersPresent: true,
+      filtersClear: true,
+      loading: false,
+      surfaceReady: true,
+      emptyMarkerVisible: true,
+      rowCount: 0,
+    });
+    const absenceEvidence = [absenceEvidenceFor(1), absenceEvidenceFor(2)] as const;
+    execution.resumeScreeningRowsAfterEmptyServerSummary("case-one", absenceEvidence, "worker-test:recover-after-real-isolation");
+    const restartedDriver = new PersistentSimulatedEneaPortalDriver(directory, { identity: "apr-profile-nested-recovery" });
+    const restartedWorker = new PersistentAprEneaBrowserWorker(directory, execution, draftPackage, restartedDriver, { instanceId: "apr-worker-nested-not-persisted", processPid: 4219 });
+    await expect(restartedWorker.runUntilTerminal()).resolves.toMatchObject({
+      status: "completed",
+      blockedCustomerKeys: [],
+      completedCustomerKeys: ["case-one", "case-two"],
+    });
+    expect(execution.snapshot().items.find((item) => item.customerKey === "case-one")).toMatchObject({ state: "saved", draftId: isolated.draftId });
+    const recoveredPortalDraft = restartedDriver.snapshot().drafts.find((item) => item.customerKey === "case-one")!;
+    expect(recoveredPortalDraft).toMatchObject({ createMutationCount: 1, pageSaveMutationCounts: { "screening:1": 2, "page:Schermature solari": 2 } });
   });
 
   it("esegue due pratiche consecutive e riprende da un crash senza perdita o duplicazione", async () => {

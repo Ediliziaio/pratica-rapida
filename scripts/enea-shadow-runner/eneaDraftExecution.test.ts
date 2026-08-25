@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
-import { PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible } from "./eneaDraftExecution";
+import { conclusiveNestedPageAbsenceEvidence, nestedPageAbsenceRecoveryCandidate, PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible, type AprNestedPageAbsenceEvidence } from "./eneaDraftExecution";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 
 const directories: string[] = [];
@@ -12,6 +12,24 @@ function temporaryDirectory() {
   const directory = mkdtempSync(path.join(os.tmpdir(), "apr-enea-draft-execution-"));
   directories.push(directory);
   return directory;
+}
+
+function nestedAbsenceEvidence(draftId: string, overrides: Partial<AprNestedPageAbsenceEvidence> = {}): [AprNestedPageAbsenceEvidence, AprNestedPageAbsenceEvidence] {
+  const base: AprNestedPageAbsenceEvidence = {
+    evidenceId: "server-empty-proof-1",
+    observedAt: "2026-08-25T10:00:00.000Z",
+    url: `https://bonusfiscali.enea.it/pratica/ecobonus/2026/schermature/${draftId}`,
+    allowlistedOrigin: true,
+    authenticated: true,
+    expectedHeadersPresent: true,
+    filtersClear: true,
+    loading: false,
+    surfaceReady: true,
+    emptyMarkerVisible: true,
+    rowCount: 0,
+    ...overrides,
+  };
+  return [base, { ...base, evidenceId: "server-empty-proof-2", observedAt: "2026-08-25T10:00:01.000Z" }];
 }
 
 afterEach(() => {
@@ -58,6 +76,26 @@ function preflightFixture() {
 }
 
 describe("esecuzione persistente della sola bozza ENEA TEST", () => {
+  it("richiede due prove canoniche distinte e respinge ogni assenza non conclusiva", () => {
+    const valid = nestedAbsenceEvidence("DRAFT-CONTRACT");
+    expect(conclusiveNestedPageAbsenceEvidence("DRAFT-CONTRACT", "schermature", valid)).toBe(true);
+
+    const invalidEvidence: AprNestedPageAbsenceEvidence[][] = [
+      valid.slice(0, 1),
+      [valid[0], { ...valid[1], evidenceId: valid[0].evidenceId }],
+      [valid[0], { ...valid[1], url: "https://bonusfiscali.enea.it/pratica/ecobonus/2026/schermature/OTHER" }],
+      [valid[0], { ...valid[1], allowlistedOrigin: false }],
+      [valid[0], { ...valid[1], authenticated: false }],
+      [valid[0], { ...valid[1], expectedHeadersPresent: false }],
+      [valid[0], { ...valid[1], filtersClear: false }],
+      [valid[0], { ...valid[1], loading: true }],
+      [valid[0], { ...valid[1], surfaceReady: false }],
+      [valid[0], { ...valid[1], emptyMarkerVisible: false }],
+      [valid[0], { ...valid[1], rowCount: 1 }],
+    ];
+    for (const evidence of invalidEvidence) expect(conclusiveNestedPageAbsenceEvidence("DRAFT-CONTRACT", "schermature", evidence)).toBe(false);
+  });
+
   it("ignora e audita una nuova sorgente senza differenze per-pratica durante il resume", () => {
     const directory = temporaryDirectory();
     const runner = new PersistentAprEneaDraftExecution(directory);
@@ -908,19 +946,72 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
       runner.recordNestedPageStaged("lorena-brendas", "DRAFT-105", pageId, `staged-screening-${index}`, `staged:screening:${index}`);
     }
     runner.recordCaseBlockedAndContinue("lorena-brendas", "Errore circoscritto alla pratica: apr_cdp_enea_field_verification_failed:id-costo", "empty-summary", "blocked:empty-summary");
-    const resumed = runner.resumeScreeningRowsAfterEmptyServerSummary("lorena-brendas", "server-empty-summary-proof", "resume:empty-summary");
+    const resumed = runner.resumeScreeningRowsAfterEmptyServerSummary("lorena-brendas", nestedAbsenceEvidence("DRAFT-105"), "resume:empty-summary");
     const recovered = resumed.items[0];
     expect(recovered).toMatchObject({ state: "filling", draftId: "DRAFT-105", createAttemptCount: 1, saveAttemptCount: 0 });
     expect(recovered.completedPageIds.some((pageId) => pageId.startsWith("screening:"))).toBe(false);
-    expect(recovered.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")).every((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 0 && checkpoint.recoveryAuthorizedEvidenceId === "server-empty-summary-proof")).toBe(true);
+    expect(recovered.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")).every((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 0 && checkpoint.recoveryAuthorizedEvidenceId === "server-empty-proof-2")).toBe(true);
     const first = recovered.pageCheckpoints.find((checkpoint) => checkpoint.pageId === "screening:1")!;
     runner.recordPagePrepared("lorena-brendas", "DRAFT-105", first.pageId, "prepared-recovery-screening-1", "prepared:recovery:screening:1");
     const recoveryIntent = runner.recordPageSaveIntent("lorena-brendas", "DRAFT-105", first.pageId, "intent:recovery:screening:1");
-    expect(recoveryIntent.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === first.pageId)).toMatchObject({ state: "save_intent_recorded", saveAttemptCount: 1, recoverySaveAttemptCount: 1, recoveryAuthorizedEvidenceId: "server-empty-summary-proof" });
+    expect(recoveryIntent.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === first.pageId)).toMatchObject({ state: "save_intent_recorded", saveAttemptCount: 1, recoverySaveAttemptCount: 1, recoveryAuthorizedEvidenceId: "server-empty-proof-2" });
     const verifiedRecovery = runner.recordScreeningRecoveryStagedFromPostSaveReadOnly("lorena-brendas", first.pageId, "server-unique-recovery-row", "verify:recovery:screening:1");
     expect(verifiedRecovery).toMatchObject({ status: "running", currentCustomerKey: "lorena-brendas" });
     expect(verifiedRecovery.items[0]).toMatchObject({ state: "filling", uncertainPageSave: { pageId: "screening:1", status: "resolved_staged" } });
     expect(verifiedRecovery.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === first.pageId)).toMatchObject({ state: "staged", saveAttemptCount: 1, recoverySaveAttemptCount: 1, stagedEvidenceId: "server-unique-recovery-row", savedEvidenceId: null });
+  });
+
+  it("recupera una sola volta righe e riepilogo dopo prova conclusiva del mancato salvataggio esterno", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare(preflightFixture());
+    runner.recordSessionReady("session-proof", "outer-recovery:session");
+    runner.recordCreateIntent("lorena-brendas", "outer-recovery:create");
+    runner.recordDraftCreated("lorena-brendas", "DRAFT-OUTER", "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/DRAFT-OUTER", "draft-proof", "outer-recovery:created");
+    const initial = runner.load().items[0];
+    const screenings = initial.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:"));
+    const summary = initial.pageCheckpoints.find((checkpoint) => !checkpoint.pageId.startsWith("screening:") && /schermatur/i.test(checkpoint.pageId))!;
+    for (const checkpoint of screenings) {
+      runner.recordPagePrepared("lorena-brendas", "DRAFT-OUTER", checkpoint.pageId, `prepared-${checkpoint.pageId}`, `outer-recovery:prepared:${checkpoint.pageId}`);
+      runner.recordPageSaveIntent("lorena-brendas", "DRAFT-OUTER", checkpoint.pageId, `outer-recovery:intent:${checkpoint.pageId}`);
+      runner.recordNestedPageStaged("lorena-brendas", "DRAFT-OUTER", checkpoint.pageId, `staged-${checkpoint.pageId}`, `outer-recovery:staged:${checkpoint.pageId}`);
+    }
+    runner.recordPagePrepared("lorena-brendas", "DRAFT-OUTER", summary.pageId, "prepared-summary", "outer-recovery:summary:prepared");
+    runner.recordPageSaveIntent("lorena-brendas", "DRAFT-OUTER", summary.pageId, "outer-recovery:summary:intent");
+    runner.recordCaseBlockedAndContinue("lorena-brendas", "Errore circoscritto alla pratica: apr_enea_nested_page_not_persisted_after_outer_save:screening:1", "outer-save-server-proof", "outer-recovery:blocked");
+
+    const resumed = runner.resumeScreeningRowsAfterEmptyServerSummary("lorena-brendas", nestedAbsenceEvidence("DRAFT-OUTER"), "outer-recovery:authorized");
+    const recovered = resumed.items[0];
+    expect(recovered).toMatchObject({ state: "filling", draftId: "DRAFT-OUTER" });
+    expect(recovered.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")).every((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 0 && checkpoint.recoveryAuthorizedEvidenceId === "server-empty-proof-2")).toBe(true);
+    expect(recovered.pageCheckpoints.find((checkpoint) => checkpoint.pageId === summary.pageId)).toMatchObject({ state: "pending", saveAttemptCount: 1, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: "server-empty-proof-2" });
+
+    const first = screenings[0].pageId;
+    runner.recordPagePrepared("lorena-brendas", "DRAFT-OUTER", first, "recovery-prepared", "outer-recovery:row:prepared");
+    const intent = runner.recordPageSaveIntent("lorena-brendas", "DRAFT-OUTER", first, "outer-recovery:row:intent");
+    expect(intent.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === first)).toMatchObject({ saveAttemptCount: 1, recoverySaveAttemptCount: 1 });
+    expect(() => runner.recordPageSaveIntent("lorena-brendas", "DRAFT-OUTER", first, "outer-recovery:row:second-intent")).toThrow();
+  });
+
+  it("mantiene OPERATOR_REQUIRED quando una delle due prove di assenza non e conclusiva", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare(preflightFixture());
+    runner.recordSessionReady("session-proof", "rejected:session");
+    runner.recordCreateIntent("lorena-brendas", "rejected:create");
+    runner.recordDraftCreated("lorena-brendas", "DRAFT-REJECTED", "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/DRAFT-REJECTED", "draft-proof", "rejected:created");
+    for (const checkpoint of runner.load().items[0].pageCheckpoints.filter((candidate) => candidate.pageId.startsWith("screening:"))) {
+      runner.recordPagePrepared("lorena-brendas", "DRAFT-REJECTED", checkpoint.pageId, `prepared-${checkpoint.pageId}`, `rejected:prepared:${checkpoint.pageId}`);
+      runner.recordPageSaveIntent("lorena-brendas", "DRAFT-REJECTED", checkpoint.pageId, `rejected:intent:${checkpoint.pageId}`);
+      runner.recordNestedPageStaged("lorena-brendas", "DRAFT-REJECTED", checkpoint.pageId, `staged-${checkpoint.pageId}`, `rejected:staged:${checkpoint.pageId}`);
+    }
+    runner.recordCaseBlockedAndContinue("lorena-brendas", "Errore circoscritto alla pratica: apr_cdp_enea_field_verification_failed:id-costo", "rejected-block", "rejected:blocked");
+    const evidence = nestedAbsenceEvidence("DRAFT-REJECTED");
+    evidence[1] = { ...evidence[1], filtersClear: false };
+    const rejected = runner.resumeScreeningRowsAfterEmptyServerSummary("lorena-brendas", evidence, "rejected:recovery");
+    expect(rejected.items[0]).toMatchObject({ state: "operator_intervention", reason: expect.stringContaining("assenza delle righe non provata") });
+    expect(rejected.items[0].pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")).every((checkpoint) => checkpoint.state === "staged" && checkpoint.recoverySaveAttemptCount === 0)).toBe(true);
+    expect(rejected.audit.at(-1)).toMatchObject({ type: "nested_page_absence_recovery_rejected" });
   });
 
   it("ripristina tutte le righe annidate quando il crash sull'ultima lascia il riepilogo server vuoto", () => {
@@ -938,12 +1029,48 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
       else runner.recordUncertainPageSaveDetected("lorena-brendas", pageId, "timeout dopo click", "timeout-last-row", "empty-nested:uncertain");
     }
 
-    const resumed = runner.resumeScreeningRowsAfterEmptyServerSummary("lorena-brendas", "canonical-zero-rows", "empty-nested:resume");
+    const resumed = runner.resumeScreeningRowsAfterEmptyServerSummary("lorena-brendas", nestedAbsenceEvidence("DRAFT-EMPTY"), "empty-nested:resume");
     const item = resumed.items[0];
     expect(resumed).toMatchObject({ status: "running", currentCustomerKey: "lorena-brendas" });
     expect(item).toMatchObject({ state: "filling", uncertainPageSave: { status: "recovery_authorized" } });
     expect(item.completedPageIds.some((pageId) => pageId.startsWith("screening:"))).toBe(false);
-    expect(item.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")).every((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 0 && checkpoint.recoveryAuthorizedEvidenceId === "canonical-zero-rows")).toBe(true);
+    expect(item.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")).every((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 0 && checkpoint.recoveryAuthorizedEvidenceId === "server-empty-proof-2")).toBe(true);
+  });
+
+  it("riconosce e recupera lo stato storico misto saved, incerto e mai tentato senza falsare i contatori", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare(preflightFixture());
+    runner.recordSessionReady("session-proof", "mixed-history:session");
+    runner.recordCreateIntent("lorena-brendas", "mixed-history:create");
+    runner.recordDraftCreated("lorena-brendas", "DRAFT-MIXED", "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/DRAFT-MIXED", "draft-proof", "mixed-history:created");
+    const screeningIds = runner.load().items[0].expectedPageIds.filter((pageId) => pageId.startsWith("screening:"));
+    const state = runner.load();
+    const item = state.items[0];
+    const first = item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === screeningIds[0])!;
+    Object.assign(first, { state: "saved", saveAttemptCount: 1, savedEvidenceId: "legacy-false-saved-proof" });
+    const second = item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === screeningIds[1])!;
+    Object.assign(second, { state: "save_intent_recorded", saveAttemptCount: 1 });
+    item.state = "operator_intervention";
+    item.reason = "Richiesto intervento operatore sulla pagina screening:2: Tre prove read-only completate senza esito conclusivo.";
+    item.uncertainPageSave = {
+      pageId: screeningIds[1], status: "operator_required", detectedAt: new Date().toISOString(), detectedEvidenceId: "legacy-timeout",
+      probes: [], operatorDecision: null, reason: "Tre prove read-only completate senza esito conclusivo.", nextAction: "Verificare senza Salva.",
+    };
+    state.currentCustomerKey = null;
+    state.status = "completed";
+    writeFileSync(runner.checkpointPath, `${JSON.stringify(state, null, 2)}\n`, "utf8");
+
+    expect(nestedPageAbsenceRecoveryCandidate(runner.load().items[0])).toBe(true);
+    const resumed = runner.resumeScreeningRowsAfterEmptyServerSummary("lorena-brendas", nestedAbsenceEvidence("DRAFT-MIXED"), "mixed-history:resume");
+    const recoveredRows = resumed.items[0].pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:"));
+    expect(recoveredRows[0]).toMatchObject({ state: "pending", saveAttemptCount: 1, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: "server-empty-proof-2", savedEvidenceId: null });
+    expect(recoveredRows[1]).toMatchObject({ state: "pending", saveAttemptCount: 1, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: "server-empty-proof-2" });
+    expect(recoveredRows[2]).toMatchObject({ state: "pending", saveAttemptCount: 0, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: null });
+    const exhausted = structuredClone(resumed.items[0]);
+    exhausted.state = "operator_intervention";
+    exhausted.pageCheckpoints[0].recoverySaveAttemptCount = 1;
+    expect(nestedPageAbsenceRecoveryCandidate(exhausted)).toBe(false);
   });
 
   it("riprende il ripristino 1:1 dopo un timeout transitorio senza duplicare le righe gia verificate", () => {
@@ -960,7 +1087,7 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
       runner.recordNestedPageStaged("lorena-brendas", "DRAFT-RESTAGE", pageId, `staged-${index}`, `restage-timeout:staged:${index}`);
     }
     runner.recordCaseBlockedAndContinue("lorena-brendas", "Errore circoscritto alla pratica: apr_cdp_enea_field_verification_failed:id-costo", "empty-summary", "restage-timeout:blocked");
-    runner.resumeScreeningRowsAfterEmptyServerSummary("lorena-brendas", "canonical-zero-rows", "restage-timeout:authorize");
+    runner.resumeScreeningRowsAfterEmptyServerSummary("lorena-brendas", nestedAbsenceEvidence("DRAFT-RESTAGE"), "restage-timeout:authorize");
 
     const state = runner.load();
     const item = state.items[0];
@@ -992,7 +1119,7 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     expect(resumed).toMatchObject({ status: "running", currentCustomerKey: "lorena-brendas" });
     expect(recovered).toMatchObject({ state: "filling", draftId: "DRAFT-RESTAGE" });
     expect(recovered.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")).slice(0, 2).every((checkpoint) => checkpoint.state === "staged" && checkpoint.recoverySaveAttemptCount === 1)).toBe(true);
-    expect(recovered.pageCheckpoints.find((checkpoint) => checkpoint.pageId === screening[2].pageId)).toMatchObject({ state: "pending", saveAttemptCount: 1, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: "canonical-zero-rows" });
+    expect(recovered.pageCheckpoints.find((checkpoint) => checkpoint.pageId === screening[2].pageId)).toMatchObject({ state: "pending", saveAttemptCount: 1, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: "server-empty-proof-2" });
     expect(runner.resumeAuthorizedScreeningRestageAfterTransientTimeout("lorena-brendas", "canonical-zero-rows", "restage-timeout:resume").revision).toBe(resumed.revision);
   });
 

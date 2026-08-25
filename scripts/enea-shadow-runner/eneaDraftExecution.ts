@@ -77,6 +77,42 @@ export interface AprUncertainPageSaveProbe {
   url?: string;
 }
 
+export interface AprNestedPageAbsenceEvidence {
+  evidenceId: string;
+  observedAt: string;
+  url: string;
+  allowlistedOrigin: boolean;
+  authenticated: boolean;
+  expectedHeadersPresent: boolean;
+  filtersClear: boolean;
+  loading: boolean;
+  surfaceReady: boolean;
+  emptyMarkerVisible: boolean;
+  rowCount: number;
+}
+
+export function conclusiveNestedPageAbsenceEvidence(
+  draftId: string,
+  outerRoute: "schermature" | "serramenti",
+  evidence: readonly AprNestedPageAbsenceEvidence[],
+) {
+  if (evidence.length !== 2 || evidence[0].evidenceId === evidence[1].evidenceId) return false;
+  const expectedPath = `/pratica/ecobonus/2026/${outerRoute}/${draftId}`;
+  return evidence.every((proof) => {
+    let pathName = "";
+    try { pathName = new URL(proof.url).pathname; } catch { return false; }
+    return pathName === expectedPath
+      && proof.allowlistedOrigin
+      && proof.authenticated
+      && proof.expectedHeadersPresent
+      && proof.filtersClear
+      && !proof.loading
+      && proof.surfaceReady
+      && proof.emptyMarkerVisible
+      && proof.rowCount === 0;
+  });
+}
+
 export interface AprUncertainPageSaveResolution {
   pageId: string;
   status: "probing" | "operator_required" | "recovery_authorized" | "resolved_staged" | "resolved_saved";
@@ -142,6 +178,28 @@ export interface AprEneaDraftExecutionItem {
   nextAction: string;
 }
 
+export function nestedPageAbsenceRecoveryCandidate(item: AprEneaDraftExecutionItem) {
+  if (item.state !== "operator_intervention" || !item.draftId || item.createAttemptCount !== 1 || item.saveAttemptCount !== 0) return false;
+  const screenings = item.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:"));
+  if (screenings.length < 1 || screenings.some((checkpoint) => checkpoint.recoverySaveAttemptCount !== 0)) return false;
+  const uncertainScreening = item.uncertainPageSave?.pageId.startsWith("screening:") ? item.uncertainPageSave.pageId : null;
+  const screeningStatesValid = screenings.every((checkpoint) => {
+    if (checkpoint.state === "pending") return checkpoint.saveAttemptCount === 0;
+    if (checkpoint.state === "staged") return checkpoint.saveAttemptCount === 1 && Boolean(checkpoint.stagedEvidenceId);
+    if (checkpoint.state === "saved") return checkpoint.saveAttemptCount === 1 && Boolean(checkpoint.savedEvidenceId);
+    return checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1 && checkpoint.pageId === uncertainScreening;
+  });
+  if (!screeningStatesValid || !screenings.some((checkpoint) => checkpoint.saveAttemptCount === 1)) return false;
+  const summary = item.pageCheckpoints.find((checkpoint) => !checkpoint.pageId.startsWith("screening:")
+    && /schermatur|infiss/.test(checkpoint.pageId.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("it")));
+  const summaryStateValid = (summary?.state === "pending" && summary.saveAttemptCount === 0)
+    || (summary?.state === "save_intent_recorded" && summary.saveAttemptCount === 1 && summary.recoverySaveAttemptCount === 0);
+  return Boolean(summaryStateValid
+    && (/apr_cdp_enea_field_verification_failed:id-costo$/.test(item.reason)
+      || uncertainScreening
+      || /apr_enea_nested_page_not_persisted_after_outer_save:screening:\d+$/.test(item.reason)));
+}
+
 export interface AprEneaDraftSupersededGeneration {
   generationId: string;
   customerKey: string;
@@ -170,6 +228,8 @@ export interface AprEneaDraftExecutionAuditEvent {
     | "page_save_intent_recorded"
     | "nested_page_staged"
     | "nested_page_server_verified_after_outer_save"
+    | "nested_page_absence_recovery_authorized"
+    | "nested_page_absence_recovery_rejected"
     | "page_saved"
     | "save_intent_recorded"
     | "draft_saved"
@@ -1125,7 +1185,9 @@ export class PersistentAprEneaDraftExecution {
         && checkpoint.recoverySaveAttemptCount === 0
         && Boolean(checkpoint.recoveryAuthorizedEvidenceId)
         && ((item.uncertainPageSave?.pageId === pageId && item.uncertainPageSave.status === "recovery_authorized")
-          || (pageId.startsWith("screening:") && item.serverEvidenceIds.includes(checkpoint.recoveryAuthorizedEvidenceId!)));
+          || (pageId.startsWith("screening:") && item.serverEvidenceIds.includes(checkpoint.recoveryAuthorizedEvidenceId!))
+          || (item.serverEvidenceIds.includes(checkpoint.recoveryAuthorizedEvidenceId!)
+            && item.pageCheckpoints.some((candidate) => candidate.state === "staged" && outerPageForNestedCheckpoint(item.expectedPageIds, candidate.pageId) === pageId)));
       if (!firstAttempt && !authorizedRecovery) throw new Error("enea_draft_page_save_intent_invalid");
       checkpoint.state = "save_intent_recorded";
       if (firstAttempt) checkpoint.saveAttemptCount = 1;
@@ -3225,13 +3287,21 @@ export class PersistentAprEneaDraftExecution {
     });
   }
 
-  resumeScreeningRowsAfterEmptyServerSummary(customerKey: string, evidenceId: string, commandId: string, now = new Date()) {
-    if (!customerKey.trim() || !evidenceId.trim()) throw new Error("enea_screening_empty_summary_recovery_evidence_invalid");
+  resumeScreeningRowsAfterEmptyServerSummary(customerKey: string, evidence: readonly AprNestedPageAbsenceEvidence[], commandId: string, now = new Date()) {
+    if (!customerKey.trim() || !commandId.trim() || evidence.some((proof) => !proof.evidenceId.trim())) throw new Error("enea_screening_empty_summary_recovery_evidence_invalid");
+    const currentItem = this.load().items.find((candidate) => candidate.customerKey === customerKey);
+    const currentSummary = currentItem?.pageCheckpoints.find((checkpoint) => !checkpoint.pageId.startsWith("screening:") && /schermatur|infiss/.test(checkpoint.pageId.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("it")));
+    const outerRoute = currentSummary && /infiss/.test(currentSummary.pageId.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("it")) ? "serramenti" : "schermature";
+    const conclusive = Boolean(currentItem?.draftId && conclusiveNestedPageAbsenceEvidence(currentItem.draftId, outerRoute, evidence));
     return this.transition("apr-enea-browser-worker", commandId, now, {
-      type: "created_draft_requeued_screening_navigation",
+      type: conclusive ? "nested_page_absence_recovery_authorized" : "nested_page_absence_recovery_rejected",
       customerKey,
-      reason: "Riepilogo tecnico riletto lato server: nessuna riga persistita; autorizzato un solo ripristino 1:1 sulla stessa bozza.",
-      nextAction: "Reinserire una sola volta le righe assenti, poi salvare il riepilogo esterno e verificarlo lato server.",
+      reason: conclusive
+        ? "Due GET canoniche indipendenti e concordanti provano autenticazione, route, intestazioni, filtri assenti e zero righe persistite; autorizzato un solo ripristino 1:1."
+        : "Le due letture read-only non soddisfano integralmente il contratto di assenza; nessun recupero automatico autorizzato.",
+      nextAction: conclusive
+        ? "Reinserire una sola volta le righe assenti, poi salvare il riepilogo esterno e verificarlo lato server."
+        : "Richiesto intervento operatore; verificare route, autenticazione, intestazioni, filtri e tabella senza emettere Salva.",
       appliedRuleIds: [SYSTEM_FAIL_CLOSED_RULE, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality],
     }, (next) => {
       if (next.currentCustomerKey) throw new Error("enea_screening_empty_summary_recovery_active_case_present");
@@ -3239,26 +3309,49 @@ export class PersistentAprEneaDraftExecution {
       const screenings = item?.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")) ?? [];
       const summary = item?.pageCheckpoints.find((checkpoint) => !checkpoint.pageId.startsWith("screening:") && /schermatur|infiss/.test(checkpoint.pageId.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("it")));
       const uncertainScreening = item?.uncertainPageSave?.pageId.startsWith("screening:") ? item.uncertainPageSave.pageId : null;
-      const screeningsValid = screenings.every((checkpoint) => checkpoint.saveAttemptCount === 1
-        && checkpoint.recoverySaveAttemptCount === 0
-        && ((checkpoint.state === "staged" && Boolean(checkpoint.stagedEvidenceId)) || (checkpoint.pageId === uncertainScreening && checkpoint.state === "save_intent_recorded")));
-      if (!item || item.state !== "operator_intervention" || !item.draftId || item.createAttemptCount !== 1 || item.saveAttemptCount !== 0 || screenings.length < 1 || !screeningsValid || !summary || summary.state !== "pending" || summary.saveAttemptCount !== 0 || (!/apr_cdp_enea_field_verification_failed:id-costo$/.test(item.reason) && !uncertainScreening)) throw new Error(`enea_screening_empty_summary_recovery_case_invalid:${customerKey}`);
-      if (!item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
+      const screeningsValid = screenings.every((checkpoint) => checkpoint.recoverySaveAttemptCount === 0
+        && ((checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0)
+          || (checkpoint.state === "staged" && checkpoint.saveAttemptCount === 1 && Boolean(checkpoint.stagedEvidenceId))
+          || (checkpoint.state === "saved" && checkpoint.saveAttemptCount === 1 && Boolean(checkpoint.savedEvidenceId))
+          || (checkpoint.pageId === uncertainScreening && checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1)))
+        && screenings.some((checkpoint) => checkpoint.saveAttemptCount === 1);
+      const legacyBeforeOuterSave = summary?.state === "pending" && summary.saveAttemptCount === 0;
+      const failedAfterOuterSave = summary?.state === "save_intent_recorded" && summary.saveAttemptCount === 1 && summary.recoverySaveAttemptCount === 0
+        && /apr_enea_nested_page_not_persisted_after_outer_save:screening:\d+/.test(item?.reason ?? "");
+      if (!item || item.state !== "operator_intervention" || !item.draftId || item.createAttemptCount !== 1 || item.saveAttemptCount !== 0 || screenings.length < 1 || !screeningsValid || !summary || (!legacyBeforeOuterSave && !failedAfterOuterSave) || (!/apr_cdp_enea_field_verification_failed:id-costo$/.test(item.reason) && !uncertainScreening && !failedAfterOuterSave)) throw new Error(`enea_screening_empty_summary_recovery_case_invalid:${customerKey}`);
+      for (const proof of evidence) if (!item.serverEvidenceIds.includes(proof.evidenceId.trim())) item.serverEvidenceIds.push(proof.evidenceId.trim());
+      if (!conclusive) {
+        item.reason = "Richiesto intervento operatore: assenza delle righe non provata da due letture canoniche concordanti.";
+        item.nextAction = "Verificare sulla stessa bozza route, autenticazione, intestazioni, filtri e tabella; nessun Salva automatico consentito.";
+        next.currentCustomerKey = null;
+        next.status = next.items.every((candidate) => ["saved", "operator_intervention", "deferred_operator"].includes(candidate.state)) ? "completed" : "ready";
+        return;
+      }
+      const recoveryEvidenceId = evidence[1].evidenceId.trim();
       for (const checkpoint of screenings) {
+        const previouslyAttempted = checkpoint.saveAttemptCount === 1;
         checkpoint.state = "pending";
-        checkpoint.recoveryAuthorizedEvidenceId = evidenceId.trim();
+        checkpoint.recoveryAuthorizedEvidenceId = previouslyAttempted ? recoveryEvidenceId : null;
         checkpoint.preparedEvidenceId = null;
         checkpoint.stagedEvidenceId = null;
         checkpoint.savedEvidenceId = null;
       }
+      if (failedAfterOuterSave) {
+        summary.state = "pending";
+        summary.recoveryAuthorizedEvidenceId = recoveryEvidenceId;
+        summary.preparedEvidenceId = null;
+        summary.stagedEvidenceId = null;
+        summary.savedEvidenceId = null;
+        item.completedPageIds = item.completedPageIds.filter((pageId) => pageId !== summary.pageId);
+      }
       item.completedPageIds = item.completedPageIds.filter((pageId) => !pageId.startsWith("screening:"));
       if (item.uncertainPageSave) {
         item.uncertainPageSave.status = "recovery_authorized";
-        item.uncertainPageSave.reason = "GET canonica del riepilogo tecnico mostra zero righe: autorizzato un solo ripristino 1:1 dello staging perso.";
+        item.uncertainPageSave.reason = "Due GET canoniche concordanti del riepilogo tecnico mostrano zero righe: autorizzato un solo ripristino 1:1 dello staging perso.";
         item.uncertainPageSave.nextAction = "Ripristinare tutte le righe una sola volta e salvarle con il riepilogo esterno.";
       }
       item.state = "filling";
-      item.reason = "Stessa bozza riattivata dopo prova server che nessuna riga tecnica era persistita; i precedenti click restano auditati come staging perso.";
+      item.reason = "Stessa bozza riattivata dopo due prove server concordanti che nessuna riga tecnica era persistita; i precedenti click restano auditati come staging perso.";
       item.nextAction = "Ripristinare le righe 1:1 assenti con un solo tentativo di recupero, senza creare una nuova bozza.";
       next.currentCustomerKey = customerKey;
       next.status = "running";

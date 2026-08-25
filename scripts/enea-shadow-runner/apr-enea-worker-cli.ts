@@ -6,7 +6,7 @@ import { PersistentAprChromeRuntime } from "./cdpClient";
 import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
 import { PersistentAprCrmLocalPreflight } from "./crmLocalPreflight";
 import { PersistentAprCohortSeed } from "./aprCohortSeed";
-import { PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible } from "./eneaDraftExecution";
+import { nestedPageAbsenceRecoveryCandidate, PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible, type AprNestedPageAbsenceEvidence } from "./eneaDraftExecution";
 import { aprEneaKeepaliveInterval, isAprEneaKeepaliveDue, PersistentAprEneaWorkerService, shouldHoldAprEneaKeepaliveState } from "./aprEneaBrowserWorkerService";
 import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import { nestedUncertainPageSaveProbeAllowed } from "./infissiUncertainSavePolicy";
@@ -502,14 +502,7 @@ async function serve() {
           && item.pageCheckpoints.some((checkpoint) => checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 0 && !checkpoint.savedEvidenceId)
           && /apr_cdp_enea_unique_enabled_save_button_not_found:/.test(item.reason));
         const screeningOrderRecovery = executionBeforeTick.items.find((item) => item.state === "operator_intervention" && Boolean(item.draftId) && item.createAttemptCount === 1 && item.saveAttemptCount === 0 && item.completedPageIds.length > 0 && item.pageCheckpoints.some((checkpoint) => checkpoint.pageId.startsWith("screening:") && checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0) && /apr_cdp_enea_field_verification_failed:id-costo$/.test(item.reason));
-        const screeningSummaryPersistenceDiagnostic = executionBeforeTick.items.find((item) => item.state === "operator_intervention"
-          && Boolean(item.draftId)
-          && item.createAttemptCount === 1
-          && item.saveAttemptCount === 0
-          && item.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")).length > 0
-          && item.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")).every((checkpoint) => checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 0 && (checkpoint.state === "staged" || (checkpoint.state === "save_intent_recorded" && item.uncertainPageSave?.pageId === checkpoint.pageId)))
-          && item.pageCheckpoints.some((checkpoint) => !checkpoint.pageId.startsWith("screening:") && /schermatur|infiss/.test(checkpoint.pageId.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("it")) && checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0)
-          && (/apr_cdp_enea_field_verification_failed:id-costo$/.test(item.reason) || Boolean(item.uncertainPageSave?.pageId.startsWith("screening:"))));
+        const screeningSummaryPersistenceDiagnostic = executionBeforeTick.items.find(nestedPageAbsenceRecoveryCandidate);
         const screeningNavigationRecovery = executionBeforeTick.items.find((item) => item.state === "operator_intervention" && Boolean(item.draftId) && item.createAttemptCount === 1 && item.saveAttemptCount === 0 && item.completedPageIds.length > 0 && item.pageCheckpoints.some((checkpoint) => checkpoint.pageId.startsWith("screening:") && checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0) && /apr_cdp_enea_(?:page_navigation_not_found|screening_activation_failed|screening_add_not_unique|screening_markers_missing):screening:1/.test(item.reason));
         const screeningSaveTimeoutDiagnostic = executionBeforeTick.items.find((item) => item.state === "operator_intervention" && Boolean(item.draftId) && item.createAttemptCount === 1 && item.saveAttemptCount === 0 && item.pageCheckpoints.some((checkpoint) => checkpoint.pageId.startsWith("screening:") && checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1) && /apr_cdp_command_timeout:Runtime\.evaluate/.test(item.reason));
         const screeningPostSaveVerification = executionBeforeTick.items.find((item) => item.state === "operator_intervention" && Boolean(item.draftId) && item.createAttemptCount === 1 && item.saveAttemptCount === 0 && item.pageCheckpoints.some((checkpoint) => checkpoint.pageId.startsWith("screening:") && checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1) && /(?:Esito salvataggio pagina screening:|Esito tecnico incerto dopo il Salva di screening:)/.test(item.reason));
@@ -948,8 +941,14 @@ async function serve() {
         const screeningSummaryDiagnostic = driverBeforeTick.pagePreparationDiagnostic as { kind?: string; customerKey?: string; draftId?: string; pageId?: string } | null;
         const screeningPostSaveDiagnostic = driverBeforeTick.pagePreparationDiagnostic as { kind?: string; customerKey?: string; draftId?: string; pageId?: string; evidenceId?: string; rowCount?: number; rows?: string[][]; modalOpen?: boolean } | null;
         const screeningSummaryObserved = screeningSaveTimeoutDiagnostic ? driverBeforeTick.events.some((event) => event.action === "inspect_screening_summary_readonly" && event.customerKey === screeningSaveTimeoutDiagnostic.customerKey && event.draftId === screeningSaveTimeoutDiagnostic.draftId) : false;
-        const screeningPersistenceObserved = screeningSummaryPersistenceDiagnostic ? driverBeforeTick.events.some((event) => event.action === "inspect_screening_summary_readonly" && event.customerKey === screeningSummaryPersistenceDiagnostic.customerKey && event.draftId === screeningSummaryPersistenceDiagnostic.draftId) : false;
-        const screeningPersistenceSurface = driverBeforeTick.pagePreparationDiagnostic as { kind?: string; customerKey?: string; draftId?: string; evidenceId?: string; rows?: string[][]; loading?: boolean; surfaceReady?: boolean } | null;
+        type PersistedScreeningAbsenceDiagnostic = AprNestedPageAbsenceEvidence & { kind?: string; customerKey?: string; draftId?: string };
+        const screeningPersistenceProofs = screeningSummaryPersistenceDiagnostic
+          ? ((driverBeforeTick.pageSaveDiagnostics ?? []) as PersistedScreeningAbsenceDiagnostic[])
+            .filter((diagnostic) => diagnostic.kind === "screening-summary-readonly-v4"
+              && diagnostic.customerKey === screeningSummaryPersistenceDiagnostic.customerKey
+              && diagnostic.draftId === screeningSummaryPersistenceDiagnostic.draftId)
+            .slice(-2)
+          : [];
         const generatorSummaryObserved = generatorActivationDiagnostic ? driverBeforeTick.events.some((event) => event.action === "inspect_generator_summary_readonly" && event.customerKey === generatorActivationDiagnostic.customerKey && event.draftId === generatorActivationDiagnostic.draftId) : false;
         const generatorActivationObserved = generatorActivationDiagnostic ? driverBeforeTick.events.some((event) => event.action === "inspect_generator_activation_surface_readonly_v2" && event.customerKey === generatorActivationDiagnostic.customerKey && event.draftId === generatorActivationDiagnostic.draftId) : false;
         const generatorSummarySurface = driverBeforeTick.pagePreparationDiagnostic as { kind?: string; customerKey?: string; draftId?: string; pageId?: string; evidenceId?: string; expectedActivationLabel?: string; rowDetails?: Array<{ cells: string[]; actions: Array<{ label: string; title: string; disabled: boolean }> }> } | null;
@@ -1219,25 +1218,21 @@ async function serve() {
             service.record({ instanceId, processPid: process.pid, status: "running", type: "screening_react_contract_requeued_preclick", reason: `${screeningReactPreclickRecovery.displayName}: journal verificato, nessun click Salva emesso su ${page.pageId}; riallineamento React e ripresa della stessa bozza.`, nextAction: "APR riprepara esclusivamente la riga interrotta; righe già salvate e ID bozza restano invariati.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: preparedEvent.evidenceId });
           }
         }
-        if (executionBeforeTick.status === "completed" && screeningSummaryPersistenceDiagnostic && !screeningPersistenceObserved) {
+        if (executionBeforeTick.status === "completed" && screeningSummaryPersistenceDiagnostic && screeningPersistenceProofs.length < 2) {
           const firstScreeningPage = screeningSummaryPersistenceDiagnostic.pageCheckpoints.find((checkpoint) => checkpoint.pageId.startsWith("screening:"))!;
           const diagnostic = await driver.inspectScreeningSummaryReadOnly(draftPackageFor(screeningSummaryPersistenceDiagnostic.customerKey) as unknown as AprEneaDraftPackage, screeningSummaryPersistenceDiagnostic.draftId!, firstScreeningPage.pageId);
-          service.record({ instanceId, processPid: process.pid, status: "technical_block", type: "screening_persistence_inspected_readonly", reason: `${screeningSummaryPersistenceDiagnostic.displayName}: riepilogo server riletto dopo la navigazione interrotta; righe=${diagnostic.rows.length}, caricamento=${diagnostic.loading}, superficie=${diagnostic.surfaceReady}; nessun campo modificato e nessun Salva.`, nextAction: diagnostic.rows.length === 0 && !diagnostic.loading && diagnostic.surfaceReady ? "Le righe non risultano persistite lato server: autorizzare nel software un solo ripristino idempotente delle righe sulla stessa bozza." : "Confrontare le righe server esistenti prima di qualunque recupero; vietato duplicarle.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: diagnostic.evidenceId });
+          service.record({ instanceId, processPid: process.pid, status: "technical_block", type: "screening_persistence_inspected_readonly", reason: `${screeningSummaryPersistenceDiagnostic.displayName}: lettura server indipendente ${screeningPersistenceProofs.length + 1}/2; righe=${diagnostic.rowCount}, caricamento=${diagnostic.loading}, superficie=${diagnostic.surfaceReady}, autenticata=${diagnostic.authenticated}; nessun campo modificato e nessun Salva.`, nextAction: "APR esegue una seconda lettura indipendente prima di autorizzare qualunque recupero.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: diagnostic.evidenceId });
         }
         if (executionBeforeTick.status === "completed"
           && screeningSummaryPersistenceDiagnostic
-          && screeningPersistenceSurface?.kind === "screening-summary-readonly-v3"
-          && screeningPersistenceSurface.customerKey === screeningSummaryPersistenceDiagnostic.customerKey
-          && screeningPersistenceSurface.draftId === screeningSummaryPersistenceDiagnostic.draftId
-          && screeningPersistenceSurface.loading === false
-          && screeningPersistenceSurface.surfaceReady === true
-          && (screeningPersistenceSurface.rows ?? []).every((row) => row.length === 0 || (row.length === 1 && /nessun elemento/i.test(row[0] ?? "")))
-          && screeningPersistenceSurface.evidenceId) {
-          const commandId = `service:auto-recover-empty-screening-summary:${screeningSummaryPersistenceDiagnostic.customerKey}:${screeningSummaryPersistenceDiagnostic.draftId}:${screeningPersistenceSurface.evidenceId}:v1`;
+          && screeningPersistenceProofs.length === 2) {
+          const proofIds = screeningPersistenceProofs.map((proof) => proof.evidenceId).join(":");
+          const commandId = `service:auto-recover-empty-screening-summary:${screeningSummaryPersistenceDiagnostic.customerKey}:${screeningSummaryPersistenceDiagnostic.draftId}:${proofIds}:v2`;
           if (!executionBeforeTick.processedCommandIds.includes(commandId)) {
-            execution.resumeScreeningRowsAfterEmptyServerSummary(screeningSummaryPersistenceDiagnostic.customerKey, screeningPersistenceSurface.evidenceId, commandId);
+            execution.resumeScreeningRowsAfterEmptyServerSummary(screeningSummaryPersistenceDiagnostic.customerKey, screeningPersistenceProofs, commandId);
             executionBeforeTick = execution.snapshot();
-            service.record({ instanceId, processPid: process.pid, status: "running", type: "screening_empty_summary_auto_recovered", reason: `${screeningSummaryPersistenceDiagnostic.displayName}: il server mostra Nessun elemento; autorizzato un solo ripristino delle righe 1:1 sulla stessa bozza.`, nextAction: "APR reinserisce esclusivamente le righe assenti e salva il riepilogo una sola volta; nessuna duplicazione possibile sulla prova server vuota.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: screeningPersistenceSurface.evidenceId });
+            const recovered = executionBeforeTick.items.find((item) => item.customerKey === screeningSummaryPersistenceDiagnostic.customerKey)?.state === "filling";
+            service.record({ instanceId, processPid: process.pid, status: recovered ? "running" : "technical_block", type: recovered ? "screening_empty_summary_auto_recovered" : "screening_empty_summary_recovery_rejected", reason: recovered ? `${screeningSummaryPersistenceDiagnostic.displayName}: due letture server indipendenti e concordanti provano zero righe persistite; autorizzato un solo ripristino 1:1 sulla stessa bozza.` : `${screeningSummaryPersistenceDiagnostic.displayName}: le due letture non soddisfano il contratto rigoroso; recupero automatico vietato.`, nextAction: recovered ? "APR reinserisce esclusivamente le righe assenti e salva il riepilogo una sola volta; nessuna duplicazione possibile." : "Richiesto intervento operatore: nessun nuovo Salva automatico è autorizzato.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: screeningPersistenceProofs[1].evidenceId });
           }
         }
         if (executionBeforeTick.status === "completed" && screeningPostSaveVerification && screeningPostSaveDiagnostic?.kind === "screening-post-save-readonly-v1" && screeningPostSaveDiagnostic.customerKey === screeningPostSaveVerification.customerKey && screeningPostSaveDiagnostic.draftId === screeningPostSaveVerification.draftId && (screeningPostSaveDiagnostic.rowCount ?? 0) > 0 && screeningPostSaveDiagnostic.modalOpen === false) {

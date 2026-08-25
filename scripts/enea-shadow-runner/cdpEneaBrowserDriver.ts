@@ -1752,6 +1752,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
 
   async inspectScreeningSummaryReadOnly(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string) {
     if (!pageId.startsWith("screening:") || !this.stepFor(draftPackage, pageId)) throw new Error(`apr_cdp_enea_screening_diagnostic_not_allowlisted:${pageId}`);
+    const session = await this.verifySession();
     const { target, client } = await this.client();
     const hostUrl = `${this.allowedOrigin}/pratica/ecobonus/2026/${draftPackage.module === "infissi" ? "serramenti" : "schermature"}/${draftId}`;
     // A previous long Runtime.evaluate can leave the tab on the expected URL
@@ -1760,7 +1761,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     // This never reopens the modal and never emits Save/preview/submit.
     await client.navigate(hostUrl);
     await this.waitForStable(client);
-    const readSummary = () => client.evaluate<{ url: string; headers: string[]; rows: string[][]; costValue: string; bodyText: string; loading: boolean; surfaceReady: boolean }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const bodyText=clean(document.body?.innerText).slice(-5000);const actionLabels=[...document.querySelectorAll("button,input[type='button'],input[type='submit']")].map(node=>clean(node.textContent||node.value).toLocaleLowerCase("it"));return {url:location.href,headers:[...document.querySelectorAll("th")].map(cell=>clean(cell.textContent)),rows:[...document.querySelectorAll("tr")].map(row=>[...row.querySelectorAll("td")].map(cell=>clean(cell.textContent))).filter(cells=>cells.length>0),costValue:String(document.getElementById("id-costo")?.value??""),bodyText,loading:/caricamento(?:\\.\\.\\.)?/i.test(bodyText),surfaceReady:Boolean(document.querySelector("table,form"))||actionLabels.some(label=>label==="aggiungi"||label==="salva")}})()`);
+    const readSummary = () => client.evaluate<{ url: string; headers: string[]; rows: string[][]; costValue: string; bodyText: string; loading: boolean; surfaceReady: boolean; filters: Array<{ label: string; value: string }> }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const bodyText=clean(document.body?.innerText).slice(-5000);const actionLabels=[...document.querySelectorAll("button,input[type='button'],input[type='submit']")].map(node=>clean(node.textContent||node.value).toLocaleLowerCase("it"));const filterNodes=[...new Set([...document.querySelectorAll('input[type="search"],.dataTables_filter input,[aria-label*="cerca" i],[aria-label*="search" i]')])];return {url:location.href,headers:[...document.querySelectorAll("th")].map(cell=>clean(cell.textContent)),rows:[...document.querySelectorAll("tr")].map(row=>[...row.querySelectorAll("td")].map(cell=>clean(cell.textContent))).filter(cells=>cells.length>0),costValue:String(document.getElementById("id-costo")?.value??""),bodyText,loading:/caricamento(?:\\.\\.\\.)?/i.test(bodyText),surfaceReady:Boolean(document.querySelector("table,form"))||actionLabels.some(label=>label==="aggiungi"||label==="salva"),filters:filterNodes.map(node=>({label:clean(node.getAttribute("aria-label")||node.name||node.id),value:String(node.value??"")}))}})()`);
     let summary = await readSummary();
     // Poll from Node with short, independent Runtime.evaluate calls.  A single
     // long async expression previously collided with the CDP command timeout
@@ -1770,8 +1771,29 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       summary = await readSummary();
     }
     const evidence = await this.capture("inspect_screening_summary_readonly", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
-    const state = this.load(); state.revision += 1; state.pagePreparationDiagnostic = { kind: "screening-summary-readonly-v3", observedAt: new Date().toISOString(), customerKey: draftPackage.customerKey, draftId, pageId, evidenceId: evidence.evidenceId, ...summary }; this.write(state);
-    return state.pagePreparationDiagnostic as typeof summary & { kind: string; observedAt: string; customerKey: string; draftId: string; pageId: string; evidenceId: string };
+    const normalizedHeaders = summary.headers.map((header) => header.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("it"));
+    const expectedHeadersPresent = draftPackage.module === "infissi"
+      ? normalizedHeaders.some((header) => /infiss|trasmitt|superficie|chiusur/.test(header))
+      : normalizedHeaders.some((header) => /tipo|schermatur/.test(header)) && normalizedHeaders.some((header) => /superficie|gtot|esposizion/.test(header));
+    const substantiveRows = summary.rows.filter((row) => !(row.length === 1 && /nessun elemento/i.test(row[0] ?? "")));
+    const durableDiagnostic = {
+      kind: "screening-summary-readonly-v4",
+      observedAt: new Date().toISOString(),
+      customerKey: draftPackage.customerKey,
+      draftId,
+      pageId,
+      evidenceId: evidence.evidenceId,
+      ...summary,
+      allowlistedOrigin: (() => { try { return new URL(summary.url).origin === this.allowedOrigin; } catch { return false; } })(),
+      authenticated: session.authenticated && !session.serverLogoutProven,
+      sessionEvidenceId: session.evidenceId,
+      expectedHeadersPresent,
+      filtersClear: summary.filters.every((filter) => filter.value.trim() === ""),
+      emptyMarkerVisible: /nessun elemento/i.test(summary.bodyText) || summary.rows.some((row) => row.length === 1 && /nessun elemento/i.test(row[0] ?? "")),
+      rowCount: substantiveRows.length,
+    };
+    const state = this.load(); state.revision += 1; state.pagePreparationDiagnostic = durableDiagnostic; state.pageSaveDiagnostics = [...state.pageSaveDiagnostics, durableDiagnostic].slice(-200); this.write(state);
+    return state.pagePreparationDiagnostic as typeof durableDiagnostic;
   }
 
   async inspectInfissiRowFailureSurfaceReadOnly(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string) {

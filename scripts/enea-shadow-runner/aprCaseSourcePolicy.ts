@@ -59,6 +59,7 @@ export function resolveAprCaseSourcePolicy(input: {
     if (input.productStatus === "PASS" && input.executionPresent) policy.execution = "required";
     if (input.productStatus === "PASS" && input.serverVerificationPresent) policy.server_verification = "required";
   } else if (effectiveCommonStatus === "BLOCKED") {
+    if (input.productStatus === "BLOCKED") policy.product_gate = "required";
     policy.deep_review = "required";
   }
   return { policy, effectiveCommonStatus, ignoredCommonBlockerCodes };

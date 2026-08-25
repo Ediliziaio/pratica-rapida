@@ -1,6 +1,6 @@
 import type { AprNormalizedObservationStatus, AprPublicCaseStatus } from "./aprMonotonicArtifacts";
 
-export const APR_CASE_TRANSITION_MATRIX_VERSION = "apr-case-transition-matrix-v1" as const;
+export const APR_CASE_TRANSITION_MATRIX_VERSION = "apr-case-transition-matrix-v2" as const;
 
 export type AprTransitionToken = AprNormalizedObservationStatus
   | "BLOCKED:BUSINESS"
@@ -79,6 +79,16 @@ export const APR_CASE_TRANSITION_MATRIX: readonly AprCaseTransitionPattern[] = O
     serverVerification: "NOT_APPLICABLE",
     publicStatus: "TECHNICAL_BLOCK",
     reason: "Il gate prodotto ha rilevato un blocker classificato dalla deep review come riparazione tecnica.",
+  },
+  {
+    id: "common_product_block_operator",
+    commonPreflight: "BLOCKED:UNCLASSIFIED",
+    productGate: "BLOCKED:UNCLASSIFIED",
+    deepReview: "BLOCKED:OPERATOR",
+    execution: "NOT_APPLICABLE",
+    serverVerification: "NOT_APPLICABLE",
+    publicStatus: "OPERATOR_REQUIRED",
+    reason: "Preflight comune e gate prodotto hanno blocker concordanti, confermati dalla deep review come intervento operatore.",
   },
   {
     id: "common_block_operator",

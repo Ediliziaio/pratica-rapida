@@ -7,7 +7,7 @@ import type { AprTransitionToken } from "./aprCaseTransitionMatrix";
 import { matchAprCaseTransition } from "./aprCaseTransitionMatrix";
 import { resolveAprCaseSourcePolicy } from "./aprCaseSourcePolicy";
 
-export const APR_CASE_STATUS_RESOLVER_VERSION = "apr-case-status-resolver-v2" as const;
+export const APR_CASE_STATUS_RESOLVER_VERSION = "apr-case-status-resolver-v3" as const;
 
 export interface AprResolvedCaseStatus {
   status: AprPublicCaseStatus;
@@ -29,6 +29,38 @@ function token(observation: AprCaseStatusObservation | undefined): AprTransition
   if (!observation) return "NOT_APPLICABLE";
   if (observation.status !== "BLOCKED") return observation.status;
   return `BLOCKED:${observation.classification}` as AprTransitionToken;
+}
+
+function sameValues(left: readonly string[], right: readonly string[]) {
+  const a = [...new Set(left)].sort();
+  const b = [...new Set(right)].sort();
+  return a.length === b.length && a.every((value, index) => value === b[index]);
+}
+
+function dualBlockedOperatorDisagreement(input: {
+  common: AprCaseStatusObservation;
+  product: AprCaseStatusObservation;
+  deep: AprCaseStatusObservation | undefined;
+  ignoredCommonBlockerCodes: readonly string[];
+}): string | null {
+  if (!input.deep || input.deep.status !== "BLOCKED" || input.deep.classification !== "OPERATOR") {
+    return "Common e gate prodotto sono BLOCKED, ma la deep review non concorda con classificazione OPERATOR.";
+  }
+  if (!input.product.productModule || !input.deep.productModule || input.product.productModule !== input.deep.productModule) {
+    return "Common e gate prodotto sono BLOCKED, ma il modulo prodotto diverge dalla deep review.";
+  }
+  if (input.common.classification !== "UNCLASSIFIED" || input.product.classification !== "UNCLASSIFIED") {
+    return "Common e gate prodotto sono BLOCKED, ma la classificazione dei gate non e quella strutturale attesa.";
+  }
+  if (!sameValues(input.product.blockerCodes, input.deep.blockerCodes)) {
+    return "Common e gate prodotto sono BLOCKED, ma i blocker del gate prodotto divergono dalla deep review.";
+  }
+  const ignored = new Set(input.ignoredCommonBlockerCodes);
+  const applicableCommon = input.common.blockerCodes.filter((code) => !ignored.has(code));
+  if (applicableCommon.length === 0 || applicableCommon.some((code) => !input.product.blockerCodes.includes(code))) {
+    return "Common e gate prodotto sono BLOCKED, ma i blocker comuni applicabili non concordano con il gate prodotto.";
+  }
+  return null;
 }
 
 export function resolveAprCaseStatusTruth(observations: readonly AprCaseStatusObservation[]): AprResolvedCaseStatus {
@@ -76,6 +108,17 @@ export function resolveAprCaseStatusTruth(observations: readonly AprCaseStatusOb
   if (structuredBlockers) {
     const missing = declaredBlockers.filter((code) => !structuredBlockers.blockerCodes.includes(code));
     if (missing.length > 0) return inconsistent(`Blocker dichiarati ma non tracciati in report_blockers: ${missing.join(", ")}.`, observations.filter((item) => item.blockerCodes.some((code) => missing.includes(code))));
+  }
+
+
+  if (common.status === "BLOCKED" && product?.status === "BLOCKED") {
+    const disagreement = dualBlockedOperatorDisagreement({
+      common,
+      product,
+      deep: bySource.get("deep_review"),
+      ignoredCommonBlockerCodes: policyResolution.ignoredCommonBlockerCodes,
+    });
+    if (disagreement) return inconsistent(disagreement, observations.filter((item) => MATRIX_SOURCES.includes(item.source as MatrixSource)));
   }
 
   const pattern = matchAprCaseTransition({

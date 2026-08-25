@@ -43,6 +43,38 @@ describe("APR unique pure case status resolver", () => {
     expect(result.status).toBe("OPERATOR_REQUIRED");
   });
 
+  it("classifica OPERATOR_REQUIRED quando common e product BLOCKED concordano con la deep review", () => {
+    const commonCodes = ["bank_transfer_principal_exceeds_invoices", "gross_triple_reconciliation_failed"];
+    const productCodes = [...commonCodes, "infissi_financial_triple_reconciliation_required"];
+    expect(resolveAprCaseStatusTruth([
+      obs("preflight_common", "BLOCKED", {
+        blockerCodes: commonCodes,
+        blockerApplicability: commonCodes.map((code) => ({ code, productModules: ["screening", "infissi"] })),
+        classification: "UNCLASSIFIED",
+      }),
+      obs("product_gate", "BLOCKED", { blockerCodes: productCodes, classification: "UNCLASSIFIED", productModule: "infissi" }),
+      obs("deep_review", "BLOCKED", { blockerCodes: productCodes, classification: "OPERATOR", productModule: "infissi" }),
+      blockers(...productCodes),
+    ])).toMatchObject({ status: "OPERATOR_REQUIRED", matchedTransitionId: "common_product_block_operator" });
+  });
+
+  it.each([
+    ["blocker", obs("deep_review", "BLOCKED", { blockerCodes: ["different"], classification: "OPERATOR", productModule: "infissi" })],
+    ["modulo", obs("deep_review", "BLOCKED", { blockerCodes: ["shared"], classification: "OPERATOR", productModule: "screening" })],
+    ["classificazione", obs("deep_review", "BLOCKED", { blockerCodes: ["shared"], classification: "TECHNICAL", productModule: "infissi" })],
+  ] as const)("mantiene INCONSISTENT quando diverge %s nel doppio BLOCKED", (_kind, deep) => {
+    expect(resolveAprCaseStatusTruth([
+      obs("preflight_common", "BLOCKED", {
+        blockerCodes: ["shared"],
+        blockerApplicability: [{ code: "shared", productModules: ["screening", "infissi"] }],
+        classification: "UNCLASSIFIED",
+      }),
+      obs("product_gate", "BLOCKED", { blockerCodes: ["shared"], classification: "UNCLASSIFIED", productModule: "infissi" }),
+      deep,
+      blockers("shared", "different"),
+    ])).toMatchObject({ status: "INCONSISTENT" });
+  });
+
   it("rifiuta common BLOCKED con product PASS", () => {
     expect(resolveAprCaseStatusTruth([obs("preflight_common", "BLOCKED", { blockerCodes: ["x"], classification: "UNCLASSIFIED" }), obs("product_gate", "PASS"), blockers("x")])).toMatchObject({ status: "INCONSISTENT", reason: expect.stringContaining("non applicabile") });
   });

@@ -16,6 +16,11 @@ describe("APR required and not-applicable source policy", () => {
     expect(deriveAprCaseSourcePolicy({ commonStatus: "BLOCKED", executionPresent: false, serverVerificationPresent: false })).toMatchObject({ product_gate: "not_applicable_expected", deep_review: "required" });
   });
 
+  it("richiede anche il gate prodotto quando common e product sono entrambi BLOCKED", () => {
+    expect(deriveAprCaseSourcePolicy({ commonStatus: "BLOCKED", productStatus: "BLOCKED", executionPresent: false, serverVerificationPresent: false }))
+      .toMatchObject({ product_gate: "required", deep_review: "required" });
+  });
+
   it("rende applicabile il gate Infissi quando i soli blocker common appartengono alle Schermature", () => {
     expect(resolveAprCaseSourcePolicy({
       commonStatus: "BLOCKED",

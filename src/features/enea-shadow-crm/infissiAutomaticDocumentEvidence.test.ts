@@ -2,8 +2,20 @@ import { describe, expect, it } from "vitest";
 import { extractAprInfissiAutomaticTechnicalEvidence } from "./infissiAutomaticDocumentEvidence";
 
 describe("APR Infissi · estrazione automatica documenti reali", () => {
+  it("preserva tre infissi fisici identici nell'ordine della fattura", () => {
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "fattura-righe", kind: "invoice", text: `
+      FATTURA
+      Infissi PVC 1 da 1390 x 1600 - 2 ante 1 da 1390 x 1600 - 2 ante 1 da 1390 x 1600 - 2 ante
+      METODO DI PAGAMENTO
+    ` }]);
+    expect(result.status).toBe("ready");
+    expect(result.audit.selectedParser).toBe("invoice-physical-row-order");
+    expect(result.evidence?.rows).toHaveLength(3);
+    expect(result.evidence?.rows.map((item) => [item.widthM, item.heightM])).toEqual([[1.39, 1.6], [1.39, 1.6], [1.39, 1.6]]);
+  });
+
   it("legge fatture con righe dimensioni, pezzi e Uw preservando la cardinalita", () => {
-    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "fattura", text: `
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "fattura", kind: "invoice", text: `
       Serramenti in PVC. Dimensioni L x H:
       1580 x 1505 mm finestra 2 A/R
       Uw = 1,2 W/mqk
@@ -20,7 +32,7 @@ describe("APR Infissi · estrazione automatica documenti reali", () => {
   });
 
   it("legge schede larghezza/altezza con Uw", () => {
-    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "calcolo", text: `
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "calcolo", kind: "third_party_certificate", text: `
       Larghezza L 760 mm
       Altezza H= 980mm
       Calcolo trasmittanza termica
@@ -38,7 +50,7 @@ describe("APR Infissi · estrazione automatica documenti reali", () => {
   });
 
   it("legge le pagine di prestazione con dimensioni OCR e Uw", () => {
-    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "dop", text: `
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "dop", kind: "third_party_certificate", text: `
       WEB/26/0680166 - 001
       Quantità: 1
       643 x 1210
@@ -53,7 +65,7 @@ describe("APR Infissi · estrazione automatica documenti reali", () => {
   });
 
   it("non dichiara READY se il documento contiene piu pagine prodotto delle misure OCR estratte", () => {
-    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "dop-incompleto", text: `
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "dop-incompleto", kind: "third_party_certificate", text: `
       WEB/26/0213119 - 001
       Quantità: 1
       APR_VISUAL_OCR: 785 x 1970
@@ -94,7 +106,7 @@ APR_DIAGRAM_ROTATED_COUNTERCLOCKWISE_OCR:
 ${height}
 ${innerHeight}
 WEB/26/0211424 - ${id}`;
-    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "dop-sette-pagine", text: [
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "dop-sette-pagine", kind: "third_party_certificate", text: [
       technicalPage("001", 1140, 1070, 2470, 2415, "Ud"),
       technicalPage("002", 1135, 1065, 1605, 1535),
       technicalPage("003", 1135, 1065, 2470, 2415, "Ud"),
@@ -119,7 +131,7 @@ WEB/26/0211424 - ${id}`;
   });
 
   it("riconosce anche gli identificativi prestazione ZM oltre a WEB", () => {
-    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "dop-zm", text: `
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "dop-zm", kind: "third_party_certificate", text: `
 ZM/25/0275492 - 001
 Quantità: 1
 Trasmittanza termica Ud [W/m2K] 1.3
@@ -134,7 +146,7 @@ ZM/25/0275492 - 001` }]);
   });
 
   it("legge anche un infisso largo e basso dalla fascia OCR delle quote verticali", () => {
-    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "dop-orizzontale", text: `
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "dop-orizzontale", kind: "third_party_certificate", text: `
 WEB/26/0444923 - 009
 Quantità: 1
 Trasmittanza termica Uw [W/m2K] 0.98
@@ -160,7 +172,7 @@ APR_VERTICAL_DIMENSION_COUNTERCLOCKWISE_OCR:
   });
 
   it("preserva la pagina fisica usando la misura L x H documentata quando manca la quota verticale isolata", () => {
-    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "dop-quota-verticale-ocr-mancante", text: `
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "dop-quota-verticale-ocr-mancante", kind: "third_party_certificate", text: `
 WEB/26/0680166 - 001
 Quantità: 1
 Trasmittanza termica Uw [W/m2K] 0.88
@@ -183,7 +195,7 @@ APR_DIAGRAM_ROTATED_CLOCKWISE_OCR:
   });
 
   it("legge la tabella Qt/LXH/Uw", () => {
-    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "tabella", text: `
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "tabella", kind: "third_party_certificate", text: `
       Serramenti - Riferimento Descrizione Qt LXH Uw
       PORTAFINESTRA
       1
@@ -195,7 +207,7 @@ APR_DIAGRAM_ROTATED_CLOCKWISE_OCR:
   });
 
   it("conta solo i serramenti fisici e non cassonetti, pannelli o riempimenti", () => {
-    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "preventivo-produzione", text: `
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "preventivo-produzione", kind: "third_party_certificate", text: `
 Porta 001 Quantità: 1 1060
 1060
 1020
@@ -226,8 +238,8 @@ Vista interna
 
   it("si ferma su due fonti di pari cardinalita ma misure discordanti", () => {
     const result = extractAprInfissiAutomaticTechnicalEvidence([
-      { sourceId: "a", text: "Finestra dimensioni: 1000 x 1200, Pezzi: 1, Trasmittanza termica 1,2" },
-      { sourceId: "b", text: "Finestra dimensioni: 1100 x 1200, Pezzi: 1, Trasmittanza termica 1,2" },
+      { sourceId: "a", kind: "third_party_certificate", text: "Finestra dimensioni: 1000 x 1200, Pezzi: 1, Trasmittanza termica 1,2" },
+      { sourceId: "b", kind: "third_party_certificate", text: "Finestra dimensioni: 1100 x 1200, Pezzi: 1, Trasmittanza termica 1,2" },
     ]);
     expect(result).toMatchObject({ status: "operator_required", blockers: ["infissi_automatic_source_conflict"], evidence: null });
   });

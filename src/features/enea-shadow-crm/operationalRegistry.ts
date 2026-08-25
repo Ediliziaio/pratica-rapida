@@ -1,6 +1,6 @@
 import { OPERATIONAL_RULES } from "./operationalRules";
 
-export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v75" as const;
+export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v78" as const;
 export const ENEA_GLOBAL_PREREQUISITE = Object.freeze({
   id: "browser-session-contract-v1",
   scope: "global_not_practice",
@@ -90,6 +90,7 @@ export const USER_AUTHORIZED_RULE_IDS = Object.freeze({
   infissiAreaRounding: "user-2026-08-19-infissi-enea-square-meter-rounding-v1",
   infissiMaterialGlassFallbacks: "user-2026-08-19-infissi-pvc-low-e-fallbacks-v1",
   infissiShadingClosuresFromForm: "user-2026-08-19-infissi-shading-closures-form-flag-v1",
+  infissiShadingClosureInvoiceOrderAllocation: "user-2026-08-25-infissi-shading-closure-invoice-order-allocation-v1",
   infissiTransmittanceFallback: "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
   infissiPortalTransmittance131To13: "user-2026-08-22-infissi-portal-transmittance-1-31-to-1-3-v1",
   infissiPortalTransmittanceOverMaxTo13: "user-2026-08-23-infissi-portal-transmittance-over-max-to-1-3-v1",
@@ -107,6 +108,8 @@ export const USER_AUTHORIZED_RULE_IDS = Object.freeze({
   singleCaseRegressionTest: "user-2026-08-18-single-case-regression-test",
   mixedFortyCaseReliabilityTest: "user-2026-08-23-mixed-forty-case-reliability-test",
   documentedProductModuleOverLabel: "user-2026-08-23-documented-product-module-over-label",
+  crmInternalTechnicalDocumentUntrusted: "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+  testExNovoOriginalSourcesOnly: "user-2026-08-25-test-ex-novo-original-sources-only-v1",
 } as const);
 
 const USER_RULE_PROVENANCE = Object.freeze({
@@ -149,9 +152,38 @@ const USER_RULE_PROVENANCE_2026_08_23 = Object.freeze({
   receivedAt: "2026-08-23",
   source: "delegated_user_instruction" as const,
 });
+const USER_RULE_PROVENANCE_2026_08_25 = Object.freeze({
+  authority: "user" as const,
+  receivedAt: "2026-08-25",
+  source: "delegated_user_instruction" as const,
+});
 
 /** Regole business aggiunte soltanto in seguito a istruzione esplicita dell'utente. */
 export const ENEA_USER_AUTHORIZED_RULES: readonly OperationalRegistryRule[] = Object.freeze([
+  {
+    id: USER_AUTHORIZED_RULE_IDS.crmInternalTechnicalDocumentUntrusted,
+    step: "economic_sources",
+    kind: "business",
+    condition: "Un allegato CRM e classificato come documento tecnico interno o come allegato generico non certificato da terza parte.",
+    sourcePrecedence: ["fattura originaria", "certificato tecnico di terza parte esplicitamente classificato", "form cliente per i soli campi di competenza", "documento tecnico CRM interno sempre escluso"],
+    deterministicAction: "Non usare mai il documento tecnico CRM interno o un allegato generico non classificato come certificato di terza parte per quantita, misure, trasmittanze o altre specifiche tecniche. Se fattura e vero certificato non bastano, richiedere operatore senza recuperare valori dal documento interno.",
+    audit: "practiceId, sourceId, kind originario, motivo esclusione, fonti attendibili rimaste, campi non risolti e ID regola.",
+    outcome: "requested_operator",
+    priority: 1_219,
+    provenance: USER_RULE_PROVENANCE_2026_08_25,
+  },
+  {
+    id: USER_AUTHORIZED_RULE_IDS.testExNovoOriginalSourcesOnly,
+    step: "runner_lifecycle",
+    kind: "system",
+    condition: "Qualunque replay o test APR deve simulare una pratica mai lavorata prima.",
+    sourcePrecedence: ["fattura originaria", "form cliente", "certificato tecnico reale di terza parte", "stato, esiti e lavorazioni pregresse CRM/ENEA sempre esclusi"],
+    deterministicAction: "Costruire mapping, blocker e payload soltanto dalle fonti originarie ammesse. Ignorare pipeline storica, esito dell'operatore, bozze o pratiche ENEA precedenti e documenti interni derivati; questi dati possono essere usati solo dopo il test come benchmark read-only separato.",
+    audit: "practiceId, fingerprint delle sole fonti ammesse, elenco fonti escluse, assenza di dipendenze da stato pregresso, output ex novo e ID regola.",
+    outcome: "continue",
+    priority: 1_220,
+    provenance: USER_RULE_PROVENANCE_2026_08_25,
+  },
   {
     id: USER_AUTHORIZED_RULE_IDS.documentedProductModuleOverLabel,
     step: "economic_sources",
@@ -258,6 +290,18 @@ export const ENEA_USER_AUTHORIZED_RULES: readonly OperationalRegistryRule[] = Ob
     outcome: "continue",
     priority: 1_217,
     provenance: USER_RULE_PROVENANCE_2026_08_19,
+  },
+  {
+    id: USER_AUTHORIZED_RULE_IDS.infissiShadingClosureInvoiceOrderAllocation,
+    step: "enea_mapping",
+    kind: "business",
+    condition: "TEST o produzione: nella stessa pratica il numero di infissi documentati supera il numero di avvolgibili, tapparelle o chiusure oscuranti documentati in fattura.",
+    sourcePrecedence: ["righe e quantita fisiche della fattura originaria", "ordine fisico degli infissi nella fattura", "risposta generale del form soltanto fuori dal pattern infissi maggiore di chiusure"],
+    deterministicAction: "Espandere prima gli infissi e le chiusure in prodotti fisici 1:1. Se gli infissi sono N e le chiusure M con 0 < M < N, assegnare Chiusure oscuranti aggiuntive=true esattamente ai primi M infissi nell'ordine delle righe fattura e false ai restanti N-M. Deduplicare acconto e saldo soltanto quando ripetono lo stesso identico elenco tecnico.",
+    audit: "practiceId, sourceId fatture, firme degli elenchi tecnici, numero infissi, numero chiusure, physicalRowId, posizione fattura, flag assegnato e ID regola.",
+    outcome: "continue",
+    priority: 1_218,
+    provenance: USER_RULE_PROVENANCE_2026_08_25,
   },
   {
     id: USER_AUTHORIZED_RULE_IDS.infissiShadingClosuresFromForm,
@@ -685,7 +729,7 @@ export const ENEA_USER_AUTHORIZED_RULES: readonly OperationalRegistryRule[] = Ob
     kind: "business",
     condition: "TEST o produzione: una fonte originaria identifica inequivocabilmente uno o piu prodotti come persiane.",
     sourcePrecedence: ["gTot, motore, quantita, misure e unita espliciti nella fattura originaria", "descrizione e quantita della fattura sopra il form cliente", "fallback persiana autorizzati: gTot 0,08, materiale Metallo/alluminio e movimentazione Manuale", "intervento operatore soltanto per contraddizione primaria o misura non normalizzabile"],
-    deterministicAction: "Selezionare la tipologia ENEA Persiana, installazione Esterna e calcolo Dichiarato dal fornitore. Creare una riga per ogni persiana fisica. Usare il gTot esplicito oppure 0,08 come solo fallback; impostare sempre resistenza termica supplementare 0,17; materiale sempre Metallo perche la persiana e in alluminio; motore/motorizzazione espliciti producono Automatico, altrimenti Manuale. Espandere N pezzi in N righe. Per valori senza unita, normalizzare la larghezza 60-180 come cm e 600-1800 come mm; normalizzare l'altezza 120-300 come cm e 1200-3000 come mm. Conservare valore originario e conversione. La superficie finestrata protetta coincide con la superficie della singola persiana. Esposizione e regole economiche seguono le tende. Una fonte primaria contraria o una misura fuori intervallo richiedono intervento operatore.",
+    deterministicAction: "Selezionare la tipologia ENEA Persiana, installazione Esterna e calcolo Dichiarato dal fornitore. Creare una riga per ogni persiana fisica. Usare il gTot esplicito oppure 0,08 come solo fallback; impostare sempre resistenza termica supplementare 0,17; materiale sempre Metallo perche la persiana e in alluminio; motore/motorizzazione espliciti producono Automatico, altrimenti Manuale. Espandere N pezzi in N righe. Le misure sono plausibili entro limiti ampi finalizzati soltanto a intercettare refusi: larghezza 500-4000 mm e altezza 450-3200 mm. Per valori senza unita, provare prima la conversione cm->mm e poi il valore gia espresso in mm; conservare valore originario e conversione. La superficie finestrata protetta coincide con la superficie della singola persiana. Esposizione e regole economiche seguono le tende. Una fonte primaria contraria o una misura fuori dai limiti ampi richiedono intervento operatore.",
     audit: "practiceId, sourceId, testo riga, pezzo, quantita, misure e unita originarie, misure normalizzate, superficie prodotto/finestra, esposizione, gTot e fonte, resistenza termica supplementare 0,17, materiale Metallo, movimentazione e fonte, eventuale contraddizione, ID regola.",
     outcome: "continue",
     priority: 1_210,
@@ -697,7 +741,7 @@ export const ENEA_USER_AUTHORIZED_RULES: readonly OperationalRegistryRule[] = Ob
     kind: "business",
     condition: "TEST o produzione: una fonte originaria identifica inequivocabilmente uno o piu prodotti come avvolgibili o tapparelle.",
     sourcePrecedence: ["gTot, motore, quantita, misure e unita espliciti nella fattura originaria", "descrizione e quantita della fattura sopra il form cliente", "fallback avvolgibile autorizzati, identici alla persiana: gTot 0,08, materiale Metallo/alluminio e movimentazione Manuale", "intervento operatore soltanto per contraddizione primaria o misura non normalizzabile"],
-    deterministicAction: "Applicare integralmente il contratto Persiana cambiando soltanto la tipologia ENEA in Persiane avvolgibili. Selezionare installazione Esterna e calcolo Dichiarato dal fornitore; creare una riga per ogni avvolgibile fisico; usare gTot esplicito oppure 0,08 come solo fallback; impostare sempre resistenza termica supplementare 0,17; materiale sempre Metallo/alluminio; motore o motorizzazione espliciti producono Automatico, altrimenti Manuale. Usare gli stessi intervalli e la stessa normalizzazione cm/mm delle persiane. La superficie finestrata protetta coincide con la superficie del singolo avvolgibile. Esposizione e regole economiche seguono le tende. Una fonte primaria contraria o una misura fuori intervallo richiedono intervento operatore.",
+    deterministicAction: "Applicare integralmente il contratto Persiana cambiando soltanto la tipologia ENEA in Persiane avvolgibili. Selezionare installazione Esterna e calcolo Dichiarato dal fornitore; creare una riga per ogni avvolgibile fisico; usare gTot esplicito oppure 0,08 come solo fallback; impostare sempre resistenza termica supplementare 0,17; materiale sempre Metallo/alluminio; motore o motorizzazione espliciti producono Automatico, altrimenti Manuale. Usare gli stessi limiti ampi di plausibilita refuso delle persiane: larghezza 500-4000 mm e altezza 450-3200 mm, con la stessa normalizzazione cm/mm. La superficie finestrata protetta coincide con la superficie del singolo avvolgibile. Esposizione e regole economiche seguono le tende. Una fonte primaria contraria o una misura fuori dai limiti ampi richiedono intervento operatore.",
     audit: "practiceId, sourceId, testo riga, pezzo, quantita, misure e unita originarie, misure normalizzate, superficie prodotto/finestra, esposizione, tipologia Persiane avvolgibili, gTot e fonte, resistenza termica supplementare 0,17, materiale Metallo, movimentazione e fonte, eventuale contraddizione, ID regola.",
     outcome: "continue",
     priority: 1_209,

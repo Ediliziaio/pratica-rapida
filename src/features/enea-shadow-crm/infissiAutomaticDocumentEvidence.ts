@@ -1,12 +1,13 @@
 import { USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
 import type { InfissiTechnicalEvidence, InfissiTechnicalEvidenceRow } from "./infissiTechnicalSources";
+import { applyAprInfissiOriginalSourcePolicy } from "./infissiOriginalSourcePolicy";
 
 export const APR_INFISSI_AUTOMATIC_DOCUMENT_EVIDENCE_VERSION = "apr-infissi-automatic-document-evidence-v3" as const;
 
 export interface AprInfissiTextSource {
   sourceId: string;
   text: string;
-  kind?: "invoice" | "additional" | string;
+  kind?: "invoice" | "third_party_certificate" | "additional" | "crm_internal_technical_document" | "crm_history" | "operator_history" | string;
 }
 
 export interface AprInfissiAutomaticEvidence {
@@ -18,6 +19,7 @@ export interface AprInfissiAutomaticEvidence {
     selectedSourceId: string | null;
     selectedParser: string | null;
     candidateCounts: ReadonlyArray<{ sourceId: string; parser: string; rowCount: number }>;
+    excludedSources: ReadonlyArray<{ sourceId: string; kind: string; reason: string }>;
     appliedRuleIds: readonly string[];
   }>;
 }
@@ -34,6 +36,8 @@ const RULE_IDS = Object.freeze([
   USER_AUTHORIZED_RULE_IDS.infissiTechnicalSourceResolution,
   USER_AUTHORIZED_RULE_IDS.infissiTransmittanceFallback,
   USER_AUTHORIZED_RULE_IDS.technicalProductCardinality,
+  USER_AUTHORIZED_RULE_IDS.crmInternalTechnicalDocumentUntrusted,
+  USER_AUTHORIZED_RULE_IDS.testExNovoOriginalSourcesOnly,
 ] as const);
 
 function decimal(value: string | undefined): number | undefined {
@@ -92,6 +96,25 @@ function parseDimensionBlocks(source: AprInfissiTextSource): Candidate | null {
     rows: normalizedRows,
     explicitUwCount: normalizedRows.reduce((sum, item) => sum + (item.thermalTransmittanceWm2K ? item.quantity : 0), 0),
   } : null;
+}
+
+/**
+ * Le fatture possono enumerare piu infissi identici come ripetizioni fisiche
+ * `1 da L x H`. L'ordine e la ripetizione sono significativi e non vanno
+ * compressi come duplicazione OCR.
+ */
+function parseInvoicePhysicalWindowRows(source: AprInfissiTextSource): Candidate | null {
+  if (source.kind !== "invoice") return null;
+  const start = source.text.search(/\b(?:infiss|serrament)[io]\b/iu);
+  if (start < 0) return null;
+  const scoped = source.text.slice(start).split(/\b(?:METODO\s+DI\s+PAGAMENTO|TOTALE\s+(?:FATTURA|DOCUMENTO))\b/iu)[0] ?? "";
+  const rows = [...scoped.matchAll(/\b(\d{1,2})\s+da\s+(\d{3,4})\s*[x×]\s*(\d{3,4})\b/giu)].flatMap((match, index) => {
+    const quantity = integer(match[1]);
+    const width = Number(match[2]);
+    const height = Number(match[3]);
+    return plausibleMm(width, height) ? [row(source.sourceId, "invoice-physical-row-order", index, width, height, quantity)] : [];
+  });
+  return rows.length ? { sourceId: source.sourceId, sourceKind: "invoice", parser: "invoice-physical-row-order", rows, explicitUwCount: 0 } : null;
 }
 
 function repeatedRowKey(item: InfissiTechnicalEvidenceRow): string {
@@ -259,7 +282,10 @@ function declaredPerformancePageCount(source: AprInfissiTextSource): number | nu
 }
 
 export function extractAprInfissiAutomaticTechnicalEvidence(sources: readonly AprInfissiTextSource[]): AprInfissiAutomaticEvidence {
-  const rawCandidates = sources.flatMap((source) => [
+  const sourcePolicy = applyAprInfissiOriginalSourcePolicy(sources);
+  const trustedSources = sourcePolicy.trusted;
+  const rawCandidates = trustedSources.flatMap((source) => [
+    parseInvoicePhysicalWindowRows(source),
     parseProductAssemblyPages(source),
     parseDimensionBlocks(source),
     parseWidthHeightBlocks(source),
@@ -295,14 +321,15 @@ export function extractAprInfissiAutomaticTechnicalEvidence(sources: readonly Ap
     || left.sourceId.localeCompare(right.sourceId)
     || left.parser.localeCompare(right.parser),
   )[0] ?? null;
-  const selectedSource = selected ? sources.find((source) => source.sourceId === selected.sourceId) : undefined;
+  const selectedSource = selected ? trustedSources.find((source) => source.sourceId === selected.sourceId) : undefined;
   const declaredPageCount = selectedSource ? declaredPerformancePageCount(selectedSource) : null;
   const incompletePerformanceCardinality = Boolean(selected
     && declaredPageCount !== null
     && physicalCount(selected) !== declaredPageCount);
   const conflictingTop = Boolean(rankedGroups[1]
     && rankedGroups[1][1].length === winningGroup.length
-    && Math.max(...rankedGroups[1][1].map((candidate) => candidate.explicitUwCount)) === Math.max(...winningGroup.map((candidate) => candidate.explicitUwCount)));
+    && Math.max(...rankedGroups[1][1].map((candidate) => candidate.explicitUwCount)) === Math.max(...winningGroup.map((candidate) => candidate.explicitUwCount))
+    && physicalCount(rankedGroups[1][1][0]) === physicalCount(winningGroup[0]));
   const unresolvedInvoiceTechnicalConflict = Boolean(selected
     && rankedGroups.slice(1).some(([, group]) =>
       group.some((candidate) => candidate.sourceKind === "invoice")
@@ -318,7 +345,7 @@ export function extractAprInfissiAutomaticTechnicalEvidence(sources: readonly Ap
     version: APR_INFISSI_AUTOMATIC_DOCUMENT_EVIDENCE_VERSION,
     status: blockers.length === 0 ? "ready" : "operator_required",
     evidence: selected && blockers.length === 0 ? {
-      kind: "technical_document" as const,
+      kind: selected.sourceKind === "invoice" ? "invoice" as const : "technical_document" as const,
       sourceIds: Object.freeze([selected.sourceId]),
       rows: Object.freeze(selected.rows),
     } : null,
@@ -327,6 +354,7 @@ export function extractAprInfissiAutomaticTechnicalEvidence(sources: readonly Ap
       selectedSourceId: selected?.sourceId ?? null,
       selectedParser: selected?.parser ?? null,
       candidateCounts: Object.freeze(candidates.map((candidate) => ({ sourceId: candidate.sourceId, parser: candidate.parser, rowCount: physicalCount(candidate) }))),
+      excludedSources: sourcePolicy.excluded,
       appliedRuleIds: RULE_IDS,
     }),
   });

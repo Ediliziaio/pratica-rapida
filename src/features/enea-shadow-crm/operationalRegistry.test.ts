@@ -12,7 +12,7 @@ describe("registro operativo unico",()=>{
   });
   it("rende reperibili le regole solo per id",()=>expect(registryRule("core-form-first")?.step).toBe("customer_form"));
   it("registra le nuove regole utente con provenienza, precedenza e audit",()=>{
-    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v75");
+    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v78");
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.documentedProductModuleOverLabel)).toMatchObject({ outcome: "continue", provenance: { authority: "user", receivedAt: "2026-08-23" } });
     expect(registryRule("system-composite-invoice-bank-transfer-page-segmentation")).toMatchObject({ kind: "system", outcome: "continue" });
     expect(registryRule("system-draft-payload-mapping-completeness")).toMatchObject({ step: "enea_mapping", deterministicAction: expect.stringContaining("Non dichiarare READY") });
@@ -526,8 +526,9 @@ describe("registro operativo unico",()=>{
     expect(rule.deterministicAction).toContain("resistenza termica supplementare 0,17");
     expect(rule.deterministicAction).toContain("materiale sempre Metallo");
     expect(rule.deterministicAction).toContain("motore/motorizzazione espliciti producono Automatico, altrimenti Manuale");
-    expect(rule.deterministicAction).toContain("larghezza 60-180 come cm e 600-1800 come mm");
-    expect(rule.deterministicAction).toContain("altezza 120-300 come cm e 1200-3000 come mm");
+    expect(rule.deterministicAction).toContain("larghezza 500-4000 mm");
+    expect(rule.deterministicAction).toContain("altezza 450-3200 mm");
+    expect(rule.deterministicAction).toContain("intercettare refusi");
     expect(rule.deterministicAction).toContain("superficie finestrata protetta coincide con la superficie");
     expect(rule.condition).not.toMatch(/avvolgibil|tapparell/i);
   });
@@ -540,7 +541,8 @@ describe("registro operativo unico",()=>{
     expect(rule.deterministicAction).toContain("resistenza termica supplementare 0,17");
     expect(rule.deterministicAction).toContain("materiale sempre Metallo/alluminio");
     expect(rule.deterministicAction).toContain("altrimenti Manuale");
-    expect(rule.deterministicAction).toContain("stessi intervalli");
+    expect(rule.deterministicAction).toContain("larghezza 500-4000 mm");
+    expect(rule.deterministicAction).toContain("altezza 450-3200 mm");
     expect(rule.deterministicAction).toContain("superficie finestrata protetta coincide");
   });
 

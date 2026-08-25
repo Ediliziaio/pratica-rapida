@@ -317,7 +317,7 @@ export class PersistentAprEneaBrowserWorker {
     readonly execution: PersistentAprEneaDraftExecution,
     readonly packageProvider: AprEneaDraftPackageProvider,
     readonly driver: AprEneaBrowserDriver,
-    readonly options: { instanceId?: string; now?: () => Date; processPid?: number } = {},
+    readonly options: { instanceId?: string; now?: () => Date; processPid?: number; generatorPersistenceVerificationRetryDelayMs?: number } = {},
   ) {
     this.directory = path.join(path.resolve(rootDirectory), "enea-browser-worker");
     this.checkpointPath = path.join(this.directory, "checkpoint.json");
@@ -385,6 +385,39 @@ export class PersistentAprEneaBrowserWorker {
     const draftPackage = await this.packageProvider(customerKey);
     if (draftPackage.customerKey !== customerKey || draftPackage.safety.previewAllowed !== false || draftPackage.safety.submitAllowed !== false || draftPackage.safety.communicationsAllowed !== false) throw new Error("apr_enea_worker_package_safety_invalid");
     return draftPackage;
+  }
+
+  private async verifyNestedPageSavedAfterOuterSave(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string) {
+    const firstEvidence = await this.driver.verifyPageSaved(draftPackage, draftId, pageId);
+    if (firstEvidence || !/Generatore/.test(pageId)) return firstEvidence;
+
+    // ENEA can expose the saved Impianto page before the nested generator row
+    // reaches its canonical summary.  A single immediate miss is therefore not
+    // conclusive: only two negative reads, separated by the observed
+    // consistency window, may produce the fail-closed outcome.
+    const retryDelayMs = this.options.generatorPersistenceVerificationRetryDelayMs ?? 500;
+    const retryDiscriminator = `${draftId}:${pageId}`;
+    this.record({
+      commandId: this.actionId(draftPackage.customerKey, "generator-persistence-verification-retry-started", retryDiscriminator),
+      event: "action_started",
+      customerKey: draftPackage.customerKey,
+      action: "generator_persistence_verification_retry",
+      evidenceId: null,
+      reason: `Generatore assente alla prima lettura post-Impianto; APR attende ${retryDelayMs} ms prima della seconda lettura read-only.`,
+    }, "running");
+    if (retryDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+    const secondEvidence = await this.driver.verifyPageSaved(draftPackage, draftId, pageId);
+    this.record({
+      commandId: this.actionId(draftPackage.customerKey, secondEvidence ? "generator-persistence-verification-retry-succeeded" : "generator-persistence-verification-retry-exhausted", retryDiscriminator),
+      event: "action_completed",
+      customerKey: draftPackage.customerKey,
+      action: secondEvidence ? "generator_persistence_verification_retry_succeeded" : "generator_persistence_verification_retry_exhausted",
+      evidenceId: secondEvidence?.evidenceId ?? null,
+      reason: secondEvidence
+        ? `La seconda lettura read-only dopo ${retryDelayMs} ms conferma il generatore persistito.`
+        : `Due letture read-only separate da ${retryDelayMs} ms non mostrano il generatore; il fail-closed resta obbligatorio.`,
+    }, "running");
+    return secondEvidence;
   }
 
   private startAction(customerKey: string | null, action: string, discriminator: string) {
@@ -510,7 +543,7 @@ export class PersistentAprEneaBrowserWorker {
         }
         const stagedNestedPages = current.pageCheckpoints.filter((page) => page.state === "staged" && nestedCheckpointBelongsToOuter(page.pageId, unresolvedPage.pageId));
         for (const stagedPage of stagedNestedPages) {
-          const nestedEvidence = await this.driver.verifyPageSaved(draftPackage, current.draftId, stagedPage.pageId);
+          const nestedEvidence = await this.verifyNestedPageSavedAfterOuterSave(draftPackage, current.draftId, stagedPage.pageId);
           if (!nestedEvidence) throw new Error(`apr_enea_nested_page_not_persisted_after_outer_save:${stagedPage.pageId}`);
           this.execution.recordNestedPageServerVerifiedAfterOuterSave(current.customerKey, current.draftId, stagedPage.pageId, unresolvedPage.pageId, nestedEvidence.evidenceId, this.actionId(current.customerKey, "execution-nested-page-server-verified", `${saveGeneration}:${stagedPage.pageId}:${nestedEvidence.evidenceId}`), this.now());
         }

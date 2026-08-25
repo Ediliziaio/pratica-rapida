@@ -52,7 +52,114 @@ function allocationDraftPackage(customerKey: string): AprEneaDraftPackage {
   };
 }
 
+function generatorPlantDraftPackage(customerKey: string): AprEneaDraftPackage {
+  const generator = { id: "generator", pageName: "Generatore dell'impianto termico", markerIds: ["id-generatore"], successMessage: "ok", fields: [{ portalId: "id-generatore", control: "input" as const, value: "1" }] };
+  const plant = { id: "plant", pageName: "Impianto termico esistente", markerIds: ["id-impianto"], successMessage: "ok", fields: [{ portalId: "id-impianto", control: "input" as const, value: "autonomo" }] };
+  return {
+    module: "infissi",
+    customerKey, displayName: customerKey, practiceId: `crm-${customerKey}`, packageFingerprint: `package-${customerKey}`, workflowFingerprint: `workflow-${customerKey}`,
+    workflow: { supportedPages: ["Generatore dell'impianto termico", "Impianto termico esistente"], screeningItemCount: 0, steps: [generator, plant], screeningSteps: [] },
+    safety: { createAllowedAfterPersistentIntent: true, saveAllowedAfterAllPageCheckpoints: true, previewAllowed: false, submitAllowed: false, communicationsAllowed: false },
+  };
+}
+
+function generatorPlantPreflightFixture() {
+  return {
+    status: "completed",
+    sourceFingerprint: "generator-eventual-consistency-source",
+    items: ["case-one", "case-two"].map((customerKey) => ({
+      customerKey,
+      displayName: customerKey,
+      practiceId: `crm-${customerKey}`,
+      state: "ready_local_plan",
+      report: { eneaPayloadAudit: { draftReady: true, mappingFingerprint: `mapping-${customerKey}`, requiredPortalFieldCount: 2, portalGate: { status: "ready", workflowFingerprint: `workflow-${customerKey}`, supportedPages: ["Generatore dell'impianto termico", "Impianto termico esistente"], screeningItemCount: 0 } } },
+    })),
+  } as never;
+}
+
 describe("APR browser worker persistente e autonomo", () => {
+  it("non dichiara un falso negativo se il generatore compare alla seconda lettura dopo il Salva Impianto", async () => {
+    const directory = temporaryDirectory();
+    const execution = new PersistentAprEneaDraftExecution(directory);
+    execution.prepare(generatorPlantPreflightFixture(), new Date("2026-08-25T08:00:00.000Z"));
+    const base = new PersistentSimulatedEneaPortalDriver(directory, { identity: "apr-profile-generator-delayed" });
+    let generatorVerificationCount = 0;
+    const driver: AprEneaBrowserDriver = {
+      ...base,
+      kind: base.kind,
+      identity: base.identity,
+      verifySession: base.verifySession.bind(base),
+      discoverExistingDraft: base.discoverExistingDraft.bind(base),
+      createDraft: base.createDraft.bind(base),
+      preparePage: base.preparePage.bind(base),
+      savePage: base.savePage.bind(base),
+      verifyPageSaved: async (draft, draftId, pageId) => {
+        if (draft.customerKey === "case-one" && /Generatore/.test(pageId)) {
+          generatorVerificationCount += 1;
+          // Prima verifica: staging della riga. Seconda: lettura immediata
+          // post-Impianto (ritardo reale osservato 263-398 ms). Terza: retry.
+          if (generatorVerificationCount === 2) return null;
+        }
+        return base.verifyPageSaved(draft, draftId, pageId);
+      },
+      verifyDraftSaved: base.verifyDraftSaved.bind(base),
+    };
+    const worker = new PersistentAprEneaBrowserWorker(directory, execution, generatorPlantDraftPackage, driver, { instanceId: "apr-worker-generator-delayed", processPid: 4220, generatorPersistenceVerificationRetryDelayMs: 300 });
+
+    await expect(worker.runUntilTerminal()).resolves.toMatchObject({
+      status: "completed",
+      completedCustomerKeys: ["case-one", "case-two"],
+      blockedCustomerKeys: [],
+    });
+    expect(generatorVerificationCount).toBe(3);
+    expect(execution.snapshot().items.find((item) => item.customerKey === "case-one")).toMatchObject({ state: "saved" });
+    expect(worker.snapshot().audit).toEqual(expect.arrayContaining([
+      expect.objectContaining({ action: "generator_persistence_verification_retry", evidenceId: null, reason: expect.stringContaining("300 ms") }),
+      expect.objectContaining({ action: "generator_persistence_verification_retry_succeeded", evidenceId: expect.stringContaining("sim-server"), reason: expect.stringContaining("conferma il generatore persistito") }),
+    ]));
+  });
+
+  it("resta fail-closed se il generatore non risulta persistito in entrambe le letture post-Impianto", async () => {
+    const directory = temporaryDirectory();
+    const execution = new PersistentAprEneaDraftExecution(directory);
+    execution.prepare(generatorPlantPreflightFixture(), new Date("2026-08-25T08:00:00.000Z"));
+    const base = new PersistentSimulatedEneaPortalDriver(directory, { identity: "apr-profile-generator-never-persisted" });
+    let generatorVerificationCount = 0;
+    const driver: AprEneaBrowserDriver = {
+      ...base,
+      kind: base.kind,
+      identity: base.identity,
+      verifySession: base.verifySession.bind(base),
+      discoverExistingDraft: base.discoverExistingDraft.bind(base),
+      createDraft: base.createDraft.bind(base),
+      preparePage: base.preparePage.bind(base),
+      savePage: base.savePage.bind(base),
+      verifyPageSaved: async (draft, draftId, pageId) => {
+        if (draft.customerKey === "case-one" && /Generatore/.test(pageId)) {
+          generatorVerificationCount += 1;
+          if (generatorVerificationCount >= 2) return null;
+        }
+        return base.verifyPageSaved(draft, draftId, pageId);
+      },
+      verifyDraftSaved: base.verifyDraftSaved.bind(base),
+    };
+    const worker = new PersistentAprEneaBrowserWorker(directory, execution, generatorPlantDraftPackage, driver, { instanceId: "apr-worker-generator-never-persisted", processPid: 4221, generatorPersistenceVerificationRetryDelayMs: 300 });
+
+    await expect(worker.runUntilTerminal()).resolves.toMatchObject({
+      status: "completed",
+      completedCustomerKeys: ["case-two"],
+      blockedCustomerKeys: ["case-one"],
+    });
+    expect(generatorVerificationCount).toBe(3);
+    expect(execution.snapshot().items.find((item) => item.customerKey === "case-one")).toMatchObject({
+      state: "operator_intervention",
+      reason: "Errore circoscritto alla pratica: apr_enea_nested_page_not_persisted_after_outer_save:page:Generatore dell'impianto termico",
+    });
+    expect(worker.snapshot().audit).toEqual(expect.arrayContaining([
+      expect.objectContaining({ action: "generator_persistence_verification_retry_exhausted", evidenceId: null, reason: expect.stringContaining("fail-closed") }),
+    ]));
+  });
+
   it("mantiene staged l'allocazione 36% fino al Salva Calcolo e la verifica lato server solo dopo", async () => {
     const directory = temporaryDirectory();
     const execution = new PersistentAprEneaDraftExecution(directory);

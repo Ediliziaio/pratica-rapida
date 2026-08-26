@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 45108)
-Total output lines: 4164
-
 import { useState, useCallback, useEffect, useMemo, useRef, useDeferredValue } from "react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
@@ -1453,7 +1450,1294 @@ function PracticeDetailSheet({
                       <div>
                         <p className="text-xs text-muted-foreground">Pagamento</p>
                         <span
-          …15108 tokens truncated…en deve matchare almeno un campo.
+                          className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium mt-0.5 ${pagamentoBadgeClass(
+                            practice.pagamento_stato,
+                          )}`}
+                        >
+                          {PAGAMENTO_LABELS[practice.pagamento_stato ?? "non_pagata"] ?? "—"}
+                        </span>
+                      </div>
+                      {practice.data_incasso && (
+                        <div className="col-span-2">
+                          <p className="text-xs text-muted-foreground">Data incasso</p>
+                          <p className="font-medium">
+                            {format(new Date(practice.data_incasso), "dd/MM/yyyy")}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                )}
+
+                {/* 2. Note interne (solo isInternal) */}
+                {isInternal && (
+                  <section>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      Note interne
+                    </h3>
+                    {practice.note_interne ? (
+                      <p className="text-sm whitespace-pre-wrap">{practice.note_interne}</p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">Nessuna nota interna.</p>
+                    )}
+                  </section>
+                )}
+
+                {/* 3. Documenti richiesti (amber box) — solo se stage === documenti_mancanti con nota */}
+                {practice.pipeline_stages?.stage_type === "documenti_mancanti" && practice.note_documenti_mancanti && (
+                  <section>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      Documenti richiesti
+                    </h3>
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900/40 dark:bg-amber-950/20 p-3 flex items-start gap-2">
+                      <FileWarning className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                      <p className="text-sm text-amber-800 dark:text-amber-300 whitespace-pre-wrap">
+                        {practice.note_documenti_mancanti}
+                      </p>
+                    </div>
+                  </section>
+                )}
+
+                {/* 4. Zona documenti UNIFICATA */}
+                <section>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Documenti
+                    </h3>
+                    <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                      {isSuperAdmin && (
+                        <>
+                          <input
+                            ref={fatturaInputRef}
+                            type="file"
+                            multiple
+                            className="hidden"
+                            onChange={(e) =>
+                              uploadExtraFiles(e.target.files, "fatture_urls", "fattura", setUploadingFattura, fatturaInputRef)
+                            }
+                          />
+                          <input
+                            ref={aggiuntivoInputRef}
+                            type="file"
+                            multiple
+                            className="hidden"
+                            onChange={(e) =>
+                              uploadExtraFiles(e.target.files, "documenti_aggiuntivi_urls", "aggiuntivi", setUploadingAggiuntivo, aggiuntivoInputRef)
+                            }
+                          />
+                        </>
+                      )}
+                      {isInternal && (
+                        <>
+                          <input
+                            ref={conclusaInputRef}
+                            type="file"
+                            accept=".pdf,.p7m,.zip"
+                            multiple
+                            className="hidden"
+                            onChange={handleUploadConclusa}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs gap-1"
+                            disabled={uploadingConclusa}
+                            onClick={() => conclusaInputRef.current?.click()}
+                          >
+                            <Plus className="h-3 w-3" />
+                            {uploadingConclusa ? "Caricamento…" : "Carica pratica conclusa"}
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {isSuperAdmin && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => fatturaInputRef.current?.click()}
+                        onDragOver={(e) => { e.preventDefault(); setDragOverTarget("fattura"); }}
+                        onDragLeave={() => setDragOverTarget(null)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setDragOverTarget(null);
+                          uploadExtraFiles(e.dataTransfer.files, "fatture_urls", "fattura", setUploadingFattura, fatturaInputRef);
+                        }}
+                        className={cn(
+                          "flex items-center justify-center gap-1.5 rounded-lg border border-dashed px-3 py-3 text-xs text-center cursor-pointer transition-colors",
+                          dragOverTarget === "fattura"
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-input text-muted-foreground hover:bg-accent",
+                        )}
+                      >
+                        <Plus className="h-3.5 w-3.5 shrink-0" />
+                        {uploadingFattura ? "Caricamento…" : "Trascina o clicca per caricare fatture"}
+                      </div>
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => aggiuntivoInputRef.current?.click()}
+                        onDragOver={(e) => { e.preventDefault(); setDragOverTarget("documento"); }}
+                        onDragLeave={() => setDragOverTarget(null)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setDragOverTarget(null);
+                          uploadExtraFiles(e.dataTransfer.files, "documenti_aggiuntivi_urls", "aggiuntivi", setUploadingAggiuntivo, aggiuntivoInputRef);
+                        }}
+                        className={cn(
+                          "flex items-center justify-center gap-1.5 rounded-lg border border-dashed px-3 py-3 text-xs text-center cursor-pointer transition-colors",
+                          dragOverTarget === "documento"
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-input text-muted-foreground hover:bg-accent",
+                        )}
+                      >
+                        <Plus className="h-3.5 w-3.5 shrink-0" />
+                        {uploadingAggiuntivo ? "Caricamento…" : "Trascina o clicca per caricare documenti"}
+                      </div>
+                    </div>
+                  )}
+                  {(() => {
+                    // I file caricati dal cliente stanno nel jsonb `dati_form`, in
+                    // punti che dipendono dal modulo compilato:
+                    //  - form classico  → documenti.fattura_url / bonifico_url
+                    //  - moduli dinamici → fatture.fattura, prodotto.libretto_url, …
+                    //    e il valore è una STRINGA se ha caricato un file solo,
+                    //    un ELENCO se ne ha caricati più d'uno.
+                    // Cercare percorsi fissi scritti a mano lasciava invisibili le
+                    // fatture dei moduli dinamici. Li raccogliamo invece per come
+                    // sono fatti: ogni file caricato vive sotto `<id pratica>/`,
+                    // quindi si riconosce senza sapere nulla dello schema del
+                    // modulo — e i moduli nuovi funzionano da soli.
+                    type FileForm = { label: string; path: string; chiave: string };
+
+                    const raccogliFile = (
+                      nodo: unknown,
+                      chiave: string,
+                      dentro: FileForm[],
+                    ) => {
+                      if (typeof nodo === "string") {
+                        if (nodo.startsWith(`${practice.id}/`)) {
+                          dentro.push({ label: chiave, path: nodo, chiave });
+                        }
+                        return;
+                      }
+                      if (Array.isArray(nodo)) {
+                        nodo.forEach((v) => raccogliFile(v, chiave, dentro));
+                        return;
+                      }
+                      if (nodo && typeof nodo === "object") {
+                        Object.entries(nodo as Record<string, unknown>).forEach(
+                          ([k, v]) => raccogliFile(v, k, dentro),
+                        );
+                      }
+                    };
+
+                    const fileDalForm: FileForm[] = [];
+                    raccogliFile(practice.dati_form, "documento", fileDalForm);
+
+                    // Nomi da mostrare per i campi il cui identificativo tecnico
+                    // non coincide col nome del documento richiesto.
+                    const NOMI_DOCUMENTI: Record<string, string> = {
+                      libretto_url: "Certificato F-GAS",
+                    };
+
+                    const etichetta = (chiave: string, i: number, totale: number) => {
+                      const nome = NOMI_DOCUMENTI[chiave] ?? chiave
+                        .replace(/_url$/i, "")
+                        .replace(/_/g, " ")
+                        .trim();
+                      const titolo = nome.charAt(0).toUpperCase() + nome.slice(1);
+                      return totale > 1 ? `${titolo} ${i + 1}` : titolo;
+                    };
+
+                    const perGruppo = (test: RegExp) =>
+                      fileDalForm.filter((f) => test.test(f.chiave));
+
+                    const fattureDalForm = perGruppo(/fattur/i);
+                    const bonificiDalForm = perGruppo(/bonific/i);
+                    const altriDalForm = fileDalForm.filter(
+                      (f) => !/fattur/i.test(f.chiave) && !/bonific/i.test(f.chiave),
+                    );
+
+                    // fatture_urls: eliminabili dal super_admin (upload manuale /
+                    // rivenditore). Quelle caricate dal cliente vivono nel jsonb
+                    // dati_form → le mostriamo ma NON sono eliminabili da qui.
+                    const fattureColPaths = practice.fatture_urls ?? [];
+                    const fatturePaths = [...fattureColPaths];
+                    fattureDalForm.forEach((f) => {
+                      if (!fatturePaths.includes(f.path)) fatturePaths.push(f.path);
+                    });
+
+                    const groups: { title: string; files: { label: string; path: string; onDelete?: () => void }[] }[] = [
+                      {
+                        title: "Fatture",
+                        files: fatturePaths.map((p, i) => ({
+                          label: `Fattura ${i + 1}`,
+                          path: p,
+                          onDelete:
+                            isSuperAdmin && fattureColPaths.includes(p)
+                              ? () => setDeleteExtraFile({ path: p, column: "fatture_urls" })
+                              : undefined,
+                        })),
+                      },
+                      {
+                        title: "Bonifico",
+                        files: bonificiDalForm.map((f, i) => ({
+                          label: etichetta(f.chiave, i, bonificiDalForm.length),
+                          path: f.path,
+                        })),
+                      },
+                      {
+                        title: "Altri documenti dal modulo",
+                        files: altriDalForm.map((f, i) => ({
+                          label: etichetta(f.chiave, i, altriDalForm.length),
+                          path: f.path,
+                        })),
+                      },
+                      {
+                        title: "Documenti aggiuntivi",
+                        files: (practice.documenti_aggiuntivi_urls ?? []).map((p, i) => ({
+                          label: `Doc. aggiuntivo ${i + 1}`,
+                          path: p,
+                          onDelete: isSuperAdmin
+                            ? () => setDeleteExtraFile({ path: p, column: "documenti_aggiuntivi_urls" })
+                            : undefined,
+                        })),
+                      },
+                      {
+                        title: "Documenti ENEA",
+                        files: (practice.documenti_enea_urls ?? []).map((p, i) => ({
+                          label: `Doc. ENEA ${i + 1}`,
+                          path: p,
+                        })),
+                      },
+                      {
+                        title: "Documenti precompilati",
+                        files: precompiledDocs.map((d) => ({
+                          label: d.nome_file.replace(/\.html$/i, ""),
+                          path: d.storage_path,
+                        })),
+                      },
+                      {
+                        title: "Pratica ENEA conclusa",
+                        files: (practice.pratica_enea_conclusa_urls ?? []).map((p, i) => ({
+                          label: `Pratica conclusa ${i + 1}`,
+                          path: p,
+                          onDelete: isInternal ? () => setDeleteConclusaPath(p) : undefined,
+                        })),
+                      },
+                    ];
+                    const totalFiles = groups.reduce((sum, g) => sum + g.files.length, 0);
+                    if (totalFiles === 0) {
+                      return (
+                        <p className="text-sm text-muted-foreground italic">
+                          Nessun documento disponibile.
+                        </p>
+                      );
+                    }
+                    return (
+                      <div className="space-y-3">
+                        {groups.map((g) =>
+                          g.files.length === 0 ? null : (
+                            <div key={g.title}>
+                              <p className="text-[11px] font-medium text-muted-foreground mb-1">
+                                {g.title}
+                              </p>
+                              <div className="space-y-1">
+                                {g.files.map((f) => (
+                                  <div key={f.path} className="flex items-center gap-1">
+                                    <div className="flex-1 min-w-0">
+                                      <FileDownloadLink label={f.label} path={f.path} />
+                                    </div>
+                                    {f.onDelete && (
+                                      <button
+                                        type="button"
+                                        onClick={f.onDelete}
+                                        className="text-muted-foreground hover:text-destructive transition-colors p-0.5 rounded shrink-0"
+                                        title="Rimuovi file"
+                                        aria-label="Rimuovi file"
+                                      >
+                                        <X className="h-3.5 w-3.5" />
+                                      </button>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    );
+                  })()}
+                </section>
+
+                {/* 5. Log comunicazioni — collapsed by default */}
+                <details className="group">
+                  <summary className="cursor-pointer text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-primary">
+                    Vedi contatti con il cliente
+                  </summary>
+                  <div className="mt-3">
+                    <CommLogSection practiceId={practice.id} isInternal={isInternal} />
+                  </div>
+                </details>
+              </div>
+            )}
+          </>
+        )}
+      </SheetContent>
+
+      {/* Confirm delete "pratica conclusa" file */}
+      <AlertDialog
+        open={!!deleteConclusaPath}
+        onOpenChange={(o) => !o && setDeleteConclusaPath(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Rimuovere il file?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Il file verrà eliminato definitivamente dall'archivio. L'operazione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteConclusaPath) handleDeleteConclusa(deleteConclusaPath);
+                setDeleteConclusaPath(null);
+              }}
+            >
+              Elimina
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm delete file caricato (fattura o documento aggiuntivo) — super_admin */}
+      <AlertDialog
+        open={!!deleteExtraFile}
+        onOpenChange={(o) => !o && setDeleteExtraFile(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Rimuovere il file?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Il file verrà eliminato definitivamente dall'archivio. L'operazione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteExtraFile) handleDeleteExtra(deleteExtraFile.path, deleteExtraFile.column);
+                setDeleteExtraFile(null);
+              }}
+            >
+              Elimina
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm elimina pratica — solo super_admin */}
+      <AlertDialog open={showDeletePractice} onOpenChange={(o) => !o && setShowDeletePractice(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminare la pratica?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {practice ? (
+                <>
+                  La pratica di <strong>{practice.cliente_nome} {practice.cliente_cognome}</strong> verrà
+                  eliminata <strong>definitivamente</strong> insieme a documenti, messaggi e log collegati.
+                  Le automazioni su questa pratica si interromperanno. L'operazione non può essere annullata.
+                </>
+              ) : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingPractice}>Annulla</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleDeletePractice(); }}
+              disabled={deletingPractice}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deletingPractice ? "Eliminazione…" : "Elimina definitivamente"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Abbina la pratica a un rivenditore esistente — solo super_admin */}
+      <Dialog open={showAbbina} onOpenChange={(o) => { if (!o) { setShowAbbina(false); setAbbinaCompanyId(""); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Abbina a un rivenditore</DialogTitle>
+            <DialogDescription>
+              {practice ? (
+                <>
+                  Assegna la pratica di <strong>{practice.cliente_nome} {practice.cliente_cognome}</strong>
+                  {" "}al rivenditore corretto. La pratica resterà invariata, cambierà solo l'azienda collegata.
+                </>
+              ) : null}
+            </DialogDescription>
+          </DialogHeader>
+
+          <Command className="rounded-md border">
+            <CommandInput placeholder="Cerca rivenditore…" />
+            <CommandList className="max-h-60">
+              <CommandEmpty>Nessun rivenditore trovato.</CommandEmpty>
+              <CommandGroup>
+                {abbinaCompanies.map((c) => (
+                  <CommandItem
+                    key={c.id}
+                    value={c.ragione_sociale}
+                    onSelect={() => setAbbinaCompanyId(c.id)}
+                    className="cursor-pointer"
+                  >
+                    <Check className={`mr-2 h-4 w-4 ${abbinaCompanyId === c.id ? "opacity-100" : "opacity-0"}`} />
+                    {c.ragione_sociale}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowAbbina(false); setAbbinaCompanyId(""); }} disabled={abbinando}>
+              Annulla
+            </Button>
+            <Button onClick={handleAbbina} disabled={!abbinaCompanyId || abbinando}>
+              {abbinando ? "Abbinamento…" : "Abbina"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dichiarazione Requisiti Tecnici — documento precompilato per ENEA */}
+      <DichiarazioneTecnicaDialog
+        open={showDichiarazione}
+        onOpenChange={setShowDichiarazione}
+        practice={practice}
+      />
+    </Sheet>
+  );
+}
+
+// ── StatPill ──────────────────────────────────────────────────────────────────
+
+function StatPill({
+  label,
+  value,
+  intent = "default",
+}: {
+  label: string;
+  value: number | string;
+  intent?: "default" | "warning" | "danger" | "success";
+}) {
+  const colors: Record<string, string> = {
+    default: "bg-muted/60 text-foreground",
+    warning: "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400",
+    danger: "bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400",
+    success: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400",
+  };
+  return (
+    <div
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs whitespace-nowrap ${colors[intent]}`}
+    >
+      <span className="font-normal opacity-70">{label}</span>
+      <span className="font-semibold">{value}</span>
+    </div>
+  );
+}
+
+// ── FormDataDetails ───────────────────────────────────────────────────────────
+// Mostra dati_form jsonb in modo leggibile. Collapsible per non saturare la card.
+
+function Field({ label, value }: { label: string; value: unknown }) {
+  if (value === null || value === undefined || value === "") return null;
+  let display: string;
+  if (typeof value === "boolean") display = value ? "Sì" : "No";
+  else if (typeof value === "number") display = String(value);
+  else display = String(value);
+  return (
+    <div>
+      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-sm font-medium">{display}</p>
+    </div>
+  );
+}
+
+function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
+  const richiedente = (dati.richiedente as Record<string, unknown>) || {};
+  const residenza = (dati.residenza as Record<string, unknown>) || {};
+  const apparlavori = (dati.appartamento_lavori as Record<string, unknown>) || {};
+  const cointest = (dati.cointestazione as Record<string, unknown>) || {};
+  const catastali = (dati.catastali as Record<string, unknown>) || {};
+  const edificio = (dati.edificio as Record<string, unknown>) || {};
+  const impianto = (dati.impianto as Record<string, unknown>) || {};
+  const prodotto = (dati.prodotto as Record<string, unknown>) || {};
+
+  const hasApparLavori = residenza.stesso_indirizzo_lavori === false && Object.keys(apparlavori).length > 0;
+  const hasCointest = cointest.presente === true;
+  const hasRecuperoCatastale = catastali.recupero_richiesto === true;
+
+  // Il modulo cliente moderno salva `prodotto.items` (schermature) con chiavi
+  // `tipo` / `direzione`; alcune pratiche più vecchie hanno invece
+  // `prodotto.schermature` con `tipo_prodotto` / `direzione`. Uniformiamo qui
+  // per non lasciare buchi nel dettaglio pratica visto dallo staff.
+  const rawSchermature =
+    (Array.isArray(prodotto.items) && (prodotto.items as Array<Record<string, unknown>>)) ||
+    (Array.isArray(prodotto.schermature) && (prodotto.schermature as Array<Record<string, unknown>>)) ||
+    null;
+  const prodottoTipo =
+    (prodotto.tipo as string | undefined)
+    ?? (rawSchermature ? "schermature" : undefined)
+    ?? (prodotto.superficie_totale_mq || prodotto.numero_vetrate || prodotto.fattura_riporta_mq !== undefined ? "vepa" : undefined)
+    ?? (prodotto.materiale_nuovi || prodotto.vetro_nuovi || prodotto.materiale_vecchi || prodotto.vetro_vecchi ? "infissi" : undefined)
+    ?? (prodotto.libretto_url ? "impianto_termico" : undefined);
+
+  return (
+    <details className="rounded-lg border bg-card group">
+      <summary className="cursor-pointer list-none flex items-center justify-between px-4 py-3 hover:bg-muted/40">
+        <h3 className="text-sm font-semibold">Dati form cliente</h3>
+        <span className="text-xs text-muted-foreground group-open:rotate-180 transition-transform">▾</span>
+      </summary>
+      <div className="px-4 pb-4 space-y-5">
+        {/* Richiedente */}
+        {Object.keys(richiedente).length > 0 && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Richiedente</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+              <Field label="Nome" value={richiedente.nome} />
+              <Field label="Cognome" value={richiedente.cognome} />
+              <Field label="Comune nascita" value={richiedente.comune_nascita} />
+              <Field label="Provincia nascita" value={richiedente.provincia_nascita} />
+              <Field label="Data nascita" value={richiedente.data_nascita} />
+              <Field label="Codice fiscale" value={richiedente.cf} />
+              <Field label="Email" value={richiedente.email} />
+              <Field label="Telefono" value={richiedente.telefono} />
+              <Field label="Abitazione principale" value={richiedente.abitazione_principale} />
+            </div>
+          </section>
+        )}
+
+        {/* Residenza */}
+        {Object.keys(residenza).length > 0 && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Residenza</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+              <Field label="Comune" value={residenza.comune} />
+              <Field label="Provincia" value={residenza.provincia} />
+              <Field label="Indirizzo" value={residenza.indirizzo} />
+              <Field label="Civico" value={residenza.civico} />
+              <Field label="CAP" value={residenza.cap} />
+              <Field label="Stesso indirizzo dei lavori" value={residenza.stesso_indirizzo_lavori} />
+            </div>
+          </section>
+        )}
+
+        {/* Appartamento lavori (se diverso) */}
+        {hasApparLavori && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Appartamento dei lavori</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+              <Field label="Comune" value={apparlavori.comune} />
+              <Field label="Provincia" value={apparlavori.provincia} />
+              <Field label="Indirizzo" value={apparlavori.indirizzo} />
+              <Field label="Numero" value={apparlavori.numero} />
+              <Field label="CAP" value={apparlavori.cap} />
+            </div>
+          </section>
+        )}
+
+        {/* Cointestazione */}
+        {hasCointest && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Cointestatario</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+              <Field label="Nome" value={cointest.nome} />
+              <Field label="Cognome" value={cointest.cognome} />
+              <Field label="Codice fiscale" value={cointest.cf} />
+            </div>
+          </section>
+        )}
+
+        {/* Catastali */}
+        {Object.keys(catastali).length > 0 && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Dati catastali</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-2">
+              <Field label="Foglio" value={catastali.foglio} />
+              <Field label="Mappale" value={catastali.mappale} />
+              <Field label="Subalterno" value={catastali.subalterno} />
+            </div>
+            {hasRecuperoCatastale && (
+              <div className="mt-3 rounded bg-amber-50 dark:bg-amber-950/20 px-3 py-2 text-xs">
+                <p className="font-semibold text-amber-800 dark:text-amber-300 mb-1">⚠️ Cliente ha richiesto recupero catastale (+€10)</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 mt-1">
+                  <Field label="Proprietario nome" value={catastali.proprietario_nome} />
+                  <Field label="Proprietario cognome" value={catastali.proprietario_cognome} />
+                  <Field label="Proprietario CF" value={catastali.proprietario_cf} />
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Edificio */}
+        {Object.keys(edificio).length > 0 && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Edificio</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+              <Field label="Anno costruzione" value={edificio.anno_costruzione} />
+              <Field label="Superficie (mq)" value={edificio.superficie_mq} />
+              <Field label="N. appartamenti edificio" value={edificio.numero_appartamenti} />
+              <Field label="Titolo richiedente" value={edificio.titolo_richiedente} />
+              <Field label="Tipologia" value={edificio.tipologia} />
+            </div>
+          </section>
+        )}
+
+        {/* Impianto */}
+        {Object.keys(impianto).length > 0 && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Impianto termico</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+              <Field label="Tipo impianto" value={impianto.tipo} />
+              <Field label="Terminali" value={impianto.terminali} />
+              <Field label="Combustibile" value={impianto.combustibile} />
+              <Field label="Tipo caldaia" value={impianto.tipo_caldaia} />
+              <Field label="Aria condizionata" value={impianto.aria_condizionata} />
+            </div>
+          </section>
+        )}
+
+        {/* Variante prodotto */}
+        {prodottoTipo && (
+          <section>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+              Dati prodotto · {
+                prodottoTipo === "infissi" ? "Infissi"
+                : prodottoTipo === "vepa" ? "VEPA"
+                : prodottoTipo === "schermature" ? "Schermature solari"
+                : prodottoTipo === "insufflaggio" ? "Insufflaggio tetti"
+                : "Impianto termico"
+              }
+            </p>
+            {prodottoTipo === "infissi" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                <Field label="Materiale vecchi" value={(prodotto.materiale_vecchi ?? prodotto.vecchi_materiale) as unknown} />
+                <Field label="Vetro vecchi" value={(prodotto.vetro_vecchi ?? prodotto.vecchi_vetro) as unknown} />
+                <Field label="Materiale nuovi" value={(prodotto.materiale_nuovi ?? prodotto.nuovi_materiale) as unknown} />
+                <Field label="Vetro nuovi" value={(prodotto.vetro_nuovi ?? prodotto.nuovi_vetro) as unknown} />
+                <Field label="Zanzariere/tapparelle/persiane" value={(prodotto.zanzariere_tapparelle_persiane ?? prodotto.zanzariere_tapparelle) as unknown} />
+              </div>
+            )}
+            {prodottoTipo === "vepa" && (
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                  <Field label="Materiale struttura/telaio" value={prodotto.materiale_struttura} />
+                  <Field label="Numero vetrate" value={prodotto.numero_vetrate} />
+                  <Field label="Superficie totale (m²)" value={prodotto.superficie_totale_mq} />
+                  <Field label="Metri quadrati presenti in fattura" value={prodotto.fattura_riporta_mq} />
+                  <Field label="Note" value={prodotto.note} />
+                </div>
+                {prodotto.documento_misure_url && (
+                  <FileDownloadLink
+                    label="📐 Documento con misure VEPA"
+                    path={prodotto.documento_misure_url as string}
+                  />
+                )}
+                {prodotto.fattura_url && (
+                  <FileDownloadLink label="📄 Fattura VEPA" path={prodotto.fattura_url as string} />
+                )}
+              </div>
+            )}
+            {prodottoTipo === "schermature" && rawSchermature && (
+              <div className="space-y-2">
+                {rawSchermature.map((s, i) => (
+                  <div key={i} className="rounded border bg-muted/30 px-3 py-2 grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1">
+                    <p className="text-xs text-muted-foreground sm:col-span-3 font-medium">Schermatura #{i + 1}</p>
+                    <Field label="Tipo prodotto" value={(s.tipo ?? s.tipo_prodotto) as unknown} />
+                    <Field label="Esposizione" value={s.direzione as unknown} />
+                  </div>
+                ))}
+              </div>
+            )}
+            {prodottoTipo === "impianto_termico" && (
+              <div>
+                {prodotto.libretto_url ? (
+                  <FileDownloadLink label="📄 Certificato F-GAS" path={prodotto.libretto_url as string} />
+                ) : (
+                  <p className="text-xs text-muted-foreground italic">Certificato F-GAS non caricato dal cliente.</p>
+                )}
+              </div>
+            )}
+          </section>
+        )}
+      </div>
+    </details>
+  );
+}
+
+// ── KpiCard ───────────────────────────────────────────────────────────────────
+
+function KpiCard({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string;
+  color?: "green" | "amber";
+}) {
+  const colorClasses =
+    color === "green"
+      ? "text-green-700 dark:text-green-400"
+      : color === "amber"
+        ? "text-amber-700 dark:text-amber-400"
+        : "text-foreground";
+  return (
+    <div className="rounded-lg border bg-card p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className={`text-lg font-bold ${colorClasses}`}>{value}</p>
+    </div>
+  );
+}
+
+// ── Pagamento helpers ─────────────────────────────────────────────────────────
+
+const PAGAMENTO_LABELS: Record<string, string> = {
+  non_pagata: "Non pagata",
+  pagata: "Pagata",
+  in_verifica: "In verifica",
+  rimborsata: "Rimborsata",
+};
+
+function pagamentoBadgeClass(stato: string | null | undefined) {
+  switch (stato) {
+    case "pagata":
+      return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-900";
+    case "in_verifica":
+      return "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-900";
+    case "rimborsata":
+      return "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-900";
+    case "non_pagata":
+    default:
+      return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-900";
+  }
+}
+
+// ── PracticeCard ──────────────────────────────────────────────────────────────
+
+function PracticeCard({
+  practice,
+  index,
+  isInternal,
+  operatorMap,
+  onOpen,
+  selectable = false,
+  isSelected = false,
+  onToggleSelect,
+}: {
+  practice: PracticeWithRelations;
+  index: number;
+  isInternal: boolean;
+  operatorMap: Record<string, string>;
+  onOpen: (p: PracticeWithRelations) => void;
+  selectable?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (id: string) => void;
+}) {
+  const days = daysAgo(practice.updated_at);
+  const hasMissingDocs = practice.documenti_mancanti?.length > 0;
+  const stageType = practice.pipeline_stages?.stage_type;
+  const operatorName = practice.operatore_id ? operatorMap[practice.operatore_id] : null;
+
+  const agingIntent =
+    days > 7 ? "text-destructive" : days >= 4 ? "text-amber-500" : "text-muted-foreground";
+
+  // DnD attivo SOLO per staff (super_admin/operatore senza impersonation).
+  // Aziende e rivenditori vedono read-only — possono cliccare per aprire detail
+  // ma NON spostare le card tra fasi.
+  const dragDisabled = selectable || !isInternal;
+
+  return (
+    <Draggable draggableId={practice.id} index={index} isDragDisabled={dragDisabled}>
+      {(provided, snapshot) => {
+        // Quando la card è in drag, la rendiamo via React Portal su <body>
+        // per sfuggire a qualsiasi ancestor con `transform`/`filter`/`will-change`
+        // che creerebbe un containing block per `position: fixed` (default di
+        // @hello-pangea/dnd). Senza Portal, l'offset del cursore vs. la card
+        // si scombina e la card "scivola" rispetto al puntatore.
+        // Inoltre disabilitiamo la transition `transition-all` durante il drag
+        // — qualunque transition CSS sulla `transform` interferisce con quella
+        // inline applicata dal library.
+        const inDrag = snapshot.isDragging;
+        const card = (
+          <div
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            onClick={(e) => {
+              if (inDrag) return;
+              if (selectable) {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleSelect?.(practice.id);
+                return;
+              }
+              onOpen(practice);
+            }}
+            style={{
+              ...provided.draggableProps.style,
+              // Durante il drag rimuovi qualsiasi transition CSS che potrebbe
+              // animare `transform` / `top` / `left` in conflitto col library.
+              transition: inDrag ? "none" : provided.draggableProps.style?.transition,
+            }}
+            className={`group relative rounded-lg bg-background border p-3 space-y-2 text-sm ${
+              inDrag ? "" : "transition-all duration-150"
+            } ${
+              selectable ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
+            } ${
+              inDrag
+                ? "shadow-xl ring-2 ring-primary/30"
+                : isSelected
+                ? "shadow-md ring-2 ring-primary border-primary"
+                : "shadow-sm hover:shadow-md hover:-translate-y-0.5"
+            }`}
+          >
+          {/* Top: name + brand + CF badge */}
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start gap-2 min-w-0 flex-1">
+              {selectable && (
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleSelect?.(practice.id);
+                  }}
+                  className="shrink-0 mt-0.5"
+                >
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => onToggleSelect?.(practice.id)}
+                    aria-label={`Seleziona pratica di ${practice.cliente_nome} ${practice.cliente_cognome}`}
+                  />
+                </div>
+              )}
+              <span className="font-semibold leading-snug truncate text-[13px]">
+                {practice.cliente_nome} {practice.cliente_cognome}
+              </span>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              {/* CF badge — solo visibile agli operatori interni */}
+              {isInternal && practice.tipo_fatturazione === "cliente_finale" && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                  CF
+                </span>
+              )}
+              <span
+                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                  practice.brand === "enea"
+                    ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                    : "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300"
+                }`}
+              >
+                {practice.brand === "enea" ? "ENEA" : "CT"}
+              </span>
+            </div>
+          </div>
+
+          {/* Company (internal only) — sul segnaposto mostra l'azienda
+              dichiarata, così la colonna non è una fila di "Da abbinare". */}
+          {isInternal && practice.companies && (
+            isDaAbbinareCompany(practice.companies.ragione_sociale) ? (
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 truncate">
+                ⚠️ Da abbinare · {practice.azienda_dichiarata || "azienda non indicata"}
+              </p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground truncate">
+                {practice.companies.ragione_sociale}
+              </p>
+            )
+          )}
+
+          {/* Product */}
+          {practice.prodotto_installato && (
+            <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+              <Tag className="h-3 w-3 shrink-0" />
+              {practice.prodotto_installato}
+            </p>
+          )}
+
+          {/* Form status dot */}
+          {practice.form_compilato_at ? (
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="text-[11px] text-emerald-700 dark:text-emerald-400">Form compilato</span>
+            </div>
+          ) : stageType === "attesa_compilazione" ? (
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" />
+              <span className="text-[11px] text-amber-600 dark:text-amber-400">In attesa form</span>
+            </div>
+          ) : null}
+
+          {/* Operator (internal only) */}
+          {isInternal && operatorName && (
+            <div className="flex items-center gap-1.5">
+              <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[9px] font-bold flex items-center justify-center shrink-0">
+                {getInitials(operatorName)}
+              </span>
+              <span className="text-[11px] text-muted-foreground truncate">{operatorName}</span>
+            </div>
+          )}
+
+          {/* Footer row */}
+          <div className="flex items-center justify-between pt-0.5">
+            <span className={`text-[11px] font-medium ${agingIntent}`}>{days}g fa</span>
+            <div className="flex items-center gap-1.5">
+              {hasMissingDocs && (
+                <span className="flex items-center gap-0.5 text-[11px] text-amber-600 font-medium">
+                  <AlertTriangle className="h-3 w-3" />
+                  {practice.documenti_mancanti.length}
+                </span>
+              )}
+              {practice.conteggio_solleciti > 0 && (
+                <span className="flex items-center gap-0.5 text-[11px] text-blue-500">
+                  <MessageCircle className="h-3 w-3" />
+                  {practice.conteggio_solleciti}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        );
+        // Durante il drag, rendiamo via Portal su <body> per sfuggire al
+        // containing block creato dagli ancestor con transform (page-enter
+        // animation, sidebar transform, ecc.). Solo così il cursore segue
+        // esattamente la card senza offset orizzontale.
+        return inDrag ? createPortal(card, document.body) : card;
+      }}
+    </Draggable>
+  );
+}
+
+// ── KanbanBoard ───────────────────────────────────────────────────────────────
+
+export default function KanbanBoard() {
+  const { user, isInternal: realIsInternal } = useAuth();
+  const { isImpersonating } = useCompany();
+  // Quando super_admin impersona un'azienda, l'UI deve comportarsi COME SE fosse
+  // l'azienda (vista semplificata, no drag, no admin actions, nomi reseller).
+  // Lato DB l'utente resta super_admin (RLS filtra via useEneaPractices).
+  const isInternal = realIsInternal && !isImpersonating;
+  const { toast } = useToast();
+  const moveStage = useMoveStage();
+  const queryClient = useQueryClient();
+
+  // View mode (staff only): pipeline (kanban) vs tabella (flat table)
+  const [viewMode, setViewMode] = useState<"pipeline" | "tabella">("pipeline");
+
+  // Bulk selection state (internal users only)
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkMoveStageId, setBulkMoveStageId] = useState<string>("");
+  const [bulkArchiveConfirm, setBulkArchiveConfirm] = useState(false);
+  // Bulk send (WhatsApp / Email) — apre dialog con selettore template
+  const [bulkSendChannel, setBulkSendChannel] = useState<"whatsapp" | "email" | null>(null);
+
+  // Practice chat dialog (WhatsApp + email in-app, sostituisce wa.me + mailto:)
+  // Stato: la practice corrente da mostrare nel dialog (null = chiuso).
+  const [chatDialogPractice, setChatDialogPractice] = useState<PracticeWithRelations | null>(null);
+
+  // (Deep-link auto-open practice sheet via ?practice=<id> — useEffect
+  //  spostato sotto la dichiarazione di `practices` per evitare TDZ.)
+
+  // Clear selection when leaving select mode
+  useEffect(() => {
+    if (!selectMode) setSelectedIds(new Set());
+  }, [selectMode]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const bulkMoveMutation = useMutation({
+    mutationFn: async (args: { ids: string[]; stageId: string }) => {
+      const { error } = await eneaPracticesDb()
+        .from("enea_practices")
+        .update({ current_stage_id: args.stageId })
+        .in("id", args.ids);
+      if (error) throw error;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["enea_practices"] });
+      setSelectedIds(new Set());
+      setBulkMoveStageId("");
+      toast({ title: `${variables.ids.length} pratiche spostate` });
+    },
+    onError: (err: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Errore spostamento",
+        description: err.message || "Impossibile spostare le pratiche.",
+      });
+    },
+  });
+
+  const bulkArchiveMutation = useMutation({
+    mutationFn: async (args: { ids: string[] }) => {
+      const { error } = await eneaPracticesDb()
+        .from("enea_practices")
+        .update({ archived_at: new Date().toISOString() })
+        .in("id", args.ids);
+      if (error) throw error;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["enea_practices"] });
+      setSelectedIds(new Set());
+      setBulkArchiveConfirm(false);
+      toast({ title: `${variables.ids.length} pratiche archiviate` });
+    },
+    onError: (err: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Errore archiviazione",
+        description: err.message || "Impossibile archiviare le pratiche.",
+      });
+    },
+  });
+
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [brandFilter, setBrandFilter] = useState<string>(() => {
+    if (!isInternal) return "all";
+    const urlBrand = searchParams.get("brand");
+    if (urlBrand && ["enea", "conto_termico", "all"].includes(urlBrand)) return urlBrand;
+    return "all";
+  });
+  const [search, setSearch] = useState("");
+  // useDeferredValue (React 18 nativo, zero dipendenze): mentre l'utente
+  // sta digitando rapidamente, React mantiene il valore "deferred" stabile
+  // e aggiorna la UI urgenti (input visivo) per primi. La query DB usa la
+  // versione deferred, evitando una fetch a ogni keystroke. Risultato:
+  // input fluido + query solo quando l'utente pausa digitazione.
+  // È più safe e leggero di un useDebounce custom + non richiede lib esterne.
+  const deferredSearch = useDeferredValue(search);
+  const [showArchived, setShowArchived] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [selectedPractice, setSelectedPractice] = useState<PracticeWithRelations | null>(null);
+  const [sortOption, setSortOption] = useState<SortOption>("recenti");
+  const [operatoreFilter, setOperatoreFilter] = useState<string>("all");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const location = useLocation();
+  const [aziendaFilter, setAziendaFilter] = useState<string>(
+    (location.state as { aziendaFilter?: string } | null)?.aziendaFilter ?? "all"
+  );
+  const [clienteFilter, setClienteFilter] = useState("");
+  const [aziendaComboboxOpen, setAziendaComboboxOpen] = useState(false);
+  const [stageFilter, setStageFilter] = useState<string>("all");
+  const [archiveConfirm, setArchiveConfirm] = useState<{
+    practiceId: string;
+    newStageId: string;
+    oldStageName: string;
+    newStageName: string;
+  } | null>(null);
+
+  // Popup obbligatorio quando si sposta una pratica in "Documenti mancanti"
+  const [docMissPopup, setDocMissPopup] = useState<{
+    practiceId: string;
+    newStageId: string;
+    oldStageName: string;
+    newStageName: string;
+  } | null>(null);
+  const [docMissText, setDocMissText] = useState("");
+
+  // Sync URL when brandFilter changes (staff only — reseller stays at /kanban)
+  useEffect(() => {
+    if (isInternal) {
+      if (brandFilter === "all") {
+        if (searchParams.has("brand")) {
+          searchParams.delete("brand");
+          setSearchParams(searchParams, { replace: true });
+        }
+      } else {
+        if (searchParams.get("brand") !== brandFilter) {
+          searchParams.set("brand", brandFilter);
+          setSearchParams(searchParams, { replace: true });
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brandFilter, isInternal]);
+
+  // Sync state when user navigates via sidebar (URL → brandFilter)
+  useEffect(() => {
+    if (!isInternal) return;
+    const urlBrand = searchParams.get("brand");
+    const expected =
+      urlBrand && ["enea", "conto_termico"].includes(urlBrand) ? urlBrand : "all";
+    if (expected !== brandFilter) setBrandFilter(expected);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, isInternal]);
+
+  const { data: rawStages = [] } = usePipelineStages(
+    brandFilter !== "all" ? brandFilter : undefined
+  );
+
+  // Deduplicazione stages: nel DB esistono stages "globali" (reseller_id IS
+  // NULL) E stages personalizzati per ogni reseller, MOLTIPLICATI PER BRAND
+  // (enea + conto_termico). Risultato: per N reseller × 2 brand × 8 stages
+  // possiamo avere fino a 16N righe, con MOLTI nomi duplicati.
+  //
+  // V1 di questo dedup usava key `(brand, name)`: riduceva i duplicati
+  // per-brand ma non eliminava i duplicati cross-brand quando brandFilter=all
+  // (l'admin vedeva "Pronte da fare" 2 volte: una enea + una CT).
+  // V2 (questo): usa SOLO `stage_type` come key (es. "pronte_da_fare",
+  // enum stabile DB-side) + preferenza per stage globale (reseller_id NULL),
+  // poi per brand="enea" come primario. Risultato: max 8 voci nel select.
+  //
+  // Side effect: il select del PracticeDetailSheet — che potrebbe avere una
+  // pratica brand="conto_termico" — riceverà l'id dello stage brand="enea".
+  // È OK: il backend UPDATE su current_stage_id non valida cross-brand (è
+  // un FK semplice), e il join successivo `pipeline_stages(...)` segue
+  // semplicemente l'id. Visivamente il name mostrato non cambia per brand.
+  const stages = useMemo(() => {
+    const byType = new Map<string, PipelineStage>();
+    for (const s of rawStages) {
+      const key = s.stage_type as string;
+      const existing = byType.get(key);
+      if (!existing) {
+        byType.set(key, s);
+        continue;
+      }
+      // Priorità: 1) stage globale (reseller_id NULL), 2) brand="enea"
+      const existingIsGlobal = existing.reseller_id == null;
+      const candidateIsGlobal = s.reseller_id == null;
+      if (candidateIsGlobal && !existingIsGlobal) {
+        byType.set(key, s);
+      } else if (candidateIsGlobal === existingIsGlobal && s.brand === "enea" && existing.brand !== "enea") {
+        byType.set(key, s);
+      }
+    }
+    return Array.from(byType.values()).sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+  }, [rawStages]);
+
+  const { data: practices = [], isLoading, isError: practicesError } = useEneaPractices({
+    brand: brandFilter !== "all" ? brandFilter : undefined,
+    // La ricerca è gestita CLIENT-SIDE in filteredPractices (vedi sotto): così
+    // cerca anche per nome+cognome insieme e per NOME RIVENDITORE (tabella
+    // joinata), cosa che il filtro server .or() su singoli campi non copriva.
+    includeArchived: showArchived,
+  });
+
+  // Deep-link auto-open: se l'URL ha `?practice=<id>` apri la sheet di
+  // dettaglio della pratica corrispondente. Usato dal redirect smart in
+  // PraticaDetail quando l'utente arriva su /pratiche/:id con un id che
+  // appartiene a enea_practices (non a pratiche legacy).
+  useEffect(() => {
+    const target = searchParams.get("practice");
+    if (!target || selectedPractice?.id === target) return;
+    const found = practices.find((p) => p.id === target);
+    if (found) {
+      setSelectedPractice(found);
+      // One-shot: rimuovo il query param così se l'utente refresha non
+      // riapre la sheet (sarebbe fastidioso).
+      const next = new URLSearchParams(searchParams);
+      next.delete("practice");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, practices, selectedPractice?.id, setSearchParams]);
+
+  // Operator map for cards and sheet. Memoized to avoid creating a new array
+  // reference per render (which would invalidate the query cache key).
+  const operatorIds = useMemo(
+    () =>
+      [...new Set(practices.map((p) => p.operatore_id).filter(Boolean))] as string[],
+    [practices],
+  );
+
+  const { data: operators = [] } = useQuery({
+    queryKey: ["kanban-operators", operatorIds],
+    queryFn: async () => {
+      if (operatorIds.length === 0) return [];
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, nome, cognome")
+        .in("id", operatorIds);
+      return data || [];
+    },
+    enabled: operatorIds.length > 0,
+  });
+
+  // Memo: senza, Object.fromEntries(map(...)) crea nuovo oggetto ad ogni
+  // render → usato in CSV export, table cells, badge → invalida memo
+  // dipendenti anche quando `operators` non è cambiato.
+  const operatorMap = useMemo(
+    () => Object.fromEntries(operators.map((o) => [o.id, `${o.nome} ${o.cognome}`.trim()])),
+    [operators],
+  );
+
+  // All companies from DB (for internal filter - loads all, not just from loaded practices)
+  const { data: allCompaniesFromDB = [] } = useQuery({
+    queryKey: ["kanban-all-companies"],
+    enabled: isInternal,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("companies")
+        .select("id, ragione_sociale")
+        .order("ragione_sociale");
+      return data ?? [];
+    },
+  });
+
+  // Stats: collapsed in singolo useMemo + single-pass O(n) per evitare
+  // 3 filter() sequenziali ad ogni render. Senza memo:
+  //   - activePractices (full array allocato ogni render)
+  //   - pronteDaFare.length (rifiltra activePractices)
+  //   - staleCount.length (rifiltra activePractices, +daysAgo per ogni p)
+  // Su 500-1000 pratiche × 3 filter = 1500-3000 op inutili per render parent.
+  // Ora: 1 passata, 3 contatori. Result memoizzato su [practices].
+  const { activePractices, pronteDaFare, staleCount } = useMemo(() => {
+    const active: typeof practices = [];
+    let pronte = 0;
+    let stale = 0;
+    for (const p of practices) {
+      if (!p.archived_at) {
+        active.push(p);
+        if (p.pipeline_stages?.stage_type === "pronte_da_fare") pronte++;
+        if (daysAgo(p.updated_at) > 7) stale++;
+      }
+    }
+    return { activePractices: active, pronteDaFare: pronte, staleCount: stale };
+  }, [practices]);
+
+  // Apply all client-side filters.
+  // Memoized: `filteredPractices` è usato come dipendenza da `kpis` (useMemo),
+  // dal raggruppamento Kanban (line 2267+), dagli export CSV/XLSX e
+  // dalle row PracticeTable. Senza memo, ogni render ricreava una nuova
+  // array ref → kpis si ricalcola, ogni .map() figlio rigenera children
+  // anche se gli stessi filtri non sono cambiati (es. apertura sheet
+  // dettaglio: setSelectedPractice triggera render del parent ma i
+  // filtri non sono cambiati). Su 500+ pratiche con 5+ filtri sequenziali
+  // = ~3-5ms di lavoro inutile per ogni render.
+  const filteredPractices = useMemo(() => practices.filter((p) => {
+    if (isInternal && operatoreFilter !== "all" && p.operatore_id !== operatoreFilter) return false;
+    if (isInternal && aziendaFilter !== "all" && p.companies?.id !== aziendaFilter) return false;
+    if (stageFilter !== "all" && p.current_stage_id !== stageFilter) return false;
+    if (dateFrom && p.created_at < dateFrom) return false;
+    if (dateTo && p.created_at > dateTo + "T23:59:59") return false;
+    // Ricerca: combina la barra principale (deferredSearch) e il filtro avanzato
+    // (clienteFilter). Cerca su nome+cognome insieme, email, CF, telefono e
+    // NOME RIVENDITORE (azienda) — ogni token deve matchare almeno un campo.
     const haystack = [
       `${p.cliente_nome ?? ""} ${p.cliente_cognome ?? ""}`,
       p.cliente_email ?? "",

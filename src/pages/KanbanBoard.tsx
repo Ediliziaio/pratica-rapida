@@ -1992,6 +1992,7 @@ function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
   const prodottoTipo =
     (prodotto.tipo as string | undefined)
     ?? (rawSchermature ? "schermature" : undefined)
+    ?? (prodotto.superficie_totale_mq || prodotto.numero_vetrate || prodotto.fattura_riporta_mq !== undefined ? "vepa" : undefined)
     ?? (prodotto.materiale_nuovi || prodotto.vetro_nuovi || prodotto.materiale_vecchi || prodotto.vetro_vecchi ? "infissi" : undefined)
     ?? (prodotto.libretto_url ? "impianto_termico" : undefined);
 
@@ -2117,6 +2118,7 @@ function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
               Dati prodotto · {
                 prodottoTipo === "infissi" ? "Infissi"
+                : prodottoTipo === "vepa" ? "VEPA"
                 : prodottoTipo === "schermature" ? "Schermature solari"
                 : prodottoTipo === "insufflaggio" ? "Insufflaggio tetti"
                 : "Impianto termico"
@@ -2129,6 +2131,26 @@ function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
                 <Field label="Materiale nuovi" value={(prodotto.materiale_nuovi ?? prodotto.nuovi_materiale) as unknown} />
                 <Field label="Vetro nuovi" value={(prodotto.vetro_nuovi ?? prodotto.nuovi_vetro) as unknown} />
                 <Field label="Zanzariere/tapparelle/persiane" value={(prodotto.zanzariere_tapparelle_persiane ?? prodotto.zanzariere_tapparelle) as unknown} />
+              </div>
+            )}
+            {prodottoTipo === "vepa" && (
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                  <Field label="Materiale struttura/telaio" value={prodotto.materiale_struttura} />
+                  <Field label="Numero vetrate" value={prodotto.numero_vetrate} />
+                  <Field label="Superficie totale (m²)" value={prodotto.superficie_totale_mq} />
+                  <Field label="Metri quadrati presenti in fattura" value={prodotto.fattura_riporta_mq} />
+                  <Field label="Note" value={prodotto.note} />
+                </div>
+                {prodotto.documento_misure_url && (
+                  <FileDownloadLink
+                    label="📐 Documento con misure VEPA"
+                    path={prodotto.documento_misure_url as string}
+                  />
+                )}
+                {prodotto.fattura_url && (
+                  <FileDownloadLink label="📄 Fattura VEPA" path={prodotto.fattura_url as string} />
+                )}
               </div>
             )}
             {prodottoTipo === "schermature" && rawSchermature && (

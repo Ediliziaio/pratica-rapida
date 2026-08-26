@@ -481,7 +481,7 @@ const CONDITION_FIELDS = [
       { value: "neq", label: "non è" },
     ],
     valueType: "select" as const,
-    options: ["infissi", "schermature", "impianto_termico", "caldaia", "fotovoltaico"],
+    options: ["infissi", "vepa", "schermature", "impianto_termico", "caldaia", "fotovoltaico"],
   },
   {
     value: "tipo_servizio",

@@ -120,6 +120,7 @@ function readFieldValue(
       // Match flessibile sul testo libero `prodotto_installato`
       // (es. "Infissi / Serramenti" → "infissi", "Caldaia gas" → "caldaia")
       const p = (practice.prodotto_installato as string | undefined)?.toLowerCase() ?? "";
+      if (p.includes("vepa") || p.includes("vetrat")) return "vepa";
       if (p.includes("infissi") || p.includes("serramenti")) return "infissi";
       if (p.includes("schermatur")) return "schermature";
       if (p.includes("caldaia")) return "caldaia";

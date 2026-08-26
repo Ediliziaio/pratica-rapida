@@ -6,7 +6,9 @@ const MONEY = String.raw`(?:\d{1,3}(?:\.\d{3})*|\d+),\d{2}`;
 const SIGNED_MONEY = String.raw`[-−]?(?:\d{1,3}(?:\.\d{3})*|\d+),\d{2}`;
 const SIGNED_UNIT_MONEY = String.raw`[-−]?(?:\d{1,3}(?:\.\d{3})*|\d+),\d{2,5}`;
 const money = (value: string) => {
-  const parsed = Number(value.replace(/−/g, "-").replace(/\./g, "").replace(",", "."));
+  const normalized = value.trim().replace(/−/g, "-").replace(/\./g, "").replace(",", ".");
+  if (!/\d/.test(normalized)) return null;
+  const parsed = Number(normalized);
   return Number.isFinite(parsed) ? Math.round((parsed + Number.EPSILON) * 100) / 100 : null;
 };
 const amountFrom = (value: string) => value.match(new RegExp(`[-−]?\\s*€?\\s*(${MONEY})\\s*€?`, "i"))?.[1] ?? null;
@@ -62,23 +64,41 @@ const reconciledFiscalTotals = (text: string, grossTotal: number | null) => {
   return candidates.size === 1 && vatAmount !== undefined ? { taxableAmount, vatAmount } : null;
 };
 
-const scheduledDueGross = (text: string) => {
+interface ScheduledDueGrossResult {
+  amount: number | null;
+  issue: "schedule_amount_missing" | null;
+}
+
+const scheduledDueGross = (text: string): ScheduledDueGrossResult => {
   const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
   const index = lines.findIndex((line) => /^(?:scadenze(?:\s+pagamenti)?|scadenziario)\b/i.test(line));
-  if (index < 0) return null;
+  if (index < 0) return { amount: null, issue: null };
   const amounts: number[] = [];
+  let datedRows = 0;
+  let missingAmount = false;
   for (let cursor = index + 1; cursor < Math.min(lines.length, index + 12); cursor += 1) {
     const line = lines[cursor];
     if (/^(?:copia\s+della\s+fattura|riepilogo\s+iva|note|powered\s+by)\b/i.test(line)) break;
     if (!/\b\d{2}[./-]\d{2}[./-]\d{4}\b/.test(line)) continue;
+    datedRows += 1;
     const sameLine = lastAmountFrom(line.replace(/\b\d{2}[./-]\d{2}[./-]\d{4}\b/g, ""));
-    const followingLine = !sameLine && cursor + 1 < lines.length ? lastAmountFrom(lines[cursor + 1]) : null;
-    const parsed = money(sameLine ?? followingLine ?? "");
-    if (parsed !== null) amounts.push(parsed);
+    let candidate = sameLine;
+    for (let offset = 1; !candidate && offset <= 2 && cursor + offset < lines.length; offset += 1) {
+      const following = lines[cursor + offset];
+      if (/\b\d{2}[./-]\d{2}[./-]\d{4}\b/.test(following)
+        || /^(?:copia\s+della\s+fattura|riepilogo\s+iva|note|powered\s+by)\b/i.test(following)) break;
+      candidate = lastAmountFrom(following);
+    }
+    const parsed = candidate === null ? null : money(candidate);
+    if (parsed === null) missingAmount = true;
+    else amounts.push(parsed);
   }
-  return amounts.length
-    ? Math.round((amounts.reduce((sum, value) => sum + value, 0) + Number.EPSILON) * 100) / 100
-    : null;
+  if (datedRows === 0) return { amount: null, issue: null };
+  if (missingAmount || amounts.length !== datedRows) return { amount: null, issue: "schedule_amount_missing" };
+  return {
+    amount: Math.round((amounts.reduce((sum, value) => sum + value, 0) + Number.EPSILON) * 100) / 100,
+    issue: null,
+  };
 };
 
 function taxAmounts(text: string, grossTotal: number | null) {
@@ -195,7 +215,7 @@ function rowNetAmount(text: string, taxableAmount: number | null) {
   return null;
 }
 
-function rowGrossAmount(text: string) {
+function rowGrossAmount(text: string, scheduledDue: ScheduledDueGrossResult) {
   const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
   const verticalInvoiceTotal = text.match(new RegExp(
     `Totale\\s+fattura\\s*\\n\\s*(${MONEY})\\s*€?\\s*\\n\\s*(${MONEY})\\s*€?\\s*\\n\\s*(${MONEY})\\s*€?`,
@@ -243,7 +263,7 @@ function rowGrossAmount(text: string) {
   if (totalToPay !== null) return totalToPay;
   // Il piano scadenze espone il lordo dovuto come prova distinta dalla terna
   // imponibile+IVA. Le date intermedie non sono importi e vengono ignorate.
-  const due = scheduledDueGross(text) ?? amountAfterLabel(text, /^(?:scadenze(?:\s+pagamenti)?|scadenziario)\b/i, 5);
+  const due = scheduledDue.amount ?? amountAfterLabel(text, /^(?:scadenze(?:\s+pagamenti)?|scadenziario)\b/i, 5);
   if (due !== null) return due;
   const totalDue = amountAfterLabel(text, /^totale\s+dovuto\b/i, 1);
   if (totalDue !== null) return totalDue;
@@ -299,9 +319,13 @@ export function extractLocalInvoiceFinancialEvidence(input: LocalInvoiceFinancia
     if (columnar) ({ taxableAmount, vatAmount } = columnar);
   }
   const netFromRows = rowNetAmount(text, taxableAmount);
-  const grossFromRows = rowGrossAmount(text);
+  const scheduledDue = scheduledDueGross(text);
+  const grossFromRows = rowGrossAmount(text, scheduledDue);
   const interventionGrossAmount = grossFromRows ?? (netFromRows !== null && vatAmount !== null
     ? Math.round((netFromRows + vatAmount + Number.EPSILON) * 100) / 100 : null);
+  const extractionIssues = interventionGrossAmount === null && scheduledDue.issue === "schedule_amount_missing"
+    ? [{ code: "schedule_amount_missing" as const, reason: "Scadenza non leggibile, importo mancante" as const }]
+    : [];
   const ocrTripleReconciled = input.extractionMode === "macos_vision_ocr"
     && taxableAmount !== null && vatAmount !== null && input.grossTotal !== null && interventionGrossAmount !== null
     && Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - input.grossTotal) <= 0.01
@@ -316,6 +340,7 @@ export function extractLocalInvoiceFinancialEvidence(input: LocalInvoiceFinancia
     documentNumber: input.documentNumber ?? "", documentDate: input.documentDate ?? "", kind,
     taxableAmount, vatAmount, grossTotal: input.grossTotal, referencedAdvanceIds: [], interventionGrossAmount,
     extractionConfidence: input.extractionMode === "native_text" || ocrTripleReconciled ? "certain" : "uncertain",
+    extractionIssues,
     explicitDeductibleLines, lineItems,
     internalAdjustmentNote: /Acconto\s*\(Rif\./i.test(text) ? "Acconto interno sottratto nella fattura di saldo; non sommato come fonte separata." : null,
   };

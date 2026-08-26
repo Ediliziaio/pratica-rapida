@@ -12,12 +12,18 @@ describe("registro operativo unico",()=>{
   });
   it("rende reperibili le regole solo per id",()=>expect(registryRule("core-form-first")?.step).toBe("customer_form"));
   it("registra le nuove regole utente con provenienza, precedenza e audit",()=>{
-    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v83");
+    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v84");
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.screeningDimensionUnitSurfaceCoherence)).toMatchObject({
       step: "screenings",
       outcome: "continue",
       provenance: { authority: "user", receivedAt: "2026-08-26" },
       deterministicAction: expect.stringContaining("oltre il 5%"),
+    });
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.invoiceScheduleMissingAmount)).toMatchObject({
+      step: "gross_reconciliation",
+      outcome: "requested_operator",
+      provenance: { authority: "user", receivedAt: "2026-08-26" },
+      deterministicAction: expect.stringContaining("Scadenza non leggibile, importo mancante"),
     });
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.documentedProductModuleOverLabel)).toMatchObject({ outcome: "continue", provenance: { authority: "user", receivedAt: "2026-08-23" } });
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.thirdPartyTechnicalCertificateClassification)).toMatchObject({

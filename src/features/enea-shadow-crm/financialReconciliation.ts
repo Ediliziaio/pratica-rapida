@@ -10,6 +10,11 @@ export const MONEY_TOLERANCE_EUR = 0.01;
 
 export type FinancialDocumentKind = "invoice" | "advance" | "balance" | "credit_note" | "non_economic" | "unknown";
 
+export interface FinancialExtractionIssue {
+  code: "schedule_amount_missing";
+  reason: "Scadenza non leggibile, importo mancante";
+}
+
 export interface FinancialDocumentEvidence {
   sourceId: string;
   supplierId: string;
@@ -23,6 +28,7 @@ export interface FinancialDocumentEvidence {
   referencedAdvanceIds: readonly string[];
   interventionGrossAmount: number | null;
   extractionConfidence: "certain" | "uncertain";
+  extractionIssues?: readonly FinancialExtractionIssue[];
   internalAdjustmentNote?: string | null;
   explicitDeductibleLines?: readonly RinaldiDeductibleLineEvidence[];
   lineItems?: readonly RinaldiInvoiceLineEvidence[];
@@ -88,6 +94,10 @@ export function reconcileFinancialEvidence(
     uniqueByIdentity.set(key, preferred); duplicateSources.push(discarded.sourceId);
   }
   const unique = [...uniqueByIdentity.values()];
+  const scheduleAmountMissingSources = unique
+    .filter((doc) => doc.extractionIssues?.some((issue) => issue.code === "schedule_amount_missing"))
+    .map((doc) => doc.sourceId);
+  scheduleAmountMissingSources.forEach((sourceId) => blockers.push(`schedule-amount-missing:${sourceId}`));
   const distinctInvoiceNumbers = new Set(unique.map((doc) => doc.documentNumber.trim().toLowerCase()));
   const distinctSameDossierInvoiceSum = unique.length >= 2
     && distinctInvoiceNumbers.size === unique.length
@@ -138,11 +148,13 @@ export function reconcileFinancialEvidence(
     discardedDuplicateSourceIds: duplicateSources,
     nonEconomicSourceIds: nonEconomic.map((doc) => doc.sourceId),
     auditNotes: [
+      ...unique.flatMap((doc) => doc.extractionIssues?.map((issue) => `${doc.sourceId}:${issue.reason}`) ?? []),
       ...unique.flatMap((doc) => doc.internalAdjustmentNote?.trim() ? [`${doc.sourceId}:${doc.internalAdjustmentNote.trim()}`] : []),
       ...(distinctSameDossierInvoiceSum ? [`fatture-distinte-stesso-dossier:${unique.map((doc) => `${doc.documentNumber}=${doc.grossTotal?.toFixed(2)}`).join("|")}|somma=${money(unique.reduce((sum, doc) => sum + (doc.grossTotal ?? 0), 0)).toFixed(2)}`] : []),
       ...rinaldiPolicy.auditNotes,
     ],
     appliedRuleIds: [
+      ...(scheduleAmountMissingSources.length ? ["user-2026-08-26-invoice-schedule-missing-amount-v1"] : []),
       ...(distinctSameDossierInvoiceSum ? ["user-2026-08-16-distinct-invoice-numbers-same-customer-sum"] : []),
       ...rinaldiPolicy.appliedRuleIds,
     ],

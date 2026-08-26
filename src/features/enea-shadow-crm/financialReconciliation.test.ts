@@ -190,6 +190,16 @@ describe("riconciliazione finanziaria tripla", () => {
     expect(state.exceptions[0]).toMatchObject({ field: "economico.riconciliazione_tripla" });
   });
 
+  it("propaga una scadenza senza importo come blocker e audit espliciti", () => {
+    const result = reconcileFinancialEvidence([doc({
+      interventionGrossAmount: null,
+      extractionIssues: [{ code: "schedule_amount_missing", reason: "Scadenza non leggibile, importo mancante" }],
+    })]);
+    expect(result.blockers).toContain("schedule-amount-missing:fattura-1");
+    expect(result.auditNotes).toContain("fattura-1:Scadenza non leggibile, importo mancante");
+    expect(result.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.invoiceScheduleMissingAmount);
+  });
+
   it("resta fail-closed verso ENEA se la tripla verifica manca o fallisce", () => {
     const previewed = recordEneaDescriptionPreviewConfirmed(recordEneaDescriptionPreviewOpened(EMPTY_SHADOW_CRM_STATE));
     expect(canAdvanceFromPreflightToEnea(previewed)).toBe(false);

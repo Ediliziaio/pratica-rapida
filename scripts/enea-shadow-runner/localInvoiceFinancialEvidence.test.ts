@@ -355,6 +355,51 @@ Totale IVA € 908,79
     expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 9996.66 });
   });
 
+  it("riconosce la scadenza Beghini due righe dopo la data senza inventare zero", () => {
+    const evidence = extract(`Imponibile € 2.850,00
+Totale IVA € 627,00
+Totale
+€ 3.477,00
+Scadenze
+03-08-2026 €
+-
+3.477,00`, { documentNumber: "BEGHINI/26", grossTotal: 3477 });
+    expect(evidence).toMatchObject({
+      taxableAmount: 2850,
+      vatAmount: 627,
+      grossTotal: 3477,
+      interventionGrossAmount: 3477,
+      extractionIssues: [],
+    });
+    expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 3477, blockers: [] });
+  });
+
+  it("preserva uno zero monetario esplicito nello scadenziario", () => {
+    const evidence = extract(`Imponibile € 0,00
+Totale IVA € 0,00
+Scadenze
+03-08-2026 € 0,00`, { documentNumber: "ZERO/26", grossTotal: 0 });
+    expect(evidence).toMatchObject({ interventionGrossAmount: 0, extractionIssues: [] });
+    expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 0, blockers: [] });
+  });
+
+  it("traccia il trattino isolato come scadenza non determinata e produce un blocker leggibile", () => {
+    const evidence = extract(`Imponibile € 2.850,00
+Totale IVA € 627,00
+Scadenze
+03-08-2026 €
+-`, { documentNumber: "MISSING-DUE/26", grossTotal: 3477 });
+    expect(evidence).toMatchObject({
+      interventionGrossAmount: null,
+      extractionIssues: [{ code: "schedule_amount_missing", reason: "Scadenza non leggibile, importo mancante" }],
+    });
+    const reconciliation = reconcileFinancialEvidence([evidence]);
+    expect(reconciliation.usable).toBe(false);
+    expect(reconciliation.blockers).toContain("schedule-amount-missing:invoice-1");
+    expect(reconciliation.auditNotes).toContain("invoice-1:Scadenza non leggibile, importo mancante");
+    expect(reconciliation.appliedRuleIds).toContain("user-2026-08-26-invoice-schedule-missing-amount-v1");
+  });
+
   it("riconcilia il riepilogo compatto e le rate Bonifico delle fatture GRK", () => {
     const evidence = extract(`Fattura Numero : 6 Data 13.02.2026
 Totale documento € 11.562,71

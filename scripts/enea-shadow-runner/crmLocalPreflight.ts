@@ -110,7 +110,7 @@ export interface AprCrmLocalPreflightReport {
   products: ProductPlanRow[];
   financial: {
     invoiceTotal: number | null; eligibleExpense: number | null; tripleReconciliationVerified: boolean; reconciledTotal: number | null;
-    evidence: Array<{ sourceId: string; kind: string; taxableAmount: number | null; vatAmount: number | null; grossTotal: number | null; interventionGrossAmount: number | null; extractionConfidence: string }>;
+    evidence: Array<{ sourceId: string; kind: string; taxableAmount: number | null; vatAmount: number | null; grossTotal: number | null; interventionGrossAmount: number | null; extractionConfidence: string; extractionIssues: Array<{ code: string; reason: string }> }>;
     bankTransfers: Array<{ sourceId: string; principalAmount: number | null; fees: number | null; debitedTotal: number | null; invoiceReference: string | null; taxReliefType: "energy_saving" | "building_renovation" | null; appliedRuleIds: string[] }>;
     bankTransferReconciliation: { status: "not_provided" | "unverified" | "reconciled" | "principal_exceeds_invoices" | "principal_below_invoices"; principalTotal: number | null; feesTotal: number | null; debitedTotal: number | null; difference: number | null; referenceStatus: "not_provided" | "not_checked" | "incomplete" | "verified"; missingInvoiceReferences: string[]; taxReliefTypes: Array<"energy_saving" | "building_renovation"> };
     methods: Array<{ method: string; ok: boolean; total: number | null; sources: readonly string[]; reason: string }>;
@@ -764,6 +764,9 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
     grossTotal: segment.total,
   }));
   const financialReconciliation = reconcileFinancialEvidence(financialEvidence, { mode: "test", scheme: "ecobonus" });
+  const scheduleAmountMissingSources = financialEvidence
+    .filter((item) => item.extractionIssues?.some((issue) => issue.code === "schedule_amount_missing"))
+    .map((item) => item.sourceId);
   const invoiceGrossValues = financialEvidence.map((item) => item.grossTotal);
   const invoiceGrossTotal = invoiceGrossValues.length > 0 && invoiceGrossValues.every((value) => value !== null)
     ? Math.round((invoiceGrossValues.reduce<number>((sum, value) => sum + (value ?? 0), 0) + Number.EPSILON) * 100) / 100 : null;
@@ -1052,6 +1055,13 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
       ? { code: "screening_primary_measurements_missing", field: "screenings.dimensions", reason: "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.", sourceIds, appliedRuleIds: ["system-screening-primary-measurements-operator-routing", USER_AUTHORIZED_RULE_IDS.technicalProductCardinality, "system-apr-operator-intervention-routing"] }
       : { code: `invoice_${sha256(message).slice(0, 8)}`, field: "economic_sources", reason: message, sourceIds, appliedRuleIds: ["core-economic-classification"] });
   }
+  if (scheduleAmountMissingSources.length > 0) blockers.push({
+    code: "invoice_schedule_amount_missing",
+    field: "economic_sources.schedule.amount",
+    reason: "Scadenza non leggibile, importo mancante: verificare l'importo dello scadenziario nella fattura originaria.",
+    sourceIds: scheduleAmountMissingSources,
+    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceScheduleMissingAmount],
+  });
   if (!financialReconciliation.usable) blockers.push({ code: "gross_triple_reconciliation_failed", field: "economic_sources.total", reason: `Tripla riconciliazione non dimostrata: ${financialReconciliation.blockers.length ? financialReconciliation.blockers.join(", ") : financialReconciliation.methods.filter((method) => !method.ok).map((method) => method.reason).join(", ")}.`, sourceIds, appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalVatIncluded, "core-gross-triple-reconciliation", ...financialReconciliation.appliedRuleIds] });
   const uniqueBlockers = blockers.filter((item, index, all) => all.findIndex((candidate) => candidate.code === item.code) === index);
   const financialEligibleForEnea = financialReconciliation.usable && bundledProfessionalExpense.status !== "operator_required";
@@ -1096,7 +1106,7 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
       // quindi il sottoinsieme tecnico per il totale economico.
       invoiceTotal: invoiceGrossTotal, eligibleExpense: eligibleTechnicalExpense,
       tripleReconciliationVerified: financialEligibleForEnea, reconciledTotal: eligibleTechnicalExpense,
-      evidence: financialEvidence.map(({ sourceId, kind, taxableAmount, vatAmount, grossTotal, interventionGrossAmount, extractionConfidence }) => ({ sourceId, kind, taxableAmount, vatAmount, grossTotal, interventionGrossAmount, extractionConfidence })),
+      evidence: financialEvidence.map(({ sourceId, kind, taxableAmount, vatAmount, grossTotal, interventionGrossAmount, extractionConfidence, extractionIssues }) => ({ sourceId, kind, taxableAmount, vatAmount, grossTotal, interventionGrossAmount, extractionConfidence, extractionIssues: [...(extractionIssues ?? [])] })),
       bankTransfers,
       bankTransferReconciliation,
       methods: financialReconciliation.methods.map((method) => ({ ...method })),

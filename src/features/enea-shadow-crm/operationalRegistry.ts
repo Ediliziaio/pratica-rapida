@@ -1,6 +1,6 @@
 import { OPERATIONAL_RULES } from "./operationalRules";
 
-export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v83" as const;
+export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v84" as const;
 export const ENEA_GLOBAL_PREREQUISITE = Object.freeze({
   id: "browser-session-contract-v1",
   scope: "global_not_practice",
@@ -84,6 +84,7 @@ export const USER_AUTHORIZED_RULE_IDS = Object.freeze({
   mandatoryBankTransferInvoiceExpenseCrossCheck: "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
   bankTransferTaxReliefLabelNonBlocking: "user-2026-08-18-bank-transfer-tax-relief-label-nonblocking",
   invoiceGrossTotalVatIncluded: "user-2026-08-16-invoice-gross-total-vat-included",
+  invoiceScheduleMissingAmount: "user-2026-08-26-invoice-schedule-missing-amount-v1",
   distinctInvoiceNumbersSameCustomerSum: "user-2026-08-16-distinct-invoice-numbers-same-customer-sum",
   vepaDeferredCurrentPhase: "user-2026-08-16-vepa-deferred-until-module-enabled",
   vepaBonusCasaRouting: "user-2026-08-18-vepa-bonus-casa-only-routing-v1",
@@ -539,6 +540,18 @@ export const ENEA_USER_AUTHORIZED_RULES: readonly OperationalRegistryRule[] = Ob
     outcome: "continue",
     priority: 1_050,
     provenance: USER_RULE_PROVENANCE_2026_08_16,
+  },
+  {
+    id: USER_AUTHORIZED_RULE_IDS.invoiceScheduleMissingAmount,
+    step: "gross_reconciliation",
+    kind: "business",
+    condition: "TEST o produzione: uno scadenziario della fattura contiene una data ma l'importo associato e vuoto, un trattino o testo non numerico.",
+    sourcePrecedence: ["importo numerico esplicito associato alla data di scadenza", "altra prova economica originaria esplicita e riconciliata", "intervento operatore se l'importo resta non determinabile"],
+    deterministicAction: "Distinguere lo zero monetario esplicito 0,00 da un valore assente. Vuoto, trattino isolato e testo senza cifre diventano null, mai zero. Cercare l'importo associato entro le due righe successive senza oltrepassare una nuova data o una nuova sezione. Se nessuna prova alternativa determina il lordo dell'intervento, bloccare la sola pratica con la motivazione 'Scadenza non leggibile, importo mancante'.",
+    audit: "practiceId, sourceId, riga data, due righe successive osservate, valore monetario esplicito o null, issue schedule_amount_missing, motivazione operatore e ID regola.",
+    outcome: "requested_operator",
+    priority: 1_225,
+    provenance: USER_RULE_PROVENANCE_2026_08_26,
   },
   {
     id: USER_AUTHORIZED_RULE_IDS.distinctInvoiceNumbersSameCustomerSum,

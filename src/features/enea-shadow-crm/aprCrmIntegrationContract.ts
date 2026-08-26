@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { createAprOperatorBlockDescriptor, type AprOperatorBlockDescriptor } from "./aprOperatorUnlockContract";
 
 export const APR_CRM_INTEGRATION_CONTRACT_VERSION = "apr-crm-integration-contract-v2" as const;
 export const APR_READY_PIPELINE = "Pronte da fare" as const;
@@ -28,6 +29,7 @@ export interface AprCrmOperatorRequest {
   evidenceText: string;
   sourceIds: string[];
   choices: Array<{ value: string; label: string }>;
+  block: AprOperatorBlockDescriptor;
 }
 export interface AprCrmOperatorResolution {
   requestId: string;
@@ -56,21 +58,45 @@ export interface AprCrmIntegrationCommand {
 export type AprLocalCaseOutcome =
   | { status: "plan_ready"; reason: string }
   | { status: "draft_saved"; reason: string; draftId: string }
-  | { status: "blocked"; reason: string; operatorRequest?: Omit<AprCrmOperatorRequest, "requestId" | "reason"> & { requestId?: string } };
+  | { status: "blocked"; reason: string; operatorRequest?: Omit<AprCrmOperatorRequest, "requestId" | "reason" | "block"> & { requestId?: string; block?: AprOperatorBlockDescriptor } };
 
-export function proposeAprCrmCommands(event: AprCrmInboundPracticeEvent, outcome: AprLocalCaseOutcome): AprCrmIntegrationCommand[] {
+export function proposeAprCrmCommands(event: AprCrmInboundPracticeEvent, outcome: AprLocalCaseOutcome, now = new Date()): AprCrmIntegrationCommand[] {
   if (!event.eventId.trim() || !event.practiceId.trim() || !event.customerId.trim() || event.module !== "ENEA" || !Number.isInteger(event.crmRevision)) {
     throw new Error("Evento pratica ENEA CRM non valido.");
   }
-  const operatorRequest = outcome.status === "blocked" ? {
-    requestId: outcome.operatorRequest?.requestId ?? `operator:${event.practiceId}:${event.crmRevision}`,
+  const operatorRequest = outcome.status === "blocked" ? (() => {
+    const requestId = outcome.operatorRequest?.requestId ?? `operator:${event.practiceId}:${event.crmRevision}`;
+    const question = outcome.operatorRequest?.question ?? "Quale dato o documento deve utilizzare APR per risolvere questo blocco?";
+    const evidenceText = outcome.operatorRequest?.evidenceText ?? outcome.reason;
+    const sourceIds = outcome.operatorRequest?.sourceIds?.length ? outcome.operatorRequest.sourceIds : [event.dossierLocator];
+    const choices = outcome.operatorRequest?.choices ?? [];
+    return {
+    requestId,
     field: outcome.operatorRequest?.field ?? "pratica",
     reason: outcome.reason,
-    question: outcome.operatorRequest?.question ?? "Quale dato o documento deve utilizzare APR per risolvere questo blocco?",
-    evidenceText: outcome.operatorRequest?.evidenceText ?? outcome.reason,
-    sourceIds: outcome.operatorRequest?.sourceIds?.length ? outcome.operatorRequest.sourceIds : [event.dossierLocator],
-    choices: outcome.operatorRequest?.choices ?? [],
-  } satisfies AprCrmOperatorRequest : undefined;
+    question,
+    evidenceText,
+    sourceIds,
+    choices,
+    block: outcome.operatorRequest?.block ?? createAprOperatorBlockDescriptor({
+      blockId: requestId,
+      practiceId: event.practiceId,
+      customerKey: event.customerId,
+      generationId: `crm-generation:${event.practiceId}:${event.crmRevision}`,
+      category: "legacy_unclassified",
+      code: "crm_operator_request",
+      stage: "unknown",
+      fieldPath: outcome.operatorRequest?.field ?? "pratica",
+      reason: outcome.reason,
+      question,
+      evidenceText,
+      sourceIds,
+      ruleIds: [APR_CRM_INTEGRATION_RULE_IDS[1], "system-atomic-checkpoint-resume"],
+      resumePolicy: "recompute_before_draft",
+      answerSchema: { kind: choices.length ? "controlled_choice" : "text", choices, noteRequired: true },
+      createdAt: now.toISOString(),
+    }),
+  } satisfies AprCrmOperatorRequest; })() : undefined;
   const target = outcome.status === "blocked"
     ? { pipeline: APR_OPERATOR_PIPELINE, status: "APR ENEA · intervento richiesto", operatorRequest }
     : outcome.status === "draft_saved"

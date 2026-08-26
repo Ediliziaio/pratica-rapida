@@ -12,9 +12,11 @@ import {
   type AprLocalCaseOutcome,
 } from "../../src/features/enea-shadow-crm/aprCrmIntegrationContract";
 import { registryRule } from "../../src/features/enea-shadow-crm/operationalRegistry";
+import { isAprOperatorBlockDescriptor, migrateLegacyOperatorRequest } from "../../src/features/enea-shadow-crm/aprOperatorUnlockContract";
 import { applyAprCommandLocally, type LocalCrmSimulationState } from "../../src/features/enea-shadow-crm/aprCrmIntegrationSimulator";
 
-export const APR_CRM_WORKFLOW_VERSION = "apr-crm-persistent-workflow-v1" as const;
+export const APR_CRM_WORKFLOW_VERSION = "apr-crm-persistent-workflow-v2" as const;
+const APR_CRM_WORKFLOW_LEGACY_VERSION = "apr-crm-persistent-workflow-v1" as const;
 const BASE_RULE_IDS = ["system-apr-crm-integration-boundary", "system-apr-operator-intervention-routing", "system-atomic-checkpoint-resume"];
 
 export type AprCrmWorkflowItemState =
@@ -52,7 +54,7 @@ export interface AprCrmWorkflowItem {
 export interface AprCrmWorkflowAuditEvent {
   revision: number;
   at: string;
-  type: "initialized" | "inbound_accepted" | "inbound_deduplicated" | "command_staged" | "command_applied" | "command_failed" | "operator_answered" | "practice_requeued";
+  type: "initialized" | "inbound_accepted" | "inbound_deduplicated" | "command_staged" | "command_applied" | "command_failed" | "operator_answered" | "practice_requeued" | "operator_contract_migrated";
   practiceId: string | null;
   commandId: string | null;
   reason: string;
@@ -118,7 +120,68 @@ function validState(value: AprCrmWorkflowState) {
     && Array.isArray(value.items)
     && Array.isArray(value.commands)
     && Array.isArray(value.processedInboundEventIds)
+    && value.items.every((item) => !item.operatorRequest || isAprOperatorBlockDescriptor(item.operatorRequest.block))
+    && value.commands.every((record) => (!record.command.desired.operatorRequest || isAprOperatorBlockDescriptor(record.command.desired.operatorRequest.block))
+      && (!record.command.compensation.operatorRequest || isAprOperatorBlockDescriptor(record.command.compensation.operatorRequest.block)))
+    && Object.values(value.simulation.customers).every((customer) => !customer.operatorRequest || isAprOperatorBlockDescriptor(customer.operatorRequest.block))
     && value.audit.every((event) => event.appliedRuleIds.length > 0 && event.appliedRuleIds.every((ruleId) => registryRule(ruleId)));
+}
+
+function migrateWorkflowState(value: unknown, now: Date): AprCrmWorkflowState | null {
+  if (!value || typeof value !== "object") return null;
+  const legacy = value as Omit<AprCrmWorkflowState, "version"> & { version: string };
+  if (legacy.version !== APR_CRM_WORKFLOW_VERSION && legacy.version !== APR_CRM_WORKFLOW_LEGACY_VERSION) return null;
+  const next = structuredClone(legacy) as AprCrmWorkflowState;
+  let migrated = legacy.version === APR_CRM_WORKFLOW_LEGACY_VERSION;
+  const descriptors = new Map<string, AprCrmOperatorRequest["block"]>();
+  for (const item of next.items ?? []) {
+    if (!item.operatorRequest) continue;
+    const request = item.operatorRequest as AprCrmOperatorRequest & { block?: AprCrmOperatorRequest["block"] };
+    if (!isAprOperatorBlockDescriptor(request.block)) {
+      request.block = migrateLegacyOperatorRequest(request, {
+        practiceId: item.event.practiceId,
+        customerKey: item.event.customerId,
+        generationId: `crm-generation:${item.event.practiceId}:${item.event.crmRevision}`,
+        createdAt: item.updatedAt || item.startedAt || now.toISOString(),
+        ruleIds: BASE_RULE_IDS,
+      });
+      migrated = true;
+    }
+    descriptors.set(request.requestId, request.block);
+  }
+  const attach = (request: AprCrmOperatorRequest | undefined, fallback?: { practiceId: string; customerKey: string; generationId: string; createdAt: string; ruleIds: readonly string[] }) => {
+    if (!request || isAprOperatorBlockDescriptor(request.block)) return;
+    const descriptor = descriptors.get(request.requestId) ?? (fallback ? migrateLegacyOperatorRequest(request, fallback) : null);
+    if (descriptor) { request.block = descriptor; descriptors.set(request.requestId, descriptor); migrated = true; }
+  };
+  for (const record of next.commands ?? []) {
+    const context = {
+      practiceId: record.command.practiceId,
+      customerKey: record.command.customerId,
+      generationId: `crm-generation:${record.command.practiceId}:${record.command.expected.crmRevision}`,
+      createdAt: record.stagedAt || now.toISOString(),
+      ruleIds: record.command.appliedRuleIds,
+    };
+    attach(record.command.desired.operatorRequest, context);
+    attach(record.command.compensation.operatorRequest, context);
+  }
+  for (const [customerKey, customer] of Object.entries(next.simulation?.customers ?? {})) {
+    const item = next.items.find((candidate) => candidate.event.customerId === customerKey);
+    if (!item) continue;
+    attach(customer.operatorRequest, {
+      practiceId: item.event.practiceId,
+      customerKey,
+      generationId: `crm-generation:${item.event.practiceId}:${item.event.crmRevision}`,
+      createdAt: item.updatedAt || item.startedAt || now.toISOString(),
+      ruleIds: BASE_RULE_IDS,
+    });
+  }
+  next.version = APR_CRM_WORKFLOW_VERSION;
+  if (migrated) {
+    next.revision += 1;
+    next.audit.push({ revision: next.revision, at: now.toISOString(), type: "operator_contract_migrated", practiceId: null, commandId: null, reason: "Richieste operatore legacy migrate nel contratto canonico con scope non propagabile; coda e checkpoint conservati.", appliedRuleIds: BASE_RULE_IDS });
+  }
+  return validState(next) ? next : null;
 }
 
 function normalizedName(value: string) {
@@ -155,8 +218,12 @@ export class PersistentAprCrmIntegrationWorkflow {
   load(now = new Date()) {
     if (!existsSync(this.checkpointPath)) return initialState(now);
     try {
-      const value = JSON.parse(readFileSync(this.checkpointPath, "utf8")) as AprCrmWorkflowState;
-      return validState(value) ? value : initialState(now);
+      const raw = JSON.parse(readFileSync(this.checkpointPath, "utf8")) as unknown;
+      const value = migrateWorkflowState(raw, now);
+      if (!value) return initialState(now);
+      if ((raw as { version?: string }).version !== APR_CRM_WORKFLOW_VERSION
+        || JSON.stringify(raw) !== JSON.stringify(value)) atomicWrite(this.checkpointPath, `${JSON.stringify(value, null, 2)}\n`);
+      return value;
     } catch { return initialState(now); }
   }
 
@@ -218,7 +285,7 @@ export class PersistentAprCrmIntegrationWorkflow {
     const current = this.initialize(now);
     const item = current.items.find((candidate) => candidate.event.practiceId === practiceId);
     if (!item) throw new Error("crm_workflow_practice_unknown");
-    const command = proposeAprCrmCommands(item.event, outcome)[0];
+    const command = proposeAprCrmCommands(item.event, outcome, now)[0];
     assertRuleIds(command.appliedRuleIds);
     if (current.commands.some((record) => record.command.idempotencyKey === command.idempotencyKey)) return current;
     const next = structuredClone(current);

@@ -14,6 +14,11 @@ describe("contratto integrazione APR ↔ CRM", () => {
     const applied = applyAprCommandLocally(state(), command);
     expect(applied.customers["customer-1"].pipeline).toBe(APR_OPERATOR_PIPELINE);
     expect(applied.customers["customer-1"].operatorRequest).toMatchObject({ field: "screenings.1.gTot", question: "Quale gTot riporta la fattura?" });
+    expect(applied.customers["customer-1"].operatorRequest?.block).toMatchObject({
+      category: "legacy_unclassified",
+      resumePolicy: "recompute_before_draft",
+      scope: { practiceId: "enea-1", customerKey: "customer-1", generationId: "crm-generation:enea-1:7", propagation: "forbidden" },
+    });
     expect(applyAprCommandLocally(applied, command)).toEqual(applied);
     expect(applied.existingAutomations).toEqual(["auto-a", "auto-b"]);
     expect(applied.crmDashboardIntegration).toEqual(["crm-to-dashboard-v1"]);

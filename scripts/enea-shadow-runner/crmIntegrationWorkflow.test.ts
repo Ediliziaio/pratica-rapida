@@ -1,4 +1,4 @@
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -61,5 +61,28 @@ describe("ciclo CRM APR persistente", () => {
     expect(() => store.ingest({ event: { ...event("practice-1", "customer-1"), currentPipeline: "Archiviate" }, displayName: "Cliente Uno" })).toThrow("crm_workflow_pipeline_not_ready");
     expect(() => store.ingest({ event: event("practice-2", "customer-2"), displayName: "Beatrice Ciotta" })).toThrow("crm_workflow_beatrice_ciotta_excluded");
     expect(store.snapshot().progress.total).toBe(0);
+  });
+
+  it("migra un checkpoint v1 con richiesta operatore senza perdere coda, risposta o comando", () => {
+    const directory = mkdtempSync(path.join(tmpdir(), "apr-crm-migration-"));
+    const first = new PersistentAprCrmIntegrationWorkflow(directory);
+    first.ingest({ event: event("practice-legacy", "customer-legacy"), displayName: "Cliente Legacy" }, new Date("2026-08-17T09:20:00Z"));
+    first.stageOutcome("practice-legacy", { status: "blocked", reason: "Documento mancante.", operatorRequest: { field: "documents.invoice", question: "La fattura e' stata caricata?", evidenceText: "Nessuna fattura originaria acquisita.", sourceIds: ["dossier-legacy"], choices: [{ value: "uploaded", label: "Caricata" }] } }, new Date("2026-08-17T09:20:01Z"));
+    first.applyPending(new Date("2026-08-17T09:20:02Z"));
+    const checkpoint = JSON.parse(readFileSync(first.checkpointPath, "utf8")) as Record<string, unknown>;
+    checkpoint.version = "apr-crm-persistent-workflow-v1";
+    const removeBlock = (request: unknown) => { if (request && typeof request === "object") delete (request as { block?: unknown }).block; };
+    for (const item of checkpoint.items as Array<{ operatorRequest?: unknown }>) removeBlock(item.operatorRequest);
+    for (const record of checkpoint.commands as Array<{ command: { desired: { operatorRequest?: unknown }; compensation: { operatorRequest?: unknown } } }>) { removeBlock(record.command.desired.operatorRequest); removeBlock(record.command.compensation.operatorRequest); }
+    for (const customer of Object.values((checkpoint.simulation as { customers: Record<string, { operatorRequest?: unknown }> }).customers)) removeBlock(customer.operatorRequest);
+    writeFileSync(first.checkpointPath, `${JSON.stringify(checkpoint, null, 2)}\n`);
+
+    const restarted = new PersistentAprCrmIntegrationWorkflow(directory);
+    const migrated = restarted.snapshot(new Date("2026-08-17T09:21:00Z"));
+    expect(migrated).toMatchObject({ version: "apr-crm-persistent-workflow-v2", progress: { total: 1, operatorRequired: 1 }, items: [{ operatorRequest: { block: { category: "legacy_unclassified", scope: { practiceId: "practice-legacy", customerKey: "customer-legacy", generationId: "crm-generation:practice-legacy:3", propagation: "forbidden" } } } }] });
+    expect(migrated.commands).toHaveLength(1);
+    expect(migrated.simulation.customers["customer-legacy"].operatorRequest?.block.blockId).toBe(migrated.items[0].operatorRequest?.block.blockId);
+    expect(migrated.audit.at(-1)?.type).toBe("operator_contract_migrated");
+    expect(JSON.parse(readFileSync(first.checkpointPath, "utf8")).version).toBe("apr-crm-persistent-workflow-v2");
   });
 });

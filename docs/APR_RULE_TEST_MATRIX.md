@@ -6,7 +6,7 @@ ENEA è il primo modulo di APR.
 
 Una regola non e' dichiarata attiva soltanto perche' compare in questo documento o nel registro. APR richiede la catena completa: ID nel registro unico, test automatico verde, impronta del contenuto corrente e bundle persistente installato identico a quello testato. Se uno solo di questi passaggi manca, il dashboard mostra `pending_test` oppure `tested_not_deployed`, mai una regola attiva.
 
-Questa matrice è governata da `apr-enea-rule-test-matrix-v41` e dal registro unico `enea-operational-registry-v61`. Una regola appare **attiva/testata** nella dashboard soltanto quando l'evidenza persistente corrisponde sia alla versione della matrice sia alla versione del registro e contiene l'esito positivo della relativa chiave.
+Questa matrice è governata da `apr-enea-rule-test-matrix-v57` e dal registro unico `enea-operational-registry-v81`. Una regola appare **attiva/testata** nella dashboard soltanto quando l'evidenza persistente corrisponde sia alla versione della matrice sia alla versione del registro e contiene l'esito positivo della relativa chiave.
 
 La chiave `operator-structured-question-resume` copre il ciclo persistente domanda diretta → risposta caso-specifica → riaccodamento. La nota libera è facoltativa; il valore tecnico deriva sempre da un'opzione controllata. La risposta non diventa una regola generale e `non determinabile` mantiene il caso in intervento operatore.
 
@@ -41,6 +41,7 @@ La chiave `operator-structured-question-resume` copre il ciclo persistente doman
 | cristal-fallback | Cristal 0,33 solo fallback | policy schermature |
 | pergola-fallback | Pergola 0,08 solo fallback | pipeline + policy schermature |
 | zanzariera-fallbacks | Zanzariera Misto/Manuale/0,33 fallback | pipeline locale |
+| screening-fallback-material-category-guard | Una zanzariera con materiale derivato da fallback può usare soltanto Misto; ogni conflitto invalida il payload e impone draftReady:false | positivo Misto + negativo analogo Tessuto con portal gate bloccato |
 | physical-cardinality | Una riga per prodotto fisico; una riga form di gruppo può fornire tipo/esposizione a N pezzi solo in assenza di fonte primaria contraria | cardinalità + form-group inheritance + pipeline |
 | single-house-floors | Unità unica indipendente dai piani | pipeline locale |
 | rinaldi-scoped | Massimo detraibile e separazione VEPA solo Rinaldi | policy Rinaldi + pipeline |

@@ -5,7 +5,7 @@ import path from "node:path";
 import { afterEach, describe, expect, expectTypeOf, it } from "vitest";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
-import { CASE_SPECIFIC_FINANCIAL_RESOLUTIONS, PersistentAprCrmLocalPreflight, asScreeningDraftPackage, assessEnea2026SubmissionDeadline, buildCrmLocalPreflightReport, completionDateOperatorBlockers, invalidateCrmEneaPayloadAuditForScreeningBlockers, isPersianaDimensionPlausible, missingExplicitAdvanceInvoiceReferences, resolveBundledProfessionalExpense, resolveCoBeneficiaryFromOriginalInvoices, resolveFormScreeningMappings, resolveInvoiceWorkDates, resolveOriginalDocumentFiscalCode, resolvePrimaryBeneficiaryFromOriginalInvoices, resolveProductTechnicalAttributes, screeningProductMeasurementEvidenceStatus } from "./crmLocalPreflight";
+import { CASE_SPECIFIC_FINANCIAL_RESOLUTIONS, PersistentAprCrmLocalPreflight, asScreeningDraftPackage, assessEnea2026SubmissionDeadline, buildCrmLocalPreflightReport, completionDateOperatorBlockers, invalidateCrmEneaPayloadAuditForScreeningBlockers, isPersianaDimensionPlausible, missingExplicitAdvanceInvoiceReferences, resolveBundledProfessionalExpense, resolveCoBeneficiaryFromOriginalInvoices, resolveFormScreeningMappings, resolveInvoiceWorkDates, resolveOriginalDocumentFiscalCode, resolvePrimaryBeneficiaryFromOriginalInvoices, resolveProductTechnicalAttributes, screeningFallbackMaterialCategoryBlocker, screeningProductMeasurementEvidenceStatus } from "./crmLocalPreflight";
 import type { CrmEneaPayloadAuditResult } from "./crmEneaPayloadAudit";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 import { nestedUncertainPageSaveProbeAllowed } from "./infissiUncertainSavePolicy";
@@ -831,6 +831,42 @@ Totale documento 915,00 €`);
     expect(motorized).toMatchObject({ movement: "Automatico", material: "Tessuto" });
     expect(manual).toMatchObject({ movement: "Manuale", material: "Tessuto" });
     expect(mosquito).toMatchObject({ movement: "Manuale", material: "Misto" });
+  });
+
+  it("lascia draftReady invariato quando il fallback della zanzariera e Misto", () => {
+    const blocker = screeningFallbackMaterialCategoryBlocker({
+      index: 0,
+      description: "Schermatura solare mobile",
+      declaredType: "altro",
+      material: "Misto",
+      materialSource: "authorized_fallback",
+      sourceId: "invoice-positive",
+    });
+    expect(blocker).toBeNull();
+    expect(invalidateCrmEneaPayloadAuditForScreeningBlockers(readyScreeningAudit(), blocker ? [blocker] : [])).toMatchObject({ draftReady: true, status: "payload_complete" });
+  });
+
+  it("blocca sempre una zanzariera generica se il materiale fallback non e Misto", () => {
+    const blocker = screeningFallbackMaterialCategoryBlocker({
+      index: 1,
+      description: "Schermatura solare mobile",
+      declaredType: "altra schermatura solare",
+      material: "Tessuto",
+      materialSource: "authorized_fallback",
+      sourceId: "invoice-negative-analogue",
+    });
+    expect(blocker).toMatchObject({
+      code: "screening_fallback_material_category_conflict_2",
+      field: "screenings.2.material",
+      sourceIds: ["invoice-negative-analogue"],
+      appliedRuleIds: expect.arrayContaining([USER_AUTHORIZED_RULE_IDS.screeningFallbackMaterialCategoryGuard, USER_AUTHORIZED_RULE_IDS.zanzarieraScreening]),
+    });
+    expect(invalidateCrmEneaPayloadAuditForScreeningBlockers(readyScreeningAudit(), [blocker!])).toMatchObject({
+      status: "payload_incomplete",
+      draftReady: false,
+      portalGate: { status: "blocked", workflowFingerprint: null, supportedPages: [] },
+      blockers: [expect.objectContaining({ code: "screening_fallback_material_category_conflict_2", fieldId: "screenings.2.material" })],
+    });
   });
 
   it("risolve gli attributi persiana con precedenza esplicita e fallback autorizzati", () => {

@@ -555,6 +555,28 @@ const normalizedFamily = (value: string) => {
   return null;
 };
 
+export function screeningFallbackMaterialCategoryBlocker(input: {
+  index: number;
+  description: string;
+  declaredType: string | null;
+  material: string;
+  materialSource: "invoice_explicit" | "authorized_fallback";
+  sourceId: string;
+}): PreflightBlocker | null {
+  const sourceFamily = normalizedFamily(input.description);
+  const declaredFamily = normalizedFamily(input.declaredType ?? "");
+  const resolvedFamily = sourceFamily ?? declaredFamily;
+  if (resolvedFamily !== "zanzariera" || input.materialSource !== "authorized_fallback") return null;
+  if (input.material.trim().toLocaleLowerCase("it-IT") === "misto") return null;
+  return {
+    code: `screening_fallback_material_category_conflict_${input.index + 1}`,
+    field: `screenings.${input.index + 1}.material`,
+    reason: `La riga e classificata come zanzariera ma il resolver ha prodotto il materiale fallback ${input.material || "vuoto"}; il solo fallback autorizzato per la categoria e Misto. Payload invalidato: nessuna bozza puo essere dichiarata pronta finche il mapping non e coerente.`,
+    sourceIds: [input.sourceId],
+    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.screeningFallbackMaterialCategoryGuard, USER_AUTHORIZED_RULE_IDS.zanzarieraScreening, "system-apr-technical-repair-queue"],
+  };
+}
+
 export function resolveFormScreeningMappings(declaredValues: unknown[], productDescriptions: string[]): FormScreeningMappingResult {
   const declared = declaredValues.map(object);
   if (declared.length === productDescriptions.length) return { status: "mapped", mappings: declared.map((value) => ({ declared: value, source: "one_to_one" })), conflictingProductIndexes: [] };
@@ -889,6 +911,18 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
       blockers.push({ code: `${shutterLabel}_material_contradiction_${index + 1}`, field: `screenings.${index + 1}.material`, reason: `La fonte originaria attribuisce all${avvolgibileDescription ? "'avvolgibile" : "a persiana"} un materiale contrario al contratto autorizzato alluminio/Metallo. Richiesto intervento operatore.`, sourceIds: [item.sourcePath], appliedRuleIds: [shutterRuleId, "system-apr-operator-intervention-routing"] });
       continue;
     }
+    const fallbackMaterialBlocker = screeningFallbackMaterialCategoryBlocker({
+      index,
+      description: item.description,
+      declaredType: text(declared?.tipo_prodotto) || null,
+      material: rule.material,
+      materialSource: rule.materialSource,
+      sourceId: item.sourcePath,
+    });
+    if (fallbackMaterialBlocker) {
+      blockers.push(fallbackMaterialBlocker);
+      continue;
+    }
     const productRowId = `${item.sourcePath}:piece-${index + 1}`;
     const lineaSoleExposure = lineaSolePaperForm ? resolveLineaSolePotitoExposure(text(declared?.direzione) || null) : null;
     const explicitPaperWindow = number(paperExplicitScreenings[index]?.protectedWindowSurfaceM2);
@@ -906,7 +940,7 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
         ...(/^(?:Pergotenda|Tenda Cristal|Tenda da sole|Tenda perimetrale) - /.test(item.description) ? [USER_AUTHORIZED_RULE_IDS.narrativeInvoiceProductExtraction] : []),
         ...(mapping.source === "group_inheritance" || mapping.source === "group_invoice_type_override" ? [USER_AUTHORIZED_RULE_IDS.formGroupProductInheritance] : [])] });
   }
-  if (!products.length && !blockers.some((item) => /^vepa_module_not_enabled_/.test(item.code))) blockers.push({ code: "screenings_missing", field: "screenings", reason: "Nessun prodotto fisico riconciliato dalle fatture originarie.", sourceIds, appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.technicalProductCardinality] });
+  if (!products.length && !blockers.some((item) => /^(?:vepa_module_not_enabled_|screening_fallback_material_category_conflict_)/.test(item.code))) blockers.push({ code: "screenings_missing", field: "screenings", reason: "Nessun prodotto fisico riconciliato dalle fatture originarie.", sourceIds, appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.technicalProductCardinality] });
 
   const declaredInvoiceSources = Array.isArray(row?.fatture_urls) ? row.fatture_urls.filter((value) => text(value)).map((value) => text(value)) : [];
   if (invoiceDocuments.length === 0) blockers.push({

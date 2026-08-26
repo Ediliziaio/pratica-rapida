@@ -1,6 +1,6 @@
 import { OPERATIONAL_RULES } from "./operationalRules";
 
-export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v80" as const;
+export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v81" as const;
 export const ENEA_GLOBAL_PREREQUISITE = Object.freeze({
   id: "browser-session-contract-v1",
   scope: "global_not_practice",
@@ -62,6 +62,7 @@ export const USER_AUTHORIZED_RULE_IDS = Object.freeze({
   formGroupProductInheritance: "user-2026-08-15-form-group-to-physical-products",
   ciottaPilotLeaveAside: "user-2026-08-15-ciotta-pilot-leave-aside",
   zanzarieraScreening: "user-2026-08-14-zanzariera-altra-schermatura",
+  screeningFallbackMaterialCategoryGuard: "user-2026-08-26-screening-fallback-material-category-guard-v1",
   genericAwningScreening: "user-2026-08-14-tenda-screening-gtot-033-fallback",
   persianaScreening: "user-2026-08-18-persiana-screening-contract-v1",
   avvolgibileScreening: "user-2026-08-18-avvolgibile-screening-contract-v1",
@@ -788,6 +789,18 @@ export const ENEA_USER_AUTHORIZED_RULES: readonly OperationalRegistryRule[] = Ob
     outcome: "continue",
     priority: 995,
     provenance: USER_RULE_PROVENANCE,
+  },
+  {
+    id: USER_AUTHORIZED_RULE_IDS.screeningFallbackMaterialCategoryGuard,
+    step: "screenings",
+    kind: "business",
+    condition: "TEST o produzione: la famiglia tecnica della singola schermatura e determinata come zanzariera e il materiale non proviene da una fonte originaria esplicita ma da un fallback autorizzato.",
+    sourcePrecedence: ["materiale esplicito della singola schermatura nella fonte originaria", "famiglia tecnica determinata dalla descrizione originaria", "famiglia univoca assegnata dal form alla riga fisica", "fallback zanzariera autorizzato Misto"],
+    deterministicAction: "Prima di dichiarare draftReady verificare il materiale di ogni riga separatamente. Per una zanzariera priva di materiale esplicito il solo fallback ammesso e Misto. Se il resolver produce un materiale fallback diverso, aggiungere un blocker sulla riga, invalidare il payload Schermature e vietare la bozza; non correggere silenziosamente e non proseguire verso ENEA.",
+    audit: "practiceId, sourceId, indice e ID riga, descrizione, tipo dichiarato, famiglia risolta, materiale osservato, fonte materiale, materiale fallback atteso, esito, ID regola zanzariera e ID guardia.",
+    outcome: "continue",
+    priority: 1_223,
+    provenance: USER_RULE_PROVENANCE_2026_08_26,
   },
   {
     id: USER_AUTHORIZED_RULE_IDS.technicalProductCardinality,

@@ -60,6 +60,7 @@ function normalizedCode(code: string) {
 
 function codeKind(code: string): "technical" | "operator" | "business" {
   const normalized = normalizedCode(code);
+  if (/^screening_fallback_material_category_conflict_\d+$/.test(normalized)) return "technical";
   if (normalized === "invoice_parser_unclassified" || TECHNICAL_REPAIR_BLOCKER_CODES.has(normalized)) return "technical";
   if (OPERATOR_EVIDENCE_BLOCKER_CODES.has(normalized)) return "operator";
   return "business";

@@ -30,6 +30,25 @@ describe("revisione profonda persistente APR", () => {
     expect(final.items.find((item) => item.customerKey === "technical")).toMatchObject({ classification: "TECHNICAL_REPAIR", attemptCount: 1, evidencePasses: [{ id: "source_inventory", ok: true }, { id: "document_extraction", ok: true }, { id: "rule_replay", ok: true }] });
     expect(final.items.find((item) => item.customerKey === "operator")).toMatchObject({ classification: "OPERATOR_REQUIRED", nextAction: expect.stringContaining("fattura") });
   });
+  it("classifica il conflitto materiale fallback/categoria come riparazione tecnica generale", () => {
+    const root = fixture();
+    const commonPath = path.join(root, "crm-local-preflight/checkpoint.json");
+    const common = JSON.parse(readFileSync(commonPath, "utf8"));
+    common.items.find((item: { customerKey: string }) => item.customerKey === "technical").report.blockers = [{
+      code: "screening_fallback_material_category_conflict_1",
+      field: "screenings.1.material",
+      sourceIds: ["doc-1"],
+      appliedRuleIds: ["user-2026-08-26-screening-fallback-material-category-guard-v1", "system-apr-technical-repair-queue"],
+    }];
+    writeFileSync(commonPath, JSON.stringify(common));
+    const final = new PersistentAprDeepCaseReview(root).runToCompletion(new Date("2026-08-26T18:00:00Z"));
+    expect(final.items.find((item) => item.customerKey === "technical")).toMatchObject({
+      classification: "TECHNICAL_REPAIR",
+      technicalRepairCodes: ["screening_fallback_material_category_conflict_1"],
+      operatorCodes: [],
+      businessRuleCodes: [],
+    });
+  });
   it("riprende dal checkpoint reviewing e non duplica casi o tentativi", () => {
     const root = fixture(); const first = new PersistentAprDeepCaseReview(root); first.prepareFromCurrentCheckpoints(new Date("2026-08-23T08:00:00Z")); first.tick(new Date("2026-08-23T08:00:01Z"));
     const resumed = new PersistentAprDeepCaseReview(root).runToCompletion(new Date("2026-08-23T08:01:00Z")); const replay = new PersistentAprDeepCaseReview(root).runToCompletion(new Date("2026-08-23T08:02:00Z"));

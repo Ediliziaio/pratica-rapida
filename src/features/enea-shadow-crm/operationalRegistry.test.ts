@@ -12,13 +12,19 @@ describe("registro operativo unico",()=>{
   });
   it("rende reperibili le regole solo per id",()=>expect(registryRule("core-form-first")?.step).toBe("customer_form"));
   it("registra le nuove regole utente con provenienza, precedenza e audit",()=>{
-    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v80");
+    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v81");
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.documentedProductModuleOverLabel)).toMatchObject({ outcome: "continue", provenance: { authority: "user", receivedAt: "2026-08-23" } });
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.thirdPartyTechnicalCertificateClassification)).toMatchObject({
       outcome: "continue",
       priority: 1_221,
       provenance: { authority: "user", receivedAt: "2026-08-26" },
       deterministicAction: expect.stringContaining("DoP strutturata 6/6"),
+    });
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.screeningFallbackMaterialCategoryGuard)).toMatchObject({
+      step: "screenings",
+      outcome: "continue",
+      provenance: { authority: "user", receivedAt: "2026-08-26" },
+      deterministicAction: expect.stringContaining("invalidare il payload Schermature"),
     });
     expect(registryRule("system-composite-invoice-bank-transfer-page-segmentation")).toMatchObject({ kind: "system", outcome: "continue" });
     expect(registryRule("system-draft-payload-mapping-completeness")).toMatchObject({ step: "enea_mapping", deterministicAction: expect.stringContaining("Non dichiarare READY") });

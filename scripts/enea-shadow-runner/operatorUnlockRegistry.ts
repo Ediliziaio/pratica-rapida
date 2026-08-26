@@ -35,8 +35,23 @@ export interface AprOperatorUnlockEvidence {
   commandId: string;
   answeredAt: string;
   propagation: "forbidden";
-  verificationStatus: "pending";
-  consumed: false;
+  verificationStatus: "pending" | "verified";
+  verification: AprOperatorUnlockVerification | null;
+  consumed: boolean;
+  consumedAt: string | null;
+  activationGenerationId: string | null;
+}
+
+export interface AprOperatorUnlockVerification {
+  verificationId: string;
+  blockId: string;
+  scope: AprSingleCaseOperatorScope;
+  resumePolicy: AprOperatorBlockDescriptor["resumePolicy"];
+  outcome: "verified";
+  verifiedAt: string;
+  sourceEvidenceIds: string[];
+  draftId: string | null;
+  recomputedItemFingerprint: string | null;
 }
 
 export interface AprOperatorUnlockRecord {
@@ -44,7 +59,7 @@ export interface AprOperatorUnlockRecord {
   evidence: AprOperatorUnlockEvidence | null;
   crmSimulation: {
     pipeline: "Richiesto intervento operatore";
-    status: "waiting_operator" | "answer_persisted_pending_verification";
+    status: "waiting_operator" | "answer_persisted_pending_verification" | "verified_pending_activation" | "activation_consumed";
     nextAction: string;
     externalActionAllowed: false;
   };
@@ -60,7 +75,7 @@ export interface AprOperatorUnlockRegistryState {
   audit: Array<{
     revision: number;
     at: string;
-    type: "initialized" | "block_registered" | "answer_persisted" | "duplicate_command_ignored";
+    type: "initialized" | "block_registered" | "answer_persisted" | "answer_verified" | "activation_consumed" | "duplicate_command_ignored";
     blockId: string | null;
     commandId: string | null;
     reason: string;
@@ -90,6 +105,18 @@ function initialState(now: Date): AprOperatorUnlockRegistryState {
   };
 }
 
+function normalizeState(state: AprOperatorUnlockRegistryState) {
+  for (const record of state.records ?? []) {
+    if (!record.evidence) continue;
+    record.evidence.verificationStatus ??= "pending";
+    record.evidence.verification ??= null;
+    record.evidence.consumed ??= false;
+    record.evidence.consumedAt ??= null;
+    record.evidence.activationGenerationId ??= null;
+  }
+  return state;
+}
+
 function validState(value: unknown): value is AprOperatorUnlockRegistryState {
   if (!value || typeof value !== "object") return false;
   const state = value as AprOperatorUnlockRegistryState;
@@ -104,8 +131,17 @@ function validState(value: unknown): value is AprOperatorUnlockRegistryState {
         && record.evidence.scope.customerKey === record.descriptor.scope.customerKey
         && record.evidence.scope.generationId === record.descriptor.scope.generationId
         && record.evidence.propagation === "forbidden"
-        && record.evidence.verificationStatus === "pending"
-        && record.evidence.consumed === false)))
+        && ["pending", "verified"].includes(record.evidence.verificationStatus)
+        && typeof record.evidence.consumed === "boolean"
+        && (record.evidence.verificationStatus === "pending" ? record.evidence.verification === null : Boolean(record.evidence.verification))
+        && (!record.evidence.verification || (record.evidence.verification.blockId === record.descriptor.blockId
+          && sameScope(record.evidence.verification.scope, record.descriptor.scope)
+          && record.evidence.verification.resumePolicy === record.descriptor.resumePolicy
+          && record.evidence.verification.outcome === "verified"
+          && record.evidence.verification.sourceEvidenceIds.length > 0))
+        && (record.evidence.consumed
+          ? Boolean(record.evidence.consumedAt && record.evidence.activationGenerationId && record.descriptor.status === "consumed")
+          : record.evidence.consumedAt === null && record.evidence.activationGenerationId === null))))
     && new Set(state.records.map((record) => record.descriptor.blockId)).size === state.records.length
     && Array.isArray(state.processedCommandIds)
     && new Set(state.processedCommandIds).size === state.processedCommandIds.length
@@ -157,7 +193,7 @@ export class PersistentAprOperatorUnlockRegistry {
   load(now = new Date()): AprOperatorUnlockRegistryState {
     if (!existsSync(this.checkpointPath)) return initialState(now);
     try {
-      const value = JSON.parse(readFileSync(this.checkpointPath, "utf8")) as unknown;
+      const value = normalizeState(JSON.parse(readFileSync(this.checkpointPath, "utf8")) as AprOperatorUnlockRegistryState) as unknown;
       if (!validState(value)) throw new Error("operator_unlock_registry_state_invalid");
       return value;
     } catch (error) {
@@ -258,7 +294,10 @@ export class PersistentAprOperatorUnlockRegistry {
         answeredAt: submission.answeredAt,
         propagation: "forbidden",
         verificationStatus: "pending",
+        verification: null,
         consumed: false,
+        consumedAt: null,
+        activationGenerationId: null,
       };
       record.crmSimulation.status = "answer_persisted_pending_verification";
       record.crmSimulation.nextAction = record.descriptor.resumePolicy === "resume_existing_draft"
@@ -267,6 +306,59 @@ export class PersistentAprOperatorUnlockRegistry {
       next.processedCommandIds.push(submission.commandId);
       next.revision += 1;
       next.audit.push({ revision: next.revision, at: now.toISOString(), type: "answer_persisted", blockId: submission.blockId, commandId: submission.commandId, reason: "Risposta operatore persistita come evidenza caso-specifica in attesa di verifica; nessuna pratica riaccodata.", appliedRuleIds: [...RULE_IDS, ...record.descriptor.ruleIds] });
+      return this.write(next);
+    });
+  }
+
+  verify(blockId: string, verification: AprOperatorUnlockVerification, commandId: string, now = new Date()) {
+    if (!blockId.trim() || !commandId.trim() || verification.blockId !== blockId || verification.outcome !== "verified"
+      || !verification.verificationId.trim() || !Number.isFinite(Date.parse(verification.verifiedAt))
+      || verification.sourceEvidenceIds.length < 1) throw new Error("operator_unlock_verification_invalid");
+    return this.withLock(`verify:${process.pid}:${crypto.randomUUID()}`, now, () => {
+      const current = this.initialize(now);
+      if (current.processedCommandIds.includes(commandId)) return current;
+      const currentRecord = current.records.find((record) => record.descriptor.blockId === blockId);
+      if (!currentRecord?.evidence || currentRecord.descriptor.status !== "answered" || currentRecord.evidence.consumed) throw new Error("operator_unlock_verification_state_invalid");
+      if (!sameScope(currentRecord.descriptor.scope, verification.scope)
+        || verification.resumePolicy !== currentRecord.descriptor.resumePolicy) throw new Error("operator_unlock_verification_scope_mismatch");
+      if ((verification.resumePolicy === "resume_existing_draft" && (!verification.draftId || verification.draftId !== currentRecord.descriptor.draftId || verification.recomputedItemFingerprint !== null))
+        || (verification.resumePolicy === "recompute_before_draft" && (verification.draftId !== null || !verification.recomputedItemFingerprint))) throw new Error("operator_unlock_verification_proof_invalid");
+      const next = structuredClone(current);
+      const record = next.records.find((candidate) => candidate.descriptor.blockId === blockId)!;
+      record.descriptor.status = "verified";
+      record.descriptor.verifiedAt = verification.verifiedAt;
+      record.evidence!.verificationStatus = "verified";
+      record.evidence!.verification = structuredClone(verification);
+      record.crmSimulation.status = "verified_pending_activation";
+      record.crmSimulation.nextAction = "Attivare atomicamente la nuova generazione APR e consumare questa evidenza una sola volta.";
+      next.processedCommandIds.push(commandId);
+      next.revision += 1;
+      next.audit.push({ revision: next.revision, at: now.toISOString(), type: "answer_verified", blockId, commandId, reason: "Risposta e prova verificate per la sola pratica/generazione; attivazione non ancora consumata.", appliedRuleIds: [...RULE_IDS, ...record.descriptor.ruleIds] });
+      return this.write(next);
+    });
+  }
+
+  consume(blockId: string, evidenceId: string, activationGenerationId: string, commandId: string, now = new Date()) {
+    if (!blockId.trim() || !evidenceId.trim() || !activationGenerationId.trim() || !commandId.trim()) throw new Error("operator_unlock_consume_invalid");
+    return this.withLock(`consume:${process.pid}:${crypto.randomUUID()}`, now, () => {
+      const current = this.initialize(now);
+      if (current.processedCommandIds.includes(commandId)) return current;
+      const currentRecord = current.records.find((record) => record.descriptor.blockId === blockId);
+      if (!currentRecord?.evidence || currentRecord.evidence.evidenceId !== evidenceId
+        || currentRecord.evidence.verificationStatus !== "verified" || !currentRecord.evidence.verification
+        || currentRecord.descriptor.status !== "verified" || currentRecord.evidence.consumed) throw new Error("operator_unlock_consume_state_invalid");
+      const next = structuredClone(current);
+      const record = next.records.find((candidate) => candidate.descriptor.blockId === blockId)!;
+      record.descriptor.status = "consumed";
+      record.descriptor.consumedAt = now.toISOString();
+      record.evidence!.consumed = true;
+      record.evidence!.consumedAt = now.toISOString();
+      record.evidence!.activationGenerationId = activationGenerationId;
+      record.crmSimulation.status = "activation_consumed";
+      record.crmSimulation.nextAction = "Evidenza consumata; APR prosegue esclusivamente dalla generazione attivata.";
+      next.processedCommandIds.push(commandId);
+      next.revision += 1;
+      next.audit.push({ revision: next.revision, at: now.toISOString(), type: "activation_consumed", blockId, commandId, reason: `Evidenza consumata una sola volta dalla generazione ${activationGenerationId}.`, appliedRuleIds: [...RULE_IDS, ...record.descriptor.ruleIds] });
       return this.write(next);
     });
   }

@@ -1,4 +1,4 @@
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -71,6 +71,18 @@ describe("registro durevole sblocco operatore", () => {
     expect(() => registry.register({ ...descriptor(), question: "Domanda differente" })).toThrow("operator_unlock_block_identity_collision");
   });
 
+  it("rifiuta una verifica che non contiene la prova richiesta dalla policy", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "apr-operator-unlock-proof-"));
+    const registry = new PersistentAprOperatorUnlockRegistry(root);
+    registry.register(descriptor());
+    registry.submit(submission());
+    expect(() => registry.verify(descriptor().blockId, {
+      verificationId: "verification-without-recomputed-proof", blockId: descriptor().blockId, scope: descriptor().scope,
+      resumePolicy: "recompute_before_draft", outcome: "verified", verifiedAt: "2026-08-26T10:06:00Z",
+      sourceEvidenceIds: ["preflight-proof"], draftId: null, recomputedItemFingerprint: null,
+    }, "verify:invalid-proof")).toThrow("operator_unlock_verification_proof_invalid");
+  });
+
   it("acquisisce i blocchi dalla simulazione CRM senza modificare il suo stato", () => {
     const root = mkdtempSync(path.join(tmpdir(), "apr-operator-unlock-crm-"));
     const workflow = new PersistentAprCrmIntegrationWorkflow(root);
@@ -117,5 +129,18 @@ describe("registro durevole sblocco operatore", () => {
     registry.initialize();
     writeFileSync(registry.checkpointPath, "{not-json");
     expect(() => registry.load()).toThrow("operator_unlock_registry_checkpoint_corrupt");
+  });
+
+  it("migra senza invalidare le evidenze pending scritte dal Commit 2", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "apr-operator-unlock-legacy-"));
+    const registry = new PersistentAprOperatorUnlockRegistry(root);
+    registry.register(descriptor());
+    registry.submit(submission());
+    const legacy = JSON.parse(readFileSync(registry.checkpointPath, "utf8"));
+    delete legacy.records[0].evidence.verification;
+    delete legacy.records[0].evidence.consumedAt;
+    delete legacy.records[0].evidence.activationGenerationId;
+    writeFileSync(registry.checkpointPath, `${JSON.stringify(legacy, null, 2)}\n`);
+    expect(new PersistentAprOperatorUnlockRegistry(root).snapshot().records[0]).toMatchObject({ descriptor: { status: "answered" }, evidence: { verificationStatus: "pending", verification: null, consumed: false, consumedAt: null, activationGenerationId: null } });
   });
 });

@@ -207,7 +207,7 @@ export interface AprEneaDraftSupersededGeneration {
   status: "superseded";
   supersededAt: string;
   supersededByGenerationId: string;
-  reason: "updated_source_requeued";
+  reason: "updated_source_requeued" | "operator_unlock_activated";
   item: AprEneaDraftExecutionItem;
 }
 
@@ -296,6 +296,7 @@ export interface AprEneaDraftExecutionAuditEvent {
     | "operator_instruction_upgraded"
     | "validation_operator_gate_applied"
     | "validation_operator_gate_released"
+    | "operator_unlock_generation_activated"
     | "operator_intervention";
   customerKey: string | null;
   commandId: string;
@@ -836,6 +837,71 @@ export class PersistentAprEneaDraftExecution {
       next.processedCommandIds.push(commandId);
       next.audit.push({ revision: next.revision, at: now.toISOString(), commandId, ...event });
       return this.write(next);
+    });
+  }
+
+  activateOperatorUnlock(input: {
+    commandId: string;
+    blockId: string;
+    evidenceId: string;
+    verificationId: string;
+    scope: { practiceId: string; customerKey: string; generationId: string; propagation: "forbidden" };
+    resumePolicy: "resume_existing_draft" | "recompute_before_draft";
+    verifiedDraftId: string | null;
+    recomputedItem: AprEneaDraftExecutionItem | null;
+    appliedRuleIds: string[];
+  }, now = new Date()) {
+    const activationGenerationId = `generation-operator-unlock-${fingerprint({ blockId: input.blockId, evidenceId: input.evidenceId, verificationId: input.verificationId, scope: input.scope, resumePolicy: input.resumePolicy }).slice(0, 24)}`;
+    return this.transition("operator-unlock-transaction", input.commandId, now, {
+      type: "operator_unlock_generation_activated",
+      customerKey: input.scope.customerKey,
+      reason: `${input.scope.customerKey}: evidenza operatore verificata e attivata in una nuova generazione non propagabile (${input.resumePolicy}).`,
+      nextAction: input.resumePolicy === "resume_existing_draft" ? "Riprendere la stessa bozza dal primo checkpoint incompleto." : "Usare il preflight ricalcolato prima dell'unica creazione bozza consentita.",
+      appliedRuleIds: [...new Set([SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE, ...input.appliedRuleIds])],
+    }, (next) => {
+      const index = next.items.findIndex((item) => item.customerKey === input.scope.customerKey);
+      const current = next.items[index];
+      if (!current || current.practiceId !== input.scope.practiceId || current.generationId !== input.scope.generationId
+        || input.scope.propagation !== "forbidden" || current.state !== "operator_intervention") throw new Error("enea_operator_unlock_scope_or_state_invalid");
+      let activated: AprEneaDraftExecutionItem;
+      if (input.resumePolicy === "resume_existing_draft") {
+        if (!current.draftId || input.verifiedDraftId !== current.draftId || input.recomputedItem) throw new Error("enea_operator_unlock_resume_draft_invalid");
+        activated = structuredClone(current);
+        activated.generationId = activationGenerationId;
+        activated.requiresFreshDraft = false;
+        activated.state = current.pageCheckpoints.some((page) => page.state === "save_intent_recorded") || current.saveAttemptCount === 1
+          ? "save_intent_recorded"
+          : current.pageCheckpoints.some((page) => page.state !== "pending") || current.completedPageIds.length > 0
+            ? "filling"
+            : "created";
+        activated.reason = "Correzione operatore verificata sulla stessa bozza; ripresa dal primo checkpoint incompleto senza nuova creazione.";
+        activated.nextAction = "Riprendere la stessa bozza dal primo checkpoint non salvato; nessun secondo tentativo sulle pagine già salvate.";
+      } else {
+        const candidate = input.recomputedItem;
+        if (!candidate || input.verifiedDraftId || candidate.practiceId !== current.practiceId || candidate.customerKey !== current.customerKey || candidate.generationId !== input.scope.generationId
+          || candidate.state !== "queued" || candidate.draftId || candidate.createAttemptCount !== 0 || candidate.saveAttemptCount !== 0
+          || candidate.completedPageIds.length !== 0 || candidate.pageCheckpoints.some((page) => page.state !== "pending" || page.saveAttemptCount !== 0)) throw new Error("enea_operator_unlock_recomputed_item_invalid");
+        activated = structuredClone(candidate);
+        activated.generationId = activationGenerationId;
+        activated.requiresFreshDraft = false;
+        activated.reason = "Preflight ricalcolato e verificato dopo risposta operatore; prima creazione bozza non ancora tentata.";
+        activated.nextAction = "Attendere sessione pronta e registrare l'unico intento di creazione bozza.";
+      }
+      next.supersededGenerations.push({
+        generationId: current.generationId,
+        customerKey: current.customerKey,
+        sourceFingerprint: next.sourceFingerprint ?? `operator-unlock:${input.evidenceId}`,
+        status: "superseded",
+        supersededAt: now.toISOString(),
+        supersededByGenerationId: activationGenerationId,
+        reason: "operator_unlock_activated",
+        item: structuredClone(current),
+      });
+      next.items[index] = activated;
+      next.currentCustomerKey = input.resumePolicy === "resume_existing_draft" ? current.customerKey : null;
+      next.sessionEvidenceId = null;
+      next.sessionVerifiedAt = null;
+      next.status = input.resumePolicy === "resume_existing_draft" ? "running" : "ready";
     });
   }
 

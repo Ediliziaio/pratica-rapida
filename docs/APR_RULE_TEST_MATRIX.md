@@ -6,7 +6,7 @@ ENEA è il primo modulo di APR.
 
 Una regola non e' dichiarata attiva soltanto perche' compare in questo documento o nel registro. APR richiede la catena completa: ID nel registro unico, test automatico verde, impronta del contenuto corrente e bundle persistente installato identico a quello testato. Se uno solo di questi passaggi manca, il dashboard mostra `pending_test` oppure `tested_not_deployed`, mai una regola attiva.
 
-Questa matrice è governata da `apr-enea-rule-test-matrix-v57` e dal registro unico `enea-operational-registry-v81`. Una regola appare **attiva/testata** nella dashboard soltanto quando l'evidenza persistente corrisponde sia alla versione della matrice sia alla versione del registro e contiene l'esito positivo della relativa chiave.
+Questa matrice è governata da `apr-enea-rule-test-matrix-v58` e dal registro unico `enea-operational-registry-v82`. Una regola appare **attiva/testata** nella dashboard soltanto quando l'evidenza persistente corrisponde sia alla versione della matrice sia alla versione del registro e contiene l'esito positivo della relativa chiave.
 
 La chiave `operator-structured-question-resume` copre il ciclo persistente domanda diretta → risposta caso-specifica → riaccodamento. La nota libera è facoltativa; il valore tecnico deriva sempre da un'opzione controllata. La risposta non diventa una regola generale e `non determinabile` mantiene il caso in intervento operatore.
 
@@ -29,6 +29,7 @@ La chiave `operator-structured-question-resume` copre il ciclo persistente doman
 | invoice-gross-total-vat-included | Totale fattura sempre lordo IVA incluso; totale isolato multipagina ammesso solo se riconciliato con imponibile, IVA e riepilogo aliquote | parser fattura + evidenza finanziaria + preflight Lucia Lagrasta |
 | distinct-invoice-numbers-same-customer-sum | Fatture dello stesso dossier con numeri diversi si sommano automaticamente al lordo IVA; gli acconti possono deduplicare solo le righe tecniche | riconciliazione finanziaria OCR + preflight acconto/saldo Silvia Magi |
 | missing-invoice-operator-requeue | Fattura mancante: motivo esplicito in intervento operatore e ripresa della stessa pratica dopo nuovo allegato e ritorno in Pronte da fare | preflight locale + registro e fingerprint persistente |
+| unique-invoice-base-reference-match | Un riferimento acconto con suffisso anno/serie diverso viene associato per numero base solo a una distinta fattura univoca; la fattura che contiene il richiamo e serie concorrenti non possono soddisfarlo | positivo 162/26→162 e 59→59/A + negativi serie 59/A/59/B e autoriferimento del saldo |
 | default-single-unit | Numero appartamenti assente, vuoto o zero: una unità; valore positivo esplicito prevalente | preflight + pacchetto payload locale |
 | invoice-total-over-bank-transfers | Totale fatture autorevole; commissioni escluse; operatore solo se il capitale bonificato supera le fatture | classificatore bonifici + riconciliazione preflight |
 | operator-structured-question-resume | Domanda controllata e risposta caso-specifica con riaccodamento | operator questions + riavvio |

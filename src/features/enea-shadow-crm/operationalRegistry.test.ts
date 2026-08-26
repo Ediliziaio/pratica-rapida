@@ -12,7 +12,7 @@ describe("registro operativo unico",()=>{
   });
   it("rende reperibili le regole solo per id",()=>expect(registryRule("core-form-first")?.step).toBe("customer_form"));
   it("registra le nuove regole utente con provenienza, precedenza e audit",()=>{
-    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v81");
+    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v82");
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.documentedProductModuleOverLabel)).toMatchObject({ outcome: "continue", provenance: { authority: "user", receivedAt: "2026-08-23" } });
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.thirdPartyTechnicalCertificateClassification)).toMatchObject({
       outcome: "continue",
@@ -25,6 +25,12 @@ describe("registro operativo unico",()=>{
       outcome: "continue",
       provenance: { authority: "user", receivedAt: "2026-08-26" },
       deterministicAction: expect.stringContaining("invalidare il payload Schermature"),
+    });
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.uniqueInvoiceBaseReferenceMatch)).toMatchObject({
+      step: "economic_sources",
+      priority: 1_224,
+      deterministicAction: expect.stringContaining("una sola distinta identita fattura"),
+      provenance: { authority: "user", receivedAt: "2026-08-26" },
     });
     expect(registryRule("system-composite-invoice-bank-transfer-page-segmentation")).toMatchObject({ kind: "system", outcome: "continue" });
     expect(registryRule("system-draft-payload-mapping-completeness")).toMatchObject({ step: "enea_mapping", deterministicAction: expect.stringContaining("Non dichiarare READY") });

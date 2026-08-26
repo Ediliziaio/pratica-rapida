@@ -5,7 +5,7 @@ import path from "node:path";
 import { afterEach, describe, expect, expectTypeOf, it } from "vitest";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
-import { CASE_SPECIFIC_FINANCIAL_RESOLUTIONS, PersistentAprCrmLocalPreflight, asScreeningDraftPackage, assessEnea2026SubmissionDeadline, buildCrmLocalPreflightReport, completionDateOperatorBlockers, invalidateCrmEneaPayloadAuditForScreeningBlockers, isPersianaDimensionPlausible, missingExplicitAdvanceInvoiceReferences, resolveBundledProfessionalExpense, resolveCoBeneficiaryFromOriginalInvoices, resolveFormScreeningMappings, resolveInvoiceWorkDates, resolveOriginalDocumentFiscalCode, resolvePrimaryBeneficiaryFromOriginalInvoices, resolveProductTechnicalAttributes, screeningFallbackMaterialCategoryBlocker, screeningProductMeasurementEvidenceStatus } from "./crmLocalPreflight";
+import { CASE_SPECIFIC_FINANCIAL_RESOLUTIONS, PersistentAprCrmLocalPreflight, asScreeningDraftPackage, assessEnea2026SubmissionDeadline, buildCrmLocalPreflightReport, completionDateOperatorBlockers, invalidateCrmEneaPayloadAuditForScreeningBlockers, isPersianaDimensionPlausible, missingExplicitAdvanceInvoiceReferences, resolveBundledProfessionalExpense, resolveCoBeneficiaryFromOriginalInvoices, resolveExplicitAdvanceInvoiceReferences, resolveFormScreeningMappings, resolveInvoiceWorkDates, resolveOriginalDocumentFiscalCode, resolvePrimaryBeneficiaryFromOriginalInvoices, resolveProductTechnicalAttributes, screeningFallbackMaterialCategoryBlocker, screeningProductMeasurementEvidenceStatus } from "./crmLocalPreflight";
 import type { CrmEneaPayloadAuditResult } from "./crmEneaPayloadAudit";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 import { nestedUncertainPageSaveProbeAllowed } from "./infissiUncertainSavePolicy";
@@ -103,6 +103,35 @@ describe("preflight locale durevole fino a quindici dossier CRM", () => {
     expect(missingExplicitAdvanceInvoiceReferences([balance])).toEqual([{ sourceId: "saldo-1512", reference: "320" }]);
     expect(missingExplicitAdvanceInvoiceReferences([balance, { sourceId: "acconto-320", documentNumber: "320", referencedInvoiceNumbers: [], text: "Fattura di acconto" }])).toEqual([]);
     expect(missingExplicitAdvanceInvoiceReferences([{ ...balance, referencedInvoiceNumbers: [], text: "Totale documento 9.010,00" }])).toEqual([]);
+  });
+
+  it("risolve il suffisso fattura soltanto tramite un numero base univoco e auditabile", () => {
+    const saldo = { sourceId: "saldo-223", documentNumber: "223", referencedInvoiceNumbers: ["162/26"], text: "ACCONTO RICEVUTO RIF. NS. FATTURA N.162 DEL 14/05/2026" };
+    expect(resolveExplicitAdvanceInvoiceReferences([saldo, { sourceId: "acconto-162", documentNumber: "162", referencedInvoiceNumbers: [], text: "Fattura di acconto" }])).toEqual({
+      missing: [],
+      uniqueBaseMatches: [{ sourceId: "saldo-223", reference: "162/26", matchedDocumentNumber: "162" }],
+    });
+    expect(missingExplicitAdvanceInvoiceReferences([
+      { ...saldo, referencedInvoiceNumbers: ["59"], text: "Fattura di acconto n. 59" },
+      { sourceId: "acconto-59-a", documentNumber: "59/A", referencedInvoiceNumbers: [], text: "Fattura di acconto" },
+    ])).toEqual([]);
+  });
+
+  it("mantiene fail-closed il suffisso fattura quando piu serie condividono il numero base", () => {
+    const saldo = { sourceId: "saldo-92-a", documentNumber: "92/A", referencedInvoiceNumbers: ["59"], text: "Fattura di acconto n. 59" };
+    expect(resolveExplicitAdvanceInvoiceReferences([
+      saldo,
+      { sourceId: "acconto-59-a", documentNumber: "59/A", referencedInvoiceNumbers: [], text: "Fattura di acconto" },
+      { sourceId: "acconto-59-b", documentNumber: "59/B", referencedInvoiceNumbers: [], text: "Fattura di acconto" },
+    ])).toEqual({ missing: [{ sourceId: "saldo-92-a", reference: "59" }], uniqueBaseMatches: [] });
+  });
+
+  it("non usa la stessa fattura di saldo per soddisfare il proprio riferimento acconto", () => {
+    const saldo = { sourceId: "saldo-161", documentNumber: "161", referencedInvoiceNumbers: ["161/26"], text: "ACCONTO RICEVUTO RIF. NS. FATTURA N.161 DEL 14/05/2026" };
+    expect(resolveExplicitAdvanceInvoiceReferences([saldo, { ...saldo, sourceId: "copia-saldo-161" }])).toEqual({
+      missing: [{ sourceId: "saldo-161", reference: "161/26" }, { sourceId: "copia-saldo-161", reference: "161/26" }],
+      uniqueBaseMatches: [],
+    });
   });
 
   it("manda all'operatore fine lavori oltre 90 giorni e anno portale incompatibile senza inventare date", () => {

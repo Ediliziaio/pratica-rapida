@@ -1,6 +1,6 @@
 import { OPERATIONAL_RULES } from "./operationalRules";
 
-export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v81" as const;
+export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v82" as const;
 export const ENEA_GLOBAL_PREREQUISITE = Object.freeze({
   id: "browser-session-contract-v1",
   scope: "global_not_practice",
@@ -78,6 +78,7 @@ export const USER_AUTHORIZED_RULE_IDS = Object.freeze({
   twoCaseAutonomousBatch: "user-2026-08-17-two-case-autonomous-batch",
   operatorStructuredQuestionResume: "user-2026-08-16-operator-structured-question-resume",
   missingInvoiceOperatorRequeue: "user-2026-08-16-missing-invoice-operator-requeue",
+  uniqueInvoiceBaseReferenceMatch: "user-2026-08-26-unique-invoice-base-reference-match-v1",
   defaultSingleUnitWhenUnspecified: "user-2026-08-16-default-single-unit-when-unspecified",
   invoiceTotalOverBankTransfers: "user-2026-08-16-invoice-total-over-bank-transfers",
   mandatoryBankTransferInvoiceExpenseCrossCheck: "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
@@ -573,6 +574,18 @@ export const ENEA_USER_AUTHORIZED_RULES: readonly OperationalRegistryRule[] = Ob
     outcome: "continue",
     priority: 1_120,
     provenance: USER_RULE_PROVENANCE_2026_08_16,
+  },
+  {
+    id: USER_AUTHORIZED_RULE_IDS.uniqueInvoiceBaseReferenceMatch,
+    step: "economic_sources",
+    kind: "business",
+    condition: "TEST o produzione: una fattura di saldo richiama una fattura di acconto con lo stesso numero base ma con un suffisso anno/serie presente soltanto su uno dei due documenti.",
+    sourcePrecedence: ["identita completa ed esatta del numero fattura", "numero base numerico univoco fra le fatture originarie acquisite", "intervento operatore quando piu serie condividono lo stesso numero base"],
+    deterministicAction: "Considerare acquisita la fattura richiamata per numero base soltanto se, dopo aver deduplicato le copie, quel numero base identifica una sola distinta identita fattura osservata. Conservare riferimento e numero documento completi nell'audit. Se due o piu serie condividono lo stesso numero base, non scegliere arbitrariamente e mantenere il blocker di fattura mancante.",
+    audit: "practiceId, sourceId del saldo, riferimento originario completo, numero base, identita fattura osservata completa, numero candidati distinti, esito exact/unique_base/ambiguous e ID regola.",
+    outcome: "continue",
+    priority: 1_224,
+    provenance: USER_RULE_PROVENANCE_2026_08_26,
   },
   {
     id: USER_AUTHORIZED_RULE_IDS.defaultSingleUnitWhenUnspecified,

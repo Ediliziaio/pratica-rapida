@@ -509,13 +509,32 @@ export function resolveInvoiceWorkDates(segments: Array<{ documentDate?: string 
   };
 }
 
-export function missingExplicitAdvanceInvoiceReferences(segments: Array<{ sourceId: string; documentNumber?: string | null; referencedInvoiceNumbers: string[]; text: string }>) {
-  const normalizeNumber = (value: string) => value.toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/^0+/, "");
-  const observed = new Set(segments.map((segment) => normalizeNumber(segment.documentNumber ?? "")).filter(Boolean));
-  return segments.flatMap((segment) => {
-    if (!/\b(?:fatt(?:ura)?\.?\s*(?:di\s+)?acconto|acconto\s+(?:ricevuto\s+)?(?:rif\.?\s*)?(?:ns\.?\s*)?fatt)/i.test(segment.text)) return [];
-    return segment.referencedInvoiceNumbers.filter((reference) => !observed.has(normalizeNumber(reference))).map((reference) => ({ sourceId: segment.sourceId, reference }));
-  });
+type InvoiceReferenceSegment = { sourceId: string; documentNumber?: string | null; referencedInvoiceNumbers: string[]; text: string };
+
+const canonicalInvoiceNumber = (value: string) => value.toUpperCase().replace(/[^A-Z0-9/.-]/g, "").replace(/^0+(?=\d)/, "");
+const numericInvoiceBase = (value: string) => canonicalInvoiceNumber(value).match(/^(\d+)(?:[\/.-].*)?$/)?.[1].replace(/^0+(?=\d)/, "") ?? null;
+
+export function resolveExplicitAdvanceInvoiceReferences(segments: InvoiceReferenceSegment[]) {
+  const observed = [...new Set(segments.map((segment) => canonicalInvoiceNumber(segment.documentNumber ?? "")).filter(Boolean))];
+  const missing: Array<{ sourceId: string; reference: string }> = [];
+  const uniqueBaseMatches: Array<{ sourceId: string; reference: string; matchedDocumentNumber: string }> = [];
+  for (const segment of segments) {
+    if (!/\b(?:fatt(?:ura)?\.?\s*(?:di\s+)?acconto|acconto\s+(?:ricevuto\s+)?(?:rif\.?\s*)?(?:ns\.?\s*)?fatt)/i.test(segment.text)) continue;
+    for (const reference of segment.referencedInvoiceNumbers) {
+      const canonicalReference = canonicalInvoiceNumber(reference);
+      const referencingDocumentNumber = canonicalInvoiceNumber(segment.documentNumber ?? "");
+      if (canonicalReference !== referencingDocumentNumber && observed.includes(canonicalReference)) continue;
+      const base = numericInvoiceBase(reference);
+      const candidates = base === null ? [] : observed.filter((documentNumber) => documentNumber !== referencingDocumentNumber && numericInvoiceBase(documentNumber) === base);
+      if (candidates.length === 1) uniqueBaseMatches.push({ sourceId: segment.sourceId, reference, matchedDocumentNumber: candidates[0] });
+      else missing.push({ sourceId: segment.sourceId, reference });
+    }
+  }
+  return { missing, uniqueBaseMatches };
+}
+
+export function missingExplicitAdvanceInvoiceReferences(segments: InvoiceReferenceSegment[]) {
+  return resolveExplicitAdvanceInvoiceReferences(segments).missing;
 }
 
 export function screeningProductMeasurementEvidenceStatus(invoiceTexts: readonly string[], paperFormTexts: readonly string[] = []) {
@@ -672,13 +691,19 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
     return /\b(?:totale\s+(?:documento|fattura|imponibile|iva)|riepilogo\s+iva|calcolo\s+fattura|imponibile\s+(?:iva|aliquota))\b/i.test(segment.text);
   });
   const segmentReconciliation = reconcileLocalInvoiceSegments(invoiceSegments);
-  const missingAdvanceInvoices = missingExplicitAdvanceInvoiceReferences(invoiceSegments);
+  const advanceInvoiceReferences = resolveExplicitAdvanceInvoiceReferences(invoiceSegments);
+  const missingAdvanceInvoices = advanceInvoiceReferences.missing;
   if (missingAdvanceInvoices.length) blockers.push({
     code: "original_invoice_missing_or_unavailable",
     field: "economic_sources",
     reason: `La fattura presente detrae o richiama una fattura di acconto non acquisita (${missingAdvanceInvoices.map((item) => item.reference).join(", ")}); APR non puo ricostruire il totale documentale completo senza la fonte fiscale originaria.`,
     sourceIds: [...new Set(missingAdvanceInvoices.map((item) => item.sourceId))],
     appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.missingInvoiceOperatorRequeue, USER_AUTHORIZED_RULE_IDS.distinctInvoiceNumbersSameCustomerSum, "core-economic-classification", "system-apr-operator-intervention-routing"],
+  });
+  if (advanceInvoiceReferences.uniqueBaseMatches.length) warnings.push({
+    code: "invoice_reference_unique_base_matched",
+    reason: `Riferimenti fattura risolti tramite numero base univoco: ${advanceInvoiceReferences.uniqueBaseMatches.map((item) => `${item.reference} -> ${item.matchedDocumentNumber}`).join(", ")}. Riferimento e numero documento completi restano separati nell'audit.`,
+    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.uniqueInvoiceBaseReferenceMatch, USER_AUTHORIZED_RULE_IDS.missingInvoiceOperatorRequeue],
   });
   if (segmentReconciliation.replacedFinancialSourceIds.length) warnings.push({
     code: "explicit_replacement_invoice_superseded",
@@ -1077,7 +1102,7 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
       methods: financialReconciliation.methods.map((method) => ({ ...method })),
       discardedDuplicateSourceIds: [...new Set([...segmentReconciliation.discardedDuplicateSourceIds, ...financialReconciliation.discardedDuplicateSourceIds])],
       supersededTechnicalSourceIds: segmentReconciliation.supersededTechnicalSourceIds,
-      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalVatIncluded, USER_AUTHORIZED_RULE_IDS.bundledProfessionalExpenseSeparation, USER_AUTHORIZED_RULE_IDS.mandatoryBankTransferInvoiceExpenseCrossCheck, "core-gross-triple-reconciliation", USER_AUTHORIZED_RULE_IDS.technicalProductCardinality, ...(segmentReconciliation.discardedDuplicateSourceIds.length ? ["system-invoice-header-identity-over-body-reference"] : []), ...(segmentReconciliation.replacedFinancialSourceIds.length ? ["system-explicit-replacement-invoice-supersession"] : []), ...financialReconciliation.appliedRuleIds],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalVatIncluded, USER_AUTHORIZED_RULE_IDS.bundledProfessionalExpenseSeparation, USER_AUTHORIZED_RULE_IDS.mandatoryBankTransferInvoiceExpenseCrossCheck, "core-gross-triple-reconciliation", USER_AUTHORIZED_RULE_IDS.technicalProductCardinality, ...(advanceInvoiceReferences.uniqueBaseMatches.length ? [USER_AUTHORIZED_RULE_IDS.uniqueInvoiceBaseReferenceMatch] : []), ...(segmentReconciliation.discardedDuplicateSourceIds.length ? ["system-invoice-header-identity-over-body-reference"] : []), ...(segmentReconciliation.replacedFinancialSourceIds.length ? ["system-explicit-replacement-invoice-supersession"] : []), ...financialReconciliation.appliedRuleIds],
     }, warnings, blockers: finalBlockers, sourceIds, eneaPayloadAudit,
     draftPlan: { status: ready ? "ready_before_external_action" : "blocked", externalActionAllowed: false, previewAllowed: false, submitAllowed: false, communicationsAllowed: false,
       nextAction: ready ? "Piano locale pronto; fermo prima di ENEA." : uniqueBlockers.some((item) => item.code === "original_invoice_missing_or_unavailable") ? "Richiesto intervento operatore: acquisire la fattura; al ritorno in Pronte da fare APR riprende dal nuovo fingerprint." : "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi." } };

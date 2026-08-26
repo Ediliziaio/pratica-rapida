@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { findFormModuleByProdotto } from "@/lib/formModuleMatching";
 import type { FormModule } from "@/types/form-module";
 
 // ============================================================
@@ -8,9 +9,8 @@ import type { FormModule } from "@/types/form-module";
 // Cerca il modulo del form pubblico DB-first dato il `prodotto_installato`
 // della pratica (string) — match per pattern lower-case su `prodotto_match`.
 //
-// Nota: per ora il FormPubblico continua a usare lo schema hardcoded in
-// src/types/form-cliente.ts. Questo hook serve da ponte futuro.
-// TODO: integrate useFormModuleByProdotto in next iteration in FormPubblico.tsx
+// FormPubblico usa il modulo restituito come schema principale; in assenza di
+// match mantiene il fallback hardcoded per compatibilita con i prodotti legacy.
 // ============================================================
 
 export function useFormModuleByProdotto(prodotto: string | null | undefined) {
@@ -18,7 +18,6 @@ export function useFormModuleByProdotto(prodotto: string | null | undefined) {
     queryKey: ["form-module-by-prodotto", prodotto],
     queryFn: async () => {
       if (!prodotto) return null;
-      const lower = prodotto.toLowerCase();
       const { data, error } = await supabase
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from("form_modules" as any)
@@ -31,10 +30,7 @@ export function useFormModuleByProdotto(prodotto: string | null | undefined) {
       }
       if (!data) return null;
       const list = data as unknown as FormModule[];
-      const matched = list.find((m) =>
-        m.prodotto_match?.some((p) => lower.includes(p.toLowerCase())),
-      );
-      return matched ?? null;
+      return findFormModuleByProdotto(list, prodotto);
     },
     enabled: !!prodotto,
     staleTime: 5 * 60 * 1000, // 5min

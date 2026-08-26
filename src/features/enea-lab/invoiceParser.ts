@@ -7,6 +7,53 @@ import type {
 const MAX_SCREENING_QUANTITY = 50;
 const PERSIANA_RULE_ID = "user-2026-08-18-persiana-screening-contract-v1";
 const AVVOLGIBILE_RULE_ID = "user-2026-08-18-avvolgibile-screening-contract-v1";
+const SCREENING_DIMENSION_SURFACE_RULE_ID = "user-2026-08-26-screening-dimension-unit-surface-coherence-v1";
+const SCREENING_SURFACE_RELATIVE_TOLERANCE = 0.05;
+
+type ScreeningMeasureUnit = "m" | "cm" | "mm";
+type ScreeningMeasureResolution = "explicit_m" | "explicit_cm" | "explicit_mm" | "surface_reconciled_m" | "surface_reconciled_cm" | "surface_reconciled_mm" | "inferred_m" | "inferred_cm" | "inferred_mm";
+
+function screeningUnitMultiplier(unit: ScreeningMeasureUnit): number {
+  return unit === "m" ? 1_000 : unit === "cm" ? 10 : 1;
+}
+
+function screeningSurfaceM2(width: number, height: number, unit: ScreeningMeasureUnit): number {
+  const multiplier = screeningUnitMultiplier(unit);
+  return roundSurface((width * multiplier * height * multiplier) / 1_000_000);
+}
+
+function screeningSurfaceDifference(calculated: number, explicit: number): number {
+  return explicit > 0 ? Math.abs(calculated - explicit) / explicit : Number.POSITIVE_INFINITY;
+}
+
+function screeningSurfacesAreCoherent(calculated: number, explicit: number): boolean {
+  return screeningSurfaceDifference(calculated, explicit) <= SCREENING_SURFACE_RELATIVE_TOLERANCE + Number.EPSILON;
+}
+
+function resolveScreeningMeasurePair(
+  width: number,
+  height: number,
+  explicitUnit: ScreeningMeasureUnit | null,
+  explicitSurfaceM2: number | null,
+): { widthMm: number; heightMm: number; unit: ScreeningMeasureUnit; resolution: ScreeningMeasureResolution } {
+  let unit = explicitUnit;
+  let resolution: ScreeningMeasureResolution | null = explicitUnit ? `explicit_${explicitUnit}` : null;
+  if (!unit && explicitSurfaceM2 !== null) {
+    const coherentUnits = (["m", "cm", "mm"] as const)
+      .filter((candidate) => screeningSurfacesAreCoherent(screeningSurfaceM2(width, height, candidate), explicitSurfaceM2));
+    if (coherentUnits.length === 1) {
+      unit = coherentUnits[0];
+      resolution = `surface_reconciled_${unit}`;
+    }
+  }
+  if (!unit) {
+    const maximum = Math.max(width, height);
+    unit = maximum <= 20 ? "m" : maximum < 2_000 ? "cm" : "mm";
+    resolution = `inferred_${unit}`;
+  }
+  const multiplier = screeningUnitMultiplier(unit);
+  return { widthMm: Math.round(width * multiplier), heightMm: Math.round(height * multiplier), unit, resolution: resolution! };
+}
 
 export type PersianaMeasureAxis = "width" | "height";
 export type PersianaMeasureResolution = "explicit_cm" | "explicit_mm" | "inferred_cm" | "inferred_mm" | "ambiguous";
@@ -239,8 +286,8 @@ function cleanDescription(value: string): string {
 }
 
 function extractExplicitSurfaceValues(text: string): number[] {
-  return [...text.matchAll(/(?:Schermatura\s+superficie\s+mq\s*:?\s*([0-9]+(?:[,.][0-9]+)?)|Superficie\s+schermatura\s*:?\s*([0-9]+(?:[,.][0-9]+)?)\s*mq)/gi)]
-    .map((match) => parseSurfaceNumber(match[1] ?? match[2]))
+  return [...text.matchAll(/(?:Schermatura\s+superficie\s+mq\s*:?\s*([0-9]+(?:[,.][0-9]+)?)|Superficie\s+schermatura\s*:?\s*([0-9]+(?:[,.][0-9]+)?)\s*mq|Tot\s*mq\s*:?\s*([0-9]+(?:[,.][0-9]+)?))/gi)]
+    .map((match) => parseSurfaceNumber(match[1] ?? match[2] ?? match[3]))
     .filter((value): value is number => value !== null);
 }
 
@@ -326,6 +373,8 @@ export function parseScreeningInvoiceText(
   const seenEmbeddedProductGroups = new Set<string>();
   let authoritativeVendorItems: EneaLabScreeningItem[] | null = null;
   let invalidExplicitQuantity = false;
+  let invalidScreeningDimensionUnit = false;
+  const surfaceCoherenceFailures: string[] = [];
 
   const appendItems = (
     quantity: number,
@@ -637,9 +686,25 @@ export function parseScreeningInvoiceText(
       const widthCm = parseItalianNumber(match[1]); const heightCm = parseItalianNumber(match[2]);
       if (widthCm !== null && heightCm !== null) appendItems(1, Math.round(widthCm * 10), Math.round(heightCm * 10), parseItalianNumber(match[3]), "Tenda da sole");
     }
-    for (const match of compact.matchAll(/TENDA\s+DA\s+SOLE[\s\S]{0,180}?\bL\s*([0-9]+(?:[,.][0-9]+)?)\s*[X×]\s*S\s*([0-9]+(?:[,.][0-9]+)?)[\s\S]{0,220}?G\s*TOT(?:\s+CLASSE\s+\d+)?(?:\s+VALORE)?\s*([0-9]+(?:[,.][0-9]+)?)/gi)) {
-      const widthM = parseItalianNumber(match[1]); const heightM = parseItalianNumber(match[2]);
-      if (widthM !== null && heightM !== null) appendItems(1, Math.round(widthM * 1000), Math.round(heightM * 1000), parseItalianNumber(match[3]), "Tenda da sole");
+    for (const match of compact.matchAll(/TENDA\s+DA\s+SOLE[\s\S]{0,180}?\bL\s*(?:(MM|CM|M)\.?\s*)?([0-9]+(?:[,.][0-9]+)?)\s*(MM|CM|M)?\s*[X×]\s*S\s*(?:(MM|CM|M)\.?\s*)?([0-9]+(?:[,.][0-9]+)?)\s*(MM|CM|M)?[\s\S]{0,220}?G\s*TOT(?:\s+CLASSE\s+\d+)?(?:\s+VALORE)?\s*([0-9]+(?:[,.][0-9]+)?)/gi)) {
+      const rawWidth = parseItalianNumber(match[2]); const rawHeight = parseItalianNumber(match[5]);
+      if (rawWidth === null || rawHeight === null) continue;
+      const explicitUnits = [match[1], match[3], match[4], match[6]].filter(Boolean).map((unit) => unit.toLowerCase() as ScreeningMeasureUnit);
+      const uniqueUnits = [...new Set(explicitUnits)];
+      if (uniqueUnits.length > 1) { invalidScreeningDimensionUnit = true; continue; }
+      const localSurfaceValues = extractExplicitSurfaceValues(match[0]);
+      const explicitSurface = localSurfaceValues.length === 1 ? localSurfaceValues[0] : null;
+      const resolved = resolveScreeningMeasurePair(rawWidth, rawHeight, uniqueUnits[0] ?? null, explicitSurface);
+      const before = items.length;
+      appendItems(1, resolved.widthMm, resolved.heightMm, parseItalianNumber(match[7]), "Tenda da sole", explicitSurface);
+      for (const item of items.slice(before)) item.measurementAudit = {
+        widthOriginal: rawWidth,
+        heightOriginal: rawHeight,
+        explicitUnit: uniqueUnits[0] ?? null,
+        widthResolution: resolved.resolution,
+        heightResolution: resolved.resolution,
+        ruleId: SCREENING_DIMENSION_SURFACE_RULE_ID,
+      };
     }
     // Formato Suman: una sola descrizione narrativa elenca piu misure dopo
     // "Mis Mt" e dichiara un unico gTot. Valori come 410x225 sono centimetri
@@ -722,6 +787,18 @@ export function parseScreeningInvoiceText(
     const explicitSurfaceValues = extractExplicitSurfaceValues(sourceText);
     if (explicitSurfaceValues.length === items.length) {
       for (let index = 0; index < items.length; index += 1) {
+        const calculatedSurfaceM2 = roundSurface((items[index].widthMm * items[index].heightMm) / 1_000_000);
+        const relativeDifference = screeningSurfaceDifference(calculatedSurfaceM2, explicitSurfaceValues[index]);
+        const consistent = screeningSurfacesAreCoherent(calculatedSurfaceM2, explicitSurfaceValues[index]);
+        items[index] = { ...items[index], surfaceAudit: {
+          explicitSurfaceM2: explicitSurfaceValues[index],
+          calculatedSurfaceM2,
+          relativeDifference,
+          toleranceRelative: SCREENING_SURFACE_RELATIVE_TOLERANCE,
+          consistent,
+          ruleId: SCREENING_DIMENSION_SURFACE_RULE_ID,
+        } };
+        if (!consistent) surfaceCoherenceFailures.push(`Riga ${index + 1}: superficie esplicita ${explicitSurfaceValues[index]} m2 non coerente con ${calculatedSurfaceM2} m2 calcolati dalle misure oltre la tolleranza del 5%.`);
         items[index] = { ...items[index], surfaceM2: roundSurface(explicitSurfaceValues[index]) };
       }
     }
@@ -731,12 +808,16 @@ export function parseScreeningInvoiceText(
     items,
     result: {
       path,
-      status: invalidExplicitQuantity ? "failed" : "parsed",
+      status: invalidExplicitQuantity || invalidScreeningDimensionUnit || surfaceCoherenceFailures.length > 0 ? "failed" : "parsed",
       documentType,
       total: extractDocumentTotal(sourceText),
       itemCount: items.length,
-      ...(invalidExplicitQuantity
-        ? { message: "Quantità schermatura esplicita non valida: controllo umano richiesto." }
+      ...(invalidExplicitQuantity || invalidScreeningDimensionUnit || surfaceCoherenceFailures.length > 0
+        ? { message: [
+          invalidExplicitQuantity ? "Quantità schermatura esplicita non valida: controllo umano richiesto." : "",
+          invalidScreeningDimensionUnit ? "Unità di misura discordanti nella stessa riga schermatura: controllo umano richiesto." : "",
+          ...surfaceCoherenceFailures,
+        ].filter(Boolean).join(" ") }
         : {}),
       ...extractDocumentIdentity(sourceText),
     },
@@ -782,6 +863,7 @@ export function combineDocumentResults(
   }
   if (documents.some(({ status }) => status !== "parsed")) {
     blockers.push("Almeno un documento deve essere letto o controllato manualmente.");
+    blockers.push(...documents.filter(({ status, message }) => status !== "parsed" && message).map(({ message }) => message!));
   }
   if (documents.some(({ documentType }) => documentType === "unknown")) {
     blockers.push("Almeno un documento non è stato riconosciuto come fattura o nota di credito.");

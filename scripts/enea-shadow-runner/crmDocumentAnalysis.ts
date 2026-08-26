@@ -257,6 +257,7 @@ export class PersistentAprCrmDocumentAnalysis {
           : parserRevision === "invoice-parser-v33-header-identity-over-body-reference" ? [...RULE_IDS, "system-invoice-header-identity-over-body-reference", USER_AUTHORIZED_RULE_IDS.technicalProductCardinality, USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalVatIncluded]
           : ["invoice-parser-v26-zanzasol-description-after-price", "invoice-parser-v28-lm-tende-multi-product-balance", "invoice-parser-v29-odhaus-avvolgibili-supporting-declaration", "invoice-parser-v31-rinaldi-sp-dot-and-vat-layout"].includes(parserRevision) ? [...RULE_IDS, USER_AUTHORIZED_RULE_IDS.narrativeInvoiceProductExtraction, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality, USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalVatIncluded]
           : ["invoice-parser-v34-linea-sole-partial-paper-scomparsa", "invoice-parser-v35-composite-invoice-transfer-segmentation"].includes(parserRevision) ? [...RULE_IDS, USER_AUTHORIZED_RULE_IDS.lineaSolePotitoPaperForm, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality]
+          : parserRevision === "invoice-parser-v36-screening-unit-surface-coherence" ? [...RULE_IDS, USER_AUTHORIZED_RULE_IDS.screeningDimensionUnitSurfaceCoherence, USER_AUTHORIZED_RULE_IDS.explicitTechnicalSurfacePrecision]
           : parserRevision === "invoice-parser-v25-vans-awning-missing-gtot" ? [...RULE_IDS, USER_AUTHORIZED_RULE_IDS.genericAwningScreening, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality]
           : RULE_IDS });
     return this.write(next);

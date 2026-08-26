@@ -144,6 +144,63 @@ Totale 1.499,99 €`, "desando.pdf");
     expect(parsed.result).toMatchObject({ documentNumber: "17", documentDate: "2026-07-03", total: 1499.99 });
     expect(parsed.items).toEqual([expect.objectContaining({ widthMm: 3000, heightMm: 2500, gTot: 0.11 })]);
   });
+  it("risolve Teotino in centimetri tramite Tot mq e conserva audit di unita e superficie", () => {
+    const parsed = parseScreeningInvoiceText(`Fattura n. 7 del 28/05/2026
+TENDA da sole modello NEW ORLY, tenda a scomparsa totale, motorizzata, L 400 x S 250Tot mq 10 Tessuto Parà Tempotest Gtot classe 3 valore0,10
+Totale 2.257,00 €`, "teotino.pdf");
+    expect(parsed.result.status).toBe("parsed");
+    expect(parsed.items).toEqual([expect.objectContaining({
+      widthMm: 4000,
+      heightMm: 2500,
+      surfaceM2: 10,
+      gTot: 0.1,
+      measurementAudit: expect.objectContaining({
+        explicitUnit: null,
+        widthResolution: "surface_reconciled_cm",
+        heightResolution: "surface_reconciled_cm",
+        ruleId: USER_AUTHORIZED_RULE_IDS.screeningDimensionUnitSurfaceCoherence,
+      }),
+      surfaceAudit: expect.objectContaining({
+        explicitSurfaceM2: 10,
+        calculatedSurfaceM2: 10,
+        relativeDifference: 0,
+        toleranceRelative: 0.05,
+        consistent: true,
+        ruleId: USER_AUTHORIZED_RULE_IDS.screeningDimensionUnitSurfaceCoherence,
+      }),
+    })]);
+    expect(combineDocumentResults([parsed]).blockers).toEqual([]);
+  });
+  it("blocca fail-closed quando unita esplicita e superficie dichiarata sono incoerenti", () => {
+    const parsed = parseScreeningInvoiceText(`Fattura n. 8 del 29/05/2026
+TENDA DA SOLE L 400 cm x S 250 cm Tot mq 12 Gtot valore 0,10
+Totale 2.257,00 €`, "superficie-incoerente.pdf");
+    expect(parsed.items[0]).toMatchObject({
+      widthMm: 4000,
+      heightMm: 2500,
+      surfaceM2: 12,
+      surfaceAudit: { explicitSurfaceM2: 12, calculatedSurfaceM2: 10, consistent: false },
+    });
+    expect(parsed.result).toMatchObject({ status: "failed", message: expect.stringContaining("oltre la tolleranza del 5%") });
+    expect(combineDocumentResults([parsed]).blockers).toContainEqual(expect.stringContaining("superficie esplicita 12 m2 non coerente"));
+  });
+  it("accetta esattamente il confine relativo del 5%", () => {
+    const parsed = parseScreeningInvoiceText(`Fattura n. 9 del 30/05/2026
+TENDA DA SOLE L 420 x S 250 Tot mq 10 Gtot valore 0,10
+Totale 2.257,00 €`, "superficie-confine.pdf");
+    expect(parsed.result.status).toBe("parsed");
+    expect(parsed.items[0]).toMatchObject({ widthMm: 4200, heightMm: 2500, surfaceM2: 10 });
+    expect(parsed.items[0].surfaceAudit?.relativeDifference).toBeCloseTo(0.05, 10);
+    expect(parsed.items[0].surfaceAudit?.consistent).toBe(true);
+  });
+  it("respinge appena oltre il confine relativo del 5%", () => {
+    const parsed = parseScreeningInvoiceText(`Fattura n. 10 del 31/05/2026
+TENDA DA SOLE L 421 x S 250 Tot mq 10 Gtot valore 0,10
+Totale 2.257,00 €`, "superficie-oltre-confine.pdf");
+    expect(parsed.items[0]).toMatchObject({ widthMm: 4210, heightMm: 2500, surfaceM2: 10 });
+    expect(parsed.items[0].surfaceAudit?.relativeDifference).toBeCloseTo(0.0525, 10);
+    expect(parsed.result.status).toBe("failed");
+  });
   it("legge tenda cassonata con quantità e gTot esplicito", () => {
     const parsed = parseScreeningInvoiceText("Fattura n. FPR 344/26 del 04/07/2026\nN°1 da 277 x 210 cm Schermatura superficie mq 5,817 G tot 0.10\nTotale documento 915,00 €", "albertoni.pdf");
     expect(parsed.items).toEqual([expect.objectContaining({ widthMm: 2770, heightMm: 2100, gTot: 0.1 })]);

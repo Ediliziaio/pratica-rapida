@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { ENEA_OPERATIONAL_REGISTRY, ENEA_OPERATIONAL_REGISTRY_VERSION, USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
 
-export const APR_RULE_TEST_MATRIX_VERSION = "apr-enea-rule-test-matrix-v58" as const;
+export const APR_RULE_TEST_MATRIX_VERSION = "apr-enea-rule-test-matrix-v59" as const;
 export interface AprRuleTestEntry {
   key: string;
   rule: string;
@@ -10,6 +10,7 @@ export interface AprRuleTestEntry {
 }
 
 export const APR_RULE_TEST_MATRIX: readonly AprRuleTestEntry[] = Object.freeze([
+  { key: "screening-dimension-unit-surface-coherence", rule: "Le dimensioni L x S usano prima l'unita esplicita, poi l'unica unita coerente con la superficie documentata e infine l'euristica dimensionale consolidata; Tot mq e riconosciuto e una discordanza superficie/misure oltre il 5% blocca fail-closed.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.screeningDimensionUnitSurfaceCoherence, USER_AUTHORIZED_RULE_IDS.explicitTechnicalSurfacePrecision], automaticTests: ["invoiceParser: Teotino 400x250 e Tot mq 10 risolti in centimetri", "invoiceParser: unita esplicita con superficie incoerente blocca", "invoiceParser: confine di tolleranza 5% accettato e oltre soglia respinto"] },
   { key: "infissi-third-party-certificate-classification", rule: "Un allegato additional diventa certificato tecnico Infissi di terza parte soltanto quando soddisfa integralmente il profilo dichiarazione formale 5/5 o il profilo DoP strutturata 6/6; parole tecniche, numeri e misure isolati restano additional.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.thirdPartyTechnicalCertificateClassification, USER_AUTHORIZED_RULE_IDS.crmInternalTechnicalDocumentUntrusted], automaticTests: ["infissiTechnicalDocumentClassifier: dichiarazione tecnica completa promossa", "infissiTechnicalDocumentClassifier: additional interno escluso", "infissiTechnicalDocumentClassifier: falso positivo lessicale con trasmittanza e misure escluso", "crmDocumentAnalysis: migrazione semantica idempotente preserva kind e fingerprint"] },
   { key: "infissi-internal-technical-document-untrusted", rule: "Il documento tecnico CRM interno e gli allegati generici non classificati non forniscono mai misure, quantita o specifiche; sono ammesse soltanto fattura e certificato tecnico reale di terza parte.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.crmInternalTechnicalDocumentUntrusted, USER_AUTHORIZED_RULE_IDS.infissiTechnicalSourceResolution], automaticTests: ["infissiOriginalSourcePolicy: fattura e certificato terzo ammessi", "infissiOriginalSourcePolicy: additional interno escluso fail-closed", "infissiAutomaticDocumentEvidence: documento interno allettante non influenza il risultato"] },
   { key: "test-ex-novo-original-sources-only", rule: "Ogni test ricostruisce la pratica ex novo dalle sole fonti originarie ammesse e ignora stato CRM pregresso, risultati operatore e storico ENEA.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.testExNovoOriginalSourcesOnly], automaticTests: ["infissiOriginalSourcePolicy: storico e operatore esclusi", "infissiAutomaticDocumentEvidence: output invariato cambiando fonti storiche escluse"] },

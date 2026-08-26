@@ -128,6 +128,7 @@ async function serve() {
         analysis.applyParserRevision("invoice-parser-v33-header-identity-over-body-reference");
         analysis.applyParserRevision("invoice-parser-v34-linea-sole-partial-paper-scomparsa");
         analysis.applyParserRevision("invoice-parser-v35-composite-invoice-transfer-segmentation");
+        analysis.applyParserRevision("invoice-parser-v36-screening-unit-surface-coherence");
         preflight.applyValidationRevision("single-unit-building-portal-mapping-v30");
         preflight.applyValidationRevision("rinaldi-sp-dot-and-vat-layout-v32");
         preflight.applyValidationRevision("grk-compact-financial-summary-v33");

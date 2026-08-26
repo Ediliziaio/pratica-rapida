@@ -6,12 +6,13 @@ ENEA è il primo modulo di APR.
 
 Una regola non e' dichiarata attiva soltanto perche' compare in questo documento o nel registro. APR richiede la catena completa: ID nel registro unico, test automatico verde, impronta del contenuto corrente e bundle persistente installato identico a quello testato. Se uno solo di questi passaggi manca, il dashboard mostra `pending_test` oppure `tested_not_deployed`, mai una regola attiva.
 
-Questa matrice è governata da `apr-enea-rule-test-matrix-v58` e dal registro unico `enea-operational-registry-v82`. Una regola appare **attiva/testata** nella dashboard soltanto quando l'evidenza persistente corrisponde sia alla versione della matrice sia alla versione del registro e contiene l'esito positivo della relativa chiave.
+Questa matrice è governata da `apr-enea-rule-test-matrix-v59` e dal registro unico `enea-operational-registry-v83`. Una regola appare **attiva/testata** nella dashboard soltanto quando l'evidenza persistente corrisponde sia alla versione della matrice sia alla versione del registro e contiene l'esito positivo della relativa chiave.
 
 La chiave `operator-structured-question-resume` copre il ciclo persistente domanda diretta → risposta caso-specifica → riaccodamento. La nota libera è facoltativa; il valore tecnico deriva sempre da un'opzione controllata. La risposta non diventa una regola generale e `non determinabile` mantiene il caso in intervento operatore.
 
 | Chiave | Regola | Prova automatica |
 |---|---|---|
+| screening-dimension-unit-surface-coherence | Dimensioni L×S: unità esplicita, altrimenti unica unità coerente con la superficie, altrimenti euristica ≤20 m / <2000 cm / resto mm; `Tot mq` è superficie esplicita e differenze oltre il 5% bloccano | Teotino positivo + conflitto negativo + confine 5%/oltre soglia |
 | infissi-portal-managed-energy-savings | Il portale ENEA calcola il risparmio energetico Infissi; APR omette il campo da payload e dry-run e può soltanto auditarne una futura lettura, senza modificarlo | assenza esplicita dal payload + audit read-only con mutationAllowed=false |
 | infissi-old-window-transmittance-matrix | Trasmittanza del vecchio infisso dalla combinazione esatta materiale telaio + tipo vetro del form; fallback prudenziale 6,0 W/m²K per dato mancante, ambiguo, non mappabile o dubbio | 20 combinazioni parametrizzate + mancanti + ambigui + dubbio + audit mapping form |
 | infissi-invoice-or-technical-source-resolution | Numero e misure dalla fattura se espliciti, altrimenti dai documenti tecnici originari; misura esterna preferita ma altra misura documentata ammessa; cardinalità 1:1 | fattura completa + fonti complementari + misura esterna/altra documentata + conflitto fail-closed |

@@ -26,6 +26,28 @@ describe("analisi locale persistente dei PDF CRM", () => {
     expect(calls).toBe(3);
   });
 
+  it("riapplica la revisione unita-superficie ai testi persistiti con audit del registro", async () => {
+    const directory = mkdtempSync(path.join(os.tmpdir(), "apr-doc-analysis-unit-surface-")); directories.push(directory);
+    const localPath = path.join(directory, "invoice.pdf"); const body = Buffer.from("%PDF-fixture"); writeFileSync(localPath, body);
+    const input = { documentKey: createHash("sha256").update("teotino-fixture").digest("hex"), customerKey: "cliente", kind: "invoice" as const, localPath, responseSha256: createHash("sha256").update(body).digest("hex") };
+    const reader = new PersistentAprCrmDocumentAnalysis(directory, async () => ({
+      text: "Fattura n. 7 del 28/05/2026 TENDA DA SOLE L 400 x S 250 Tot mq 10 Gtot valore 0,10 Totale 2.257,00 €",
+      extractionMode: "native_text",
+      pageCount: 1,
+    }));
+    reader.prepare([input], "d".repeat(64)); await reader.tick();
+    const checkpoint = reader.applyParserRevision("invoice-parser-v36-screening-unit-surface-coherence");
+    expect(checkpoint.items[0].screeningItems[0]).toMatchObject({ widthMm: 4000, heightMm: 2500, surfaceM2: 10 });
+    expect(checkpoint.parserRevisionsApplied).toContain("invoice-parser-v36-screening-unit-surface-coherence");
+    expect(checkpoint.audit.at(-1)).toMatchObject({
+      type: "parser_reanalyzed",
+      appliedRuleIds: expect.arrayContaining([
+        "user-2026-08-26-screening-dimension-unit-surface-coherence-v1",
+        "user-2026-08-18-explicit-technical-surface-precision",
+      ]),
+    });
+  });
+
   it("isola un errore di analisi e completa gli altri PDF", async () => {
     const directory = mkdtempSync(path.join(os.tmpdir(), "apr-doc-analysis-")); directories.push(directory); const sourceDirectory = path.join(directory, "source"); mkdirSync(sourceDirectory);
     const inputs = ["bad", "good"].map((name) => { const localPath = path.join(sourceDirectory, `${name}.pdf`); const body = Buffer.from(`%PDF-${name}`); writeFileSync(localPath, body); return { documentKey: createHash("sha256").update(name).digest("hex"), customerKey: name, kind: "invoice" as const, localPath, responseSha256: createHash("sha256").update(body).digest("hex") }; });

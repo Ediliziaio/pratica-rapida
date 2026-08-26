@@ -35,6 +35,7 @@ const PARSER_REVISIONS = [
   "invoice-parser-v29-odhaus-avvolgibili-supporting-declaration",
   "invoice-parser-v30-explicit-surface-and-lm-cardinality",
   "invoice-parser-v31-rinaldi-sp-dot-and-vat-layout",
+  "invoice-parser-v36-screening-unit-surface-coherence",
 ] as const;
 const VALIDATION_REVISIONS = [
   "form-group-product-inheritance-v1", "full-enea-payload-audit-v1", "authorized-gtot-payload-provenance-v2", "test-draft-payload-gate-v3",

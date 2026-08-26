@@ -1,6 +1,6 @@
 import { OPERATIONAL_RULES } from "./operationalRules";
 
-export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v82" as const;
+export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v83" as const;
 export const ENEA_GLOBAL_PREREQUISITE = Object.freeze({
   id: "browser-session-contract-v1",
   scope: "global_not_practice",
@@ -107,6 +107,7 @@ export const USER_AUTHORIZED_RULE_IDS = Object.freeze({
   explicitCompositeScreeningMaterial: "user-2026-08-18-explicit-composite-screening-material",
   explicitMotorizedScreeningMovement: "user-2026-08-18-explicit-motorized-screening-movement",
   explicitTechnicalSurfacePrecision: "user-2026-08-18-explicit-technical-surface-precision",
+  screeningDimensionUnitSurfaceCoherence: "user-2026-08-26-screening-dimension-unit-surface-coherence-v1",
   singleCaseRegressionTest: "user-2026-08-18-single-case-regression-test",
   mixedFortyCaseReliabilityTest: "user-2026-08-23-mixed-forty-case-reliability-test",
   documentedProductModuleOverLabel: "user-2026-08-23-documented-product-module-over-label",
@@ -442,6 +443,18 @@ export const ENEA_USER_AUTHORIZED_RULES: readonly OperationalRegistryRule[] = Ob
     outcome: "continue",
     priority: 1_185,
     provenance: USER_RULE_PROVENANCE_2026_08_18,
+  },
+  {
+    id: USER_AUTHORIZED_RULE_IDS.screeningDimensionUnitSurfaceCoherence,
+    step: "screenings",
+    kind: "business",
+    condition: "La fattura originaria riporta larghezza e altezza/sporgenza di una schermatura, con unita esplicita oppure deducibile, e puo riportare anche la superficie tecnica esplicita con diciture inclusa Tot mq.",
+    sourcePrecedence: ["unita di misura esplicita associata alle dimensioni", "unica unita coerente con la superficie esplicita entro il 5%", "euristica dimensionale consolidata: massimo <=20 metri, <2000 centimetri, altrimenti millimetri", "intervento operatore per conflitto"],
+    deterministicAction: "Normalizzare le misure in millimetri conservando valori e criterio originari. Riconoscere Tot mq come superficie esplicita. Confrontare la superficie dichiarata con quella calcolata dalle misure: una differenza relativa fino al 5% e ammessa come arrotondamento documentale; oltre il 5% il documento e fail-closed e la bozza non puo proseguire.",
+    audit: "practiceId, sourceId, testo riga, misure originarie, unita esplicita o risolta, misure normalizzate, superficie esplicita, superficie calcolata, differenza relativa, soglia 5%, esito e ID regola.",
+    outcome: "continue",
+    priority: 1_186,
+    provenance: USER_RULE_PROVENANCE_2026_08_26,
   },
   {
     id: USER_AUTHORIZED_RULE_IDS.explicitTechnicalSurfacePrecision,

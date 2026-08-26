@@ -33,9 +33,17 @@ export interface EneaLabScreeningItem {
   measurementAudit?: {
     widthOriginal: number;
     heightOriginal: number;
-    explicitUnit: "cm" | "mm" | null;
-    widthResolution: "explicit_cm" | "explicit_mm" | "inferred_cm" | "inferred_mm" | "ambiguous";
-    heightResolution: "explicit_cm" | "explicit_mm" | "inferred_cm" | "inferred_mm" | "ambiguous";
+    explicitUnit: "m" | "cm" | "mm" | null;
+    widthResolution: "explicit_m" | "explicit_cm" | "explicit_mm" | "surface_reconciled_m" | "surface_reconciled_cm" | "surface_reconciled_mm" | "inferred_m" | "inferred_cm" | "inferred_mm" | "ambiguous";
+    heightResolution: "explicit_m" | "explicit_cm" | "explicit_mm" | "surface_reconciled_m" | "surface_reconciled_cm" | "surface_reconciled_mm" | "inferred_m" | "inferred_cm" | "inferred_mm" | "ambiguous";
+    ruleId: string;
+  };
+  surfaceAudit?: {
+    explicitSurfaceM2: number;
+    calculatedSurfaceM2: number;
+    relativeDifference: number;
+    toleranceRelative: number;
+    consistent: boolean;
     ruleId: string;
   };
 }

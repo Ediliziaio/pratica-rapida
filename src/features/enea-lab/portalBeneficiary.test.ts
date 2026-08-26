@@ -8,6 +8,24 @@ import {
 } from "./portalBeneficiary";
 
 describe("compilazione pagina beneficiario ENEA", () => {
+  it("consegna al widget ENEA il nome corrente e la sigla ufficiale per Godiasco", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.richiedente.cf = "RNZRND49B18E072J";
+    source.form.richiedente.data_nascita = "1949-02-18";
+    source.form.richiedente.comune_nascita = "Godiasco";
+    source.form.richiedente.provincia_nascita = "Pavia";
+    const preparation = buildEneaBeneficiaryPortalScript(mapSchermaturaPractice(source));
+
+    expect(preparation.runtime.fields).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        portalId: "id-comune_nascita",
+        control: "autocomplete",
+        value: "Godiasco Salice Terme",
+        autocompleteQualifier: "PV",
+      }),
+    ]));
+  });
+
   it("usa gli identificativi osservati sul portale 2026 senza azioni di salvataggio", () => {
     expect(ENEA_BENEFICIARY_PORTAL_FIELDS.map(({ portalId }) => portalId)).toEqual([
       "id-nome",

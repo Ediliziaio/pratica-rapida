@@ -22,6 +22,7 @@ import { validateOperatorOverride } from "./operatorValidation";
 import { birthNationFromProvince, deterministicProtectedWindowSurface, residenceNationFromProvince, resolveBeneficiaryFiscalCode, resolveForeignBirthCountryFromFiscalCode } from "@/features/enea-shadow-crm/operationalRules";
 import { calculateScreeningEnergySavings } from "@/features/enea-shadow-crm/energySavingsPolicy";
 import { USER_AUTHORIZED_RULE_IDS } from "@/features/enea-shadow-crm/operationalRegistry";
+import { resolveOfficialMunicipalityNameChange } from "@/features/enea-shadow-crm/officialMunicipalityChanges";
 import type {
   EneaLabDocumentAnalysis,
   EneaLabField,
@@ -304,6 +305,13 @@ export function mapSchermaturaPractice(
       ? parts.slice(0, -1).join(", ")
       : original;
   })();
+  const officialBirthMunicipality = inferredBirthNation === "Italia"
+    ? resolveOfficialMunicipalityNameChange({
+      name: mappedBirthPlace,
+      province: display(form.richiedente.provincia_nascita),
+    })
+    : null;
+  const portalBirthPlace = officialBirthMunicipality?.currentName ?? mappedBirthPlace;
   const inferredResidenceNation = residenceNationFromProvince(display(form.residenza.provincia)).value ?? "";
   const worksAddress = form.residenza.stesso_indirizzo_lavori
     ? {
@@ -505,7 +513,11 @@ export function mapSchermaturaPractice(
           ? "Italia determinata dalla provincia italiana esplicita nel modulo cliente."
           : "La provincia del modulo non consente di determinare la nazione.",
       }),
-      mappedField("beneficiario.comune_nascita", "Comune di nascita", mappedBirthPlace, mappedBirthPlace !== display(form.richiedente.comune_nascita) ? {
+      mappedField("beneficiario.comune_nascita", "Comune di nascita", portalBirthPlace, officialBirthMunicipality ? {
+        source: "Regola controllata",
+        note: `Fonte originaria: ${officialBirthMunicipality.originalName} (${display(form.richiedente.provincia_nascita)}). Nome corrente ${officialBirthMunicipality.currentName}, codice ISTAT ${officialBirthMunicipality.currentIstatCode}, codice catastale ${officialBirthMunicipality.cadastralCode}, efficace dal ${officialBirthMunicipality.effectiveDate}. Fonti ufficiali: ${officialBirthMunicipality.officialSources.join("; ")}.`,
+        appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.officialMunicipalityNameChange, "core-mapping-complete"],
+      } : mappedBirthPlace !== display(form.richiedente.comune_nascita) ? {
         source: "Modulo cliente",
         note: `Fonte originaria: ${display(form.richiedente.comune_nascita)}. Nel campo ENEA e mantenuto il solo luogo; la nazione verificata e compilata separatamente.`,
         appliedRuleIds: ["user-2026-08-16-fiscal-code-identity-cross-check", "core-mapping-complete"],

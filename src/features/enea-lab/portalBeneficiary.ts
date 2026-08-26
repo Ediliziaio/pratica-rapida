@@ -1,4 +1,5 @@
 import type { EneaLabMappedPractice } from "./types";
+import { resolveOfficialMunicipalityIdentity } from "@/features/enea-shadow-crm/officialMunicipalityChanges";
 import { resolveForeignBirthCountryFromFiscalCode } from "@/features/enea-shadow-crm/operationalRules";
 import {
   buildEneaPortalRuntimeScript,
@@ -87,11 +88,17 @@ export function buildEneaBeneficiaryPortalScript(
       : definition.fieldId === "beneficiario.nazione_residenza" && nationIsItaly("beneficiario.nazione_residenza")
         ? "ita"
         : undefined;
-    const autocompleteQualifier = definition.fieldId === "beneficiario.comune_nascita"
+    const officialMunicipality = definition.fieldId === "beneficiario.comune_nascita"
+      ? resolveOfficialMunicipalityIdentity({
+        name: field.value,
+        province: fieldsById.get("beneficiario.provincia_nascita")?.value ?? "",
+      })
+      : null;
+    const autocompleteQualifier = officialMunicipality?.provinceCode ?? (definition.fieldId === "beneficiario.comune_nascita"
       && nationIsItaly("beneficiario.nazione_nascita")
       && fieldsById.get("beneficiario.provincia_nascita")?.status === "ready"
       ? fieldsById.get("beneficiario.provincia_nascita")!.value.trim().toUpperCase()
-      : undefined;
+      : undefined);
     return [{
       ...definition,
       control,

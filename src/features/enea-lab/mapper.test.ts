@@ -24,6 +24,36 @@ const analysis: EneaLabDocumentAnalysis = {
 };
 
 describe("mapSchermaturaPractice", () => {
+  it("mappa il nome storico Godiasco al Comune corrente soltanto tramite la fonte ufficiale", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.richiedente.cf = "RNZRND49B18E072J";
+    source.form.richiedente.data_nascita = "1949-02-18";
+    source.form.richiedente.comune_nascita = "Godiasco";
+    source.form.richiedente.provincia_nascita = "Pavia";
+    const field = mapSchermaturaPractice(source).sections.flatMap((section) => section.fields)
+      .find((candidate) => candidate.id === "beneficiario.comune_nascita");
+
+    expect(field).toMatchObject({
+      value: "Godiasco Salice Terme",
+      status: "ready",
+      source: "Regola controllata",
+      appliedRuleIds: expect.arrayContaining([USER_AUTHORIZED_RULE_IDS.officialMunicipalityNameChange]),
+    });
+    expect(field?.note).toContain("018073");
+    expect(field?.note).toContain("dait.interno.gov.it");
+  });
+
+  it("non applica la variazione ufficiale se nome e provincia non concordano", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.richiedente.comune_nascita = "Godiasco";
+    source.form.richiedente.provincia_nascita = "MI";
+    const field = mapSchermaturaPractice(source).sections.flatMap((section) => section.fields)
+      .find((candidate) => candidate.id === "beneficiario.comune_nascita");
+
+    expect(field?.value).toBe("Godiasco");
+    expect(field?.appliedRuleIds ?? []).not.toContain(USER_AUTHORIZED_RULE_IDS.officialMunicipalityNameChange);
+  });
+
   it("mappa i dati certi senza perdere i campi mancanti", () => {
     const result = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0]);
     const fields = result.sections.flatMap((section) => section.fields);

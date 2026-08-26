@@ -1,6 +1,6 @@
 import { OPERATIONAL_RULES } from "./operationalRules";
 
-export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v84" as const;
+export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v85" as const;
 export const ENEA_GLOBAL_PREREQUISITE = Object.freeze({
   id: "browser-session-contract-v1",
   scope: "global_not_practice",
@@ -72,6 +72,7 @@ export const USER_AUTHORIZED_RULE_IDS = Object.freeze({
   invoiceCoBeneficiaryPortalFlow: "user-2026-08-17-invoice-co-beneficiary-person-flow",
   fiscalCodeIdentityCrossCheck: "user-2026-08-16-fiscal-code-identity-cross-check",
   foreignBirthAnprRegistry: "user-2026-08-23-foreign-birth-anpr-registry-v1",
+  officialMunicipalityNameChange: "user-2026-08-27-official-municipality-name-change-v1",
   tenCaseMondayRestart: "user-2026-08-16-ten-case-monday-restart",
   fifteenCaseIntermezzoRepeat: "user-2026-08-17-fifteen-case-intermezzo-repeat",
   elevenCaseCleanRepeat: "user-2026-08-18-eleven-case-clean-repeat",
@@ -167,9 +168,26 @@ const USER_RULE_PROVENANCE_2026_08_26 = Object.freeze({
   receivedAt: "2026-08-26",
   source: "delegated_user_instruction" as const,
 });
+const USER_RULE_PROVENANCE_2026_08_27 = Object.freeze({
+  authority: "user" as const,
+  receivedAt: "2026-08-27",
+  source: "delegated_user_instruction" as const,
+});
 
 /** Regole business aggiunte soltanto in seguito a istruzione esplicita dell'utente. */
 export const ENEA_USER_AUTHORIZED_RULES: readonly OperationalRegistryRule[] = Object.freeze([
+  {
+    id: USER_AUTHORIZED_RULE_IDS.officialMunicipalityNameChange,
+    step: "identity_property",
+    kind: "business",
+    condition: "Il modulo originario riporta il nome storico di un Comune italiano e la coppia nome/provincia coincide esattamente con una variazione amministrativa contenuta nel catalogo chiuso APR verificato su fonti ufficiali.",
+    sourcePrecedence: ["nome e provincia nel modulo originario", "variazione amministrativa del Ministero dell'Interno", "codice Comune corrente ISTAT", "autocomplete corrente ENEA"],
+    deterministicAction: "Sostituire per il solo campo portale il nome storico con il nome corrente collegato allo stesso Comune dal catalogo ufficiale. Vietare confronti per contenimento, similarita o altre euristiche; senza corrispondenza ufficiale univoca restare fail-closed.",
+    audit: "nome originario, provincia originaria, nome corrente, codice ISTAT corrente, codice catastale, data efficacia, URL delle fonti ufficiali e ID regola.",
+    outcome: "continue",
+    priority: 1_222,
+    provenance: USER_RULE_PROVENANCE_2026_08_27,
+  },
   {
     id: USER_AUTHORIZED_RULE_IDS.thirdPartyTechnicalCertificateClassification,
     step: "economic_sources",

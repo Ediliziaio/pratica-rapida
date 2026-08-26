@@ -12,7 +12,13 @@ describe("registro operativo unico",()=>{
   });
   it("rende reperibili le regole solo per id",()=>expect(registryRule("core-form-first")?.step).toBe("customer_form"));
   it("registra le nuove regole utente con provenienza, precedenza e audit",()=>{
-    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v84");
+    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v85");
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.officialMunicipalityNameChange)).toMatchObject({
+      step: "identity_property",
+      outcome: "continue",
+      provenance: { authority: "user", receivedAt: "2026-08-27" },
+      deterministicAction: expect.stringContaining("Vietare confronti per contenimento"),
+    });
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.screeningDimensionUnitSurfaceCoherence)).toMatchObject({
       step: "screenings",
       outcome: "continue",

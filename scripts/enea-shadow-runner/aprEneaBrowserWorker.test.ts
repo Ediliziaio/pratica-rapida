@@ -77,6 +77,49 @@ function generatorPlantPreflightFixture() {
   } as never;
 }
 
+async function seedRecoveredScreeningCase(directory: string) {
+  const execution = new PersistentAprEneaDraftExecution(directory);
+  execution.prepare(preflightFixture(), new Date("2026-08-25T08:00:00.000Z"));
+  const base = new PersistentSimulatedEneaPortalDriver(directory, { identity: "apr-profile-recovered-screening-seed" });
+  let screeningVerificationCount = 0;
+  const driver: AprEneaBrowserDriver = {
+    ...base,
+    kind: base.kind,
+    identity: base.identity,
+    verifySession: base.verifySession.bind(base),
+    discoverExistingDraft: base.discoverExistingDraft.bind(base),
+    createDraft: base.createDraft.bind(base),
+    preparePage: base.preparePage.bind(base),
+    savePage: base.savePage.bind(base),
+    verifyPageSaved: async (draft, draftId, pageId) => {
+      if (draft.customerKey === "case-one" && pageId === "screening:1") {
+        screeningVerificationCount += 1;
+        if (screeningVerificationCount === 2) return null;
+      }
+      return base.verifyPageSaved(draft, draftId, pageId);
+    },
+    verifyDraftSaved: base.verifyDraftSaved.bind(base),
+  };
+  const worker = new PersistentAprEneaBrowserWorker(directory, execution, draftPackage, driver, { instanceId: "apr-worker-recovered-screening-seed", processPid: 4222 });
+  await worker.runUntilTerminal();
+  const isolated = execution.snapshot().items.find((item) => item.customerKey === "case-one")!;
+  const absenceEvidenceFor = (sequence: 1 | 2) => ({
+    evidenceId: `canonical-empty-seed-${sequence}`,
+    observedAt: `2026-08-25T08:10:0${sequence}.000Z`,
+    url: `https://bonusfiscali.enea.it/pratica/ecobonus/2026/schermature/${isolated.draftId}`,
+    allowlistedOrigin: true,
+    authenticated: true,
+    expectedHeadersPresent: true,
+    filtersClear: true,
+    loading: false,
+    surfaceReady: true,
+    emptyMarkerVisible: true,
+    rowCount: 0,
+  });
+  execution.resumeScreeningRowsAfterEmptyServerSummary("case-one", [absenceEvidenceFor(1), absenceEvidenceFor(2)], "worker-test:seed-recovered-screening");
+  return { execution, draftId: isolated.draftId! };
+}
+
 describe("APR browser worker persistente e autonomo", () => {
   it("non dichiara un falso negativo se il generatore compare alla seconda lettura dopo il Salva Impianto", async () => {
     const directory = temporaryDirectory();
@@ -276,6 +319,73 @@ describe("APR browser worker persistente e autonomo", () => {
     expect(execution.snapshot().items.find((item) => item.customerKey === "case-one")).toMatchObject({ state: "saved", draftId: isolated.draftId });
     const recoveredPortalDraft = restartedDriver.snapshot().drafts.find((item) => item.customerKey === "case-one")!;
     expect(recoveredPortalDraft).toMatchObject({ createMutationCount: 1, pageSaveMutationCounts: { "screening:1": 2, "page:Schermature solari": 2 } });
+    expect(restartedWorker.snapshot().audit).toEqual(expect.arrayContaining([
+      expect.objectContaining({ action: "recovered_screening_persistence_second_canonical_read", reason: expect.stringContaining("Prima GET canonica") }),
+      expect.objectContaining({ action: "recovered_screening_persistence_canonical_reads_agree", reason: expect.stringContaining("Due GET canoniche indipendenti") }),
+    ]));
+  });
+
+  it("resta fail-closed se entrambe le GET canoniche negano la riga schermatura recuperata", async () => {
+    const directory = temporaryDirectory();
+    const { execution } = await seedRecoveredScreeningCase(directory);
+    const base = new PersistentSimulatedEneaPortalDriver(directory, { identity: "apr-profile-recovered-screening-absent" });
+    let canonicalReadCount = 0;
+    const driver: AprEneaBrowserDriver = {
+      ...base,
+      kind: base.kind,
+      identity: base.identity,
+      verifySession: base.verifySession.bind(base),
+      discoverExistingDraft: base.discoverExistingDraft.bind(base),
+      createDraft: base.createDraft.bind(base),
+      preparePage: base.preparePage.bind(base),
+      savePage: base.savePage.bind(base),
+      verifyPageSaved: base.verifyPageSaved.bind(base),
+      verifyNestedPageSavedCanonicalReadOnly: async (draft, draftId, pageId) => {
+        canonicalReadCount += 1;
+        if (draft.customerKey === "case-one" && pageId === "screening:1") return null;
+        return base.verifyNestedPageSavedCanonicalReadOnly(draft, draftId, pageId);
+      },
+      verifyDraftSaved: base.verifyDraftSaved.bind(base),
+    };
+    const worker = new PersistentAprEneaBrowserWorker(directory, execution, draftPackage, driver, { instanceId: "apr-worker-recovered-screening-seed", processPid: 4223, recoveredScreeningPersistenceVerificationRetryDelayMs: 0 });
+
+    await expect(worker.runUntilTerminal()).resolves.toMatchObject({ status: "completed", blockedCustomerKeys: ["case-one"] });
+    expect(canonicalReadCount).toBe(2);
+    expect(execution.snapshot().items.find((item) => item.customerKey === "case-one")).toMatchObject({ state: "operator_intervention", reason: "Errore circoscritto alla pratica: apr_enea_nested_page_not_persisted_after_outer_save:screening:1" });
+    expect(base.snapshot().drafts.find((draft) => draft.customerKey === "case-one")?.pageSaveMutationCounts).toMatchObject({ "screening:1": 1, "page:Schermature solari": 1 });
+    expect(worker.snapshot().audit).toEqual(expect.arrayContaining([expect.objectContaining({ action: "recovered_screening_persistence_canonical_reads_rejected" })]));
+  });
+
+  it("non accetta due GET canoniche discordanti per una riga schermatura recuperata", async () => {
+    const directory = temporaryDirectory();
+    const { execution } = await seedRecoveredScreeningCase(directory);
+    const base = new PersistentSimulatedEneaPortalDriver(directory, { identity: "apr-profile-recovered-screening-disagree" });
+    let canonicalReadCount = 0;
+    const driver: AprEneaBrowserDriver = {
+      ...base,
+      kind: base.kind,
+      identity: base.identity,
+      verifySession: base.verifySession.bind(base),
+      discoverExistingDraft: base.discoverExistingDraft.bind(base),
+      createDraft: base.createDraft.bind(base),
+      preparePage: base.preparePage.bind(base),
+      savePage: base.savePage.bind(base),
+      verifyPageSaved: base.verifyPageSaved.bind(base),
+      verifyNestedPageSavedCanonicalReadOnly: async (draft, draftId, pageId) => {
+        canonicalReadCount += 1;
+        if (draft.customerKey === "case-one" && pageId === "screening:1" && canonicalReadCount === 2) return null;
+        return base.verifyNestedPageSavedCanonicalReadOnly(draft, draftId, pageId);
+      },
+      verifyDraftSaved: base.verifyDraftSaved.bind(base),
+    };
+    const worker = new PersistentAprEneaBrowserWorker(directory, execution, draftPackage, driver, { instanceId: "apr-worker-recovered-screening-seed", processPid: 4224, recoveredScreeningPersistenceVerificationRetryDelayMs: 0 });
+
+    await expect(worker.runUntilTerminal()).resolves.toMatchObject({ status: "completed", blockedCustomerKeys: ["case-one"] });
+    expect(canonicalReadCount).toBe(2);
+    expect(worker.snapshot().audit).toEqual(expect.arrayContaining([
+      expect.objectContaining({ action: "recovered_screening_persistence_second_canonical_read", evidenceId: expect.stringContaining("sim-server") }),
+      expect.objectContaining({ action: "recovered_screening_persistence_canonical_reads_rejected", evidenceId: null }),
+    ]));
   });
 
   it("esegue due pratiche consecutive e riprende da un crash senza perdita o duplicazione", async () => {

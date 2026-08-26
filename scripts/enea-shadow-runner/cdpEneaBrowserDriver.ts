@@ -1629,6 +1629,17 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     return this.capture("verify_page_saved_readonly", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
   }
 
+  async verifyNestedPageSavedCanonicalReadOnly(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence | null> {
+    if (!pageId.startsWith("screening:") && !/Generatore/.test(pageId)) throw new Error(`apr_cdp_enea_nested_canonical_verification_not_allowlisted:${pageId}`);
+    const { client } = await this.client();
+    const route = pageId.startsWith("screening:")
+      ? draftPackage.module === "infissi" ? "serramenti" : "schermature"
+      : "impianto_esistente";
+    await client.navigate(`${this.allowedOrigin}/pratica/ecobonus/2026/${route}/${draftId}`);
+    await this.waitForStable(client);
+    return this.verifyPageSaved(draftPackage, draftId, pageId);
+  }
+
   async inspectPersistedPageValuesReadOnly(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string) {
     const step = this.stepFor(draftPackage, pageId); if (!step) throw new Error(`apr_cdp_enea_page_not_allowlisted:${pageId}`);
     const mapping = this.load().mappings.find((item) => item.packageFingerprint === draftPackage.packageFingerprint && item.draftId === draftId); if (!mapping) throw new Error("apr_cdp_enea_mapping_missing");

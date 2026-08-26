@@ -76,6 +76,7 @@ export interface AprEneaBrowserDriver {
   preparePage(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence>;
   savePage(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence>;
   verifyPageSaved(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence | null>;
+  verifyNestedPageSavedCanonicalReadOnly?(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence | null>;
   probePageSaveReadOnly?(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaPageSaveProbeEvidence[]>;
   verifyDraftSaved(draftPackage: AprEneaDraftPackage, draftId: string): Promise<AprEneaDriverEvidence | null>;
   pendingCreationBarrier?(): { customerKey: string; evidenceId: string } | null;
@@ -277,6 +278,10 @@ export class PersistentSimulatedEneaPortalDriver implements AprEneaBrowserDriver
     return saved && draft ? { evidenceId, observedAt: new Date().toISOString(), url: draft.url } : null;
   }
 
+  async verifyNestedPageSavedCanonicalReadOnly(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence | null> {
+    return this.verifyPageSaved(draftPackage, draftId, pageId);
+  }
+
   async probePageSaveReadOnly(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaPageSaveProbeEvidence[]> {
     const state = this.load();
     const draft = state.drafts.find((item) => item.draftId === draftId && item.packageFingerprint === draftPackage.packageFingerprint);
@@ -317,7 +322,7 @@ export class PersistentAprEneaBrowserWorker {
     readonly execution: PersistentAprEneaDraftExecution,
     readonly packageProvider: AprEneaDraftPackageProvider,
     readonly driver: AprEneaBrowserDriver,
-    readonly options: { instanceId?: string; now?: () => Date; processPid?: number; generatorPersistenceVerificationRetryDelayMs?: number } = {},
+    readonly options: { instanceId?: string; now?: () => Date; processPid?: number; generatorPersistenceVerificationRetryDelayMs?: number; recoveredScreeningPersistenceVerificationRetryDelayMs?: number } = {},
   ) {
     this.directory = path.join(path.resolve(rootDirectory), "enea-browser-worker");
     this.checkpointPath = path.join(this.directory, "checkpoint.json");
@@ -387,8 +392,36 @@ export class PersistentAprEneaBrowserWorker {
     return draftPackage;
   }
 
-  private async verifyNestedPageSavedAfterOuterSave(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string) {
-    const firstEvidence = await this.driver.verifyPageSaved(draftPackage, draftId, pageId);
+  private async verifyNestedPageSavedAfterOuterSave(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string, recoveredScreening = false) {
+    const verifyCanonical = this.driver.verifyNestedPageSavedCanonicalReadOnly?.bind(this.driver)
+      ?? this.driver.verifyPageSaved.bind(this.driver);
+    const firstEvidence = await verifyCanonical(draftPackage, draftId, pageId);
+    if (recoveredScreening && pageId.startsWith("screening:")) {
+      const retryDelayMs = this.options.recoveredScreeningPersistenceVerificationRetryDelayMs ?? 500;
+      const retryDiscriminator = `${draftId}:${pageId}`;
+      this.record({
+        commandId: this.actionId(draftPackage.customerKey, "recovered-screening-persistence-second-canonical-read-started", retryDiscriminator),
+        event: "action_started",
+        customerKey: draftPackage.customerKey,
+        action: "recovered_screening_persistence_second_canonical_read",
+        evidenceId: firstEvidence?.evidenceId ?? null,
+        reason: `Prima GET canonica post-riepilogo per ${pageId}: ${firstEvidence ? "riga presente" : "riga assente"}; APR attende ${retryDelayMs} ms e ripete una GET indipendente.`,
+      }, "running");
+      if (retryDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+      const secondEvidence = await verifyCanonical(draftPackage, draftId, pageId);
+      const concordant = Boolean(firstEvidence && secondEvidence);
+      this.record({
+        commandId: this.actionId(draftPackage.customerKey, concordant ? "recovered-screening-persistence-canonical-reads-agree" : "recovered-screening-persistence-canonical-reads-rejected", retryDiscriminator),
+        event: "action_completed",
+        customerKey: draftPackage.customerKey,
+        action: concordant ? "recovered_screening_persistence_canonical_reads_agree" : "recovered_screening_persistence_canonical_reads_rejected",
+        evidenceId: secondEvidence?.evidenceId ?? null,
+        reason: concordant
+          ? `Due GET canoniche indipendenti e concordanti confermano ${pageId} persistita; nessun ulteriore Salva.`
+          : `Le due GET canoniche non confermano entrambe ${pageId}; esito fail-closed senza ripetere il Salva.`,
+      }, "running");
+      return concordant ? secondEvidence : null;
+    }
     if (firstEvidence || !/Generatore/.test(pageId)) return firstEvidence;
 
     // ENEA can expose the saved Impianto page before the nested generator row
@@ -543,7 +576,12 @@ export class PersistentAprEneaBrowserWorker {
         }
         const stagedNestedPages = current.pageCheckpoints.filter((page) => page.state === "staged" && nestedCheckpointBelongsToOuter(page.pageId, unresolvedPage.pageId));
         for (const stagedPage of stagedNestedPages) {
-          const nestedEvidence = await this.verifyNestedPageSavedAfterOuterSave(draftPackage, current.draftId, stagedPage.pageId);
+          const nestedEvidence = await this.verifyNestedPageSavedAfterOuterSave(
+            draftPackage,
+            current.draftId,
+            stagedPage.pageId,
+            stagedPage.pageId.startsWith("screening:") && stagedPage.recoverySaveAttemptCount === 1,
+          );
           if (!nestedEvidence) throw new Error(`apr_enea_nested_page_not_persisted_after_outer_save:${stagedPage.pageId}`);
           this.execution.recordNestedPageServerVerifiedAfterOuterSave(current.customerKey, current.draftId, stagedPage.pageId, unresolvedPage.pageId, nestedEvidence.evidenceId, this.actionId(current.customerKey, "execution-nested-page-server-verified", `${saveGeneration}:${stagedPage.pageId}:${nestedEvidence.evidenceId}`), this.now());
         }

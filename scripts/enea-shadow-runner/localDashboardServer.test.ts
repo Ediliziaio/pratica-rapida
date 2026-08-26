@@ -16,6 +16,7 @@ import { PersistentAprEneaDraftExecution } from "./eneaDraftExecution";
 import { APR_RULE_TEST_MATRIX } from "../../src/features/enea-shadow-crm/ruleTestMatrix";
 import { APR_READY_PIPELINE } from "../../src/features/enea-shadow-crm/aprCrmIntegrationContract";
 import { PersistentAprCrmIntegrationWorkflow } from "./crmIntegrationWorkflow";
+import { PersistentAprOperatorUnlockRegistry } from "./operatorUnlockRegistry";
 import { APR_REQUIRED_INFISSI_VALIDATION_REVISIONS } from "./infissiExecutionGate";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 import { compareAprParallelCaseTruth, PersistentAprCaseTruthComparisonStore } from "./aprCaseTruthComparisonStore";
@@ -462,6 +463,30 @@ describe("dashboard HTTP e supervisore persistente", () => {
     expect(result.items[0]).toMatchObject({ state: "resume_ready", operatorResolution: { answer: "millimeters", note: "Confermato" } });
     expect(result.simulation.customers["dashboard-customer"].pipeline).toBe(APR_READY_PIPELINE);
     expect(result.externalActionAllowed).toBe(false);
+  });
+
+  it("registra dalla dashboard canonica l'evidenza operatore senza riaccodare prima della verifica", async () => {
+    const directory = temporaryStateDirectory();
+    new PersistentEneaRunner(directory).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);
+    const workflow = new PersistentAprCrmIntegrationWorkflow(directory);
+    workflow.ingest({ event: { eventId: "event:canonical-case:1", practiceId: "canonical-case", customerId: "canonical-customer", module: "ENEA", crmRevision: 1, currentPipeline: APR_READY_PIPELINE, currentStatus: "ENEA da lavorare", dossierLocator: "local://canonical-case" }, displayName: "Cliente Canonico" });
+    workflow.stageOutcome("canonical-case", { status: "blocked", reason: "Dato da confermare.", operatorRequest: { field: "intervento.data_fine_lavori", question: "Autorizzi questa sola pratica?", evidenceText: "Soglia documentata.", sourceIds: ["form-1"], choices: [{ value: "authorized_single_case", label: "Autorizzata per questo caso" }] } });
+    workflow.applyPending();
+    const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000 });
+    runningSupervisors.push(supervisor);
+    const url = await supervisor.start();
+    const html = await (await fetch(url)).text();
+    const request = workflow.snapshot().items[0].operatorRequest!;
+    const encodedRequestId = encodeURIComponent(request.requestId).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const csrf = html.match(new RegExp(`/operator/unlocks/${encodedRequestId}/submit[\\s\\S]*?name="csrf" value="([^"]+)"`))?.[1];
+    expect(csrf).toBeTruthy();
+    expect(html).toContain("Non riaccoda la pratica");
+    const response = await fetch(`${url}/operator/unlocks/${encodeURIComponent(request.requestId)}/submit`, { method: "POST", redirect: "manual", headers: { "Sec-Fetch-Site": "same-origin", "Content-Type": "application/x-www-form-urlencoded" }, body: `csrf=${encodeURIComponent(csrf!)}&answer=authorized_single_case&note=${encodeURIComponent("Solo questa pratica")}` });
+    expect(response.status).toBe(303);
+    const registry = await (await fetch(`${url}/api/operator-unlocks?customerKey=canonical-customer`)).json() as ReturnType<PersistentAprOperatorUnlockRegistry["snapshot"]>;
+    expect(registry).toMatchObject({ progress: { total: 1, open: 0, answeredPendingVerification: 1 }, records: [{ descriptor: { status: "answered" }, evidence: { answer: "authorized_single_case", propagation: "forbidden", verificationStatus: "pending", consumed: false } }] });
+    const unchanged = new PersistentAprCrmIntegrationWorkflow(directory).snapshot();
+    expect(unchanged).toMatchObject({ progress: { operatorRequired: 1, resumeReady: 0 }, items: [{ state: "operator_required", operatorResolution: null }] });
   });
 
   it("mostra un piano armato dopo il riavvio senza dipendere dalla chat", async () => {

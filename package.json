@@ -37,6 +37,7 @@
     "apr:learning-replay": "vite-node scripts/enea-shadow-runner/apr-learning-replay-cli.ts",
     "apr:product-routing-audit": "vite-node scripts/enea-shadow-runner/apr-product-routing-audit-cli.ts",
     "apr:crm-workflow": "vite-node scripts/enea-shadow-runner/apr-cli.ts crm-workflow-status",
+    "apr:operator-unlock": "vite-node scripts/enea-shadow-runner/apr-operator-unlock-cli.ts",
     "apr:infissi-mapping": "vite-node scripts/enea-shadow-runner/infissi-local-mapping-cli.ts",
     "apr:infissi-shadow-prepare": "vite-node scripts/enea-shadow-runner/infissi-shadow-test-cli.ts"
   },

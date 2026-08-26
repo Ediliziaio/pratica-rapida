@@ -21,6 +21,7 @@ import type { PersistentAprEneaDraftExecution } from "./eneaDraftExecution";
 import type { PersistentAprEneaWorkerService } from "./aprEneaBrowserWorkerService";
 import type { PersistentAprWatchdog } from "./aprWatchdog";
 import type { PersistentAprOperatorQuestions } from "./operatorQuestions";
+import type { PersistentAprOperatorUnlockRegistry } from "./operatorUnlockRegistry";
 import type { PersistentAprCrmIntegrationWorkflow } from "./crmIntegrationWorkflow";
 import type { PersistentAprCrmIncomingReadOnly } from "./crmIncomingReadOnly";
 import type { PersistentAprCrmLiveProcessing } from "./crmLiveProcessing";
@@ -47,6 +48,7 @@ type EneaDraftExecutionSnapshot = ReturnType<PersistentAprEneaDraftExecution["sn
 type EneaBrowserWorkerSnapshot = ReturnType<PersistentAprEneaWorkerService["snapshot"]>;
 type AprWatchdogSnapshot = ReturnType<PersistentAprWatchdog["load"]>;
 type AprOperatorQuestionsSnapshot = ReturnType<PersistentAprOperatorQuestions["snapshot"]>;
+type AprOperatorUnlockSnapshot = ReturnType<PersistentAprOperatorUnlockRegistry["snapshot"]>;
 type AprCrmWorkflowSnapshot = ReturnType<PersistentAprCrmIntegrationWorkflow["snapshot"]>;
 type AprCrmIncomingSnapshot = ReturnType<PersistentAprCrmIncomingReadOnly["snapshot"]>;
 type AprCrmLiveProcessingSnapshot = ReturnType<PersistentAprCrmLiveProcessing["snapshot"]>;
@@ -203,6 +205,7 @@ export function renderDashboardHtml(
   infissiLocalMapping?: AprInfissiLocalMappingSnapshot | null,
   infissiBatchPreflight?: AprInfissiBatchPreflightSnapshot | null,
   deepCaseReview?: AprDeepCaseReviewSnapshot | null,
+  operatorUnlocks?: AprOperatorUnlockSnapshot | null,
 ) {
   const snapshot = supervise(state, now);
   const operational = deriveDashboardOperationalStatus(snapshot, now, eneaBrowserWorker, watchdog);
@@ -325,6 +328,9 @@ export function renderDashboardHtml(
   const operatorQuestionsMarkup = operatorQuestions
     ? `<section class="card section" id="operator-questions" aria-labelledby="operator-questions-title"><p class="label">Richiesto intervento operatore · domande strutturate persistenti</p><h2 id="operator-questions-title">Decisioni aperte: ${operatorQuestions.openCount}</h2><p class="reason">APR mostra il dato e la fonte. La scelta vale solo per la pratica indicata; la nota libera e' facoltativa e non diventa una regola generale.</p><div class="table-wrap"><table><thead><tr><th>Pratica/campo</th><th>Domanda e fonte</th><th>Risposta</th><th>Stato</th></tr></thead><tbody>${operatorQuestions.questions.length ? operatorQuestions.questions.map((question) => `<tr><td><strong>${escapeHtml(question.displayName)}</strong><span>${escapeHtml(question.field)}</span></td><td>${escapeHtml(question.prompt)}<br><small>${escapeHtml(question.evidenceText)}</small></td><td>${question.status === "open" && csrfToken ? `<form method="post" action="/operator/questions/${encodeURIComponent(question.id)}/answer"><input type="hidden" name="csrf" value="${escapeHtml(csrfToken)}"><select name="answer" aria-label="Risposta" required>${question.choices.map((choice) => `<option value="${escapeHtml(choice.value)}">${escapeHtml(choice.label)}</option>`).join("")}</select><input name="note" type="text" maxlength="500" aria-label="Nota facoltativa" placeholder="Nota facoltativa, es. misure in millimetri"><button type="submit">Registra e riaccoda</button></form>` : escapeHtml(question.answer ? `${question.answer.value} · ${question.answer.note || "nessuna nota"}` : "—")}</td><td><span class="state-pill">${escapeHtml(question.status)}</span></td></tr>`).join("") : `<tr><td>—</td><td>Nessuna domanda aperta.</td><td>—</td><td><span class="state-pill">idle</span></td></tr>`}</tbody></table></div><p class="footer">Ultimo evento ${escapeHtml(operatorQuestions.lastEvent.type)} · checkpoint r${operatorQuestions.revision} · “non determinabile” mantiene il blocco.</p></section>`
     : "";
+  const operatorUnlocksMarkup = operatorUnlocks
+    ? `<section class="card section" id="operator-unlocks" aria-labelledby="operator-unlocks-title"><p class="label">APR · sblocco operatore canonico · checkpoint persistente</p><h2 id="operator-unlocks-title">${operatorUnlocks.progress.open} aperti · ${operatorUnlocks.progress.answeredPendingVerification} risposte da verificare</h2><p class="reason">La risposta viene salvata come evidenza limitata alla singola pratica e generazione. Non riaccoda la pratica e non crea bozze finché APR non la verifica nel Commit 3.</p><div class="table-wrap"><table><thead><tr><th>Pratica/generazione</th><th>Blocco e prova</th><th>Ripresa prevista</th><th>Risposta</th><th>Stato</th></tr></thead><tbody>${operatorUnlocks.records.length ? operatorUnlocks.records.map((record) => { const block = record.descriptor; const form = block.status === "open" && csrfToken ? `<form method="post" action="/operator/unlocks/${encodeURIComponent(block.blockId)}/submit"><input type="hidden" name="csrf" value="${escapeHtml(csrfToken)}">${block.answerSchema.kind === "controlled_choice" ? `<select name="answer" aria-label="Risposta" required>${block.answerSchema.choices.map((choice) => `<option value="${escapeHtml(choice.value)}">${escapeHtml(choice.label)}</option>`).join("")}</select>` : `<input name="answer" type="text" maxlength="500" aria-label="Risposta" required>`}<input name="note" type="text" maxlength="1000" aria-label="Nota operatore" placeholder="Nota${block.answerSchema.noteRequired ? " obbligatoria" : " facoltativa"}" ${block.answerSchema.noteRequired ? "required" : ""}><button type="submit">Registra evidenza</button></form>` : escapeHtml(record.evidence ? `${record.evidence.answer} · ${record.evidence.note}` : "—"); return `<tr><td><strong>${escapeHtml(block.scope.customerKey)}</strong><span>${escapeHtml(block.scope.practiceId)} · ${escapeHtml(block.scope.generationId)}</span></td><td>${escapeHtml(block.question)}<br><small>${escapeHtml(block.evidenceText)} · ${escapeHtml(block.code)}</small></td><td>${escapeHtml(block.resumePolicy)}<br><small>${escapeHtml(record.crmSimulation.nextAction)}</small></td><td>${form}</td><td><span class="state-pill">${escapeHtml(block.status)}</span><br><small>${escapeHtml(record.evidence?.verificationStatus ?? "attesa operatore")}</small></td></tr>`; }).join("") : `<tr><td>—</td><td>Nessun blocco canonico registrato.</td><td>—</td><td>—</td><td><span class="state-pill">idle</span></td></tr>`}</tbody></table></div><p class="footer">Checkpoint r${operatorUnlocks.revision} · externalActionAllowed=false · ultimo evento ${escapeHtml(operatorUnlocks.lastEvent.type)} · scope non propagabile practiceId+customerKey+generationId.</p></section>`
+    : "";
   const eneaDraftExecutionMarkup = eneaDraftExecution
     ? `<section class="card section" aria-labelledby="enea-draft-title"><p class="label">Esecutore ENEA TEST · capability limitata create/fill/save</p><h2 id="enea-draft-title">Bozze persistenti: ${escapeHtml(eneaDraftExecution.status)}</h2><div class="stats readiness-stats"><div class="stat"><strong>${eneaDraftExecution.progress.queued}</strong><span>in coda</span></div><div class="stat"><strong>${eneaDraftExecution.progress.active}</strong><span>bozza attiva</span></div><div class="stat"><strong>${eneaDraftExecution.progress.saved}</strong><span>bozze complete verificate</span></div><div class="stat"><strong>${eneaDraftExecution.progress.deferred}</strong><span>accantonate</span></div></div><p class="reason readiness-reason">${escapeHtml(eneaDraftExecution.reason)}</p><p class="next"><strong>Prossima azione</strong><br>${escapeHtml(eneaDraftExecution.nextAction)}</p><div class="current-box"><span>Ripresa sicura</span><strong>${escapeHtml(eneaDraftExecution.resume.action)}</strong><span>${escapeHtml(eneaDraftExecution.resume.customerKey ?? "nessuna pratica attiva")} · ${escapeHtml(eneaDraftExecution.resume.draftId ?? "ID bozza non ancora acquisito")}</span></div><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Stato</th><th>ID bozza</th><th>Pagine</th><th>Pagine mancanti</th><th>Tentativi create/save</th><th>Motivo e prossima azione</th></tr></thead><tbody>${eneaDraftExecution.items.map((item) => { const missingPages = item.expectedPageIds.filter((pageId) => !item.completedPageIds.includes(pageId)); return `<tr><td>${escapeHtml(item.displayName)}</td><td><span class="state-pill">${escapeHtml(item.state)}</span></td><td>${escapeHtml(item.draftId ?? "—")}</td><td>${item.completedPageIds.length}/${item.expectedPageIds.length}</td><td>${escapeHtml(missingPages.join(" · ") || "nessuna")}</td><td>${item.createAttemptCount}/${item.saveAttemptCount}</td><td>${escapeHtml(item.reason)}<br><strong>${escapeHtml(item.nextAction)}</strong></td></tr>`; }).join("")}</tbody></table></div><p class="footer">Una bozza conta come salvata solo con tutte le pagine e le prove server · anteprima ${eneaDraftExecution.previewAllowed ? "abilitata" : "vietata"} · submit ${eneaDraftExecution.submitAllowed ? "abilitato" : "vietato"} · comunicazioni ${eneaDraftExecution.communicationsAllowed ? "abilitate" : "vietate"} · ultimo evento ${escapeHtml(eneaDraftExecution.lastEvent.type)}</p></section>`
     : "";
@@ -405,6 +411,7 @@ export function renderDashboardHtml(
     ${infissiBatchPreflightMarkup}
     ${infissiLocalMappingMarkup}
     ${operatorQuestionsMarkup}
+    ${operatorUnlocksMarkup}
     ${eneaDraftExecutionMarkup}
     ${uncertainPageSaveMarkup}
     ${watchdogMarkup}
@@ -451,6 +458,7 @@ export function writeLocalDashboard(
   infissiLocalMapping?: AprInfissiLocalMappingSnapshot | null,
   infissiBatchPreflight?: AprInfissiBatchPreflightSnapshot | null,
   deepCaseReview?: AprDeepCaseReviewSnapshot | null,
+  operatorUnlocks?: AprOperatorUnlockSnapshot | null,
 ) {
   const directory = path.join(path.resolve(rootDirectory), "dashboard");
   mkdirSync(directory, { recursive: true, mode: 0o700 });
@@ -472,6 +480,6 @@ export function writeLocalDashboard(
     legacyRunner: snapshot,
   };
   atomicWrite(path.join(directory, "status.json"), `${JSON.stringify(publicSnapshot, null, 2)}\n`);
-  atomicWrite(path.join(directory, "index.html"), renderDashboardHtml(state, now, runtime, null, readiness, adapter, executionPlan, localDossier, batchReport, ruleMatrix, crmReadOnlyAdapter, pilotSample, notifications, crmAuth, crmAcquisition, crmDocuments, crmDocumentAnalysis, crmLocalPreflight, eneaDraftExecution, eneaBrowserWorker, watchdog, operatorQuestions, csrfToken, crmWorkflow, crmIncoming, crmLiveProcessing, shadowComparison, shadowControl, infissiLocalMapping, infissiBatchPreflight, deepCaseReview));
+  atomicWrite(path.join(directory, "index.html"), renderDashboardHtml(state, now, runtime, null, readiness, adapter, executionPlan, localDossier, batchReport, ruleMatrix, crmReadOnlyAdapter, pilotSample, notifications, crmAuth, crmAcquisition, crmDocuments, crmDocumentAnalysis, crmLocalPreflight, eneaDraftExecution, eneaBrowserWorker, watchdog, operatorQuestions, csrfToken, crmWorkflow, crmIncoming, crmLiveProcessing, shadowComparison, shadowControl, infissiLocalMapping, infissiBatchPreflight, deepCaseReview, operatorUnlocks));
   return snapshot;
 }

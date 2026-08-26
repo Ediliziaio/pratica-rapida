@@ -25,6 +25,7 @@ import { PersistentAprEneaDraftExecution } from "./eneaDraftExecution";
 import { PersistentAprEneaWorkerService } from "./aprEneaBrowserWorkerService";
 import { PersistentAprWatchdog } from "./aprWatchdog";
 import { PersistentAprOperatorQuestions, type OperatorAnswerValue } from "./operatorQuestions";
+import { PersistentAprOperatorUnlockRegistry } from "./operatorUnlockRegistry";
 import { PersistentAprCrmIntegrationWorkflow } from "./crmIntegrationWorkflow";
 import { PersistentAprCrmIncomingReadOnly } from "./crmIncomingReadOnly";
 import { PersistentAprCrmLiveProcessing } from "./crmLiveProcessing";
@@ -191,6 +192,7 @@ export class LocalDashboardSupervisor {
   readonly eneaBrowserWorker: PersistentAprEneaWorkerService;
   readonly watchdog: PersistentAprWatchdog;
   readonly operatorQuestions: PersistentAprOperatorQuestions;
+  readonly operatorUnlockRegistry: PersistentAprOperatorUnlockRegistry;
   readonly crmIntegrationWorkflow: PersistentAprCrmIntegrationWorkflow;
   readonly crmIncomingReadOnly: PersistentAprCrmIncomingReadOnly;
   readonly crmLiveProcessing: PersistentAprCrmLiveProcessing;
@@ -247,6 +249,7 @@ export class LocalDashboardSupervisor {
     this.eneaBrowserWorker = new PersistentAprEneaWorkerService(rootDirectory);
     this.watchdog = new PersistentAprWatchdog(rootDirectory, { instanceId: "dashboard-readonly-watchdog", processPid: process.pid, now: this.now });
     this.operatorQuestions = new PersistentAprOperatorQuestions(rootDirectory);
+    this.operatorUnlockRegistry = new PersistentAprOperatorUnlockRegistry(rootDirectory);
     this.crmIntegrationWorkflow = new PersistentAprCrmIntegrationWorkflow(rootDirectory);
     this.crmIncomingReadOnly = new PersistentAprCrmIncomingReadOnly(rootDirectory, this.crmAuth, this.crmIntegrationWorkflow);
     this.crmLiveProcessing = new PersistentAprCrmLiveProcessing(rootDirectory, this.crmIncomingReadOnly, this.crmAuth);
@@ -341,6 +344,7 @@ export class LocalDashboardSupervisor {
     const eneaDraftExecution = this.eneaDraftExecution.snapshot(this.now());
     const eneaBrowserWorker = this.eneaBrowserWorker.snapshot(this.now());
     const watchdog = this.watchdog.load(this.now());
+    this.operatorUnlockRegistry.syncFromCrmWorkflow(this.crmIntegrationWorkflow.snapshot(this.now()), this.now());
     const operationalStatus = deriveDashboardOperationalStatus(snapshot, this.now(), eneaBrowserWorker, watchdog);
     return {
       supervisor: this.runtime,
@@ -365,6 +369,7 @@ export class LocalDashboardSupervisor {
       eneaBrowserWorker,
       watchdog,
       operatorQuestions: this.operatorQuestions.snapshot(this.now()),
+      operatorUnlocks: this.operatorUnlockRegistry.snapshot(this.now()),
       crmIntegrationWorkflow: this.crmIntegrationWorkflow.snapshot(this.now()),
       crmIncomingReadOnly: this.crmIncomingReadOnly.snapshot(this.now()),
       crmLiveProcessing: this.crmLiveProcessing.snapshot(this.now()),
@@ -453,6 +458,32 @@ export class LocalDashboardSupervisor {
       } catch (error) { sendJson(response, 409, { error: "operator_answer_rejected", reason: error instanceof Error ? error.message : String(error) }); }
       return;
     }
+    const operatorUnlockMatch = requestUrl.pathname.match(/^\/operator\/unlocks\/([^/]+)\/submit$/);
+    if (request.method === "POST" && operatorUnlockMatch) {
+      if (!localAuthRequestAllowed(request, this.currentUrl)) { sendJson(response, 403, { error: "origin_rejected" }); return; }
+      if (!(request.headers["content-type"] ?? "").toLowerCase().startsWith("application/x-www-form-urlencoded")) { sendJson(response, 415, { error: "content_type_rejected" }); return; }
+      try {
+        const form = await readFormBody(request);
+        if (!constantTimeTokenMatch(form.get("csrf") ?? "", this.csrfToken)) { sendJson(response, 403, { error: "csrf_rejected" }); return; }
+        const blockId = decodeURIComponent(operatorUnlockMatch[1]);
+        this.operatorUnlockRegistry.syncFromCrmWorkflow(this.crmIntegrationWorkflow.snapshot(this.now()), this.now());
+        const record = this.operatorUnlockRegistry.snapshot(this.now()).records.find((candidate) => candidate.descriptor.blockId === blockId);
+        if (!record) throw new Error("operator_unlock_block_not_found");
+        const now = this.now();
+        this.operatorUnlockRegistry.submit({
+          blockId,
+          commandId: `dashboard-operator-unlock:${blockId}:${crypto.randomUUID()}`,
+          expectedScope: structuredClone(record.descriptor.scope),
+          answer: (form.get("answer") ?? "").trim(),
+          note: (form.get("note") ?? "").trim(),
+          operatorId: "dashboard-local-operator",
+          answeredAt: now.toISOString(),
+        }, now);
+        this.csrfToken = crypto.randomUUID();
+        response.statusCode = 303; response.setHeader("Location", "/#operator-unlocks"); response.end();
+      } catch (error) { sendJson(response, 409, { error: "operator_unlock_rejected", reason: error instanceof Error ? error.message : String(error) }); }
+      return;
+    }
     const crmWorkflowAnswerMatch = requestUrl.pathname.match(/^\/crm\/integration\/([^/]+)\/answer$/);
     if (request.method === "POST" && crmWorkflowAnswerMatch) {
       if (!localAuthRequestAllowed(request, this.currentUrl)) { sendJson(response, 403, { error: "origin_rejected" }); return; }
@@ -490,7 +521,8 @@ export class LocalDashboardSupervisor {
         const state = this.journal.load();
         securityHeaders(response, "text/html; charset=utf-8");
         response.statusCode = 200;
-        response.end(request.method === "HEAD" ? undefined : renderDashboardHtml(state, this.now(), this.runtime, null, this.readinessStore.snapshot(this.now()), this.adapterStore.snapshot(this.now()), new PersistentExecutionPlanStore(this.rootDirectory).load(), localDossierDashboardSnapshot(this.rootDirectory), new PersistentLocalDossierBatch(this.rootDirectory).report(), new PersistentRuleMatrixEvidence(this.rootDirectory).snapshot(), this.crmReadOnlyAdapterStore.snapshot(this.now()), this.pilotSampleStore.snapshot(this.now()), this.notifications.snapshot(), this.crmAuth.snapshot(this.now()), this.crmAcquisition.snapshot(this.now()), this.crmDocuments.snapshot(this.now()), this.crmDocumentAnalysis.snapshot(this.now()), this.crmLocalPreflight.snapshot(this.now()), this.eneaDraftExecution.snapshot(this.now()), this.eneaBrowserWorker.snapshot(this.now()), this.watchdog.load(this.now()), this.operatorQuestions.snapshot(this.now()), this.csrfToken, this.crmIntegrationWorkflow.snapshot(this.now()), this.crmIncomingReadOnly.snapshot(this.now()), this.crmLiveProcessing.snapshot(this.now()), this.shadowComparison.snapshot(this.now()), this.shadowControl.snapshot(this.now()), this.infissiLocalMapping.snapshot(this.now()), this.infissiBatchPreflight.snapshot(this.now()), this.deepCaseReview.snapshot(this.now())));
+        this.operatorUnlockRegistry.syncFromCrmWorkflow(this.crmIntegrationWorkflow.snapshot(this.now()), this.now());
+        response.end(request.method === "HEAD" ? undefined : renderDashboardHtml(state, this.now(), this.runtime, null, this.readinessStore.snapshot(this.now()), this.adapterStore.snapshot(this.now()), new PersistentExecutionPlanStore(this.rootDirectory).load(), localDossierDashboardSnapshot(this.rootDirectory), new PersistentLocalDossierBatch(this.rootDirectory).report(), new PersistentRuleMatrixEvidence(this.rootDirectory).snapshot(), this.crmReadOnlyAdapterStore.snapshot(this.now()), this.pilotSampleStore.snapshot(this.now()), this.notifications.snapshot(), this.crmAuth.snapshot(this.now()), this.crmAcquisition.snapshot(this.now()), this.crmDocuments.snapshot(this.now()), this.crmDocumentAnalysis.snapshot(this.now()), this.crmLocalPreflight.snapshot(this.now()), this.eneaDraftExecution.snapshot(this.now()), this.eneaBrowserWorker.snapshot(this.now()), this.watchdog.load(this.now()), this.operatorQuestions.snapshot(this.now()), this.csrfToken, this.crmIntegrationWorkflow.snapshot(this.now()), this.crmIncomingReadOnly.snapshot(this.now()), this.crmLiveProcessing.snapshot(this.now()), this.shadowComparison.snapshot(this.now()), this.shadowControl.snapshot(this.now()), this.infissiLocalMapping.snapshot(this.now()), this.infissiBatchPreflight.snapshot(this.now()), this.deepCaseReview.snapshot(this.now()), this.operatorUnlockRegistry.snapshot(this.now())));
       } else if (requestUrl.pathname === "/auth/crm") {
         securityHeaders(response, "text/html; charset=utf-8");
         response.statusCode = 200;
@@ -570,6 +602,9 @@ export class LocalDashboardSupervisor {
         sendJson(response, 200, this.watchdog.load(this.now()));
       } else if (requestUrl.pathname === "/api/operator-questions") {
         sendJson(response, 200, this.operatorQuestions.snapshot(this.now()));
+      } else if (requestUrl.pathname === "/api/operator-unlocks") {
+        this.operatorUnlockRegistry.syncFromCrmWorkflow(this.crmIntegrationWorkflow.snapshot(this.now()), this.now());
+        sendJson(response, 200, this.operatorUnlockRegistry.snapshot(this.now(), requestUrl.searchParams.get("customerKey")?.trim() || undefined));
       } else if (requestUrl.pathname === "/api/crm-integration-workflow") {
         sendJson(response, 200, this.crmIntegrationWorkflow.snapshot(this.now()));
       } else if (requestUrl.pathname === "/api/crm-incoming-readonly") {
@@ -602,7 +637,7 @@ export class LocalDashboardSupervisor {
         const limit = Number.isFinite(requestedLimit) ? Math.min(200, Math.max(1, Math.trunc(requestedLimit))) : 50;
         sendJson(response, 200, { revision: state.revision, events: state.audit.slice(-limit) });
       } else if (requestUrl.pathname === "/healthz") {
-        sendJson(response, 200, { supervisor: "running", instanceId: this.instanceId, heartbeatAt: this.runtime?.heartbeatAt ?? null, readinessLease: this.readinessStore.snapshot(this.now()).leaseState, readOnlyAdapter: this.adapterStore.snapshot(this.now()).status, crmReadOnlyAdapter: this.crmReadOnlyAdapterStore.snapshot(this.now()).status, crmIntegrationWorkflow: this.crmIntegrationWorkflow.snapshot(this.now()).status, crmIncomingReadOnly: this.crmIncomingReadOnly.snapshot(this.now()).status, crmLiveProcessing: this.crmLiveProcessing.snapshot(this.now()).status, shadowComparison: this.shadowComparison.snapshot(this.now()).status, shadowPhase: this.shadowComparison.snapshot(this.now()).currentPhase, shadowControl: this.shadowControl.snapshot(this.now()).status, shadowIntakeAllowed: this.shadowControl.snapshot(this.now()).intakeAllowed, productionAuthorized: false, crmLocalDraftPackages: this.crmLiveProcessing.draftPackages.snapshot(this.now()).status, crmLocalDraftHandoff: this.crmLiveProcessing.draftHandoff.snapshot(this.now()).status, crmLocalExecutorIntake: this.crmLiveProcessing.executorIntake.snapshot(this.now()).status, crmLocalCohortExecutionPlan: this.crmLiveProcessing.cohortExecutionPlan.snapshot(this.now()).status, aprGateOrchestrator: this.crmLiveProcessing.gateOrchestrator.snapshot(this.now()).status, aprEneaReadinessAdmission: this.crmLiveProcessing.eneaReadinessAdmission.snapshot(this.now()).status, aprEneaReadOnlyDiscovery: this.crmLiveProcessing.eneaReadOnlyDiscovery.snapshot(this.now()).status, aprEneaRealReadOnlyAttach: this.crmLiveProcessing.eneaRealReadOnlyAttach.snapshot(this.now()).status, crmAuth: this.crmAuth.snapshot(this.now()).status, crmAcquisition: this.crmAcquisition.snapshot(this.now()).status, crmDocuments: this.crmDocuments.snapshot(this.now()).status, crmDocumentAnalysis: this.crmDocumentAnalysis.snapshot(this.now()).status, crmLocalPreflight: this.crmLocalPreflight.snapshot(this.now()).status, deepCaseReview: this.deepCaseReview.snapshot(this.now()).status, eneaDraftExecution: this.eneaDraftExecution.snapshot(this.now()).status, eneaBrowserWorker: this.eneaBrowserWorker.snapshot(this.now()).service.status, watchdog: this.watchdog.load(this.now()).status, operatorQuestions: this.operatorQuestions.snapshot(this.now()).openCount, pilotSample: this.pilotSampleStore.snapshot(this.now()).status, notifications: this.notifications.snapshot().deliveryMode, codexRequiredForNotification: false, externalActionAllowed: false, eneaDraftCapability: "create_fill_save_only" });
+        sendJson(response, 200, { supervisor: "running", instanceId: this.instanceId, heartbeatAt: this.runtime?.heartbeatAt ?? null, readinessLease: this.readinessStore.snapshot(this.now()).leaseState, readOnlyAdapter: this.adapterStore.snapshot(this.now()).status, crmReadOnlyAdapter: this.crmReadOnlyAdapterStore.snapshot(this.now()).status, crmIntegrationWorkflow: this.crmIntegrationWorkflow.snapshot(this.now()).status, crmIncomingReadOnly: this.crmIncomingReadOnly.snapshot(this.now()).status, crmLiveProcessing: this.crmLiveProcessing.snapshot(this.now()).status, shadowComparison: this.shadowComparison.snapshot(this.now()).status, shadowPhase: this.shadowComparison.snapshot(this.now()).currentPhase, shadowControl: this.shadowControl.snapshot(this.now()).status, shadowIntakeAllowed: this.shadowControl.snapshot(this.now()).intakeAllowed, productionAuthorized: false, crmLocalDraftPackages: this.crmLiveProcessing.draftPackages.snapshot(this.now()).status, crmLocalDraftHandoff: this.crmLiveProcessing.draftHandoff.snapshot(this.now()).status, crmLocalExecutorIntake: this.crmLiveProcessing.executorIntake.snapshot(this.now()).status, crmLocalCohortExecutionPlan: this.crmLiveProcessing.cohortExecutionPlan.snapshot(this.now()).status, aprGateOrchestrator: this.crmLiveProcessing.gateOrchestrator.snapshot(this.now()).status, aprEneaReadinessAdmission: this.crmLiveProcessing.eneaReadinessAdmission.snapshot(this.now()).status, aprEneaReadOnlyDiscovery: this.crmLiveProcessing.eneaReadOnlyDiscovery.snapshot(this.now()).status, aprEneaRealReadOnlyAttach: this.crmLiveProcessing.eneaRealReadOnlyAttach.snapshot(this.now()).status, crmAuth: this.crmAuth.snapshot(this.now()).status, crmAcquisition: this.crmAcquisition.snapshot(this.now()).status, crmDocuments: this.crmDocuments.snapshot(this.now()).status, crmDocumentAnalysis: this.crmDocumentAnalysis.snapshot(this.now()).status, crmLocalPreflight: this.crmLocalPreflight.snapshot(this.now()).status, deepCaseReview: this.deepCaseReview.snapshot(this.now()).status, eneaDraftExecution: this.eneaDraftExecution.snapshot(this.now()).status, eneaBrowserWorker: this.eneaBrowserWorker.snapshot(this.now()).service.status, watchdog: this.watchdog.load(this.now()).status, operatorQuestions: this.operatorQuestions.snapshot(this.now()).openCount, operatorUnlocks: this.operatorUnlockRegistry.snapshot(this.now()).progress, pilotSample: this.pilotSampleStore.snapshot(this.now()).status, notifications: this.notifications.snapshot().deliveryMode, codexRequiredForNotification: false, externalActionAllowed: false, eneaDraftCapability: "create_fill_save_only" });
       } else if (requestUrl.pathname === "/favicon.ico") {
         response.statusCode = 204;
         response.end();
@@ -615,6 +650,7 @@ export class LocalDashboardSupervisor {
   private pulse() {
     const state = this.journal.load();
     const now = this.now();
+    this.operatorUnlockRegistry.syncFromCrmWorkflow(this.crmIntegrationWorkflow.snapshot(now), now);
     this.shadowComparison.runScheduledDailyReport(now);
     this.readinessStore.expireIfNeeded(now);
     const snapshot = supervise(state, now);
@@ -767,7 +803,7 @@ export class LocalDashboardSupervisor {
     writeLocalDashboard(this.rootDirectory, state, now, this.runtime, this.readinessStore.snapshot(now), this.adapterStore.snapshot(now),
       executionPlan, localDossierDashboardSnapshot(this.rootDirectory),
       new PersistentLocalDossierBatch(this.rootDirectory).report(), new PersistentRuleMatrixEvidence(this.rootDirectory).snapshot(),
-      this.crmReadOnlyAdapterStore.snapshot(now), pilotSample, this.notifications.snapshot(), this.crmAuth.snapshot(now), this.crmAcquisition.snapshot(now), this.crmDocuments.snapshot(now), this.crmDocumentAnalysis.snapshot(now), this.crmLocalPreflight.snapshot(now), this.eneaDraftExecution.snapshot(now), this.eneaBrowserWorker.snapshot(now), this.watchdog.load(now), this.operatorQuestions.snapshot(now), this.csrfToken, this.crmIntegrationWorkflow.snapshot(now), this.crmIncomingReadOnly.snapshot(now), this.crmLiveProcessing.snapshot(now), this.shadowComparison.snapshot(now), this.shadowControl.snapshot(now), this.infissiLocalMapping.snapshot(now), this.infissiBatchPreflight.snapshot(now), this.deepCaseReview.snapshot(now));
+      this.crmReadOnlyAdapterStore.snapshot(now), pilotSample, this.notifications.snapshot(), this.crmAuth.snapshot(now), this.crmAcquisition.snapshot(now), this.crmDocuments.snapshot(now), this.crmDocumentAnalysis.snapshot(now), this.crmLocalPreflight.snapshot(now), this.eneaDraftExecution.snapshot(now), this.eneaBrowserWorker.snapshot(now), this.watchdog.load(now), this.operatorQuestions.snapshot(now), this.csrfToken, this.crmIntegrationWorkflow.snapshot(now), this.crmIncomingReadOnly.snapshot(now), this.crmLiveProcessing.snapshot(now), this.shadowComparison.snapshot(now), this.shadowControl.snapshot(now), this.infissiLocalMapping.snapshot(now), this.infissiBatchPreflight.snapshot(now), this.deepCaseReview.snapshot(now), this.operatorUnlockRegistry.snapshot(now));
   }
 
   async start() {
@@ -799,7 +835,9 @@ export class LocalDashboardSupervisor {
       this.infissiBatchPreflight.initialize(now);
       this.deepCaseReview.initialize(now);
       this.operatorQuestions.initialize(now);
+      this.operatorUnlockRegistry.initialize(now);
       this.crmIntegrationWorkflow.initialize(now);
+      this.operatorUnlockRegistry.syncFromCrmWorkflow(this.crmIntegrationWorkflow.snapshot(now), now);
       this.crmIncomingReadOnly.initialize(now);
       this.crmLiveProcessing.initialize(now);
       this.eneaDraftExecution.initialize(now);
@@ -928,7 +966,7 @@ export class LocalDashboardSupervisor {
       writeLocalDashboard(this.rootDirectory, state, now, this.runtime, this.readinessStore.snapshot(now), this.adapterStore.snapshot(now),
         executionPlan, localDossierDashboardSnapshot(this.rootDirectory),
         new PersistentLocalDossierBatch(this.rootDirectory).report(), new PersistentRuleMatrixEvidence(this.rootDirectory).snapshot(),
-        this.crmReadOnlyAdapterStore.snapshot(now), pilotSample, this.notifications.snapshot(), this.crmAuth.snapshot(now), this.crmAcquisition.snapshot(now), this.crmDocuments.snapshot(now), this.crmDocumentAnalysis.snapshot(now), this.crmLocalPreflight.snapshot(now), this.eneaDraftExecution.snapshot(now), this.eneaBrowserWorker.snapshot(now), this.watchdog.load(now), this.operatorQuestions.snapshot(now), this.csrfToken, this.crmIntegrationWorkflow.snapshot(now), this.crmIncomingReadOnly.snapshot(now), this.crmLiveProcessing.snapshot(now), this.shadowComparison.snapshot(now), this.shadowControl.snapshot(now), this.infissiLocalMapping.snapshot(now), this.infissiBatchPreflight.snapshot(now));
+        this.crmReadOnlyAdapterStore.snapshot(now), pilotSample, this.notifications.snapshot(), this.crmAuth.snapshot(now), this.crmAcquisition.snapshot(now), this.crmDocuments.snapshot(now), this.crmDocumentAnalysis.snapshot(now), this.crmLocalPreflight.snapshot(now), this.eneaDraftExecution.snapshot(now), this.eneaBrowserWorker.snapshot(now), this.watchdog.load(now), this.operatorQuestions.snapshot(now), this.csrfToken, this.crmIntegrationWorkflow.snapshot(now), this.crmIncomingReadOnly.snapshot(now), this.crmLiveProcessing.snapshot(now), this.shadowComparison.snapshot(now), this.shadowControl.snapshot(now), this.infissiLocalMapping.snapshot(now), this.infissiBatchPreflight.snapshot(now), this.deepCaseReview.snapshot(now), this.operatorUnlockRegistry.snapshot(now));
       if (!this.crmAuthRefreshInFlight) {
         this.crmAuthRefreshInFlight = true;
         void this.crmAuth.maintainSession(now)

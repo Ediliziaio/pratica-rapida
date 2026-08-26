@@ -15,6 +15,7 @@ import { LocalDashboardSupervisor } from "./localDashboardServer";
 import { PersistentAprPilotSample, type AprPilotCandidate, type AprPilotCandidateSource } from "./pilotSample";
 import { PersistentAprCrmAuth } from "./crmAuth";
 import { PersistentAprCrmIntegrationWorkflow } from "./crmIntegrationWorkflow";
+import { PersistentAprOperatorUnlockRegistry } from "./operatorUnlockRegistry";
 
 const args = process.argv.slice(2);
 const command = args[0] ?? "status";
@@ -38,6 +39,7 @@ const initializeAprLocal = () => {
   new PersistentAprPilotSample(rootDirectory).initialize();
   new PersistentAprCrmAuth(rootDirectory).initialize();
   new PersistentAprCrmIntegrationWorkflow(rootDirectory).initialize();
+  new PersistentAprOperatorUnlockRegistry(rootDirectory).initialize();
   const crmAdapter = new PersistentAprCrmReadOnlyAdapter(rootDirectory);
   crmAdapter.configureFromFile(path.resolve(option("--crm-config") ?? "config/apr/crm-readonly-adapter.json"));
   const verified = crmAdapter.verifyFixture(VERIFIED_APR_CRM_READONLY_FIXTURE); refreshDashboard(); return verified;
@@ -111,7 +113,9 @@ if (command === "dossier") {
   const shutdown = async (signal: string) => { await supervisor.stop(`Stop APR locale: ${signal}.`); process.exitCode = 0; };
   process.once("SIGINT", () => { void shutdown("SIGINT"); }); process.once("SIGTERM", () => { void shutdown("SIGTERM"); });
 } else if (command === "status") {
-  process.stdout.write(`${JSON.stringify({ name: "APR — Automazione PraticaRapida", module: "ENEA", batch: new PersistentLocalDossierBatch(rootDirectory).report(), pilotSample: new PersistentAprPilotSample(rootDirectory).snapshot(), rules: new PersistentRuleMatrixEvidence(rootDirectory).snapshot(), crmReadOnlyAdapter: new PersistentAprCrmReadOnlyAdapter(rootDirectory).snapshot(), crmIntegrationWorkflow: new PersistentAprCrmIntegrationWorkflow(rootDirectory).snapshot(), crmAuth: new PersistentAprCrmAuth(rootDirectory).snapshot() }, null, 2)}\n`);
+  const crmIntegrationWorkflow = new PersistentAprCrmIntegrationWorkflow(rootDirectory).snapshot();
+  const operatorUnlocks = new PersistentAprOperatorUnlockRegistry(rootDirectory); operatorUnlocks.syncFromCrmWorkflow(crmIntegrationWorkflow);
+  process.stdout.write(`${JSON.stringify({ name: "APR — Automazione PraticaRapida", module: "ENEA", batch: new PersistentLocalDossierBatch(rootDirectory).report(), pilotSample: new PersistentAprPilotSample(rootDirectory).snapshot(), rules: new PersistentRuleMatrixEvidence(rootDirectory).snapshot(), crmReadOnlyAdapter: new PersistentAprCrmReadOnlyAdapter(rootDirectory).snapshot(), crmIntegrationWorkflow, operatorUnlocks: operatorUnlocks.snapshot(), crmAuth: new PersistentAprCrmAuth(rootDirectory).snapshot() }, null, 2)}\n`);
 } else throw new Error("Comando APR non riconosciuto: usare init, doctor, serve, dossier, batch, pilot-init, pilot-select, crm-bootstrap-record, crm-auth-configure, crm-workflow-status, crm-workflow-recover, verify-rules o status.");
 } catch (error) {
   process.stderr.write(`APR_ERROR: ${error instanceof Error ? error.message : String(error)}\n`);

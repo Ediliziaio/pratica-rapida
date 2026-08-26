@@ -20,6 +20,30 @@ describe("APR unique pure case status resolver", () => {
     expect(resolveAprCaseStatusTruth([obs("preflight_common", "PASS"), obs("product_gate", "PASS"), obs("execution", "COMPLETED")])).toMatchObject({ status: "COMPLETED", matchedTransitionId: "draft_completed" });
   });
 
+  it("risolve TECHNICAL_BLOCK per un arresto tecnico dell'esecuzione dopo gate verdi", () => {
+    expect(resolveAprCaseStatusTruth([
+      obs("preflight_common", "PASS"),
+      obs("product_gate", "PASS"),
+      obs("execution", "BLOCKED", { classification: "TECHNICAL" }),
+    ])).toMatchObject({
+      status: "TECHNICAL_BLOCK",
+      matchedTransitionId: "execution_technical_block",
+      disagreement: null,
+    });
+  });
+
+  it("non riclassifica come tecnico un arresto execution con classificazione operatore", () => {
+    expect(resolveAprCaseStatusTruth([
+      obs("preflight_common", "PASS"),
+      obs("product_gate", "PASS"),
+      obs("execution", "BLOCKED", { classification: "OPERATOR" }),
+    ])).toMatchObject({
+      status: "INCONSISTENT",
+      matchedTransitionId: null,
+      reason: expect.stringContaining("non prevista"),
+    });
+  });
+
   it.each([
     ["OPERATOR", "OPERATOR_REQUIRED"],
     ["TECHNICAL", "TECHNICAL_BLOCK"],

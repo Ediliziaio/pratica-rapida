@@ -1,6 +1,6 @@
 import type { AprNormalizedObservationStatus, AprPublicCaseStatus } from "./aprMonotonicArtifacts";
 
-export const APR_CASE_TRANSITION_MATRIX_VERSION = "apr-case-transition-matrix-v2" as const;
+export const APR_CASE_TRANSITION_MATRIX_VERSION = "apr-case-transition-matrix-v3" as const;
 
 export type AprTransitionToken = AprNormalizedObservationStatus
   | "BLOCKED:BUSINESS"
@@ -49,6 +49,16 @@ export const APR_CASE_TRANSITION_MATRIX: readonly AprCaseTransitionPattern[] = O
     serverVerification: "NOT_APPLICABLE",
     publicStatus: "DEFERRED",
     reason: "Preflight superato ed esecuzione differita esplicitamente.",
+  },
+  {
+    id: "execution_technical_block",
+    commonPreflight: "PASS",
+    productGate: "PASS",
+    deepReview: "NOT_APPLICABLE",
+    execution: "BLOCKED:TECHNICAL",
+    serverVerification: "NOT_APPLICABLE",
+    publicStatus: "TECHNICAL_BLOCK",
+    reason: "Preflight e gate prodotto superati; esecuzione portale arrestata in sicurezza per un blocco tecnico.",
   },
   {
     id: "draft_completed",

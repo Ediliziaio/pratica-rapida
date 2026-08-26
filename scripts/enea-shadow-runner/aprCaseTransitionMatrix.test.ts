@@ -16,6 +16,17 @@ describe("APR explicit case transition matrix", () => {
     expect(matchAprCaseTransition({ commonPreflight: "BLOCKED:UNCLASSIFIED", productGate: "NOT_APPLICABLE", deepReview: "BLOCKED:OPERATOR", execution: "NOT_APPLICABLE", serverVerification: "NOT_APPLICABLE" })?.publicStatus).toBe("OPERATOR_REQUIRED");
   });
 
+  it("mappa il blocco tecnico terminale dell'esecuzione dopo gate verdi", () => {
+    expect(matchAprCaseTransition({ commonPreflight: "PASS", productGate: "PASS", deepReview: "NOT_APPLICABLE", execution: "BLOCKED:TECHNICAL", serverVerification: "NOT_APPLICABLE" })).toMatchObject({
+      id: "execution_technical_block",
+      publicStatus: "TECHNICAL_BLOCK",
+    });
+  });
+
+  it("non estende il blocco tecnico terminale a classificazioni diverse", () => {
+    expect(matchAprCaseTransition({ commonPreflight: "PASS", productGate: "PASS", deepReview: "NOT_APPLICABLE", execution: "BLOCKED:OPERATOR", serverVerification: "NOT_APPLICABLE" })).toBeNull();
+  });
+
   it("non possiede un default per combinazioni non registrate", () => {
     expect(matchAprCaseTransition({ commonPreflight: "BLOCKED:UNCLASSIFIED", productGate: "PASS", deepReview: "NOT_APPLICABLE", execution: "COMPLETED", serverVerification: "NOT_APPLICABLE" })).toBeNull();
     expect(new Set(APR_CASE_TRANSITION_MATRIX.map((item) => item.id)).size).toBe(APR_CASE_TRANSITION_MATRIX.length);

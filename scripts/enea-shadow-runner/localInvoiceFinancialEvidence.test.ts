@@ -131,6 +131,43 @@ Scadenze Pagamenti
     expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 1900 });
   });
 
+  it("non scambia il totale documento Bonfanti per l'IVA nel riepilogo fiscale verticale", () => {
+    const evidence = extract(`Iva 10%
+IMPONIBILE
+1.540,00
+IMPOSTA
+154,00
+TOTALE
+IMPONIBILE
+1.540,00
+TOTALE
+DOCUMENTO
+TOTALE IMPOSTA
+154,00
+1.694,00 €
+SCADENZE
+13/07/2026 - 1.694,00 €`, { documentNumber: "85/A", grossTotal: 1694 });
+    expect(evidence).toMatchObject({ taxableAmount: 1540, vatAmount: 154, grossTotal: 1694, interventionGrossAmount: 1694 });
+    expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 1694 });
+  });
+
+  it("preserva il layout OCR in cui l'imponibile e' ripetuto prima dell'IVA corretta", () => {
+    const evidence = extract(`TOTALE IMPONIBILE
+€ 1.727,27
+Totale Iva
+1.727,27
+10
+€ 172,73
+172,73
+Totale
+€ 1.900,00
+Scadenze Pagamenti
+17/06/2026
+€ 1.900,00`, { extractionMode: "macos_vision_ocr", grossTotal: 1900 });
+    expect(evidence).toMatchObject({ taxableAmount: 1727.27, vatAmount: 172.73, grossTotal: 1900, interventionGrossAmount: 1900 });
+    expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 1900 });
+  });
+
   it("somma tutte le rate dello scadenziario invece di scambiare la prima rata per il totale intervento", () => {
     const evidence = extract(`Totale imponibile € 4.318,18
 Importo Iva € 431,82

@@ -34,6 +34,34 @@ const currencyAmountAfterLabel = (text: string, label: RegExp, lookahead = 4) =>
   return null;
 };
 
+const reconciledFiscalTotals = (text: string, grossTotal: number | null) => {
+  if (grossTotal === null) return null;
+  const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
+  const taxableIndex = lines.findIndex((line) => /^(?:totale\s+)?imponibile$/i.test(line));
+  const vatIndex = lines.findIndex((line) => /^totale\s+(?:iva|imposta)\b/i.test(line));
+  if (taxableIndex < 0 || vatIndex < 0) return null;
+  const taxableAmount = (() => {
+    for (let offset = 0; offset <= 1 && taxableIndex + offset < lines.length; offset += 1) {
+      const found = lastAmountFrom(lines[taxableIndex + offset]);
+      if (found) return money(found);
+    }
+    return null;
+  })();
+  if (taxableAmount === null) return null;
+  const candidates = new Set<number>();
+  for (let offset = 0; offset <= 4 && vatIndex + offset < lines.length; offset += 1) {
+    for (const match of lines[vatIndex + offset].matchAll(new RegExp(`(${MONEY})`, "gi"))) {
+      const candidate = money(match[1]);
+      if (candidate !== null
+        && Math.abs(Math.round((taxableAmount + candidate + Number.EPSILON) * 100) / 100 - grossTotal) <= 0.01) {
+        candidates.add(candidate);
+      }
+    }
+  }
+  const [vatAmount] = [...candidates];
+  return candidates.size === 1 && vatAmount !== undefined ? { taxableAmount, vatAmount } : null;
+};
+
 const scheduledDueGross = (text: string) => {
   const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
   const index = lines.findIndex((line) => /^(?:scadenze(?:\s+pagamenti)?|scadenziario)\b/i.test(line));
@@ -53,7 +81,7 @@ const scheduledDueGross = (text: string) => {
     : null;
 };
 
-function taxAmounts(text: string) {
+function taxAmounts(text: string, grossTotal: number | null) {
   const compactSummaryTail = text.match(/Riepilogo\s+totali([\s\S]{0,800})/iu)?.[1];
   const compactSummaryAmounts = compactSummaryTail?.split(/\r?\n/u)
     .map((line) => [...line.matchAll(new RegExp(`(${MONEY})`, "giu"))].map((match) => match[1]))
@@ -84,6 +112,8 @@ function taxAmounts(text: string) {
   if (grouped) return { taxableAmount: money(grouped[1]), vatAmount: money(grouped[2]) };
   const sameLine = text.match(new RegExp(`Totale\\s+imponibile\\s+(${MONEY})[^\\n]*?Totale\\s+imposta\\s+(${MONEY})`, "i"));
   if (sameLine) return { taxableAmount: money(sameLine[1]), vatAmount: money(sameLine[2]) };
+  const reconciled = reconciledFiscalTotals(text, grossTotal);
+  if (reconciled) return reconciled;
   // Le intestazioni tabellari generiche (per esempio "Importo IVA") non
   // sono totali fiscali. I valori esplicitamente etichettati come totali
   // prevalgono anche quando sono stampati su una riga successiva.
@@ -262,7 +292,7 @@ export interface LocalInvoiceFinancialExtractionInput {
  */
 export function extractLocalInvoiceFinancialEvidence(input: LocalInvoiceFinancialExtractionInput): FinancialDocumentEvidence {
   const text = stripHistoricalEneaAppendix(input.text);
-  let { taxableAmount, vatAmount } = taxAmounts(text);
+  let { taxableAmount, vatAmount } = taxAmounts(text, input.grossTotal);
   if (input.grossTotal !== null && (taxableAmount === null || vatAmount === null
     || Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - input.grossTotal) > 0.01)) {
     const columnar = guardedColumnarTaxAmounts(text, input.grossTotal);

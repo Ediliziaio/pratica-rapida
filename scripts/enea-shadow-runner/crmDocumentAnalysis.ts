@@ -4,6 +4,7 @@ import { promisify } from "node:util";
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { combineDocumentResults, containsHistoricalEneaAppendix, parseScreeningInvoiceText } from "../../src/features/enea-lab/invoiceParser";
+import { classifyAprInfissiTechnicalDocument, type AprInfissiTechnicalDocumentClassification, type AprInfissiVerifiedDocumentKind } from "../../src/features/enea-shadow-crm/infissiTechnicalDocumentClassifier";
 import { registryRule, USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
 
 export const APR_CRM_DOCUMENT_ANALYSIS_VERSION = "apr-crm-document-analysis-v1" as const;
@@ -33,6 +34,8 @@ export async function analyzePdfLocally(pdfPath: string, ocrExecutable: string):
 
 export interface AprCrmDocumentAnalysisItem {
   documentKey: string; customerKey: string; kind: "invoice" | "additional"; localPdfPath: string; sourceSha256: string;
+  semanticKind: AprInfissiVerifiedDocumentKind;
+  documentClassification: AprInfissiTechnicalDocumentClassification | null;
   state: "queued" | "analyzing" | "analyzed" | "blocked_analysis"; attemptCount: number; extractionMode: LocalPdfAnalysisResult["extractionMode"] | null;
   pageCount: number; textCharacterCount: number; textSha256: string | null; textPath: string | null;
   invoiceResult: ReturnType<typeof parseScreeningInvoiceText>["result"] | null;
@@ -48,7 +51,8 @@ export interface AprCrmDocumentAnalysisState {
   reason: string; nextAction: string;
   parserRevisionsApplied: string[];
   analyzerRepairsApplied: string[];
-  audit: Array<{ revision: number; at: string; type: "initialized" | "prepared" | "source_revision_applied" | "analysis_claimed" | "analyzed" | "analysis_blocked" | "analyzer_repaired" | "parser_reanalyzed" | "completed"; documentKey: string | null; reason: string; appliedRuleIds: string[] }>;
+  classificationRevisionsApplied: string[];
+  audit: Array<{ revision: number; at: string; type: "initialized" | "prepared" | "source_revision_applied" | "analysis_claimed" | "analyzed" | "analysis_blocked" | "analyzer_repaired" | "parser_reanalyzed" | "document_classified" | "completed"; documentKey: string | null; reason: string; appliedRuleIds: string[] }>;
 }
 
 function atomicWrite(target: string, contents: string) {
@@ -60,7 +64,7 @@ function atomicWrite(target: string, contents: string) {
 function initialState(now: Date): AprCrmDocumentAnalysisState {
   const reason = "Analisi locale degli allegati non ancora preparata.";
   return { version: APR_CRM_DOCUMENT_ANALYSIS_VERSION, revision: 0, status: "unprepared", sourceFingerprint: null, currentDocumentKey: null, items: [], externalActionAllowed: false,
-    reason, nextAction: "Attendere acquisizione e fingerprint dei documenti originari.", parserRevisionsApplied: [], analyzerRepairsApplied: [], audit: [{ revision: 0, at: now.toISOString(), type: "initialized", documentKey: null, reason, appliedRuleIds: RULE_IDS }] };
+    reason, nextAction: "Attendere acquisizione e fingerprint dei documenti originari.", parserRevisionsApplied: [], analyzerRepairsApplied: [], classificationRevisionsApplied: [], audit: [{ revision: 0, at: now.toISOString(), type: "initialized", documentKey: null, reason, appliedRuleIds: RULE_IDS }] };
 }
 
 function validState(value: AprCrmDocumentAnalysisState) {
@@ -91,14 +95,14 @@ export class PersistentAprCrmDocumentAnalysis {
     this.directory = path.join(path.resolve(rootDirectory), "crm-document-analysis"); this.checkpointPath = path.join(this.directory, "checkpoint.json"); this.textDirectory = path.join(this.directory, "text");
     const ocrExecutable = resolveAprPdfOcrExecutable(rootDirectory); this.analyzer = analyzer ?? ((pdfPath) => analyzePdfLocally(pdfPath, ocrExecutable));
   }
-  load(now = new Date()) { if (!existsSync(this.checkpointPath)) return initialState(now); try { const value = JSON.parse(readFileSync(this.checkpointPath, "utf8")) as AprCrmDocumentAnalysisState; value.analyzerRepairsApplied ??= []; for (const item of value.items) item.nonFiscalImageExcluded ??= false; return validState(value) ? value : initialState(now); } catch { return initialState(now); } }
+  load(now = new Date()) { if (!existsSync(this.checkpointPath)) return initialState(now); try { const value = JSON.parse(readFileSync(this.checkpointPath, "utf8")) as AprCrmDocumentAnalysisState; value.analyzerRepairsApplied ??= []; value.classificationRevisionsApplied ??= []; for (const item of value.items) { item.nonFiscalImageExcluded ??= false; item.semanticKind ??= item.kind; item.documentClassification ??= null; } return validState(value) ? value : initialState(now); } catch { return initialState(now); } }
   private write(state: AprCrmDocumentAnalysisState) { atomicWrite(this.checkpointPath, `${JSON.stringify(state, null, 2)}\n`); return state; }
-  initialize(now = new Date()) { const state = this.load(now); state.parserRevisionsApplied ??= []; state.analyzerRepairsApplied ??= []; if (!existsSync(this.checkpointPath)) this.write(state); return state; }
+  initialize(now = new Date()) { const state = this.load(now); state.parserRevisionsApplied ??= []; state.analyzerRepairsApplied ??= []; state.classificationRevisionsApplied ??= []; if (!existsSync(this.checkpointPath)) this.write(state); return state; }
   prepare(documents: DownloadedInput[], sourceFingerprint: string, now = new Date()) {
     const current = this.initialize(now); if (current.sourceFingerprint === sourceFingerprint) return current; if (current.sourceFingerprint) throw new Error("crm_document_analysis_source_immutable");
     if (!/^[a-f0-9]{64}$/.test(sourceFingerprint) || documents.some((item) => !existsSync(item.localPath) || !/^[a-f0-9]{64}$/.test(item.responseSha256))) throw new Error("crm_document_analysis_source_invalid");
     const next = structuredClone(current); next.revision += 1; next.status = documents.length ? "queued" : "completed"; next.sourceFingerprint = sourceFingerprint;
-    next.items = documents.map((item) => ({ documentKey: item.documentKey, customerKey: item.customerKey, kind: item.kind, localPdfPath: item.localPath, sourceSha256: item.responseSha256,
+    next.items = documents.map((item) => ({ documentKey: item.documentKey, customerKey: item.customerKey, kind: item.kind, semanticKind: item.kind, documentClassification: null, localPdfPath: item.localPath, sourceSha256: item.responseSha256,
       state: "queued", attemptCount: 0, extractionMode: null, pageCount: 0, textCharacterCount: 0, textSha256: null, textPath: null, invoiceResult: null, screeningItems: [], historicalEneaAppendixExcluded: false, nonFiscalImageExcluded: false,
       reason: "In coda per estrazione testo esclusivamente locale.", startedAt: null, endedAt: null }));
     next.reason = `Preparati ${documents.length} documenti per estrazione locale; nessun contenuto inviato a servizi esterni.`; next.nextAction = "Analizzare un documento alla volta con testo nativo o OCR macOS locale.";
@@ -117,7 +121,7 @@ export class PersistentAprCrmDocumentAnalysis {
     const additions = documents.filter((item) => !existingKeys.has(item.documentKey));
     if (!additions.length) return current;
     const next = structuredClone(current); next.revision += 1; next.status = "queued"; next.sourceFingerprint = sourceFingerprint; next.currentDocumentKey = null;
-    next.items.push(...additions.map((item) => ({ documentKey: item.documentKey, customerKey: item.customerKey, kind: item.kind, localPdfPath: item.localPath, sourceSha256: item.responseSha256,
+    next.items.push(...additions.map((item) => ({ documentKey: item.documentKey, customerKey: item.customerKey, kind: item.kind, semanticKind: item.kind, documentClassification: null, localPdfPath: item.localPath, sourceSha256: item.responseSha256,
       state: "queued" as const, attemptCount: 0, extractionMode: null, pageCount: 0, textCharacterCount: 0, textSha256: null, textPath: null, invoiceResult: null, screeningItems: [], historicalEneaAppendixExcluded: false, nonFiscalImageExcluded: false,
       reason: "In coda dopo correzione identita; estrazione esclusivamente locale non ancora eseguita.", startedAt: null, endedAt: null })));
     next.reason = `Aggiunti ${additions.length} documenti dopo correzione delle fonti; ${current.items.length} analisi precedenti preservate.`;
@@ -141,13 +145,15 @@ export class PersistentAprCrmDocumentAnalysis {
       const hasFiscalSignal = /fattur|ricevut|totale|imponibile|\biva\b|\beur\b|€|\d+[,.]\d{2}/i.test(result.text);
       const nonFiscalImageExcluded = image && compactText.length < 40 && !hasFiscalSignal;
       const parsed = item.kind === "invoice" && !nonFiscalImageExcluded ? parseScreeningInvoiceText(result.text, item.documentKey) : null;
+      const historicalEneaAppendixExcluded = containsHistoricalEneaAppendix(result.text);
+      const documentClassification = classifyAprInfissiTechnicalDocument({ storageKind: item.kind, text: result.text, historicalEneaAppendixExcluded });
       const next = structuredClone(this.load(now)); const target = next.items.find((candidate) => candidate.documentKey === item!.documentKey)!; next.revision += 1; target.state = "analyzed";
       target.extractionMode = result.extractionMode; target.pageCount = result.pageCount; target.textCharacterCount = result.text.length; target.textSha256 = textHash; target.textPath = textPath;
-      target.invoiceResult = parsed?.result ?? null; target.screeningItems = parsed?.items ?? []; target.nonFiscalImageExcluded = nonFiscalImageExcluded; target.historicalEneaAppendixExcluded = containsHistoricalEneaAppendix(result.text); target.endedAt = now.toISOString(); target.reason = nonFiscalImageExcluded
+      target.invoiceResult = parsed?.result ?? null; target.screeningItems = parsed?.items ?? []; target.nonFiscalImageExcluded = nonFiscalImageExcluded; target.historicalEneaAppendixExcluded = historicalEneaAppendixExcluded; target.semanticKind = documentClassification.verifiedKind; target.documentClassification = documentClassification; target.endedAt = now.toISOString(); target.reason = nonFiscalImageExcluded
         ? "Immagine originaria acquisita e OCR eseguito, ma priva di segnali fiscali: conservata come fonte non fiscale ed esclusa dai calcoli."
-        : `Testo estratto localmente (${result.extractionMode}); ${parsed ? `${parsed.items.length} righe schermatura rilevate` : "documento non fiscale conservato come fonte"}.${target.historicalEneaAppendixExcluded ? " Appendice ENEA storica rilevata ed esclusa dall'uso." : ""}`;
+        : `Testo estratto localmente (${result.extractionMode}); ${parsed ? `${parsed.items.length} righe schermatura rilevate` : documentClassification.verifiedKind === "third_party_certificate" ? `certificato tecnico di terza parte verificato (${documentClassification.profile})` : "documento non fiscale conservato come fonte"}.${target.historicalEneaAppendixExcluded ? " Appendice ENEA storica rilevata ed esclusa dall'uso." : ""}`;
       next.currentDocumentKey = null; next.reason = `${target.customerKey}: ${target.reason}`; next.nextAction = "Proseguire con il prossimo documento; ENEA resta chiusa.";
-      next.audit.push({ revision: next.revision, at: now.toISOString(), type: "analyzed", documentKey: target.documentKey, reason: target.reason, appliedRuleIds: RULE_IDS }); this.write(next);
+      next.audit.push({ revision: next.revision, at: now.toISOString(), type: "analyzed", documentKey: target.documentKey, reason: target.reason, appliedRuleIds: [...RULE_IDS, ...documentClassification.appliedRuleIds] }); this.write(next);
       return next.items.some((candidate) => candidate.state === "queued" || candidate.state === "analyzing") ? next : this.complete(now);
     } catch (error) {
       const next = structuredClone(this.load(now)); const target = next.items.find((candidate) => candidate.documentKey === item!.documentKey)!; next.revision += 1; target.state = "blocked_analysis"; target.endedAt = now.toISOString();
@@ -206,6 +212,27 @@ export class PersistentAprCrmDocumentAnalysis {
     next.reason = `${repairable.length} dichiarazioni di prestazione riarmate per leggere le dimensioni esterne dei diagrammi; nessun nuovo accesso CRM.`;
     next.nextAction = "Ripetere soltanto l'OCR locale dei PDF tecnici riarmati e ricalcolare la cardinalita.";
     next.audit.push({ revision: next.revision, at: now.toISOString(), type: "analyzer_repaired", documentKey: null, reason: next.reason, appliedRuleIds: RULE_IDS });
+    return this.write(next);
+  }
+  applyTechnicalDocumentClassificationRevision(classificationRevision: string, now = new Date()) {
+    const current = this.initialize(now);
+    if (current.classificationRevisionsApplied.includes(classificationRevision) || current.status !== "completed") return current;
+    if (!/^[a-z0-9][a-z0-9._:-]{7,127}$/.test(classificationRevision)) throw new Error("crm_document_classification_revision_invalid");
+    const next = structuredClone(current); next.revision += 1; let promoted = 0; let evaluated = 0;
+    for (const item of next.items) {
+      if (item.state !== "analyzed" || !item.textPath) continue;
+      const text = readFileSync(item.textPath, "utf8");
+      const classification = classifyAprInfissiTechnicalDocument({ storageKind: item.kind, text, historicalEneaAppendixExcluded: item.historicalEneaAppendixExcluded });
+      item.semanticKind = classification.verifiedKind;
+      item.documentClassification = classification;
+      evaluated += 1;
+      if (classification.verifiedKind === "third_party_certificate") promoted += 1;
+    }
+    next.classificationRevisionsApplied.push(classificationRevision);
+    next.reason = `Classificazione semantica ${classificationRevision} applicata a ${evaluated} documenti locali; ${promoted} certificati tecnici di terza parte verificati.`;
+    next.nextAction = "Ricalcolare i preflight Infissi usando il tipo semantico verificato, senza ripetere download o OCR.";
+    next.audit.push({ revision: next.revision, at: now.toISOString(), type: "document_classified", documentKey: null, reason: next.reason,
+      appliedRuleIds: [...RULE_IDS, USER_AUTHORIZED_RULE_IDS.thirdPartyTechnicalCertificateClassification, USER_AUTHORIZED_RULE_IDS.crmInternalTechnicalDocumentUntrusted] });
     return this.write(next);
   }
   applyParserRevision(parserRevision: string, now = new Date()) {

@@ -1,6 +1,6 @@
 import { OPERATIONAL_RULES } from "./operationalRules";
 
-export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v79" as const;
+export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v80" as const;
 export const ENEA_GLOBAL_PREREQUISITE = Object.freeze({
   id: "browser-session-contract-v1",
   scope: "global_not_practice",
@@ -109,6 +109,7 @@ export const USER_AUTHORIZED_RULE_IDS = Object.freeze({
   mixedFortyCaseReliabilityTest: "user-2026-08-23-mixed-forty-case-reliability-test",
   documentedProductModuleOverLabel: "user-2026-08-23-documented-product-module-over-label",
   crmInternalTechnicalDocumentUntrusted: "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+  thirdPartyTechnicalCertificateClassification: "user-2026-08-26-third-party-technical-certificate-classification-v1",
   testExNovoOriginalSourcesOnly: "user-2026-08-25-test-ex-novo-original-sources-only-v1",
 } as const);
 
@@ -157,9 +158,26 @@ const USER_RULE_PROVENANCE_2026_08_25 = Object.freeze({
   receivedAt: "2026-08-25",
   source: "delegated_user_instruction" as const,
 });
+const USER_RULE_PROVENANCE_2026_08_26 = Object.freeze({
+  authority: "user" as const,
+  receivedAt: "2026-08-26",
+  source: "delegated_user_instruction" as const,
+});
 
 /** Regole business aggiunte soltanto in seguito a istruzione esplicita dell'utente. */
 export const ENEA_USER_AUTHORIZED_RULES: readonly OperationalRegistryRule[] = Object.freeze([
+  {
+    id: USER_AUTHORIZED_RULE_IDS.thirdPartyTechnicalCertificateClassification,
+    step: "economic_sources",
+    kind: "business",
+    condition: "Un allegato CRM generico puo essere un certificato tecnico Infissi originario di terza parte, ma il tipo storage additional non ne prova l'autorita.",
+    sourcePrecedence: ["contenuto originario estratto localmente", "profilo formale completo della dichiarazione tecnica", "profilo DoP strutturato completo", "tipo storage CRM usato soltanto come provenienza"],
+    deterministicAction: "Promuovere da additional a third_party_certificate soltanto se tutti i criteri di uno dei due profili chiusi sono presenti: dichiarazione formale 5/5 oppure DoP strutturata 6/6 con almeno due blocchi prodotto distinti. In ogni altro caso conservare additional; non promuovere mai appendici ENEA storiche.",
+    audit: "sourceId, tipo storage, tipo verificato, profilo, criteri presenti e mancanti, versione classificatore e ID regole.",
+    outcome: "continue",
+    priority: 1_221,
+    provenance: USER_RULE_PROVENANCE_2026_08_26,
+  },
   {
     id: USER_AUTHORIZED_RULE_IDS.crmInternalTechnicalDocumentUntrusted,
     step: "economic_sources",

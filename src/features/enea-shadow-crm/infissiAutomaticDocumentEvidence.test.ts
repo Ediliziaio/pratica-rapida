@@ -243,4 +243,13 @@ Vista interna
     ]);
     expect(result).toMatchObject({ status: "operator_required", blockers: ["infissi_automatic_source_conflict"], evidence: null });
   });
+
+  it("non usa un certificato degli infissi rimossi come tabella dei nuovi prodotti", () => {
+    const result = extractAprInfissiAutomaticTechnicalEvidence([
+      { sourceId: "fattura", kind: "invoice", text: "Finestra dimensioni: 1845 x 2310, Pezzi: 1, Trasmittanza termica 1,13" },
+      { sourceId: "certificato-rimossi", kind: "third_party_certificate", certificateScope: "removed_windows", text: "Infissi dismessi: 1000 x 1000, Uw=6,0" },
+    ]);
+    expect(result).toMatchObject({ status: "ready", evidence: { sourceIds: ["fattura"] } });
+    expect(result.audit.excludedSources).toContainEqual(expect.objectContaining({ sourceId: "certificato-rimossi", reason: "removed_window_certificate_not_installed_product_source" }));
+  });
 });

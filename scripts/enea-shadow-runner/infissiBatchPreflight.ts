@@ -398,7 +398,17 @@ export class PersistentAprInfissiBatchPreflight {
     const dossierValue = JSON.parse(readFileSync(queued.dossierPath, "utf8"));
     const form = formFromDossier(dossierValue);
     const analysisItems = (analysis.items ?? []).filter((item) => item.customerKey === queued.customerKey && item.state === "analyzed" && text(item.textPath));
-    const sources = analysisItems.map((item) => ({ sourceId: text(item.documentKey), kind: text(item.kind), text: readFileSync(text(item.textPath), "utf8") }));
+    const sources = analysisItems.map((item) => {
+      const classification = object(item.documentClassification);
+      const scope = text(classification?.certificateScope);
+      const certificateScope: "installed_windows" | "removed_windows" | null = scope === "installed_windows" || scope === "removed_windows" ? scope : null;
+      return {
+        sourceId: text(item.documentKey),
+        kind: text(item.semanticKind ?? item.kind),
+        certificateScope,
+        text: readFileSync(text(item.textPath), "utf8"),
+      };
+    });
     const automatic = extractAprInfissiAutomaticTechnicalEvidence(sources);
     const technical = resolveInfissiTechnicalSources({
       practiceId: queued.practiceId,

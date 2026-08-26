@@ -703,6 +703,7 @@ export class LocalDashboardSupervisor {
     if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v33-header-identity-over-body-reference", now);
     if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyAnalyzerRepair("pdf-analyzer-cohort-path-v1", now);
     if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyTechnicalPerformanceDiagramOcrRepair("infissi-performance-diagram-ocr-v2", now);
+    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyTechnicalDocumentClassificationRevision("infissi-third-party-certificate-classifier-v1", now);
     const analyzed = this.crmDocumentAnalysis.snapshot(now);
     if (acquired.status === "completed" && acquired.progress.acquired > 0 && analyzed.status === "completed" && analyzed.sourceFingerprint) {
       const preflightFingerprint = createHash("sha256").update(JSON.stringify({ candidateFingerprint: acquired.candidateFingerprint, sourceFingerprint: analyzed.sourceFingerprint, parserRevisionsApplied: analyzed.parserRevisionsApplied })).digest("hex");
@@ -911,6 +912,7 @@ export class LocalDashboardSupervisor {
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v33-header-identity-over-body-reference", now);
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyAnalyzerRepair("pdf-analyzer-cohort-path-v1", now);
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyTechnicalPerformanceDiagramOcrRepair("infissi-performance-diagram-ocr-v2", now);
+      if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyTechnicalDocumentClassificationRevision("infissi-third-party-certificate-classifier-v1", now);
       const analyzed = this.crmDocumentAnalysis.snapshot(now);
       if (acquired.status === "completed" && acquired.progress.acquired > 0 && analyzed.status === "completed" && analyzed.sourceFingerprint) {
         const preflightFingerprint = createHash("sha256").update(JSON.stringify({ candidateFingerprint: acquired.candidateFingerprint, sourceFingerprint: analyzed.sourceFingerprint, parserRevisionsApplied: analyzed.parserRevisionsApplied })).digest("hex");

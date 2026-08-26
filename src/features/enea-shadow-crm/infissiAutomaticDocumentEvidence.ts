@@ -8,6 +8,7 @@ export interface AprInfissiTextSource {
   sourceId: string;
   text: string;
   kind?: "invoice" | "third_party_certificate" | "additional" | "crm_internal_technical_document" | "crm_history" | "operator_history" | string;
+  certificateScope?: "installed_windows" | "removed_windows" | null;
 }
 
 export interface AprInfissiAutomaticEvidence {
@@ -283,7 +284,8 @@ function declaredPerformancePageCount(source: AprInfissiTextSource): number | nu
 
 export function extractAprInfissiAutomaticTechnicalEvidence(sources: readonly AprInfissiTextSource[]): AprInfissiAutomaticEvidence {
   const sourcePolicy = applyAprInfissiOriginalSourcePolicy(sources);
-  const trustedSources = sourcePolicy.trusted;
+  const removedWindowCertificates = sourcePolicy.trusted.filter((source) => source.kind === "third_party_certificate" && source.certificateScope === "removed_windows");
+  const trustedSources = sourcePolicy.trusted.filter((source) => !removedWindowCertificates.includes(source));
   const rawCandidates = trustedSources.flatMap((source) => [
     parseInvoicePhysicalWindowRows(source),
     parseProductAssemblyPages(source),
@@ -354,7 +356,10 @@ export function extractAprInfissiAutomaticTechnicalEvidence(sources: readonly Ap
       selectedSourceId: selected?.sourceId ?? null,
       selectedParser: selected?.parser ?? null,
       candidateCounts: Object.freeze(candidates.map((candidate) => ({ sourceId: candidate.sourceId, parser: candidate.parser, rowCount: physicalCount(candidate) }))),
-      excludedSources: sourcePolicy.excluded,
+      excludedSources: Object.freeze([
+        ...sourcePolicy.excluded,
+        ...removedWindowCertificates.map((source) => Object.freeze({ sourceId: source.sourceId, kind: source.kind ?? "unclassified", reason: "removed_window_certificate_not_installed_product_source" })),
+      ]),
       appliedRuleIds: RULE_IDS,
     }),
   });

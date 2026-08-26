@@ -117,4 +117,44 @@ describe("analisi locale persistente dei PDF CRM", () => {
     expect(reader.snapshot().items.map((item) => item.attemptCount)).toEqual([1, 1]);
     expect(calls).toBe(2);
   });
+
+  it("classifica il contenuto additional senza promuovere note interne o falsi positivi lessicali", async () => {
+    const directory = mkdtempSync(path.join(os.tmpdir(), "apr-doc-analysis-classification-")); directories.push(directory);
+    const sourceDirectory = path.join(directory, "source"); mkdirSync(sourceDirectory);
+    const texts: Record<string, string> = {
+      certificate: `DICHIARAZIONE DELLE PRESTAZIONI TERMICHE DEL SERRAMENTO
+Il sottoscritto, rappresentante legale della ditta produttrice, dichiara che la finestra ha Uw = 1,13 W/m2K secondo UNI EN ISO 10077-1:2017. Timbro e firma.`,
+      internal: "Documento tecnico interno CRM. Infissi da controllare con il cliente; nessun certificato originario allegato.",
+      lexical: "NOTA INTERNA: il cliente riferisce trasmittanza termica Uw = 1,30 W/m2K e dimensioni: 1200 x 1400; valori non verificati e non provenienti dal produttore.",
+    };
+    const inputs = Object.keys(texts).map((name) => {
+      const localPath = path.join(sourceDirectory, `${name}.pdf`); const body = Buffer.from(`%PDF-${name}`); writeFileSync(localPath, body);
+      return { documentKey: createHash("sha256").update(name).digest("hex"), customerKey: name, kind: "additional" as const, localPath, responseSha256: createHash("sha256").update(body).digest("hex") };
+    });
+    const reader = new PersistentAprCrmDocumentAnalysis(directory, async (pdfPath) => ({ text: texts[path.basename(pdfPath, ".pdf")], extractionMode: "native_text", pageCount: 1 }));
+    reader.prepare(inputs, "9".repeat(64));
+    for (let index = 0; index < 5 && reader.snapshot().status !== "completed"; index += 1) await reader.tick();
+    const items = Object.fromEntries(reader.snapshot().items.map((item) => [item.customerKey, item]));
+    expect(items.certificate).toMatchObject({ kind: "additional", semanticKind: "third_party_certificate", documentClassification: { profile: "formal_declaration" } });
+    expect(items.internal).toMatchObject({ kind: "additional", semanticKind: "additional", documentClassification: { profile: "none" } });
+    expect(items.lexical).toMatchObject({ kind: "additional", semanticKind: "additional", documentClassification: { profile: "none" } });
+    expect(items.certificate.documentClassification?.appliedRuleIds).toContain("user-2026-08-26-third-party-technical-certificate-classification-v1");
+  });
+
+  it("riclassifica checkpoint analizzati precedenti senza cambiare kind, chiave o fingerprint", async () => {
+    const directory = mkdtempSync(path.join(os.tmpdir(), "apr-doc-analysis-reclassify-")); directories.push(directory);
+    const localPath = path.join(directory, "certificate.pdf"); const body = Buffer.from("%PDF-certificate"); writeFileSync(localPath, body);
+    const input = { documentKey: createHash("sha256").update("certificate").digest("hex"), customerKey: "cliente", kind: "additional" as const, localPath, responseSha256: createHash("sha256").update(body).digest("hex") };
+    const reader = new PersistentAprCrmDocumentAnalysis(directory, async () => ({ text: `DICHIARAZIONE DI CONFORMITA ENERGETICA dei serramenti
+Il costruttore dichiara Uw = 1,2 W/m2K secondo EN 14351-1:2016. Timbro e firma.`, extractionMode: "native_text", pageCount: 1 }));
+    reader.prepare([input], "8".repeat(64)); await reader.tick();
+    const checkpoint = JSON.parse(readFileSync(reader.checkpointPath, "utf8"));
+    delete checkpoint.items[0].semanticKind; delete checkpoint.items[0].documentClassification; delete checkpoint.classificationRevisionsApplied;
+    writeFileSync(reader.checkpointPath, `${JSON.stringify(checkpoint, null, 2)}\n`);
+    const before = reader.snapshot();
+    expect(before.items[0]).toMatchObject({ kind: "additional", semanticKind: "additional", documentClassification: null });
+    const revised = reader.applyTechnicalDocumentClassificationRevision("infissi-third-party-certificate-classifier-v1");
+    expect(revised).toMatchObject({ sourceFingerprint: "8".repeat(64), classificationRevisionsApplied: ["infissi-third-party-certificate-classifier-v1"], items: [{ documentKey: input.documentKey, kind: "additional", semanticKind: "third_party_certificate" }] });
+    expect(reader.applyTechnicalDocumentClassificationRevision("infissi-third-party-certificate-classifier-v1").revision).toBe(revised.revision);
+  });
 });

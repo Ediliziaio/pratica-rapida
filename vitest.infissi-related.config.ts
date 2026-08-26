@@ -20,6 +20,7 @@ export default defineConfig({
       "src/features/enea-shadow-crm/operationalRegistry.test.ts",
       "src/features/enea-shadow-crm/financialReconciliation.test.ts",
       "scripts/enea-shadow-runner/crmLocalDraftPackages.test.ts",
+      "scripts/enea-shadow-runner/crmDocumentAnalysis.test.ts",
       "scripts/enea-shadow-runner/caseStatusTruth.test.ts",
       "scripts/enea-shadow-runner/aprWatchdogRuntime.test.ts",
       "scripts/enea-shadow-runner/localDashboardServer.test.ts",

@@ -24,6 +24,8 @@ export default defineConfig({
       "src/features/enea-shadow-crm/infissiInvoiceCertificateCardinality.test.ts",
       "src/features/enea-shadow-crm/infissiEneaDraftPayload.test.ts",
       "src/features/enea-shadow-crm/infissiOriginalDocumentParser.test.ts",
+      "src/features/enea-shadow-crm/infissiTechnicalDocumentClassifier.test.ts",
+      "src/features/enea-shadow-crm/infissiOriginalSourcePolicy.test.ts",
       "src/features/enea-shadow-crm/infissiAutomaticDocumentEvidence.test.ts",
       "scripts/enea-shadow-runner/infissiLocalMappingPreflight.test.ts",
       "scripts/enea-shadow-runner/infissiBatchPreflight.test.ts",

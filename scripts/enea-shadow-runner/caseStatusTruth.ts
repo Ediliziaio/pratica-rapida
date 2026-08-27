@@ -172,7 +172,7 @@ export function reconcileAprCaseTruthWithDraftExecution(
       };
     }
     const technicalPortalStop = Boolean(executionItem.uncertainPageSave)
-      || /(?:apr_cdp_|esito tecnico incerto|la get canonica dimostra|bozza completa e salvata non dimostrabile)/i.test(executionItem.reason);
+      || /(?:apr_cdp_|apr_enea_nested_page_not_persisted_after_outer_save|esito tecnico incerto|la get canonica dimostra|bozza completa e salvata non dimostrabile)/i.test(executionItem.reason);
     if (truth.status === "READY" && technicalPortalStop) {
       return {
         ...truth,

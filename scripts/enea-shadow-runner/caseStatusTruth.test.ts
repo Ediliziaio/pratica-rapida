@@ -68,6 +68,22 @@ describe("verita autorevole dello stato pratica APR", () => {
     expect(assertAprCaseProblemClaim(truth, "problem")).toBe(true);
   });
 
+  it("espone BLOCKED quando la verifica server nega la persistenza della pagina annidata", () => {
+    const truth = reconcileAprCaseTruthWithDraftExecution(deriveAprCaseStatusTruth(item({})), {
+      customerKey: "giulia-albanese",
+      state: "operator_intervention",
+      reason: "Errore circoscritto alla pratica: apr_enea_nested_page_not_persisted_after_outer_save:page:Generatore dell'impianto termico",
+      uncertainPageSave: null,
+      operatorGateBlockers: [],
+    } as never);
+    expect(truth).toMatchObject({
+      status: "BLOCKED",
+      sourceState: "blocked_case",
+      reportOutcome: "blocked_case",
+      blockerCodes: ["execution_case_operator_required"],
+    });
+  });
+
   it("espone IN_PROGRESS quando il preflight è pronto e il checkpoint portale sta salvando", () => {
     const truth = reconcileAprCaseTruthWithDraftExecution(deriveAprCaseStatusTruth(item({})), {
       customerKey: "giulia-albanese",

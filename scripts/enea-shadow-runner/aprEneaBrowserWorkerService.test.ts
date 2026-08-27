@@ -91,6 +91,28 @@ describe("gate permanente del servizio browser APR", () => {
     expect(JSON.parse(readFileSync(service.statePath, "utf8"))).toMatchObject({ status: "stopped", processPid: 0 });
   });
 
+  it("riconcilia anche il checkpoint pubblico interno del worker quando il processo e' fermo", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-public-checkpoint-reconcile-")); directories.push(root);
+    const service = new PersistentAprEneaWorkerService(root);
+    const workerDirectory = path.join(root, "enea-browser-worker");
+    mkdirSync(workerDirectory, { recursive: true });
+    writeFileSync(path.join(workerDirectory, "checkpoint.json"), JSON.stringify({
+      version: "apr-enea-browser-worker-v1", revision: 3, status: "running", instanceId: "worker-dead-public", processPid: 43215,
+      driverKind: "simulated_portal", driverIdentity: "fixture", leaseUntil: "2026-08-27T10:01:00.000Z", heartbeatAt: "2026-08-27T10:00:00.000Z",
+      currentCustomerKey: "case-one", currentAction: "prepare_allowlisted_page", completedCustomerKeys: [], blockedCustomerKeys: [],
+      forbiddenActionCount: 0, previewAttemptCount: 0, submitAttemptCount: 0, communicationAttemptCount: 0,
+      reason: "Compilazione in corso.", nextAction: "Pagina successiva.", processedCommandIds: ["worker:init"],
+      audit: [{ revision: 0, at: "2026-08-27T10:00:00.000Z", commandId: "worker:init", event: "initialized", executorKind: "apr_browser_worker", instanceId: "worker-dead-public", processPid: 43215, driverKind: "simulated_portal", driverIdentity: "fixture", customerKey: null, action: "initialize", evidenceId: null, reason: "init", appliedRuleIds: ["system-atomic-checkpoint-resume"] }],
+    }));
+    service.record({ instanceId: "worker-dead-public", processPid: 43215, status: "running", type: "worker_tick", reason: "Compilazione in corso.", nextAction: "Pagina successiva." }, new Date("2026-08-27T10:00:00Z"));
+
+    const snapshot = service.snapshot(new Date("2026-08-27T10:00:02Z"), () => false);
+
+    expect(snapshot.service).toMatchObject({ status: "stopped", processPid: 0 });
+    expect(snapshot.worker).toMatchObject({ status: "stopped", processPid: 0, currentCustomerKey: null, currentAction: "stopped" });
+    expect(JSON.parse(readFileSync(path.join(workerDirectory, "checkpoint.json"), "utf8"))).toMatchObject({ status: "stopped", processPid: 0 });
+  });
+
   it("impedisce a un completamento asincrono della stessa istanza di sovrascrivere stopped", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-stop-tombstone-")); directories.push(root);
     const service = new PersistentAprEneaWorkerService(root);

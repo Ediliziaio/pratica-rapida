@@ -36,6 +36,22 @@ describe("osservazione runtime watchdog APR", () => {
     expect(result.work).toMatchObject({ actionable: false, operatorRequired: false, technicalBlock: false, phase: "coda_vuota", progressToken: "empty:0" });
   });
 
+  it("non considera eseguibile una bozza in coda mentre il worker attende il login", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-watchdog-login-wait-")); directories.push(root);
+    write(root, "supervisor/checkpoint.json", { instanceId: "supervisor-10-test", pid: 10, heartbeatAt: "2026-08-27T10:00:00.000Z" });
+    write(root, "enea-browser-worker/service.json", { processPid: 20, status: "login_required", heartbeatAt: "2026-08-27T10:00:00.000Z", nextAction: "Completare SPID." });
+    write(root, "enea-draft-execution/checkpoint.json", {
+      revision: 1, status: "ready", currentCustomerKey: null, nextAction: "Attendere sessione ENEA.",
+      items: [{ customerKey: "case-one", displayName: "Caso Uno", state: "queued", startedAt: "2026-08-27T09:50:00.000Z" }],
+      audit: [{ at: "2026-08-27T09:50:00.000Z" }],
+    });
+
+    const result = buildAprWatchdogObservation(root, () => true, new Date("2026-08-27T10:00:01.000Z"));
+
+    expect(result.work).toMatchObject({ actionable: false, operatorRequired: true, technicalBlock: false, phase: "intervento_operatore" });
+    expect(result.work.progressToken).toBe("operator:0:login_required");
+  });
+
   it("osserva il gate successivo come lavoro e rende il safety gate esterno un blocco tecnico esplicito", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-watchdog-gates-")); directories.push(root);
     write(root, "supervisor/checkpoint.json", { instanceId: "supervisor-10-test", pid: 10, heartbeatAt: "2026-08-17T10:00:00.000Z" });

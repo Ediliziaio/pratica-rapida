@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import path from "node:path";
 import { readFileSync } from "node:fs";
-import { PersistentAprEneaBrowserWorker, type AprEneaDraftPackage, type AprEneaPageSaveProbeEvidence } from "./aprEneaBrowserWorker";
+import { PersistentAprEneaBrowserWorker, reconcileStoppedAprEneaBrowserWorkerCheckpoint, type AprEneaDraftPackage, type AprEneaPageSaveProbeEvidence } from "./aprEneaBrowserWorker";
 import { CdpEneaBrowserDriver, classifyPersistedPageFieldsReadOnly, eneaGeneratorActivationLabels, matchingScreeningRowIndexes, portalNumberValue } from "./cdpEneaBrowserDriver";
 import { PersistentAprChromeRuntime } from "./cdpClient";
 import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
@@ -54,14 +54,16 @@ async function serve() {
   let runtimeKey: string | null = null;
   const stop = (signal: "SIGINT" | "SIGTERM") => {
     running = false;
+    const reason = `Worker APR arrestato da ${signal}; nessuna attività viene dichiarata in corso.`;
     service.record({
       instanceId,
       processPid: 0,
       status: "stopped",
       type: "stop_signal_persisted",
-      reason: `Worker APR arrestato da ${signal}; nessuna attività viene dichiarata in corso.`,
+      reason,
       nextAction: "Il LaunchAgent potrà avviare una nuova istanza dal checkpoint persistente.",
     });
+    reconcileStoppedAprEneaBrowserWorkerCheckpoint(rootDirectory, { instanceId, reason });
     runtime?.closeAllPageClients();
     if (runtime) service.recordCdpConnections(runtime.connectionStats());
   };

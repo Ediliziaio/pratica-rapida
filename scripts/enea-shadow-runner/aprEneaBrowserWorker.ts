@@ -88,7 +88,7 @@ interface WorkerAuditEvent {
   revision: number;
   at: string;
   commandId: string;
-  event: "initialized" | "worker_started" | "heartbeat" | "action_started" | "action_completed" | "case_isolated" | "login_required" | "run_completed" | "technical_block";
+  event: "initialized" | "worker_started" | "worker_stopped" | "heartbeat" | "action_started" | "action_completed" | "case_isolated" | "login_required" | "run_completed" | "technical_block";
   executorKind: "apr_browser_worker";
   instanceId: string;
   processPid: number;
@@ -104,7 +104,7 @@ interface WorkerAuditEvent {
 interface WorkerState {
   version: typeof VERSION;
   revision: number;
-  status: "idle" | "running" | "login_required" | "technical_block" | "completed";
+  status: "idle" | "running" | "login_required" | "technical_block" | "completed" | "stopped";
   instanceId: string;
   processPid: number;
   driverKind: AprEneaBrowserDriver["kind"];
@@ -133,6 +133,48 @@ function atomicWrite(target: string, contents: string) {
   renameSync(temporary, target);
   const directory = openSync(path.dirname(target), "r");
   try { fsyncSync(directory); } finally { closeSync(directory); }
+}
+
+export function reconcileStoppedAprEneaBrowserWorkerCheckpoint(
+  rootDirectory: string,
+  input: { instanceId: string; reason: string; now?: Date },
+) {
+  const checkpointPath = path.join(path.resolve(rootDirectory), "enea-browser-worker", "checkpoint.json");
+  if (!existsSync(checkpointPath)) return null;
+  const current = JSON.parse(readFileSync(checkpointPath, "utf8")) as WorkerState;
+  if (current.version !== VERSION || current.instanceId !== input.instanceId) return current;
+  if (current.status === "stopped" && current.processPid === 0) return current;
+  const now = input.now ?? new Date();
+  const next = structuredClone(current);
+  const commandId = `worker:system:stopped:${input.instanceId}`;
+  next.revision += 1;
+  next.status = "stopped";
+  next.processPid = 0;
+  next.heartbeatAt = now.toISOString();
+  next.leaseUntil = now.toISOString();
+  next.currentCustomerKey = null;
+  next.currentAction = "stopped";
+  next.reason = input.reason;
+  next.nextAction = "Il LaunchAgent potrà riprendere dal checkpoint persistente; nessun lavoro è dichiarato in corso.";
+  if (!next.processedCommandIds.includes(commandId)) next.processedCommandIds.push(commandId);
+  next.audit.push({
+    revision: next.revision,
+    at: now.toISOString(),
+    commandId,
+    event: "worker_stopped",
+    executorKind: "apr_browser_worker",
+    instanceId: next.instanceId,
+    processPid: 0,
+    driverKind: next.driverKind,
+    driverIdentity: next.driverIdentity,
+    customerKey: null,
+    action: "stopped",
+    evidenceId: null,
+    reason: input.reason,
+    appliedRuleIds: [...RULE_IDS, "system-public-state-process-liveness"],
+  });
+  atomicWrite(checkpointPath, `${JSON.stringify(next, null, 2)}\n`);
+  return next;
 }
 
 function digest(value: unknown) {

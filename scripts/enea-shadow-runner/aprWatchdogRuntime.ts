@@ -59,6 +59,7 @@ export function buildAprWatchdogObservation(
   const supervisorPid = number(supervisor?.pid) ?? number(supervisorInstanceMatch ? Number(supervisorInstanceMatch[1]) : null);
   const workerPid = number(worker?.processPid);
 
+  const workerStatus = text(worker?.status);
   const phases: Array<{ id: string; state: JsonObject | null; statuses: string[]; itemStates: string[]; target: AprWatchdogTarget; allowWithoutItem?: boolean }> = [
     { id: "enea_readonly_discovery", state: readOnlyDiscovery, statuses: ["working_local"], itemStates: [], target: "supervisor", allowWithoutItem: true },
     { id: "enea_readiness_admission", state: readinessAdmission, statuses: ["working_local"], itemStates: [], target: "supervisor", allowWithoutItem: true },
@@ -69,7 +70,9 @@ export function buildAprWatchdogObservation(
     { id: "preflight_locale", state: preflight, statuses: ["queued", "running"], itemStates: ["queued", "processing"], target: "supervisor" },
     { id: "bozza_enea", state: draft, statuses: ["ready", "running", "operator_intervention"], itemStates: ["queued", "recovery_queued", "create_intent_recorded", "created", "filling", "save_intent_recorded"], target: "worker" },
   ];
-  const active = phases.find((phase) => phase.statuses.includes(text(phase.state?.status) ?? "") && (phase.allowWithoutItem || Boolean(activeItem(phase.state, phase.itemStates))));
+  const active = phases.find((phase) => phase.statuses.includes(text(phase.state?.status) ?? "")
+    && !(phase.target === "worker" && workerStatus === "login_required")
+    && (phase.allowWithoutItem || Boolean(activeItem(phase.state, phase.itemStates))));
   const activePractice = active ? activeItem(active.state, active.itemStates) : null;
   // Un blocco di una fase precedente non resta aperto per sempre: la bozza
   // salvata e la fonte terminale piu autorevole per quella stessa pratica.
@@ -89,7 +92,6 @@ export function buildAprWatchdogObservation(
       const key = text(item.customerKey) ?? text(item.practiceId) ?? text(item.documentKey) ?? "";
       return !savedDraftKeys.has(key) && !infissiReadyKeys.has(key);
     });
-  const workerStatus = text(worker?.status);
   const gateOrchestratorStatus = text(gateOrchestrator?.status);
   const readinessAdmissionStatus = text(readinessAdmission?.status);
   const readOnlyDiscoveryStatus = text(readOnlyDiscovery?.status);

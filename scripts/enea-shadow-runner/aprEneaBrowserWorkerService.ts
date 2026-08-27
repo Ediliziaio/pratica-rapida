@@ -195,7 +195,7 @@ export class PersistentAprEneaWorkerService {
     if (next.operationalEnabled && !next.setupEnabled) throw new Error("apr_enea_worker_operational_requires_setup");
     if (next.operationalEnabled) {
       const service = this.loadState(now);
-      let driver: { contract?: { ready?: boolean } | null } = {}; let execution: { items?: Array<{ customerKey?: string; state?: string; draftId?: string | null; createAttemptCount?: number; saveAttemptCount?: number; completedPageIds?: string[]; pageCheckpoints?: Array<{ pageId?: string; state?: string; saveAttemptCount?: number; recoverySaveAttemptCount?: number }>; uncertainPageSave?: { status?: string; probes?: Array<{ method?: string; outcome?: string; reason?: string; url?: string }> } | null; reason?: string }>; previewAllowed?: boolean; submitAllowed?: boolean; communicationsAllowed?: boolean } = {};
+      let driver: { contract?: { ready?: boolean } | null } = {}; let execution: { currentCustomerKey?: string | null; items?: Array<{ customerKey?: string; state?: string; draftId?: string | null; createAttemptCount?: number; saveAttemptCount?: number; completedPageIds?: string[]; pageCheckpoints?: Array<{ pageId?: string; state?: string; saveAttemptCount?: number; recoverySaveAttemptCount?: number }>; uncertainPageSave?: { status?: string; probes?: Array<{ method?: string; outcome?: string; reason?: string; url?: string }> } | null; reason?: string }>; previewAllowed?: boolean; submitAllowed?: boolean; communicationsAllowed?: boolean } = {};
       type RuntimeCohortSeed = { status?: string; repeatTest?: { deletionProofRequired?: boolean } | null; candidates?: Array<{ customerKey?: string; practiceId?: string }>; audit?: Array<{ appliedRuleIds?: string[] }>; verifiedMapperBridgeRequired?: true };
       let cohortSeed: RuntimeCohortSeed | null = null;
       let preflight: { items?: Array<{ customerKey?: string; state?: string }> } = {};
@@ -207,7 +207,10 @@ export class PersistentAprEneaWorkerService {
       try { gateOrchestrator = JSON.parse(readFileSync(path.join(path.resolve(this.rootDirectory), "crm-live-processing", "runtime", "apr-gate-orchestrator", "checkpoint.json"), "utf8")) as typeof gateOrchestrator; } catch { /* gate fallirà */ }
       const runnableItems = execution.items?.filter((item) => {
         if (item.customerKey === "beatrice-ciotta") return false;
-        if (item.state === "queued") return true;
+        if (item.state === "queued" || item.state === "recovery_queued") return true;
+        const safelyResumablePartialState = item.customerKey === execution.currentCustomerKey
+          && ["create_intent_recorded", "created", "filling", "save_intent_recorded"].includes(item.state ?? "");
+        if (safelyResumablePartialState) return true;
         if (item.state !== "operator_intervention" || item.createAttemptCount !== 1 || item.saveAttemptCount !== 0) return false;
         const duplicateDiscovery = !item.draftId && item.completedPageIds?.length === 0 && /enea_draft_id_duplicate/.test(item.reason ?? "");
         const conditionalControl = Boolean(item.draftId) && /apr_cdp_enea_field_verification_failed:id-impianto_centralizzato$/.test(item.reason ?? "") && (item.pageCheckpoints ?? []).every((checkpoint) => checkpoint.state === "pending" || checkpoint.state === "saved");
@@ -235,13 +238,18 @@ export class PersistentAprEneaWorkerService {
       const singleCaseAuthorized = cohortSeed?.audit?.some((event) => event.appliedRuleIds?.includes("user-2026-08-18-single-case-regression-test")) === true;
       const bridgeRequired = cohortSeed?.verifiedMapperBridgeRequired === true || singleCaseAuthorized;
       let verifiedMapperBridgeReady = !bridgeRequired;
-      if (bridgeRequired && runnableItems.length === 1) {
+      if (bridgeRequired) {
         try {
           const bridge = new PersistentAprEneaOperationalBridge(this.rootDirectory).snapshot();
-          const candidate = cohortSeed?.candidates?.find((item) => item.customerKey === runnableItems[0].customerKey);
+          const bridgeCustomerKey = runnableItems.length === 1
+            ? runnableItems[0].customerKey
+            : cohortSeed?.candidates?.length === 1
+              ? cohortSeed.candidates[0].customerKey
+              : null;
+          const candidate = cohortSeed?.candidates?.find((item) => item.customerKey === bridgeCustomerKey);
           verifiedMapperBridgeReady = Boolean(bridge
             && candidate?.practiceId
-            && bridge.customerKey === runnableItems[0].customerKey
+            && bridge.customerKey === bridgeCustomerKey
             && bridge.customerKey === candidate.customerKey
             && bridge.practiceId === candidate.practiceId);
         } catch { verifiedMapperBridgeReady = false; }
@@ -256,9 +264,11 @@ export class PersistentAprEneaWorkerService {
           ? "apr_enea_worker_server_readonly_probe_not_ready"
           : !repeatReady
           ? "apr_enea_worker_repeat_deletion_gate_not_ready"
-          : !verifiedMapperBridgeReady
+          : runnable < 1
+            ? "apr_enea_worker_no_resumable_case"
+            : !verifiedMapperBridgeReady
             ? "apr_enea_worker_verified_mapper_bridge_not_ready"
-            : cohortCount < minimumRequired || runnable < 1 || !cohortAccountedFor || !ciottaSafe
+            : cohortCount < minimumRequired || !cohortAccountedFor || !ciottaSafe
               ? "apr_enea_worker_minimum_queue_gate_not_ready"
               : !executionSafetyReady
                 ? "apr_enea_worker_execution_safety_gate_invalid"
@@ -276,7 +286,13 @@ export class PersistentAprEneaWorkerService {
         executionSafetyReady,
         verifiedMapperBridgeReady,
         reason: blocker ?? "gate_verified_and_auto_armed",
-        nextAction: blocker ? "APR rivaluterà automaticamente il gate al prossimo tick persistente." : "Reclamare una sola pratica alla volta dal checkpoint persistente.",
+        nextAction: blocker === "apr_enea_worker_no_resumable_case"
+          ? "Nessun caso da riprendere nel checkpoint: APR non attribuisce questa condizione al bridge verificato."
+          : blocker === "apr_enea_worker_verified_mapper_bridge_not_ready"
+            ? "Il caso è riprendibile, ma il bridge verificato non corrisponde alla pratica autorizzata; APR resta fail-closed."
+            : blocker
+              ? "APR rivaluterà automaticamente il gate al prossimo tick persistente."
+              : "Reclamare o riprendere una sola pratica alla volta dal checkpoint persistente.",
       }, now);
       if (blocker) throw new Error(blocker);
     }
@@ -291,7 +307,7 @@ export class PersistentAprEneaWorkerService {
       return { armed: true, reason: "gate_verified_and_auto_armed", config } as const;
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
-      if (["apr_enea_worker_real_dom_contract_not_ready", "apr_enea_worker_server_readonly_probe_not_ready", "apr_enea_worker_repeat_deletion_gate_not_ready", "apr_enea_worker_verified_mapper_bridge_not_ready", "apr_enea_worker_minimum_queue_gate_not_ready", "apr_enea_worker_execution_safety_gate_invalid"].includes(reason)) return { armed: false, reason, config: current } as const;
+      if (["apr_enea_worker_real_dom_contract_not_ready", "apr_enea_worker_server_readonly_probe_not_ready", "apr_enea_worker_repeat_deletion_gate_not_ready", "apr_enea_worker_no_resumable_case", "apr_enea_worker_verified_mapper_bridge_not_ready", "apr_enea_worker_minimum_queue_gate_not_ready", "apr_enea_worker_execution_safety_gate_invalid"].includes(reason)) return { armed: false, reason, config: current } as const;
       throw error;
     }
   }

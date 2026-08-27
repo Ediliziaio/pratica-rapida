@@ -259,6 +259,74 @@ describe("gate permanente del servizio browser APR", () => {
     expect(JSON.parse(readFileSync(service.queueGatePath, "utf8"))).toMatchObject({ status: "armed", runnableCount: 1, cohortCount: 1, minimumRequired: 1, verifiedMapperBridgeReady: true });
   });
 
+  it("riarma la stessa bozza dal checkpoint parziale filling senza crearne una nuova", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-service-partial-filling-")); directories.push(root);
+    const service = new PersistentAprEneaWorkerService(root); service.configure({ setupEnabled: true });
+    service.record({ instanceId: "apr-worker-partial", processPid: 113, status: "setup_ready", type: "setup_ready", reason: "Sessione e contratto pronti.", nextAction: "Riprendere la bozza." });
+    mkdirSync(path.join(root, "enea-browser-worker"), { recursive: true });
+    writeFileSync(path.join(root, "enea-browser-worker", "cdp-driver.json"), JSON.stringify({ contract: { ready: true } }));
+    writeServerProbeGate(root);
+    const customerKey = "case-partial";
+    const practiceId = "00000000-0000-4000-8000-000000000113";
+    mkdirSync(path.join(root, "cohort-seed"), { recursive: true });
+    writeFileSync(path.join(root, "cohort-seed", "checkpoint.json"), JSON.stringify({
+      status: "armed_readonly", verifiedMapperBridgeRequired: true,
+      candidates: [{ customerKey, practiceId }],
+      audit: [{ appliedRuleIds: ["user-2026-08-18-single-case-regression-test"] }],
+    }));
+    mkdirSync(path.join(root, "enea-draft-execution"), { recursive: true });
+    writeFileSync(path.join(root, "enea-draft-execution", "checkpoint.json"), JSON.stringify({
+      currentCustomerKey: customerKey,
+      previewAllowed: false, submitAllowed: false, communicationsAllowed: false,
+      items: [{
+        customerKey, state: "filling", draftId: "438596", createAttemptCount: 1, saveAttemptCount: 0,
+        completedPageIds: ["page:Anagrafica Beneficiario"],
+        pageCheckpoints: [
+          { pageId: "page:Anagrafica Beneficiario", state: "saved", saveAttemptCount: 1, recoverySaveAttemptCount: 0 },
+          { pageId: "page:Immobile", state: "prepared", saveAttemptCount: 0, recoverySaveAttemptCount: 0 },
+        ],
+      }],
+    }));
+    armVerifiedMapperBridge(root, customerKey, practiceId);
+
+    expect(service.autoArm()).toMatchObject({ armed: true, reason: "gate_verified_and_auto_armed", config: { operationalEnabled: true } });
+    expect(JSON.parse(readFileSync(service.queueGatePath, "utf8"))).toMatchObject({
+      status: "armed", runnableCount: 1, verifiedMapperBridgeReady: true,
+    });
+    const execution = JSON.parse(readFileSync(path.join(root, "enea-draft-execution", "checkpoint.json"), "utf8"));
+    expect(execution).toMatchObject({ currentCustomerKey: customerKey, items: [{ customerKey, state: "filling", draftId: "438596", createAttemptCount: 1 }] });
+  });
+
+  it("distingue l'assenza di casi riprendibili da un bridge non valido", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-service-no-resumable-case-")); directories.push(root);
+    const service = new PersistentAprEneaWorkerService(root); service.configure({ setupEnabled: true });
+    service.record({ instanceId: "apr-worker-empty", processPid: 114, status: "setup_ready", type: "setup_ready", reason: "Sessione e contratto pronti.", nextAction: "Gate coda." });
+    mkdirSync(path.join(root, "enea-browser-worker"), { recursive: true });
+    writeFileSync(path.join(root, "enea-browser-worker", "cdp-driver.json"), JSON.stringify({ contract: { ready: true } }));
+    writeServerProbeGate(root);
+    const customerKey = "case-complete";
+    const practiceId = "00000000-0000-4000-8000-000000000114";
+    mkdirSync(path.join(root, "cohort-seed"), { recursive: true });
+    writeFileSync(path.join(root, "cohort-seed", "checkpoint.json"), JSON.stringify({
+      status: "armed_readonly", verifiedMapperBridgeRequired: true,
+      candidates: [{ customerKey, practiceId }],
+      audit: [{ appliedRuleIds: ["user-2026-08-18-single-case-regression-test"] }],
+    }));
+    mkdirSync(path.join(root, "enea-draft-execution"), { recursive: true });
+    writeFileSync(path.join(root, "enea-draft-execution", "checkpoint.json"), JSON.stringify({
+      currentCustomerKey: null,
+      previewAllowed: false, submitAllowed: false, communicationsAllowed: false,
+      items: [{ customerKey, state: "saved", draftId: "438597", createAttemptCount: 1, saveAttemptCount: 1 }],
+    }));
+    armVerifiedMapperBridge(root, "different-case", "00000000-0000-4000-8000-000000000999");
+
+    expect(service.autoArm()).toMatchObject({ armed: false, reason: "apr_enea_worker_no_resumable_case" });
+    expect(JSON.parse(readFileSync(service.queueGatePath, "utf8"))).toMatchObject({
+      status: "waiting", runnableCount: 0, verifiedMapperBridgeReady: false, reason: "apr_enea_worker_no_resumable_case",
+      nextAction: "Nessun caso da riprendere nel checkpoint: APR non attribuisce questa condizione al bridge verificato.",
+    });
+  });
+
   it("rifiuta un bridge L4 armato per una pratica diversa", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-service-bridge-mismatch-")); directories.push(root);
     const service = new PersistentAprEneaWorkerService(root); service.configure({ setupEnabled: true });
@@ -278,7 +346,10 @@ describe("gate permanente del servizio browser APR", () => {
     armVerifiedMapperBridge(root, "other-case", "00000000-0000-4000-8000-000000000999");
 
     expect(service.autoArm()).toMatchObject({ armed: false, reason: "apr_enea_worker_verified_mapper_bridge_not_ready" });
-    expect(JSON.parse(readFileSync(service.queueGatePath, "utf8"))).toMatchObject({ status: "waiting", verifiedMapperBridgeReady: false });
+    expect(JSON.parse(readFileSync(service.queueGatePath, "utf8"))).toMatchObject({
+      status: "waiting", verifiedMapperBridgeReady: false,
+      nextAction: "Il caso è riprendibile, ma il bridge verificato non corrisponde alla pratica autorizzata; APR resta fail-closed.",
+    });
   });
 
   it("arma un caso verde quando il secondo caso della coorte e' isolato e la prova GET deriva dal worker APR", () => {

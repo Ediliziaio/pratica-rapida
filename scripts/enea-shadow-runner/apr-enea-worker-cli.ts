@@ -362,6 +362,27 @@ async function serve() {
           service.record({ instanceId, processPid: process.pid, status: "running", type: "create_intent_deferred_behind_pending_portal_intent", reason: `${activeUnmaterialized.displayName} rimessa in coda senza mutazione: APR deve prima risolvere il wizard persistente di ${pendingPortalCustomerKey}.`, nextAction: `Riprendere ${pendingPortalCustomerKey} dal sotto-checkpoint, poi continuare la coda in ordine.`, chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: evidenceId });
         }
         driverSnapshotForRecovery = driver.snapshot();
+        const submittedPendingCreate = driverSnapshotForRecovery.pendingCreate?.wizardSubmitAttemptCount === 1
+          ? driverSnapshotForRecovery.pendingCreate
+          : null;
+        const submittedPendingOwner = submittedPendingCreate
+          ? executionBeforeTick.items.find((item) => item.customerKey === submittedPendingCreate.customerKey
+            && item.state === "operator_intervention"
+            && !item.draftId
+            && item.createAttemptCount === 1
+            && item.saveAttemptCount === 0
+            && /apr_cdp_enea_(create_result_not_identifiable|wizard_submit_already_attempted)/.test(item.reason))
+          : null;
+        if (!executionBeforeTick.currentCustomerKey && ["completed", "ready"].includes(executionBeforeTick.status) && submittedPendingOwner) {
+          const discovered = await driver.discoverExistingDraft(draftPackageFor(submittedPendingOwner.customerKey));
+          if (discovered) {
+            const commandId = `service:auto-recover-materialized-wizard-submit:${submittedPendingOwner.customerKey}:${discovered.draftId}:${discovered.evidenceId}:v1`;
+            execution.requeueUnmaterializedCreateIntents([submittedPendingOwner.customerKey], discovered.evidenceId, commandId);
+            executionBeforeTick = execution.snapshot();
+            driverSnapshotForRecovery = driver.snapshot();
+            service.record({ instanceId, processPid: process.pid, status: "running", type: "materialized_wizard_submit_discovered", reason: `${submittedPendingOwner.displayName}: la bozza creata dal precedente e unico submit e stata ritrovata in sola lettura nella dashboard ENEA.`, nextAction: `APR riprende la bozza ${discovered.draftId} senza creare duplicati.`, chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: discovered.evidenceId });
+          }
+        }
         const creationSurface = driverSnapshotForRecovery.creationSurface;
         const wizardContractReady = Boolean(creationSurface
           && creationSurface.controls.some((control) => control.id === "id-role-intermediario" && control.type === "button" && control.label === "Intermediario")
@@ -374,7 +395,7 @@ async function serve() {
         // payload generation has since changed. The wizard recovery is fully
         // idempotent and still performs at most the one submit recorded in the
         // driver's durable sub-checkpoint.
-        if (!executionBeforeTick.currentCustomerKey && ["completed", "ready"].includes(executionBeforeTick.status) && pendingPortalCustomerKey && wizardContractReady && recoverableCases.length > 0 && creationSurface) {
+        if (!executionBeforeTick.currentCustomerKey && ["completed", "ready"].includes(executionBeforeTick.status) && pendingPortalCustomerKey && driverSnapshotForRecovery.pendingCreate?.wizardSubmitAttemptCount === 0 && wizardContractReady && recoverableCases.length > 0 && creationSurface) {
           const recoverable = recoverableCases.find((item) => item.customerKey === pendingPortalCustomerKey);
           if (!recoverable) throw new Error(`apr_pending_create_owner_not_recoverable:${pendingPortalCustomerKey}`);
           const materializedGeneration = driverSnapshotForRecovery.mappings.at(-1)?.draftId ?? "none";

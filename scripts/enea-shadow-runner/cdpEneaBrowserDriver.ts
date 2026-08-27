@@ -704,9 +704,21 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     const candidates = targets.flatMap((target) => {
       try { const id = new URL(target.url).origin === this.allowedOrigin ? draftIdFromUrl(target.url) : null; return id && !state.pendingCreate!.beforeDraftIds.includes(id) && !alreadyMappedDraftIds.has(id) ? [{ target, id }] : []; } catch { return []; }
     });
-    if (candidates.length !== 1) return null;
-    const [{ target, id }] = candidates;
+    let discovered = candidates;
+    if (discovered.length !== 1 && state.pendingCreate.wizardSubmitAttemptCount === 1) {
+      const { target, client } = await this.client();
+      if (await client.evaluate<string>("location.href") !== this.dashboardUrl) {
+        await client.navigate(this.dashboardUrl);
+        await this.waitForStable(client);
+      }
+      const dashboardCandidates = await client.evaluate<Array<{ id: string; url: string }>>(`(()=>Array.from(document.querySelectorAll('a[href]')).flatMap(a=>{try{const url=new URL(a.href,location.href),parts=url.pathname.split('/').filter(Boolean),id=parts[parts.length-1];return url.origin===location.origin&&/^[0-9]{4,}$/.test(id)?[{id,url:url.href}]:[]}catch{return []}}))()`);
+      const unseen = dashboardCandidates.filter((candidate) => !state.pendingCreate!.beforeDraftIds.includes(candidate.id) && !alreadyMappedDraftIds.has(candidate.id));
+      if (unseen.length === 1) discovered = [{ target: { ...target, url: unseen[0].url }, id: unseen[0].id }];
+    }
+    if (discovered.length !== 1) return null;
+    const [{ target, id }] = discovered;
     const client = await this.runtime.pageClient(target);
+    if (await client.evaluate<string>("location.href") !== target.url) { await client.navigate(target.url); await this.waitForStable(client); }
     const evidence = await this.capture("discover_pending_draft_readonly", target, client, { customerKey: draftPackage.customerKey, draftId: id });
     this.runtime.closePageClientsExcept(target.id);
     const next = this.load(); next.revision += 1; next.activeTargetId = target.id; next.mappings.push({ packageFingerprint: draftPackage.packageFingerprint, customerKey: draftPackage.customerKey, draftId: id, url: evidence.url, mappedAt: new Date().toISOString() }); next.pendingCreate = null; this.write(next);
@@ -763,6 +775,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     const operationalUrl = this.load().contract?.ready ? this.load().contract?.operationalUrl ?? this.dashboardUrl : this.dashboardUrl;
     let state = this.load();
     if (state.pendingCreate && state.pendingCreate.packageFingerprint !== draftPackage.packageFingerprint) throw new Error("apr_cdp_enea_other_create_intent_pending");
+    if (state.pendingCreate?.packageFingerprint === draftPackage.packageFingerprint && state.pendingCreate.wizardSubmitAttemptCount === 1) throw new Error("apr_cdp_enea_wizard_submit_already_attempted");
     if (!state.pendingCreate) {
       if (await client.evaluate<string>("location.href") !== operationalUrl) await client.navigate(operationalUrl);
       const targetDraftIds = (await this.runtime.targets()).flatMap((candidate) => { try { const id = new URL(candidate.url).origin === this.allowedOrigin ? draftIdFromUrl(candidate.url) : null; return id ? [id] : []; } catch { return []; } });

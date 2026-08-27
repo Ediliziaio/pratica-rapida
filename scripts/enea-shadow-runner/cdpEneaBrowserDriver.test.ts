@@ -50,7 +50,7 @@ afterEach(async () => {
   for (const directory of ownedDirectories) rmSync(directory, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 });
 }, 30_000);
 
-async function fixtureServer(options: { intermediateCreation?: "valid" | "diagnostic"; delayedBeneficiaryMount?: boolean; sharedReactStateBeneficiaryPage?: boolean; offscreenSaveButton?: boolean; ignoreFirstSaveDelivery?: boolean; delayedScreeningRowMount?: boolean; coBeneficiaryPage?: boolean; coBeneficiaryRealIdsPage?: boolean; municipalitySearchModalPage?: boolean; municipalityAuthoritativeCodePage?: boolean; persistedMunicipalityPage?: boolean; residenceSelectionRemountsBirth?: boolean; ambiguousRoot?: boolean; authenticatedRootEsci?: boolean; dashboardMode?: "authenticated" | "spa-authenticated" | "path-only" | "logged-out" | "redirect-root" } = {}) {
+async function fixtureServer(options: { intermediateCreation?: "valid" | "diagnostic"; dashboardDraftId?: string; delayedBeneficiaryMount?: boolean; sharedReactStateBeneficiaryPage?: boolean; offscreenSaveButton?: boolean; ignoreFirstSaveDelivery?: boolean; delayedScreeningRowMount?: boolean; coBeneficiaryPage?: boolean; coBeneficiaryRealIdsPage?: boolean; municipalitySearchModalPage?: boolean; municipalityAuthoritativeCodePage?: boolean; persistedMunicipalityPage?: boolean; residenceSelectionRemountsBirth?: boolean; ambiguousRoot?: boolean; authenticatedRootEsci?: boolean; dashboardMode?: "authenticated" | "spa-authenticated" | "path-only" | "logged-out" | "redirect-root" } = {}) {
   let nextDraftId = 700001;
   const server = createServer((request, response) => {
     const url = new URL(request.url ?? "/", "http://127.0.0.1");
@@ -107,7 +107,7 @@ async function fixtureServer(options: { intermediateCreation?: "valid" | "diagno
         ? `<!doctype html><html><body><a href="/login/spid">Accedi con SPID</a></body></html>`
         : options.dashboardMode === "spa-authenticated"
           ? `<!doctype html><html><body><main id="app">Bonus fiscali ENEA</main><script>const a=document.createElement("a");a.href=["","pratica","ecobonus","2026","nuova"].join("/");a.textContent=["Nuova","pratica","Ecobonus"].join(" ");document.getElementById("app").appendChild(a)</script></body></html>`
-          : `<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><a href="/pratica/ecobonus/2026/nuova">Inserisci nuova scheda descrittiva Ecobonus con data di fine lavori nel 2026</a></body></html>`);
+          : `<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><a href="/pratica/ecobonus/2026/nuova">Inserisci nuova scheda descrittiva Ecobonus con data di fine lavori nel 2026</a>${options.dashboardDraftId ? `<a href="/pratica/ecobonus/2026/beneficiario/${options.dashboardDraftId}">Bozza ${options.dashboardDraftId}</a>` : ""}</body></html>`);
     else if (url.pathname === "/pratica/ecobonus/2026/nuova" && options.intermediateCreation === "diagnostic") response.end(`<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><form id="create-beneficiary" method="post" action="/pratica/ecobonus/2026/nuova"><label for="beneficiary-type">Tipo beneficiario</label><select id="beneficiary-type" name="beneficiaryType"><option>Persona fisica</option><option>Condominio</option></select><button type="submit">Inserisci</button></form></body></html>`);
     else if (url.pathname === "/pratica/ecobonus/2026/nuova" && options.intermediateCreation === "valid") { const draftId = nextDraftId++; response.end(`<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><div id="wizard"></div><script>setTimeout(()=>{const wizard=document.getElementById("wizard");wizard.innerHTML='<button type="button" id="id-role-beneficiario">Beneficiario</button><button type="button" id="id-role-intermediario">Intermediario</button><button type="button" id="id-tipo-pf" disabled>beneficiario della detrazione fiscale</button><button type="button" id="id-tipo-pg">persona giuridica incaricata dal beneficiario</button><button type="submit" id="create" disabled>Crea scheda descrittiva</button>';let role=false,pf=false;const type=document.getElementById("id-tipo-pf"),create=document.getElementById("create");document.getElementById("id-role-intermediario").addEventListener("click",()=>setTimeout(()=>{role=true;type.disabled=false;type.textContent="persona fisica incaricata dal beneficiario"},350));type.addEventListener("click",()=>setTimeout(()=>{pf=true;create.disabled=false},350));create.addEventListener("click",event=>{event.preventDefault();if(role&&pf)location.href="/pratica/ecobonus/2026/beneficiario/${draftId}"})},350);</script></body></html>`); }
     else if (url.pathname === "/pratica/ecobonus/2026/nuova") { const draftId = nextDraftId++; response.statusCode = 302; response.setHeader("location", `/pratica/ecobonus/2026/beneficiario/${draftId}`); response.end(); }
@@ -945,6 +945,36 @@ describe("driver Chrome persistente di APR", () => {
     expect(await driver.inspectPortalContractReadOnly()).toMatchObject({ ready: true });
     expect(await driver.createDraft(draftPackage("case-wizard"))).toMatchObject({ draftId: "700001" });
     expect(driver.snapshot()).toMatchObject({ pendingCreate: null, mappings: [expect.objectContaining({ customerKey: "case-wizard", draftId: "700001" })] });
+  }, 30_000);
+
+  it.runIf(process.platform === "darwin")("recupera dalla dashboard una bozza materializzata senza redirect del wizard", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-dashboard-create-discovery-")); directories.push(root);
+    const origin = await fixtureServer({ dashboardDraftId: "700777" });
+    const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/dashboard` });
+    runtimes.push(runtime); await runtime.ensureRunning();
+    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
+    await driver.verifySession();
+    const checkpointPath = path.join(root, "enea-browser-worker", "cdp-driver.json");
+    const state = driver.snapshot();
+    state.pendingCreate = { packageFingerprint: "package-case-dashboard", customerKey: "case-dashboard", beforeDraftIds: [], startedAt: new Date().toISOString(), wizardSubmitAttemptCount: 1, wizardSubmitAttemptedAt: new Date().toISOString(), wizardContractFingerprint: "fixture" };
+    writeFileSync(checkpointPath, `${JSON.stringify(state, null, 2)}\n`);
+    expect(await driver.discoverExistingDraft(draftPackage("case-dashboard"))).toMatchObject({ draftId: "700777" });
+    expect(driver.snapshot()).toMatchObject({ pendingCreate: null, mappings: [expect.objectContaining({ customerKey: "case-dashboard", draftId: "700777" })] });
+  }, 30_000);
+
+  it.runIf(process.platform === "darwin")("non ripete il submit del wizard quando il tentativo persistente e gia consumato", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-wizard-submit-guard-")); directories.push(root);
+    const origin = await fixtureServer({ intermediateCreation: "valid" });
+    const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/pratica/ecobonus/2026/nuova` });
+    runtimes.push(runtime); await runtime.ensureRunning();
+    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
+    await driver.verifySession();
+    const checkpointPath = path.join(root, "enea-browser-worker", "cdp-driver.json");
+    const state = driver.snapshot();
+    state.pendingCreate = { packageFingerprint: "package-case-guard", customerKey: "case-guard", beforeDraftIds: [], startedAt: new Date().toISOString(), wizardSubmitAttemptCount: 1, wizardSubmitAttemptedAt: new Date().toISOString(), wizardContractFingerprint: "fixture" };
+    writeFileSync(checkpointPath, `${JSON.stringify(state, null, 2)}\n`);
+    await expect(driver.createDraft(draftPackage("case-guard"))).rejects.toThrow("apr_cdp_enea_wizard_submit_already_attempted");
+    expect(driver.snapshot().pendingCreate?.wizardSubmitAttemptCount).toBe(1);
   }, 30_000);
 
   it.runIf(process.platform === "darwin")("staggia il generatore, salva una sola volta la pagina impianto e verifica entrambi lato server", async () => {

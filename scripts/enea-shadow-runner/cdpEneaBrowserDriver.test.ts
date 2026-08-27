@@ -12,6 +12,13 @@ const chromeExecutable = "/Applications/Google Chrome.app/Contents/MacOS/Google 
 const directories: string[] = [];
 const runtimes: PersistentAprChromeRuntime[] = [];
 const servers: Server[] = [];
+const fixtureTarget = (id: string, type: string, url: string, controlled = true) => ({
+  id,
+  type,
+  title: id,
+  url,
+  webSocketDebuggerUrl: controlled ? `ws://127.0.0.1/${id}` : undefined,
+});
 
 async function freeTcpPort(): Promise<number> {
   const reservation = createServer();
@@ -475,19 +482,18 @@ describe("driver Chrome persistente di APR", () => {
     expect(driver.snapshot().events.filter((event) => event.action === "save_page_once" && event.pageId === "page:Allocazione costi e detrazioni")).toHaveLength(1);
   }, 30_000);
   it("riconosce il redirect SPID esterno senza confonderlo con una scheda ENEA mancante", () => {
-    const target = (id: string, type: string, url: string, controlled = true) => ({ id, type, title: id, url, webSocketDebuggerUrl: controlled ? `ws://127.0.0.1/${id}` : undefined });
     const allowedOrigin = "https://bonusfiscali.enea.it";
     expect(findExternalAuthenticationTarget([
-      target("extension", "background_page", "chrome-extension://apr/background.html"),
-      target("spid", "page", "https://identity.example.test/login"),
+      fixtureTarget("extension", "background_page", "chrome-extension://apr/background.html"),
+      fixtureTarget("spid", "page", "https://identity.example.test/login"),
     ], allowedOrigin)).toMatchObject({ id: "spid" });
     expect(findExternalAuthenticationTarget([
-      target("enea", "page", `${allowedOrigin}/`),
-      target("uncontrolled", "page", "https://identity.example.test/login", false),
+      fixtureTarget("enea", "page", `${allowedOrigin}/`),
+      fixtureTarget("uncontrolled", "page", "https://identity.example.test/login", false),
     ], allowedOrigin)).toBeNull();
     expect(findExternalAuthenticationTarget([
-      target("enea", "page", `${allowedOrigin}/`),
-      target("crm", "page", "https://app.praticarapida.it/kanban"),
+      fixtureTarget("enea", "page", `${allowedOrigin}/`),
+      fixtureTarget("crm", "page", "https://app.praticarapida.it/kanban"),
     ], allowedOrigin)).toBeNull();
   });
 
@@ -505,6 +511,50 @@ describe("driver Chrome persistente di APR", () => {
     expect(await driver.inspectExternalAuthenticationJourneyReadOnly()).toMatchObject({ inProgress: true, evidenceId: expect.stringMatching(/^external-auth-/) });
     await expect(driver.verifySession()).rejects.toThrow("apr_cdp_enea_external_login_in_progress");
     expect(openPageCalls).toBe(0);
+  });
+
+  it("riclassifica come viaggio SPID la race in cui il target ENEA cambia origine durante verifySession", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-spid-origin-race-")); directories.push(root);
+    const allowedOrigin = "https://bonusfiscali.enea.it";
+    let targetReads = 0;
+    const runtime = {
+      profileFingerprint: "fixture-spid-race-profile",
+      targets: async () => {
+        targetReads += 1;
+        return targetReads === 1
+          ? [fixtureTarget("enea", "page", `${allowedOrigin}/dashboard`)]
+          : [fixtureTarget("spid", "page", "https://identity.example.test/login")];
+      },
+      pageClient: async () => ({ evaluate: async () => "https://identity.example.test/login" }),
+      closePageClientsExcept: () => undefined,
+      closeAllPageClients: () => undefined,
+    } as unknown as PersistentAprChromeRuntime;
+    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin, dashboardUrl: `${allowedOrigin}/`, allowOpenInitialPage: false });
+
+    await expect(driver.verifySession()).rejects.toThrow("apr_cdp_enea_external_login_in_progress");
+    expect(targetReads).toBe(2);
+  });
+
+  it("non riclassifica un'origine estranea quando esiste ancora un target ENEA controllabile", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-foreign-origin-")); directories.push(root);
+    const allowedOrigin = "https://bonusfiscali.enea.it";
+    let targetReads = 0;
+    const runtime = {
+      profileFingerprint: "fixture-foreign-origin-profile",
+      targets: async () => {
+        targetReads += 1;
+        return targetReads === 1
+          ? [fixtureTarget("enea-racing", "page", `${allowedOrigin}/dashboard`)]
+          : [fixtureTarget("enea-stable", "page", `${allowedOrigin}/dashboard`), fixtureTarget("foreign", "page", "https://unrelated.example.test/")];
+      },
+      pageClient: async () => ({ evaluate: async () => "https://unrelated.example.test/" }),
+      closePageClientsExcept: () => undefined,
+      closeAllPageClients: () => undefined,
+    } as unknown as PersistentAprChromeRuntime;
+    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin, dashboardUrl: `${allowedOrigin}/`, allowOpenInitialPage: false });
+
+    await expect(driver.verifySession()).rejects.toThrow("apr_cdp_enea_origin_rejected");
+    expect(targetReads).toBe(2);
   });
 
   it.runIf(process.platform === "darwin")("prova l'autenticazione dalla capability dashboard quando la root ENEA è ambigua", async () => {

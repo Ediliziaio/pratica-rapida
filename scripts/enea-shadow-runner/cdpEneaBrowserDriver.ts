@@ -563,6 +563,18 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       const evidence = await this.capture(evidenceAction, target, client);
       retainedTargetId = target.id;
       return { ...evidence, authenticated: result.authenticated, serverLogoutProven: result.explicitLogin && !result.authenticated };
+    } catch (error) {
+      // La scheda puo lasciare il dominio ENEA tra l'inventario iniziale dei
+      // target e la cattura conclusiva durante il redirect SPID. Convertiamo
+      // il rifiuto di origine soltanto se una seconda lettura indipendente dei
+      // target conferma che il viaggio di autenticazione esterno e' davvero in
+      // corso. Origini estranee con un target ENEA ancora disponibile restano
+      // invece un errore fail-closed.
+      if (error instanceof Error && error.message === "apr_cdp_enea_origin_rejected") {
+        const authenticationJourney = await this.inspectExternalAuthenticationJourneyReadOnly();
+        if (authenticationJourney.inProgress) throw new Error("apr_cdp_enea_external_login_in_progress");
+      }
+      throw error;
     } finally {
       if (retainedTargetId) this.runtime.closePageClientsExcept(retainedTargetId);
       else this.runtime.closeAllPageClients();

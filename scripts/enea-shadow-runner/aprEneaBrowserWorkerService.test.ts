@@ -4,7 +4,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { runEconomicVertical } from "./aprEconomicVertical";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
-import { aprEneaKeepaliveInterval, isAprEneaKeepaliveDue, PersistentAprEneaWorkerService, shouldHoldAprEneaKeepaliveState } from "./aprEneaBrowserWorkerService";
+import { aprEneaKeepaliveInterval, aprEneaWorkerLoopFailureDisposition, isAprEneaKeepaliveDue, PersistentAprEneaWorkerService, shouldHoldAprEneaKeepaliveState } from "./aprEneaBrowserWorkerService";
 import { PersistentAprEneaOperationalBridge } from "./aprEneaOperationalBridge";
 import { mapBusinessDecisionArtifactToEnea } from "./aprEneaPureMapper";
 import { canonicalSha256 } from "./aprMonotonicArtifacts";
@@ -48,6 +48,21 @@ function armVerifiedMapperBridge(root: string, customerKey: string, practiceId: 
 }
 
 describe("gate permanente del servizio browser APR", () => {
+  it("pubblica il transito SPID confermato come login richiesto e non come blocco tecnico", () => {
+    expect(aprEneaWorkerLoopFailureDisposition(new Error("apr_cdp_enea_external_login_in_progress"))).toMatchObject({
+      status: "login_required",
+      type: "external_login_in_progress",
+    });
+  });
+
+  it("mantiene fail-closed un rifiuto di origine non confermato come transito SPID", () => {
+    expect(aprEneaWorkerLoopFailureDisposition(new Error("apr_cdp_enea_origin_rejected"))).toMatchObject({
+      status: "technical_block",
+      type: "technical_block",
+      reason: "apr_cdp_enea_origin_rejected",
+    });
+  });
+
   it("disarma prima di segnalare un worker recente e conserva una ricevuta auditabile", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-emergency-stop-")); directories.push(root);
     const service = new PersistentAprEneaWorkerService(root);

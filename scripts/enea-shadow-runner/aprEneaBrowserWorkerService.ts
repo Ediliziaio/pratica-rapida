@@ -49,6 +49,24 @@ export function shouldHoldAprEneaKeepaliveState(input: {
   return !input.keepaliveDue && (input.serviceStatus === "login_required" || (input.serviceStatus === "technical_block" && input.lastAuditType === "keepalive_inconclusive"));
 }
 
+export function aprEneaWorkerLoopFailureDisposition(error: unknown) {
+  const reason = error instanceof Error ? error.message : String(error);
+  if (reason === "apr_cdp_enea_external_login_in_progress") {
+    return {
+      status: "login_required" as const,
+      type: "external_login_in_progress",
+      reason: "Autenticazione SPID in corso nella scheda esistente: APR sospende i controlli ENEA senza pubblicare un falso blocco tecnico.",
+      nextAction: "Completare SPID nella stessa scheda; APR riprenderà automaticamente dopo il ritorno al dominio ENEA.",
+    };
+  }
+  return {
+    status: "technical_block" as const,
+    type: "technical_block",
+    reason,
+    nextAction: "Il servizio ritenterà soltanto operazioni idempotenti; nessun submit o retry mutativo alla cieca.",
+  };
+}
+
 export interface AprEneaWorkerConfig {
   version: typeof APR_ENEA_WORKER_SERVICE_VERSION;
   setupEnabled: boolean;

@@ -8,7 +8,7 @@ import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
 import { PersistentAprCrmLocalPreflight } from "./crmLocalPreflight";
 import { PersistentAprCohortSeed } from "./aprCohortSeed";
 import { isTransientCdpReadOnlyFailure, nestedPageAbsenceRecoveryCandidate, PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible, type AprNestedPageAbsenceEvidence } from "./eneaDraftExecution";
-import { aprEneaKeepaliveInterval, isAprEneaKeepaliveDue, PersistentAprEneaWorkerService, shouldHoldAprEneaKeepaliveState } from "./aprEneaBrowserWorkerService";
+import { aprEneaKeepaliveInterval, aprEneaWorkerLoopFailureDisposition, isAprEneaKeepaliveDue, PersistentAprEneaWorkerService, shouldHoldAprEneaKeepaliveState } from "./aprEneaBrowserWorkerService";
 import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import { nestedUncertainPageSaveProbeAllowed } from "./infissiUncertainSavePolicy";
 import { APR_REQUIRED_INFISSI_VALIDATION_REVISIONS, dateGateReleaseReadyCustomerKeys, infissiExecutionGateReady } from "./infissiExecutionGate";
@@ -1752,7 +1752,7 @@ async function serve() {
       }
     } catch (error) {
       process.stderr.write(`[apr-worker-error] ${error instanceof Error ? error.stack ?? error.message : String(error)}\n`);
-      service.record({ instanceId, processPid: process.pid, status: "technical_block", type: "technical_block", reason: error instanceof Error ? error.message : String(error), nextAction: "Il servizio ritenterà soltanto operazioni idempotenti; nessun submit o retry mutativo alla cieca." });
+      service.record({ instanceId, processPid: process.pid, ...aprEneaWorkerLoopFailureDisposition(error) });
     } finally {
       service.recordCdpConnections(activeRuntime.connectionStats());
     }

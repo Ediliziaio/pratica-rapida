@@ -155,7 +155,14 @@ export function deriveDashboardOperationalStatus(
   }
 
   if (service && recentHeartbeat(service.heartbeatAt, service.processPid, now) && !["disabled", "stopped"].includes(service.status)) {
-    const publicStatus: AprPublicRuntimeStatus = service.status === "running"
+    const operatorCase = eneaDraftExecution?.items.find((item) => item.state === "operator_intervention") ?? null;
+    const technicalOperatorCase = operatorCase && (Boolean(operatorCase.uncertainPageSave)
+      || /(?:apr_cdp_|esito tecnico incerto|bozza completa e salvata non dimostrabile)/i.test(operatorCase.reason));
+    const publicStatus: AprPublicRuntimeStatus = technicalOperatorCase
+      ? "TECHNICAL_BLOCK"
+      : operatorCase
+        ? "OPERATOR_REQUIRED"
+        : service.status === "running"
       ? "WORKING"
       : service.status === "technical_block" || service.status === "login_required"
         ? "TECHNICAL_BLOCK"
@@ -163,11 +170,11 @@ export function deriveDashboardOperationalStatus(
     return {
       publicStatus,
       source: "worker",
-      health: publicStatus === "WORKING" ? "runner_active" : publicStatus === "TECHNICAL_BLOCK" ? "technical_block" : "run_completed",
-      title: publicStatus === "WORKING" ? "WORKING — processo APR" : publicStatus === "IDLE" ? "IDLE — coda vuota" : "TECHNICAL_BLOCK — controllo tecnico necessario",
-      reason: service.reason,
-      nextAction: service.nextAction,
-      currentPracticeId: null,
+      health: publicStatus === "WORKING" ? "runner_active" : publicStatus === "TECHNICAL_BLOCK" ? "technical_block" : publicStatus === "OPERATOR_REQUIRED" ? "operator_intervention" : "run_completed",
+      title: publicStatus === "WORKING" ? "WORKING — processo APR" : publicStatus === "IDLE" ? "IDLE — coda vuota" : publicStatus === "OPERATOR_REQUIRED" ? "OPERATOR_REQUIRED — intervento registrato" : "TECHNICAL_BLOCK — controllo tecnico necessario",
+      reason: operatorCase?.reason ?? service.reason,
+      nextAction: operatorCase?.nextAction ?? service.nextAction,
+      currentPracticeId: operatorCase?.customerKey ?? null,
     };
   }
 

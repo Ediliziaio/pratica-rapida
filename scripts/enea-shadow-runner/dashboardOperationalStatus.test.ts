@@ -159,6 +159,34 @@ describe("verità operativa dashboard APR", () => {
     });
   });
 
+  it("non dichiara IDLE quando il worker terminale contiene un caso tecnico isolato", () => {
+    const result = deriveDashboardOperationalStatus(legacy, now, {
+      service: {
+        status: "completed",
+        processPid: 124,
+        heartbeatAt: "2026-08-25T09:59:59.000Z",
+        reason: "Coda conclusa con un caso isolato.",
+        nextAction: "Consultare il report.",
+      },
+    } as never, null, {
+      items: [{
+        customerKey: "fixture",
+        displayName: "Fixture",
+        state: "operator_intervention",
+        reason: "Errore circoscritto alla pratica: apr_cdp_enea_create_result_not_identifiable",
+        nextAction: "Eseguire solo discovery read-only.",
+      }],
+    } as never);
+
+    expect(result).toMatchObject({
+      publicStatus: "TECHNICAL_BLOCK",
+      source: "worker",
+      health: "technical_block",
+      currentPracticeId: "fixture",
+      reason: "Errore circoscritto alla pratica: apr_cdp_enea_create_result_not_identifiable",
+    });
+  });
+
   it("dichiara TECHNICAL_BLOCK se APR e' fermo con lavoro ancora eseguibile", () => {
     const result = deriveDashboardOperationalStatus(legacy, now, {
       service: { status: "stopped", processPid: 0, heartbeatAt: now.toISOString(), reason: "Worker fermo.", nextAction: "Riprendere." },

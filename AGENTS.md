@@ -32,3 +32,10 @@ Questa regola si applica a tutte le future attività e chat che operano in quest
 - Il nome del cliente può apparire soltanto come fixture di regressione: il comportamento applicativo non deve dipendere dal cliente, dalla pratica o dalla coorte.
 - Dopo ogni correzione, rieseguire il caso dal checkpoint con APR e verificare stato, `report.blockers` e `/api/case-truth`; una correzione soltanto documentata o discussa non è una regola attiva.
 - Gli override caso-specifici devono essere auditati come non propagabili e non possono diventare fallback generali.
+
+# Regola permanente di autorizzazione dei test ENEA
+
+- La prima trasmissione al portale ENEA TEST dei dati di una pratica o di una coorte richiede conferma esplicita dell'utente immediatamente prima dell'avvio operativo.
+- Il rilancio dello stesso identico insieme di pratiche già autorizzato non richiede una nuova conferma: APR può ripeterlo direttamente per verificare nuove regole o correzioni, conservando identità della coorte, audit e idempotenza.
+- L'aggiunta anche di una sola pratica mai trasmessa prima rende il nuovo insieme non già autorizzato e richiede una nuova conferma esplicita prima della trasmissione.
+- L'autorizzazione al test consente esclusivamente creazione, compilazione e salvataggio di bozze TEST; anteprima, invio, protocollazione, ricevute, email e comunicazioni restano vietati salvo mandato futuro distinto.

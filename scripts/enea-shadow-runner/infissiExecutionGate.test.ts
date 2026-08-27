@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { APR_REQUIRED_INFISSI_VALIDATION_REVISIONS, dateGateReleaseReadyCustomerKeys, infissiExecutionGateReady } from "./infissiExecutionGate";
+import { applyRequiredInfissiValidationRevisions, APR_REQUIRED_INFISSI_VALIDATION_REVISIONS, dateGateReleaseReadyCustomerKeys, infissiExecutionGateReady } from "./infissiExecutionGate";
 
 describe("gate di avvio esecuzione Infissi", () => {
+  it("applica in ordine tutte le revisioni richieste a una pratica singola senza duplicarle", () => {
+    const applied: string[] = [];
+    applyRequiredInfissiValidationRevisions((revision) => applied.push(revision));
+
+    expect(applied).toEqual([...APR_REQUIRED_INFISSI_VALIDATION_REVISIONS]);
+    expect(new Set(applied).size).toBe(APR_REQUIRED_INFISSI_VALIDATION_REVISIONS.length);
+  });
   it("resta chiuso finche il batch non e completato anche se tutte le revisioni sono registrate", () => {
     expect(infissiExecutionGateReady({
       status: "working",

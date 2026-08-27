@@ -21,6 +21,14 @@ export const APR_REQUIRED_INFISSI_VALIDATION_REVISIONS = [
   "infissi-documented-product-module-over-label-v18",
 ] as const;
 
+export function applyRequiredInfissiValidationRevisions(
+  applyAndSettle: (revision: string) => void,
+) {
+  for (const revision of APR_REQUIRED_INFISSI_VALIDATION_REVISIONS) {
+    applyAndSettle(revision);
+  }
+}
+
 export function infissiExecutionGateReady(snapshot: {
   status: string;
   sourceFingerprint: string | null;

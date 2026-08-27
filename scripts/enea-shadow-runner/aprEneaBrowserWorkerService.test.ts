@@ -14,6 +14,37 @@ function writeServerProbeGate(root: string) {
 }
 
 describe("gate permanente del servizio browser APR", () => {
+  it("disarma prima di segnalare un worker recente e conserva una ricevuta auditabile", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-emergency-stop-")); directories.push(root);
+    const service = new PersistentAprEneaWorkerService(root);
+    const now = new Date("2026-08-27T10:00:00.000Z");
+    service.configure({ setupEnabled: true, operationalEnabled: false }, now);
+    service.record({ instanceId: "worker-stop-test", processPid: 43210, status: "running", type: "worker_tick", reason: "Compilazione in corso.", nextAction: "Pagina successiva." }, now);
+    const signals: Array<[number, NodeJS.Signals]> = [];
+
+    const receipt = service.emergencyStop("dashboard:stop:test", new Date("2026-08-27T10:00:01.000Z"), (pid, signal) => { signals.push([pid, signal]); });
+
+    expect(signals).toEqual([[43210, "SIGTERM"]]);
+    expect(service.loadConfig()).toMatchObject({ setupEnabled: false, operationalEnabled: false });
+    expect(receipt).toMatchObject({ targetPid: 43210, signalOutcome: "sigterm_sent", setupEnabled: false, operationalEnabled: false });
+    expect(service.snapshot().emergencyStop).toEqual(receipt);
+  });
+
+  it("non invia segnali a un PID con heartbeat scaduto ma mantiene il disarmo persistente", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-emergency-stop-stale-")); directories.push(root);
+    const service = new PersistentAprEneaWorkerService(root);
+    const recordedAt = new Date("2026-08-27T10:00:00.000Z");
+    service.configure({ setupEnabled: true, operationalEnabled: false }, recordedAt);
+    service.record({ instanceId: "worker-stale-test", processPid: 43211, status: "running", type: "worker_tick", reason: "Vecchio heartbeat.", nextAction: "Nessuna." }, recordedAt);
+    const signals: number[] = [];
+
+    const receipt = service.emergencyStop("dashboard:stop:stale", new Date("2026-08-27T10:01:00.000Z"), (pid) => { signals.push(pid); });
+
+    expect(signals).toEqual([]);
+    expect(receipt).toMatchObject({ targetPid: null, heartbeatAgeMs: 60_000, signalOutcome: "stale_process_not_signalled" });
+    expect(service.loadConfig()).toMatchObject({ setupEnabled: false, operationalEnabled: false });
+  });
+
   it("persiste e audita il conteggio delle connessioni CDP senza duplicare eventi invariati", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-cdp-count-")); directories.push(root);
     const service = new PersistentAprEneaWorkerService(root);

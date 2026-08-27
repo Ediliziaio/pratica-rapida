@@ -11,7 +11,7 @@ import { runEconomicVertical, type AprEconomicFactsInput } from "./aprEconomicVe
 export const APR_ECONOMIC_CORPUS_REPLAY_VERSION = "apr-economic-corpus-replay-v1" as const;
 
 interface ReplayCase { practiceId: string; customerKey: string }
-interface ManifestCase {
+export interface ManifestCase {
   practiceId: string;
   customerKey: string;
   evidence: {
@@ -34,7 +34,7 @@ interface AnalysisItem {
   invoiceResult?: unknown;
 }
 
-interface AnalysisCheckpoint { items: AnalysisItem[] }
+export interface AnalysisCheckpoint { items: AnalysisItem[] }
 
 export interface AprEconomicCorpusReplayReport {
   schemaVersion: typeof APR_ECONOMIC_CORPUS_REPLAY_VERSION;
@@ -62,7 +62,7 @@ function fiscalSegment(text: string) {
   return /\b(?:totale\s+(?:documento|fattura|imponibile|iva)|riepilogo\s+iva|calcolo\s+fattura|imponibile\s+(?:iva|aliquota))\b/i.test(text);
 }
 
-function observedEconomicInput(item: ManifestCase, analysis: AnalysisCheckpoint): AprEconomicFactsInput {
+export function observedEconomicInput(item: ManifestCase, analysis: AnalysisCheckpoint): AprEconomicFactsInput {
   const documents = analysis.items.filter((candidate) => candidate.customerKey === item.customerKey
     && candidate.kind === "invoice" && candidate.state === "analyzed" && !candidate.nonFiscalImageExcluded
     && candidate.invoiceResult && candidate.textPath && existsSync(candidate.textPath));
@@ -137,6 +137,14 @@ function observedEconomicInput(item: ManifestCase, analysis: AnalysisCheckpoint)
       };
     }),
   };
+}
+
+export function runEconomicVerticalForManifestCase(manifestPath: string, customerKey: string) {
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as { cases: ManifestCase[] };
+  const item = manifest.cases.find((candidate) => candidate.customerKey === customerKey);
+  if (!item) throw new Error(`apr_economic_manifest_case_missing:${customerKey}`);
+  const analysis = JSON.parse(readFileSync(item.evidence.analysisCheckpoint, "utf8")) as AnalysisCheckpoint;
+  return runEconomicVertical(observedEconomicInput(item, analysis));
 }
 
 function legacyFinancial(report: ReturnType<typeof buildCrmLocalPreflightReport>) {

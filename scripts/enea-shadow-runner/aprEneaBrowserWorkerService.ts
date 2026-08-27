@@ -3,6 +3,20 @@ import path from "node:path";
 import { validateAprEneaServerReadOnlyProbe } from "./aprEneaServerReadOnlyProbe";
 
 export const APR_ENEA_WORKER_SERVICE_VERSION = "apr-enea-worker-service-v1" as const;
+export const APR_ENEA_EMERGENCY_STOP_VERSION = "apr-enea-emergency-stop-v1" as const;
+
+export interface AprEneaEmergencyStopReceipt {
+  version: typeof APR_ENEA_EMERGENCY_STOP_VERSION;
+  commandId: string;
+  requestedAt: string;
+  targetPid: number | null;
+  heartbeatAgeMs: number | null;
+  signalOutcome: "sigterm_sent" | "process_not_running" | "stale_process_not_signalled";
+  setupEnabled: false;
+  operationalEnabled: false;
+  reason: string;
+  appliedRuleIds: string[];
+}
 
 export function isAprEneaKeepaliveDue(input: {
   lastKeepaliveAt: string | null;
@@ -108,11 +122,13 @@ export class PersistentAprEneaWorkerService {
   readonly configPath: string;
   readonly statePath: string;
   readonly queueGatePath: string;
+  readonly emergencyStopPath: string;
   constructor(readonly rootDirectory: string) {
     this.directory = path.join(path.resolve(rootDirectory), "enea-browser-worker");
     this.configPath = path.join(this.directory, "config.json");
     this.statePath = path.join(this.directory, "service.json");
     this.queueGatePath = path.join(this.directory, "minimum-queue-gate.json");
+    this.emergencyStopPath = path.join(this.directory, "emergency-stop.json");
   }
 
   private recordQueueGate(input: Omit<AprEneaMinimumQueueGateState, "version" | "revision" | "observedAt" | "appliedRuleIds">, now: Date) {
@@ -281,5 +297,52 @@ export class PersistentAprEneaWorkerService {
     return next;
   }
 
-  snapshot(now = new Date()) { const config = this.loadConfig(now); const service = this.loadState(now); let worker: unknown = null; let driver: unknown = null; let minimumQueueGate: AprEneaMinimumQueueGateState | null = null; try { worker = JSON.parse(readFileSync(path.join(this.directory, "checkpoint.json"), "utf8")); } catch { /* non avviato */ } try { driver = JSON.parse(readFileSync(path.join(this.directory, "cdp-driver.json"), "utf8")); } catch { /* non collegato */ } try { minimumQueueGate = JSON.parse(readFileSync(this.queueGatePath, "utf8")) as AprEneaMinimumQueueGateState; } catch { /* primo tick non ancora osservato */ } return { config: { ...config, chromeExecutable: path.basename(config.chromeExecutable), profileDirectory: path.basename(config.profileDirectory) }, service, worker, driver, minimumQueueGate, observedAt: now.toISOString() } as const; }
+  emergencyStop(
+    commandId: string,
+    now = new Date(),
+    signalProcess: (pid: number, signal: NodeJS.Signals) => void = (pid, signal) => process.kill(pid, signal),
+  ): AprEneaEmergencyStopReceipt {
+    if (!commandId.trim() || commandId.length > 300) throw new Error("apr_enea_emergency_stop_command_id_invalid");
+    // The persistent re-arm controls are disabled before any signal is sent, so a
+    // LaunchAgent restart cannot resume browser work after the operator presses STOP.
+    this.configure({ setupEnabled: false, operationalEnabled: false }, now);
+    const service = this.loadState(now);
+    const heartbeatMs = Date.parse(service.heartbeatAt);
+    const heartbeatAgeMs = Number.isFinite(heartbeatMs) ? now.getTime() - heartbeatMs : null;
+    const freshPid = Number.isInteger(service.processPid)
+      && service.processPid > 1
+      && service.processPid !== process.pid
+      && heartbeatAgeMs !== null
+      && heartbeatAgeMs >= 0
+      && heartbeatAgeMs <= 30_000;
+    let signalOutcome: AprEneaEmergencyStopReceipt["signalOutcome"] = freshPid ? "sigterm_sent" : "stale_process_not_signalled";
+    if (freshPid) {
+      try { signalProcess(service.processPid, "SIGTERM"); }
+      catch (error) {
+        const code = typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
+        if (code !== "ESRCH") throw error;
+        signalOutcome = "process_not_running";
+      }
+    }
+    const receipt: AprEneaEmergencyStopReceipt = {
+      version: APR_ENEA_EMERGENCY_STOP_VERSION,
+      commandId: commandId.trim(),
+      requestedAt: now.toISOString(),
+      targetPid: freshPid ? service.processPid : null,
+      heartbeatAgeMs,
+      signalOutcome,
+      setupEnabled: false,
+      operationalEnabled: false,
+      reason: signalOutcome === "sigterm_sent"
+        ? "STOP operatore persistito; SIGTERM inviato al worker APR attivo."
+        : signalOutcome === "process_not_running"
+          ? "STOP operatore persistito; il worker era gia' terminato."
+          : "STOP operatore persistito; nessun PID worker recente e sicuro da segnalare.",
+      appliedRuleIds: [...RULE_IDS, "system-operator-visible-emergency-stop"],
+    };
+    atomicWrite(this.emergencyStopPath, `${JSON.stringify(receipt, null, 2)}\n`);
+    return receipt;
+  }
+
+  snapshot(now = new Date()) { const config = this.loadConfig(now); const service = this.loadState(now); let worker: unknown = null; let driver: unknown = null; let minimumQueueGate: AprEneaMinimumQueueGateState | null = null; let emergencyStop: AprEneaEmergencyStopReceipt | null = null; try { worker = JSON.parse(readFileSync(path.join(this.directory, "checkpoint.json"), "utf8")); } catch { /* non avviato */ } try { driver = JSON.parse(readFileSync(path.join(this.directory, "cdp-driver.json"), "utf8")); } catch { /* non collegato */ } try { minimumQueueGate = JSON.parse(readFileSync(this.queueGatePath, "utf8")) as AprEneaMinimumQueueGateState; } catch { /* primo tick non ancora osservato */ } try { emergencyStop = JSON.parse(readFileSync(this.emergencyStopPath, "utf8")) as AprEneaEmergencyStopReceipt; } catch { /* nessuno stop richiesto */ } return { config: { ...config, chromeExecutable: path.basename(config.chromeExecutable), profileDirectory: path.basename(config.profileDirectory) }, service, worker, driver, minimumQueueGate, emergencyStop, observedAt: now.toISOString() } as const; }
 }

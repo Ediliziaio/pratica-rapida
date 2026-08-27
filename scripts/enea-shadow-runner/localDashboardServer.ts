@@ -436,6 +436,19 @@ export class LocalDashboardSupervisor {
       } catch (error) { sendJson(response, 409, { error: "shadow_control_rejected", reason: error instanceof Error ? error.message : String(error) }); }
       return;
     }
+    if (request.method === "POST" && requestUrl.pathname === "/enea/control/emergency-stop") {
+      if (!localAuthRequestAllowed(request, this.currentUrl)) { sendJson(response, 403, { error: "origin_rejected" }); return; }
+      if (!(request.headers["content-type"] ?? "").toLowerCase().startsWith("application/x-www-form-urlencoded")) { sendJson(response, 415, { error: "content_type_rejected" }); return; }
+      try {
+        const form = await readFormBody(request);
+        if (!constantTimeTokenMatch(form.get("csrf") ?? "", this.csrfToken)) { sendJson(response, 403, { error: "csrf_rejected" }); return; }
+        this.eneaBrowserWorker.emergencyStop(`dashboard:emergency-stop:${crypto.randomUUID()}`, this.now());
+        this.shadowControl.pause(`dashboard:emergency-stop:intake:${crypto.randomUUID()}`, this.now());
+        this.csrfToken = crypto.randomUUID();
+        response.statusCode = 303; response.setHeader("Location", "/#apr-enea-worker"); response.end();
+      } catch (error) { sendJson(response, 409, { error: "enea_emergency_stop_rejected", reason: error instanceof Error ? error.message : String(error) }); }
+      return;
+    }
     const operatorAnswerMatch = requestUrl.pathname.match(/^\/operator\/questions\/([^/]+)\/answer$/);
     if (request.method === "POST" && operatorAnswerMatch) {
       if (!localAuthRequestAllowed(request, this.currentUrl)) { sendJson(response, 403, { error: "origin_rejected" }); return; }

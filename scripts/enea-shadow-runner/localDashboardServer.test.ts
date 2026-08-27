@@ -534,6 +534,25 @@ describe("dashboard HTTP e supervisore persistente", () => {
     expect(restartedHtml).toContain("Sospendi nuove prese in carico");
   });
 
+  it("espone uno STOP immediato che disarma worker e intake senza azioni ENEA", async () => {
+    const directory = temporaryStateDirectory();
+    new PersistentEneaRunner(directory).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);
+    const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000 });
+    runningSupervisors.push(supervisor);
+    const url = await supervisor.start();
+    supervisor.eneaBrowserWorker.configure({ setupEnabled: true, operationalEnabled: false });
+    const html = await (await fetch(url)).text();
+    const csrf = html.match(/action="\/enea\/control\/emergency-stop"[\s\S]*?name="csrf" value="([^"]+)"/)?.[1];
+    expect(csrf).toBeTruthy();
+
+    const response = await fetch(`${url}/enea/control/emergency-stop`, { method: "POST", redirect: "manual", headers: { "Sec-Fetch-Site": "same-origin", "Content-Type": "application/x-www-form-urlencoded" }, body: `csrf=${encodeURIComponent(csrf!)}` });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("/#apr-enea-worker");
+    expect(await (await fetch(`${url}/api/enea-browser-worker`)).json()).toMatchObject({ config: { setupEnabled: false, operationalEnabled: false }, emergencyStop: { signalOutcome: "stale_process_not_signalled", setupEnabled: false, operationalEnabled: false } });
+    expect(await (await fetch(`${url}/api/shadow-control`)).json()).toMatchObject({ status: "paused", intakeAllowed: false });
+  });
+
   it("rifiuta una seconda istanza mentre la lease del supervisore è attiva", async () => {
     const directory = temporaryStateDirectory();
     new PersistentEneaRunner(directory).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);

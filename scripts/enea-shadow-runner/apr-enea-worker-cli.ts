@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import path from "node:path";
+import { readFileSync } from "node:fs";
 import { PersistentAprEneaBrowserWorker, type AprEneaDraftPackage, type AprEneaPageSaveProbeEvidence } from "./aprEneaBrowserWorker";
 import { CdpEneaBrowserDriver, classifyPersistedPageFieldsReadOnly, eneaGeneratorActivationLabels, matchingScreeningRowIndexes, portalNumberValue } from "./cdpEneaBrowserDriver";
 import { PersistentAprChromeRuntime } from "./cdpClient";
@@ -11,6 +12,8 @@ import { aprEneaKeepaliveInterval, isAprEneaKeepaliveDue, PersistentAprEneaWorke
 import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import { nestedUncertainPageSaveProbeAllowed } from "./infissiUncertainSavePolicy";
 import { APR_REQUIRED_INFISSI_VALIDATION_REVISIONS, dateGateReleaseReadyCustomerKeys, infissiExecutionGateReady } from "./infissiExecutionGate";
+import { PersistentAprEneaOperationalBridge } from "./aprEneaOperationalBridge";
+import type { AprEneaMappingArtifact } from "./aprEneaPureMapper";
 
 function option(name: string) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; }
 const mode = process.argv[2] ?? "status";
@@ -27,12 +30,15 @@ function fieldVerificationRecoveryRevision(reason: string) {
 }
 
 function print(value: unknown) { process.stdout.write(`${JSON.stringify(value, null, 2)}\n`); }
-function loadDraftPackage(customerKey: string): AprEneaDraftPackage {
+function loadLegacyDraftPackage(customerKey: string): AprEneaDraftPackage {
   const infissi = new PersistentAprInfissiBatchPreflight(rootDirectory);
   const infissiItem = infissi.snapshot().items.find((item) => item.customerKey === customerKey);
   if (infissiItem?.state === "ready_local_plan") return infissi.buildDraftExecutionPackage(customerKey);
   const analysis = new PersistentAprCrmDocumentAnalysis(rootDirectory);
   return new PersistentAprCrmLocalPreflight(rootDirectory, analysis).buildDraftExecutionPackage(customerKey);
+}
+function loadDraftPackage(customerKey: string): AprEneaDraftPackage {
+  return new PersistentAprEneaOperationalBridge(rootDirectory).apply(loadLegacyDraftPackage(customerKey));
 }
 async function advanceRepeatDeletionGate(driver: CdpEneaBrowserDriver) {
   const seedStore = new PersistentAprCohortSeed(rootDirectory);
@@ -181,7 +187,8 @@ async function serve() {
           ? { ...preflightSnapshot, items: preflightSnapshot.items.filter((item) => !infissiCandidateKeys.has(item.customerKey)) }
           : preflightSnapshot;
         const infissiExecutionReady = infissiExecutionGateReady(infissiSnapshot);
-        const draftPackageFor = (customerKey: string): AprEneaDraftPackage => {
+        const operationalBridge = new PersistentAprEneaOperationalBridge(rootDirectory);
+        const legacyDraftPackageFor = (customerKey: string): AprEneaDraftPackage => {
           const infissiItem = infissiSnapshot.items.find((item) => item.customerKey === customerKey);
           if (infissiItem) {
             if (!infissiExecutionReady || infissiItem.state !== "ready_local_plan") throw new Error("crm_enea_infissi_execution_gate_not_ready");
@@ -189,6 +196,7 @@ async function serve() {
           }
           return preflight.buildDraftExecutionPackage(customerKey);
         };
+        const draftPackageFor = (customerKey: string): AprEneaDraftPackage => operationalBridge.apply(legacyDraftPackageFor(customerKey));
         execution.applyValidationOperatorGates(preflightSnapshot, "completion-date-operator-gate-v48-cross-module");
         if (infissiExecutionReady) {
           const readyAfterOfficialDeadlineRule = dateGateReleaseReadyCustomerKeys(preflightSnapshot.items, infissiSnapshot.items);
@@ -1755,6 +1763,15 @@ else if (mode === "configure") {
     ...(remoteDebuggingPort ? { remoteDebuggingPort: Number(remoteDebuggingPort) } : {}),
   }));
 }
+else if (mode === "bridge-status") print(new PersistentAprEneaOperationalBridge(rootDirectory).snapshot());
+else if (mode === "bridge-arm") {
+  const customerKey = option("--customer-key") ?? "";
+  const mappingPath = path.resolve(option("--mapping-artifact") ?? "");
+  const authorizationId = option("--authorization-id") ?? "";
+  if (!customerKey.trim() || !mappingPath || !authorizationId.trim()) throw new Error("apr_enea_bridge_arm_options_required");
+  const mappingArtifact = JSON.parse(readFileSync(mappingPath, "utf8")) as AprEneaMappingArtifact;
+  print(new PersistentAprEneaOperationalBridge(rootDirectory).arm({ legacyPackage: loadLegacyDraftPackage(customerKey), mappingArtifact, authorizationId }));
+}
 else if (mode === "requeue-deleted-draft") {
   const customerKey = option("--customer-key") ?? "";
   const draftId = option("--draft-id") ?? "";
@@ -1842,4 +1859,4 @@ else if (mode === "inspect-standard-save-control") {
   print({ diagnostic });
 }
 else if (mode === "serve") await serve();
-else throw new Error("Comando worker non valido: status, configure, requeue-deleted-draft, recover-pending-create, resume-infissi-contract-discovery, inspect-standard-save-control, serve.");
+else throw new Error("Comando worker non valido: status, configure, bridge-status, bridge-arm, requeue-deleted-draft, recover-pending-create, resume-infissi-contract-discovery, inspect-standard-save-control, serve.");

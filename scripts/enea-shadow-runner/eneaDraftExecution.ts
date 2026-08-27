@@ -27,6 +27,10 @@ const SYSTEM_SINGLE_RULE = "system-single-active-practice";
 const SYSTEM_FAIL_CLOSED_RULE = "system-operator-block-fail-closed";
 const LOCK_LEASE_MS = 10_000;
 
+export function isTransientCdpReadOnlyFailure(reason: string) {
+  return /apr_cdp_(?:command_timeout:Runtime\.evaluate|connection_closed|protocol_error:-32000:(?:Inspected target navigated or closed|Promise was collected))/.test(reason);
+}
+
 export interface AprEneaFrozenSourceObservation {
   observedAt: string;
   operation: "prepare" | "prepare_packages";
@@ -3193,7 +3197,7 @@ export class PersistentAprEneaDraftExecution {
     }, (next) => {
       if (next.currentCustomerKey) throw new Error("enea_transient_readonly_timeout_recovery_active_case_present");
       const item = next.items.find((candidate) => candidate.customerKey === customerKey);
-      if (!item || item.state !== "operator_intervention" || !item.draftId || item.createAttemptCount !== 1 || item.saveAttemptCount !== 0 || item.pageCheckpoints.some((checkpoint) => !(["pending", "saved"] as const).includes(checkpoint.state as "pending" | "saved") || (checkpoint.state === "pending" && checkpoint.saveAttemptCount !== 0)) || item.completedPageIds.some((pageId) => item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === pageId)?.state !== "saved") || !/apr_cdp_(?:command_timeout:Runtime\.evaluate|connection_closed|protocol_error:-32000:Inspected target navigated or closed)/.test(item.reason)) throw new Error(`enea_transient_readonly_timeout_recovery_case_invalid:${customerKey}`);
+      if (!item || item.state !== "operator_intervention" || !item.draftId || item.createAttemptCount !== 1 || item.saveAttemptCount !== 0 || item.pageCheckpoints.some((checkpoint) => !(["pending", "saved"] as const).includes(checkpoint.state as "pending" | "saved") || (checkpoint.state === "pending" && checkpoint.saveAttemptCount !== 0)) || item.completedPageIds.some((pageId) => item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === pageId)?.state !== "saved") || !isTransientCdpReadOnlyFailure(item.reason)) throw new Error(`enea_transient_readonly_timeout_recovery_case_invalid:${customerKey}`);
       if (!item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
       item.state = item.completedPageIds.length > 0 ? "filling" : "created";
       item.reason = "Stessa bozza riattivata dopo timeout precedente al Salva della pagina pendente; pagine verificate, contatori e ID preservati.";

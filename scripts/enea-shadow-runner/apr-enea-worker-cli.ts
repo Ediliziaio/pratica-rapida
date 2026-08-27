@@ -7,7 +7,7 @@ import { PersistentAprChromeRuntime } from "./cdpClient";
 import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
 import { PersistentAprCrmLocalPreflight } from "./crmLocalPreflight";
 import { PersistentAprCohortSeed } from "./aprCohortSeed";
-import { nestedPageAbsenceRecoveryCandidate, PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible, type AprNestedPageAbsenceEvidence } from "./eneaDraftExecution";
+import { isTransientCdpReadOnlyFailure, nestedPageAbsenceRecoveryCandidate, PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible, type AprNestedPageAbsenceEvidence } from "./eneaDraftExecution";
 import { aprEneaKeepaliveInterval, isAprEneaKeepaliveDue, PersistentAprEneaWorkerService, shouldHoldAprEneaKeepaliveState } from "./aprEneaBrowserWorkerService";
 import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import { nestedUncertainPageSaveProbeAllowed } from "./infissiUncertainSavePolicy";
@@ -456,7 +456,7 @@ async function serve() {
             && checkpoint.saveAttemptCount === 1
             && checkpoint.recoverySaveAttemptCount === 0
             && Boolean(checkpoint.recoveryAuthorizedEvidenceId)
-            && /apr_cdp_(?:command_timeout:Runtime\.evaluate|connection_closed|protocol_error:-32000:Inspected target navigated or closed)/.test(item.reason)
+            && isTransientCdpReadOnlyFailure(item.reason)
             && Boolean(commandId)
             && !executionBeforeTick.processedCommandIds.includes(commandId!);
         });
@@ -472,7 +472,7 @@ async function serve() {
             && item.saveAttemptCount === 0
             && item.pageCheckpoints.every((checkpoint) => checkpoint.state === "saved" || (checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0))
             && item.completedPageIds.every((pageId) => item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === pageId)?.state === "saved")
-            && /apr_cdp_(?:command_timeout:Runtime\.evaluate|connection_closed|protocol_error:-32000:Inspected target navigated or closed)/.test(item.reason)
+            && isTransientCdpReadOnlyFailure(item.reason)
             && Boolean(commandId)
             && !executionBeforeTick.processedCommandIds.includes(commandId!);
         });
@@ -491,7 +491,7 @@ async function serve() {
             && Boolean(pendingPage)
             && item.serverEvidenceIds.includes(pendingPage!.recoveryAuthorizedEvidenceId!)
             && item.pageCheckpoints.every((checkpoint) => checkpoint.state === "pending" || checkpoint.state === "staged" || checkpoint.state === "saved")
-            && /apr_cdp_(?:command_timeout:Runtime\.evaluate|connection_closed|protocol_error:-32000:Inspected target navigated or closed)/.test(item.reason)
+            && isTransientCdpReadOnlyFailure(item.reason)
             && Boolean(commandId)
             && !executionBeforeTick.processedCommandIds.includes(commandId!);
         });

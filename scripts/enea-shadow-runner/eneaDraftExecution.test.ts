@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
-import { conclusiveNestedPageAbsenceEvidence, nestedPageAbsenceRecoveryCandidate, PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible, type AprNestedPageAbsenceEvidence } from "./eneaDraftExecution";
+import { conclusiveNestedPageAbsenceEvidence, isTransientCdpReadOnlyFailure, nestedPageAbsenceRecoveryCandidate, PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible, type AprNestedPageAbsenceEvidence } from "./eneaDraftExecution";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 
 const directories: string[] = [];
@@ -76,6 +76,11 @@ function preflightFixture() {
 }
 
 describe("esecuzione persistente della sola bozza ENEA TEST", () => {
+  it("classifica in un solo punto gli errori CDP read-only recuperabili e resta fail-closed sugli altri errori protocollo", () => {
+    expect(isTransientCdpReadOnlyFailure("Errore circoscritto alla pratica: apr_cdp_protocol_error:-32000:Promise was collected")).toBe(true);
+    expect(isTransientCdpReadOnlyFailure("Errore circoscritto alla pratica: apr_cdp_protocol_error:-32000:Inspected target navigated or closed")).toBe(true);
+    expect(isTransientCdpReadOnlyFailure("Errore circoscritto alla pratica: apr_cdp_protocol_error:-32000:Execution context was destroyed")).toBe(false);
+  });
   it("richiede due prove canoniche distinte e respinge ogni assenza non conclusiva", () => {
     const valid = nestedAbsenceEvidence("DRAFT-CONTRACT");
     expect(conclusiveNestedPageAbsenceEvidence("DRAFT-CONTRACT", "schermature", valid)).toBe(true);
@@ -800,6 +805,29 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     expect(resumed).toMatchObject({ status: "running", currentCustomerKey: "lorena-brendas" });
     expect(resumed.items[0]).toMatchObject({ state: "filling", draftId: "DRAFT-103", createAttemptCount: 1, saveAttemptCount: 0, completedPageIds: ["page:Beneficiario", "page:Immobile", "page:Intervento"] });
     expect(resumed.items[0].pageCheckpoints.filter((checkpoint) => checkpoint.state === "pending").every((checkpoint) => checkpoint.saveAttemptCount === 0)).toBe(true);
+  });
+
+  it("riprende dopo Promise was collected preservando la pagina salvata e senza tentare il Salva successivo", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare(preflightFixture());
+    runner.recordSessionReady("dom-server-auth-promise-collected", "session:ready:promise-collected");
+    runner.recordCreateIntent("lorena-brendas", "lorena:create:intent:promise-collected");
+    runner.recordDraftCreated("lorena-brendas", "DRAFT-105", "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/DRAFT-105", "server-draft-105", "lorena:created:promise-collected");
+    const firstPageId = runner.load().items[0].expectedPageIds[0];
+    runner.recordPagePrepared("lorena-brendas", "DRAFT-105", firstPageId, "prepared-first-page", "lorena:prepared:first-page");
+    runner.recordPageSaveIntent("lorena-brendas", "DRAFT-105", firstPageId, "lorena:save-intent:first-page");
+    runner.recordPageSaved("lorena-brendas", "DRAFT-105", firstPageId, "saved-first-page", "lorena:saved:first-page");
+    runner.recordCaseBlockedAndContinue("lorena-brendas", "Errore circoscritto alla pratica: apr_cdp_protocol_error:-32000:Promise was collected", "cdp-promise-collected", "lorena:blocked:promise-collected");
+
+    const resumed = runner.resumeCreatedDraftAfterTransientReadOnlyTimeout("lorena-brendas", "cdp-promise-collected", "lorena:resume:promise-collected");
+    const item = resumed.items[0];
+    const pending = item.pageCheckpoints.filter((checkpoint) => checkpoint.state === "pending");
+    expect(resumed).toMatchObject({ status: "running", currentCustomerKey: "lorena-brendas" });
+    expect(item).toMatchObject({ state: "filling", draftId: "DRAFT-105", createAttemptCount: 1, saveAttemptCount: 0, completedPageIds: [firstPageId] });
+    expect(item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === firstPageId)).toMatchObject({ state: "saved", saveAttemptCount: 1, savedEvidenceId: "saved-first-page" });
+    expect(pending.length).toBeGreaterThan(0);
+    expect(pending.every((checkpoint) => checkpoint.saveAttemptCount === 0)).toBe(true);
   });
 
   it("riprende la stessa bozza dopo chiusura CDP precedente a qualunque Salva", () => {

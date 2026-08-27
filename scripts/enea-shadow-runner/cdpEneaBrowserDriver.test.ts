@@ -1,10 +1,10 @@
 import { createServer, type Server } from "node:http";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { PersistentAprEneaBrowserWorker, PersistentSimulatedEneaPortalDriver, type AprEneaDraftPackage } from "./aprEneaBrowserWorker";
-import { CdpEneaBrowserDriver, autocompleteRecoveryOrder, autocompleteSearchQueries, classifyCalculationAllocationTable, classifyCoBeneficiaryRows, classifyFinalScreeningIntegrity, classifyInfissiFinalIntegrity, eneaGeneratorActivationLabels, findCompleteDraftServerEvidence, findExternalAuthenticationTarget, italianCalculationInput, matchingScreeningRowIndexes, pollPersistedPageFieldsReadOnly, portalNumberValue } from "./cdpEneaBrowserDriver";
+import { CdpEneaBrowserDriver, autocompleteRecoveryOrder, autocompleteSearchQueries, classifyCalculationAllocationTable, classifyCoBeneficiaryRows, classifyFinalScreeningIntegrity, classifyInfissiFinalIntegrity, eneaGeneratorActivationLabels, findCompleteDraftServerEvidence, findExternalAuthenticationTarget, italianCalculationInput, matchingScreeningRowIndexes, pollPersistedPageFieldsReadOnly, portalNumberValue, siblingCohortOwnedDraftIds } from "./cdpEneaBrowserDriver";
 import { PersistentAprChromeRuntime } from "./cdpClient";
 import { PersistentAprEneaDraftExecution } from "./eneaDraftExecution";
 
@@ -960,6 +960,46 @@ describe("driver Chrome persistente di APR", () => {
     writeFileSync(checkpointPath, `${JSON.stringify(state, null, 2)}\n`);
     expect(await driver.discoverExistingDraft(draftPackage("case-dashboard"))).toMatchObject({ draftId: "700777" });
     expect(driver.snapshot()).toMatchObject({ pendingCreate: null, mappings: [expect.objectContaining({ customerKey: "case-dashboard", draftId: "700777" })] });
+  }, 30_000);
+
+  it("raccoglie come gia possedute le bozze delle coorti sorelle", () => {
+    const base = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-sibling-ownership-")); directories.push(base);
+    const current = path.join(base, "cohorts", "current");
+    const sibling = path.join(base, "cohorts", "sibling", "enea-draft-execution");
+    mkdirSync(current, { recursive: true });
+    mkdirSync(sibling, { recursive: true });
+    writeFileSync(path.join(sibling, "checkpoint.json"), `${JSON.stringify({ items: [{ customerKey: "other-case", draftId: "700777" }] })}\n`);
+    expect([...siblingCohortOwnedDraftIds(current)]).toEqual(["700777"]);
+  });
+
+  it("resta fail-closed se una fonte di ownership di una coorte sorella e illeggibile", () => {
+    const base = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-sibling-corrupt-")); directories.push(base);
+    const current = path.join(base, "cohorts", "current");
+    const sibling = path.join(base, "cohorts", "sibling", "enea-browser-worker");
+    mkdirSync(current, { recursive: true });
+    mkdirSync(sibling, { recursive: true });
+    writeFileSync(path.join(sibling, "cdp-driver.json"), "{corrotto");
+    expect(() => siblingCohortOwnedDraftIds(current)).toThrow("apr_cdp_sibling_draft_ownership_checkpoint_invalid");
+  });
+
+  it.runIf(process.platform === "darwin")("rifiuta una bozza dashboard gia assegnata a una coorte sorella", async () => {
+    const base = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-cross-cohort-discovery-")); directories.push(base);
+    const root = path.join(base, "cohorts", "current");
+    const siblingExecution = path.join(base, "cohorts", "sibling", "enea-draft-execution");
+    mkdirSync(root, { recursive: true });
+    mkdirSync(siblingExecution, { recursive: true });
+    writeFileSync(path.join(siblingExecution, "checkpoint.json"), `${JSON.stringify({ items: [{ customerKey: "case-owner", draftId: "700777", state: "saved" }] })}\n`);
+    const origin = await fixtureServer({ dashboardDraftId: "700777" });
+    const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/dashboard` });
+    runtimes.push(runtime); await runtime.ensureRunning();
+    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
+    await driver.verifySession();
+    const checkpointPath = path.join(root, "enea-browser-worker", "cdp-driver.json");
+    const state = driver.snapshot();
+    state.pendingCreate = { packageFingerprint: "package-case-dashboard", customerKey: "case-dashboard", beforeDraftIds: [], startedAt: new Date().toISOString(), wizardSubmitAttemptCount: 1, wizardSubmitAttemptedAt: new Date().toISOString(), wizardContractFingerprint: "fixture" };
+    writeFileSync(checkpointPath, `${JSON.stringify(state, null, 2)}\n`);
+    expect(await driver.discoverExistingDraft(draftPackage("case-dashboard"))).toBeNull();
+    expect(driver.snapshot()).toMatchObject({ mappings: [] });
   }, 30_000);
 
   it.runIf(process.platform === "darwin")("non ripete il submit del wizard quando il tentativo persistente e gia consumato", async () => {

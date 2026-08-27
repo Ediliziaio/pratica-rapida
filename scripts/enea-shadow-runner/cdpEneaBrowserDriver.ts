@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { EneaPortalRuntimeField, EneaPortalWorkflowStep } from "../../src/features/enea-lab/portalScript";
 import type { AprEneaBrowserDriver, AprEneaDraftEvidence, AprEneaDraftPackage, AprEneaDriverEvidence, AprEneaPageSaveProbeEvidence, AprEneaSessionEvidence } from "./aprEneaBrowserWorker";
@@ -132,6 +132,44 @@ function autocompleteLabelsMatch(actual: string, expected: string) {
 }
 function draftIdFromUrl(url: string) { return new URL(url).pathname.match(/\/(\d{4,})(?:\/)?$/)?.[1] ?? null; }
 function safeUrl(url: string, allowedOrigin: string) { const parsed = new URL(url); if (parsed.origin !== allowedOrigin) throw new Error("apr_cdp_enea_origin_rejected"); return parsed.toString(); }
+
+/**
+ * Raccoglie le bozze gia assegnate dalle altre coorti persistenti. Ogni coorte
+ * conserva un driver separato, ma il portale ENEA e' condiviso: una scoperta
+ * dalla dashboard non puo quindi considerare "nuova" una bozza gia posseduta
+ * da un'altra coorte. Fuori dalla directory canonica `cohorts` il controllo e'
+ * volutamente vuoto, cosi fixture e installazioni isolate non condividono stato.
+ */
+export function siblingCohortOwnedDraftIds(rootDirectory: string): Set<string> {
+  const resolvedRoot = path.resolve(rootDirectory);
+  const cohortsDirectory = path.dirname(resolvedRoot);
+  if (path.basename(cohortsDirectory) !== "cohorts" || !existsSync(cohortsDirectory)) return new Set();
+  const owned = new Set<string>();
+  for (const entry of readdirSync(cohortsDirectory, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const siblingRoot = path.join(cohortsDirectory, entry.name);
+    if (siblingRoot === resolvedRoot) continue;
+    const sources = [
+      path.join(siblingRoot, "enea-browser-worker", "cdp-driver.json"),
+      path.join(siblingRoot, "enea-draft-execution", "checkpoint.json"),
+    ];
+    for (const source of sources) {
+      if (!existsSync(source)) continue;
+      try {
+        const value = JSON.parse(readFileSync(source, "utf8")) as { mappings?: Array<{ draftId?: unknown }>; items?: Array<{ draftId?: unknown }> };
+        for (const candidate of [...(value.mappings ?? []), ...(value.items ?? [])]) {
+          const draftId = typeof candidate.draftId === "string" ? candidate.draftId : "";
+          if (/^\d{4,}$/.test(draftId)) owned.add(draftId);
+        }
+      } catch {
+        // Non possiamo provare che la bozza sia libera se una fonte di
+        // ownership esistente e' illeggibile: la scoperta resta fail-closed.
+        throw new Error("apr_cdp_sibling_draft_ownership_checkpoint_invalid");
+      }
+    }
+  }
+  return owned;
+}
 
 export interface CalculationAllocationTableResult {
   matched: boolean;
@@ -701,8 +739,9 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     if (state.pendingCreate?.packageFingerprint !== draftPackage.packageFingerprint) return null;
     const targets = await this.runtime.targets();
     const alreadyMappedDraftIds = new Set(state.mappings.map((mapping) => mapping.draftId));
+    const siblingOwnedDraftIds = siblingCohortOwnedDraftIds(this.rootDirectory);
     const candidates = targets.flatMap((target) => {
-      try { const id = new URL(target.url).origin === this.allowedOrigin ? draftIdFromUrl(target.url) : null; return id && !state.pendingCreate!.beforeDraftIds.includes(id) && !alreadyMappedDraftIds.has(id) ? [{ target, id }] : []; } catch { return []; }
+      try { const id = new URL(target.url).origin === this.allowedOrigin ? draftIdFromUrl(target.url) : null; return id && !state.pendingCreate!.beforeDraftIds.includes(id) && !alreadyMappedDraftIds.has(id) && !siblingOwnedDraftIds.has(id) ? [{ target, id }] : []; } catch { return []; }
     });
     let discovered = candidates;
     if (discovered.length !== 1 && state.pendingCreate.wizardSubmitAttemptCount === 1) {
@@ -712,11 +751,15 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
         await this.waitForStable(client);
       }
       const dashboardCandidates = await client.evaluate<Array<{ id: string; url: string }>>(`(()=>Array.from(document.querySelectorAll('a[href]')).flatMap(a=>{try{const url=new URL(a.href,location.href),parts=url.pathname.split('/').filter(Boolean),id=parts[parts.length-1];return url.origin===location.origin&&/^[0-9]{4,}$/.test(id)?[{id,url:url.href}]:[]}catch{return []}}))()`);
-      const unseen = dashboardCandidates.filter((candidate) => !state.pendingCreate!.beforeDraftIds.includes(candidate.id) && !alreadyMappedDraftIds.has(candidate.id));
+      const unseen = dashboardCandidates.filter((candidate) => !state.pendingCreate!.beforeDraftIds.includes(candidate.id) && !alreadyMappedDraftIds.has(candidate.id) && !siblingOwnedDraftIds.has(candidate.id));
       if (unseen.length === 1) discovered = [{ target: { ...target, url: unseen[0].url }, id: unseen[0].id }];
     }
     if (discovered.length !== 1) return null;
     const [{ target, id }] = discovered;
+    // Seconda lettura immediatamente prima della registrazione: evita che una
+    // coorte sequenziale accetti una bozza assegnata nel frattempo dalla
+    // coorte precedente.
+    if (siblingCohortOwnedDraftIds(this.rootDirectory).has(id)) return null;
     const client = await this.runtime.pageClient(target);
     if (await client.evaluate<string>("location.href") !== target.url) { await client.navigate(target.url); await this.waitForStable(client); }
     const evidence = await this.capture("discover_pending_draft_readonly", target, client, { customerKey: draftPackage.customerKey, draftId: id });

@@ -67,6 +67,28 @@ describe("verita autorevole dello stato pratica APR", () => {
     expect(() => assertAprCaseProblemClaim(truth, "problem")).toThrow("apr_case_claim_not_terminal:TECHNICAL_BLOCK");
   });
 
+  it("espone IN_PROGRESS quando il preflight è pronto e il checkpoint portale sta salvando", () => {
+    const truth = reconcileAprCaseTruthWithDraftExecution(deriveAprCaseStatusTruth(item({})), {
+      customerKey: "giulia-albanese",
+      state: "save_intent_recorded",
+      reason: "Intento durevole registrato.",
+    } as never);
+    expect(truth).toMatchObject({ status: "IN_PROGRESS", hasProblem: null, statement: expect.stringContaining("save_intent_recorded") });
+  });
+
+  it("espone INCONSISTENT se il portale lavora mentre il preflight ha un blocker", () => {
+    const preflightTruth = deriveAprCaseStatusTruth(item({
+      state: "blocked_case",
+      report: { outcome: "blocked_case", blockers: [{ code: "missing_invoice", reason: "Fattura mancante." }] } as never,
+    }));
+    const truth = reconcileAprCaseTruthWithDraftExecution(preflightTruth, {
+      customerKey: "giulia-albanese",
+      state: "filling",
+      reason: "Compilazione in corso.",
+    } as never);
+    expect(truth).toMatchObject({ status: "INCONSISTENT", hasProblem: null });
+  });
+
   it("mantiene INCONSISTENT se l'intervento operatore non ha evidenza tecnica né blocker business", () => {
     const truth = reconcileAprCaseTruthWithDraftExecution(deriveAprCaseStatusTruth(item({})), {
       customerKey: "giulia-albanese",

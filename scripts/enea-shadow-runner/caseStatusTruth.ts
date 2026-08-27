@@ -130,6 +130,24 @@ export function reconcileAprCaseTruthWithDraftExecution(
 ): AprCaseStatusTruth {
   if (!executionItem) return truth;
 
+  const executionInProgress = ["queued", "recovery_queued", "create_intent_recorded", "created", "filling", "save_intent_recorded"].includes(executionItem.state);
+  if (executionInProgress) {
+    if (truth.status === "READY") {
+      return {
+        ...truth,
+        status: "IN_PROGRESS",
+        hasProblem: null,
+        statement: `Preflight pronto; esecuzione portale in corso dal checkpoint ${executionItem.state}.`,
+      };
+    }
+    return {
+      ...truth,
+      status: "INCONSISTENT",
+      hasProblem: null,
+      statement: `Il checkpoint del portale e in corso (${executionItem.state}), ma il preflight/report non e READY: riallineare le fonti prima di dichiarare lo stato della pratica.`,
+    };
+  }
+
   if (executionItem.state === "saved" && truth.status !== "READY") {
     return {
       ...truth,

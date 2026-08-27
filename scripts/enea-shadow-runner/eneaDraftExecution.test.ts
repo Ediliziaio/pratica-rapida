@@ -365,6 +365,21 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     expect(recovered.items[0]).toMatchObject({ state: "queued", draftId: null, createAttemptCount: 1, recoverableCreateIntent: true });
     expect(() => runner.requeueUnmaterializedCreateIntents(["lorena-brendas"], "local-package-rebuilt-and-verified", "lorena:recover:rebuild-v1")).not.toThrow();
   });
+  it("autorizza un solo nuovo tentativo dopo due prove server distinte di assenza", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare(preflightFixture());
+    runner.recordSessionReady("server-session", "absence:session");
+    runner.recordCreateIntent("lorena-brendas", "absence:first-intent");
+    runner.recordCaseBlockedAndContinue("lorena-brendas", "Errore circoscritto alla pratica: apr_cdp_enea_create_result_not_identifiable", "first-create-uncertain", "absence:first-block");
+
+    const recovered = runner.requeueCreateAfterConclusiveServerAbsence("lorena-brendas", ["absence-read-1", "absence-read-2"], "absence:single-retry");
+    expect(recovered.items[0]).toMatchObject({ state: "queued", createAttemptCount: 0, createRecoveryAttemptCount: 1, recoverableCreateIntent: false });
+    runner.recordSessionReady("server-session-2", "absence:session-2");
+    runner.recordCreateIntent("lorena-brendas", "absence:second-intent");
+    runner.recordCaseBlockedAndContinue("lorena-brendas", "Errore circoscritto alla pratica: apr_cdp_enea_create_result_not_identifiable", "second-create-uncertain", "absence:second-block");
+    expect(() => runner.requeueCreateAfterConclusiveServerAbsence("lorena-brendas", ["absence-read-3", "absence-read-4"], "absence:forbidden-third-intent")).toThrow("enea_create_absence_recovery_case_invalid");
+  });
   it("mantiene dieci casi ordinati e dopo un blocco riparte dal successivo senza duplicazioni", () => {
     const directory = temporaryDirectory();
     const ready = (index: number) => ({

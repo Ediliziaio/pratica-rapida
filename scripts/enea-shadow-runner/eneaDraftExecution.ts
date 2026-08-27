@@ -25,6 +25,7 @@ export const APR_ENEA_FROZEN_SOURCE_OBSERVATIONS_VERSION = "apr-enea-frozen-sour
 const SYSTEM_RESUME_RULE = "system-atomic-checkpoint-resume";
 const SYSTEM_SINGLE_RULE = "system-single-active-practice";
 const SYSTEM_FAIL_CLOSED_RULE = "system-operator-block-fail-closed";
+const SYSTEM_DRAFT_CREATE_DOUBLE_ABSENCE_RULE = "system-draft-create-double-absence-single-retry";
 const LOCK_LEASE_MS = 10_000;
 
 export function isTransientCdpReadOnlyFailure(reason: string) {
@@ -165,6 +166,7 @@ export interface AprEneaDraftExecutionItem {
   saveIntentAt: string | null;
   savedAt: string | null;
   createAttemptCount: 0 | 1;
+  createRecoveryAttemptCount: 0 | 1;
   recoverableCreateIntent: boolean;
   saveAttemptCount: 0 | 1;
   completedPageIds: string[];
@@ -399,7 +401,7 @@ function validState(value: AprEneaDraftExecutionState) {
   const activeCustomers = new Set(value.items.map((item) => item.customerKey));
   if (value.items.some((item, index) => value.items.findIndex((candidate) => candidate.customerKey === item.customerKey) !== index) || activeCustomers.size !== value.items.length) return false;
   if (value.items.some((item) => item.customerKey === "beatrice-ciotta" && item.state !== "deferred_operator")) return false;
-  if (value.items.some((item) => item.createAttemptCount > 1 || item.saveAttemptCount > 1)) return false;
+  if (value.items.some((item) => item.createAttemptCount > 1 || item.createRecoveryAttemptCount > 1 || item.saveAttemptCount > 1)) return false;
   if (value.items.some((item) => item.postCompletionVerification !== null && (
     item.postCompletionVerification.kind !== "saved_payload_correction"
     || !["intent_recorded", "verification_inconclusive", "resolved_requeued"].includes(item.postCompletionVerification.status)
@@ -433,6 +435,7 @@ function normalizeState(value: AprEneaDraftExecutionState): AprEneaDraftExecutio
   for (const item of value.items ?? []) {
     item.generationId ??= `legacy-${fingerprint({ customerKey: item.customerKey, practiceId: item.practiceId, mappingFingerprint: item.mappingFingerprint, workflowFingerprint: item.workflowFingerprint }).slice(0, 24)}`;
     item.requiresFreshDraft ??= false;
+    item.createRecoveryAttemptCount ??= 0;
     item.recoverableCreateIntent ??= false;
     item.uncertainPageSave ??= null;
     if (item.uncertainPageSave) item.uncertainPageSave.transientProbeRetryCounts ??= {};
@@ -592,6 +595,7 @@ function draftItemFromPreflight(
     saveIntentAt: null,
     savedAt: null,
     createAttemptCount: 0,
+    createRecoveryAttemptCount: 0,
     recoverableCreateIntent: false,
     saveAttemptCount: 0,
     completedPageIds: [],
@@ -626,6 +630,7 @@ function draftItemFromPackage(draftPackage: AprEneaDraftPackage, generationId?: 
     saveIntentAt: null,
     savedAt: null,
     createAttemptCount: 0,
+    createRecoveryAttemptCount: 0,
     recoverableCreateIntent: false,
     saveAttemptCount: 0,
     completedPageIds: [],
@@ -2911,6 +2916,39 @@ export class PersistentAprEneaDraftExecution {
         item.reason = "Intento di creazione non materializzato: ripresa autorizzata sullo stesso contatore dopo contratto wizard verificato.";
         item.nextAction = "Riprendere il wizard senza un secondo click al collegamento iniziale.";
       }
+      next.status = "ready";
+      next.sessionEvidenceId = null;
+      next.sessionVerifiedAt = null;
+    });
+  }
+
+  requeueCreateAfterConclusiveServerAbsence(customerKey: string, evidenceIds: [string, string], commandId: string, now = new Date()) {
+    if (!customerKey.trim() || evidenceIds.some((value) => !value.trim()) || evidenceIds[0] === evidenceIds[1]) throw new Error("enea_create_absence_recovery_evidence_invalid");
+    return this.transition("apr-enea-browser-worker", commandId, now, {
+      type: "case_requeued_recovery",
+      customerKey,
+      reason: "Due letture server autenticate e concordanti provano che il primo intento non ha creato alcuna bozza; autorizzato un solo nuovo tentativo.",
+      nextAction: "Registrare un nuovo intento persistente e tentare una sola nuova creazione bozza.",
+      appliedRuleIds: [SYSTEM_DRAFT_CREATE_DOUBLE_ABSENCE_RULE, SYSTEM_FAIL_CLOSED_RULE, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE],
+    }, (next) => {
+      if (next.currentCustomerKey) throw new Error("enea_create_absence_recovery_active_case_present");
+      const item = next.items.find((candidate) => candidate.customerKey === customerKey);
+      if (!item
+        || item.state !== "operator_intervention"
+        || item.draftId
+        || item.createAttemptCount !== 1
+        || item.createRecoveryAttemptCount !== 0
+        || item.saveAttemptCount !== 0
+        || item.completedPageIds.length !== 0
+        || !/apr_cdp_enea_(?:create_result_not_identifiable|wizard_submit_already_attempted)/.test(item.reason)) throw new Error("enea_create_absence_recovery_case_invalid");
+      item.state = "queued";
+      item.createAttemptCount = 0;
+      item.createRecoveryAttemptCount = 1;
+      item.createIntentAt = null;
+      item.recoverableCreateIntent = false;
+      for (const evidenceId of evidenceIds) if (!item.serverEvidenceIds.includes(evidenceId)) item.serverEvidenceIds.push(evidenceId);
+      item.reason = "Primo intento conclusivamente non materializzato; disponibile l'unico recupero automatico autorizzato.";
+      item.nextAction = "Attendere il proprio turno e registrare il secondo e ultimo intento di creazione.";
       next.status = "ready";
       next.sessionEvidenceId = null;
       next.sessionVerifiedAt = null;

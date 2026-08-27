@@ -61,6 +61,14 @@ export interface AprEneaDraftEvidence extends AprEneaDriverEvidence {
   draftId: string;
 }
 
+export interface AprEneaDraftCreationAbsenceProof {
+  customerKey: string;
+  packageFingerprint: string;
+  conclusivelyAbsent: boolean;
+  evidenceIds: [string, string];
+  candidateDraftIdsByReading: [string[], string[]];
+}
+
 export interface AprEneaPageSaveProbeEvidence extends AprEneaDriverEvidence {
   method: AprUncertainPageSaveProbeMethod;
   outcome: AprUncertainPageSaveProbeOutcome;
@@ -72,6 +80,9 @@ export interface AprEneaBrowserDriver {
   readonly identity: string;
   verifySession(): Promise<AprEneaSessionEvidence>;
   discoverExistingDraft(draftPackage: AprEneaDraftPackage): Promise<AprEneaDraftEvidence | null>;
+  verifyPendingCreateAbsentReadOnly?(draftPackage: AprEneaDraftPackage): Promise<AprEneaDraftCreationAbsenceProof>;
+  authorizeSingleCreateRetryAfterAbsence?(draftPackage: AprEneaDraftPackage, proof: AprEneaDraftCreationAbsenceProof): AprEneaDriverEvidence;
+  quarantinePendingCreateAfterInconclusive?(draftPackage: AprEneaDraftPackage, proof: AprEneaDraftCreationAbsenceProof): AprEneaDriverEvidence;
   createDraft(draftPackage: AprEneaDraftPackage): Promise<AprEneaDraftEvidence>;
   preparePage(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence>;
   savePage(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence>;

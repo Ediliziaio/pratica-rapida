@@ -399,6 +399,26 @@ async function serve() {
             executionBeforeTick = execution.snapshot();
             driverSnapshotForRecovery = driver.snapshot();
             service.record({ instanceId, processPid: process.pid, status: "running", type: "materialized_wizard_submit_discovered", reason: `${submittedPendingOwner.displayName}: la bozza creata dal precedente e unico submit e stata ritrovata in sola lettura nella dashboard ENEA.`, nextAction: `APR riprende la bozza ${discovered.draftId} senza creare duplicati.`, chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: discovered.evidenceId });
+          } else if (submittedPendingOwner.createRecoveryAttemptCount === 0
+            && driver.verifyPendingCreateAbsentReadOnly
+            && driver.authorizeSingleCreateRetryAfterAbsence
+            && driver.quarantinePendingCreateAfterInconclusive) {
+            const draftPackage = draftPackageFor(submittedPendingOwner.customerKey);
+            const proof = await driver.verifyPendingCreateAbsentReadOnly(draftPackage);
+            if (proof.conclusivelyAbsent) {
+              const authorization = driver.authorizeSingleCreateRetryAfterAbsence(draftPackage, proof);
+              execution.requeueCreateAfterConclusiveServerAbsence(
+                submittedPendingOwner.customerKey,
+                proof.evidenceIds,
+                `service:auto-recover-create-after-double-absence:${submittedPendingOwner.customerKey}:${authorization.evidenceId}:v1`,
+              );
+              service.record({ instanceId, processPid: process.pid, status: "running", type: "unmaterialized_create_auto_requeued", reason: `${submittedPendingOwner.displayName}: due letture server concordanti provano che il primo intento non ha creato una bozza; autorizzato l'unico nuovo tentativo.`, nextAction: "APR registra un nuovo intento persistente; nessun ulteriore recupero automatico sara consentito.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: authorization.evidenceId });
+            } else {
+              const quarantine = driver.quarantinePendingCreateAfterInconclusive(draftPackage, proof);
+              service.record({ instanceId, processPid: process.pid, status: "running", type: "case_isolated", reason: `${submittedPendingOwner.displayName}: le due letture server non dimostrano in modo concordante l'assenza della bozza; nessun nuovo tentativo eseguito.`, nextAction: "La pratica resta in intervento operatore; APR continua con la successiva.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: quarantine.evidenceId });
+            }
+            executionBeforeTick = execution.snapshot();
+            driverSnapshotForRecovery = driver.snapshot();
           }
         }
         const creationSurface = driverSnapshotForRecovery.creationSurface;

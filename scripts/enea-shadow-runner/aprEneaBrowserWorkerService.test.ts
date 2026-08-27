@@ -48,6 +48,16 @@ function armVerifiedMapperBridge(root: string, customerKey: string, practiceId: 
 }
 
 describe("gate permanente del servizio browser APR", () => {
+  it("persiste l'identità di autorizzazione specifica della coorte", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-authorization-")); directories.push(root);
+    const service = new PersistentAprEneaWorkerService(root);
+
+    expect(service.configure({ authorizationId: "user-2026-08-27-five-simple-real-drafts" })).toMatchObject({
+      authorizationId: "user-2026-08-27-five-simple-real-drafts",
+    });
+    expect(() => service.configure({ authorizationId: "" })).toThrow("apr_enea_worker_authorization_invalid");
+  });
+
   it("pubblica il transito SPID confermato come login richiesto e non come blocco tecnico", () => {
     expect(aprEneaWorkerLoopFailureDisposition(new Error("apr_cdp_enea_external_login_in_progress"))).toMatchObject({
       status: "login_required",

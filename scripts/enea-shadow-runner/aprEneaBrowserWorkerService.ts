@@ -189,8 +189,9 @@ export class PersistentAprEneaWorkerService {
     return value;
   }
 
-  configure(input: Partial<Pick<AprEneaWorkerConfig, "setupEnabled" | "operationalEnabled" | "chromeExecutable" | "profileDirectory" | "remoteDebuggingPort">>, now = new Date()) {
+  configure(input: Partial<Pick<AprEneaWorkerConfig, "setupEnabled" | "operationalEnabled" | "chromeExecutable" | "profileDirectory" | "remoteDebuggingPort" | "authorizationId">>, now = new Date()) {
     const current = this.loadConfig(now); const next = { ...current, ...input, updatedAt: now.toISOString() };
+    if (!next.authorizationId.trim()) throw new Error("apr_enea_worker_authorization_invalid");
     if (next.operationalEnabled && !next.setupEnabled) throw new Error("apr_enea_worker_operational_requires_setup");
     if (next.operationalEnabled) {
       const service = this.loadState(now);

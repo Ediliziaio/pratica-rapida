@@ -1769,6 +1769,7 @@ else if (mode === "configure") {
   print(service.configure({
     setupEnabled: option("--setup-enabled") === "true",
     operationalEnabled: option("--operational-enabled") === "true",
+    ...(option("--authorization-id") ? { authorizationId: option("--authorization-id")! } : {}),
     ...(option("--profile-directory") ? { profileDirectory: path.resolve(option("--profile-directory")!) } : {}),
     ...(remoteDebuggingPort ? { remoteDebuggingPort: Number(remoteDebuggingPort) } : {}),
   }));

@@ -24,5 +24,6 @@ const worker = new PersistentAprEneaWorkerService(rootDirectory).configure({
   chromeExecutable: sourceWorker.chromeExecutable,
   profileDirectory: sourceWorker.profileDirectory,
   remoteDebuggingPort: sourceWorker.remoteDebuggingPort,
+  authorizationId: manifest.sourceEvidenceId,
 });
 process.stdout.write(`${JSON.stringify({ seed, worker: { setupEnabled: worker.setupEnabled, operationalEnabled: worker.operationalEnabled, profileDirectory: worker.profileDirectory, remoteDebuggingPort: worker.remoteDebuggingPort } }, null, 2)}\n`);

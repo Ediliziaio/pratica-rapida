@@ -89,4 +89,17 @@ describe("APR ENEA operational bridge", () => {
     const changed = legacyPackage(); changed.packageFingerprint = "changed";
     expect(() => store.apply(changed)).toThrow("apr_enea_bridge_legacy_package_changed");
   });
+
+  it("ignora metadata osservativi variabili quando il fingerprint legacy resta identico", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "apr-enea-bridge-observation-"));
+    const store = new PersistentAprEneaOperationalBridge(root);
+    const armedLegacy = Object.assign(legacyPackage(), { observedAt: "2026-08-27T18:00:00Z" });
+    const armed = store.arm({ legacyPackage: armedLegacy, mappingArtifact: mapping(), authorizationId: "user-real-draft-only" });
+    const rebuiltLegacy = Object.assign(legacyPackage(), { observedAt: "2026-08-27T18:05:00Z" });
+
+    const applied = store.apply(rebuiltLegacy);
+
+    expect(applied.packageFingerprint).toBe(armed.bridgedPackageFingerprint);
+    expect((applied as AprEneaDraftPackage & { observedAt: string }).observedAt).toBe("2026-08-27T18:05:00Z");
+  });
 });

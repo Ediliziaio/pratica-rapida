@@ -131,10 +131,21 @@ export function bridgeVerifiedMappingToLegacyDraftPackage(input: {
     verifiedMapping,
     safety: { ...legacyPackage.safety },
   };
-  const { packageFingerprint: _sourcePackageFingerprint, ...fingerprintInput } = bridged;
+  // The legacy package fingerprint deliberately excludes observation-only
+  // metadata. Rebuilding the same package can therefore change those fields
+  // without changing its executable meaning. Bind the bridge identity only to
+  // the stable legacy fingerprint, mapped artifact and resulting workflow.
+  const bridgedPackageFingerprint = canonicalSha256({
+    bridgeVersion: APR_ENEA_OPERATIONAL_BRIDGE_VERSION,
+    sourceLegacyPackageFingerprint: legacyPackage.packageFingerprint,
+    mappingArtifactId: mappingArtifact.artifactId,
+    authorizationId: input.authorizationId,
+    authorizationScope: "real_portal_draft_only",
+    workflowFingerprint,
+  });
   return Object.freeze({
     ...bridged,
-    packageFingerprint: canonicalSha256(fingerprintInput),
+    packageFingerprint: bridgedPackageFingerprint,
   });
 }
 

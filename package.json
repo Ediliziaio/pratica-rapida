@@ -35,6 +35,7 @@
     "apr:cohort-repeat": "vite-node scripts/enea-shadow-runner/apr-cohort-repeat-cli.ts",
     "apr:learning-baseline": "vite-node scripts/enea-shadow-runner/apr-learning-baseline-cli.ts",
     "apr:learning-replay": "vite-node scripts/enea-shadow-runner/apr-learning-replay-cli.ts",
+    "apr:l2-l3-parallel": "vite-node scripts/enea-shadow-runner/apr-l2-l3-parallel-cli.ts",
     "apr:product-routing-audit": "vite-node scripts/enea-shadow-runner/apr-product-routing-audit-cli.ts",
     "apr:crm-workflow": "vite-node scripts/enea-shadow-runner/apr-cli.ts crm-workflow-status",
     "apr:operator-unlock": "vite-node scripts/enea-shadow-runner/apr-operator-unlock-cli.ts",

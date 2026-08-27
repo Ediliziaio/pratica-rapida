@@ -115,7 +115,10 @@ function parseInvoicePhysicalWindowRows(source: AprInfissiTextSource): AprInfiss
   const start = source.text.search(/\b(?:infiss|serrament)[io]\b/iu);
   if (start < 0) return null;
   const scoped = source.text.slice(start).split(/\b(?:METODO\s+DI\s+PAGAMENTO|TOTALE\s+(?:FATTURA|DOCUMENTO))\b/iu)[0] ?? "";
-  const rows = [...scoped.matchAll(/\b(\d{1,2})\s+da\s+(\d{3,4})\s*[x×]\s*(\d{3,4})\b/giu)].flatMap((match, index) => {
+  // Alcuni PDF/OCR uniscono la preposizione alla prima misura (`1 da1200 x 1555`).
+  // La quantità deve comunque precedere `da`, così l'allentamento non trasforma
+  // numeri generici o parole come `data` in righe fisiche Infissi.
+  const rows = [...scoped.matchAll(/\b(\d{1,2})\s+da\s*(\d{3,4})\s*[x×]\s*(\d{3,4})\b/giu)].flatMap((match, index) => {
     const quantity = integer(match[1]);
     const width = Number(match[2]);
     const height = Number(match[3]);

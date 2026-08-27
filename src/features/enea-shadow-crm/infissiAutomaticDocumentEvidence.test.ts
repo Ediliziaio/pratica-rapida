@@ -14,6 +14,33 @@ describe("APR Infissi · estrazione automatica documenti reali", () => {
     expect(result.evidence?.rows.map((item) => [item.widthM, item.heightM])).toEqual([[1.39, 1.6], [1.39, 1.6], [1.39, 1.6]]);
   });
 
+  it("preserva tutte le righe quando il PDF unisce 'da' alla prima misura", () => {
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "fattura-righe-attaccate", kind: "invoice", text: `
+      FATTURA
+      Infissi PVC 1 da 1198 x 2490 - 2 ante 1 da 695 x 1280 - 1 anta DX
+      1 da 695 x 1285 - 1 anta DX 1 da1200 x 1555 - 2 ante
+      METODO DI PAGAMENTO
+    ` }]);
+    expect(result.status).toBe("ready");
+    expect(result.audit.selectedParser).toBe("invoice-physical-row-order");
+    expect(result.evidence?.rows.map((item) => [item.quantity, item.widthM, item.heightM])).toEqual([
+      [1, 1.198, 2.49],
+      [1, 0.695, 1.28],
+      [1, 0.695, 1.285],
+      [1, 1.2, 1.555],
+    ]);
+  });
+
+  it("non interpreta parole o numeri generici come righe fisiche senza la sequenza quantita-da-misura", () => {
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "fattura-righe-non-dimensionali", kind: "invoice", text: `
+      FATTURA
+      Infissi PVC: data1200 x 1555; riferimento 1 dato1200 x 1555; codice da1200 x 1555.
+      METODO DI PAGAMENTO
+    ` }]);
+    expect(result.status).toBe("operator_required");
+    expect(result.evidence).toBeNull();
+  });
+
   it("legge fatture con righe dimensioni, pezzi e Uw preservando la cardinalita", () => {
     const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "fattura", kind: "invoice", text: `
       Serramenti in PVC. Dimensioni L x H:

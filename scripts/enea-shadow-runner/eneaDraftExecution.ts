@@ -3197,11 +3197,11 @@ export class PersistentAprEneaDraftExecution {
     }, (next) => {
       if (next.currentCustomerKey) throw new Error("enea_transient_readonly_timeout_recovery_active_case_present");
       const item = next.items.find((candidate) => candidate.customerKey === customerKey);
-      if (!item || item.state !== "operator_intervention" || !item.draftId || item.createAttemptCount !== 1 || item.saveAttemptCount !== 0 || item.pageCheckpoints.some((checkpoint) => !(["pending", "saved"] as const).includes(checkpoint.state as "pending" | "saved") || (checkpoint.state === "pending" && checkpoint.saveAttemptCount !== 0)) || item.completedPageIds.some((pageId) => item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === pageId)?.state !== "saved") || !isTransientCdpReadOnlyFailure(item.reason)) throw new Error(`enea_transient_readonly_timeout_recovery_case_invalid:${customerKey}`);
+      if (!item || item.state !== "operator_intervention" || !item.draftId || item.createAttemptCount !== 1 || item.saveAttemptCount !== 0 || item.pageCheckpoints.some((checkpoint) => !(["pending", "staged", "saved"] as const).includes(checkpoint.state as "pending" | "staged" | "saved") || (checkpoint.state === "pending" && checkpoint.saveAttemptCount !== 0) || (checkpoint.state === "staged" && (checkpoint.saveAttemptCount !== 1 || !checkpoint.stagedEvidenceId))) || item.completedPageIds.some((pageId) => item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === pageId)?.state !== "saved") || !isTransientCdpReadOnlyFailure(item.reason)) throw new Error(`enea_transient_readonly_timeout_recovery_case_invalid:${customerKey}`);
       if (!item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
       item.state = item.completedPageIds.length > 0 ? "filling" : "created";
-      item.reason = "Stessa bozza riattivata dopo timeout precedente al Salva della pagina pendente; pagine verificate, contatori e ID preservati.";
-      item.nextAction = "Compilare e rileggere la prima pagina pendente senza creare una nuova bozza o ripetere pagine salvate.";
+      item.reason = "Stessa bozza riattivata dopo timeout precedente al Salva della pagina pendente; pagine e righe staged verificate, contatori e ID preservati.";
+      item.nextAction = "Compilare e rileggere la prima pagina pendente senza creare una nuova bozza o ripetere pagine o righe gia' salvate/staged.";
       next.currentCustomerKey = customerKey;
       next.status = "running";
       next.sessionEvidenceId = null;

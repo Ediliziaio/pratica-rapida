@@ -480,7 +480,9 @@ async function serve() {
             && Boolean(item.draftId)
             && item.createAttemptCount === 1
             && item.saveAttemptCount === 0
-            && item.pageCheckpoints.every((checkpoint) => checkpoint.state === "saved" || (checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0))
+            && item.pageCheckpoints.every((checkpoint) => checkpoint.state === "saved"
+              || (checkpoint.state === "staged" && checkpoint.saveAttemptCount === 1 && Boolean(checkpoint.stagedEvidenceId))
+              || (checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0))
             && item.completedPageIds.every((pageId) => item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === pageId)?.state === "saved")
             && isTransientCdpReadOnlyFailure(item.reason)
             && Boolean(commandId)

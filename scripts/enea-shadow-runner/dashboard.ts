@@ -99,6 +99,11 @@ export interface DashboardOperationalStatus {
   currentPracticeId: string | null;
 }
 
+function observedAt(value: string | null | undefined) {
+  const parsed = value ? Date.parse(value) : Number.NaN;
+  return Number.isFinite(parsed) ? parsed : Number.NEGATIVE_INFINITY;
+}
+
 function recentHeartbeat(heartbeatAt: string | null | undefined, processPid: number | null | undefined, now: Date) {
   const heartbeat = heartbeatAt ? Date.parse(heartbeatAt) : Number.NaN;
   const age = now.getTime() - heartbeat;
@@ -116,12 +121,17 @@ export function deriveDashboardOperationalStatus(
   now: Date,
   eneaBrowserWorker?: EneaBrowserWorkerSnapshot | null,
   watchdog?: AprWatchdogSnapshot | null,
+  eneaDraftExecution?: EneaDraftExecutionSnapshot | null,
 ): DashboardOperationalStatus {
+  const service = eneaBrowserWorker?.service;
+  const stoppedWorkerIsNewer = service?.status === "stopped"
+    && observedAt(service.heartbeatAt) >= observedAt(watchdog?.heartbeatAt);
   // LocalDashboardSupervisor uses a read-only placeholder identity when no
   // independent watchdog checkpoint exists.  It must never masquerade as the
   // separate watchdog process required by APR continuity.
   if (watchdog
     && watchdog.instanceId !== "dashboard-readonly-watchdog"
+    && !stoppedWorkerIsNewer
     && recentHeartbeat(watchdog.heartbeatAt, watchdog.processPid, now)) {
     const health: SupervisorSnapshot["health"] = watchdog.status === "WORKING"
       ? "runner_active"
@@ -144,7 +154,6 @@ export function deriveDashboardOperationalStatus(
     };
   }
 
-  const service = eneaBrowserWorker?.service;
   if (service && recentHeartbeat(service.heartbeatAt, service.processPid, now) && !["disabled", "stopped"].includes(service.status)) {
     const publicStatus: AprPublicRuntimeStatus = service.status === "running"
       ? "WORKING"
@@ -159,6 +168,21 @@ export function deriveDashboardOperationalStatus(
       reason: service.reason,
       nextAction: service.nextAction,
       currentPracticeId: null,
+    };
+  }
+
+  if (service?.status === "stopped") {
+    const operatorCase = eneaDraftExecution?.items.find((item) => item.state === "operator_intervention") ?? null;
+    const unfinished = eneaDraftExecution?.items.find((item) => !["saved", "operator_intervention", "deferred_operator"].includes(item.state)) ?? null;
+    const publicStatus: AprPublicRuntimeStatus = unfinished ? "TECHNICAL_BLOCK" : operatorCase ? "OPERATOR_REQUIRED" : "IDLE";
+    return {
+      publicStatus,
+      source: "worker",
+      health: publicStatus === "OPERATOR_REQUIRED" ? "operator_intervention" : publicStatus === "TECHNICAL_BLOCK" ? "technical_block" : "run_completed",
+      title: publicStatus === "OPERATOR_REQUIRED" ? "OPERATOR_REQUIRED — pratica isolata" : publicStatus === "TECHNICAL_BLOCK" ? "TECHNICAL_BLOCK — APR fermo con lavoro residuo" : "IDLE — coda vuota",
+      reason: unfinished ? `APR fermo prima del completamento di ${unfinished.displayName}.` : operatorCase?.reason ?? service.reason,
+      nextAction: unfinished ? "Riprendere il worker dal checkpoint persistente prima di dichiarare nuovo lavoro." : operatorCase?.nextAction ?? service.nextAction,
+      currentPracticeId: unfinished?.customerKey ?? operatorCase?.customerKey ?? null,
     };
   }
 
@@ -208,7 +232,7 @@ export function renderDashboardHtml(
   operatorUnlocks?: AprOperatorUnlockSnapshot | null,
 ) {
   const snapshot = supervise(state, now);
-  const operational = deriveDashboardOperationalStatus(snapshot, now, eneaBrowserWorker, watchdog);
+  const operational = deriveDashboardOperationalStatus(snapshot, now, eneaBrowserWorker, watchdog, eneaDraftExecution);
   const counts = state.queue.reduce<Record<string, number>>((result, job) => {
     result[job.executionState] = (result[job.executionState] ?? 0) + 1;
     return result;
@@ -463,7 +487,7 @@ export function writeLocalDashboard(
   const directory = path.join(path.resolve(rootDirectory), "dashboard");
   mkdirSync(directory, { recursive: true, mode: 0o700 });
   const snapshot = supervise(state, now);
-  const operational = deriveDashboardOperationalStatus(snapshot, now, eneaBrowserWorker, watchdog);
+  const operational = deriveDashboardOperationalStatus(snapshot, now, eneaBrowserWorker, watchdog, eneaDraftExecution);
   const publicSnapshot = operational.source === "legacy_runner" ? {
     ...snapshot,
     publicStatus: operational.publicStatus,
@@ -482,4 +506,20 @@ export function writeLocalDashboard(
   atomicWrite(path.join(directory, "status.json"), `${JSON.stringify(publicSnapshot, null, 2)}\n`);
   atomicWrite(path.join(directory, "index.html"), renderDashboardHtml(state, now, runtime, null, readiness, adapter, executionPlan, localDossier, batchReport, ruleMatrix, crmReadOnlyAdapter, pilotSample, notifications, crmAuth, crmAcquisition, crmDocuments, crmDocumentAnalysis, crmLocalPreflight, eneaDraftExecution, eneaBrowserWorker, watchdog, operatorQuestions, csrfToken, crmWorkflow, crmIncoming, crmLiveProcessing, shadowComparison, shadowControl, infissiLocalMapping, infissiBatchPreflight, deepCaseReview, operatorUnlocks));
   return snapshot;
+}
+
+export function writeStoppedAprOperationalDashboard(
+  rootDirectory: string,
+  state: PersistentRunnerState,
+  now: Date,
+  runtime: DashboardSupervisorRuntime | null,
+  readiness: ReadinessLeaseSnapshot,
+  adapter: ReadOnlyAdapterSnapshot,
+  eneaDraftExecution: EneaDraftExecutionSnapshot,
+  eneaBrowserWorker: EneaBrowserWorkerSnapshot,
+  watchdog: AprWatchdogSnapshot,
+) {
+  return writeLocalDashboard(rootDirectory, state, now, runtime, readiness, adapter,
+    undefined, undefined, undefined, null, null, null, null, null, null, null, null, null,
+    eneaDraftExecution, eneaBrowserWorker, watchdog);
 }

@@ -807,6 +807,49 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     expect(resumed.items[0].pageCheckpoints.filter((checkpoint) => checkpoint.state === "pending").every((checkpoint) => checkpoint.saveAttemptCount === 0)).toBe(true);
   });
 
+  it("riprende il timeout pre-Salva della riga successiva preservando le righe infissi staged", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare(preflightFixture());
+    runner.recordSessionReady("dom-server-auth-timeout-staged", "session:ready:timeout-staged");
+    runner.recordCreateIntent("lorena-brendas", "lorena:create:intent:timeout-staged");
+    runner.recordDraftCreated("lorena-brendas", "DRAFT-STAGED", "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/DRAFT-STAGED", "server-draft-staged", "lorena:created:timeout-staged");
+    const state = runner.load();
+    const item = state.items[0];
+    item.completedPageIds = item.expectedPageIds.slice(0, 2);
+    for (const [index, pageId] of item.completedPageIds.entries()) item.pageCheckpoints[index] = { ...item.pageCheckpoints[index], pageId, state: "saved", saveAttemptCount: 1, preparedEvidenceId: `prepared-${index}`, savedEvidenceId: `saved-${index}` };
+    item.pageCheckpoints[2] = { ...item.pageCheckpoints[2], pageId: "screening:1", state: "staged", saveAttemptCount: 1, preparedEvidenceId: "prepared-row-1", stagedEvidenceId: "staged-row-1" };
+    item.pageCheckpoints[3] = { ...item.pageCheckpoints[3], pageId: "screening:2", state: "pending", saveAttemptCount: 0 };
+    writeFileSync(runner.checkpointPath, `${JSON.stringify(state, null, 2)}\n`);
+    runner.recordCaseBlockedAndContinue("lorena-brendas", "Errore circoscritto alla pratica: apr_cdp_command_timeout:Runtime.evaluate", "pre-save-timeout-row-2", "lorena:blocked:timeout-staged");
+
+    const resumed = runner.resumeCreatedDraftAfterTransientReadOnlyTimeout("lorena-brendas", "pre-save-timeout-row-2", "lorena:resume:timeout-staged");
+
+    expect(resumed.items[0]).toMatchObject({ state: "filling", draftId: "DRAFT-STAGED", createAttemptCount: 1, saveAttemptCount: 0 });
+    expect(resumed.items[0].pageCheckpoints.find((page) => page.pageId === "screening:1")).toMatchObject({ state: "staged", saveAttemptCount: 1, stagedEvidenceId: "staged-row-1" });
+    expect(resumed.items[0].pageCheckpoints.find((page) => page.pageId === "screening:2")).toMatchObject({ state: "pending", saveAttemptCount: 0 });
+  });
+
+  it("rifiuta il recupero del timeout se una riga staged non ha prova dedicata", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare(preflightFixture());
+    runner.recordSessionReady("dom-server-auth-timeout-bad-staged", "session:ready:timeout-bad-staged");
+    runner.recordCreateIntent("lorena-brendas", "lorena:create:intent:timeout-bad-staged");
+    runner.recordDraftCreated("lorena-brendas", "DRAFT-BAD-STAGED", "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/DRAFT-BAD-STAGED", "server-draft-bad-staged", "lorena:created:timeout-bad-staged");
+    const state = runner.load();
+    const screeningIndex = state.items[0].pageCheckpoints.findIndex((page) => page.pageId.startsWith("screening:"));
+    expect(screeningIndex).toBeGreaterThanOrEqual(0);
+    state.items[0].pageCheckpoints[screeningIndex] = { ...state.items[0].pageCheckpoints[screeningIndex], state: "staged", saveAttemptCount: 1, preparedEvidenceId: "prepared-row-1", stagedEvidenceId: "staged-row-1" };
+    writeFileSync(runner.checkpointPath, `${JSON.stringify(state, null, 2)}\n`);
+    runner.recordCaseBlockedAndContinue("lorena-brendas", "Errore circoscritto alla pratica: apr_cdp_command_timeout:Runtime.evaluate", "pre-save-timeout-bad-staged", "lorena:blocked:timeout-bad-staged");
+    const corrupted = runner.load();
+    corrupted.items[0].pageCheckpoints[screeningIndex].stagedEvidenceId = null;
+    writeFileSync(runner.checkpointPath, `${JSON.stringify(corrupted, null, 2)}\n`);
+
+    expect(() => runner.resumeCreatedDraftAfterTransientReadOnlyTimeout("lorena-brendas", "pre-save-timeout-bad-staged", "lorena:resume:timeout-bad-staged")).toThrow("enea_transient_readonly_timeout_recovery_case_invalid");
+  });
+
   it("riprende dopo Promise was collected preservando la pagina salvata e senza tentare il Salva successivo", () => {
     const directory = temporaryDirectory();
     const runner = new PersistentAprEneaDraftExecution(directory);

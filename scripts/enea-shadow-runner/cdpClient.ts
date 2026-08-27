@@ -91,7 +91,18 @@ export class CdpPageClient {
     await this.connect();
     const id = ++this.sequence;
     return new Promise<T>((resolve, reject) => {
-      const timer = setTimeout(() => { this.pending.delete(id); reject(new Error(`apr_cdp_command_timeout:${method}`)); }, timeoutMs);
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        // A Runtime.evaluate that outlives a React remount can leave this CDP
+        // session unusable even though the Chrome tab itself is still valid.
+        // Detach only the websocket: the next read/preparation gets a fresh
+        // client for the same target and no browser mutation is repeated.
+        const socket = this.socket;
+        this.socket = null;
+        if (socket && socket.readyState !== WebSocket.CLOSED) socket.close();
+        this.reportClosed();
+        reject(new Error(`apr_cdp_command_timeout:${method}`));
+      }, timeoutMs);
       this.pending.set(id, { resolve: (value) => resolve(value as T), reject, timer });
       this.socket!.send(JSON.stringify({ id, method, params }));
     });

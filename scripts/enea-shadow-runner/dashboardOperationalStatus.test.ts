@@ -83,6 +83,53 @@ describe("verità operativa dashboard APR", () => {
     expect(result).toMatchObject({ publicStatus: null, source: "legacy_runner", health: "runner_off" });
   });
 
+  it("non lascia WORKING quando lo stop worker e' successivo all'ultimo heartbeat watchdog", () => {
+    const result = deriveDashboardOperationalStatus(legacy, now, {
+      service: {
+        status: "stopped",
+        processPid: 0,
+        heartbeatAt: "2026-08-25T09:59:59.000Z",
+        reason: "Worker arrestato in sicurezza.",
+        nextAction: "Riprendere dal checkpoint.",
+      },
+    } as never, {
+      version: "apr-watchdog-v1",
+      revision: 7,
+      status: "WORKING",
+      instanceId: "watchdog-stale-after-worker-stop",
+      processPid: 123,
+      heartbeatAt: "2026-08-25T09:59:58.000Z",
+      currentCustomerKey: "fixture",
+      currentDisplayName: "Fixture",
+      currentPhase: "bozza_enea",
+      phaseStartedAt: now.toISOString(),
+      lastProgressAt: now.toISOString(),
+      progressToken: "working",
+      nextAction: "Continuare.",
+      supervisorPid: 121,
+      workerPid: 122,
+      pendingRecovery: null,
+      recoveryCount: 0,
+      reason: "WORKING non piu' autorevole.",
+      audit: [],
+    }, {
+      items: [{ customerKey: "fixture", displayName: "Fixture", state: "operator_intervention", reason: "Timeout tecnico isolato.", nextAction: "Revisionare il caso." }],
+    } as never);
+
+    expect(result).toMatchObject({ publicStatus: "OPERATOR_REQUIRED", source: "worker", health: "operator_intervention", currentPracticeId: "fixture" });
+    expect(result.reason).toBe("Timeout tecnico isolato.");
+  });
+
+  it("dichiara TECHNICAL_BLOCK se APR e' fermo con lavoro ancora eseguibile", () => {
+    const result = deriveDashboardOperationalStatus(legacy, now, {
+      service: { status: "stopped", processPid: 0, heartbeatAt: now.toISOString(), reason: "Worker fermo.", nextAction: "Riprendere." },
+    } as never, null, {
+      items: [{ customerKey: "fixture", displayName: "Fixture", state: "filling", reason: "Compilazione parziale.", nextAction: "Continuare." }],
+    } as never);
+
+    expect(result).toMatchObject({ publicStatus: "TECHNICAL_BLOCK", source: "worker", health: "technical_block", currentPracticeId: "fixture" });
+  });
+
   it("scrive status.json dalla verità watchdog invece del journal storico", () => {
     const directory = mkdtempSync(path.join(tmpdir(), "apr-dashboard-truth-"));
     try {

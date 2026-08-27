@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import type { AddressInfo } from "node:net";
 import path from "node:path";
-import { deriveDashboardOperationalStatus, renderDashboardHtml, writeLocalDashboard } from "./dashboard";
+import { deriveDashboardOperationalStatus, renderDashboardHtml, writeLocalDashboard, writeStoppedAprOperationalDashboard } from "./dashboard";
 import { JournalStore } from "./journalStore";
 import { PersistentEneaRunner } from "./runner";
 import { PersistentReadinessLease } from "./readinessLease";
@@ -1010,6 +1010,18 @@ export class LocalDashboardSupervisor {
     if (this.server) await new Promise<void>((resolve, reject) => this.server!.close((error) => error ? reject(error) : resolve()));
     this.server = null;
     if (this.runtime) this.runtime = this.runtimeStore.stop(this.instanceId, reason, this.now());
+    const now = this.now();
+    writeStoppedAprOperationalDashboard(
+      this.rootDirectory,
+      this.journal.load(),
+      now,
+      this.runtime,
+      this.readinessStore.snapshot(now),
+      this.adapterStore.snapshot(now),
+      this.eneaDraftExecution.snapshot(now),
+      this.eneaBrowserWorker.snapshot(now),
+      this.watchdog.load(now),
+    );
     this.currentUrl = null;
     return this.runtime;
   }

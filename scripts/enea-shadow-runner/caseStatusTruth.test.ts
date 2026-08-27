@@ -50,7 +50,7 @@ describe("verita autorevole dello stato pratica APR", () => {
     expect(truth).toMatchObject({ status: "READY", hasProblem: false, blockerCount: 0, statement: expect.stringContaining("Nessun problema") });
   });
 
-  it("espone TECHNICAL_BLOCK se il preflight è verde ma il portale ha un esito tecnico incerto", () => {
+  it("espone BLOCKED/operatore se il preflight è verde ma il solo caso ha un esito tecnico incerto", () => {
     const preflightTruth = deriveAprCaseStatusTruth(item({}));
     const truth = reconcileAprCaseTruthWithDraftExecution(preflightTruth, {
       customerKey: "giulia-albanese",
@@ -59,12 +59,13 @@ describe("verita autorevole dello stato pratica APR", () => {
       uncertainPageSave: { status: "operator_required" },
     } as never);
     expect(truth).toMatchObject({
-      status: "TECHNICAL_BLOCK",
-      hasProblem: null,
-      blockerCount: 0,
-      statement: expect.stringContaining("Nessun blocker business"),
+      status: "BLOCKED",
+      hasProblem: true,
+      blockerCount: 1,
+      blockerCodes: ["execution_case_operator_required"],
+      statement: expect.stringContaining("la coda prosegue"),
     });
-    expect(() => assertAprCaseProblemClaim(truth, "problem")).toThrow("apr_case_claim_not_terminal:TECHNICAL_BLOCK");
+    expect(assertAprCaseProblemClaim(truth, "problem")).toBe(true);
   });
 
   it("espone IN_PROGRESS quando il preflight è pronto e il checkpoint portale sta salvando", () => {

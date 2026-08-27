@@ -176,9 +176,13 @@ export function reconcileAprCaseTruthWithDraftExecution(
     if (truth.status === "READY" && technicalPortalStop) {
       return {
         ...truth,
-        status: "TECHNICAL_BLOCK",
-        hasProblem: null,
-        statement: `Nessun blocker business nel preflight; esecuzione portale arrestata in sicurezza per motivo tecnico: ${executionItem.reason}`,
+        status: "BLOCKED",
+        hasProblem: true,
+        blockerCount: 1,
+        blockerCodes: ["execution_case_operator_required"],
+        sourceState: "blocked_case",
+        reportOutcome: "blocked_case",
+        statement: `Richiesto intervento operatore per il solo caso; la coda prosegue: ${executionItem.reason}`,
       };
     }
     return {

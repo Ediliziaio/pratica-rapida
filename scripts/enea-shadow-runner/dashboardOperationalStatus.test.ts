@@ -120,6 +120,45 @@ describe("verità operativa dashboard APR", () => {
     expect(result.reason).toBe("Timeout tecnico isolato.");
   });
 
+  it("preferisce un login_required worker piu recente a un vecchio recupero tecnico watchdog", () => {
+    const result = deriveDashboardOperationalStatus(legacy, now, {
+      service: {
+        status: "login_required",
+        processPid: 124,
+        heartbeatAt: "2026-08-25T09:59:59.000Z",
+        reason: "Logout ENEA provato dal keepalive APR; coda globale sospesa.",
+        nextAction: "Completare nuovamente il login nel profilo APR.",
+      },
+    } as never, {
+      version: "apr-watchdog-v1",
+      revision: 8,
+      status: "TECHNICAL_BLOCK",
+      instanceId: "watchdog-before-worker-restart",
+      processPid: 123,
+      heartbeatAt: "2026-08-25T09:59:58.000Z",
+      currentCustomerKey: null,
+      currentDisplayName: null,
+      currentPhase: "intervento_operatore",
+      phaseStartedAt: now.toISOString(),
+      lastProgressAt: now.toISOString(),
+      progressToken: "recovery-requested",
+      nextAction: "Riavviare worker.",
+      supervisorPid: 121,
+      workerPid: null,
+      pendingRecovery: null,
+      recoveryCount: 1,
+      reason: "Worker non ripristinato.",
+      audit: [],
+    });
+
+    expect(result).toMatchObject({
+      publicStatus: "TECHNICAL_BLOCK",
+      source: "worker",
+      health: "technical_block",
+      reason: "Logout ENEA provato dal keepalive APR; coda globale sospesa.",
+    });
+  });
+
   it("dichiara TECHNICAL_BLOCK se APR e' fermo con lavoro ancora eseguibile", () => {
     const result = deriveDashboardOperationalStatus(legacy, now, {
       service: { status: "stopped", processPid: 0, heartbeatAt: now.toISOString(), reason: "Worker fermo.", nextAction: "Riprendere." },

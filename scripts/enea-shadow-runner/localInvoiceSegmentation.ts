@@ -164,6 +164,7 @@ export function reconcileLocalInvoiceSegments(segments: readonly LocalInvoiceSeg
   const nonFiscalTechnicalSourceIds = uniqueSegments.filter(isNonFiscalTechnicalWorksheet).map((segment) => segment.sourceId);
   const uniqueFinancialSegments = uniqueSegments.filter((segment) => !isNonFiscalTechnicalWorksheet(segment));
   const replacedFinancialSourceIds = new Set<string>();
+  const replacementPairs: Array<{ replacementSourceId: string; replacedSourceId: string }> = [];
   for (const replacement of uniqueFinancialSegments) {
     for (const replacedNumber of replacement.replacedInvoiceNumbers) {
       const exactMatches = uniqueFinancialSegments.filter((candidate) => candidate !== replacement
@@ -176,7 +177,10 @@ export function reconcileLocalInvoiceSegments(segments: readonly LocalInvoiceSeg
       // Il match abbreviato e' ammesso soltanto se individua un solo documento:
       // in presenza di omonimie si resta fail-closed.
       const matches = exactMatches.length ? exactMatches : baseNumberMatches.length === 1 ? baseNumberMatches : [];
-      for (const candidate of matches) replacedFinancialSourceIds.add(candidate.sourceId);
+      for (const candidate of matches) {
+        replacedFinancialSourceIds.add(candidate.sourceId);
+        replacementPairs.push({ replacementSourceId: replacement.sourceId, replacedSourceId: candidate.sourceId });
+      }
     }
   }
   const effectiveFinancialSegments = uniqueFinancialSegments.filter((segment) => !replacedFinancialSourceIds.has(segment.sourceId));
@@ -202,11 +206,13 @@ export function reconcileLocalInvoiceSegments(segments: readonly LocalInvoiceSeg
     }
   }
   return {
+    observedFinancialSegments: uniqueFinancialSegments,
     uniqueFinancialSegments: effectiveFinancialSegments,
     technicalSegments: uniqueSegments.filter((segment) => !supersededTechnicalSourceIds.has(segment.sourceId) && !replacedFinancialSourceIds.has(segment.sourceId)),
     discardedDuplicateSourceIds: [...new Set(discardedDuplicateSourceIds)].sort(),
     nonFiscalTechnicalSourceIds: [...new Set(nonFiscalTechnicalSourceIds)].sort(),
     supersededTechnicalSourceIds: [...supersededTechnicalSourceIds].sort(),
     replacedFinancialSourceIds: [...replacedFinancialSourceIds].sort(),
+    replacementPairs: replacementPairs.sort((left, right) => `${left.replacementSourceId}|${left.replacedSourceId}`.localeCompare(`${right.replacementSourceId}|${right.replacedSourceId}`)),
   };
 }

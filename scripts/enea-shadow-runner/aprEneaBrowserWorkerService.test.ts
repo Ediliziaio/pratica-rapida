@@ -425,6 +425,34 @@ describe("gate permanente del servizio browser APR", () => {
     expect(service.configure({ operationalEnabled: true })).toMatchObject({ operationalEnabled: true });
   });
 
+  it("arma un timeout pre-Salva con righe staged valide e respinge staged senza prova", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-service-staged-timeout-gate-")); directories.push(root);
+    const practiceId = "practice-staged-timeout";
+    const service = new PersistentAprEneaWorkerService(root); service.configure({ setupEnabled: true });
+    service.record({ instanceId: "apr-worker-test", processPid: 108, status: "setup_ready", type: "setup_ready", reason: "Sessione e contratto pronti.", nextAction: "Gate timeout staged." });
+    mkdirSync(path.join(root, "enea-browser-worker"), { recursive: true }); writeFileSync(path.join(root, "enea-browser-worker", "cdp-driver.json"), JSON.stringify({ contract: { ready: true } })); writeServerProbeGate(root);
+    mkdirSync(path.join(root, "cohort-seed"), { recursive: true }); writeFileSync(path.join(root, "cohort-seed", "checkpoint.json"), JSON.stringify({ status: "prepared", candidates: [{ customerKey: "case-one", practiceId }], audit: [{ appliedRuleIds: ["user-2026-08-18-single-case-regression-test"] }] }));
+    mkdirSync(path.join(root, "enea-draft-execution"), { recursive: true });
+    const execution = { previewAllowed: false, submitAllowed: false, communicationsAllowed: false, items: [{
+      customerKey: "case-one", state: "operator_intervention", draftId: "438729", createAttemptCount: 1, saveAttemptCount: 0,
+      completedPageIds: ["page:Beneficiario"],
+      pageCheckpoints: [
+        { pageId: "page:Beneficiario", state: "saved", saveAttemptCount: 1, savedEvidenceId: "server-beneficiary" },
+        { pageId: "screening:1", state: "staged", saveAttemptCount: 1, stagedEvidenceId: "staged-row-1" },
+        { pageId: "screening:2", state: "pending", saveAttemptCount: 0 },
+      ],
+      reason: "Errore circoscritto alla pratica: apr_cdp_command_timeout:Runtime.evaluate",
+    }] };
+    writeFileSync(path.join(root, "enea-draft-execution", "checkpoint.json"), JSON.stringify(execution));
+    armVerifiedMapperBridge(root, "case-one", practiceId);
+    expect(service.autoArm()).toMatchObject({ armed: true, config: { operationalEnabled: true } });
+
+    service.configure({ operationalEnabled: false });
+    execution.items[0].pageCheckpoints[1].stagedEvidenceId = null as never;
+    writeFileSync(path.join(root, "enea-draft-execution", "checkpoint.json"), JSON.stringify(execution));
+    expect(service.autoArm()).toMatchObject({ armed: false });
+  });
+
   it("riconosce due checkpoint legacy con Salva incerto come coda recuperabile in sola lettura", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-service-legacy-save-gate-")); directories.push(root);
     const service = new PersistentAprEneaWorkerService(root); service.configure({ setupEnabled: true });

@@ -195,7 +195,7 @@ export class PersistentAprEneaWorkerService {
     if (next.operationalEnabled && !next.setupEnabled) throw new Error("apr_enea_worker_operational_requires_setup");
     if (next.operationalEnabled) {
       const service = this.loadState(now);
-      let driver: { contract?: { ready?: boolean } | null } = {}; let execution: { currentCustomerKey?: string | null; items?: Array<{ customerKey?: string; state?: string; draftId?: string | null; createAttemptCount?: number; saveAttemptCount?: number; completedPageIds?: string[]; pageCheckpoints?: Array<{ pageId?: string; state?: string; saveAttemptCount?: number; recoverySaveAttemptCount?: number }>; uncertainPageSave?: { status?: string; probes?: Array<{ method?: string; outcome?: string; reason?: string; url?: string }> } | null; reason?: string }>; previewAllowed?: boolean; submitAllowed?: boolean; communicationsAllowed?: boolean } = {};
+      let driver: { contract?: { ready?: boolean } | null } = {}; let execution: { currentCustomerKey?: string | null; items?: Array<{ customerKey?: string; state?: string; draftId?: string | null; createAttemptCount?: number; saveAttemptCount?: number; completedPageIds?: string[]; pageCheckpoints?: Array<{ pageId?: string; state?: string; saveAttemptCount?: number; recoverySaveAttemptCount?: number; stagedEvidenceId?: string | null }>; uncertainPageSave?: { status?: string; probes?: Array<{ method?: string; outcome?: string; reason?: string; url?: string }> } | null; reason?: string }>; previewAllowed?: boolean; submitAllowed?: boolean; communicationsAllowed?: boolean } = {};
       type RuntimeCohortSeed = { status?: string; repeatTest?: { deletionProofRequired?: boolean } | null; candidates?: Array<{ customerKey?: string; practiceId?: string }>; audit?: Array<{ appliedRuleIds?: string[] }>; verifiedMapperBridgeRequired?: true };
       let cohortSeed: RuntimeCohortSeed | null = null;
       let preflight: { items?: Array<{ customerKey?: string; state?: string }> } = {};
@@ -219,7 +219,13 @@ export class PersistentAprEneaWorkerService {
         const legacyUncertainSave = Boolean(item.draftId) && (item.pageCheckpoints ?? []).some((checkpoint) => checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount !== 1 && !/Generatore/.test(checkpoint.pageId ?? "") && !(checkpoint.pageId ?? "").startsWith("screening:")) && (item.uncertainPageSave?.status === "probing" || repairableMappingProbe || serverProvenNotSaved || /(?:Esito salvataggio pagina|apr_cdp_command_timeout:Runtime\.evaluate)/.test(item.reason ?? ""));
         const unclickedRecovery = Boolean(item.draftId) && item.uncertainPageSave?.status === "recovery_authorized" && (item.pageCheckpoints ?? []).some((checkpoint) => checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 1) && /apr_cdp_enea_unique_enabled_save_button_not_found:/.test(item.reason ?? "");
         const recoveryTimeoutVerification = Boolean(item.draftId) && item.uncertainPageSave?.status === "operator_required" && (item.pageCheckpoints ?? []).some((checkpoint) => checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 1) && /unico recupero autorizzato ha esito incerto/.test(item.reason ?? "");
-        return duplicateDiscovery || conditionalControl || legacyUncertainSave || unclickedRecovery || recoveryTimeoutVerification;
+        const transientPreSaveTimeout = Boolean(item.draftId)
+          && /apr_cdp_(?:command_timeout:Runtime\.evaluate|connection_closed|protocol_error:-32000:(?:Promise was collected|Inspected target navigated or closed))/.test(item.reason ?? "")
+          && (item.pageCheckpoints ?? []).some((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0)
+          && (item.pageCheckpoints ?? []).every((checkpoint) => checkpoint.state === "saved"
+            || (checkpoint.state === "staged" && checkpoint.saveAttemptCount === 1 && Boolean(checkpoint.stagedEvidenceId))
+            || (checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0));
+        return duplicateDiscovery || conditionalControl || legacyUncertainSave || unclickedRecovery || recoveryTimeoutVerification || transientPreSaveTimeout;
       }) ?? [];
       const runnable = runnableItems.length;
       const ciottaSafe = [...(execution.items ?? []), ...(preflight.items ?? [])].every((item) => item.customerKey !== "beatrice-ciotta" || item.state === "deferred_operator");

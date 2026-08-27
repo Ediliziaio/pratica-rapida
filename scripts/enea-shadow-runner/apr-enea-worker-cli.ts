@@ -419,6 +419,15 @@ async function serve() {
             }
             executionBeforeTick = execution.snapshot();
             driverSnapshotForRecovery = driver.snapshot();
+          } else if (submittedPendingOwner.createRecoveryAttemptCount === 1
+            && driver.verifyPendingCreateAbsentReadOnly
+            && driver.quarantinePendingCreateAfterExhaustedRetry) {
+            const draftPackage = draftPackageFor(submittedPendingOwner.customerKey);
+            const proof = await driver.verifyPendingCreateAbsentReadOnly(draftPackage);
+            const quarantine = driver.quarantinePendingCreateAfterExhaustedRetry(draftPackage, proof);
+            service.record({ instanceId, processPid: process.pid, status: "running", type: "case_isolated", reason: `${submittedPendingOwner.displayName}: anche il solo tentativo automatico di recupero non ha prodotto una bozza identificabile; nessun ulteriore tentativo e consentito.`, nextAction: "La pratica resta in intervento operatore; la barriera di creazione e stata rimossa e APR continua con la successiva.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: quarantine.evidenceId });
+            executionBeforeTick = execution.snapshot();
+            driverSnapshotForRecovery = driver.snapshot();
           }
         }
         const creationSurface = driverSnapshotForRecovery.creationSurface;

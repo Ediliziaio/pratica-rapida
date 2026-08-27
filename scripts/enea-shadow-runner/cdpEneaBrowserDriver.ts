@@ -92,7 +92,7 @@ interface DriverState {
   identity: string;
   activeTargetId: string | null;
   pendingCreate: { packageFingerprint: string; customerKey: string; beforeDraftIds: string[]; startedAt: string; wizardSubmitAttemptCount: 0 | 1; wizardSubmitAttemptedAt: string | null; wizardContractFingerprint: string | null } | null;
-  createRecoveryRecords: Array<{ customerKey: string; packageFingerprint: string; status: "retry_authorized" | "quarantined_inconclusive"; evidenceIds: [string, string]; recordedAt: string }>;
+  createRecoveryRecords: Array<{ customerKey: string; packageFingerprint: string; status: "retry_authorized" | "quarantined_inconclusive" | "retry_exhausted_quarantined"; evidenceIds: [string, string]; recordedAt: string }>;
   creationSurface: { observedAt: string; customerKey: string; url: string; forms: Array<{ id: string; method: string; path: string }>; controls: Array<{ tag: string; type: string; id: string; name: string; label: string; options: string[] }>; actions: Array<{ tag: string; type: string; label: string; path: string }>; evidenceId: string } | null;
   mappings: Array<{ packageFingerprint: string; customerKey: string; draftId: string; url: string; mappedAt: string }>;
   contract: { observedAt: string; ready: boolean; operationalUrl: string | null; createCandidateCount: number; createCandidateFingerprints: string[]; forbiddenCandidateCount: number; navigationCandidates: Array<{ tag: string; label: string; path: string }>; evidenceId: string } | null;
@@ -776,7 +776,9 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       || pending.customerKey !== draftPackage.customerKey
       || pending.packageFingerprint !== draftPackage.packageFingerprint
       || pending.wizardSubmitAttemptCount !== 1) throw new Error("apr_cdp_enea_create_absence_probe_state_invalid");
-    if (this.load().createRecoveryRecords.some((record) => record.customerKey === draftPackage.customerKey && record.packageFingerprint === draftPackage.packageFingerprint)) throw new Error("apr_cdp_enea_create_absence_recovery_already_recorded");
+    if (this.load().createRecoveryRecords.some((record) => record.customerKey === draftPackage.customerKey
+      && record.packageFingerprint === draftPackage.packageFingerprint
+      && record.status !== "retry_authorized")) throw new Error("apr_cdp_enea_create_absence_recovery_already_recorded");
 
     const readings: Array<{ evidenceId: string; candidates: string[]; authenticated: boolean }> = [];
     for (let sequence = 1; sequence <= 2; sequence += 1) {
@@ -809,8 +811,10 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     };
   }
 
-  private closePendingCreateFromProof(draftPackage: AprEneaDraftPackage, proof: AprEneaDraftCreationAbsenceProof, status: "retry_authorized" | "quarantined_inconclusive") {
+  private closePendingCreateFromProof(draftPackage: AprEneaDraftPackage, proof: AprEneaDraftCreationAbsenceProof, status: "retry_authorized" | "quarantined_inconclusive" | "retry_exhausted_quarantined") {
     const state = this.load();
+    const priorRecords = state.createRecoveryRecords.filter((record) => record.customerKey === draftPackage.customerKey && record.packageFingerprint === draftPackage.packageFingerprint);
+    const expectedPriorRecordCount = status === "retry_exhausted_quarantined" ? 1 : 0;
     if (!state.pendingCreate
       || state.pendingCreate.customerKey !== draftPackage.customerKey
       || state.pendingCreate.packageFingerprint !== draftPackage.packageFingerprint
@@ -818,7 +822,8 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       || proof.customerKey !== draftPackage.customerKey
       || proof.packageFingerprint !== draftPackage.packageFingerprint
       || proof.evidenceIds[0] === proof.evidenceIds[1]
-      || state.createRecoveryRecords.some((record) => record.customerKey === draftPackage.customerKey && record.packageFingerprint === draftPackage.packageFingerprint)) throw new Error("apr_cdp_enea_create_absence_proof_invalid");
+      || priorRecords.length !== expectedPriorRecordCount
+      || (status === "retry_exhausted_quarantined" && priorRecords[0]?.status !== "retry_authorized")) throw new Error("apr_cdp_enea_create_absence_proof_invalid");
     if (status === "retry_authorized" && !proof.conclusivelyAbsent) throw new Error("apr_cdp_enea_create_retry_requires_conclusive_absence");
     if (status === "quarantined_inconclusive" && proof.conclusivelyAbsent) throw new Error("apr_cdp_enea_conclusive_absence_must_authorize_retry");
     for (const [index, evidenceId] of proof.evidenceIds.entries()) {
@@ -830,7 +835,12 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     const at = new Date().toISOString();
     const evidenceId = `cdp-local-${state.revision}-${sha256({ customerKey: draftPackage.customerKey, proof, status }).slice(0, 20)}`;
     state.createRecoveryRecords.push({ customerKey: draftPackage.customerKey, packageFingerprint: draftPackage.packageFingerprint, status, evidenceIds: proof.evidenceIds, recordedAt: at });
-    state.events.push({ revision: state.revision, at, action: status === "retry_authorized" ? "authorize_single_create_retry_after_double_absence" : "quarantine_pending_create_after_inconclusive_reads", evidenceId, url: this.dashboardUrl, targetId: state.activeTargetId, customerKey: draftPackage.customerKey, draftId: null, pageId: null, domSha256: sha256(proof), appliedRuleIds: ["system-draft-create-double-absence-single-retry", "system-atomic-checkpoint-resume", "system-single-active-practice"] });
+    const action = status === "retry_authorized"
+      ? "authorize_single_create_retry_after_double_absence"
+      : status === "retry_exhausted_quarantined"
+        ? "quarantine_pending_create_after_exhausted_retry"
+        : "quarantine_pending_create_after_inconclusive_reads";
+    state.events.push({ revision: state.revision, at, action, evidenceId, url: this.dashboardUrl, targetId: state.activeTargetId, customerKey: draftPackage.customerKey, draftId: null, pageId: null, domSha256: sha256(proof), appliedRuleIds: ["system-draft-create-double-absence-single-retry", "system-atomic-checkpoint-resume", "system-single-active-practice"] });
     state.pendingCreate = null;
     state.creationSurface = null;
     this.write(state);
@@ -843,6 +853,10 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
 
   quarantinePendingCreateAfterInconclusive(draftPackage: AprEneaDraftPackage, proof: AprEneaDraftCreationAbsenceProof) {
     return this.closePendingCreateFromProof(draftPackage, proof, "quarantined_inconclusive");
+  }
+
+  quarantinePendingCreateAfterExhaustedRetry(draftPackage: AprEneaDraftPackage, proof: AprEneaDraftCreationAbsenceProof) {
+    return this.closePendingCreateFromProof(draftPackage, proof, "retry_exhausted_quarantined");
   }
 
   async rebindLegacyMappingReadOnly(draftPackage: AprEneaDraftPackage, draftId: string) {

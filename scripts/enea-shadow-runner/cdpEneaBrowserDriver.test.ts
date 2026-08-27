@@ -1057,6 +1057,32 @@ describe("driver Chrome persistente di APR", () => {
     expect(driver.snapshot()).toMatchObject({ pendingCreate: null, createRecoveryRecords: [{ customerKey: "case-inconclusive", status: "quarantined_inconclusive" }] });
   }, 30_000);
 
+  it.runIf(process.platform === "darwin")("dopo l'unico retry esaurito non crea ancora e rimuove la barriera globale", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-create-retry-exhausted-")); directories.push(root);
+    const origin = await fixtureServer();
+    const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/dashboard` });
+    runtimes.push(runtime); await runtime.ensureRunning();
+    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
+    await driver.verifySession();
+    const checkpointPath = path.join(root, "enea-browser-worker", "cdp-driver.json");
+    const state = driver.snapshot();
+    state.pendingCreate = { packageFingerprint: "package-case-exhausted", customerKey: "case-exhausted", beforeDraftIds: [], startedAt: new Date().toISOString(), wizardSubmitAttemptCount: 1, wizardSubmitAttemptedAt: new Date().toISOString(), wizardContractFingerprint: "fixture-second-attempt" };
+    state.createRecoveryRecords = [{ customerKey: "case-exhausted", packageFingerprint: "package-case-exhausted", status: "retry_authorized", evidenceIds: ["first-read-1", "first-read-2"], recordedAt: new Date().toISOString() }];
+    writeFileSync(checkpointPath, `${JSON.stringify(state, null, 2)}\n`);
+    const draft = draftPackage("case-exhausted");
+    const proof = await driver.verifyPendingCreateAbsentReadOnly(draft);
+    expect(proof.conclusivelyAbsent).toBe(true);
+    expect(() => driver.authorizeSingleCreateRetryAfterAbsence(draft, proof)).toThrow("apr_cdp_enea_create_absence_proof_invalid");
+    driver.quarantinePendingCreateAfterExhaustedRetry(draft, proof);
+    expect(driver.snapshot()).toMatchObject({
+      pendingCreate: null,
+      createRecoveryRecords: [
+        { customerKey: "case-exhausted", status: "retry_authorized" },
+        { customerKey: "case-exhausted", status: "retry_exhausted_quarantined" },
+      ],
+    });
+  }, 30_000);
+
   it.runIf(process.platform === "darwin")("staggia il generatore, salva una sola volta la pagina impianto e verifica entrambi lato server", async () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-generator-")); directories.push(root);
     const origin = await fixtureServer();

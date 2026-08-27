@@ -83,6 +83,7 @@ export interface AprEneaBrowserDriver {
   verifyPendingCreateAbsentReadOnly?(draftPackage: AprEneaDraftPackage): Promise<AprEneaDraftCreationAbsenceProof>;
   authorizeSingleCreateRetryAfterAbsence?(draftPackage: AprEneaDraftPackage, proof: AprEneaDraftCreationAbsenceProof): AprEneaDriverEvidence;
   quarantinePendingCreateAfterInconclusive?(draftPackage: AprEneaDraftPackage, proof: AprEneaDraftCreationAbsenceProof): AprEneaDriverEvidence;
+  quarantinePendingCreateAfterExhaustedRetry?(draftPackage: AprEneaDraftPackage, proof: AprEneaDraftCreationAbsenceProof): AprEneaDriverEvidence;
   createDraft(draftPackage: AprEneaDraftPackage): Promise<AprEneaDraftEvidence>;
   preparePage(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence>;
   savePage(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence>;

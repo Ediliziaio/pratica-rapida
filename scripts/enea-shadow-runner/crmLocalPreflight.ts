@@ -883,16 +883,20 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
   const buildingUnitCount = formAvailable ? (rawUnits !== null && rawUnits > 0 ? rawUnits : 1) : null;
   const floorBandBuildingType = declaredBuildingType === "edificio_fino_3_piani" || declaredBuildingType === "edificio_oltre_3_piani";
   const explicitlySingleUnitBuilding = declaredBuildingType === "casa_singola_o_plurifamiliare";
-  const buildingQualification = explicitlySingleUnitBuilding || buildingUnitCount === 1
-      ? "single_unit" as const
-      : buildingUnitCount !== null && buildingUnitCount > 1
+  const buildingQualification = floorBandBuildingType
+      ? "multi_unit" as const
+      : explicitlySingleUnitBuilding
+        ? "single_unit" as const
+        : buildingUnitCount !== null && buildingUnitCount > 1
         ? "multi_unit" as const
-        : null;
+        : buildingUnitCount === 1
+          ? "single_unit" as const
+          : null;
   if (formAvailable && (rawUnits === null || rawUnits <= 0)) warnings.push({ code: "building_units_defaulted_to_one", reason: "Numero appartamenti non specificato o zero: impostata una unita immobiliare.", appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.defaultSingleUnitWhenUnspecified, USER_AUTHORIZED_RULE_IDS.singleUnitBuildingQualification] });
   if (floorBandBuildingType && buildingUnitCount === 1) warnings.push({
-    code: "single_unit_over_floor_band",
-    reason: "Il form dichiara una sola unita: la fascia fino/oltre tre piani resta descrittiva e non prova condominio o pluralita.",
-    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.singleUnitBuildingQualification],
+    code: "explicit_building_type_over_apartment_count",
+    reason: "La tipologia esplicita fino/oltre tre piani prevale sul numero appartamenti della singola pratica: edificio qualificato come plurimo.",
+    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverApartmentCount],
   });
 
   const principalHome = requester?.abitazione_principale;

@@ -3,6 +3,7 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildCrmEneaDraftPackage, buildCrmEneaPayloadAudit } from "./crmEneaPayloadAudit";
+import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
 
 const analysis = { items: [] } as never;
 
@@ -126,22 +127,22 @@ describe("audit payload ENEA da dossier CRM locale", () => {
     }
   });
 
-  it("usa unita unica per Federigo quando il form indica una unita e oltre tre piani", () => {
+  it("usa edificio plurimo quando il form indica oltre tre piani anche con una unita nella pratica", () => {
     const result = buildCrmEneaDraftPackage({
-      customerKey: "federigo-cileo", resolvedBuildingUnitCount: 1, resolvedBuildingQualification: "single_unit", completionDate: "2026-08-01", products: [], financialVerified: false, reconciledTotal: null, analysis,
+      customerKey: "federigo-cileo", resolvedBuildingUnitCount: 1, resolvedBuildingQualification: "multi_unit", completionDate: "2026-08-01", products: [], financialVerified: false, reconciledTotal: null, analysis,
       dossierValue: { row: { id: "4e4a8fd7-7169-4517-abd4-a59d88303935", cliente_nome: "Federigo", cliente_cognome: "Cileo", cliente_cf: "CLIFRG70A01F205X", prodotto_installato: "Schermature solari", fatture_urls: [], documenti_aggiuntivi_urls: [], pipeline_stages: { stage_type: "archiviate" }, dati_form: { richiedente: { nome: "Federigo", cognome: "Cileo", cf: "CLIFRG70A01F205X" }, edificio: { numero_appartamenti: 1, tipologia: "edificio_oltre_3_piani" }, prodotto: { schermature: [] } } } },
     });
     expect(result.status).toBe("built");
     if (result.status === "built") {
       const fields = result.mapped.sections.flatMap((section) => section.fields);
-      expect(result.source.form.edificio.tipologia).toBe("casa_singola_o_plurifamiliare");
+      expect(result.source.form.edificio.tipologia).toBe("edificio_oltre_3_piani");
       expect(fields.find((field) => field.id === "immobile.tipologia")).toMatchObject({
-        value: "Casa singola o plurifamiliare",
-        appliedRuleIds: ["user-2026-08-14-single-unit-building-over-floor-count"],
+        value: "Edificio oltre 3 piani (4+)",
+        appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverApartmentCount],
       });
       expect(fields.find((field) => field.id === "intervento.ambito")).toMatchObject({
-        value: "Edificio costituito da una singola unità immobiliare",
-        appliedRuleIds: ["user-2026-08-14-single-unit-building-over-floor-count"],
+        value: "Singola unità immobiliare (in un edificio costituito da più unità immobiliari)",
+        appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverApartmentCount],
       });
     }
   });

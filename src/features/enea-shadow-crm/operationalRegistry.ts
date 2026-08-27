@@ -1,6 +1,6 @@
 import { OPERATIONAL_RULES } from "./operationalRules";
 
-export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v85" as const;
+export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v86" as const;
 export const ENEA_GLOBAL_PREREQUISITE = Object.freeze({
   id: "browser-session-contract-v1",
   scope: "global_not_practice",
@@ -56,6 +56,8 @@ export const USER_AUTHORIZED_RULE_IDS = Object.freeze({
   zenoMixedProductsScreeningsOnly: "user-2026-08-14-zeno-mixed-products-screenings-only",
   singleUnitBuildingQualification: "user-2026-08-14-single-unit-building-over-floor-count",
   explicitBuildingTypeOverAffectedUnitCount: "user-2026-08-18-explicit-building-type-over-affected-unit-count",
+  explicitBuildingTypeOverApartmentCount: "user-2026-08-27-explicit-building-type-over-apartment-count-v2",
+  obviousStreetTypeTypoCorrection: "user-2026-08-27-obvious-street-type-typo-correction-v1",
   technicalProductCardinality: "user-2026-08-14-preserve-technical-product-cardinality",
   formInvoicePortalCardinalityCrossCheck: "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
   bundledProfessionalExpenseSeparation: "user-2026-08-18-bundled-professional-expense-separation",
@@ -930,6 +932,36 @@ export const ENEA_USER_AUTHORIZED_RULES: readonly OperationalRegistryRule[] = Ob
     outcome: "continue",
     priority: 979,
     provenance: USER_RULE_PROVENANCE_2026_08_18,
+    lifecycle: {
+      status: "superseded",
+      generalGateEligible: false,
+      supersededByRuleId: USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverApartmentCount,
+      note: "Superata dalla regola esplicita del 27/08/2026: la tipologia plurima/oltre tre piani dichiarata nel form prevale sul numero appartamenti della pratica.",
+    },
+  },
+  {
+    id: USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverApartmentCount,
+    step: "identity_property",
+    kind: "business",
+    condition: "Il form cliente dichiara esplicitamente un edificio fino/oltre tre piani, condominio o altra tipologia inequivocabilmente plurima, anche quando il numero appartamenti della singola pratica e uno.",
+    sourcePrecedence: ["tipologia edificio esplicita nel form cliente", "numero appartamenti/unità interessate dalla singola pratica", "fallback di una unità quando la tipologia non è dichiarata"],
+    deterministicAction: "Qualificare l'edificio come plurimo e selezionare in ENEA la singola unità immobiliare in edificio costituito da più unità. Il numero appartamenti della pratica non può sovrascrivere la tipologia edilizia esplicita.",
+    audit: "practiceId, tipologia edificio originaria, numero appartamenti dichiarato, qualificazione plurima applicata, ambito ENEA risultante e ID regola.",
+    outcome: "continue",
+    priority: 998,
+    provenance: USER_RULE_PROVENANCE_2026_08_27,
+  },
+  {
+    id: USER_AUTHORIZED_RULE_IDS.obviousStreetTypeTypoCorrection,
+    step: "identity_property",
+    kind: "business",
+    condition: "Un indirizzo del form contiene il refuso lessicale isolato e inequivocabile «Viake» al posto del tipo stradale italiano «Viale».",
+    sourcePrecedence: ["indirizzo originario del form", "correzione deterministica del solo token Viake", "nessuna modifica agli altri componenti dell'indirizzo"],
+    deterministicAction: "Sostituire esclusivamente il token autonomo Viake con Viale, sia nell'indirizzo di residenza sia nell'indirizzo lavori; non correggere parole che contengono soltanto la stessa sequenza di caratteri.",
+    audit: "practiceId, valore originario, valore corretto, campo interessato e ID regola.",
+    outcome: "continue",
+    priority: 997,
+    provenance: USER_RULE_PROVENANCE_2026_08_27,
   },
   {
     id: USER_AUTHORIZED_RULE_IDS.zenoMixedProductsScreeningsOnly,

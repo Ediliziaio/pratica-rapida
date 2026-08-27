@@ -128,8 +128,9 @@ export function buildCrmEneaDraftPackage(input: CrmEneaPayloadAuditInput): CrmEn
   source.queueStatus = "ready";
   if (input.resolvedBuildingUnitCount !== null && input.resolvedBuildingUnitCount !== undefined) {
     source.form.edificio.numero_appartamenti = String(input.resolvedBuildingUnitCount);
-    // La dichiarazione di una sola unita/casa singola prevale sulla fascia dei
-    // piani, che da sola non prova condominio o pluralita.
+    // Una casa singola esplicita resta tale. Le tipologie esplicite fino/oltre
+    // tre piani vengono invece conservate: prevalgono sul numero appartamenti
+    // della singola pratica e determinano l'ambito plurimo.
     if (input.resolvedBuildingQualification === "single_unit") {
       source.form.edificio.tipologia = "casa_singola_o_plurifamiliare";
     }
@@ -247,14 +248,14 @@ export function buildCrmEneaDraftPackage(input: CrmEneaPayloadAuditInput): CrmEn
   }
   if (input.resolvedBuildingQualification) {
     const buildingRuleId = input.resolvedBuildingQualification === "multi_unit"
-      ? USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverAffectedUnitCount
+      ? USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverApartmentCount
       : USER_AUTHORIZED_RULE_IDS.singleUnitBuildingQualification;
     const buildingTypeField = mapped.sections.flatMap((section) => section.fields).find((field) => field.id === "immobile.tipologia");
     if (buildingTypeField) {
       buildingTypeField.source = "Regola controllata";
       buildingTypeField.appliedRuleIds = [buildingRuleId];
       buildingTypeField.note = input.resolvedBuildingQualification === "multi_unit"
-        ? "Una fonte primaria esplicita dichiara condominio o piu unita; la classificazione plurima non deriva dalla sola fascia dei piani."
+        ? "La tipologia edificio esplicita del form dichiara un edificio plurimo/fino-oltre tre piani e prevale sul numero appartamenti della singola pratica."
         : "Una unita/casa singola esplicita determina la scelta ENEA a unita unica; il numero dei piani meramente descrittivo non prova condominio o pluralita.";
     }
     const interventionScopeField = mapped.sections.flatMap((section) => section.fields).find((field) => field.id === "intervento.ambito");
@@ -266,7 +267,7 @@ export function buildCrmEneaDraftPackage(input: CrmEneaPayloadAuditInput): CrmEn
       interventionScopeField.status = "ready";
       interventionScopeField.appliedRuleIds = [buildingRuleId];
       interventionScopeField.note = input.resolvedBuildingQualification === "multi_unit"
-        ? "Edificio plurimo esplicito; una sola unita immobiliare e' oggetto dell'intervento."
+        ? "Edificio plurimo esplicito nel form; una sola unita immobiliare e' oggetto dell'intervento."
         : "Edificio costituito da una singola unita immobiliare secondo la fonte esplicita o il fallback autorizzato.";
     }
   }

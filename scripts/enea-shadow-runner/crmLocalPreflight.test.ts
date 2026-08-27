@@ -692,17 +692,27 @@ Totale documento 915,00 €`);
     expect(report.blockers.map((item) => item.code)).not.toContain("building_units_missing");
   });
 
-  it("preserva per Federigo l'unita unica anche quando la fascia descrive oltre tre piani", () => {
+  it("fa prevalere la tipologia esplicita oltre tre piani sul numero appartamenti della pratica", () => {
     const report = buildCrmLocalPreflightReport({ row: {
       id: "4e4a8fd7-7169-4517-abd4-a59d88303935", cliente_nome: "Federigo", cliente_cognome: "Cileo", cliente_cf: "CLIFRG70A01F205X",
       prodotto_installato: "Schermature solari", fatture_urls: [], documenti_aggiuntivi_urls: [], pipeline_stages: { stage_type: "archiviate" },
       dati_form: { richiedente: { nome: "Federigo", cognome: "Cileo", data_nascita: "1970-01-01", cf: "CLIFRG70A01F205X" }, edificio: { numero_appartamenti: 1, tipologia: "edificio_oltre_3_piani" }, prodotto: { schermature: [] } },
     } }, "federigo-cileo", { items: [] } as never, new Date("2026-08-18T15:00:00Z"));
-    expect(report).toMatchObject({ buildingUnitCount: 1, buildingQualification: "single_unit" });
+    expect(report).toMatchObject({ buildingUnitCount: 1, buildingQualification: "multi_unit" });
     expect(report.warnings).toContainEqual(expect.objectContaining({
-      code: "single_unit_over_floor_band",
-      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.singleUnitBuildingQualification],
+      code: "explicit_building_type_over_apartment_count",
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverApartmentCount],
     }));
+  });
+
+  it("non riclassifica una casa singola esplicita come edificio plurimo", () => {
+    const report = buildCrmLocalPreflightReport({ row: {
+      id: "00000000-0000-4000-8000-000000000018", cliente_nome: "Mario", cliente_cognome: "Rossi", cliente_cf: "RSSMRA80A01H501U",
+      prodotto_installato: "Schermature solari", fatture_urls: [], documenti_aggiuntivi_urls: [], pipeline_stages: { stage_type: "archiviate" },
+      dati_form: { richiedente: { nome: "Mario", cognome: "Rossi", data_nascita: "1980-01-01", cf: "RSSMRA80A01H501U" }, edificio: { numero_appartamenti: 1, tipologia: "casa_singola_o_plurifamiliare" }, prodotto: { schermature: [] } },
+    } }, "mario-rossi", { items: [] } as never, new Date("2026-08-27T15:00:00Z"));
+    expect(report).toMatchObject({ buildingUnitCount: 1, buildingQualification: "single_unit" });
+    expect(report.warnings.map((warning) => warning.code)).not.toContain("explicit_building_type_over_apartment_count");
   });
 
   it("classifica la fattura assente come intervento operatore riprendibile", () => {

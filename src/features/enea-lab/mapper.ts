@@ -39,6 +39,12 @@ function display(value: string | boolean | null | undefined): string {
   return String(value ?? "").trim();
 }
 
+function normalizeObviousStreetTypeTypo(value: string): { value: string; corrected: boolean } {
+  const original = display(value);
+  const corrected = original.replace(/\bviake\b/giu, "Viale");
+  return { value: corrected, corrected: corrected !== original };
+}
+
 function mappedField(
   id: string,
   label: string,
@@ -322,6 +328,13 @@ export function mapSchermaturaPractice(
         cap: form.residenza.cap,
       }
     : form.appartamento_lavori;
+  const residenceStreet = normalizeObviousStreetTypeTypo(form.residenza.indirizzo);
+  const worksStreet = normalizeObviousStreetTypeTypo(worksAddress.indirizzo);
+  const correctedStreetOptions = (corrected: boolean) => corrected ? {
+    source: "Regola controllata" as const,
+    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.obviousStreetTypeTypoCorrection],
+    note: "Corretto esclusivamente il refuso inequivocabile del tipo stradale «Viake» in «Viale»; il resto dell'indirizzo resta invariato.",
+  } : undefined;
   const interventionScope = interventionScopeFromUnitCount(form.edificio.numero_appartamenti);
   const interventionType = interventionTypeFromProduct(form.prodotto.tipo);
   const centralizedPlant = centralizedPlantFromType(form.impianto.tipo);
@@ -535,7 +548,7 @@ export function mapSchermaturaPractice(
           : "La provincia del modulo non consente di determinare la nazione.",
       }),
       mappedField("beneficiario.comune_residenza", "Comune di residenza", form.residenza.comune),
-      mappedField("beneficiario.indirizzo_residenza", "Indirizzo di residenza", form.residenza.indirizzo),
+      mappedField("beneficiario.indirizzo_residenza", "Indirizzo di residenza", residenceStreet.value, correctedStreetOptions(residenceStreet.corrected)),
       mappedField("beneficiario.civico_residenza", "Civico di residenza", form.residenza.civico),
       mappedField("beneficiario.cap_residenza", "CAP di residenza", form.residenza.cap),
       mappedField("beneficiario.email", "Email", form.richiedente.email),
@@ -561,7 +574,7 @@ export function mapSchermaturaPractice(
         required: false,
         note: "Dato di supporto; il portale deriva la provincia selezionando il Comune.",
       }),
-      mappedField("immobile.indirizzo", "Indirizzo lavori", worksAddress.indirizzo),
+      mappedField("immobile.indirizzo", "Indirizzo lavori", worksStreet.value, correctedStreetOptions(worksStreet.corrected)),
       mappedField("immobile.civico", "Civico lavori", worksAddress.numero),
       mappedField("immobile.cap", "CAP lavori", worksAddress.cap),
       mappedField("immobile.scala", "Scala", "", { required: false }),

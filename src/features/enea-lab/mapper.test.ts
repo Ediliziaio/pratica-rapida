@@ -77,6 +77,34 @@ describe("mapSchermaturaPractice", () => {
     expect(result.summary.missing).toBeGreaterThan(mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0]).summary.missing);
   });
 
+  it("corregge il solo refuso Viake in Viale su residenza e lavori", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.residenza.indirizzo = "Viake Sarca";
+    source.form.residenza.stesso_indirizzo_lavori = true;
+    const fields = mapSchermaturaPractice(source).sections.flatMap((section) => section.fields);
+
+    for (const fieldId of ["beneficiario.indirizzo_residenza", "immobile.indirizzo"]) {
+      expect(fields.find((field) => field.id === fieldId)).toMatchObject({
+        value: "Viale Sarca",
+        source: "Regola controllata",
+        appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.obviousStreetTypeTypoCorrection],
+      });
+    }
+  });
+
+  it("non modifica parole o tipi stradali che non sono il token Viake", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.residenza.indirizzo = "Via Kelvin";
+    source.form.residenza.stesso_indirizzo_lavori = true;
+    const fields = mapSchermaturaPractice(source).sections.flatMap((section) => section.fields);
+
+    expect(fields.find((field) => field.id === "beneficiario.indirizzo_residenza")).toMatchObject({
+      value: "Via Kelvin",
+      source: "Modulo cliente",
+    });
+    expect(fields.find((field) => field.id === "immobile.indirizzo")?.value).toBe("Via Kelvin");
+  });
+
   it("crea le righe modificabili anche quando la fattura non viene letta", () => {
     const result = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0]);
     const fields = result.sections.flatMap((currentSection) => currentSection.fields);

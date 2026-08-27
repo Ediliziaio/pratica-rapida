@@ -108,12 +108,13 @@ function roundSurface(value: number): number {
 }
 
 function toIsoDate(value: string): string | undefined {
-  const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const match = value.match(/^(\d{2})[/-](\d{2})[/-](\d{4}|\d{2})$/);
   if (!match) return undefined;
-  const iso = `${match[3]}-${match[2]}-${match[1]}`;
+  const year = match[3].length === 2 ? `20${match[3]}` : match[3];
+  const iso = `${year}-${match[2]}-${match[1]}`;
   const parsed = new Date(`${iso}T12:00:00Z`);
   if (Number.isNaN(parsed.getTime())) return undefined;
-  return parsed.getUTCFullYear() === Number(match[3])
+  return parsed.getUTCFullYear() === Number(year)
     && parsed.getUTCMonth() + 1 === Number(match[2])
     && parsed.getUTCDate() === Number(match[1])
     ? iso
@@ -136,6 +137,21 @@ function extractDocumentIdentity(text: string): {
   documentNumber?: string;
   documentDate?: string;
 } {
+  // Intestazione tabellare generica: eventuali colonne prima/dopo le due
+  // etichette, numero e data disposti su righe separate oppure numero in coda
+  // alla riga delle etichette. Il riconoscimento resta legato allo stesso
+  // blocco di intestazione e non usa riferimenti narrativi nel corpo.
+  const separatedNumberDate = text.match(
+    /(?:^|\n)[^\n]{0,80}\bN[°º.]?\s*DOCUMENTO\s+DATA\s+DOCUMENTO(?:\s+[A-Z][A-Z ]{1,30})?\s+([A-Z0-9./-]+)\s*\n\s*(\d{2}[/-]\d{2}[/-](?:\d{4}|\d{2}))\b/i,
+  );
+  if (separatedNumberDate) {
+    return { documentNumber: separatedNumberDate[1].trim(), documentDate: toIsoDate(separatedNumberDate[2]) };
+  }
+  // Layout tabellare generico nel quale il titolo Fattura precede una riga
+  // "Data <valore> Numero <valore>". Numero e data devono provenire dalla
+  // stessa intestazione, non da riferimenti narrativi nel corpo.
+  const titledDateNumber = text.match(/(?:^|\n)\s*Fattura\s*\n\s*Data\s+(\d{2}\/\d{2}\/\d{4})\s+Numero\s+([A-Z0-9./-]+)/i);
+  if (titledDateNumber) return { documentNumber: titledDateNumber[2].trim(), documentDate: toIsoDate(titledDateNumber[1]) };
   // Alcuni gestionali esportano l'intestazione in ordine visuale a colonne:
   // DATA, poi il valore data e la parola NUMERO sulla stessa riga OCR, quindi
   // PAGINA e infine "numero pagina". Questa fonte di intestazione deve
@@ -191,6 +207,18 @@ function extractDocumentTotal(text: string): number | null {
     }
     return values.at(-1) ?? null;
   };
+  // Il campo fiscale puo essere l'ultima colonna di una riga di intestazioni
+  // (anche insieme a "Totale a pagare") e il valore puo comparire sulla riga
+  // immediatamente successiva. Si considerano soltanto gli importi dopo
+  // l'etichetta, mai quelli che la precedono sulla stessa riga.
+  for (let index = 0; index < lines.length; index += 1) {
+    const label = /\btotale\s+documento\b/i.exec(lines[index]);
+    if (!label) continue;
+    const trailing = amount(lines[index].slice(label.index + label[0].length));
+    if (trailing) return parseItalianNumber(trailing);
+    const nextLine = amount(lines[index + 1] ?? "");
+    if (nextLine) return parseItalianNumber(nextLine);
+  }
   // Il netto contabile e il blocco esplicito "Totale documento" hanno
   // precedenza su totali fiscali o massimali detraibili presenti prima nel PDF.
   for (let index = 0; index < lines.length; index += 1) {

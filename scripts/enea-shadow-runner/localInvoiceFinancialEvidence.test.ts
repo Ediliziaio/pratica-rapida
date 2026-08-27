@@ -7,6 +7,75 @@ const extract = (text: string, overrides: Partial<Parameters<typeof extractLocal
 });
 
 describe("evidenza finanziaria da PDF originario locale", () => {
+  it("riconcilia etichette fiscali raggruppate e valori sulla riga successiva", () => {
+    const evidence = extract(`TOTALE IMPONIBILE SCADENZE
+TOTALE IVA TOTALE ESENTE
+NETTO A PAGARE
+4.388,00 965,36 EUR 5.353,36 05-03-26 Bon VF 5.353,36
+TOTALE FATTURA
+EUR 5.353,36`, { documentNumber: "260", documentDate: "2026-03-05", grossTotal: 5353.36 });
+    expect(evidence).toMatchObject({ taxableAmount: 4388, vatAmount: 965.36, grossTotal: 5353.36, interventionGrossAmount: 5353.36 });
+    expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 5353.36 });
+  });
+
+  it("riconcilia un importo IVA negativo nel riepilogo fiscale raggruppato", () => {
+    const evidence = extract(`TOTALE IMPONIBILE TOTALE IVA TOTALE ESENTE
+NETTO A PAGARE
+1.097,00 -416,86 EUR 680,14 SCADENZE
+19-06-26 Bon VF 680,14
+TOTALE FATTURA
+EUR 680,14`, { documentNumber: "619", documentDate: "2026-06-19", grossTotal: 680.14 });
+    expect(evidence).toMatchObject({ taxableAmount: 1097, vatAmount: -416.86, grossTotal: 680.14, interventionGrossAmount: 680.14 });
+    expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 680.14 });
+  });
+
+  it("resta fail-closed se imponibile, IVA firmata e totale non si riconciliano", () => {
+    const evidence = extract(`TOTALE IMPONIBILE TOTALE IVA TOTALE ESENTE
+NETTO A PAGARE
+1.097,00 -400,00 EUR 680,14 SCADENZE
+19-06-26 Bon VF 680,14`, { documentNumber: "619", documentDate: "2026-06-19", grossTotal: 680.14 });
+    expect(reconcileFinancialEvidence([evidence]).usable).toBe(false);
+  });
+
+  it("riconcilia il riepilogo compatto con IVA prima dell'imponibile", () => {
+    const evidence = extract(`Merci e servizi 7.500,00 Totale imposta 750,00 Totale imponibile
+7.500,00
+Scadenze
+22/06/2026 Bonifico 8.250,00`, { documentNumber: "146", grossTotal: 8250 });
+    expect(evidence).toMatchObject({ taxableAmount: 7500, vatAmount: 750, grossTotal: 8250, interventionGrossAmount: 8250 });
+    expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 8250 });
+  });
+
+  it("resta fail-closed se il riepilogo compatto non quadra col totale documento", () => {
+    const evidence = extract(`Merci e servizi 7.500,00 Totale imposta 700,00 Totale imponibile
+7.500,00
+Scadenze
+22/06/2026 Bonifico 8.250,00`, { documentNumber: "146", grossTotal: 8250 });
+    expect(reconcileFinancialEvidence([evidence]).usable).toBe(false);
+  });
+
+  it("riconcilia un riepilogo fiscale multi-aliquota con totale documento autorevole", () => {
+    const evidence = extract(`Totale complessivo fornitura e posa in opera euro 9.010,00
+IMPONIBILE 1.986,00 3.640,00
+AL.IVA 22 10 IMPORTO IVA TOTALE MERCE % SCONTO IMPORTO SCONTO NETTO MERCE
+436,92 5.626,00 5.626,00
+364,00
+BOLLI SPESE INCASSO VARIE ACCONTO
+TOTALE A PAGARE TOTALE DOCUMENTO
+800,92 6.426,92`, { documentNumber: "1512", grossTotal: 6426.92 });
+    expect(evidence).toMatchObject({ taxableAmount: 5626, vatAmount: 800.92, grossTotal: 6426.92, interventionGrossAmount: 6426.92 });
+    expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 6426.92 });
+  });
+
+  it("resta fail-closed se il riepilogo multi-aliquota non riconcilia col totale documento", () => {
+    const evidence = extract(`IMPONIBILE 1.986,00 3.640,00
+AL.IVA 22 10 IMPORTO IVA TOTALE MERCE
+436,92
+360,00
+BOLLI
+TOTALE DOCUMENTO 6.426,92`, { documentNumber: "1512", grossTotal: 6426.92 });
+    expect(reconcileFinancialEvidence([evidence]).usable).toBe(false);
+  });
   it("riconcilia totale documento, imponibile+IVA e righe intervento", () => {
     const evidence = extract("Importo prodotti o servizi 750,00 €\nTotale imponibile 750,00 €\nTotale IVA 165,00 €\nTotale documento 915,00 €");
     expect(evidence).toMatchObject({ taxableAmount: 750, vatAmount: 165, grossTotal: 915, interventionGrossAmount: 915, extractionConfidence: "certain" });

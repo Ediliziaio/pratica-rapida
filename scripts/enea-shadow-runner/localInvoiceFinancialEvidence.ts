@@ -1,5 +1,5 @@
 import { stripHistoricalEneaAppendix } from "../../src/features/enea-lab/invoiceParser";
-import type { FinancialDocumentEvidence } from "../../src/features/enea-shadow-crm/financialReconciliation";
+import { MONEY_TOLERANCE_EUR, type FinancialDocumentEvidence } from "../../src/features/enea-shadow-crm/financialReconciliation";
 import type { RinaldiDeductibleLineEvidence, RinaldiInvoiceLineEvidence } from "../../src/features/enea-shadow-crm/rinaldiFinancialPolicies";
 
 const MONEY = String.raw`(?:\d{1,3}(?:\.\d{3})*|\d+),\d{2}`;
@@ -36,6 +36,66 @@ const currencyAmountAfterLabel = (text: string, label: RegExp, lookahead = 4) =>
   return null;
 };
 
+function reconciledGroupedFiscalSummary(text: string, grossTotal: number | null) {
+  if (grossTotal === null) return null;
+  const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
+  const taxableLabelIndexes = lines.flatMap((line, index) => /\bTOTALE\s+IMPONIBILE\b/i.test(line) ? [index] : []);
+  for (const taxableLabelIndex of taxableLabelIndexes) {
+    const vatLabelIndex = lines.findIndex((line, index) => index >= taxableLabelIndex
+      && index <= taxableLabelIndex + 2 && /\bTOTALE\s+IVA\b/i.test(line));
+    const netLabelIndex = lines.findIndex((line, index) => index >= taxableLabelIndex
+      && index <= taxableLabelIndex + 4 && /\bNETTO\s+A\s+PAGARE\b/i.test(line));
+    if (vatLabelIndex < 0 || netLabelIndex < 0) continue;
+
+    for (let index = netLabelIndex + 1; index <= Math.min(lines.length - 1, netLabelIndex + 3); index += 1) {
+      const values = [...lines[index].matchAll(new RegExp(`(${SIGNED_MONEY})`, "gi"))]
+        .map((match) => money(match[1]))
+        .filter((value): value is number => value !== null);
+      if (values.length < 3) continue;
+      const [taxableAmount, vatAmount, grossAmount] = values;
+      const fiscalSum = Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100;
+      if (Math.abs(fiscalSum - grossAmount) <= MONEY_TOLERANCE_EUR + Number.EPSILON
+        && Math.abs(grossAmount - grossTotal) <= MONEY_TOLERANCE_EUR + Number.EPSILON) {
+        return { taxableAmount, vatAmount, grossAmount };
+      }
+    }
+  }
+  return null;
+}
+
+function reconciledMultiRateColumnarTotals(text: string, grossTotal: number | null) {
+  if (grossTotal === null) return null;
+  const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
+  const taxableIndex = lines.findIndex((line) => /^IMPONIBILE\b/i.test(line)
+    && [...line.matchAll(new RegExp(`(${MONEY})`, "gi"))].length >= 2);
+  if (taxableIndex < 0) return null;
+  const taxableValues = [...lines[taxableIndex].matchAll(new RegExp(`(${MONEY})`, "gi"))]
+    .map((match) => money(match[1]))
+    .filter((value): value is number => value !== null);
+  const taxableAmount = Math.round((taxableValues.reduce((sum, value) => sum + value, 0) + Number.EPSILON) * 100) / 100;
+  if (taxableAmount <= 0 || taxableAmount >= grossTotal) return null;
+
+  const vatHeaderIndex = lines.findIndex((line, index) => index > taxableIndex
+    && /\bAL\.?\s*IVA\b/i.test(line) && /\bIMPORTO\s+IVA\b/i.test(line));
+  if (vatHeaderIndex < 0) return null;
+  const vatBlock: number[] = [];
+  for (let index = vatHeaderIndex + 1; index < Math.min(lines.length, vatHeaderIndex + 8); index += 1) {
+    if (/^(?:BOLLI|SPESE\s+INCASSO|TOTALE\s+A\s+PAGARE)\b/i.test(lines[index])) break;
+    vatBlock.push(...[...lines[index].matchAll(new RegExp(`(${MONEY})`, "gi"))]
+      .map((match) => money(match[1]))
+      .filter((value): value is number => value !== null));
+  }
+  const expectedVat = Math.round((grossTotal - taxableAmount + Number.EPSILON) * 100) / 100;
+  const componentVatValues = vatBlock.filter((value) => value > 0
+    && value <= expectedVat + MONEY_TOLERANCE_EUR
+    && Math.abs(value - taxableAmount) > MONEY_TOLERANCE_EUR);
+  const vatAmount = Math.round((componentVatValues.reduce((sum, value) => sum + value, 0) + Number.EPSILON) * 100) / 100;
+  return componentVatValues.length > 0
+    && Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - grossTotal) <= MONEY_TOLERANCE_EUR
+    ? { taxableAmount, vatAmount }
+    : null;
+}
+
 const reconciledFiscalTotals = (text: string, grossTotal: number | null) => {
   if (grossTotal === null) return null;
   const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
@@ -55,7 +115,7 @@ const reconciledFiscalTotals = (text: string, grossTotal: number | null) => {
     for (const match of lines[vatIndex + offset].matchAll(new RegExp(`(${MONEY})`, "gi"))) {
       const candidate = money(match[1]);
       if (candidate !== null
-        && Math.abs(Math.round((taxableAmount + candidate + Number.EPSILON) * 100) / 100 - grossTotal) <= 0.01) {
+        && Math.abs(Math.round((taxableAmount + candidate + Number.EPSILON) * 100) / 100 - grossTotal) <= MONEY_TOLERANCE_EUR) {
         candidates.add(candidate);
       }
     }
@@ -71,37 +131,60 @@ interface ScheduledDueGrossResult {
 
 const scheduledDueGross = (text: string): ScheduledDueGrossResult => {
   const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
-  const index = lines.findIndex((line) => /^(?:scadenze(?:\s+pagamenti)?|scadenziario)\b/i.test(line));
-  if (index < 0) return { amount: null, issue: null };
-  const amounts: number[] = [];
-  let datedRows = 0;
-  let missingAmount = false;
-  for (let cursor = index + 1; cursor < Math.min(lines.length, index + 12); cursor += 1) {
-    const line = lines[cursor];
-    if (/^(?:copia\s+della\s+fattura|riepilogo\s+iva|note|powered\s+by)\b/i.test(line)) break;
-    if (!/\b\d{2}[./-]\d{2}[./-]\d{4}\b/.test(line)) continue;
-    datedRows += 1;
-    const sameLine = lastAmountFrom(line.replace(/\b\d{2}[./-]\d{2}[./-]\d{4}\b/g, ""));
-    let candidate = sameLine;
-    for (let offset = 1; !candidate && offset <= 2 && cursor + offset < lines.length; offset += 1) {
-      const following = lines[cursor + offset];
-      if (/\b\d{2}[./-]\d{2}[./-]\d{4}\b/.test(following)
-        || /^(?:copia\s+della\s+fattura|riepilogo\s+iva|note|powered\s+by)\b/i.test(following)) break;
-      candidate = lastAmountFrom(following);
+  const scheduleIndexes = lines.flatMap((line, index) => /\b(?:scadenze(?:\s+pagamenti)?|scadenziario)\b/i.test(line) ? [index] : []);
+  let observedMissingAmount = false;
+  for (const index of scheduleIndexes) {
+    const amounts: number[] = [];
+    let datedRows = 0;
+    let missingAmount = false;
+    for (let cursor = index + 1; cursor < Math.min(lines.length, index + 12); cursor += 1) {
+      const line = lines[cursor];
+      if (/^(?:copia\s+della\s+fattura|riepilogo\s+iva|note|powered\s+by)\b/i.test(line)) break;
+      if (!/\b\d{2}[./-]\d{2}[./-](?:\d{4}|\d{2})\b/.test(line)) continue;
+      datedRows += 1;
+      const sameLine = lastAmountFrom(line.replace(/\b\d{2}[./-]\d{2}[./-](?:\d{4}|\d{2})\b/g, ""));
+      let candidate = sameLine;
+      for (let offset = 1; !candidate && offset <= 2 && cursor + offset < lines.length; offset += 1) {
+        const following = lines[cursor + offset];
+        if (/\b\d{2}[./-]\d{2}[./-](?:\d{4}|\d{2})\b/.test(following)
+          || /^(?:copia\s+della\s+fattura|riepilogo\s+iva|note|powered\s+by)\b/i.test(following)) break;
+        candidate = lastAmountFrom(following);
+      }
+      const parsed = candidate === null ? null : money(candidate);
+      if (parsed === null) missingAmount = true;
+      else amounts.push(parsed);
     }
-    const parsed = candidate === null ? null : money(candidate);
-    if (parsed === null) missingAmount = true;
-    else amounts.push(parsed);
+    if (datedRows === 0) continue;
+    if (!missingAmount && amounts.length === datedRows) {
+      return {
+        amount: Math.round((amounts.reduce((sum, value) => sum + value, 0) + Number.EPSILON) * 100) / 100,
+        issue: null,
+      };
+    }
+    observedMissingAmount = true;
   }
-  if (datedRows === 0) return { amount: null, issue: null };
-  if (missingAmount || amounts.length !== datedRows) return { amount: null, issue: "schedule_amount_missing" };
-  return {
-    amount: Math.round((amounts.reduce((sum, value) => sum + value, 0) + Number.EPSILON) * 100) / 100,
-    issue: null,
-  };
+  return { amount: null, issue: observedMissingAmount ? "schedule_amount_missing" : null };
 };
 
 function taxAmounts(text: string, grossTotal: number | null) {
+  const groupedFiscalSummary = reconciledGroupedFiscalSummary(text, grossTotal);
+  if (groupedFiscalSummary) {
+    return { taxableAmount: groupedFiscalSummary.taxableAmount, vatAmount: groupedFiscalSummary.vatAmount };
+  }
+  const multiRateColumnar = reconciledMultiRateColumnarTotals(text, grossTotal);
+  if (multiRateColumnar) return multiRateColumnar;
+  const inlineVatThenTaxable = text.match(new RegExp(
+    `Totale\\s+imposta\\s+(${MONEY})\\s+Totale\\s+imponibile\\s*\\n\\s*(${MONEY})`,
+    "i",
+  ));
+  if (inlineVatThenTaxable && grossTotal !== null) {
+    const vatAmount = money(inlineVatThenTaxable[1]);
+    const taxableAmount = money(inlineVatThenTaxable[2]);
+    if (taxableAmount !== null && vatAmount !== null
+      && Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - grossTotal) <= MONEY_TOLERANCE_EUR + Number.EPSILON) {
+      return { taxableAmount, vatAmount };
+    }
+  }
   const compactSummaryTail = text.match(/Riepilogo\s+totali([\s\S]{0,800})/iu)?.[1];
   const compactSummaryAmounts = compactSummaryTail?.split(/\r?\n/u)
     .map((line) => [...line.matchAll(new RegExp(`(${MONEY})`, "giu"))].map((match) => match[1]))
@@ -111,7 +194,7 @@ function taxAmounts(text: string, grossTotal: number | null) {
     const vatAmount = money(compactSummaryAmounts[3]);
     const grossTotal = money(compactSummaryAmounts[5]);
     if (taxableAmount !== null && vatAmount !== null && grossTotal !== null
-      && Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - grossTotal) <= 0.011) {
+      && Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - grossTotal) <= MONEY_TOLERANCE_EUR + Number.EPSILON) {
       return { taxableAmount, vatAmount };
     }
   }
@@ -124,7 +207,7 @@ function taxAmounts(text: string, grossTotal: number | null) {
     const vatAmount = money(verticalInvoiceTotal[2]);
     const grossTotal = money(verticalInvoiceTotal[3]);
     if (taxableAmount !== null && vatAmount !== null && grossTotal !== null
-      && Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - grossTotal) <= 0.011) {
+      && Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - grossTotal) <= MONEY_TOLERANCE_EUR + Number.EPSILON) {
       return { taxableAmount, vatAmount };
     }
   }
@@ -168,7 +251,7 @@ function guardedColumnarTaxAmounts(text: string, grossTotal: number | null) {
   const vatAmount = Math.round((grossTotal - taxableAmount + Number.EPSILON) * 100) / 100;
   const explicitVatPresent = [...text.matchAll(new RegExp(`(${MONEY})`, "gi"))]
     .map((match) => money(match[1]))
-    .some((value) => value !== null && Math.abs(value - vatAmount) <= 0.01);
+    .some((value) => value !== null && Math.abs(value - vatAmount) <= MONEY_TOLERANCE_EUR);
   return explicitVatPresent ? { taxableAmount, vatAmount } : null;
 }
 
@@ -181,7 +264,7 @@ function zanzasolNetAmount(text: string, taxableAmount: number | null) {
     .filter((value): value is number => value !== null);
   if (!amounts.length) return null;
   const sum = Math.round((amounts.reduce((total, value) => total + value, 0) + Number.EPSILON) * 100) / 100;
-  return Math.abs(sum - taxableAmount) <= 0.01 ? sum : null;
+  return Math.abs(sum - taxableAmount) <= MONEY_TOLERANCE_EUR ? sum : null;
 }
 
 function rowNetAmount(text: string, taxableAmount: number | null) {
@@ -226,8 +309,14 @@ function rowGrossAmount(text: string, scheduledDue: ScheduledDueGrossResult) {
     const vat = money(verticalInvoiceTotal[2]);
     const gross = money(verticalInvoiceTotal[3]);
     if (taxable !== null && vat !== null && gross !== null
-      && Math.abs(Math.round((taxable + vat + Number.EPSILON) * 100) / 100 - gross) <= 0.011) return gross;
+      && Math.abs(Math.round((taxable + vat + Number.EPSILON) * 100) / 100 - gross) <= MONEY_TOLERANCE_EUR + Number.EPSILON) return gross;
   }
+  const combinedTotalDocument = amountAfterLabel(
+    text,
+    /^totale\s+a\s+pagare\b.*\btotale\s+documento\b/i,
+    1,
+  );
+  if (combinedTotalDocument !== null) return combinedTotalDocument;
   const scheduled = text.split(/\r?\n/u)
     .filter((line) => /\bBonifico\s+\d{2}[./-]\d{2}[./-]\d{4}\b/iu.test(line))
     .map((line) => lastAmountFrom(line))
@@ -314,7 +403,7 @@ export function extractLocalInvoiceFinancialEvidence(input: LocalInvoiceFinancia
   const text = stripHistoricalEneaAppendix(input.text);
   let { taxableAmount, vatAmount } = taxAmounts(text, input.grossTotal);
   if (input.grossTotal !== null && (taxableAmount === null || vatAmount === null
-    || Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - input.grossTotal) > 0.01)) {
+    || Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - input.grossTotal) > MONEY_TOLERANCE_EUR)) {
     const columnar = guardedColumnarTaxAmounts(text, input.grossTotal);
     if (columnar) ({ taxableAmount, vatAmount } = columnar);
   }
@@ -328,8 +417,8 @@ export function extractLocalInvoiceFinancialEvidence(input: LocalInvoiceFinancia
     : [];
   const ocrTripleReconciled = input.extractionMode === "macos_vision_ocr"
     && taxableAmount !== null && vatAmount !== null && input.grossTotal !== null && interventionGrossAmount !== null
-    && Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - input.grossTotal) <= 0.01
-    && Math.abs(interventionGrossAmount - input.grossTotal) <= 0.01;
+    && Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - input.grossTotal) <= MONEY_TOLERANCE_EUR
+    && Math.abs(interventionGrossAmount - input.grossTotal) <= MONEY_TOLERANCE_EUR;
   const detectedSupplier = supplier(text, input.sourceId);
   const explicitDeductibleLines = detectedSupplier.supplierId === "rinaldi" ? deductibleLines(text, input.sourceId) : [];
   const lineItems = detectedSupplier.supplierId === "rinaldi" ? guardedRinaldiMixedLines(text, input.sourceId) : undefined;

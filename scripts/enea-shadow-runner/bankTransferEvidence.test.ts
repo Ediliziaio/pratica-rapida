@@ -25,6 +25,11 @@ FATTURA N. 253/2026`)!;
     expect(reconcileBankTransfers(8000, [first, second])).toMatchObject({ status: "principal_below_invoices", difference: -70 });
   });
 
+  it("applica EUR 0,05 di tolleranza al capitale e blocca da EUR 0,06", () => {
+    expect(reconcileBankTransfers(7929.95, [first, second])).toMatchObject({ status: "reconciled", difference: 0.05, feesTotal: 2 });
+    expect(reconcileBankTransfers(7929.94, [first, second])).toMatchObject({ status: "principal_exceeds_invoices", difference: 0.06, feesTotal: 2 });
+  });
+
   it("separa due bonifici Intesa contenuti nello stesso PDF multipagina", () => {
     const transfers = extractBankTransferEvidences("intesa-composito", `Presa in carico - Bonifico per Agevolazioni Fiscali
 Causale

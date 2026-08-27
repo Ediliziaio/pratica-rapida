@@ -132,7 +132,15 @@ export function splitLocalInvoiceText(input: {
   });
 }
 
-const invoiceIdentity = (segment: LocalInvoiceSegment) => [normalizeNumber(segment.documentNumber ?? ""), segment.documentDate ?? "", segment.total ?? ""].join("|");
+const invoiceIdentity = (segment: LocalInvoiceSegment) => {
+  const documentNumber = normalizeNumber(segment.documentNumber ?? "");
+  const documentDate = segment.documentDate ?? "";
+  // Una terna incompleta non prova mai che due documenti siano duplicati.
+  // Finche il parser non ha identificato numero, data e totale, ogni sorgente
+  // resta distinta e il gate economico la trattera fail-closed.
+  if (!documentNumber || !documentDate || segment.total === null) return `unresolved|${segment.sourceId}`;
+  return [documentNumber, documentDate, segment.total].join("|");
+};
 
 // I moduli tecnici di posa possono citare numero/data/importo della fattura
 // senza essere essi stessi documenti fiscali. Restano fonti tecniche, ma non

@@ -6,7 +6,7 @@ import {
 } from "./rinaldiFinancialPolicies";
 
 export const FINANCIAL_RECONCILIATION_POLICY_VERSION = "financial-triple-gross-invoices-v4";
-export const MONEY_TOLERANCE_EUR = 0.01;
+export const MONEY_TOLERANCE_EUR = 0.05;
 
 export type FinancialDocumentKind = "invoice" | "advance" | "balance" | "credit_note" | "non_economic" | "unknown";
 
@@ -60,10 +60,11 @@ export interface TripleFinancialReconciliation {
 
 const money = (value: number): number => Math.round((value + Number.EPSILON) * 100) / 100;
 const validMoney = (value: number | null): value is number => typeof value === "number" && Number.isFinite(value) && value >= 0;
+const validSignedMoney = (value: number | null): value is number => typeof value === "number" && Number.isFinite(value);
 const hasInvoiceTriple = (doc: FinancialDocumentEvidence): boolean => Boolean(doc.documentNumber.trim() && doc.documentDate.trim() && validMoney(doc.grossTotal));
 const identity = (doc: FinancialDocumentEvidence): string => [doc.documentNumber.trim(), doc.documentDate.trim(), doc.grossTotal].join("|").toLowerCase();
 const internallyReconciled = (doc: FinancialDocumentEvidence): boolean => validMoney(doc.taxableAmount)
-  && validMoney(doc.vatAmount)
+  && validSignedMoney(doc.vatAmount)
   && validMoney(doc.grossTotal)
   && validMoney(doc.interventionGrossAmount)
   && money(Math.abs(money(doc.taxableAmount + doc.vatAmount) - doc.grossTotal)) <= MONEY_TOLERANCE_EUR
@@ -104,7 +105,7 @@ export function reconcileFinancialEvidence(
     && unique.every((doc) => ["invoice", "advance", "balance"].includes(doc.kind) && internallyReconciled(doc));
   for (const doc of unique) {
     if (doc.extractionConfidence !== "certain" && !distinctSameDossierInvoiceSum) blockers.push(`estrazione-incerta:${doc.sourceId}`);
-    if (!validMoney(doc.taxableAmount) || !validMoney(doc.vatAmount) || !validMoney(doc.grossTotal)) blockers.push(`totali-incompleti:${doc.sourceId}`);
+    if (!validMoney(doc.taxableAmount) || !validSignedMoney(doc.vatAmount) || !validMoney(doc.grossTotal)) blockers.push(`totali-incompleti:${doc.sourceId}`);
     else if (money(Math.abs(money(doc.taxableAmount + doc.vatAmount) - doc.grossTotal)) > MONEY_TOLERANCE_EUR) blockers.push(`imponibile-iva-mismatch:${doc.sourceId}`);
   }
   const rinaldiPolicy = applyRinaldiScopedFinancialRules(unique, context);

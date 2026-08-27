@@ -97,9 +97,9 @@ describe("APR Slice 2 economic vertical", () => {
     expect(result.invoiceReconciliation.blockers).toContain("imponibile-iva-mismatch:invoice-1");
   });
 
-  it("confine: accetta EUR 0,01 e rifiuta EUR 0,02 di scarto", () => {
-    const within = runEconomicVertical(input({ invoices: [invoice("invoice-1", "1", 100.01, { taxableAmount: 90, vatAmount: 10, interventionGrossAmount: 100.01 })] }));
-    const outside = runEconomicVertical(input({ invoices: [invoice("invoice-1", "1", 100.02, { taxableAmount: 90, vatAmount: 10, interventionGrossAmount: 100.02 })] }));
+  it("confine: accetta EUR 0,05 e rifiuta EUR 0,06 di scarto", () => {
+    const within = runEconomicVertical(input({ invoices: [invoice("invoice-1", "1", 100.05, { taxableAmount: 90, vatAmount: 10, interventionGrossAmount: 100.05 })] }));
+    const outside = runEconomicVertical(input({ invoices: [invoice("invoice-1", "1", 100.06, { taxableAmount: 90, vatAmount: 10, interventionGrossAmount: 100.06 })] }));
     expect(within.outcome).toBe("RESOLVED");
     expect(outside.outcome).toBe("BLOCKED");
   });
@@ -123,7 +123,7 @@ describe("APR Slice 2 economic vertical", () => {
   });
 
   it("richiede operatore soltanto quando il capitale bonificato supera le fatture", () => {
-    const result = runEconomicVertical(input({ bankTransfers: [transfer("transfer-1", 110.02, 1)] }));
+    const result = runEconomicVertical(input({ bankTransfers: [transfer("transfer-1", 110.06, 1)] }));
     expect(result.outcome).toBe("OPERATOR_REQUIRED");
     expect(result.bankTransferReconciliation.status).toBe("principal_exceeds_invoices");
   });

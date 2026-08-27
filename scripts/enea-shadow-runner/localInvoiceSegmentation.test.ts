@@ -18,6 +18,35 @@ Imposta 22% 502,03 €
 Totale 2.784,00 €`;
 
 describe("segmentazione locale fatture acconto/saldo", () => {
+  it("somma due fatture distinte con uguale importo nel layout Data/Numero", () => {
+    const first = splitLocalInvoiceText({ documentKey: "invoice-146", text: `Fattura
+Data 22/06/2026 Numero 146 Pagina
+Totale imponibile 7.500,00
+Totale IVA 750,00
+Totale documento
+8.250,00`, extractionMode: "native_text" })[0];
+    const second = splitLocalInvoiceText({ documentKey: "invoice-167", text: `Fattura
+Data 31/07/2026 Numero 167 Pagina
+Totale imponibile 7.500,00
+Totale IVA 750,00
+Totale documento
+8.250,00`, extractionMode: "native_text" })[0];
+    const reconciled = reconcileLocalInvoiceSegments([first, second]);
+    expect(reconciled.uniqueFinancialSegments.map((item) => [item.documentNumber, item.documentDate, item.total])).toEqual([
+      ["146", "2026-06-22", 8250],
+      ["167", "2026-07-31", 8250],
+    ]);
+    expect(reconciled.uniqueFinancialSegments.reduce((sum, item) => sum + (item.total ?? 0), 0)).toBe(16500);
+    expect(reconciled.discardedDuplicateSourceIds).toEqual([]);
+  });
+
+  it("non deduplica due fonti irrisolte soltanto perche hanno identita vuota", () => {
+    const first = splitLocalInvoiceText({ documentKey: "unresolved-a", text: "Fattura priva di testata leggibile", extractionMode: "native_text" })[0];
+    const second = splitLocalInvoiceText({ documentKey: "unresolved-b", text: "Altra fattura priva di testata leggibile", extractionMode: "native_text" })[0];
+    const reconciled = reconcileLocalInvoiceSegments([first, second]);
+    expect(reconciled.uniqueFinancialSegments).toHaveLength(2);
+    expect(reconciled.discardedDuplicateSourceIds).toEqual([]);
+  });
   it("usa il saldo per la cardinalita tecnica di tapparelle narrative ma somma economicamente acconto e saldo", () => {
     const acconto = splitLocalInvoiceText({ documentKey: "acconto-tapparelle", text: `FATTURA\nnr. FPR 176/26 del 23/04/2026\nfattura acconto per fornitura e posa di Tapparella in alluminio N° 1 da 143 x 185 cm N° 1 da 283,5 x 185 cm\nTotale documento 3.446,50 €`, extractionMode: "native_text" })[0];
     const saldo = splitLocalInvoiceText({ documentKey: "saldo-tapparelle", text: `FATTURA\nnr. FPR 337/26 del 01/07/2026\nPRODOTTI E SERVIZI\n1 fattura saldo per fornitura e posa di Tapparella in alluminio N° 1 da 143 x 185 cm Schermatura superficie mq 2,645 Gtot 0,060 classe 4 N° 1 da 283,5 x 185 cm Schermatura superficie mq 5,2447 Gtot 0,060\n2 Infissi PVC\nMETODO DI PAGAMENTO\nTotale documento 3.446,50 €`, extractionMode: "native_text" })[0];

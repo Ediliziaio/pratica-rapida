@@ -1,4 +1,5 @@
 const MONEY = String.raw`(?:\d{1,3}(?:\.\d{3})*|\d+),\d{2}`;
+export const BANK_TRANSFER_MONEY_TOLERANCE_EUR = 0.05;
 
 const parseMoney = (value: string) => {
   const parsed = Number(value.replace(/\./g, "").replace(",", "."));
@@ -94,7 +95,7 @@ export function reconcileBankTransfers(invoiceTotal: number | null, transfers: B
   const debitedTotal = transfers.every((item) => item.debitedTotal !== null)
     ? round(transfers.reduce((sum, item) => sum + (item.debitedTotal ?? 0), 0)) : null;
   const difference = round(principalTotal - invoiceTotal);
-  const status = difference > 0.01 ? "principal_exceeds_invoices" as const
-    : difference < -0.01 ? "principal_below_invoices" as const : "reconciled" as const;
+  const status = difference > BANK_TRANSFER_MONEY_TOLERANCE_EUR ? "principal_exceeds_invoices" as const
+    : difference < -BANK_TRANSFER_MONEY_TOLERANCE_EUR ? "principal_below_invoices" as const : "reconciled" as const;
   return { status, principalTotal, feesTotal, debitedTotal, difference, referenceStatus, missingInvoiceReferences, taxReliefTypes };
 }

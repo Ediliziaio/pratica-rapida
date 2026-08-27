@@ -3,6 +3,57 @@ import { combineDocumentResults, containsHistoricalEneaAppendix, normalizePersia
 import { USER_AUTHORIZED_RULE_IDS } from "../enea-shadow-crm/operationalRegistry";
 
 describe("invoiceParser formati rivenditore originari", () => {
+  it.each([
+    ["260", "05-03-26", "2026-03-05"],
+    ["261", "05/03/26", "2026-03-05"],
+    ["534", "26-05-2026", "2026-05-26"],
+    ["535", "26/05/2026", "2026-05-26"],
+  ])("legge numero e data separati con separatori e anno ammessi (%s, %s)", (number, date, expectedDate) => {
+    const parsed = parseScreeningInvoiceText(`AGENTE N° DOCUMENTO DATA DOCUMENTO TERRITORY
+${number}
+${date}
+TOTALE FATTURA
+EUR 5.353,36`, "fattura-tabellare-generica.pdf");
+    expect(parsed.result).toMatchObject({ documentNumber: number, documentDate: expectedDate, total: 5353.36 });
+  });
+
+  it("legge il numero in coda alla riga delle etichette e la data sulla riga seguente", () => {
+    const parsed = parseScreeningInvoiceText(`FATTURA DI VENDITA
+N° DOCUMENTO DATA DOCUMENTO 619
+19-06-26
+TOTALE FATTURA
+EUR 680,14`, "fattura-tabellare-generica.pdf");
+    expect(parsed.result).toMatchObject({ documentNumber: "619", documentDate: "2026-06-19", total: 680.14 });
+  });
+
+  it("legge identita e totale quando Fattura precede Data e Numero sulla stessa riga tabellare", () => {
+    const parsed = parseScreeningInvoiceText(`Fattura
+Data 22/06/2026 Numero 146 Pagina
+1/1
+Codice Descrizione UM Q.tà Prezzo Unit. Sconto Importo IVA
+Fornitura e posa in opera di schermatura solare
+1,00 7.500,00 7.500,00 10
+Codice IVA - Descrizione Imponibile Aliquota Imposta
+10 - IVA 10% 7.500,00 10,00% 750,00
+Spese anticipate Altre spese 0,00 0,00 Totale documento
+8.250,00
+Totale da pagare
+0,00 0,00 0,00 0,00 8.250,00`, "fattura-tabellare.pdf");
+    expect(parsed.result).toMatchObject({ documentNumber: "146", documentDate: "2026-06-22", total: 8250 });
+  });
+
+  it("preferisce Totale documento al totale descrittivo della commessa", () => {
+    const parsed = parseScreeningInvoiceText(`NUMERO DOCUMENTO DATA DOCUMENTO PAG.
+1512 12/03/2026 001
+Totale complessivo fornitura e posa in opera euro 9.010,00
+IMPONIBILE 1.986,00 3.640,00
+AL.IVA 22 10 IMPORTO IVA TOTALE MERCE
+436,92 5.626,00
+364,00
+TOTALE A PAGARE TOTALE DOCUMENTO
+800,92 6.426,92`, "fattura-multi-aliquota.pdf");
+    expect(parsed.result).toMatchObject({ documentNumber: "1512", documentDate: "2026-03-12", total: 6426.92 });
+  });
   it("separa tutte le tapparelle della descrizione narrativa mista senza inventare tende", () => {
     const parsed = parseScreeningInvoiceText(`FATTURA\nnr. FPR 337/26 del 01/07/2026\nPRODOTTI E SERVIZI\n1 fattura saldo per fornitura e posa di Tapparella in\nalluminio media densità colore avorio A02 N° 1 da 143\nx 185 cm Schermatura superficie mq 2,645 , Gtot 0,060\nclasse 4 N° 1 da 283,5 x 185 cm Schermatura\nsuperficie mq 5,2447 Gtot 0,060 classe 4 N° 1 tubo\ncompleto in ferro L. 300 cm Data Collaudo 01/07/2026\n1 400,00 € 400,00 € 22 % -\n2 Infissi PVC esterno bianco massa interno 49233\nMETODO DI PAGAMENTO\nTotale documento 3.446,50 €`, "misto-saldo-tapparelle.pdf");
     expect(parsed.items).toHaveLength(2);

@@ -11,6 +11,31 @@ const doc = (patch: Partial<FinancialDocumentEvidence> = {}): FinancialDocumentE
 });
 
 describe("riconciliazione finanziaria tripla", () => {
+  it("accetta IVA negativa soltanto quando la terna si riconcilia col lordo", () => {
+    const result = reconcileFinancialEvidence([doc({
+      sourceId: "signed-vat",
+      documentNumber: "619",
+      taxableAmount: 1097,
+      vatAmount: -416.86,
+      grossTotal: 680.14,
+      interventionGrossAmount: 680.14,
+    })]);
+    expect(result).toMatchObject({ usable: true, total: 680.14 });
+  });
+
+  it("rifiuta IVA negativa quando la terna non si riconcilia col lordo", () => {
+    const result = reconcileFinancialEvidence([doc({
+      sourceId: "signed-vat-mismatch",
+      documentNumber: "619",
+      taxableAmount: 1097,
+      vatAmount: -400,
+      grossTotal: 680.14,
+      interventionGrossAmount: 680.14,
+    })]);
+    expect(result.usable).toBe(false);
+    expect(result.blockers).toContain("imponibile-iva-mismatch:signed-vat-mismatch");
+  });
+
   it("riconcilia acconto e saldo senza perdere o duplicare l'acconto", () => {
     const result = reconcileFinancialEvidence([
       doc({ sourceId: "acconto", kind: "advance", taxableAmount: 381.15, vatAmount: 83.85, grossTotal: 465, interventionGrossAmount: 465 }),

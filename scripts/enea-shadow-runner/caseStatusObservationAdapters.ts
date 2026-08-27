@@ -136,7 +136,7 @@ export function observeAprDraftExecution(item: AprEneaDraftExecutionItem, input:
   context(input);
   const blockerCodes = [...new Set(item.operatorGateBlockers.map((blocker) => blocker.code))].sort();
   const technicalStop = Boolean(item.uncertainPageSave)
-    || /(?:apr_cdp_|esito tecnico incerto|bozza completa e salvata non dimostrabile)/i.test(item.reason);
+    || /(?:apr_cdp_|apr_enea_nested_page_not_persisted_after_outer_save|esito tecnico incerto|bozza completa e salvata non dimostrabile)/i.test(item.reason);
   const status = item.state === "saved" ? "COMPLETED"
     : item.state === "operator_intervention" && (blockerCodes.length > 0 || technicalStop) ? "BLOCKED"
       : item.state === "deferred_operator" ? "DEFERRED"

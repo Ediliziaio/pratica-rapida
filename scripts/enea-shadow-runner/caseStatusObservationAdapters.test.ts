@@ -92,6 +92,16 @@ describe("APR case status observation adapters", () => {
     expect(observeAprDraftExecution(item, at)).toMatchObject({ source: "execution", stage: "EXECUTION", status: "COMPLETED", classification: "NONE" });
   });
 
+  it("classifica come tecnico il mancato salvataggio server di una pagina annidata", () => {
+    const item = { customerKey: "fixture-nested-save", state: "operator_intervention", operatorGateBlockers: [], uncertainPageSave: null, reason: "Errore circoscritto alla pratica: apr_enea_nested_page_not_persisted_after_outer_save:page:Generatore dell'impianto termico" } as unknown as AprEneaDraftExecutionItem;
+    expect(observeAprDraftExecution(item, at)).toMatchObject({ source: "execution", stage: "EXECUTION", status: "BLOCKED", classification: "TECHNICAL", blockerCodes: [] });
+  });
+
+  it("non trasforma un intervento business esplicito in arresto tecnico", () => {
+    const item = { customerKey: "fixture-operator", state: "operator_intervention", operatorGateBlockers: [{ code: "invoice_total_conflict" }], uncertainPageSave: null, reason: "L'operatore deve verificare il totale della fattura." } as unknown as AprEneaDraftExecutionItem;
+    expect(observeAprDraftExecution(item, at)).toMatchObject({ source: "execution", stage: "EXECUTION", status: "BLOCKED", classification: "OPERATOR", blockerCodes: ["invoice_total_conflict"] });
+  });
+
   it("rifiuta osservazioni senza runId", () => {
     const item = { customerKey: "fixture-a", state: "ready_local_plan", report: { outcome: "ready_local_plan", blockers: [] } } as unknown as AprCrmLocalPreflightItem;
     expect(() => observeAprCommonPreflight(item, { ...at, runId: "" })).toThrow(/run_id_empty/);

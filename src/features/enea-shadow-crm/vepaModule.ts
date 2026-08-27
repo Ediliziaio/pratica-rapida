@@ -1,6 +1,6 @@
 import { USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
 
-export const APR_VEPA_MODULE_VERSION = "apr-vepa-module-v2" as const;
+export const APR_VEPA_MODULE_VERSION = "apr-vepa-module-v3" as const;
 
 const VEPA_RULE_IDS = Object.freeze([
   USER_AUTHORIZED_RULE_IDS.vepaBonusCasaRouting,
@@ -17,7 +17,7 @@ const VEPA_SHARED_ANAGRAPHIC_RULE_IDS = Object.freeze([
   USER_AUTHORIZED_RULE_IDS.validOriginalDocumentFiscalCode,
   USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck,
   USER_AUTHORIZED_RULE_IDS.singleUnitBuildingQualification,
-  USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverAffectedUnitCount,
+  USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverApartmentCount,
 ] as const);
 
 export const APR_VEPA_SHARED_ANAGRAPHIC_CONTRACT = Object.freeze({

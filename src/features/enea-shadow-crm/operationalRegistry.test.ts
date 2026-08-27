@@ -374,13 +374,16 @@ describe("registro operativo unico",()=>{
     expect(singleUnit.audit).toContain("numero piani descrittivo");
   });
 
-  it("richiede una fonte primaria esplicita per qualificare l'edificio come plurimo", () => {
-    const explicitBuilding = registryRule(USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverAffectedUnitCount)!;
-    expect(explicitBuilding).toMatchObject({ step: "identity_property", priority: 979, outcome: "continue", provenance: { authority: "user" } });
-    expect(explicitBuilding.sourcePrecedence[0]).toContain("condominio o piu unita");
-    expect(explicitBuilding.deterministicAction).toContain("soltanto con una dichiarazione primaria esplicita");
-    expect(explicitBuilding.deterministicAction).toContain("fino/oltre tre piani");
-    expect(explicitBuilding.audit).toContain("fonte primaria della pluralita");
+  it("fa prevalere la tipologia edificio esplicita sul numero appartamenti della pratica", () => {
+    const explicitBuilding = registryRule(USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverApartmentCount)!;
+    expect(explicitBuilding).toMatchObject({ step: "identity_property", priority: 998, outcome: "continue", provenance: { authority: "user", receivedAt: "2026-08-27" } });
+    expect(explicitBuilding.sourcePrecedence[0]).toContain("tipologia edificio esplicita");
+    expect(explicitBuilding.deterministicAction).toContain("numero appartamenti della pratica non può sovrascrivere");
+    expect(explicitBuilding.audit).toContain("tipologia edificio originaria");
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverAffectedUnitCount)?.lifecycle).toMatchObject({
+      status: "superseded",
+      supersededByRuleId: USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverApartmentCount,
+    });
   });
 
   it("preserva sempre la cardinalità tecnica e separa l'aggregazione economica", () => {

@@ -1,7 +1,7 @@
 import { ENEA_INTERVENTION_TYPE } from "../enea-lab/interventionRules";
 import { USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
 
-export const APR_INFISSI_MODULE_VERSION = "apr-infissi-module-v5" as const;
+export const APR_INFISSI_MODULE_VERSION = "apr-infissi-module-v6" as const;
 
 const INFISSI_SHARED_RULE_IDS = Object.freeze([
   USER_AUTHORIZED_RULE_IDS.infissiSharedWorkflow,
@@ -15,7 +15,7 @@ const INFISSI_SHARED_RULE_IDS = Object.freeze([
   USER_AUTHORIZED_RULE_IDS.invoiceCoBeneficiaryPortalFlow,
   USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck,
   USER_AUTHORIZED_RULE_IDS.singleUnitBuildingQualification,
-  USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverAffectedUnitCount,
+  USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverApartmentCount,
   USER_AUTHORIZED_RULE_IDS.missingCompletionDate,
   USER_AUTHORIZED_RULE_IDS.invoiceWorkDateChronology,
   USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalVatIncluded,

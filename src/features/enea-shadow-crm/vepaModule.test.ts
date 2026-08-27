@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { APR_VEPA_SHARED_ANAGRAPHIC_CONTRACT, aprVepaModuleReadinessSnapshot, buildAprVepaLocalPlan } from "./vepaModule";
+import { USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
 
 describe("APR modulo VEPA · gate locale", () => {
   it("preserva due pezzi fisici e preferisce i metri quadri espliciti alle misure", () => {
@@ -49,6 +50,8 @@ describe("APR modulo VEPA · gate locale", () => {
       "user-2026-08-16-invoice-identity-over-customer-form",
       "user-2026-08-17-invoice-co-beneficiary-person-flow",
       "user-2026-08-16-fiscal-code-identity-cross-check",
+      USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverApartmentCount,
     ]));
+    expect(APR_VEPA_SHARED_ANAGRAPHIC_CONTRACT.appliedRuleIds).not.toContain(USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverAffectedUnitCount);
   });
 });

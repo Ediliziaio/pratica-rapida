@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ENEA_INTERVENTION_TYPE } from "../enea-lab/interventionRules";
 import { APR_INFISSI_SHARED_WORKFLOW_CONTRACT, aprInfissiModuleReadinessSnapshot, buildAprInfissiSharedPlan } from "./infissiModule";
+import { USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
 
 describe("APR modulo Infissi · gate flusso condiviso", () => {
   it("riusa tutte le sezioni comuni delle schermature cambiando soltanto il tipo intervento", () => {
@@ -23,6 +24,8 @@ describe("APR modulo Infissi · gate flusso condiviso", () => {
       "economic_sources_and_reconciliation",
       "primary_home_50_or_secondary_home_36_allocation",
     ]));
+    expect(APR_INFISSI_SHARED_WORKFLOW_CONTRACT.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverApartmentCount);
+    expect(APR_INFISSI_SHARED_WORKFLOW_CONTRACT.appliedRuleIds).not.toContain(USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverAffectedUnitCount);
   });
 
   it("espone la risoluzione locale delle fonti e ferma il piano prima del mapping tecnico e della bozza", () => {

@@ -735,6 +735,22 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     expect(runner.recordCreateIntent("lorena-brendas", "lorena:create:intent:resume").items[0]).toMatchObject({ state: "create_intent_recorded", createAttemptCount: 1 });
   });
 
+  it("ritira una bozza scoperta appartenente a un'altra coorte senza ripetere creazione o Salva", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare(preflightFixture());
+    runner.recordSessionReady("dom-server-auth-1", "session:ready:1");
+    runner.recordCreateIntent("lorena-brendas", "lorena:create:intent:1");
+    runner.recordDraftCreated("lorena-brendas", "438748", "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/438748", "conflicting-discovery", "lorena:created:wrong-discovery");
+    runner.recordCaseBlockedAndContinue("lorena-brendas", "Errore circoscritto alla pratica: apr_cdp_enea_field_verification_failed:id-comune_nascita,id-comune_residenza", "field-mismatch", "lorena:blocked:wrong-discovery");
+
+    const recovered = runner.requeueCrossCohortConflictingDraftDiscovery("lorena-brendas", "438748", "cross-cohort-owner-proof", "lorena:recover:cross-cohort");
+    expect(recovered.items[0]).toMatchObject({ state: "queued", draftId: null, portalUrl: null, createAttemptCount: 1, saveAttemptCount: 0, recoverableCreateIntent: true, completedPageIds: [] });
+    expect(recovered.items[0].pageCheckpoints.every((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0)).toBe(true);
+    runner.recordSessionReady("dom-server-auth-2", "session:ready:2");
+    expect(runner.recordCreateIntent("lorena-brendas", "lorena:create:intent:resume").items[0]).toMatchObject({ state: "create_intent_recorded", createAttemptCount: 1 });
+  });
+
   it("riprende la stessa bozza dopo la correzione della verifica select Nazione", () => {
     const directory = temporaryDirectory();
     const runner = new PersistentAprEneaDraftExecution(directory);

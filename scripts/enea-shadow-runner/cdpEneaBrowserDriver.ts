@@ -799,17 +799,30 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     const state = this.load();
     const mapping = state.mappings.find((candidate) => candidate.customerKey === customerKey && candidate.draftId === draftId);
     const owner = state.mappings.find((candidate) => candidate.customerKey !== customerKey && candidate.draftId === draftId);
+    const siblingOwner = siblingCohortOwnedDraftIds(this.rootDirectory).has(draftId);
     const discovery = [...state.events].reverse().find((event) => event.action === "discover_pending_draft_readonly" && event.customerKey === customerKey && event.draftId === draftId);
     const created = state.events.some((event) => event.action === "create_draft_once" && event.customerKey === customerKey && event.draftId === draftId);
-    if (!mapping || !owner || !discovery || created) throw new Error("apr_cdp_enea_conflicting_discovery_recovery_invalid");
+    if (!mapping || (!owner && !siblingOwner) || !discovery || created) throw new Error("apr_cdp_enea_conflicting_discovery_recovery_invalid");
     state.revision += 1;
     const observedAt = new Date().toISOString();
     const evidenceId = `cdp-local-${state.revision}-${discovery.domSha256.slice(0, 20)}`;
     state.mappings = state.mappings.filter((candidate) => candidate !== mapping);
-    state.pendingCreate = null;
+    state.pendingCreate = {
+      packageFingerprint: mapping.packageFingerprint,
+      customerKey,
+      beforeDraftIds: [draftId],
+      startedAt: discovery.at,
+      wizardSubmitAttemptCount: 1,
+      wizardSubmitAttemptedAt: discovery.at,
+      wizardContractFingerprint: "recovered-cross-cohort-conflicting-discovery",
+    };
     state.events.push({ revision: state.revision, at: observedAt, action: "discard_conflicting_discovery_mapping", evidenceId, url: discovery.url, targetId: discovery.targetId, customerKey, draftId, pageId: null, domSha256: discovery.domSha256, appliedRuleIds: ["authorized-19-test-stop-at-saved-draft", "system-atomic-checkpoint-resume", "system-single-active-practice"] });
     this.write(state);
     return { evidenceId, observedAt, url: discovery.url };
+  }
+
+  isDraftOwnedBySiblingCohort(draftId: string) {
+    return /^\d{4,}$/.test(draftId) && siblingCohortOwnedDraftIds(this.rootDirectory).has(draftId);
   }
 
   async createDraft(draftPackage: AprEneaDraftPackage): Promise<AprEneaDraftEvidence> {

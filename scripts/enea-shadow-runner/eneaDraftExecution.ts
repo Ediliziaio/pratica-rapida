@@ -241,6 +241,7 @@ export interface AprEneaDraftExecutionAuditEvent {
     | "final_draft_server_evidence_recovered"
     | "case_blocked_continuing"
     | "case_requeued_recovery"
+    | "cross_cohort_conflicting_draft_discovery_requeued"
     | "create_intent_deferred_behind_pending_portal_intent"
     | "created_draft_requeued_page_order"
     | "created_draft_requeued_generator_activation"
@@ -2910,6 +2911,31 @@ export class PersistentAprEneaDraftExecution {
         item.reason = "Intento di creazione non materializzato: ripresa autorizzata sullo stesso contatore dopo contratto wizard verificato.";
         item.nextAction = "Riprendere il wizard senza un secondo click al collegamento iniziale.";
       }
+      next.status = "ready";
+      next.sessionEvidenceId = null;
+      next.sessionVerifiedAt = null;
+    });
+  }
+
+  requeueCrossCohortConflictingDraftDiscovery(customerKey: string, draftId: string, evidenceId: string, commandId: string, now = new Date()) {
+    if (!customerKey.trim() || !/^\d{4,}$/.test(draftId) || !evidenceId.trim()) throw new Error("enea_cross_cohort_discovery_recovery_evidence_invalid");
+    return this.transition("apr-enea-browser-worker", commandId, now, {
+      type: "cross_cohort_conflicting_draft_discovery_requeued",
+      customerKey,
+      reason: `Associazione locale alla bozza ${draftId} ritirata: la bozza appartiene a un'altra coorte persistente.`,
+      nextAction: "Ritrovare in sola lettura soltanto una bozza non assegnata, senza ripetere il submit del wizard.",
+      appliedRuleIds: [SYSTEM_FAIL_CLOSED_RULE, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE],
+    }, (next) => {
+      if (next.currentCustomerKey) throw new Error("enea_cross_cohort_discovery_recovery_active_case_present");
+      const item = next.items.find((candidate) => candidate.customerKey === customerKey);
+      if (!item || item.state !== "operator_intervention" || item.draftId !== draftId || item.createAttemptCount !== 1 || item.saveAttemptCount !== 0 || item.completedPageIds.length !== 0 || item.pageCheckpoints.some((checkpoint) => checkpoint.state !== "pending" || checkpoint.saveAttemptCount !== 0 || checkpoint.recoverySaveAttemptCount !== 0)) throw new Error(`enea_cross_cohort_discovery_recovery_case_invalid:${customerKey}`);
+      item.draftId = null;
+      item.portalUrl = null;
+      item.state = "queued";
+      item.recoverableCreateIntent = true;
+      if (!item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
+      item.reason = `Bozza ${draftId} esclusa per ownership di un'altra coorte; intento originale preservato senza secondo submit.`;
+      item.nextAction = "Scoprire la sola bozza non assegnata prodotta dall'intento persistente, oppure richiedere intervento operatore.";
       next.status = "ready";
       next.sessionEvidenceId = null;
       next.sessionVerifiedAt = null;

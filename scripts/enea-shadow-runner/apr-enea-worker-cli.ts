@@ -246,7 +246,22 @@ async function serve() {
         }
         execution.upgradeUncertainPageSaveOperatorInstructions("worker:operator-instruction-upgrade:v1");
         let executionBeforeTick = execution.snapshot();
-        const driverBeforeTick = driver.snapshot();
+        let driverBeforeTick = driver.snapshot();
+        const crossCohortConflict = executionBeforeTick.items.find((item) => item.state === "operator_intervention"
+          && Boolean(item.draftId)
+          && item.createAttemptCount === 1
+          && item.saveAttemptCount === 0
+          && item.completedPageIds.length === 0
+          && item.pageCheckpoints.every((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0 && checkpoint.recoverySaveAttemptCount === 0)
+          && driver.isDraftOwnedBySiblingCohort(item.draftId!));
+        if (!executionBeforeTick.currentCustomerKey && crossCohortConflict?.draftId) {
+          const recovery = driver.discardConflictingDiscoveredMapping(crossCohortConflict.customerKey, crossCohortConflict.draftId);
+          const commandId = `service:auto-recover-cross-cohort-discovery:${crossCohortConflict.customerKey}:${crossCohortConflict.draftId}:${recovery.evidenceId}:v1`;
+          execution.requeueCrossCohortConflictingDraftDiscovery(crossCohortConflict.customerKey, crossCohortConflict.draftId, recovery.evidenceId, commandId);
+          executionBeforeTick = execution.snapshot();
+          driverBeforeTick = driver.snapshot();
+          service.record({ instanceId, processPid: process.pid, status: "running", type: "cross_cohort_conflicting_draft_discovery_requeued", reason: `${crossCohortConflict.displayName}: associazione alla bozza ${crossCohortConflict.draftId} ritirata perché gia posseduta da un'altra coorte; nessun Salva era stato tentato.`, nextAction: "APR cerca soltanto una bozza non assegnata senza ripetere il submit del wizard.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: recovery.evidenceId });
+        }
         const correctedPayloadRecovery = executionBeforeTick.items.find((item) => {
           if (item.state !== "operator_intervention"
             || !item.draftId

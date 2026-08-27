@@ -16,6 +16,7 @@ import {
   useMoveStage,
   useUpdateEneaPractice,
 } from "@/hooks/useEneaPractices";
+import { includeArchivedForCrmSearch } from "@/features/enea-shadow-crm/searchPolicy";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -2614,7 +2615,7 @@ export default function KanbanBoard() {
     // La ricerca è gestita CLIENT-SIDE in filteredPractices (vedi sotto): così
     // cerca anche per nome+cognome insieme e per NOME RIVENDITORE (tabella
     // joinata), cosa che il filtro server .or() su singoli campi non copriva.
-    includeArchived: showArchived,
+    includeArchived: includeArchivedForCrmSearch(showArchived, deferredSearch, clienteFilter),
   });
 
   // Deep-link auto-open: se l'URL ha `?practice=<id>` apri la sheet di
@@ -3339,6 +3340,12 @@ export default function KanbanBoard() {
           )}
         </div>
       </div>
+
+      {(deferredSearch.trim() || clienteFilter.trim()) && !showArchived && (
+        <div className="px-4 py-1 border-b bg-muted/40 text-[11px] text-muted-foreground shrink-0">
+          La ricerca include anche le pratiche archiviate nascoste.
+        </div>
+      )}
 
       {/* ── Toolbar row 2: brand segment · view toggle · archive · sort ─────── */}
       <div className="flex items-center gap-3 px-4 py-1.5 border-b bg-background shrink-0">

@@ -113,6 +113,17 @@ describe("gate permanente del servizio browser APR", () => {
     expect(JSON.parse(readFileSync(path.join(workerDirectory, "checkpoint.json"), "utf8"))).toMatchObject({ status: "stopped", processPid: 0 });
   });
 
+  it("azzera il PID storico di un servizio gia' stopped quando il processo non esiste piu'", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-stopped-pid-reconcile-")); directories.push(root);
+    const service = new PersistentAprEneaWorkerService(root);
+    service.record({ instanceId: "worker-stopped-old-pid", processPid: 43216, status: "stopped", type: "stopped", reason: "Worker fermato.", nextAction: "Attendere." }, new Date("2026-08-27T10:00:00Z"));
+
+    const snapshot = service.snapshot(new Date("2026-08-27T10:00:01Z"), () => false);
+
+    expect(snapshot.service).toMatchObject({ status: "stopped", processPid: 0 });
+    expect(snapshot.service.audit.at(-1)).toMatchObject({ type: "process_liveness_reconciled" });
+  });
+
   it("impedisce a un completamento asincrono della stessa istanza di sovrascrivere stopped", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-stop-tombstone-")); directories.push(root);
     const service = new PersistentAprEneaWorkerService(root);

@@ -308,13 +308,15 @@ export class PersistentAprEneaWorkerService {
     },
   ) {
     const current = this.loadState(now);
-    if (["disabled", "stopped"].includes(current.status) || current.processPid <= 1 || processAlive(current.processPid)) return current;
+    if (current.status === "disabled" || current.processPid <= 1 || processAlive(current.processPid)) return current;
     return this.record({
       instanceId: current.instanceId,
       processPid: 0,
       status: "stopped",
       type: "process_liveness_reconciled",
-      reason: `Worker APR non attivo: il PID ${current.processPid} del checkpoint non esiste più.`,
+      reason: current.status === "stopped"
+        ? `Worker APR fermo: il PID storico ${current.processPid} e' stato rimosso dallo stato pubblico dopo la terminazione reale.`
+        : `Worker APR non attivo: il PID ${current.processPid} del checkpoint non esiste più.`,
       nextAction: "Il supervisore può avviare una nuova istanza dal checkpoint persistente; nessun lavoro è dichiarato in corso.",
       chromePid: current.chromePid,
       profileFingerprint: current.profileFingerprint,

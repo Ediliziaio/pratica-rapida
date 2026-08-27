@@ -5,7 +5,7 @@ import path from "node:path";
 import { afterEach, describe, expect, expectTypeOf, it } from "vitest";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
-import { CASE_SPECIFIC_FINANCIAL_RESOLUTIONS, PersistentAprCrmLocalPreflight, asScreeningDraftPackage, assessEnea2026SubmissionDeadline, buildCrmLocalPreflightReport, completionDateOperatorBlockers, invalidateCrmEneaPayloadAuditForScreeningBlockers, isPersianaDimensionPlausible, missingExplicitAdvanceInvoiceReferences, resolveBundledProfessionalExpense, resolveCoBeneficiaryFromOriginalInvoices, resolveExplicitAdvanceInvoiceReferences, resolveFormScreeningMappings, resolveInvoiceWorkDates, resolveOriginalDocumentFiscalCode, resolvePrimaryBeneficiaryFromOriginalInvoices, resolveProductTechnicalAttributes, screeningFallbackMaterialCategoryBlocker, screeningProductMeasurementEvidenceStatus } from "./crmLocalPreflight";
+import { CASE_SPECIFIC_FINANCIAL_RESOLUTIONS, PersistentAprCrmLocalPreflight, asScreeningDraftPackage, assessEnea2026SubmissionDeadline, buildCrmLocalPreflightReport, completionDateOperatorBlockers, invalidateCrmEneaPayloadAuditForScreeningBlockers, isPersianaDimensionPlausible, missingExplicitAdvanceInvoiceReferences, reconcileCommonReportWithAuthoritativeInfissiGate, resolveBundledProfessionalExpense, resolveCoBeneficiaryFromOriginalInvoices, resolveExplicitAdvanceInvoiceReferences, resolveFormScreeningMappings, resolveInvoiceWorkDates, resolveOriginalDocumentFiscalCode, resolvePrimaryBeneficiaryFromOriginalInvoices, resolveProductTechnicalAttributes, screeningFallbackMaterialCategoryBlocker, screeningProductMeasurementEvidenceStatus } from "./crmLocalPreflight";
 import type { CrmEneaPayloadAuditResult } from "./crmEneaPayloadAudit";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 import { nestedUncertainPageSaveProbeAllowed } from "./infissiUncertainSavePolicy";
@@ -80,6 +80,43 @@ describe("preflight locale durevole fino a quindici dossier CRM", () => {
       sourceIds: ["invoice-1"],
       appliedRuleIds: ["system-apr-operator-intervention-routing"],
     }])).toBe(audit);
+  });
+
+  it("esclude in modo generale i falsi blocker Schermature quando il gate Infissi e' autorevole", () => {
+    const report = {
+      outcome: "blocked_case",
+      blockers: [
+        { code: "screenings_missing", field: "screenings", reason: "Nessun prodotto fisico riconciliato dalle fatture originarie.", sourceIds: ["invoice-1"], appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.technicalProductCardinality] },
+        { code: "invoice_332a5af9", field: "economic_sources", reason: "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.", sourceIds: ["invoice-1"], appliedRuleIds: ["core-economic-classification"] },
+      ],
+      warnings: [],
+      draftPlan: { status: "blocked", externalActionAllowed: false, previewAllowed: false, submitAllowed: false, communicationsAllowed: false, nextAction: "blocked" },
+    } as unknown as ReturnType<typeof buildCrmLocalPreflightReport>;
+
+    expect(reconcileCommonReportWithAuthoritativeInfissiGate(report)).toMatchObject({
+      outcome: "ready_local_plan",
+      blockers: [],
+      warnings: [{ code: "screening_validation_not_applicable_to_infissi" }],
+      draftPlan: { status: "ready_before_external_action" },
+    });
+  });
+
+  it("non nasconde un blocker comune reale durante la riconciliazione Infissi", () => {
+    const report = {
+      outcome: "blocked_case",
+      blockers: [
+        { code: "screenings_missing", field: "screenings", reason: "Nessun prodotto fisico riconciliato dalle fatture originarie.", sourceIds: ["invoice-1"], appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.technicalProductCardinality] },
+        { code: "tax_code_missing_or_invalid", field: "beneficiary.taxCode", reason: "Codice fiscale non verificato.", sourceIds: ["form-1"], appliedRuleIds: ["core-form-first"] },
+      ],
+      warnings: [],
+      draftPlan: { status: "blocked", externalActionAllowed: false, previewAllowed: false, submitAllowed: false, communicationsAllowed: false, nextAction: "blocked" },
+    } as unknown as ReturnType<typeof buildCrmLocalPreflightReport>;
+
+    expect(reconcileCommonReportWithAuthoritativeInfissiGate(report)).toMatchObject({
+      outcome: "blocked_case",
+      blockers: [{ code: "tax_code_missing_or_invalid" }],
+      draftPlan: { status: "blocked" },
+    });
   });
 
   it("mantiene il materiale dell'avvolgibile isolato dalle righe Infissi della stessa fattura", () => {

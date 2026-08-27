@@ -146,6 +146,41 @@ function isScreeningComponentBlocker(blocker: AprCrmLocalPreflightBlocker) {
   return blocker.field === "screenings" || blocker.field.startsWith("screenings.");
 }
 
+function isScreeningOnlyBlocker(blocker: AprCrmLocalPreflightBlocker) {
+  return isScreeningComponentBlocker(blocker)
+    || blocker.code === "screenings_missing"
+    || blocker.code === "screening_primary_measurements_missing"
+    || (/^invoice_[a-f0-9]{8}$/.test(blocker.code)
+      && /Nessuna riga di schermatura con dimensioni e gTot/i.test(blocker.reason));
+}
+
+export function reconcileCommonReportWithAuthoritativeInfissiGate(
+  report: AprCrmLocalPreflightReport,
+): AprCrmLocalPreflightReport {
+  const blockers = report.blockers.filter((blocker) => !isScreeningOnlyBlocker(blocker));
+  const removed = report.blockers.length - blockers.length;
+  if (removed === 0) return report;
+  const ready = blockers.length === 0;
+  const warning = {
+    code: "screening_validation_not_applicable_to_infissi",
+    reason: `${removed} esiti del parser Schermature esclusi perché il gate documentale autorevole ha classificato la pratica come Infissi.`,
+    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.documentedProductModuleOverLabel],
+  };
+  return {
+    ...report,
+    outcome: ready ? "ready_local_plan" : "blocked_case",
+    blockers,
+    warnings: report.warnings.some((item) => item.code === warning.code) ? report.warnings : [...report.warnings, warning],
+    draftPlan: {
+      ...report.draftPlan,
+      status: ready ? "ready_before_external_action" : "blocked",
+      nextAction: ready
+        ? "Dati comuni pronti; il solo gate Infissi autorevole decide il pacchetto ENEA."
+        : "Risolvere i blocker comuni residui; i falsi blocker Schermature sono esclusi.",
+    },
+  };
+}
+
 export function invalidateCrmEneaPayloadAuditForScreeningBlockers(
   audit: CrmEneaPayloadAuditResult,
   blockers: readonly AprCrmLocalPreflightBlocker[],
@@ -1198,6 +1233,48 @@ export class PersistentAprCrmLocalPreflight {
       ...next.items.flatMap((item) => item.report?.blockers.flatMap((blocker) => blocker.appliedRuleIds) ?? []),
       ...next.items.flatMap((item) => item.report?.warnings.flatMap((warning) => warning.appliedRuleIds) ?? []),
     ])] });
+    return this.write(next);
+  }
+  reconcileAuthoritativeInfissiApplicability(
+    infissi: { status: string; items: ReadonlyArray<{ customerKey: string; state: string; report?: { blockers?: readonly unknown[] } | null }> },
+    validationRevision = "infissi-authoritative-product-applicability-v66",
+    now = new Date(),
+  ) {
+    const current = this.initialize(now);
+    if (current.validationRevisionsApplied.includes(validationRevision)) return current;
+    if (current.status !== "completed" || infissi.status !== "completed") return current;
+    const authoritativeReadyKeys = new Set(infissi.items
+      .filter((item) => item.state === "ready_local_plan" && (item.report?.blockers?.length ?? 0) === 0)
+      .map((item) => item.customerKey));
+    if (authoritativeReadyKeys.size === 0) return current;
+    const next = structuredClone(current);
+    let changed = 0;
+    for (const item of next.items) {
+      if (!authoritativeReadyKeys.has(item.customerKey) || !item.report) continue;
+      const report = reconcileCommonReportWithAuthoritativeInfissiGate(item.report);
+      if (report === item.report) continue;
+      item.report = report;
+      item.state = report.outcome;
+      item.reason = report.outcome === "ready_local_plan"
+        ? "Dati comuni riconciliati con il gate Infissi autorevole; nessun blocker Schermature applicato."
+        : `${report.blockers.length} blocker comuni residui; i blocker Schermature non applicabili sono esclusi.`;
+      changed += 1;
+    }
+    if (changed === 0) return current;
+    next.revision += 1;
+    next.validationRevisionsApplied.push(validationRevision);
+    const ready = next.items.filter((item) => item.state === "ready_local_plan").length;
+    const blocked = next.items.filter((item) => item.state === "blocked_case").length;
+    next.reason = `Applicabilità Infissi riconciliata per ${changed} pratiche: ${ready} pronte, ${blocked} bloccate; nessuna azione esterna.`;
+    next.nextAction = "Usare il gate del modulo documentale autorevole; non applicare blocker Schermature alle pratiche Infissi.";
+    next.audit.push({
+      revision: next.revision,
+      at: now.toISOString(),
+      type: "validation_recomputed",
+      customerKey: null,
+      reason: next.reason,
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.documentedProductModuleOverLabel, "system-atomic-checkpoint-resume"],
+    });
     return this.write(next);
   }
   deferCiottaForPilot(commandId: string, reason: string, now = new Date()) {

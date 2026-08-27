@@ -190,8 +190,11 @@ async function serve() {
           infissiPreflight.applyValidationRevision(validationRevision);
         }
         infissiPreflight.tick();
-        const preflightSnapshot = preflight.snapshot();
         const infissiSnapshot = infissiPreflight.snapshot();
+        if (infissiExecutionGateReady(infissiSnapshot)) {
+          preflight.reconcileAuthoritativeInfissiApplicability(infissiSnapshot);
+        }
+        const preflightSnapshot = preflight.snapshot();
         const infissiCandidateKeys = new Set(infissiSnapshot.items.map((item) => item.customerKey));
         const commonOnlySnapshot = infissiCandidateKeys.size > 0
           ? { ...preflightSnapshot, items: preflightSnapshot.items.filter((item) => !infissiCandidateKeys.has(item.customerKey)) }

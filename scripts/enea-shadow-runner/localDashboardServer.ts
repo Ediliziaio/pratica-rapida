@@ -771,6 +771,8 @@ export class LocalDashboardSupervisor {
       if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-bank-transfer-invoice-authority-v12", now);
       if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-enea-2026-june25-deadline-window-v13", now);
       this.infissiBatchPreflight.tick(now);
+      const infissiSnapshot = this.infissiBatchPreflight.snapshot(now);
+      if (infissiExecutionGateReady(infissiSnapshot)) this.crmLocalPreflight.reconcileAuthoritativeInfissiApplicability(infissiSnapshot, undefined, now);
     }
     this.deepCaseReview.prepareFromCurrentCheckpoints(now);
     this.deepCaseReview.tick(now);

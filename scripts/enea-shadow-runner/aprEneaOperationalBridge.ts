@@ -162,7 +162,16 @@ export class PersistentAprEneaOperationalBridge {
     if (value.version !== APR_ENEA_OPERATIONAL_BRIDGE_VERSION
       || value.status !== "armed"
       || value.authorizationScope !== "real_portal_draft_only"
-      || !value.authorizationId.trim()) throw new Error("apr_enea_bridge_checkpoint_invalid");
+      || !value.authorizationId.trim()
+      || !value.customerKey.trim()
+      || !value.practiceId.trim()
+      || !/^[a-f0-9]{64}$/.test(value.sourceLegacyPackageFingerprint)
+      || !/^[a-f0-9]{64}$/.test(value.bridgedPackageFingerprint)) throw new Error("apr_enea_bridge_checkpoint_invalid");
+    mappingExpense(value.mappingArtifact);
+    if (value.mappingArtifact.payload.customerKey !== value.customerKey
+      || value.mappingArtifact.payload.practiceId !== value.practiceId) {
+      throw new Error("apr_enea_bridge_checkpoint_identity_mismatch");
+    }
     return value;
   }
 

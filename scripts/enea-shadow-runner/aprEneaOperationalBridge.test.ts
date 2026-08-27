@@ -13,8 +13,8 @@ const legacyPackage = (): AprEneaDraftPackage => ({
   customerKey: "case-alpha",
   displayName: "Fixture Alpha",
   practiceId: "practice-alpha",
-  packageFingerprint: "legacy-package-alpha",
-  workflowFingerprint: "legacy-workflow-alpha",
+  packageFingerprint: canonicalSha256("legacy-package-alpha"),
+  workflowFingerprint: canonicalSha256("legacy-workflow-alpha"),
   workflow: {
     supportedPages: ["Schermature solari", "Calcolo costi e detrazioni"],
     screeningItemCount: 1,
@@ -86,7 +86,7 @@ describe("APR ENEA operational bridge", () => {
     expect(JSON.parse(readFileSync(store.checkpointPath, "utf8"))).toMatchObject({ status: "armed", authorizationScope: "real_portal_draft_only" });
     expect(() => store.arm({ legacyPackage: legacyPackage(), mappingArtifact: mapping(), authorizationId: "again" })).toThrow("apr_enea_bridge_already_armed");
 
-    const changed = legacyPackage(); changed.packageFingerprint = "changed";
+    const changed = legacyPackage(); changed.packageFingerprint = canonicalSha256("changed");
     expect(() => store.apply(changed)).toThrow("apr_enea_bridge_legacy_package_changed");
   });
 

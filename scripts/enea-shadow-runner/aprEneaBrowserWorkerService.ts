@@ -1,6 +1,7 @@
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { validateAprEneaServerReadOnlyProbe } from "./aprEneaServerReadOnlyProbe";
+import { PersistentAprEneaOperationalBridge } from "./aprEneaOperationalBridge";
 
 export const APR_ENEA_WORKER_SERVICE_VERSION = "apr-enea-worker-service-v1" as const;
 export const APR_ENEA_EMERGENCY_STOP_VERSION = "apr-enea-emergency-stop-v1" as const;
@@ -101,6 +102,7 @@ export interface AprEneaMinimumQueueGateState {
   repeatDeletionReady: boolean;
   ciottaExcluded: boolean;
   executionSafetyReady: boolean;
+  verifiedMapperBridgeReady: boolean;
   reason: string;
   nextAction: string;
   appliedRuleIds: string[];
@@ -115,7 +117,14 @@ function atomicWrite(target: string, contents: string) {
   const directory = openSync(path.dirname(target), "r"); try { fsyncSync(directory); } finally { closeSync(directory); }
 }
 
-const RULE_IDS = ["authorized-19-test-stop-at-saved-draft", "authorized-27-enea-session-readonly-keepalive", "system-atomic-checkpoint-resume", "system-single-active-practice"];
+const RULE_IDS = [
+  "authorized-19-test-stop-at-saved-draft",
+  "authorized-27-enea-session-readonly-keepalive",
+  "system-atomic-checkpoint-resume",
+  "system-single-active-practice",
+  "system-verified-mapper-bridge-before-autoarm",
+  "system-public-state-process-liveness",
+];
 
 export class PersistentAprEneaWorkerService {
   readonly directory: string;
@@ -167,7 +176,7 @@ export class PersistentAprEneaWorkerService {
     if (next.operationalEnabled) {
       const service = this.loadState(now);
       let driver: { contract?: { ready?: boolean } | null } = {}; let execution: { items?: Array<{ customerKey?: string; state?: string; draftId?: string | null; createAttemptCount?: number; saveAttemptCount?: number; completedPageIds?: string[]; pageCheckpoints?: Array<{ pageId?: string; state?: string; saveAttemptCount?: number; recoverySaveAttemptCount?: number }>; uncertainPageSave?: { status?: string; probes?: Array<{ method?: string; outcome?: string; reason?: string; url?: string }> } | null; reason?: string }>; previewAllowed?: boolean; submitAllowed?: boolean; communicationsAllowed?: boolean } = {};
-      type RuntimeCohortSeed = { status?: string; repeatTest?: { deletionProofRequired?: boolean } | null; candidates?: Array<{ customerKey?: string }>; audit?: Array<{ appliedRuleIds?: string[] }> };
+      type RuntimeCohortSeed = { status?: string; repeatTest?: { deletionProofRequired?: boolean } | null; candidates?: Array<{ customerKey?: string; practiceId?: string }>; audit?: Array<{ appliedRuleIds?: string[] }>; verifiedMapperBridgeRequired?: true };
       let cohortSeed: RuntimeCohortSeed | null = null;
       let preflight: { items?: Array<{ customerKey?: string; state?: string }> } = {};
       let gateOrchestrator: { gates?: Array<{ gateId?: string; state?: string }> } = {};
@@ -176,7 +185,7 @@ export class PersistentAprEneaWorkerService {
       try { cohortSeed = JSON.parse(readFileSync(path.join(path.resolve(this.rootDirectory), "cohort-seed", "checkpoint.json"), "utf8")) as RuntimeCohortSeed; } catch { /* coorti legacy senza seed repeat */ }
       try { preflight = JSON.parse(readFileSync(path.join(path.resolve(this.rootDirectory), "crm-local-preflight", "checkpoint.json"), "utf8")) as typeof preflight; } catch { /* gate userà il checkpoint esecuzione */ }
       try { gateOrchestrator = JSON.parse(readFileSync(path.join(path.resolve(this.rootDirectory), "crm-live-processing", "runtime", "apr-gate-orchestrator", "checkpoint.json"), "utf8")) as typeof gateOrchestrator; } catch { /* gate fallirà */ }
-      const runnable = execution.items?.filter((item) => {
+      const runnableItems = execution.items?.filter((item) => {
         if (item.customerKey === "beatrice-ciotta") return false;
         if (item.state === "queued") return true;
         if (item.state !== "operator_intervention" || item.createAttemptCount !== 1 || item.saveAttemptCount !== 0) return false;
@@ -188,7 +197,8 @@ export class PersistentAprEneaWorkerService {
         const unclickedRecovery = Boolean(item.draftId) && item.uncertainPageSave?.status === "recovery_authorized" && (item.pageCheckpoints ?? []).some((checkpoint) => checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 1) && /apr_cdp_enea_unique_enabled_save_button_not_found:/.test(item.reason ?? "");
         const recoveryTimeoutVerification = Boolean(item.draftId) && item.uncertainPageSave?.status === "operator_required" && (item.pageCheckpoints ?? []).some((checkpoint) => checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 1) && /unico recupero autorizzato ha esito incerto/.test(item.reason ?? "");
         return duplicateDiscovery || conditionalControl || legacyUncertainSave || unclickedRecovery || recoveryTimeoutVerification;
-      }).length ?? 0;
+      }) ?? [];
+      const runnable = runnableItems.length;
       const ciottaSafe = [...(execution.items ?? []), ...(preflight.items ?? [])].every((item) => item.customerKey !== "beatrice-ciotta" || item.state === "deferred_operator");
       const domReady = service.status === "setup_ready" && driver.contract?.ready === true;
       let serverProbeReady = gateOrchestrator.gates?.some((gate) => gate.gateId === "real_enea_server_readonly_probe" && gate.state === "completed") ?? false;
@@ -203,6 +213,19 @@ export class PersistentAprEneaWorkerService {
       const executionSafetyReady = execution.previewAllowed === false && execution.submitAllowed === false && execution.communicationsAllowed === false;
       const cohortCount = cohortSeed?.candidates?.length ?? preflight.items?.length ?? execution.items?.length ?? 0;
       const singleCaseAuthorized = cohortSeed?.audit?.some((event) => event.appliedRuleIds?.includes("user-2026-08-18-single-case-regression-test")) === true;
+      const bridgeRequired = cohortSeed?.verifiedMapperBridgeRequired === true || singleCaseAuthorized;
+      let verifiedMapperBridgeReady = !bridgeRequired;
+      if (bridgeRequired && runnableItems.length === 1) {
+        try {
+          const bridge = new PersistentAprEneaOperationalBridge(this.rootDirectory).snapshot();
+          const candidate = cohortSeed?.candidates?.find((item) => item.customerKey === runnableItems[0].customerKey);
+          verifiedMapperBridgeReady = Boolean(bridge
+            && candidate?.practiceId
+            && bridge.customerKey === runnableItems[0].customerKey
+            && bridge.customerKey === candidate.customerKey
+            && bridge.practiceId === candidate.practiceId);
+        } catch { verifiedMapperBridgeReady = false; }
+      }
       const minimumRequired = singleCaseAuthorized ? 1 : next.minimumConsecutiveCases;
       const isolatedCount = preflight.items?.filter((item) => item.state === "blocked_case" || item.state === "deferred_operator").length ?? 0;
       const terminalPreflightCount = preflight.items?.filter((item) => ["ready_local_plan", "blocked_case", "deferred_operator"].includes(item.state ?? "")).length ?? 0;
@@ -212,7 +235,9 @@ export class PersistentAprEneaWorkerService {
         : !serverProbeReady
           ? "apr_enea_worker_server_readonly_probe_not_ready"
           : !repeatReady
-            ? "apr_enea_worker_repeat_deletion_gate_not_ready"
+          ? "apr_enea_worker_repeat_deletion_gate_not_ready"
+          : !verifiedMapperBridgeReady
+            ? "apr_enea_worker_verified_mapper_bridge_not_ready"
             : cohortCount < minimumRequired || runnable < 1 || !cohortAccountedFor || !ciottaSafe
               ? "apr_enea_worker_minimum_queue_gate_not_ready"
               : !executionSafetyReady
@@ -229,6 +254,7 @@ export class PersistentAprEneaWorkerService {
         repeatDeletionReady: repeatReady,
         ciottaExcluded: ciottaSafe,
         executionSafetyReady,
+        verifiedMapperBridgeReady,
         reason: blocker ?? "gate_verified_and_auto_armed",
         nextAction: blocker ? "APR rivaluterà automaticamente il gate al prossimo tick persistente." : "Reclamare una sola pratica alla volta dal checkpoint persistente.",
       }, now);
@@ -245,7 +271,7 @@ export class PersistentAprEneaWorkerService {
       return { armed: true, reason: "gate_verified_and_auto_armed", config } as const;
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
-      if (["apr_enea_worker_real_dom_contract_not_ready", "apr_enea_worker_server_readonly_probe_not_ready", "apr_enea_worker_repeat_deletion_gate_not_ready", "apr_enea_worker_minimum_queue_gate_not_ready", "apr_enea_worker_execution_safety_gate_invalid"].includes(reason)) return { armed: false, reason, config: current } as const;
+      if (["apr_enea_worker_real_dom_contract_not_ready", "apr_enea_worker_server_readonly_probe_not_ready", "apr_enea_worker_repeat_deletion_gate_not_ready", "apr_enea_worker_verified_mapper_bridge_not_ready", "apr_enea_worker_minimum_queue_gate_not_ready", "apr_enea_worker_execution_safety_gate_invalid"].includes(reason)) return { armed: false, reason, config: current } as const;
       throw error;
     }
   }
@@ -260,13 +286,40 @@ export class PersistentAprEneaWorkerService {
   }
 
   record(input: { instanceId: string; processPid: number; status: AprEneaWorkerServiceState["status"]; reason: string; nextAction: string; chromePid?: number | null; profileFingerprint?: string | null; sessionEvidenceId?: string | null; workerRevision?: number | null; type: string }, now = new Date()) {
-    const current = this.loadState(now); const next = structuredClone(current); const last = next.audit.at(-1);
+    const current = this.loadState(now);
+    // A stop is a tombstone for the same process instance. An awaited browser
+    // operation completing after SIGTERM must not publish RUNNING again.
+    if (current.status === "stopped" && current.instanceId === input.instanceId && input.status !== "stopped") return current;
+    const next = structuredClone(current); const last = next.audit.at(-1);
     const heartbeatOnly = next.status === input.status && next.reason === input.reason && last?.type === input.type;
     if (!heartbeatOnly) next.revision += 1; next.instanceId = input.instanceId; next.processPid = input.processPid; next.status = input.status; next.reason = input.reason; next.nextAction = input.nextAction; next.heartbeatAt = now.toISOString();
     if (input.chromePid !== undefined) next.chromePid = input.chromePid; if (input.profileFingerprint !== undefined) next.profileFingerprint = input.profileFingerprint; if (input.sessionEvidenceId !== undefined) next.sessionEvidenceId = input.sessionEvidenceId; if (input.workerRevision !== undefined) next.workerRevision = input.workerRevision;
     if (!heartbeatOnly) next.audit.push({ revision: next.revision, at: now.toISOString(), type: input.type, reason: input.reason, appliedRuleIds: [...RULE_IDS] });
     if (next.audit.length > 500) next.audit = [next.audit[0], ...next.audit.slice(-499)];
     atomicWrite(this.statePath, `${JSON.stringify(next, null, 2)}\n`); return next;
+  }
+
+  reconcileProcessLiveness(
+    now = new Date(),
+    processAlive: (pid: number) => boolean = (pid) => {
+      try { process.kill(pid, 0); return true; }
+      catch { return false; }
+    },
+  ) {
+    const current = this.loadState(now);
+    if (["disabled", "stopped"].includes(current.status) || current.processPid <= 1 || processAlive(current.processPid)) return current;
+    return this.record({
+      instanceId: current.instanceId,
+      processPid: 0,
+      status: "stopped",
+      type: "process_liveness_reconciled",
+      reason: `Worker APR non attivo: il PID ${current.processPid} del checkpoint non esiste più.`,
+      nextAction: "Il supervisore può avviare una nuova istanza dal checkpoint persistente; nessun lavoro è dichiarato in corso.",
+      chromePid: current.chromePid,
+      profileFingerprint: current.profileFingerprint,
+      sessionEvidenceId: current.sessionEvidenceId,
+      workerRevision: current.workerRevision,
+    }, now);
   }
 
   recordCdpConnections(input: { active: number; opened: number; closed: number; targetIds: string[] }, now = new Date()) {
@@ -344,5 +397,5 @@ export class PersistentAprEneaWorkerService {
     return receipt;
   }
 
-  snapshot(now = new Date()) { const config = this.loadConfig(now); const service = this.loadState(now); let worker: unknown = null; let driver: unknown = null; let minimumQueueGate: AprEneaMinimumQueueGateState | null = null; let emergencyStop: AprEneaEmergencyStopReceipt | null = null; try { worker = JSON.parse(readFileSync(path.join(this.directory, "checkpoint.json"), "utf8")); } catch { /* non avviato */ } try { driver = JSON.parse(readFileSync(path.join(this.directory, "cdp-driver.json"), "utf8")); } catch { /* non collegato */ } try { minimumQueueGate = JSON.parse(readFileSync(this.queueGatePath, "utf8")) as AprEneaMinimumQueueGateState; } catch { /* primo tick non ancora osservato */ } try { emergencyStop = JSON.parse(readFileSync(this.emergencyStopPath, "utf8")) as AprEneaEmergencyStopReceipt; } catch { /* nessuno stop richiesto */ } return { config: { ...config, chromeExecutable: path.basename(config.chromeExecutable), profileDirectory: path.basename(config.profileDirectory) }, service, worker, driver, minimumQueueGate, emergencyStop, observedAt: now.toISOString() } as const; }
+  snapshot(now = new Date(), processAlive?: (pid: number) => boolean) { const config = this.loadConfig(now); const service = this.reconcileProcessLiveness(now, processAlive); let worker: unknown = null; let driver: unknown = null; let minimumQueueGate: AprEneaMinimumQueueGateState | null = null; let emergencyStop: AprEneaEmergencyStopReceipt | null = null; try { worker = JSON.parse(readFileSync(path.join(this.directory, "checkpoint.json"), "utf8")); } catch { /* non avviato */ } try { driver = JSON.parse(readFileSync(path.join(this.directory, "cdp-driver.json"), "utf8")); } catch { /* non collegato */ } try { minimumQueueGate = JSON.parse(readFileSync(this.queueGatePath, "utf8")) as AprEneaMinimumQueueGateState; } catch { /* primo tick non ancora osservato */ } try { emergencyStop = JSON.parse(readFileSync(this.emergencyStopPath, "utf8")) as AprEneaEmergencyStopReceipt; } catch { /* nessuno stop richiesto */ } return { config: { ...config, chromeExecutable: path.basename(config.chromeExecutable), profileDirectory: path.basename(config.profileDirectory) }, service, worker, driver, minimumQueueGate, emergencyStop, observedAt: now.toISOString() } as const; }
 }

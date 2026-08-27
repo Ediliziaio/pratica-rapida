@@ -65,6 +65,8 @@ export interface AprCohortSeedCheckpoint {
   candidates: AprPilotCandidate[];
   externalActionAllowed: false;
   executor: "apr_persistent_runtime";
+  /** New cohorts require the verified L4 bridge before browser auto-arm. */
+  verifiedMapperBridgeRequired?: true;
   repeatTest: null | {
     authorizationId: string;
     priorDrafts: Array<{ customerKey: string; draftId: string }>;
@@ -222,6 +224,7 @@ export class PersistentAprCohortSeed {
       candidates,
       externalActionAllowed: false,
       executor: "apr_persistent_runtime",
+      verifiedMapperBridgeRequired: true,
       repeatTest,
       reason,
       nextAction: "Il supervisore APR persistente acquisirà i dossier in sola lettura; soltanto il worker APR potrà lavorare eventuali piani bozza verdi.",

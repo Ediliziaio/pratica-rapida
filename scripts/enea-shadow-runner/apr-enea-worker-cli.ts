@@ -52,12 +52,20 @@ async function serve() {
   let running = true;
   let runtime: PersistentAprChromeRuntime | null = null;
   let runtimeKey: string | null = null;
-  const stop = () => {
+  const stop = (signal: "SIGINT" | "SIGTERM") => {
     running = false;
+    service.record({
+      instanceId,
+      processPid: 0,
+      status: "stopped",
+      type: "stop_signal_persisted",
+      reason: `Worker APR arrestato da ${signal}; nessuna attività viene dichiarata in corso.`,
+      nextAction: "Il LaunchAgent potrà avviare una nuova istanza dal checkpoint persistente.",
+    });
     runtime?.closeAllPageClients();
     if (runtime) service.recordCdpConnections(runtime.connectionStats());
   };
-  process.once("SIGINT", stop); process.once("SIGTERM", stop);
+  process.once("SIGINT", () => stop("SIGINT")); process.once("SIGTERM", () => stop("SIGTERM"));
   while (running) {
     const config = service.loadConfig();
     if (!config.setupEnabled) {

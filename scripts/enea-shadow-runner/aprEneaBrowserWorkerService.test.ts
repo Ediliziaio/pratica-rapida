@@ -2,7 +2,12 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import { runEconomicVertical } from "./aprEconomicVertical";
+import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 import { aprEneaKeepaliveInterval, isAprEneaKeepaliveDue, PersistentAprEneaWorkerService, shouldHoldAprEneaKeepaliveState } from "./aprEneaBrowserWorkerService";
+import { PersistentAprEneaOperationalBridge } from "./aprEneaOperationalBridge";
+import { mapBusinessDecisionArtifactToEnea } from "./aprEneaPureMapper";
+import { canonicalSha256 } from "./aprMonotonicArtifacts";
 
 const directories: string[] = [];
 afterEach(() => { for (const directory of directories.splice(0)) rmSync(directory, { recursive: true, force: true }); });
@@ -11,6 +16,35 @@ function writeServerProbeGate(root: string) {
   const directory = path.join(root, "crm-live-processing", "runtime", "apr-gate-orchestrator");
   mkdirSync(directory, { recursive: true });
   writeFileSync(path.join(directory, "checkpoint.json"), JSON.stringify({ gates: [{ gateId: "real_enea_server_readonly_probe", state: "completed" }] }));
+}
+
+function armVerifiedMapperBridge(root: string, customerKey: string, practiceId: string) {
+  const amount = 110;
+  const mappingArtifact = mapBusinessDecisionArtifactToEnea(runEconomicVertical({
+    customerKey,
+    practiceId,
+    sourceFingerprint: canonicalSha256({ customerKey, practiceId, amount }),
+    invoices: [{
+      sourceId: "invoice", supplierId: "supplier", supplierName: "Supplier", documentNumber: "1", documentDate: "2026-08-01",
+      kind: "invoice", taxableAmount: 100, vatAmount: 10, grossTotal: amount, referencedAdvanceIds: [], interventionGrossAmount: amount,
+      extractionConfidence: "certain", extractionIssues: [], internalAdjustmentNote: null, explicitDeductibleLines: [], lineItems: [],
+      locator: { sourceId: "invoice", pageNumber: 1, contentSha256: canonicalSha256("invoice"), excerptSha256: canonicalSha256("excerpt") },
+    }],
+    bankTransfers: [],
+    replacements: [],
+  }).decisionsArtifact);
+  const legacyPackage: AprEneaDraftPackage = {
+    module: "screening", customerKey, displayName: "Fixture", practiceId,
+    packageFingerprint: canonicalSha256({ customerKey, practiceId, kind: "legacy-package" }),
+    workflowFingerprint: canonicalSha256({ customerKey, practiceId, kind: "legacy-workflow" }),
+    workflow: {
+      supportedPages: ["Calcolo costi e detrazioni"], screeningItemCount: 0,
+      steps: [{ id: "calcolo", pageName: "Calcolo costi e detrazioni", markerIds: ["id-costo"], successMessage: "ok", fields: [{ portalId: "id-costo", control: "input", value: "999,99" }] }],
+      screeningSteps: [],
+    },
+    safety: { createAllowedAfterPersistentIntent: true, saveAllowedAfterAllPageCheckpoints: true, previewAllowed: false, submitAllowed: false, communicationsAllowed: false },
+  };
+  return new PersistentAprEneaOperationalBridge(root).arm({ legacyPackage, mappingArtifact, authorizationId: "user-real-draft-only-test" });
 }
 
 describe("gate permanente del servizio browser APR", () => {
@@ -43,6 +77,33 @@ describe("gate permanente del servizio browser APR", () => {
     expect(signals).toEqual([]);
     expect(receipt).toMatchObject({ targetPid: null, heartbeatAgeMs: 60_000, signalOutcome: "stale_process_not_signalled" });
     expect(service.loadConfig()).toMatchObject({ setupEnabled: false, operationalEnabled: false });
+  });
+
+  it("riconcilia un checkpoint running con un PID realmente assente e persiste stopped", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-liveness-reconcile-")); directories.push(root);
+    const service = new PersistentAprEneaWorkerService(root);
+    service.record({ instanceId: "worker-dead", processPid: 43212, status: "running", type: "worker_tick", reason: "Compilazione in corso.", nextAction: "Pagina successiva." }, new Date("2026-08-27T10:00:00Z"));
+
+    const snapshot = service.snapshot(new Date("2026-08-27T10:00:01Z"), () => false);
+
+    expect(snapshot.service).toMatchObject({ status: "stopped", processPid: 0, instanceId: "worker-dead" });
+    expect(snapshot.service.audit.at(-1)).toMatchObject({ type: "process_liveness_reconciled" });
+    expect(JSON.parse(readFileSync(service.statePath, "utf8"))).toMatchObject({ status: "stopped", processPid: 0 });
+  });
+
+  it("impedisce a un completamento asincrono della stessa istanza di sovrascrivere stopped", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-stop-tombstone-")); directories.push(root);
+    const service = new PersistentAprEneaWorkerService(root);
+    const now = new Date("2026-08-27T10:00:00Z");
+    service.record({ instanceId: "worker-old", processPid: 43213, status: "running", type: "worker_tick", reason: "Compilazione in corso.", nextAction: "Pagina successiva." }, now);
+    service.record({ instanceId: "worker-old", processPid: 0, status: "stopped", type: "stop_signal_persisted", reason: "SIGTERM persistito.", nextAction: "Nuova istanza." }, new Date("2026-08-27T10:00:01Z"));
+
+    service.record({ instanceId: "worker-old", processPid: 43213, status: "running", type: "late_worker_tick", reason: "Risultato asincrono tardivo.", nextAction: "Non valido." }, new Date("2026-08-27T10:00:02Z"));
+    expect(service.loadState()).toMatchObject({ status: "stopped", processPid: 0, instanceId: "worker-old" });
+    expect(service.loadState().audit.some((event) => event.type === "late_worker_tick")).toBe(false);
+
+    service.record({ instanceId: "worker-new", processPid: 43214, status: "starting_browser", type: "browser_starting", reason: "Nuova istanza.", nextAction: "Ripresa." }, new Date("2026-08-27T10:00:03Z"));
+    expect(service.loadState()).toMatchObject({ status: "starting_browser", processPid: 43214, instanceId: "worker-new" });
   });
 
   it("persiste e audita il conteggio delle connessioni CDP senza duplicare eventi invariati", () => {
@@ -122,16 +183,44 @@ describe("gate permanente del servizio browser APR", () => {
     writeFileSync(path.join(root, "enea-browser-worker", "cdp-driver.json"), JSON.stringify({ contract: { ready: true } }));
     writeServerProbeGate(root);
     mkdirSync(path.join(root, "cohort-seed"), { recursive: true });
+    const practiceId = "00000000-0000-4000-8000-000000000111";
     writeFileSync(path.join(root, "cohort-seed", "checkpoint.json"), JSON.stringify({
       status: "armed_readonly",
-      candidates: [{ customerKey: "luca-callegari" }],
+      verifiedMapperBridgeRequired: true,
+      candidates: [{ customerKey: "luca-callegari", practiceId }],
       repeatTest: { deletionProofRequired: false },
       audit: [{ appliedRuleIds: ["user-2026-08-18-single-case-regression-test"] }],
     }));
     mkdirSync(path.join(root, "enea-draft-execution"), { recursive: true });
     writeFileSync(path.join(root, "enea-draft-execution", "checkpoint.json"), JSON.stringify({ previewAllowed: false, submitAllowed: false, communicationsAllowed: false, items: [{ customerKey: "luca-callegari", state: "queued" }] }));
+    expect(service.autoArm()).toMatchObject({ armed: false, reason: "apr_enea_worker_verified_mapper_bridge_not_ready", config: { operationalEnabled: false } });
+    expect(JSON.parse(readFileSync(service.queueGatePath, "utf8"))).toMatchObject({ status: "waiting", verifiedMapperBridgeReady: false });
+
+    armVerifiedMapperBridge(root, "luca-callegari", practiceId);
     expect(service.autoArm()).toMatchObject({ armed: true, config: { operationalEnabled: true } });
-    expect(JSON.parse(readFileSync(service.queueGatePath, "utf8"))).toMatchObject({ status: "armed", runnableCount: 1, cohortCount: 1, minimumRequired: 1 });
+    expect(JSON.parse(readFileSync(service.queueGatePath, "utf8"))).toMatchObject({ status: "armed", runnableCount: 1, cohortCount: 1, minimumRequired: 1, verifiedMapperBridgeReady: true });
+  });
+
+  it("rifiuta un bridge L4 armato per una pratica diversa", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-service-bridge-mismatch-")); directories.push(root);
+    const service = new PersistentAprEneaWorkerService(root); service.configure({ setupEnabled: true });
+    service.record({ instanceId: "apr-worker-bridge", processPid: 112, status: "setup_ready", type: "setup_ready", reason: "Sessione e contratto pronti.", nextAction: "Gate bridge." });
+    mkdirSync(path.join(root, "enea-browser-worker"), { recursive: true });
+    writeFileSync(path.join(root, "enea-browser-worker", "cdp-driver.json"), JSON.stringify({ contract: { ready: true } }));
+    writeServerProbeGate(root);
+    const expectedPracticeId = "00000000-0000-4000-8000-000000000112";
+    mkdirSync(path.join(root, "cohort-seed"), { recursive: true });
+    writeFileSync(path.join(root, "cohort-seed", "checkpoint.json"), JSON.stringify({
+      status: "armed_readonly", verifiedMapperBridgeRequired: true,
+      candidates: [{ customerKey: "case-expected", practiceId: expectedPracticeId }],
+      audit: [{ appliedRuleIds: ["user-2026-08-18-single-case-regression-test"] }],
+    }));
+    mkdirSync(path.join(root, "enea-draft-execution"), { recursive: true });
+    writeFileSync(path.join(root, "enea-draft-execution", "checkpoint.json"), JSON.stringify({ previewAllowed: false, submitAllowed: false, communicationsAllowed: false, items: [{ customerKey: "case-expected", state: "queued" }] }));
+    armVerifiedMapperBridge(root, "other-case", "00000000-0000-4000-8000-000000000999");
+
+    expect(service.autoArm()).toMatchObject({ armed: false, reason: "apr_enea_worker_verified_mapper_bridge_not_ready" });
+    expect(JSON.parse(readFileSync(service.queueGatePath, "utf8"))).toMatchObject({ status: "waiting", verifiedMapperBridgeReady: false });
   });
 
   it("arma un caso verde quando il secondo caso della coorte e' isolato e la prova GET deriva dal worker APR", () => {

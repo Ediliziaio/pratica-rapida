@@ -1,0 +1,312 @@
+import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import {
+  authorizeSequencerResume,
+  createSessionWaitGuard,
+  executionProgressFingerprint,
+  observeSessionWait,
+} from "./sequencerSessionGuard.mjs";
+
+const cohortsRoot = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts";
+const runRoot = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-night50-2026-08-28";
+const cleanSource = "/private/tmp/apr-gate-d1b8d00.VhVNb2/repo";
+const sourceRoot = `${cohortsRoot}/apr-pilot-84-five-simple-tommasina`;
+const sourceManifest = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/reports/apr-wide-blocker-snapshot-2026-08-26-e30a7f6.json";
+const canonicalBundles = realpathSync("/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/current");
+const loader = "/private/tmp/apr-ts-loader.mjs";
+const node = "/usr/local/bin/node";
+const manifest = JSON.parse(readFileSync(new URL("./manifest.json", import.meta.url), "utf8"));
+const cases = manifest.cases;
+const authorizationId = manifest.authorizationId;
+
+mkdirSync(runRoot, { recursive: true, mode: 0o700 });
+const checkpointPath = `${runRoot}/checkpoint.json`;
+const logPath = `${runRoot}/sequencer.log`;
+const reportJsonPath = "/Users/giulianolavoro/APR-report-lotto-notturno-50-2026-08-28.json";
+const reportMdPath = "/Users/giulianolavoro/APR-report-lotto-notturno-50-2026-08-28.md";
+let state = existsSync(checkpointPath) ? JSON.parse(readFileSync(checkpointPath, "utf8")) : {
+  version: "apr-night-batch-sequencer-v1",
+  authorizationId,
+  startedAt: new Date().toISOString(),
+  endedAt: null,
+  status: "running",
+  currentCustomerKey: null,
+  total: cases.length,
+  results: [],
+  commonTechnicalBlock: null,
+};
+
+function persist(event, detail = {}) {
+  state.updatedAt = new Date().toISOString();
+  writeFileSync(checkpointPath, `${JSON.stringify(state, null, 2)}\n`);
+  appendFileSync(logPath, `${JSON.stringify({ at: state.updatedAt, event, ...detail })}\n`);
+  writeReport();
+}
+
+function groupedReasons() {
+  const grouped = new Map();
+  for (const result of state.results.filter((item) => item.state !== "saved")) {
+    const reason = result.reason || "Motivo non disponibile";
+    const entry = grouped.get(reason) ?? [];
+    entry.push(result.displayName);
+    grouped.set(reason, entry);
+  }
+  return [...grouped.entries()].map(([reason, names]) => ({ reason, count: names.length, names }));
+}
+
+function writeReport() {
+  const saved = state.results.filter((item) => item.state === "saved");
+  const operator = state.results.filter((item) => item.state === "operator_required");
+  const technical = state.results.filter((item) => item.state === "technical_block");
+  const report = {
+    version: "apr-night-batch-report-v1",
+    authorizationId,
+    status: state.status,
+    startedAt: state.startedAt,
+    endedAt: state.endedAt,
+    total: cases.length,
+    processed: state.results.length,
+    saved: saved.length,
+    operatorRequired: operator.length,
+    technicalBlock: technical.length,
+    remaining: cases.length - state.results.length,
+    commonTechnicalBlock: state.commonTechnicalBlock,
+    groupedReasons: groupedReasons(),
+    cases: cases.map((item) => state.results.find((result) => result.customerKey === item.customerKey) ?? {
+      customerKey: item.customerKey,
+      displayName: item.displayName,
+      practiceId: item.practiceId,
+      cohort: item.cohort,
+      state: item.customerKey === state.currentCustomerKey ? "working" : "queued",
+    }),
+    safety: { previewAttempted: false, submitAttempted: false, communicationsAttempted: false },
+  };
+  writeFileSync(reportJsonPath, `${JSON.stringify(report, null, 2)}\n`);
+  const lines = [
+    "# APR — lotto notturno 50 pratiche — 28 agosto 2026",
+    "",
+    `Stato: ${report.status}`,
+    `Elaborate: ${report.processed}/${report.total}`,
+    `Bozze complete salvate: ${report.saved}`,
+    `Intervento operatore: ${report.operatorRequired}`,
+    `Blocchi tecnici: ${report.technicalBlock}`,
+    `Rimanenti: ${report.remaining}`,
+    "",
+    "## Motivi raggruppati",
+    "",
+    ...(report.groupedReasons.length ? report.groupedReasons.flatMap((group) => [`- ${group.count} pratiche — ${group.reason}`, `  - ${group.names.join(", ")}`]) : ["- Nessun caso fermo."]),
+    "",
+    "## Esito per pratica",
+    "",
+    ...report.cases.map((item) => `- ${item.displayName} (${item.practiceId}) — ${item.state}${item.draftId ? ` — bozza ${item.draftId}` : ""}${item.reason ? ` — ${item.reason}` : ""}`),
+    "",
+    "Nessuna anteprima, invio o comunicazione autorizzati o eseguiti.",
+  ];
+  writeFileSync(reportMdPath, `${lines.join("\n")}\n`);
+}
+
+function command(program, args, options = {}) {
+  const result = spawnSync(program, args, { cwd: options.cwd ?? cleanSource, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  if (result.status !== 0 && !options.allowFailure) throw new Error(`${options.name ?? program}_failed:${result.status}:${result.stderr || result.stdout}`);
+  return result;
+}
+
+function loaded(label) {
+  return command("launchctl", ["print", `gui/501/${label}`], { allowFailure: true }).status === 0;
+}
+function running(label) {
+  const result = command("launchctl", ["print", `gui/501/${label}`], { allowFailure: true });
+  return result.status === 0 && /\bstate = running\b/.test(result.stdout) && /\bpid = \d+\b/.test(result.stdout);
+}
+function bootstrap(plist, label) {
+  if (!loaded(label)) command("launchctl", ["bootstrap", "gui/501", plist], { name: `bootstrap_${label}` });
+}
+function bootout(label) {
+  if (loaded(label)) command("launchctl", ["bootout", `gui/501/${label}`], { name: `bootout_${label}`, allowFailure: true });
+}
+function label(item, role) { return `com.praticarapida.apr-enea-cohort${item.cohort}-${role}`; }
+function cohortRoot(item) { return `${cohortsRoot}/apr-pilot-${item.cohort}-night50-${item.customerKey}`; }
+function readJson(file) { try { return JSON.parse(readFileSync(file, "utf8")); } catch { return null; } }
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function waitFor(description, predicate, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const value = predicate();
+    if (value) return value;
+    await sleep(2000);
+  }
+  throw new Error(`timeout:${description}`);
+}
+
+function recoverableTransientPreSave(entry) {
+  const checkpoints = entry?.pageCheckpoints ?? [];
+  return Boolean(entry?.draftId)
+    && /apr_cdp_(?:command_timeout:Runtime\.evaluate|connection_closed|protocol_error:-32000:(?:Promise was collected|Inspected target navigated or closed))/.test(entry?.reason ?? "")
+    && checkpoints.some((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0)
+    && checkpoints.every((checkpoint) => checkpoint.state === "saved"
+      || (checkpoint.state === "staged" && checkpoint.saveAttemptCount === 1 && Boolean(checkpoint.stagedEvidenceId))
+      || (checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0));
+}
+
+async function prepare(item) {
+  const root = cohortRoot(item);
+  const caseManifestPath = `${runRoot}/manifest-${item.cohort}.json`;
+  const seedManifest = {
+    version: "apr-cohort-seed-v1",
+    sourceEvidenceId: authorizationId,
+    candidates: [{ customerKey: item.customerKey, displayName: item.displayName, practiceId: item.practiceId, expectedStageType: item.stage, productModule: item.module }],
+    authorizedSingleCase: { authorizationId },
+    ...(item.historicalRetest ? { historicalRetest: { authorizationId, preservePriorDrafts: true } } : {}),
+  };
+  if (!existsSync(`${root}/cohort-seed/checkpoint.json`)) {
+    writeFileSync(caseManifestPath, `${JSON.stringify(seedManifest, null, 2)}\n`);
+    command(node, ["--experimental-transform-types", `--experimental-loader=${loader}`, "scripts/enea-shadow-runner/apr-cohort-seed-cli.ts", "--state-dir", root, "--history-root", cohortsRoot, "--source-root", sourceRoot, "--manifest", caseManifestPath], { name: "seed" });
+  }
+  const install = `${root}/install`;
+  mkdirSync(install, { recursive: true, mode: 0o700 });
+  for (const file of ["apr-supervisor.mjs", "apr-enea-worker.mjs", "apr-watchdog.mjs"]) copyFileSync(`${canonicalBundles}/${file}`, `${install}/${file}`);
+  const port = 4528 + item.cohort - 103;
+  command(node, ["--experimental-transform-types", `--experimental-loader=${loader}`, "scripts/enea-shadow-runner/apr-cohort-service-cli.ts", "--cohort", String(item.cohort), "--port", String(port), "--state-dir", root, "--install-dir", install, "--node", node, "--supervisor-bundle", `${install}/apr-supervisor.mjs`, "--worker-bundle", `${install}/apr-enea-worker.mjs`, "--watchdog-bundle", `${install}/apr-watchdog.mjs`], { name: "service_prepare" });
+  bootstrap(`${install}/${label(item, "supervisor")}.plist`, label(item, "supervisor"));
+  if (item.module === "infissi") {
+    await waitFor(`${item.customerKey}:infissi-local-preflight`, () => {
+      const product = readJson(`${root}/infissi-batch-preflight/checkpoint.json`);
+      return product?.status === "completed" && product.items?.some((candidate) => candidate.customerKey === item.customerKey) ? product : null;
+    }, 20 * 60 * 1000);
+    command(node, ["--experimental-transform-types", `--experimental-loader=${loader}`, "scripts/enea-shadow-runner/infissi-batch-preflight-cli.ts", "--state-dir", root, "--apply-required-revisions"], { name: "infissi_required_revisions" });
+    persist("case_infissi_validation_gate_prepared", { customerKey: item.customerKey, cohort: item.cohort });
+  }
+  await waitFor(`${item.customerKey}:preflight`, () => {
+    const execution = readJson(`${root}/enea-draft-execution/checkpoint.json`);
+    const entry = execution?.items?.find((candidate) => candidate.customerKey === item.customerKey);
+    if ((entry?.state === "queued" && execution.status === "ready")
+      || (entry?.state === "operator_intervention" && recoverableTransientPreSave(entry))
+      || (entry?.state === "filling" && Boolean(entry.draftId))
+      || (entry?.state === "saved" && entry.completedPageIds?.length === entry.expectedPageIds?.length)) return entry;
+    const common = readJson(`${root}/crm-local-preflight/checkpoint.json`);
+    const commonItem = common?.items?.find((candidate) => candidate.customerKey === item.customerKey);
+    const product = item.module === "infissi" ? readJson(`${root}/infissi-batch-preflight/checkpoint.json`) : common;
+    const productItem = product?.items?.find((candidate) => candidate.customerKey === item.customerKey);
+    if (item.module === "infissi" && commonItem?.state === "blocked_case" && productItem?.state === "ready_local_plan") return null;
+    if (productItem?.state === "blocked_case") throw new Error(`${item.customerKey}:preflight_blocked:${productItem.reason}`);
+    return null;
+  }, 20 * 60 * 1000);
+  const mappingPath = `${root}/enea-operational-bridge/${item.customerKey}-mapping.json`;
+  if (!existsSync(mappingPath)) command(node, ["--experimental-transform-types", `--experimental-loader=${loader}`, "scripts/enea-shadow-runner/apr-enea-operational-bridge-prepare-cli.ts", "--source-manifest", sourceManifest, "--customer-key", item.customerKey, "--output", mappingPath], { name: "bridge_prepare" });
+  if (!existsSync(`${root}/enea-operational-bridge/checkpoint.json`)) command(node, [`${install}/apr-enea-worker.mjs`, "bridge-arm", "--state-dir", root, "--customer-key", item.customerKey, "--mapping-artifact", mappingPath, "--authorization-id", authorizationId], { name: "bridge_arm", cwd: install });
+  return { root, install };
+}
+
+function resultFromEntry(item, entry, stateName = "operator_required") {
+  return {
+    customerKey: item.customerKey,
+    displayName: item.displayName,
+    practiceId: item.practiceId,
+    cohort: item.cohort,
+    state: stateName,
+    draftId: entry?.draftId ?? null,
+    completedPages: entry?.completedPageIds?.length ?? 0,
+    expectedPages: entry?.expectedPageIds?.length ?? 0,
+    reason: entry?.reason ?? "Pratica isolata da APR senza una motivazione leggibile.",
+  };
+}
+
+async function runCase(item, previous) {
+  state.currentCustomerKey = item.customerKey;
+  persist("case_preparing", { customerKey: item.customerKey, cohort: item.cohort });
+  let prepared;
+  try {
+    prepared = await prepare(item);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    if (reason.includes(`${item.customerKey}:preflight_blocked:`)) {
+      const result = resultFromEntry(item, { reason });
+      state.results.push(result);
+      persist("case_operator_required_from_preflight", result);
+      return item;
+    }
+    throw error;
+  }
+  const { root, install } = prepared;
+  for (const stale of previous) for (const role of ["watchdog", "worker", "supervisor"]) bootout(label(stale, role));
+  bootstrap(`${install}/${label(item, "supervisor")}.plist`, label(item, "supervisor"));
+  bootstrap(`${install}/${label(item, "worker")}.plist`, label(item, "worker"));
+  bootstrap(`${install}/${label(item, "watchdog")}.plist`, label(item, "watchdog"));
+  persist("case_worker_started", { customerKey: item.customerKey, cohort: item.cohort });
+  const attachedAt = Date.now();
+  let recoveryDeparted = false;
+  const sessionWaitGuard = createSessionWaitGuard();
+  const terminal = await waitFor(`${item.customerKey}:execution`, () => {
+    const execution = readJson(`${root}/enea-draft-execution/checkpoint.json`);
+    const service = readJson(`${root}/enea-browser-worker/service.json`);
+    const entry = execution?.items?.find((candidate) => candidate.customerKey === item.customerKey);
+    if (entry?.state !== "operator_intervention") recoveryDeparted = true;
+    if (entry?.state === "saved" && entry.completedPageIds?.length === entry.expectedPageIds?.length) {
+      const driver = readJson(`${root}/enea-browser-worker/cdp-driver.json`);
+      const verified = driver?.events?.some((event) => event.action === "verify_complete_draft_readonly" && event.customerKey === item.customerKey && event.draftId === entry.draftId);
+      if (verified && service?.status === "completed") return { kind: "saved", entry, service };
+    }
+    if (entry?.state === "operator_intervention" && recoverableTransientPreSave(entry) && !recoveryDeparted) return null;
+    if (entry && ["operator_intervention", "technical_block"].includes(entry.state)) return { kind: "case_block", entry, service };
+    if (service?.status === "technical_block" && Date.now() - attachedAt >= 15_000) {
+      const reason = `${entry?.reason ?? ""} ${service?.reason ?? ""}`;
+      const common = /sessione ENEA|autenticazione|authentication|login|SPID|origin_rejected|browser worker non disponibile/i.test(reason) && !/Errore circoscritto alla pratica/i.test(reason);
+      if (!common) return { kind: "case_block", entry: entry ?? { reason: service.reason }, service };
+      const observation = observeSessionWait(sessionWaitGuard, {
+        nowMs: Date.now(),
+        isCommonSessionWait: true,
+        workerRunning: running(label(item, "worker")),
+        progressFingerprint: executionProgressFingerprint(execution, entry),
+      });
+      if (observation.action === "common_block") {
+        return { kind: "common_block", entry: entry ?? { reason: service.reason }, service, observation };
+      }
+      return null;
+    }
+    return null;
+  }, 2 * 60 * 60 * 1000);
+  if (terminal.kind === "saved") {
+    const result = { customerKey: item.customerKey, displayName: item.displayName, practiceId: item.practiceId, cohort: item.cohort, state: "saved", draftId: terminal.entry.draftId, completedPages: terminal.entry.completedPageIds.length, expectedPages: terminal.entry.expectedPageIds.length };
+    state.results.push(result);
+    persist("case_saved", result);
+    return item;
+  }
+  if (terminal.kind === "case_block") {
+    const result = resultFromEntry(item, terminal.entry);
+    state.results.push(result);
+    persist("case_operator_required", result);
+    return item;
+  }
+  throw new Error(`${item.customerKey}:common_technical_block:${terminal.entry?.reason ?? terminal.service?.reason ?? "unknown"}`);
+}
+
+try {
+  const excluded = new Set(manifest.selection.excludedCustomerKeys);
+  if (cases.length !== 50 || new Set(cases.map((item) => item.customerKey)).size !== 50) throw new Error("manifest_identity_or_count_invalid");
+  if (cases.some((item) => excluded.has(item.customerKey))) throw new Error("manifest_contains_excluded_identity");
+  if (cases.some((item) => !manifest.selection.allowedStages.includes(item.stage))) throw new Error("manifest_contains_disallowed_pipeline_stage");
+  if (authorizeSequencerResume(state, "user-2026-08-28-resume-night50-after-session-guard-fix")) {
+    persist("run_resumed_after_session_guard_fix", { resultCount: state.results.length, currentCustomerKey: state.currentCustomerKey });
+  }
+  const initialStale = [{ cohort: 101 }, { cohort: 102 }];
+  let previous = initialStale;
+  for (const item of cases) {
+    if (state.results.some((result) => result.customerKey === item.customerKey)) {
+      previous = [item];
+      continue;
+    }
+    const finished = await runCase(item, previous);
+    previous = [finished];
+  }
+  state.status = "completed";
+  state.currentCustomerKey = null;
+  state.endedAt = new Date().toISOString();
+  persist("run_completed", { resultCount: state.results.length });
+} catch (error) {
+  state.status = "stopped_common_technical_block";
+  state.endedAt = new Date().toISOString();
+  state.commonTechnicalBlock = error instanceof Error ? error.message : String(error);
+  persist("run_stopped_common_technical_block", { reason: state.commonTechnicalBlock, currentCustomerKey: state.currentCustomerKey });
+  process.exitCode = 2;
+}

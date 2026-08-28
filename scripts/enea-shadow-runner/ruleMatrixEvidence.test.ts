@@ -1,16 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { tmpdir } from "node:os";
 import { PersistentRuleMatrixEvidence } from "./ruleMatrixEvidence";
 import { APR_RULE_TEST_MATRIX } from "../../src/features/enea-shadow-crm/ruleTestMatrix";
 
-const hash = "a".repeat(64);
+const hash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 function proof(store: PersistentRuleMatrixEvidence, key: string, analog = `${key}-analog`) {
+  const report = path.join(store.rootDirectory, "rule-evidence-runs", `${hash}.json`);
+  mkdirSync(path.dirname(report), { recursive: true });
+  if (!existsSync(report)) writeFileSync(report, "");
   return store.recordRuleProof({ key, fixtureId: `${key}-fixture`, independentAnalogFixtureId: analog,
     sourceFingerprint: hash, replayFingerprint: hash, executionPath: ["acquisition", "parser", "preflight"],
     producedFields: ["outcome"], expectedOutcome: "READY", actualOutcome: "READY",
-    positiveTest: `${key}:positive`, negativeTest: `${key}:negative`, testCommand: `vitest run ${key}` });
+    positiveTest: `${key}:positive`, negativeTest: `${key}:negative`, testCommand: `vitest run ${key}`,
+    rawReportRef: `rule-evidence-runs/${hash}.json`, rawReportSha256: hash });
 }
 
 describe("matrice regole APR", () => {
@@ -56,6 +60,16 @@ describe("matrice regole APR", () => {
       const store = new PersistentRuleMatrixEvidence(directory);
       expect(() => store.recordAllPassed("vitest run")).toThrow(/globale vietata/i);
       expect(() => store.recordPassedKeys(["invoice-gross-total-vat-included"], "vitest run")).toThrow(/elenco vietata/i);
+    } finally { rmSync(directory, { recursive: true, force: true }); }
+  });
+  it("invalida tutte le prove se il report Vitest persistito viene alterato", () => {
+    const directory = mkdtempSync(path.join(tmpdir(), "apr-rules-tamper-"));
+    try {
+      const store = new PersistentRuleMatrixEvidence(directory);
+      proof(store, APR_RULE_TEST_MATRIX[0].key);
+      expect(store.snapshot().testedCount).toBe(1);
+      writeFileSync(path.join(directory, "rule-evidence-runs", `${hash}.json`), "altered");
+      expect(new PersistentRuleMatrixEvidence(directory).snapshot()).toMatchObject({ testedCount: 0, activeCount: 0, evidence: null });
     } finally { rmSync(directory, { recursive: true, force: true }); }
   });
 });

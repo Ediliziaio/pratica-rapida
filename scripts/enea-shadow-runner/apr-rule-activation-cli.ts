@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process";
 import { ENEA_OPERATIONAL_REGISTRY } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import { APR_RULE_SOURCE_FINGERPRINT, APR_RULE_TEST_MATRIX } from "../../src/features/enea-shadow-crm/ruleTestMatrix";
 import { PersistentRuleMatrixEvidence } from "./ruleMatrixEvidence";
+import { materializeAprRuleProofs } from "./aprRuleProofMaterializer";
 
 const args = process.argv.slice(2);
 const option = (name: string) => {
@@ -71,7 +72,9 @@ if (!skipTests) {
   // I test browser simulati hanno timeout intenzionalmente stretti. In parallelo
   // potevano fallire per saturazione CPU pur passando sempre isolati: la prova
   // di attivazione deve essere deterministica, quindi usa un solo worker.
-  run(path.join(repositoryDirectory, "node_modules", ".bin", "vitest"), ["run", "--maxWorkers=1", ...testTargets]);
+  const rawReportPath = path.join(rootDirectory, "rule-activation", `vitest-${Date.now()}-${crypto.randomUUID()}.json`);
+  run(path.join(repositoryDirectory, "node_modules", ".bin", "vitest"), ["run", "--maxWorkers=1", "--reporter=json", `--outputFile=${rawReportPath}`, ...testTargets]);
+  materializeAprRuleProofs({ repositoryRoot: repositoryDirectory, rootDirectory, rawReportPath, testCommand });
   const current = evidenceStore.load();
   if (!current || current.passedKeys.length !== APR_RULE_TEST_MATRIX.length || Object.keys(current.ruleProofs).length !== APR_RULE_TEST_MATRIX.length) {
     throw new Error("Suite verde ma certificazione incompleta: ogni regola richiede fixture reale, secondo caso analogo e replay pulito.");

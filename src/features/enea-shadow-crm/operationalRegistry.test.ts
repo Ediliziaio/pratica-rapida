@@ -12,7 +12,7 @@ describe("registro operativo unico",()=>{
   });
   it("rende reperibili le regole solo per id",()=>expect(registryRule("core-form-first")?.step).toBe("customer_form"));
   it("registra le nuove regole utente con provenienza, precedenza e audit",()=>{
-    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v86");
+    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v87");
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.officialMunicipalityNameChange)).toMatchObject({
       step: "identity_property",
       outcome: "continue",

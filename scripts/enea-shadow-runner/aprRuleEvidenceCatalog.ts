@@ -17,6 +17,11 @@ export interface AprRuleEvidenceCatalogEntry {
  */
 export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] = [
   {
+    key: "global-enea-browser-controller",
+    positive: { fileRef: "scripts/enea-shadow-runner/aprEneaGlobalBrowserController.test.ts", testId: "controllore globale esclusivo Chrome/ENEA impedisce a due worker di controllare contemporaneamente la stessa sessione" },
+    negative: { fileRef: "scripts/enea-shadow-runner/aprEneaGlobalBrowserController.test.ts", testId: "controllore globale esclusivo Chrome/ENEA fallisce chiuso se il lock persistente è corrotto" },
+  },
+  {
     key: "invoice-schedule-missing-amount",
     positive: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza finanziaria da PDF originario locale preserva uno zero monetario esplicito nello scadenziario" },
     negative: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza finanziaria da PDF originario locale riconosce la scadenza Beghini due righe dopo la data senza inventare zero" },
@@ -382,4 +387,3 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
     negative: { fileRef: "src/features/enea-shadow-crm/aprCrmReadOnlyContract.test.ts", testId: "contratto adapter CRM APR read-only rifiuta chiavi sconosciute/credenziali e capability mancanti" },
   },
 ] as const;
-

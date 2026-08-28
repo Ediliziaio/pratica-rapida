@@ -14,6 +14,7 @@ import { nestedUncertainPageSaveProbeAllowed } from "./infissiUncertainSavePolic
 import { APR_REQUIRED_INFISSI_VALIDATION_REVISIONS, dateGateReleaseReadyCustomerKeys, infissiExecutionGateReady } from "./infissiExecutionGate";
 import { PersistentAprEneaOperationalBridge } from "./aprEneaOperationalBridge";
 import type { AprEneaMappingArtifact } from "./aprEneaPureMapper";
+import { PersistentAprEneaGlobalBrowserController, type AprEneaGlobalBrowserAccess } from "./aprEneaGlobalBrowserController";
 
 function option(name: string) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; }
 const mode = process.argv[2] ?? "status";
@@ -82,6 +83,28 @@ async function serve() {
       runtimeKey = nextRuntimeKey;
     }
     const activeRuntime = runtime;
+    const globalBrowserController = new PersistentAprEneaGlobalBrowserController({
+      profileDirectory: config.profileDirectory,
+      remoteDebuggingPort: config.remoteDebuggingPort,
+    });
+    const globalBrowserAccess: AprEneaGlobalBrowserAccess | null = globalBrowserController.tryAcquire({
+      ownerId: instanceId,
+      cohortRoot: rootDirectory,
+      purpose: "worker_tick",
+      processPid: process.pid,
+    });
+    if (!globalBrowserAccess) {
+      service.record({
+        instanceId,
+        processPid: process.pid,
+        status: service.loadState().status,
+        type: "global_browser_wait",
+        reason: "La sessione Chrome/ENEA condivisa è occupata dal controllore globale: questa coorte non apre connessioni CDP e attende il proprio turno.",
+        nextAction: "Riprovare il lock globale al prossimo tick; nessuna azione browser concorrente è consentita.",
+      });
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+      continue;
+    }
     try {
       if (!["starting_browser", "login_required", "setup_ready", "running", "completed", "technical_block"].includes(service.loadState().status)) service.record({ instanceId, processPid: process.pid, status: "starting_browser", type: "browser_starting", reason: "APR avvia o riaggancia il proprio Chrome persistente.", nextAction: "Verificare la sessione ENEA nel profilo APR." });
       const browser = await activeRuntime.ensureRunning();
@@ -123,6 +146,7 @@ async function serve() {
           const session = await driver.verifySession();
           if (!session.authenticated) service.record({ instanceId, processPid: process.pid, status: "login_required", type: "login_required", reason: session.serverLogoutProven ? "Logout ENEA provato dal worker APR." : "Autenticazione ENEA non ancora dimostrata nel profilo APR.", nextAction: "Completare una sola volta il login ENEA nella finestra del profilo APR; il worker riprenderà da solo.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: session.evidenceId });
           else {
+            globalBrowserController.recordKeepalive(globalBrowserAccess, session.evidenceId);
             const contract = await driver.inspectPortalContractReadOnly();
             if (contract.ready) {
               service.record({ instanceId, processPid: process.pid, status: "setup_ready", type: "setup_ready", reason: "Profilo Chrome APR, sessione ENEA e ingresso Nuova pratica verificati in sola lettura.", nextAction: "APR verifica autonomamente il gate minimo di due pratiche; nessuna pratica è ancora selezionata.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: contract.evidenceId });
@@ -1818,7 +1842,7 @@ async function serve() {
           }
         }
         const lastKeepaliveEvent = driver.snapshot().events.filter((event) => event.action === "verify_session_dom_server_get").at(-1) ?? null;
-        const lastKeepaliveAt = lastKeepaliveEvent?.at ?? null;
+        const lastKeepaliveAt = globalBrowserController.snapshot().lastKeepaliveAt ?? lastKeepaliveEvent?.at ?? null;
         let serviceBeforeKeepalive = service.loadState();
         const lastKeepaliveAudit = serviceBeforeKeepalive.audit.filter((event) => ["keepalive_ok", "keepalive_login_required", "keepalive_inconclusive"].includes(event.type)).at(-1) ?? null;
         if (!serviceBeforeKeepalive.sessionEvidenceId && lastKeepaliveAudit?.type === "keepalive_ok" && lastKeepaliveEvent) {
@@ -1848,6 +1872,7 @@ async function serve() {
             await new Promise((resolve) => setTimeout(resolve, intervalMs)); continue;
           }
           if (executionBeforeTick.sourceFingerprint) execution.recordSessionReady(keepalive.evidenceId, `service:keepalive-session-ready:${keepalive.evidenceId}`);
+          globalBrowserController.recordKeepalive(globalBrowserAccess, keepalive.evidenceId);
           const keepaliveStatus = executionBeforeTick.status === "completed" ? "completed" : executionBeforeTick.status === "blocked_preflight" ? "idle" : "running";
           service.record({ instanceId, processPid: process.pid, status: keepaliveStatus, type: "keepalive_ok", reason: keepaliveStatus === "idle" ? "IDLE — coda vuota; sessione ENEA mantenuta dal keepalive GET innocuo." : "Sessione ENEA mantenuta attiva dal keepalive GET innocuo del worker APR.", nextAction: executionBeforeTick.status === "completed" ? "Mantenere la sessione pronta H24; attendere una nuova coda." : executionBeforeTick.status === "blocked_preflight" ? "Attendere una nuova coda APR persistente." : "Proseguire dal checkpoint corrente.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: keepalive.evidenceId, workerRevision: service.loadState().workerRevision });
         }
@@ -1861,6 +1886,8 @@ async function serve() {
       service.record({ instanceId, processPid: process.pid, ...aprEneaWorkerLoopFailureDisposition(error) });
     } finally {
       service.recordCdpConnections(activeRuntime.connectionStats());
+      activeRuntime.closeAllPageClients();
+      globalBrowserController.release(globalBrowserAccess);
     }
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }

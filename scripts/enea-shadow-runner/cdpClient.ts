@@ -5,6 +5,8 @@ import { request } from "node:http";
 import path from "node:path";
 import WebSocket from "ws";
 
+export const APR_CDP_MAX_PAGE_OPERATION_MS = 5_000;
+
 export interface CdpTargetInfo {
   id: string;
   type: string;
@@ -109,12 +111,13 @@ export class CdpPageClient {
   }
 
   async evaluate<T>(expression: string, awaitPromise = true, timeoutMs = this.timeoutMs): Promise<T> {
+    const boundedTimeoutMs = Math.min(timeoutMs, APR_CDP_MAX_PAGE_OPERATION_MS);
     const result = await this.send<{ result: { value?: T; description?: string; subtype?: string }; exceptionDetails?: { text?: string; exception?: { description?: string } } }>("Runtime.evaluate", {
       expression,
       awaitPromise,
       returnByValue: true,
       userGesture: true,
-    }, timeoutMs);
+    }, boundedTimeoutMs);
     if (result.exceptionDetails) throw new Error(`apr_cdp_evaluation_failed:${result.exceptionDetails.exception?.description ?? result.exceptionDetails.text ?? "unknown"}`);
     return result.result.value as T;
   }

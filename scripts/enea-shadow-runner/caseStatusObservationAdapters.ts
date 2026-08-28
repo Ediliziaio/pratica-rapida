@@ -5,6 +5,7 @@ import type { DeepReviewItem } from "./deepCaseReview";
 import type { AprEneaDraftExecutionItem } from "./eneaDraftExecution";
 import type { AprCaseBlockerApplicability, AprCaseStatusObservation } from "./aprMonotonicArtifacts";
 import { canonicalSha256 } from "./aprMonotonicArtifacts";
+import { commonBlockerProductModules } from "./commonBlockerApplicability";
 
 export const APR_CASE_STATUS_OBSERVATION_ADAPTERS_VERSION = "apr-case-status-observation-adapters-v1" as const;
 
@@ -22,14 +23,9 @@ function observation(input: Omit<AprCaseStatusObservation, "sourceFingerprint"> 
 }
 
 function commonBlockerApplicability(blocker: { code: string; field?: string | null; reason?: string; message?: string }): AprCaseBlockerApplicability {
-  const evidence = `${blocker.code} ${blocker.field ?? ""} ${blocker.reason ?? blocker.message ?? ""}`.toLowerCase();
-  const screeningOnly = blocker.field === "screenings"
-    || blocker.field?.startsWith("screenings.")
-    || blocker.code === "crm-source-not-screening"
-    || /schermatur/.test(evidence);
   return {
     code: blocker.code,
-    productModules: screeningOnly ? ["screening"] : ["screening", "infissi"],
+    productModules: [...commonBlockerProductModules(blocker)],
   };
 }
 

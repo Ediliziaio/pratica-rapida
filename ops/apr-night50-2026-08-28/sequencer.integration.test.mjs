@@ -14,7 +14,7 @@ test("riconcilia il preflight comune con il gate Infissi prima di attendere la p
   const source = readFileSync(new URL("./sequencer.mjs", import.meta.url), "utf8");
   assert.match(source, /--reconcile-common-applicability/);
   assert.match(source, /throwIfCommonPreflightBlocked\(root, item\);\s*await waitFor\(`\$\{item\.customerKey\}:infissi-local-preflight`/);
-  assert.match(source, /resolveCommonPreflightBlock\(common, item\.customerKey\)/);
+  assert.match(source, /resolveCommonPreflightBlock\(common, item\.customerKey, item\.module\)/);
   assert.doesNotMatch(source, /commonItem\?\.state === "blocked_case" && productItem\?\.state === "ready_local_plan"\) return null/);
 });
 

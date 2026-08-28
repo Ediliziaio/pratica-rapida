@@ -67,6 +67,20 @@ describe("APR case status observation adapters", () => {
     ]);
   });
 
+  it("applica lo stesso contratto ai blocker payload Schermature e conserva quelli comuni", () => {
+    const item = { customerKey: "fixture-payload", state: "blocked_case", report: {
+      outcome: "blocked_case", products: [], blockers: [],
+      eneaPayloadAudit: { blockers: [
+        { code: "missing-schermature.numero", fieldId: "schermature.numero", message: "Numero schermature mancante." },
+        { code: "customer_form_missing", fieldId: "form", message: "Form cliente mancante." },
+      ] },
+    } } as unknown as AprCrmLocalPreflightItem;
+    expect(observeAprCommonPreflight(item, at).blockerApplicability).toEqual([
+      { code: "missing-schermature.numero", productModules: ["screening"] },
+      { code: "customer_form_missing", productModules: ["screening", "infissi"] },
+    ]);
+  });
+
   it("non inventa il gate Schermature quando lo stage non è presente", () => {
     const item = { customerKey: "screening-not-reached", state: "ready_local_plan", report: {
       outcome: "ready_local_plan", blockers: [], products: [{ rowId: "screening-1" }],

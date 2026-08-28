@@ -15,6 +15,7 @@ import { extractLocalInvoiceFinancialEvidence } from "./localInvoiceFinancialEvi
 import { reconcileLocalInvoiceSegments, splitLocalInvoiceText } from "./localInvoiceSegmentation";
 import { isLineaSolePotitoPaperForm, lineaSolePotitoSupplierEvidence, PAPER_FORM_BIRTH_DATE_OCR_REPAIR_RULE_ID, parseLineaSolePotitoPaperForm, resolveLineaSolePotitoExposure, resolveLineaSolePotitoProtectedWindowSurface } from "./lineaSolePotitoPolicy";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
+import { isScreeningOnlyCommonBlocker } from "./commonBlockerApplicability";
 
 export const APR_CRM_LOCAL_PREFLIGHT_VERSION = "apr-crm-local-preflight-v1" as const;
 const BASE_RULE_IDS = ["core-form-first", "core-economic-classification", "core-gross-triple-reconciliation", "core-mapping-complete", "system-single-active-practice", "system-atomic-checkpoint-resume", USER_AUTHORIZED_RULE_IDS.tenCaseMondayRestart];
@@ -146,21 +147,15 @@ function isScreeningComponentBlocker(blocker: AprCrmLocalPreflightBlocker) {
   return blocker.field === "screenings" || blocker.field.startsWith("screenings.");
 }
 
-function isScreeningOnlyBlocker(blocker: AprCrmLocalPreflightBlocker) {
-  return isScreeningComponentBlocker(blocker)
-    || blocker.code === "screenings_missing"
-    || blocker.code === "screening_primary_measurements_missing"
-    || (/^invoice_[a-f0-9]{8}$/.test(blocker.code)
-      && /Nessuna riga di schermatura con dimensioni e gTot/i.test(blocker.reason));
-}
-
 export function reconcileCommonReportWithAuthoritativeInfissiGate(
   report: AprCrmLocalPreflightReport,
 ): AprCrmLocalPreflightReport {
-  const blockers = report.blockers.filter((blocker) => !isScreeningOnlyBlocker(blocker));
-  const removed = report.blockers.length - blockers.length;
+  const blockers = report.blockers.filter((blocker) => !isScreeningOnlyCommonBlocker(blocker));
+  const payloadBlockers = report.eneaPayloadAudit?.blockers.filter((blocker) => !isScreeningOnlyCommonBlocker(blocker)) ?? [];
+  const removed = report.blockers.length - blockers.length
+    + ((report.eneaPayloadAudit?.blockers.length ?? 0) - payloadBlockers.length);
   if (removed === 0) return report;
-  const ready = blockers.length === 0;
+  const ready = blockers.length === 0 && payloadBlockers.length === 0;
   const warning = {
     code: "screening_validation_not_applicable_to_infissi",
     reason: `${removed} esiti del parser Schermature esclusi perché il gate documentale autorevole ha classificato la pratica come Infissi.`,
@@ -170,6 +165,23 @@ export function reconcileCommonReportWithAuthoritativeInfissiGate(
     ...report,
     outcome: ready ? "ready_local_plan" : "blocked_case",
     blockers,
+    ...(report.eneaPayloadAudit ? {
+      eneaPayloadAudit: {
+        ...report.eneaPayloadAudit,
+        status: ready ? "payload_complete" as const : "payload_incomplete" as const,
+        blockerCount: payloadBlockers.length,
+        blockers: payloadBlockers,
+        draftReady: ready,
+        portalGate: {
+          ...report.eneaPayloadAudit.portalGate,
+          status: ready ? "ready" as const : "blocked" as const,
+          reason: ready ? null : "common-infissi-applicable-blockers-remain",
+        },
+        reason: ready
+          ? "I controlli comuni applicabili agli Infissi sono completi; i soli blocker Schermature sono esclusi."
+          : "Restano blocker comuni applicabili anche agli Infissi.",
+      },
+    } : {}),
     warnings: report.warnings.some((item) => item.code === warning.code) ? report.warnings : [...report.warnings, warning],
     draftPlan: {
       ...report.draftPlan,
@@ -1241,7 +1253,6 @@ export class PersistentAprCrmLocalPreflight {
     now = new Date(),
   ) {
     const current = this.initialize(now);
-    if (current.validationRevisionsApplied.includes(validationRevision)) return current;
     if (current.status !== "completed" || infissi.status !== "completed") return current;
     const authoritativeReadyKeys = new Set(infissi.items
       .filter((item) => item.state === "ready_local_plan" && (item.report?.blockers?.length ?? 0) === 0)
@@ -1260,9 +1271,10 @@ export class PersistentAprCrmLocalPreflight {
         : `${report.blockers.length} blocker comuni residui; i blocker Schermature non applicabili sono esclusi.`;
       changed += 1;
     }
-    if (changed === 0) return current;
+    const revisionAlreadyRecorded = current.validationRevisionsApplied.includes(validationRevision);
+    if (changed === 0 && revisionAlreadyRecorded) return current;
     next.revision += 1;
-    next.validationRevisionsApplied.push(validationRevision);
+    if (!revisionAlreadyRecorded) next.validationRevisionsApplied.push(validationRevision);
     const ready = next.items.filter((item) => item.state === "ready_local_plan").length;
     const blocked = next.items.filter((item) => item.state === "blocked_case").length;
     next.reason = `Applicabilità Infissi riconciliata per ${changed} pratiche: ${ready} pronte, ${blocked} bloccate; nessuna azione esterna.`;

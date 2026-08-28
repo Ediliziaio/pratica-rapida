@@ -144,7 +144,7 @@ async function waitFor(description, predicate, timeoutMs, onWait = null) {
 
 function throwIfCommonPreflightBlocked(root, item) {
   const common = readJson(`${root}/crm-local-preflight/checkpoint.json`);
-  const block = resolveCommonPreflightBlock(common, item.customerKey);
+  const block = resolveCommonPreflightBlock(common, item.customerKey, item.module);
   if (block) throw new Error(`${item.customerKey}:preflight_blocked:${block.reason}`);
 }
 

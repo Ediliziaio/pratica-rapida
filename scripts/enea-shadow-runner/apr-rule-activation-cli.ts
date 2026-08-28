@@ -56,7 +56,10 @@ function assertBundlesContainRules(directory: string): void {
 }
 
 function run(command: string, commandArgs: string[]): void {
-  const result = spawnSync(command, commandArgs, { cwd: repositoryDirectory, stdio: "inherit", timeout: 20 * 60 * 1000 });
+  // La suite seriale comprende fixture CDP/macOS volutamente real-time: il solo
+  // file cdpEneaBrowserDriver può superare sette minuti. Venti minuti rendevano
+  // il gate non deterministico sull'intera suite pur con tutti i test verdi.
+  const result = spawnSync(command, commandArgs, { cwd: repositoryDirectory, stdio: "inherit", timeout: 60 * 60 * 1000 });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`Comando fallito (${result.status}): ${command} ${commandArgs.join(" ")}`);
 }

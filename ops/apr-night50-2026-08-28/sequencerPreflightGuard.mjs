@@ -25,6 +25,18 @@ export function resolveCommonPreflightBlock(checkpoint, customerKey, productModu
   });
 }
 
+export function resolveInfissiPreflightDisposition(commonCheckpoint, productCheckpoint, customerKey) {
+  const productItem = productCheckpoint?.items?.find((candidate) => candidate.customerKey === customerKey);
+  if (productCheckpoint?.status === "completed") {
+    if (productItem) return Object.freeze({ kind: "product", item: productItem });
+    const documentedNonInfissiBlock = resolveCommonPreflightBlock(commonCheckpoint, customerKey, "screening");
+    if (documentedNonInfissiBlock) return Object.freeze({ kind: "common_block", block: documentedNonInfissiBlock });
+    return Object.freeze({ kind: "inconsistent", reason: `${customerKey}:product_gate_missing_after_completed_infissi_preflight` });
+  }
+  const sharedBlock = resolveCommonPreflightBlock(commonCheckpoint, customerKey, "infissi");
+  return sharedBlock ? Object.freeze({ kind: "common_block", block: sharedBlock }) : Object.freeze({ kind: "wait" });
+}
+
 export function buildPreflightWaitHeartbeat(item, gate, nowIso) {
   return Object.freeze({
     phase: "preflight_wait",

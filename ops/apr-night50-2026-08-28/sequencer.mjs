@@ -7,7 +7,7 @@ import {
   observeSessionWait,
 } from "./sequencerSessionGuard.mjs";
 import { classifySequencerFailure, createVerifiedCommonTechnicalFailure } from "./sequencerFailurePolicy.mjs";
-import { buildPreflightWaitHeartbeat, resolveCommonPreflightBlock } from "./sequencerPreflightGuard.mjs";
+import { buildPreflightWaitHeartbeat, resolveCommonPreflightBlock, resolveInfissiPreflightDisposition } from "./sequencerPreflightGuard.mjs";
 
 const cohortsRoot = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts";
 const runRoot = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-night50-2026-08-28";
@@ -193,11 +193,13 @@ async function prepare(item) {
   command(node, ["--experimental-transform-types", `--experimental-loader=${loader}`, "scripts/enea-shadow-runner/apr-cohort-service-cli.ts", "--cohort", String(item.cohort), "--port", String(port), "--state-dir", root, "--install-dir", install, "--node", node, "--supervisor-bundle", `${install}/apr-supervisor.mjs`, "--worker-bundle", `${install}/apr-enea-worker.mjs`, "--watchdog-bundle", `${install}/apr-watchdog.mjs`], { name: "service_prepare" });
   bootstrap(`${install}/${label(item, "supervisor")}.plist`, label(item, "supervisor"));
   if (item.module === "infissi") {
-    throwIfCommonPreflightBlocked(root, item);
     await waitFor(`${item.customerKey}:infissi-local-preflight`, () => {
-      throwIfCommonPreflightBlocked(root, item);
+      const common = readJson(`${root}/crm-local-preflight/checkpoint.json`);
       const product = readJson(`${root}/infissi-batch-preflight/checkpoint.json`);
-      return product?.status === "completed" && product.items?.some((candidate) => candidate.customerKey === item.customerKey) ? product : null;
+      const disposition = resolveInfissiPreflightDisposition(common, product, item.customerKey);
+      if (disposition.kind === "common_block") throw new Error(`${item.customerKey}:preflight_blocked:${disposition.block.reason}`);
+      if (disposition.kind === "inconsistent") throw new Error(disposition.reason);
+      return disposition.kind === "product" ? product : null;
     }, 20 * 60 * 1000, createPreflightWaitHeartbeat(item, "infissi-local-preflight"));
     command(node, ["--experimental-transform-types", `--experimental-loader=${loader}`, "scripts/enea-shadow-runner/infissi-batch-preflight-cli.ts", "--state-dir", root, "--apply-required-revisions", "--reconcile-common-applicability"], { name: "infissi_required_revisions" });
     persist("case_infissi_validation_gate_prepared", { customerKey: item.customerKey, cohort: item.cohort });

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   buildPreflightWaitHeartbeat,
   resolveCommonPreflightBlock,
+  resolveInfissiPreflightDisposition,
 } from "./sequencerPreflightGuard.mjs";
 
 test("riconosce subito un blocked_case comune anche se il gate prodotto e vuoto", () => {
@@ -63,6 +64,18 @@ test("mantiene per Infissi un blocker comune reale insieme al rumore Schermature
     }],
   };
   assert.deepEqual(resolveCommonPreflightBlock(checkpoint, "sabrina-eustomi", "infissi")?.blockerCodes, ["customer_form_missing"]);
+});
+
+test("attende il gate documentale e distingue Infissi reali da Schermature etichettate Infissi", () => {
+  const common = { status: "completed", items: [{ customerKey: "caso", state: "blocked_case", reason: "Misure mancanti.", report: { blockers: [{ code: "screening_primary_measurements_missing", field: "screenings.dimensions" }] } }] };
+  assert.equal(resolveInfissiPreflightDisposition(common, { status: "running", items: [] }, "caso").kind, "wait");
+  assert.equal(resolveInfissiPreflightDisposition(common, { status: "completed", items: [{ customerKey: "caso", state: "ready_local_plan" }] }, "caso").kind, "product");
+  assert.equal(resolveInfissiPreflightDisposition(common, { status: "completed", items: [] }, "caso").kind, "common_block");
+});
+
+test("isola un gate Infissi completato che omette il caso senza alcuna verita alternativa", () => {
+  const disposition = resolveInfissiPreflightDisposition({ status: "completed", items: [{ customerKey: "caso", state: "ready_local_plan", report: { blockers: [] } }] }, { status: "completed", items: [] }, "caso");
+  assert.equal(disposition.kind, "inconsistent");
 });
 
 test("costruisce un heartbeat preflight_wait deterministico e immutabile", () => {

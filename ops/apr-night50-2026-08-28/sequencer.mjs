@@ -6,10 +6,11 @@ import {
   executionProgressFingerprint,
   observeSessionWait,
 } from "./sequencerSessionGuard.mjs";
+import { classifySequencerFailure, createVerifiedCommonTechnicalFailure } from "./sequencerFailurePolicy.mjs";
 
 const cohortsRoot = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts";
 const runRoot = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-night50-2026-08-28";
-const cleanSource = "/private/tmp/apr-gate-d1b8d00.VhVNb2/repo";
+const cleanSource = realpathSync(process.env.APR_SOURCE_ROOT ?? process.cwd());
 const sourceRoot = `${cohortsRoot}/apr-pilot-84-five-simple-tommasina`;
 const sourceManifest = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/reports/apr-wide-blocker-snapshot-2026-08-26-e30a7f6.json";
 const canonicalBundles = realpathSync("/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/current");
@@ -174,7 +175,7 @@ async function prepare(item) {
       const product = readJson(`${root}/infissi-batch-preflight/checkpoint.json`);
       return product?.status === "completed" && product.items?.some((candidate) => candidate.customerKey === item.customerKey) ? product : null;
     }, 20 * 60 * 1000);
-    command(node, ["--experimental-transform-types", `--experimental-loader=${loader}`, "scripts/enea-shadow-runner/infissi-batch-preflight-cli.ts", "--state-dir", root, "--apply-required-revisions"], { name: "infissi_required_revisions" });
+    command(node, ["--experimental-transform-types", `--experimental-loader=${loader}`, "scripts/enea-shadow-runner/infissi-batch-preflight-cli.ts", "--state-dir", root, "--apply-required-revisions", "--reconcile-common-applicability"], { name: "infissi_required_revisions" });
     persist("case_infissi_validation_gate_prepared", { customerKey: item.customerKey, cohort: item.cohort });
   }
   await waitFor(`${item.customerKey}:preflight`, () => {
@@ -188,7 +189,6 @@ async function prepare(item) {
     const commonItem = common?.items?.find((candidate) => candidate.customerKey === item.customerKey);
     const product = item.module === "infissi" ? readJson(`${root}/infissi-batch-preflight/checkpoint.json`) : common;
     const productItem = product?.items?.find((candidate) => candidate.customerKey === item.customerKey);
-    if (item.module === "infissi" && commonItem?.state === "blocked_case" && productItem?.state === "ready_local_plan") return null;
     if (productItem?.state === "blocked_case") throw new Error(`${item.customerKey}:preflight_blocked:${productItem.reason}`);
     return null;
   }, 20 * 60 * 1000);
@@ -212,9 +212,7 @@ function resultFromEntry(item, entry, stateName = "operator_required") {
   };
 }
 
-async function runCase(item, previous) {
-  state.currentCustomerKey = item.customerKey;
-  persist("case_preparing", { customerKey: item.customerKey, cohort: item.cohort });
+async function runCaseUnsafe(item, previous) {
   let prepared;
   try {
     prepared = await prepare(item);
@@ -278,7 +276,37 @@ async function runCase(item, previous) {
     persist("case_operator_required", result);
     return item;
   }
-  throw new Error(`${item.customerKey}:common_technical_block:${terminal.entry?.reason ?? terminal.service?.reason ?? "unknown"}`);
+  throw createVerifiedCommonTechnicalFailure(
+    terminal.observation?.workerRunning ? "session_unavailable_after_stall_threshold" : "worker_unavailable_after_stall_threshold",
+    `${item.customerKey}:common_technical_block:${terminal.entry?.reason ?? terminal.service?.reason ?? "unknown"}`,
+    terminal.observation ?? {},
+  );
+}
+
+async function runCase(item, previous) {
+  state.currentCustomerKey = item.customerKey;
+  persist("case_preparing", { customerKey: item.customerKey, cohort: item.cohort });
+  try {
+    return await runCaseUnsafe(item, previous);
+  } catch (error) {
+    const failure = classifySequencerFailure(error);
+    if (failure.scope === "common_technical") throw error;
+    bootout(label(item, "watchdog"));
+    bootout(label(item, "worker"));
+    const execution = readJson(`${cohortRoot(item)}/enea-draft-execution/checkpoint.json`);
+    const entry = execution?.items?.find((candidate) => candidate.customerKey === item.customerKey);
+    const existing = state.results.find((candidate) => candidate.customerKey === item.customerKey);
+    const result = existing ?? {
+      ...resultFromEntry(item, entry ?? { reason: failure.reason }),
+      reason: failure.reason,
+      question: failure.question,
+      technicalReason: failure.technicalReason,
+      appliedRuleIds: failure.appliedRuleIds,
+    };
+    if (!existing) state.results.push(result);
+    persist("case_operator_required_from_unresolved_inconsistency", result);
+    return item;
+  }
 }
 
 try {

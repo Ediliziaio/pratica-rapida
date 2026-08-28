@@ -275,7 +275,7 @@ describe("dashboard HTTP e supervisore persistente", () => {
     expect(html).toContain("immagini non fiscali escluse");
     expect(html).toContain("pipeline Pronte da fare");
     expect(html).toContain("IDLE — 0 pratiche");
-    expect(html).toContain("Stato trasporto: fixture_verified");
+    expect(html).toContain("Adattatore read-only: fixture_verified");
     expect(html).toContain("contract_only_not_real");
     expect(html).toContain("Notifiche senza Codex: attive");
     expect(html).toContain("Centro notifiche macOS con inbox durevole");

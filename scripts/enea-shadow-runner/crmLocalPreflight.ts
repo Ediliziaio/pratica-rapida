@@ -980,7 +980,17 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
       blockers.push({ code: `${shutterLabel}_measurement_ambiguous_${index + 1}`, field: `screenings.${index + 1}.dimensions`, reason: `Misura ${shutterLabel} ${item.widthMm}×${item.heightMm} mm fuori dai limiti ampi di plausibilita refuso (larghezza 500-4000 mm, altezza 450-3200 mm). Richiesto intervento operatore senza inventare conversioni.`, sourceIds: [item.sourcePath], appliedRuleIds: [shutterRuleId, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality, "system-apr-operator-intervention-routing"] });
       continue;
     }
-    const rule = resolveProductTechnicalAttributes(item.description, attributeContext, item.gTot); const mapping = formMappings.mappings[index] ?? { declared: null, source: null }; const declared = mapping.declared;
+    const mapping = formMappings.mappings[index] ?? { declared: null, source: null }; const declared = mapping.declared;
+    // La famiglia riconciliata e' stabilita dalla descrizione di fattura e,
+    // solo quando questa e' generica, dal gruppo form univocamente associato.
+    // Passarla al resolver prima dei fallback impedisce che una zanzariera
+    // descritta come "Altra schermatura solare" riceva il fallback Tessuto.
+    const sourceFamily = normalizedFamily(item.description);
+    const reconciledFamily = sourceFamily ?? normalizedFamily(text(declared?.tipo_prodotto));
+    const resolverDescription = reconciledFamily === "zanzariera" && sourceFamily === null
+      ? `${item.description} - zanzariera`
+      : item.description;
+    const rule = resolveProductTechnicalAttributes(resolverDescription, attributeContext, item.gTot);
     if (!rule) {
       if (/\b(?:vepa|vetrat[ae]\s+scorrevol[ei])\b/i.test(item.description)) blockers.push({ code: `vepa_module_not_enabled_${index + 1}`, field: `screenings.${index + 1}.type`, reason: "Vetrata scorrevole/VEPA riconosciuta e conservata 1:1, ma il modulo APR VEPA non è ancora abilitato: pratica parcheggiata senza classificazione ENEA.", sourceIds: [item.sourcePath], appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.vepaDeferredCurrentPhase, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality, "system-apr-operator-intervention-routing"] });
       else blockers.push({ code: `product_unclassified_${index + 1}`, field: `screenings.${index + 1}.type`, reason: "Prodotto non qualificabile senza inventare una classificazione.", sourceIds: [item.sourcePath], appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.technicalProductCardinality] });

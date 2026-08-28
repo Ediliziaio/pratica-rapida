@@ -4,6 +4,45 @@ import { validateAprEneaServerReadOnlyProbe } from "./aprEneaServerReadOnlyProbe
 import { PersistentAprEneaOperationalBridge } from "./aprEneaOperationalBridge";
 import { reconcileStoppedAprEneaBrowserWorkerCheckpoint } from "./aprEneaBrowserWorker";
 
+type AprResumableExecutionItem = {
+  state?: string;
+  draftId?: string | null;
+  createAttemptCount?: number;
+  saveAttemptCount?: number;
+  completedPageIds?: string[];
+  pageCheckpoints?: Array<{ pageId?: string; state?: string; saveAttemptCount?: number; recoverySaveAttemptCount?: number; stagedEvidenceId?: string | null; savedEvidenceId?: string | null }>;
+  uncertainPageSave?: { status?: string; probes?: Array<{ method?: string; outcome?: string; reason?: string; url?: string }> } | null;
+  reason?: string;
+};
+
+export function isAprEneaOperatorCaseSafelyResumable(item: AprResumableExecutionItem) {
+  if (item.state !== "operator_intervention" || item.createAttemptCount !== 1 || item.saveAttemptCount !== 0) return false;
+  const checkpoints = item.pageCheckpoints ?? [];
+  const duplicateDiscovery = !item.draftId && item.completedPageIds?.length === 0 && /enea_draft_id_duplicate/.test(item.reason ?? "");
+  const conditionalControl = Boolean(item.draftId) && /apr_cdp_enea_field_verification_failed:id-impianto_centralizzato$/.test(item.reason ?? "") && checkpoints.every((checkpoint) => checkpoint.state === "pending" || checkpoint.state === "saved");
+  const preSaveFieldVerification = Boolean(item.draftId)
+    && /apr_cdp_enea_field_verification_failed:[a-z0-9_,-]+$/.test(item.reason ?? "")
+    && checkpoints.some((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0)
+    && checkpoints.every((checkpoint) => checkpoint.state === "pending" || checkpoint.state === "saved");
+  const repairableMappingProbe = item.uncertainPageSave?.status === "operator_required" && item.uncertainPageSave.probes?.length === 3 && item.uncertainPageSave.probes.every((probe) => probe.outcome === "inconclusive" && /apr_cdp_enea_mapping_missing/.test(probe.reason ?? ""));
+  const serverProvenNotSaved = item.uncertainPageSave?.status === "operator_required" && item.uncertainPageSave.probes?.some((probe) => probe.method === "persisted_fields_get" && probe.outcome === "not_saved" && typeof probe.url === "string" && /^https:\/\/bonusfiscali\.enea\.it\/pratica\//.test(probe.url) && probe.url.split(/[?#]/, 1)[0].endsWith(`/${item.draftId}`));
+  const legacyUncertainSave = Boolean(item.draftId) && checkpoints.some((checkpoint) => checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount !== 1 && !/Generatore/.test(checkpoint.pageId ?? "")) && (item.uncertainPageSave?.status === "probing" || repairableMappingProbe || serverProvenNotSaved || /(?:Esito salvataggio pagina|apr_cdp_command_timeout:Runtime\.evaluate)/.test(item.reason ?? ""));
+  const unclickedRecovery = Boolean(item.draftId) && item.uncertainPageSave?.status === "recovery_authorized" && checkpoints.some((checkpoint) => checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 1) && /apr_cdp_enea_unique_enabled_save_button_not_found:/.test(item.reason ?? "");
+  const recoveryTimeoutVerification = Boolean(item.draftId) && item.uncertainPageSave?.status === "operator_required" && checkpoints.some((checkpoint) => checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 1) && /unico recupero autorizzato ha esito incerto/.test(item.reason ?? "");
+  const transientPreSaveTimeout = Boolean(item.draftId)
+    && /apr_cdp_(?:command_timeout:Runtime\.evaluate|connection_closed|protocol_error:-32000:(?:Promise was collected|Inspected target navigated or closed))/.test(item.reason ?? "")
+    && checkpoints.some((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0)
+    && checkpoints.every((checkpoint) => checkpoint.state === "saved"
+      || (checkpoint.state === "staged" && checkpoint.saveAttemptCount === 1 && Boolean(checkpoint.stagedEvidenceId))
+      || (checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0));
+  const nestedOuterSaveVerification = Boolean(item.draftId)
+    && item.uncertainPageSave?.status === "resolved_staged"
+    && /apr_enea_nested_page_not_persisted_after_outer_save:screening:\d+$/.test(item.reason ?? "")
+    && checkpoints.some((checkpoint) => /schermatur|infiss/i.test(checkpoint.pageId ?? "") && checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1)
+    && checkpoints.filter((checkpoint) => checkpoint.pageId?.startsWith("screening:")).every((checkpoint) => checkpoint.state === "staged" || checkpoint.state === "saved");
+  return duplicateDiscovery || conditionalControl || preSaveFieldVerification || legacyUncertainSave || unclickedRecovery || recoveryTimeoutVerification || transientPreSaveTimeout || nestedOuterSaveVerification;
+}
+
 export const APR_ENEA_WORKER_SERVICE_VERSION = "apr-enea-worker-service-v1" as const;
 export const APR_ENEA_EMERGENCY_STOP_VERSION = "apr-enea-emergency-stop-v1" as const;
 
@@ -211,21 +250,7 @@ export class PersistentAprEneaWorkerService {
         const safelyResumablePartialState = item.customerKey === execution.currentCustomerKey
           && ["create_intent_recorded", "created", "filling", "save_intent_recorded"].includes(item.state ?? "");
         if (safelyResumablePartialState) return true;
-        if (item.state !== "operator_intervention" || item.createAttemptCount !== 1 || item.saveAttemptCount !== 0) return false;
-        const duplicateDiscovery = !item.draftId && item.completedPageIds?.length === 0 && /enea_draft_id_duplicate/.test(item.reason ?? "");
-        const conditionalControl = Boolean(item.draftId) && /apr_cdp_enea_field_verification_failed:id-impianto_centralizzato$/.test(item.reason ?? "") && (item.pageCheckpoints ?? []).every((checkpoint) => checkpoint.state === "pending" || checkpoint.state === "saved");
-        const repairableMappingProbe = item.uncertainPageSave?.status === "operator_required" && item.uncertainPageSave.probes?.length === 3 && item.uncertainPageSave.probes.every((probe) => probe.outcome === "inconclusive" && /apr_cdp_enea_mapping_missing/.test(probe.reason ?? ""));
-        const serverProvenNotSaved = item.uncertainPageSave?.status === "operator_required" && item.uncertainPageSave.probes?.some((probe) => probe.method === "persisted_fields_get" && probe.outcome === "not_saved" && typeof probe.url === "string" && /^https:\/\/bonusfiscali\.enea\.it\/pratica\//.test(probe.url) && probe.url.split(/[?#]/, 1)[0].endsWith(`/${item.draftId}`));
-        const legacyUncertainSave = Boolean(item.draftId) && (item.pageCheckpoints ?? []).some((checkpoint) => checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount !== 1 && !/Generatore/.test(checkpoint.pageId ?? "") && !(checkpoint.pageId ?? "").startsWith("screening:")) && (item.uncertainPageSave?.status === "probing" || repairableMappingProbe || serverProvenNotSaved || /(?:Esito salvataggio pagina|apr_cdp_command_timeout:Runtime\.evaluate)/.test(item.reason ?? ""));
-        const unclickedRecovery = Boolean(item.draftId) && item.uncertainPageSave?.status === "recovery_authorized" && (item.pageCheckpoints ?? []).some((checkpoint) => checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 1) && /apr_cdp_enea_unique_enabled_save_button_not_found:/.test(item.reason ?? "");
-        const recoveryTimeoutVerification = Boolean(item.draftId) && item.uncertainPageSave?.status === "operator_required" && (item.pageCheckpoints ?? []).some((checkpoint) => checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1 && checkpoint.recoverySaveAttemptCount === 1) && /unico recupero autorizzato ha esito incerto/.test(item.reason ?? "");
-        const transientPreSaveTimeout = Boolean(item.draftId)
-          && /apr_cdp_(?:command_timeout:Runtime\.evaluate|connection_closed|protocol_error:-32000:(?:Promise was collected|Inspected target navigated or closed))/.test(item.reason ?? "")
-          && (item.pageCheckpoints ?? []).some((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0)
-          && (item.pageCheckpoints ?? []).every((checkpoint) => checkpoint.state === "saved"
-            || (checkpoint.state === "staged" && checkpoint.saveAttemptCount === 1 && Boolean(checkpoint.stagedEvidenceId))
-            || (checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0));
-        return duplicateDiscovery || conditionalControl || legacyUncertainSave || unclickedRecovery || recoveryTimeoutVerification || transientPreSaveTimeout;
+        return isAprEneaOperatorCaseSafelyResumable(item);
       }) ?? [];
       const runnable = runnableItems.length;
       const ciottaSafe = [...(execution.items ?? []), ...(preflight.items ?? [])].every((item) => item.customerKey !== "beatrice-ciotta" || item.state === "deferred_operator");

@@ -4,7 +4,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { runEconomicVertical } from "./aprEconomicVertical";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
-import { aprEneaKeepaliveInterval, aprEneaWorkerLoopFailureDisposition, isAprEneaKeepaliveDue, PersistentAprEneaWorkerService, shouldHoldAprEneaKeepaliveState } from "./aprEneaBrowserWorkerService";
+import { aprEneaKeepaliveInterval, aprEneaWorkerLoopFailureDisposition, isAprEneaKeepaliveDue, isAprEneaOperatorCaseSafelyResumable, PersistentAprEneaWorkerService, shouldHoldAprEneaKeepaliveState } from "./aprEneaBrowserWorkerService";
 import { PersistentAprEneaOperationalBridge } from "./aprEneaOperationalBridge";
 import { mapBusinessDecisionArtifactToEnea } from "./aprEneaPureMapper";
 import { canonicalSha256 } from "./aprMonotonicArtifacts";
@@ -494,6 +494,56 @@ describe("gate permanente del servizio browser APR", () => {
       reason: "Errore circoscritto alla pratica: apr_cdp_enea_unique_enabled_save_button_not_found:page:Intervento",
     })) }));
     expect(service.autoArm()).toMatchObject({ armed: true, config: { operationalEnabled: true } });
+  });
+
+  it("riprende una verifica Schermature dopo timeout CDP senza ripetere il Salva della riga", () => {
+    expect(isAprEneaOperatorCaseSafelyResumable({
+      state: "operator_intervention",
+      draftId: "440136",
+      createAttemptCount: 1,
+      saveAttemptCount: 0,
+      completedPageIds: ["page:Beneficiario"],
+      pageCheckpoints: [
+        { pageId: "screening:1", state: "staged", saveAttemptCount: 1, recoverySaveAttemptCount: 0, stagedEvidenceId: "row-proof" },
+        { pageId: "page:Schermature solari", state: "pending", saveAttemptCount: 0, recoverySaveAttemptCount: 0 },
+      ],
+      uncertainPageSave: { status: "resolved_staged", probes: [] },
+      reason: "apr_cdp_command_timeout:Runtime.evaluate",
+    })).toBe(true);
+  });
+
+  it("ammette solo la verifica server dell'outer Save incerto e non un secondo recupero mutativo", () => {
+    const item = {
+      state: "operator_intervention",
+      draftId: "440212",
+      createAttemptCount: 1,
+      saveAttemptCount: 0,
+      completedPageIds: ["page:Beneficiario"],
+      pageCheckpoints: [
+        { pageId: "screening:1", state: "staged", saveAttemptCount: 1, recoverySaveAttemptCount: 1, stagedEvidenceId: "row-1" },
+        { pageId: "screening:2", state: "staged", saveAttemptCount: 1, recoverySaveAttemptCount: 1, stagedEvidenceId: "row-2" },
+        { pageId: "page:Schermature solari", state: "save_intent_recorded", saveAttemptCount: 1, recoverySaveAttemptCount: 0 },
+      ],
+      uncertainPageSave: { status: "resolved_staged", probes: [] },
+      reason: "apr_enea_nested_page_not_persisted_after_outer_save:screening:2",
+    };
+    expect(isAprEneaOperatorCaseSafelyResumable(item)).toBe(true);
+    expect(isAprEneaOperatorCaseSafelyResumable({ ...item, reason: "documento mancante" })).toBe(false);
+  });
+
+  it("riprende una verifica pre-Salva di piu campi senza creare una nuova bozza", () => {
+    expect(isAprEneaOperatorCaseSafelyResumable({
+      state: "operator_intervention",
+      draftId: "440237",
+      createAttemptCount: 1,
+      saveAttemptCount: 0,
+      completedPageIds: [],
+      pageCheckpoints: [
+        { pageId: "page:Anagrafica Beneficiario", state: "pending", saveAttemptCount: 0, recoverySaveAttemptCount: 0 },
+        { pageId: "page:Immobile", state: "pending", saveAttemptCount: 0, recoverySaveAttemptCount: 0 },
+      ],
+      reason: "Errore circoscritto alla pratica: apr_cdp_enea_field_verification_failed:id-nome,id-cognome,id-codice_fiscale,id-comune_nascita",
+    })).toBe(true);
   });
 
   it("migra e persiste il keepalive nelle configurazioni installate prima del gate H24", () => {

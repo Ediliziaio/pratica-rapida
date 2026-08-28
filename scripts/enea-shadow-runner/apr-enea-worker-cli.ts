@@ -7,7 +7,7 @@ import { PersistentAprChromeRuntime } from "./cdpClient";
 import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
 import { PersistentAprCrmLocalPreflight } from "./crmLocalPreflight";
 import { PersistentAprCohortSeed } from "./aprCohortSeed";
-import { isTransientCdpReadOnlyFailure, nestedPageAbsenceRecoveryCandidate, PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible, type AprNestedPageAbsenceEvidence } from "./eneaDraftExecution";
+import { isTransientCdpReadOnlyFailure, nestedOuterSavePersistenceVerificationCandidate, nestedPageAbsenceRecoveryCandidate, PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible, type AprNestedPageAbsenceEvidence } from "./eneaDraftExecution";
 import { aprEneaKeepaliveInterval, aprEneaWorkerLoopFailureDisposition, isAprEneaKeepaliveDue, PersistentAprEneaWorkerService, shouldHoldAprEneaKeepaliveState } from "./aprEneaBrowserWorkerService";
 import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import { nestedUncertainPageSaveProbeAllowed } from "./infissiUncertainSavePolicy";
@@ -491,7 +491,7 @@ async function serve() {
           && item.createAttemptCount === 1
           && item.saveAttemptCount === 0
           && item.pageCheckpoints.every((checkpoint) => checkpoint.state === "pending" || checkpoint.state === "saved")
-          && /^(?:Errore circoscritto alla pratica: )?apr_cdp_enea_(?:field_verification_failed:(?:id-impianto_centralizzato|id-costo|(?:id-comune(?:_nascita|_residenza)?|id-civico_residenza)(?:,(?:id-comune(?:_nascita|_residenza)?|id-civico_residenza))*)|co_beneficiary_trusted_input_not_verified)$/.test(item.reason)
+          && /^(?:Errore circoscritto alla pratica: )?apr_cdp_enea_(?:field_verification_failed:[a-z0-9_,-]+|co_beneficiary_trusted_input_not_verified)$/.test(item.reason)
           && !executionBeforeTick.processedCommandIds.includes(`service:auto-resume-created-field-verification:${item.customerKey}:${item.draftId}:${fieldVerificationRecoveryRevision(item.reason)}`));
         const preSaveMappingRecovery = executionBeforeTick.items.find((item) => item.state === "operator_intervention"
           && Boolean(item.draftId)
@@ -592,6 +592,7 @@ async function serve() {
           && /apr_cdp_enea_unique_enabled_save_button_not_found:/.test(item.reason));
         const screeningOrderRecovery = executionBeforeTick.items.find((item) => item.state === "operator_intervention" && Boolean(item.draftId) && item.createAttemptCount === 1 && item.saveAttemptCount === 0 && item.completedPageIds.length > 0 && item.pageCheckpoints.some((checkpoint) => checkpoint.pageId.startsWith("screening:") && checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0) && /apr_cdp_enea_field_verification_failed:id-costo$/.test(item.reason));
         const screeningSummaryPersistenceDiagnostic = executionBeforeTick.items.find(nestedPageAbsenceRecoveryCandidate);
+        const nestedOuterSavePersistenceVerification = executionBeforeTick.items.find(nestedOuterSavePersistenceVerificationCandidate);
         const screeningNavigationRecovery = executionBeforeTick.items.find((item) => item.state === "operator_intervention" && Boolean(item.draftId) && item.createAttemptCount === 1 && item.saveAttemptCount === 0 && item.completedPageIds.length > 0 && item.pageCheckpoints.some((checkpoint) => checkpoint.pageId.startsWith("screening:") && checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0) && /apr_cdp_enea_(?:page_navigation_not_found|screening_activation_failed|screening_add_not_unique|screening_markers_missing):screening:1/.test(item.reason));
         const screeningSaveTimeoutDiagnostic = executionBeforeTick.items.find((item) => item.state === "operator_intervention" && Boolean(item.draftId) && item.createAttemptCount === 1 && item.saveAttemptCount === 0 && item.pageCheckpoints.some((checkpoint) => checkpoint.pageId.startsWith("screening:") && checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1) && /apr_cdp_command_timeout:Runtime\.evaluate/.test(item.reason));
         const screeningPostSaveVerification = executionBeforeTick.items.find((item) => item.state === "operator_intervention" && Boolean(item.draftId) && item.createAttemptCount === 1 && item.saveAttemptCount === 0 && item.pageCheckpoints.some((checkpoint) => checkpoint.pageId.startsWith("screening:") && checkpoint.state === "save_intent_recorded" && checkpoint.saveAttemptCount === 1) && /(?:Esito salvataggio pagina screening:|Esito tecnico incerto dopo il Salva di screening:)/.test(item.reason));
@@ -1038,6 +1039,13 @@ async function serve() {
               && diagnostic.draftId === screeningSummaryPersistenceDiagnostic.draftId)
             .slice(-2)
           : [];
+        const nestedOuterPersistenceProofs = nestedOuterSavePersistenceVerification
+          ? ((driverBeforeTick.pageSaveDiagnostics ?? []) as Array<AprNestedPageAbsenceEvidence & { kind?: string; customerKey?: string; draftId?: string; rows?: string[][] }>)
+            .filter((diagnostic) => diagnostic.kind === "screening-summary-readonly-v4"
+              && diagnostic.customerKey === nestedOuterSavePersistenceVerification.customerKey
+              && diagnostic.draftId === nestedOuterSavePersistenceVerification.draftId)
+            .slice(-2)
+          : [];
         const generatorSummaryObserved = generatorActivationDiagnostic ? driverBeforeTick.events.some((event) => event.action === "inspect_generator_summary_readonly" && event.customerKey === generatorActivationDiagnostic.customerKey && event.draftId === generatorActivationDiagnostic.draftId) : false;
         const generatorActivationObserved = generatorActivationDiagnostic ? driverBeforeTick.events.some((event) => event.action === "inspect_generator_activation_surface_readonly_v2" && event.customerKey === generatorActivationDiagnostic.customerKey && event.draftId === generatorActivationDiagnostic.draftId) : false;
         const generatorSummarySurface = driverBeforeTick.pagePreparationDiagnostic as { kind?: string; customerKey?: string; draftId?: string; pageId?: string; evidenceId?: string; expectedActivationLabel?: string; rowDetails?: Array<{ cells: string[]; actions: Array<{ label: string; title: string; disabled: boolean }> }> } | null;
@@ -1311,6 +1319,34 @@ async function serve() {
           const firstScreeningPage = screeningSummaryPersistenceDiagnostic.pageCheckpoints.find((checkpoint) => checkpoint.pageId.startsWith("screening:"))!;
           const diagnostic = await driver.inspectScreeningSummaryReadOnly(draftPackageFor(screeningSummaryPersistenceDiagnostic.customerKey) as unknown as AprEneaDraftPackage, screeningSummaryPersistenceDiagnostic.draftId!, firstScreeningPage.pageId);
           service.record({ instanceId, processPid: process.pid, status: "technical_block", type: "screening_persistence_inspected_readonly", reason: `${screeningSummaryPersistenceDiagnostic.displayName}: lettura server indipendente ${screeningPersistenceProofs.length + 1}/2; righe=${diagnostic.rowCount}, caricamento=${diagnostic.loading}, superficie=${diagnostic.surfaceReady}, autenticata=${diagnostic.authenticated}; nessun campo modificato e nessun Salva.`, nextAction: "APR esegue una seconda lettura indipendente prima di autorizzare qualunque recupero.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: diagnostic.evidenceId });
+        }
+        if (executionBeforeTick.status === "completed" && nestedOuterSavePersistenceVerification && nestedOuterPersistenceProofs.length < 2) {
+          const firstScreeningPage = nestedOuterSavePersistenceVerification.pageCheckpoints.find((checkpoint) => checkpoint.pageId.startsWith("screening:"))!;
+          const diagnostic = await driver.inspectScreeningSummaryReadOnly(draftPackageFor(nestedOuterSavePersistenceVerification.customerKey) as unknown as AprEneaDraftPackage, nestedOuterSavePersistenceVerification.draftId!, firstScreeningPage.pageId);
+          service.record({ instanceId, processPid: process.pid, status: "technical_block", type: "nested_outer_save_persistence_inspected_readonly", reason: `${nestedOuterSavePersistenceVerification.displayName}: verifica server ${nestedOuterPersistenceProofs.length + 1}/2 dopo l'unico Salva esterno; righe=${diagnostic.rowCount}. Nessun Salva ripetuto.`, nextAction: "APR richiede due letture concordanti e il confronto 1:1 di tutte le righe prima di riprendere.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: diagnostic.evidenceId });
+        }
+        if (executionBeforeTick.status === "completed" && nestedOuterSavePersistenceVerification && nestedOuterPersistenceProofs.length === 2) {
+          const draftPackage = draftPackageFor(nestedOuterSavePersistenceVerification.customerKey) as unknown as AprEneaDraftPackage;
+          const expectedSteps = draftPackage.workflow.screeningSteps;
+          const proofsConcordant = nestedOuterPersistenceProofs.every((proof) => {
+            const matches = expectedSteps.map((step) => matchingScreeningRowIndexes(proof.rows ?? [], step.fields));
+            return proof.authenticated
+              && proof.allowlistedOrigin
+              && proof.expectedHeadersPresent
+              && proof.filtersClear
+              && !proof.loading
+              && proof.surfaceReady
+              && proof.rowCount === expectedSteps.length
+              && matches.every((indexes) => indexes.length === 1)
+              && new Set(matches.map((indexes) => indexes[0])).size === expectedSteps.length;
+          });
+          const evidenceIds = nestedOuterPersistenceProofs.map((proof) => proof.evidenceId);
+          const commandId = `service:confirm-nested-outer-save-readonly:${nestedOuterSavePersistenceVerification.customerKey}:${nestedOuterSavePersistenceVerification.draftId}:${evidenceIds.join(":")}:v1`;
+          if (proofsConcordant && !executionBeforeTick.processedCommandIds.includes(commandId)) {
+            execution.confirmNestedOuterSavePersistenceFromReadOnlySummary(nestedOuterSavePersistenceVerification.customerKey, evidenceIds, expectedSteps.length, commandId);
+            executionBeforeTick = execution.snapshot();
+            service.record({ instanceId, processPid: process.pid, status: "running", type: "nested_outer_save_persistence_confirmed_readonly", reason: `${nestedOuterSavePersistenceVerification.displayName}: due letture server concordanti confermano ${expectedSteps.length} righe 1:1 dopo l'unico Salva esterno.`, nextAction: "APR prosegue dalla pagina successiva sulla stessa bozza.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: evidenceIds[1] });
+          }
         }
         if (executionBeforeTick.status === "completed"
           && screeningSummaryPersistenceDiagnostic

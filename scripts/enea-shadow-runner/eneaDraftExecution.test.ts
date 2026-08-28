@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
-import { conclusiveNestedPageAbsenceEvidence, isTransientCdpReadOnlyFailure, nestedPageAbsenceRecoveryCandidate, PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible, type AprNestedPageAbsenceEvidence } from "./eneaDraftExecution";
+import { conclusiveNestedPageAbsenceEvidence, isTransientCdpReadOnlyFailure, nestedOuterSavePersistenceVerificationCandidate, nestedPageAbsenceRecoveryCandidate, PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible, type AprNestedPageAbsenceEvidence } from "./eneaDraftExecution";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 
 const directories: string[] = [];
@@ -1173,6 +1173,36 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     exhausted.state = "operator_intervention";
     exhausted.pageCheckpoints[0].recoverySaveAttemptCount = 1;
     expect(nestedPageAbsenceRecoveryCandidate(exhausted)).toBe(false);
+  });
+
+  it("conferma l'outer Save da due letture server senza ripetere i Salva tecnici", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare(preflightFixture());
+    const state = runner.load();
+    const item = state.items[0];
+    item.state = "operator_intervention";
+    item.draftId = "DRAFT-OUTER";
+    item.createAttemptCount = 1;
+    item.saveAttemptCount = 0;
+    item.reason = "apr_enea_nested_page_not_persisted_after_outer_save:screening:2";
+    item.uncertainPageSave = { pageId: "screening:2", status: "resolved_staged", detectedAt: new Date().toISOString(), detectedEvidenceId: "timeout", probes: [], operatorDecision: null, reason: "outer save incerto", nextAction: "rileggere" };
+    const screenings = item.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:"));
+    for (const [index, checkpoint] of screenings.entries()) Object.assign(checkpoint, { state: "staged", saveAttemptCount: 1, recoverySaveAttemptCount: index < 2 ? 1 : 0, stagedEvidenceId: `staged-${index + 1}` });
+    const summary = item.pageCheckpoints.find((checkpoint) => /schermatur/i.test(checkpoint.pageId) && !checkpoint.pageId.startsWith("screening:"))!;
+    Object.assign(summary, { state: "save_intent_recorded", saveAttemptCount: 1, recoverySaveAttemptCount: 0 });
+    state.status = "completed";
+    state.currentCustomerKey = null;
+    writeFileSync(runner.checkpointPath, `${JSON.stringify(state, null, 2)}\n`, "utf8");
+
+    expect(nestedOuterSavePersistenceVerificationCandidate(runner.load().items[0])).toBe(true);
+    const resumed = runner.confirmNestedOuterSavePersistenceFromReadOnlySummary(item.customerKey, ["outer-proof-1", "outer-proof-2"], screenings.length, "outer:confirm");
+    const resumedItem = resumed.items[0];
+    expect(resumed).toMatchObject({ status: "running", currentCustomerKey: item.customerKey });
+    expect(resumedItem.uncertainPageSave).toMatchObject({ status: "resolved_saved" });
+    expect(resumedItem.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:")).every((checkpoint) => checkpoint.state === "saved" && checkpoint.saveAttemptCount === 1)).toBe(true);
+    expect(resumedItem.pageCheckpoints.find((checkpoint) => checkpoint.pageId === summary.pageId)).toMatchObject({ state: "saved", saveAttemptCount: 1, recoverySaveAttemptCount: 0 });
+    expect(() => runner.confirmNestedOuterSavePersistenceFromReadOnlySummary(item.customerKey, ["outer-proof-3", "outer-proof-4"], screenings.length, "outer:forbidden-second")).toThrow("enea_nested_outer_save_confirmation_active_case_present");
   });
 
   it("riprende il ripristino 1:1 dopo un timeout transitorio senza duplicare le righe gia verificate", () => {

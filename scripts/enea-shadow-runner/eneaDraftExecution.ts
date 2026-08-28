@@ -206,6 +206,20 @@ export function nestedPageAbsenceRecoveryCandidate(item: AprEneaDraftExecutionIt
       || /apr_enea_nested_page_not_persisted_after_outer_save:screening:\d+$/.test(item.reason)));
 }
 
+export function nestedOuterSavePersistenceVerificationCandidate(item: AprEneaDraftExecutionItem) {
+  if (item.state !== "operator_intervention" || !item.draftId || item.createAttemptCount !== 1 || item.saveAttemptCount !== 0) return false;
+  if (item.uncertainPageSave?.status !== "resolved_staged" || !/apr_enea_nested_page_not_persisted_after_outer_save:screening:\d+$/.test(item.reason)) return false;
+  const screenings = item.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:"));
+  const summary = item.pageCheckpoints.find((checkpoint) => !checkpoint.pageId.startsWith("screening:")
+    && /schermatur|infiss/.test(checkpoint.pageId.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("it")));
+  return Boolean(screenings.length > 0
+    && screenings.every((checkpoint) => ["staged", "saved"].includes(checkpoint.state) && checkpoint.saveAttemptCount === 1)
+    && summary?.state === "save_intent_recorded"
+    && summary.saveAttemptCount === 1
+    && summary.recoverySaveAttemptCount === 0
+    && !summary.savedEvidenceId);
+}
+
 export interface AprEneaDraftSupersededGeneration {
   generationId: string;
   customerKey: string;
@@ -236,6 +250,7 @@ export interface AprEneaDraftExecutionAuditEvent {
     | "nested_page_server_verified_after_outer_save"
     | "nested_page_absence_recovery_authorized"
     | "nested_page_absence_recovery_rejected"
+    | "nested_outer_save_persistence_confirmed_readonly"
     | "page_saved"
     | "save_intent_recorded"
     | "draft_saved"
@@ -3487,6 +3502,45 @@ export class PersistentAprEneaDraftExecution {
       item.state = "filling";
       item.reason = "Stessa bozza riattivata dopo due prove server concordanti che nessuna riga tecnica era persistita; i precedenti click restano auditati come staging perso.";
       item.nextAction = "Ripristinare le righe 1:1 assenti con un solo tentativo di recupero, senza creare una nuova bozza.";
+      next.currentCustomerKey = customerKey;
+      next.status = "running";
+      next.sessionEvidenceId = null;
+      next.sessionVerifiedAt = null;
+    });
+  }
+
+  confirmNestedOuterSavePersistenceFromReadOnlySummary(customerKey: string, evidenceIds: readonly string[], observedRowCount: number, commandId: string, now = new Date()) {
+    if (evidenceIds.length !== 2 || evidenceIds[0] === evidenceIds[1] || evidenceIds.some((value) => !value.trim()) || !Number.isInteger(observedRowCount) || observedRowCount < 1) throw new Error("enea_nested_outer_save_confirmation_evidence_invalid");
+    return this.transition("apr-enea-browser-worker", commandId, now, {
+      type: "nested_outer_save_persistence_confirmed_readonly",
+      customerKey,
+      reason: "Due letture server indipendenti e concordanti mostrano tutte le righe tecniche dopo l'unico Salva esterno; persistenza confermata senza ripetere alcun Salva.",
+      nextAction: "Proseguire dalla prima pagina successiva non completata sulla stessa bozza.",
+      appliedRuleIds: [SYSTEM_FAIL_CLOSED_RULE, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality],
+    }, (next) => {
+      if (next.currentCustomerKey) throw new Error("enea_nested_outer_save_confirmation_active_case_present");
+      const item = next.items.find((candidate) => candidate.customerKey === customerKey);
+      if (!item || !nestedOuterSavePersistenceVerificationCandidate(item)) throw new Error(`enea_nested_outer_save_confirmation_case_invalid:${customerKey}`);
+      const screenings = item.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:"));
+      const summary = item.pageCheckpoints.find((checkpoint) => !checkpoint.pageId.startsWith("screening:")
+        && /schermatur|infiss/.test(checkpoint.pageId.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("it")))!;
+      if (observedRowCount !== screenings.length) throw new Error(`enea_nested_outer_save_confirmation_cardinality_mismatch:${observedRowCount}:${screenings.length}`);
+      const evidenceId = evidenceIds[1].trim();
+      for (const id of evidenceIds) if (!item.serverEvidenceIds.includes(id.trim())) item.serverEvidenceIds.push(id.trim());
+      for (const checkpoint of screenings) {
+        checkpoint.state = "saved";
+        checkpoint.savedEvidenceId = evidenceId;
+        if (!item.completedPageIds.includes(checkpoint.pageId)) item.completedPageIds.push(checkpoint.pageId);
+      }
+      summary.state = "saved";
+      summary.savedEvidenceId = evidenceId;
+      if (!item.completedPageIds.includes(summary.pageId)) item.completedPageIds.push(summary.pageId);
+      item.uncertainPageSave!.status = "resolved_saved";
+      item.uncertainPageSave!.reason = "Due letture server concordanti confermano cardinalita completa dopo il Salva esterno.";
+      item.uncertainPageSave!.nextAction = "Proseguire dalla pagina successiva; nessun Salva tecnico va ripetuto.";
+      item.state = "filling";
+      item.reason = "Persistenza delle righe tecniche confermata dal server dopo l'unico Salva esterno.";
+      item.nextAction = "Riprendere dalla prima pagina non completata sulla stessa bozza.";
       next.currentCustomerKey = customerKey;
       next.status = "running";
       next.sessionEvidenceId = null;

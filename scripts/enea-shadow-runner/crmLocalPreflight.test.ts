@@ -922,6 +922,24 @@ Totale documento 915,00 €`);
     expect(invalidateCrmEneaPayloadAuditForScreeningBlockers(readyScreeningAudit(), blocker ? [blocker] : [])).toMatchObject({ draftReady: true, status: "payload_complete" });
   });
 
+  it("passa la famiglia zanzariera riconciliata al resolver prima di scegliere il fallback", () => {
+    const mapping = resolveFormScreeningMappings(
+      [{ tipo_prodotto: "zanzariera" }],
+      ["Altra schermatura solare"],
+    );
+    const declaredType = String(mapping.mappings[0].declared?.tipo_prodotto ?? "");
+    const resolved = resolveProductTechnicalAttributes("Altra schermatura solare - zanzariera", "Altra schermatura solare", null);
+    expect(resolved).toMatchObject({ material: "Misto", materialSource: "authorized_fallback" });
+    expect(screeningFallbackMaterialCategoryBlocker({
+      index: 0,
+      description: "Altra schermatura solare",
+      declaredType,
+      material: resolved!.material,
+      materialSource: resolved!.materialSource,
+      sourceId: "invoice-generic-screening",
+    })).toBeNull();
+  });
+
   it("blocca sempre una zanzariera generica se il materiale fallback non e Misto", () => {
     const blocker = screeningFallbackMaterialCategoryBlocker({
       index: 1,

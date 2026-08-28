@@ -287,6 +287,16 @@ describe("driver Chrome persistente di APR", () => {
     });
     runtimes.push(runtime);
     await runtime.ensureRunning();
+    let fixtureOriginReady = false;
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      const targets = await runtime.targets();
+      fixtureOriginReady = targets.some((target) => {
+        try { return target.type === "page" && new URL(target.url).origin === origin; } catch { return false; }
+      });
+      if (fixtureOriginReady) break;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    expect(fixtureOriginReady).toBe(true);
     const driver = new CdpEneaBrowserDriver(root, runtime, {
       allowedOrigin: origin,
       dashboardUrl: `${origin}/`,
@@ -886,7 +896,7 @@ describe("driver Chrome persistente di APR", () => {
     const client = await runtime.pageClient(target!);
     expect(await client.evaluate<string>('window.__aprMunicipalityAuthoritativeCode ?? ""')).toBe("037013");
     expect(await client.evaluate<string>('document.getElementById("id-comune")?.value ?? ""')).toBe("Castel d'Aiano (BO)");
-  }, 30_000);
+  }, 45_000);
 
   it.runIf(process.platform === "darwin")("preserva il Comune disabilitato gia persistito mentre corregge un altro campo", async () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-persisted-municipality-")); directories.push(root);

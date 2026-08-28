@@ -4,6 +4,7 @@ import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
 import { PersistentAprCrmLocalPreflight } from "./crmLocalPreflight";
 import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import { applyRequiredInfissiValidationRevisions } from "./infissiExecutionGate";
+import { reconcileInfissiCommonApplicability } from "./infissiCommonApplicabilityBridge";
 
 function option(name: string) {
   const index = process.argv.indexOf(name);
@@ -15,6 +16,7 @@ const validationRevision = option("--validation-revision");
 const parserRevision = option("--parser-revision");
 const commonValidationRevision = option("--common-validation-revision");
 const applyRequiredRevisions = process.argv.includes("--apply-required-revisions");
+const reconcileCommonApplicability = process.argv.includes("--reconcile-common-applicability");
 const analysis = new PersistentAprCrmDocumentAnalysis(stateDirectory);
 const commonPreflight = new PersistentAprCrmLocalPreflight(stateDirectory, analysis);
 const batch = new PersistentAprInfissiBatchPreflight(stateDirectory);
@@ -39,6 +41,7 @@ for (let iteration = 0; iteration < 100 && state.status !== "completed"; iterati
 }
 
 if (state.status !== "completed") throw new Error("infissi_batch_preflight_did_not_complete");
+if (reconcileCommonApplicability) reconcileInfissiCommonApplicability(commonPreflight, state, startedAt);
 const output = process.argv.includes("--full") ? state : {
   version: state.version,
   revision: state.revision,
@@ -58,5 +61,6 @@ const output = process.argv.includes("--full") ? state : {
   commonValidationRevision,
   validationRevision,
   applyRequiredRevisions,
+  reconcileCommonApplicability,
 };
 process.stdout.write(`${JSON.stringify(output, null, 2)}\n`);

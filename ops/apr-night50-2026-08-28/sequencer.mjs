@@ -314,8 +314,8 @@ try {
   if (cases.length !== 50 || new Set(cases.map((item) => item.customerKey)).size !== 50) throw new Error("manifest_identity_or_count_invalid");
   if (cases.some((item) => excluded.has(item.customerKey))) throw new Error("manifest_contains_excluded_identity");
   if (cases.some((item) => !manifest.selection.allowedStages.includes(item.stage))) throw new Error("manifest_contains_disallowed_pipeline_stage");
-  if (authorizeSequencerResume(state, "user-2026-08-28-resume-night50-after-session-guard-fix")) {
-    persist("run_resumed_after_session_guard_fix", { resultCount: state.results.length, currentCustomerKey: state.currentCustomerKey });
+  if (authorizeSequencerResume(state, "user-2026-08-28-resume-night50-after-routing-isolation-fix")) {
+    persist("run_resumed_after_routing_isolation_fix", { resultCount: state.results.length, currentCustomerKey: state.currentCustomerKey });
   }
   const initialStale = [{ cohort: 101 }, { cohort: 102 }];
   let previous = initialStale;

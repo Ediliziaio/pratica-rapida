@@ -26,8 +26,9 @@ describe("preparazione LaunchAgent senza installazione", () => {
     expect(first.ready).toBe(true);
     expect(second.ready).toBe(true);
     expect(firstContent).toBe(secondContent);
-    expect(first).toMatchObject({ ready: true, installationPreconditionsMet: false, installationOrLoadPerformed: false, systemInstallationState: "not_checked_by_design", requiresExplicitConsent: true });
-    expect(first.warnings).toEqual([expect.stringContaining("worktree Codex")]);
+    const temporaryCodexWorktree = process.cwd().includes(`${path.sep}.codex${path.sep}worktrees${path.sep}`);
+    expect(first).toMatchObject({ ready: true, installationPreconditionsMet: !temporaryCodexWorktree, installationOrLoadPerformed: false, systemInstallationState: "not_checked_by_design", requiresExplicitConsent: true });
+    expect(first.warnings).toEqual(temporaryCodexWorktree ? [expect.stringContaining("worktree Codex")] : []);
     expect(first.conventionalInstallTarget).toBe(`~/Library/LaunchAgents/${LAUNCH_AGENT_LABEL}.plist`);
     expect(first.configuredPath.startsWith(stateDirectory)).toBe(true);
     expect(statSync(first.configuredPath).mode & 0o777).toBe(0o600);

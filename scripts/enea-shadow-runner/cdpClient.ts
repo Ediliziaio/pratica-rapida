@@ -168,7 +168,13 @@ export class PersistentAprChromeRuntime {
 
   private async getJson<T>(pathname: string, init?: { method?: string }): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      const operation = request({ hostname: "127.0.0.1", port: this.port, path: pathname, method: init?.method ?? "GET", timeout: 3_000 }, (response) => {
+      // Le fixture headless macOS possono sospendere brevemente il processo
+      // Chrome sotto il carico della suite seriale completa. Il runtime GUI
+      // operativo conserva il fail-fast a 3 s; soltanto il Chrome headless
+      // isolato concede una finestra più ampia prima di dichiarare l'endpoint
+      // locale irraggiungibile.
+      const endpointTimeoutMs = this.options.headless ? 15_000 : 3_000;
+      const operation = request({ hostname: "127.0.0.1", port: this.port, path: pathname, method: init?.method ?? "GET", timeout: endpointTimeoutMs }, (response) => {
         const chunks: Buffer[] = [];
         response.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
         response.on("end", () => {

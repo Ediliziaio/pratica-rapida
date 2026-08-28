@@ -7,6 +7,7 @@ import {
   observeSessionWait,
 } from "./sequencerSessionGuard.mjs";
 import { classifySequencerFailure, createVerifiedCommonTechnicalFailure } from "./sequencerFailurePolicy.mjs";
+import { buildPreflightWaitHeartbeat, resolveCommonPreflightBlock } from "./sequencerPreflightGuard.mjs";
 
 const cohortsRoot = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts";
 const runRoot = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-night50-2026-08-28";
@@ -130,14 +131,35 @@ function cohortRoot(item) { return `${cohortsRoot}/apr-pilot-${item.cohort}-nigh
 function readJson(file) { try { return JSON.parse(readFileSync(file, "utf8")); } catch { return null; } }
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function waitFor(description, predicate, timeoutMs) {
+async function waitFor(description, predicate, timeoutMs, onWait = null) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const value = predicate();
     if (value) return value;
+    onWait?.();
     await sleep(2000);
   }
   throw new Error(`timeout:${description}`);
+}
+
+function throwIfCommonPreflightBlocked(root, item) {
+  const common = readJson(`${root}/crm-local-preflight/checkpoint.json`);
+  const block = resolveCommonPreflightBlock(common, item.customerKey);
+  if (block) throw new Error(`${item.customerKey}:preflight_blocked:${block.reason}`);
+}
+
+function createPreflightWaitHeartbeat(item, gate) {
+  let lastHeartbeatAt = 0;
+  return () => {
+    const now = Date.now();
+    if (now - lastHeartbeatAt < 5_000) return;
+    lastHeartbeatAt = now;
+    const heartbeat = buildPreflightWaitHeartbeat(item, gate, new Date(now).toISOString());
+    state.phase = heartbeat.phase;
+    state.phaseHeartbeatAt = heartbeat.phaseHeartbeatAt;
+    state.nextAction = heartbeat.nextAction;
+    persist("case_preflight_wait_heartbeat", heartbeat.detail);
+  };
 }
 
 function recoverableTransientPreSave(entry) {
@@ -171,14 +193,17 @@ async function prepare(item) {
   command(node, ["--experimental-transform-types", `--experimental-loader=${loader}`, "scripts/enea-shadow-runner/apr-cohort-service-cli.ts", "--cohort", String(item.cohort), "--port", String(port), "--state-dir", root, "--install-dir", install, "--node", node, "--supervisor-bundle", `${install}/apr-supervisor.mjs`, "--worker-bundle", `${install}/apr-enea-worker.mjs`, "--watchdog-bundle", `${install}/apr-watchdog.mjs`], { name: "service_prepare" });
   bootstrap(`${install}/${label(item, "supervisor")}.plist`, label(item, "supervisor"));
   if (item.module === "infissi") {
+    throwIfCommonPreflightBlocked(root, item);
     await waitFor(`${item.customerKey}:infissi-local-preflight`, () => {
+      throwIfCommonPreflightBlocked(root, item);
       const product = readJson(`${root}/infissi-batch-preflight/checkpoint.json`);
       return product?.status === "completed" && product.items?.some((candidate) => candidate.customerKey === item.customerKey) ? product : null;
-    }, 20 * 60 * 1000);
+    }, 20 * 60 * 1000, createPreflightWaitHeartbeat(item, "infissi-local-preflight"));
     command(node, ["--experimental-transform-types", `--experimental-loader=${loader}`, "scripts/enea-shadow-runner/infissi-batch-preflight-cli.ts", "--state-dir", root, "--apply-required-revisions", "--reconcile-common-applicability"], { name: "infissi_required_revisions" });
     persist("case_infissi_validation_gate_prepared", { customerKey: item.customerKey, cohort: item.cohort });
   }
   await waitFor(`${item.customerKey}:preflight`, () => {
+    throwIfCommonPreflightBlocked(root, item);
     const execution = readJson(`${root}/enea-draft-execution/checkpoint.json`);
     const entry = execution?.items?.find((candidate) => candidate.customerKey === item.customerKey);
     if ((entry?.state === "queued" && execution.status === "ready")
@@ -186,12 +211,11 @@ async function prepare(item) {
       || (entry?.state === "filling" && Boolean(entry.draftId))
       || (entry?.state === "saved" && entry.completedPageIds?.length === entry.expectedPageIds?.length)) return entry;
     const common = readJson(`${root}/crm-local-preflight/checkpoint.json`);
-    const commonItem = common?.items?.find((candidate) => candidate.customerKey === item.customerKey);
     const product = item.module === "infissi" ? readJson(`${root}/infissi-batch-preflight/checkpoint.json`) : common;
     const productItem = product?.items?.find((candidate) => candidate.customerKey === item.customerKey);
     if (productItem?.state === "blocked_case") throw new Error(`${item.customerKey}:preflight_blocked:${productItem.reason}`);
     return null;
-  }, 20 * 60 * 1000);
+  }, 20 * 60 * 1000, createPreflightWaitHeartbeat(item, "execution-preflight"));
   const mappingPath = `${root}/enea-operational-bridge/${item.customerKey}-mapping.json`;
   if (!existsSync(mappingPath)) command(node, ["--experimental-transform-types", `--experimental-loader=${loader}`, "scripts/enea-shadow-runner/apr-enea-operational-bridge-prepare-cli.ts", "--source-manifest", sourceManifest, "--customer-key", item.customerKey, "--output", mappingPath], { name: "bridge_prepare" });
   if (!existsSync(`${root}/enea-operational-bridge/checkpoint.json`)) command(node, [`${install}/apr-enea-worker.mjs`, "bridge-arm", "--state-dir", root, "--customer-key", item.customerKey, "--mapping-artifact", mappingPath, "--authorization-id", authorizationId], { name: "bridge_arm", cwd: install });
@@ -285,6 +309,9 @@ async function runCaseUnsafe(item, previous) {
 
 async function runCase(item, previous) {
   state.currentCustomerKey = item.customerKey;
+  state.phase = "preparing";
+  state.phaseHeartbeatAt = new Date().toISOString();
+  state.nextAction = `Preparare i controlli locali per ${item.displayName}.`;
   persist("case_preparing", { customerKey: item.customerKey, cohort: item.cohort });
   try {
     return await runCaseUnsafe(item, previous);

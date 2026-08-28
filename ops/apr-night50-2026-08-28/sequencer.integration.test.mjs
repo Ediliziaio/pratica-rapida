@@ -13,7 +13,17 @@ test("il sequencer usa il guard di liveness e progresso prima del common block",
 test("riconcilia il preflight comune con il gate Infissi prima di attendere la pratica", () => {
   const source = readFileSync(new URL("./sequencer.mjs", import.meta.url), "utf8");
   assert.match(source, /--reconcile-common-applicability/);
+  assert.match(source, /throwIfCommonPreflightBlocked\(root, item\);\s*await waitFor\(`\$\{item\.customerKey\}:infissi-local-preflight`/);
+  assert.match(source, /resolveCommonPreflightBlock\(common, item\.customerKey\)/);
   assert.doesNotMatch(source, /commonItem\?\.state === "blocked_case" && productItem\?\.state === "ready_local_plan"\) return null/);
+});
+
+test("pubblica preflight_wait con heartbeat mentre un gate legittimo e in attesa", () => {
+  const source = readFileSync(new URL("./sequencer.mjs", import.meta.url), "utf8");
+  assert.match(source, /createPreflightWaitHeartbeat\(item, "infissi-local-preflight"\)/);
+  assert.match(source, /state\.phase = heartbeat\.phase/);
+  assert.match(source, /state\.phaseHeartbeatAt = heartbeat\.phaseHeartbeatAt/);
+  assert.match(source, /persist\("case_preflight_wait_heartbeat", heartbeat\.detail\)/);
 });
 
 test("isola ogni errore non marcato come comune e continua la coda", () => {

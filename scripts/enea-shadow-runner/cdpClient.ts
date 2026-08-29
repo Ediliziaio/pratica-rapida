@@ -5,7 +5,8 @@ import { request } from "node:http";
 import path from "node:path";
 import WebSocket from "ws";
 
-export const APR_CDP_MAX_PAGE_OPERATION_MS = 5_000;
+export const APR_CDP_DEFAULT_PAGE_OPERATION_MS = 5_000;
+export const APR_CDP_MAX_PAGE_OPERATION_MS = 20_000;
 
 export interface CdpTargetInfo {
   id: string;
@@ -110,7 +111,7 @@ export class CdpPageClient {
     });
   }
 
-  async evaluate<T>(expression: string, awaitPromise = true, timeoutMs = this.timeoutMs): Promise<T> {
+  async evaluate<T>(expression: string, awaitPromise = true, timeoutMs = APR_CDP_DEFAULT_PAGE_OPERATION_MS): Promise<T> {
     const boundedTimeoutMs = Math.min(timeoutMs, APR_CDP_MAX_PAGE_OPERATION_MS);
     const result = await this.send<{ result: { value?: T; description?: string; subtype?: string }; exceptionDetails?: { text?: string; exception?: { description?: string } } }>("Runtime.evaluate", {
       expression,

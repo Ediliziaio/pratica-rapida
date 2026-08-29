@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { PersistentAprEneaGlobalBrowserController } from "./aprEneaGlobalBrowserController";
-import { APR_CDP_MAX_PAGE_OPERATION_MS, CdpPageClient } from "./cdpClient";
+import { APR_CDP_DEFAULT_PAGE_OPERATION_MS, APR_CDP_MAX_PAGE_OPERATION_MS, CdpPageClient } from "./cdpClient";
 import { registryRule } from "../../src/features/enea-shadow-crm/operationalRegistry";
 
 const roots: string[] = [];
@@ -93,14 +93,20 @@ describe("controllore globale esclusivo Chrome/ENEA", () => {
     expect(source).toContain("globalBrowserController.release(globalBrowserAccess)");
   });
 
-  it("limita ogni Runtime.evaluate a una operazione breve anche se il chiamante chiede 20 secondi", async () => {
+  it("usa cinque secondi per le evaluate brevi senza troncare l'attesa DOM esplicita da venti secondi", async () => {
     const client = new CdpPageClient("ws://127.0.0.1:1/devtools/page/test");
-    let observedTimeout = 0;
+    const observedTimeouts: number[] = [];
     client.send = (async (_method: string, _params: Record<string, unknown>, timeoutMs: number) => {
-      observedTimeout = timeoutMs;
+      observedTimeouts.push(timeoutMs);
       return { result: { value: true } };
     }) as typeof client.send;
+    await expect(client.evaluate<boolean>("true")).resolves.toBe(true);
     await expect(client.evaluate<boolean>("true", true, 20_000)).resolves.toBe(true);
-    expect(observedTimeout).toBe(APR_CDP_MAX_PAGE_OPERATION_MS);
+    await expect(client.evaluate<boolean>("true", true, 60_000)).resolves.toBe(true);
+    expect(observedTimeouts).toEqual([
+      APR_CDP_DEFAULT_PAGE_OPERATION_MS,
+      20_000,
+      APR_CDP_MAX_PAGE_OPERATION_MS,
+    ]);
   });
 });

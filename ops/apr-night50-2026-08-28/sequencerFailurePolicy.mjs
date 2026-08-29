@@ -4,11 +4,14 @@ export const SEQUENCER_OPERATOR_ISOLATION_RULE_IDS = Object.freeze([
   "system-atomic-checkpoint-resume",
 ]);
 
-const COMMON_FAILURE_CODES = new Set([
+export const SEQUENCER_COMMON_FAILURE_CODES = Object.freeze([
   "session_unavailable_after_stall_threshold",
   "worker_unavailable_after_stall_threshold",
   "system_crash_verified",
+  "global_controller_verification_symptom_recurred",
 ]);
+
+const COMMON_FAILURE_CODES = new Set(SEQUENCER_COMMON_FAILURE_CODES);
 
 export function createVerifiedCommonTechnicalFailure(code, reason, evidence = {}) {
   if (!COMMON_FAILURE_CODES.has(code)) throw new Error(`sequencer_common_failure_code_not_allowed:${code}`);

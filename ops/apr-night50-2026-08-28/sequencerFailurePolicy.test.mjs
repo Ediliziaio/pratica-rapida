@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
   classifySequencerFailure,
   createVerifiedCommonTechnicalFailure,
+  SEQUENCER_COMMON_FAILURE_CODES,
   SEQUENCER_OPERATOR_ISOLATION_RULE_IDS,
 } from "./sequencerFailurePolicy.mjs";
 
@@ -33,6 +35,26 @@ test("ferma globalmente solo un problema comune marcato dopo verifica", () => {
     reason: "Sessione ENEA indisponibile dopo cinque minuti senza progresso.",
     evidence: { candidateAgeMs: 300_000, progressAgeMs: 300_000, workerRunning: false },
   });
+});
+
+test("ferma immediatamente il lotto quando ricompare un timeout CDP nel collaudo del controllore globale", () => {
+  const error = createVerifiedCommonTechnicalFailure(
+    "global_controller_verification_symptom_recurred",
+    "mara-fixture:structural_symptom_recurred:apr_cdp_command_timeout:Runtime.evaluate",
+    { customerKey: "mara-fixture", evidence: "apr_cdp_command_timeout:Runtime.evaluate" },
+  );
+  assert.deepEqual(classifySequencerFailure(error), {
+    scope: "common_technical",
+    code: "global_controller_verification_symptom_recurred",
+    reason: "mara-fixture:structural_symptom_recurred:apr_cdp_command_timeout:Runtime.evaluate",
+    evidence: { customerKey: "mara-fixture", evidence: "apr_cdp_command_timeout:Runtime.evaluate" },
+  });
+});
+
+test("registra tutti i codici di arresto comune usati dai sequencer versionati", () => {
+  const sequencerSource = readFileSync(new URL("./sequencer.mjs", import.meta.url), "utf8");
+  const referencedCodes = [...sequencerSource.matchAll(/createVerifiedCommonTechnicalFailure\(\s*[\r\n ]*"([^"]+)"/g)].map((match) => match[1]);
+  for (const code of referencedCodes) assert.ok(SEQUENCER_COMMON_FAILURE_CODES.includes(code), `codice comune non registrato: ${code}`);
 });
 
 test("rifiuta di marcare come comune una categoria non ammessa", () => {

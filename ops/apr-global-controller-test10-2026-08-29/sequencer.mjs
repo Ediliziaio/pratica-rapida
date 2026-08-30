@@ -8,7 +8,7 @@ import {
 } from "./sequencerSessionGuard.mjs";
 import { createVerifiedCommonTechnicalFailure, executeSequencerCaseBulkhead } from "./sequencerFailurePolicy.mjs";
 import { buildPreflightWaitHeartbeat, resolveCommonPreflightBlock } from "./sequencerPreflightGuard.mjs";
-import { quiescePreviousAprCohorts } from "./sequencerCohortIsolation.mjs";
+import { executeWithGuaranteedCohortQuiescence, quiescePreviousAprCohorts } from "./sequencerCohortIsolation.mjs";
 import { settleCaseTruthAfterWorkerQuiescence } from "./sequencerCaseFinalizer.mjs";
 
 const cohortsRoot = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts";
@@ -368,7 +368,7 @@ async function runCase(item, previous) {
   state.phaseHeartbeatAt = new Date().toISOString();
   state.nextAction = `Preparare i controlli locali per ${item.displayName}.`;
   persist("case_preparing", { customerKey: item.customerKey, cohort: item.cohort });
-  const boundary = await executeSequencerCaseBulkhead({
+  const boundary = await executeWithGuaranteedCohortQuiescence(() => executeSequencerCaseBulkhead({
     runCase: () => runCaseUnsafe(item, previous),
     isolateCase: async (failure) => {
       const final = await finalCaseTruth(item, cohortRoot(item));
@@ -393,7 +393,7 @@ async function runCase(item, previous) {
       if (!existing) state.results.push(result);
       persist(final.kind === "saved" ? "case_saved_after_isolation_quiescence" : "case_operator_required_from_unresolved_inconsistency", result);
     },
-  });
+  }), () => quiesceOldCohorts());
   if (boundary.action === "stop_batch") throw boundary.error;
   return boundary.action === "completed" ? boundary.value : item;
 }

@@ -43,3 +43,8 @@ export async function quiescePreviousAprCohorts(input) {
   }
   return { stopped: true, labels: [], pids: [] };
 }
+
+export async function executeWithGuaranteedCohortQuiescence(executeCase, quiesce) {
+  try { return await executeCase(); }
+  finally { await quiesce(); }
+}

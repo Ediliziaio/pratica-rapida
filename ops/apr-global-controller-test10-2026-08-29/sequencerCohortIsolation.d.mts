@@ -10,3 +10,4 @@ export function quiescePreviousAprCohorts(input: {
   terminate: (pid: number) => void;
   wait: (milliseconds: number) => Promise<void>;
 }): Promise<{ stopped: true; labels: string[]; pids: number[] }>;
+export function executeWithGuaranteedCohortQuiescence<T>(executeCase: () => Promise<T>, quiesce: () => Promise<void>): Promise<T>;

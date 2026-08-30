@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadedAprCohortServiceLabels, quiescePreviousAprCohorts, runningAprCohortProcesses } from "../../ops/apr-global-controller-test10-2026-08-29/sequencerCohortIsolation.mjs";
+import { executeWithGuaranteedCohortQuiescence, loadedAprCohortServiceLabels, quiescePreviousAprCohorts, runningAprCohortProcesses } from "../../ops/apr-global-controller-test10-2026-08-29/sequencerCohortIsolation.mjs";
 
 describe("isolamento completo delle esecuzioni APR", () => {
   it("riconosce soltanto i servizi delle coorti e preserva il supervisore principale", () => {
@@ -43,5 +43,14 @@ describe("isolamento completo delle esecuzioni APR", () => {
       bootout: () => {}, terminate: (pid: number) => terminated.push(pid), wait: async () => {},
     })).resolves.toMatchObject({ stopped: true });
     expect(terminated).toEqual([202]);
+  });
+
+  it("rende quiescente la coorte anche quando la pratica termina anticipatamente nel preflight", async () => {
+    const events: string[] = [];
+    await expect(executeWithGuaranteedCohortQuiescence(async () => {
+      events.push("preflight_blocked");
+      return "operator_required";
+    }, async () => { events.push("all_services_quiescent"); })).resolves.toBe("operator_required");
+    expect(events).toEqual(["preflight_blocked", "all_services_quiescent"]);
   });
 });

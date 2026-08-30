@@ -53,18 +53,19 @@ async function serve() {
   let running = true;
   let runtime: PersistentAprChromeRuntime | null = null;
   let runtimeKey: string | null = null;
+  let retainedGlobalBrowserController: PersistentAprEneaGlobalBrowserController | null = null;
+  let retainedGlobalBrowserAccess: AprEneaGlobalBrowserAccess | null = null;
+  const releaseRetainedGlobalBrowserAccess = () => {
+    if (!retainedGlobalBrowserController || !retainedGlobalBrowserAccess) return;
+    try { retainedGlobalBrowserController.release(retainedGlobalBrowserAccess); } catch (error) {
+      process.stderr.write(`[apr-global-browser-release-error] ${error instanceof Error ? error.message : String(error)}\n`);
+    }
+    retainedGlobalBrowserController = null;
+    retainedGlobalBrowserAccess = null;
+  };
   const stop = (signal: "SIGINT" | "SIGTERM") => {
     running = false;
-    const reason = `Worker APR arrestato da ${signal}; nessuna attività viene dichiarata in corso.`;
-    service.record({
-      instanceId,
-      processPid: 0,
-      status: "stopped",
-      type: "stop_signal_persisted",
-      reason,
-      nextAction: "Il LaunchAgent potrà avviare una nuova istanza dal checkpoint persistente.",
-    });
-    reconcileStoppedAprEneaBrowserWorkerCheckpoint(rootDirectory, { instanceId, reason });
+    service.record({ instanceId, processPid: process.pid, status: service.loadState().status, type: "stop_requested", reason: `Arresto ${signal} richiesto; APR attende la conclusione o l'interruzione reale dell'azione in corso prima di pubblicare lo stato finale.`, nextAction: "Interrompere le connessioni CDP e finalizzare il checkpoint solo dopo la quiescenza del worker." });
     runtime?.closeAllPageClients();
     if (runtime) service.recordCdpConnections(runtime.connectionStats());
   };
@@ -72,6 +73,7 @@ async function serve() {
   while (running) {
     const config = service.loadConfig();
     if (!config.setupEnabled) {
+      releaseRetainedGlobalBrowserAccess();
       runtime?.closeAllPageClients(); runtime = null; runtimeKey = null;
       service.record({ instanceId, processPid: process.pid, status: "disabled", type: "heartbeat_disabled", reason: "Servizio attivo ma setup browser disabilitato: nessuna finestra e nessuna azione ENEA.", nextAction: "Abilitare il setup soltanto dopo collaudo locale verde." });
       await new Promise((resolve) => setTimeout(resolve, intervalMs)); continue;
@@ -83,14 +85,14 @@ async function serve() {
       runtimeKey = nextRuntimeKey;
     }
     const activeRuntime = runtime;
-    const globalBrowserController = new PersistentAprEneaGlobalBrowserController({
+    const globalBrowserController: PersistentAprEneaGlobalBrowserController = retainedGlobalBrowserController ?? new PersistentAprEneaGlobalBrowserController({
       profileDirectory: config.profileDirectory,
       remoteDebuggingPort: config.remoteDebuggingPort,
     });
-    const globalBrowserAccess: AprEneaGlobalBrowserAccess | null = globalBrowserController.tryAcquire({
+    const globalBrowserAccess: AprEneaGlobalBrowserAccess | null = retainedGlobalBrowserAccess ?? globalBrowserController.tryAcquire({
       ownerId: instanceId,
       cohortRoot: rootDirectory,
-      purpose: "worker_tick",
+      purpose: "case_execution",
       processPid: process.pid,
     });
     if (!globalBrowserAccess) {
@@ -105,6 +107,8 @@ async function serve() {
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
       continue;
     }
+    retainedGlobalBrowserController = globalBrowserController;
+    retainedGlobalBrowserAccess = globalBrowserAccess;
     try {
       if (!["starting_browser", "login_required", "setup_ready", "running", "completed", "technical_block"].includes(service.loadState().status)) service.record({ instanceId, processPid: process.pid, status: "starting_browser", type: "browser_starting", reason: "APR avvia o riaggancia il proprio Chrome persistente.", nextAction: "Verificare la sessione ENEA nel profilo APR." });
       const browser = await activeRuntime.ensureRunning();
@@ -1887,13 +1891,15 @@ async function serve() {
     } finally {
       service.recordCdpConnections(activeRuntime.connectionStats());
       activeRuntime.closeAllPageClients();
-      globalBrowserController.release(globalBrowserAccess);
     }
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
   runtime?.closeAllPageClients();
   if (runtime) service.recordCdpConnections(runtime.connectionStats());
-  service.record({ instanceId, processPid: process.pid, status: "stopped", type: "stopped", reason: "Worker APR arrestato con segnale di sistema.", nextAction: "Il LaunchAgent lo riavvierà mantenendo checkpoint e profilo." });
+  releaseRetainedGlobalBrowserAccess();
+  const reason = "Worker APR realmente quiescente dopo il segnale di sistema; nessuna azione browser è ancora in corso.";
+  reconcileStoppedAprEneaBrowserWorkerCheckpoint(rootDirectory, { instanceId, reason });
+  service.record({ instanceId, processPid: 0, status: "stopped", type: "stopped_after_quiescence", reason, nextAction: "Il LaunchAgent lo riavvierà mantenendo checkpoint e profilo." });
 }
 
 if (mode === "status") print(service.snapshot());

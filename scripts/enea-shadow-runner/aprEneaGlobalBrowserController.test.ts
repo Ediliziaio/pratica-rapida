@@ -43,6 +43,22 @@ describe("controllore globale esclusivo Chrome/ENEA", () => {
     expect(registryRule("system-global-enea-browser-controller")).toMatchObject({ kind: "system", step: "runner_lifecycle", outcome: "continue" });
   });
 
+  it("mantiene la stessa lease per l'intera pratica e respinge ogni altro worker tra tick successivi", () => {
+    const { first, second } = fixture();
+    const firstTick = first.tryAcquire({ ownerId: "worker-case-a", cohortRoot: "/cohorts/a", purpose: "case_execution", processPid: process.pid });
+    const secondTick = first.tryAcquire({ ownerId: "worker-case-a", cohortRoot: "/cohorts/a", purpose: "case_execution", processPid: process.pid });
+
+    expect(firstTick).not.toBeNull();
+    expect(secondTick).toMatchObject(firstTick!);
+    expect(second.tryAcquire({ ownerId: "worker-case-b", cohortRoot: "/cohorts/b", purpose: "case_execution", processPid: process.pid })).toBeNull();
+    expect(first.snapshot().audit.filter((event) => event.type === "browser_access_acquired")).toHaveLength(1);
+
+    first.release(firstTick!);
+    const nextCase = second.tryAcquire({ ownerId: "worker-case-b", cohortRoot: "/cohorts/b", purpose: "case_execution", processPid: process.pid });
+    expect(nextCase).not.toBeNull();
+    second.release(nextCase!);
+  });
+
   it("coordina un solo keepalive tra coorti diverse", () => {
     const { first, second } = fixture();
     const accessA = first.tryAcquire({ ownerId: "worker-a", cohortRoot: "/cohorts/a" });
@@ -90,7 +106,20 @@ describe("controllore globale esclusivo Chrome/ENEA", () => {
     expect(ensureRunning).toBeGreaterThan(acquisition);
     expect(source).toContain("type: \"global_browser_wait\"");
     expect(source).toContain("globalBrowserController.recordKeepalive(globalBrowserAccess");
-    expect(source).toContain("globalBrowserController.release(globalBrowserAccess)");
+    expect(source).toContain("purpose: \"case_execution\"");
+    expect(source).toContain("releaseRetainedGlobalBrowserAccess()");
+    expect(source).not.toContain("purpose: \"worker_tick\"");
+  });
+
+  it("collega isolamento, lease di pratica, terminazione timeout e finalizzazione quiescente", () => {
+    const worker = readFileSync(path.join(process.cwd(), "scripts/enea-shadow-runner/apr-enea-worker-cli.ts"), "utf8");
+    const cdp = readFileSync(path.join(process.cwd(), "scripts/enea-shadow-runner/cdpClient.ts"), "utf8");
+    const sequencer = readFileSync(path.join(process.cwd(), "ops/apr-global-controller-test10-2026-08-29/sequencer.mjs"), "utf8");
+    expect(worker).toContain("purpose: \"case_execution\"");
+    expect(worker).toContain("stopped_after_quiescence");
+    expect(cdp).toContain('method: "Runtime.terminateExecution"');
+    expect(sequencer).toContain("quiescePreviousAprCohorts");
+    expect(sequencer).toContain("settleCaseTruthAfterWorkerQuiescence");
   });
 
   it("usa cinque secondi per le evaluate brevi senza troncare l'attesa DOM esplicita da venti secondi", async () => {

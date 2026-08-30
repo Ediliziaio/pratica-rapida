@@ -18,7 +18,7 @@ export interface AprRuleEvidenceCatalogEntry {
 export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] = [
   {
     key: "global-enea-browser-controller",
-    positive: { fileRef: "scripts/enea-shadow-runner/aprEneaGlobalBrowserController.test.ts", testId: "controllore globale esclusivo Chrome/ENEA impedisce a due worker di controllare contemporaneamente la stessa sessione" },
+    positive: { fileRef: "scripts/enea-shadow-runner/aprEneaGlobalBrowserController.test.ts", testId: "controllore globale esclusivo Chrome/ENEA collega isolamento, lease di pratica, terminazione timeout e finalizzazione quiescente" },
     negative: { fileRef: "scripts/enea-shadow-runner/aprEneaGlobalBrowserController.test.ts", testId: "controllore globale esclusivo Chrome/ENEA fallisce chiuso se il lock persistente è corrotto" },
   },
   {

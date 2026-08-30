@@ -30,7 +30,7 @@ const testTargets = [
   "src/features/enea-lab",
   "scripts/enea-shadow-runner",
 ];
-const testCommand = `vitest run --maxWorkers=1 ${testTargets.join(" ")}`;
+const testCommand = `vitest run --maxWorkers=1 --testTimeout=30000 ${testTargets.join(" ")}`;
 
 function sha256(filePath: string): string {
   return crypto.createHash("sha256").update(readFileSync(filePath)).digest("hex");
@@ -73,7 +73,7 @@ if (!skipTests) {
   // potevano fallire per saturazione CPU pur passando sempre isolati: la prova
   // di attivazione deve essere deterministica, quindi usa un solo worker.
   const rawReportPath = path.join(rootDirectory, "rule-activation", `vitest-${Date.now()}-${crypto.randomUUID()}.json`);
-  run(path.join(repositoryDirectory, "node_modules", ".bin", "vitest"), ["run", "--maxWorkers=1", "--reporter=json", `--outputFile=${rawReportPath}`, ...testTargets]);
+  run(path.join(repositoryDirectory, "node_modules", ".bin", "vitest"), ["run", "--maxWorkers=1", "--testTimeout=30000", "--reporter=json", `--outputFile=${rawReportPath}`, ...testTargets]);
   materializeAprRuleProofs({ repositoryRoot: repositoryDirectory, rootDirectory, rawReportPath, testCommand });
   const current = evidenceStore.load();
   if (!current || current.passedKeys.length !== APR_RULE_TEST_MATRIX.length || Object.keys(current.ruleProofs).length !== APR_RULE_TEST_MATRIX.length) {

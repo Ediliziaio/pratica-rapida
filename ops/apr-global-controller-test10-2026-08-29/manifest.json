@@ -1,0 +1,41 @@
+{
+  "version": "apr-global-controller-test10-manifest-v1",
+  "authorizationId": "user-2026-08-29-global-browser-controller-random10-v1",
+  "environment": "enea_test_fictitious_spid",
+  "selection": {
+    "total": 10,
+    "selectionSeed": "apr-global-controller-verification-2026-08-29-v1",
+    "selectionMethod": "sha256 seeded stratified sample from known members of the 108-OK corpus",
+    "allowedStages": ["archiviate", "recensione", "da inserire su excel"],
+    "excludedCustomerKeys": ["beatrice-ciotta", "vittorio-paolinelli", "sara-lionti", "gianluca-percaccioli"],
+    "distribution": {
+      "infissi": 5,
+      "screening": 5,
+      "complex": 2,
+      "medium": 4,
+      "simple": 4
+    },
+    "sourceManifest": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-test35-history-bypass-2026-08-28/manifest.json"
+  },
+  "safety": {
+    "createDraftAllowed": true,
+    "saveDraftAllowed": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "preservePriorDrafts": true,
+    "stopOnStructuralSymptom": true
+  },
+  "cases": [
+    {"cohort":188,"customerKey":"eleonora-meggiarin","displayName":"Eleonora Meggiarin","practiceId":"c2775ad3-8540-4af9-9698-2cb81a34847d","stage":"archiviate","module":"infissi","invoiceCount":5,"complexity":"complex","historicalRetest":true},
+    {"cohort":189,"customerKey":"mara-elena-maddiotto","displayName":"Mara Elena Maddiotto","practiceId":"fdb33d1d-64e7-4b39-98cc-4a48f2bec123","stage":"archiviate","module":"infissi","invoiceCount":3,"complexity":"medium","historicalRetest":true},
+    {"cohort":190,"customerKey":"armando-ranzoni","displayName":"Armando Ranzoni","practiceId":"54fdcf5f-3092-4f43-a741-ff510c25f51f","stage":"archiviate","module":"infissi","invoiceCount":2,"complexity":"medium","historicalRetest":true},
+    {"cohort":191,"customerKey":"luca-cigognetti","displayName":"Luca Cigognetti","practiceId":"77c5e8b6-34f8-4f1b-830a-526addefdd7d","stage":"archiviate","module":"infissi","invoiceCount":1,"complexity":"simple","historicalRetest":true},
+    {"cohort":192,"customerKey":"sabrina-eustomi","displayName":"Sabrina Eustomi","practiceId":"72e6b344-ce0c-4b50-83b6-113d38c31b11","stage":"archiviate","module":"infissi","invoiceCount":1,"complexity":"simple","historicalRetest":true},
+    {"cohort":193,"customerKey":"luca-callegari","displayName":"Luca Callegari","practiceId":"adb20f82-ae96-43c4-b785-8f7c9f727a25","stage":"archiviate","module":"screening","invoiceCount":3,"complexity":"complex","historicalRetest":true},
+    {"cohort":194,"customerKey":"massimiliano-gaetano-khemara","displayName":"Massimiliano Gaetano Khemara","practiceId":"4dd72bd2-59db-468a-b78b-4335a5c79fb7","stage":"archiviate","module":"screening","invoiceCount":2,"complexity":"medium","historicalRetest":true},
+    {"cohort":195,"customerKey":"fares-hassairi","displayName":"Fares Hassairi","practiceId":"62510980-062e-4278-83f9-6a583089f783","stage":"archiviate","module":"screening","invoiceCount":2,"complexity":"medium","historicalRetest":true},
+    {"cohort":196,"customerKey":"giovanni-pescatori","displayName":"Giovanni Pescatori","practiceId":"20c7c802-85da-4d7e-95a3-482b66151b16","stage":"archiviate","module":"screening","invoiceCount":1,"complexity":"simple","historicalRetest":true},
+    {"cohort":197,"customerKey":"maria-sofia-tosatti","displayName":"Maria Sofia Tosatti","practiceId":"8e15ae63-6a5c-42df-b2be-72ccb9a73cec","stage":"archiviate","module":"screening","invoiceCount":1,"complexity":"simple","historicalRetest":true}
+  ]
+}

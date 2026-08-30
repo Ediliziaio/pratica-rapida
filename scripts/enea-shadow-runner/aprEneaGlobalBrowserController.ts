@@ -11,7 +11,7 @@ export interface AprEneaGlobalBrowserAccess {
   ownerId: string;
   processPid: number;
   acquiredAt: string;
-  purpose: "worker_tick" | "keepalive" | "diagnostic_readonly";
+  purpose: "worker_tick" | "case_execution" | "keepalive" | "diagnostic_readonly";
   cohortRoot: string;
 }
 
@@ -154,6 +154,13 @@ export class PersistentAprEneaGlobalBrowserController {
     const existing = this.readLock();
     let recoveredStalePid: number | null = null;
     if (existing) {
+      if (existing.hostname === os.hostname()
+        && existing.ownerId === input.ownerId
+        && existing.processPid === processPid
+        && existing.cohortRoot === path.resolve(input.cohortRoot)
+        && existing.purpose === (input.purpose ?? "worker_tick")) {
+        return existing;
+      }
       const sameHost = existing.hostname === os.hostname();
       if (!sameHost || this.pidIsAlive(existing.processPid)) return null;
       unlinkSync(this.lockPath);

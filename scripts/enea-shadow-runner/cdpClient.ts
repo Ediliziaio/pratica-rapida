@@ -90,6 +90,30 @@ export class CdpPageClient {
     return () => { listeners.delete(wrapped); if (listeners.size === 0) this.eventListeners.delete(method); };
   }
 
+  private async terminateTimedOutRuntimeExecution(socket: WebSocket) {
+    if (socket.readyState !== WebSocket.OPEN) return;
+    const terminationId = ++this.sequence;
+    await new Promise<void>((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(graceTimer);
+        socket.removeEventListener("message", onMessage);
+        resolve();
+      };
+      const onMessage = (event: { data: unknown }) => {
+        try {
+          const message = JSON.parse(String(event.data)) as CdpResponse;
+          if (message.id === terminationId) finish();
+        } catch { /* attende il limite breve e chiude comunque */ }
+      };
+      const graceTimer = setTimeout(finish, 1_000);
+      socket.addEventListener("message", onMessage);
+      try { socket.send(JSON.stringify({ id: terminationId, method: "Runtime.terminateExecution", params: {} })); } catch { finish(); }
+    });
+  }
+
   async send<T = unknown>(method: string, params: Record<string, unknown> = {}, timeoutMs = this.timeoutMs): Promise<T> {
     await this.connect();
     const id = ++this.sequence;
@@ -102,9 +126,12 @@ export class CdpPageClient {
         // client for the same target and no browser mutation is repeated.
         const socket = this.socket;
         this.socket = null;
-        if (socket && socket.readyState !== WebSocket.CLOSED) socket.close();
-        this.reportClosed();
-        reject(new Error(`apr_cdp_command_timeout:${method}`));
+        void (async () => {
+          if (method === "Runtime.evaluate" && socket) await this.terminateTimedOutRuntimeExecution(socket);
+          if (socket && socket.readyState !== WebSocket.CLOSED) socket.close();
+          this.reportClosed();
+          reject(new Error(`apr_cdp_command_timeout:${method}`));
+        })();
       }, timeoutMs);
       this.pending.set(id, { resolve: (value) => resolve(value as T), reject, timer });
       this.socket!.send(JSON.stringify({ id, method, params }));

@@ -2,7 +2,10 @@ export const APR_COHORT_SERVICE_LABEL = /^com\.praticarapida\.apr-enea-cohort\d+
 
 export function loadedAprCohortServiceLabels(launchctlDomainOutput) {
   const labels = new Set();
-  for (const match of String(launchctlDomainOutput).matchAll(/\b(com\.praticarapida\.apr-enea-cohort\d+-(?:supervisor|worker|watchdog))\b/g)) labels.add(match[1]);
+  for (const line of String(launchctlDomainOutput).split(/\r?\n/)) {
+    const match = line.match(/^\s*(?:\d+|-)\s+(?:\d+|-)\s+(com\.praticarapida\.apr-enea-cohort\d+-(?:supervisor|worker|watchdog))\s*$/);
+    if (match) labels.add(match[1]);
+  }
   return [...labels].sort();
 }
 

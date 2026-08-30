@@ -3,7 +3,7 @@ import { loadedAprCohortServiceLabels, quiescePreviousAprCohorts, runningAprCoho
 
 describe("isolamento completo delle esecuzioni APR", () => {
   it("riconosce soltanto i servizi delle coorti e preserva il supervisore principale", () => {
-    const output = `123 0 com.praticarapida.apr-enea-cohort300-worker\n456 0 com.praticarapida.enea-shadow-supervisor\n789 0 com.praticarapida.apr-enea-cohort301-watchdog`;
+    const output = `123 0 com.praticarapida.apr-enea-cohort300-worker\n456 0 com.praticarapida.enea-shadow-supervisor\n789 0 com.praticarapida.apr-enea-cohort301-watchdog\n\tWATCHDOG_LABEL => com.praticarapida.apr-enea-cohort999-watchdog\n\tpath = /old/com.praticarapida.apr-enea-cohort998-worker.plist`;
     expect(loadedAprCohortServiceLabels(output)).toEqual([
       "com.praticarapida.apr-enea-cohort300-worker",
       "com.praticarapida.apr-enea-cohort301-watchdog",

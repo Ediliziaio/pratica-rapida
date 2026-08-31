@@ -3041,6 +3041,19 @@ export type Database = {
           status: string
         }[]
       }
+      get_pagamento_by_form_token: {
+        Args: { p_token: string }
+        Returns: {
+          archived_at: string
+          cliente_cognome: string
+          cliente_nome: string
+          pagamento_stato: string
+          prodotto_installato: string
+          reseller_name: string
+          tipo_fatturazione: string
+          tipo_servizio: string
+        }[]
+      }
       get_practice_by_form_token: {
         Args: { p_token: string }
         Returns: {

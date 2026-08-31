@@ -37,6 +37,7 @@ const ImpostazioniPiattaforma = lazy(() => import("./pages/ImpostazioniPiattafor
 const ImpostazioniAzienda = lazy(() => import("./pages/ImpostazioniAzienda"));
 const Blocked = lazy(() => import("./pages/Blocked"));
 const FormPubblico = lazy(() => import("./pages/FormPubblico"));
+const PagamentoCliente = lazy(() => import("./pages/PagamentoCliente"));
 const ModuloClientePage = lazy(() => import("./pages/ModuloClientePage"));
 const KanbanBoard = lazy(() => import("./pages/KanbanBoard"));
 const DocumentiUtili = lazy(() => import("./pages/DocumentiUtili"));
@@ -283,6 +284,7 @@ const App = () => (
                 <Route path="/auth" element={<AuthRoute />} />
                 <Route path="/blocked" element={<Blocked />} />
                 <Route path="/form/:token" element={<FormPubblico />} />
+                <Route path="/paga/:token" element={<PagamentoCliente />} />
                 <Route path="/schermature-solari/:token" element={<ModuloClientePage />} />
                 <Route path="/modulo-infissi/:token" element={<ModuloClientePage />} />
                 <Route path="/impianto-termico/:token" element={<ModuloClientePage />} />

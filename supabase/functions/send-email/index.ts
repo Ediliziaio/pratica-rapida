@@ -37,6 +37,7 @@ const TEMPLATE_RECIPIENT: Record<string, RecipientType | "internal"> = {
   richiesta_form:          "client",
   sollecito_privato:       "client",
   pagamento_privato_ok:    "client",
+  richiesta_pagamento_cliente: "client",
 
   // Rivenditore / azienda
   benvenuto_azienda:           "reseller",
@@ -156,6 +157,7 @@ const HARDCODED_TEMPLATES = new Set<string>([
   "whatsapp_disconnesso",   // alert interno: sessione OpenWA caduta/bannata
   "rivenditore_invito",     // richiesta dal sito, azienda non registrata
   "pagamento_privato_ok",   // privato che ha pagato la pratica ENEA dal sito
+  "richiesta_pagamento_cliente", // pratica a carico del cliente finale: link a /paga/:token
 ]);
 
 function renderTemplate(template: string, data: Record<string, string>): { subject: string; html: string } {
@@ -394,6 +396,25 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
           ${cta("Completa la pratica", r("{{link}}"))}
           <p style="color:#888;font-size:13px;">
             Conserva questa email: da qui puoi riaprire il modulo quando vuoi e riprendere da dove eri rimasto.<br>
+            Per assistenza scrivi a <a href="mailto:modulistica@praticarapida.it" style="color:#888;">modulistica@praticarapida.it</a>.
+          </p>
+        `),
+      };
+
+    case "richiesta_pagamento_cliente":
+      // Pratica caricata da un rivenditore che ha scelto "a carico del cliente
+      // finale". Il cliente non ci conosce: il messaggio deve dire subito chi
+      // ci ha incaricati e perche' sta ricevendo una richiesta di pagamento.
+      // Tono volutamente pacato: nessun "devi pagare", nessuna scadenza.
+      return {
+        subject: r("La tua pratica ENEA con {{reseller}}"),
+        html: base(`
+          <h2>Ciao ${r("{{nome}}")},</h2>
+          <p><strong>${r("{{reseller}}")}</strong> ci ha incaricati di preparare la tua pratica ENEA relativa a <strong>${r("{{prodotto}}")}</strong>.</p>
+          <p>Come da accordi presi con lui, il costo del servizio e' a tuo carico. Da questa pagina trovi il riepilogo e puoi procedere quando ti e' comodo.</p>
+          ${cta("Apri la pagina", r("{{link}}"))}
+          <p style="color:#888;font-size:13px;">
+            Conserva questa email: il link resta valido, puoi riaprirlo in qualsiasi momento.<br>
             Per assistenza scrivi a <a href="mailto:modulistica@praticarapida.it" style="color:#888;">modulistica@praticarapida.it</a>.
           </p>
         `),

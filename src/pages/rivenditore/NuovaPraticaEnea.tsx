@@ -212,7 +212,6 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   // basterebbe modificare la richiesta dal browser per pagare meno.
   const { data: prezzoPrivato } = useQuery({
     queryKey: ["prezzo-privato-enea"],
-    enabled: publicMode,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data } = await supabase
@@ -385,6 +384,10 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     // consegna via email, quindi qui l'email diventa obbligatoria.
     if (tipoServizio === "documenti_forniti" && inviaPraticaCliente === true && !email.trim())
       e.email = "Serve l'email del cliente per potergli inviare la pratica";
+    // A carico del cliente finale: il link per pagare arriva via email. Senza,
+    // non c'e' nessun modo di raggiungerlo e la pratica resta ferma.
+    if (!isPrivato && tipoFatturazione === "cliente_finale" && !EMAIL_RE.test(email.trim()))
+      e.email = "Serve l'email del cliente: e' li' che arriva il link per il pagamento";
     // Pompe di calore: libretto obbligatorio
     if (tipoProdotto === "pompe_calore" && docExtra2.length === 0)
       e.libretto = "Il certificato F-GAS è obbligatorio";
@@ -627,6 +630,16 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       if (tipoServizio === "servizio_completo") {
         supabase.functions.invoke("on-practice-created", {
           body: { practice_id: practice.id },
+        }).catch(console.error); // non-blocking
+      }
+
+      // "documenti_forniti" + FORM ONLINE, servizio a carico del cliente: il
+      // rivenditore compila lui il modulo, ma il pagamento resta del cliente e
+      // il link glielo deve mandare qualcuno. Negli altri rami ci pensa la
+      // chiamata a on-practice-created gia' presente; qui non c'era.
+      if (tipoServizio === "documenti_forniti" && documentiMode === "form_online" && tipoFatturazione === "cliente_finale") {
+        supabase.functions.invoke("on-practice-created", {
+          body: { practice_id: practice.id, reseller_only: true },
         }).catch(console.error); // non-blocking
       }
 
@@ -1176,6 +1189,24 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       </Section>
       )}
 
+      {/* Cosa comporta il "CF": il rivenditore deve sapere che al SUO cliente
+          parte una richiesta di pagamento a nostro nome. */}
+      {!isPrivato && tipoFatturazione === "cliente_finale" && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50/60 dark:border-amber-900/40 dark:bg-amber-950/20 p-4 text-sm">
+          <p className="font-medium text-amber-900 dark:text-amber-200">
+            Al tuo cliente invieremo il link per pagare il servizio
+            {prezzoPrivato ? ` (${euro(prezzoPrivato.totaleCents)} IVA inclusa)` : ""}.
+          </p>
+          <p className="text-xs text-amber-800/80 dark:text-amber-300/80 mt-1">
+            Gli arriva via email, con scritto che sei tu ad averci incaricati.
+            {tipoServizio === "documenti_forniti"
+              ? " Non gli chiediamo nessun documento: quelli li hai forniti tu."
+              : " I dati tecnici glieli chiediamo solo dopo il pagamento."}{" "}
+            Assicurati che l'email qui sotto sia corretta e che il cliente sia d'accordo.
+          </p>
+        </div>
+      )}
+
       {/* ── 5. Dati Cliente Finale ───────────────────────────────────────── */}
       <Section number={S.dati} title={isPrivato ? "I tuoi dati" : "Dati del cliente finale"}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1203,7 +1234,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           <div className="space-y-1.5">
             {/* Al privato l'email è obbligatoria: ricevuta Stripe + link al
                 modulo da completare dopo il pagamento. */}
-            <Label htmlFor="email" className="text-sm">Email {isPrivato && "*"}</Label>
+            <Label htmlFor="email" className="text-sm">
+              Email {(isPrivato || tipoFatturazione === "cliente_finale") && "*"}
+            </Label>
             <Input id="email" type="email" value={email}
               onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
               placeholder="mario@esempio.it" className={errors.email ? "border-destructive" : ""} />

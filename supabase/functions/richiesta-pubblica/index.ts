@@ -343,14 +343,24 @@ serve(async (req) => {
     // Con requires_payment il cliente paga direttamente su Stripe: non
     // mandiamo nessun link "completa i tuoi dati" perché è lui stesso che
     // ha appena compilato il form.
-    if (tipoServizio === "servizio_completo" && !p.requires_payment) {
+    // Col servizio a carico del cliente finale la chiamata serve anche su
+    // "documenti forniti": non per il modulo (i dati li ha dati il rivenditore)
+    // ma perche' al cliente deve arrivare il link di pagamento.
+    const cfDalSito = p.tipo_fatturazione === "cliente_finale" && !p.requires_payment;
+    if ((tipoServizio === "servizio_completo" && !p.requires_payment) || cfDalSito) {
       fetch(`${SUPABASE_URL}/functions/v1/on-practice-created`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${SERVICE_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ practice_id: practice.id }),
+        body: JSON.stringify({
+          practice_id: practice.id,
+          // Su "documenti forniti" il cliente non va contattato per i
+          // documenti: passa solo la richiesta di pagamento, che in
+          // on-practice-created non e' gated su reseller_only.
+          reseller_only: tipoServizio === "documenti_forniti",
+        }),
       }).catch((e) => console.warn("[richiesta-pubblica] on-practice-created failed:", e));
     }
 

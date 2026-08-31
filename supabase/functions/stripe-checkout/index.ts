@@ -41,24 +41,36 @@ Deno.serve(async (req) => {
 
   let body: {
     practice_id?: string;
+    form_token?: string;
     amount_cents?: number;
     descrizione?: string;
     email?: string;
     pricing_key?: string;
-    success?: "form" | "servizi";
+    success?: "form" | "servizi" | "pagamento";
   };
   try { body = await req.json(); } catch { return json({ error: "Bad JSON" }, 400); }
   const practiceId = body.practice_id?.trim();
-  if (!practiceId) return json({ error: "practice_id obbligatorio" }, 400);
+  const formToken = body.form_token?.trim();
+  if (!practiceId && !formToken) {
+    return json({ error: "practice_id o form_token obbligatorio" }, 400);
+  }
 
-  // Valida che la pratica esista (service role).
+  // Valida che la pratica esista (service role). La pagina /paga/:token è
+  // anonima e conosce solo il token: risolviamo l'id qui, senza mai esporlo.
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const { data: practice } = await admin
+  const lookup = admin
     .from("enea_practices")
-    .select("id, cliente_email, form_token")
-    .eq("id", practiceId)
-    .maybeSingle();
+    .select("id, cliente_email, form_token, pagamento_stato");
+  const { data: practice } = await (practiceId
+    ? lookup.eq("id", practiceId)
+    : lookup.eq("form_token", formToken!)
+  ).maybeSingle();
   if (!practice) return json({ error: "Pratica non trovata" }, 404);
+
+  // Doppio pagamento: se è già pagata non creiamo una seconda sessione.
+  if (practice.pagamento_stato === "pagata") {
+    return json({ error: "Questa pratica risulta già pagata" }, 409);
+  }
 
   // ── Importo ───────────────────────────────────────────────────────────────
   // Con `pricing_key` la cifra viene dal DB e quella del client viene
@@ -92,10 +104,19 @@ Deno.serve(async (req) => {
   // ── URL di ritorno ────────────────────────────────────────────────────────
   // Costruito qui e non passato dal client: un path arbitrario dal browser
   // sarebbe un open redirect a valle del pagamento.
+  //  · "form"      → servizio completo: dopo il pagamento deve compilare i dati
+  //  · "pagamento"  → documenti forniti: il rivenditore ha già consegnato tutto,
+  //                   niente modulo, torna sulla pagina con la conferma
   const successUrl =
-    body.success === "form" && practice.form_token
-      ? `${siteUrl}/form/${practice.form_token}?pagamento=ok`
+    practice.form_token && (body.success === "form" || body.success === "pagamento")
+      ? body.success === "form"
+        ? `${siteUrl}/form/${practice.form_token}?pagamento=ok`
+        : `${siteUrl}/paga/${practice.form_token}?pagamento=ok`
       : `${siteUrl}/area-riservata-vecchia/servizi?pagamento=ok`;
+
+  const cancelUrl = practice.form_token && (body.success === "form" || body.success === "pagamento")
+    ? `${siteUrl}/paga/${practice.form_token}?pagamento=annullato`
+    : `${siteUrl}/area-riservata-vecchia/servizi?pagamento=annullato`;
 
   const stripe = new Stripe(STRIPE_KEY, { apiVersion: "2024-06-20", httpClient: Stripe.createFetchHttpClient() });
 
@@ -117,12 +138,12 @@ Deno.serve(async (req) => {
       // col link al modulo: la success_url da sola non basta, chi chiude la
       // scheda su Stripe resterebbe senza nessun modo di tornare al form.
       metadata: {
-        practice_id: practiceId,
+        practice_id: practice.id,
         ...(body.success === "form" ? { post_payment: "form" } : {}),
       },
-      payment_intent_data: { metadata: { practice_id: practiceId } },
+      payment_intent_data: { metadata: { practice_id: practice.id } },
       success_url: successUrl,
-      cancel_url: `${siteUrl}/area-riservata-vecchia/servizi?pagamento=annullato`,
+      cancel_url: cancelUrl,
     });
     return json({ url: session.url });
   } catch (e) {

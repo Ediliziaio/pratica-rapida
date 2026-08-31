@@ -126,6 +126,17 @@ serve(async (req) => {
   const emailEnabled = await isRuleEnabled(supabase, "practice_created", "email");
   const whatsappEnabled = await isRuleEnabled(supabase, "practice_created", "whatsapp");
 
+  // ── Pratica a carico del CLIENTE FINALE ───────────────────────────────────
+  // Il rivenditore ha scelto "a carico del cliente finale": prima paga lui,
+  // poi (solo col servizio completo) compila il modulo. Quindi adesso NON gli
+  // mandiamo il link al form, ma quello alla pagina di pagamento.
+  //
+  // Il link al modulo arriva dopo, da /paga/:token o dall'email che manda
+  // stripe-webhook a pagamento confermato.
+  const attesaPagamentoCliente =
+    practice.tipo_fatturazione === "cliente_finale" &&
+    practice.pagamento_stato !== "pagata";
+
   // 1. Email di conferma al rivenditore (gated by practice_created/email)
   //    Skippata sui resend: "Rinvia link" deve toccare solo il cliente finale.
   if (emailEnabled && resellerEmail && !is_resend) {
@@ -143,7 +154,7 @@ serve(async (req) => {
   }
 
   // 2. Primo contatto WA al cliente privato (gated by practice_created/whatsapp)
-  if (!reseller_only && whatsappEnabled && practice.tipo_servizio === "servizio_completo" && practice.cliente_telefono) {
+  if (!reseller_only && !attesaPagamentoCliente && whatsappEnabled && practice.tipo_servizio === "servizio_completo" && practice.cliente_telefono) {
     const phone = practice.cliente_telefono.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
     steps.client_wa = await invoke("send-whatsapp", {
       to: phone,
@@ -161,7 +172,7 @@ serve(async (req) => {
   }
 
   // 3. Email al cliente finale (solo servizio_completo, gated by practice_created/email)
-  if (!reseller_only && emailEnabled && practice.tipo_servizio === "servizio_completo" && practice.cliente_email) {
+  if (!reseller_only && !attesaPagamentoCliente && emailEnabled && practice.tipo_servizio === "servizio_completo" && practice.cliente_email) {
     steps.client_email = await invoke("send-email", {
       to: practice.cliente_email,
       template: "richiesta_form",
@@ -173,6 +184,30 @@ serve(async (req) => {
         practice_id,
       },
     });
+  }
+
+  // 4. Richiesta di pagamento al cliente finale.
+  //    NON e' gated su `reseller_only`: con "documenti forniti" il cliente non
+  //    va contattato per i documenti (li ha dati il rivenditore), ma se il
+  //    servizio e' a suo carico il link per pagare deve comunque arrivargli —
+  //    altrimenti nessuno gli chiederebbe mai nulla.
+  if (attesaPagamentoCliente && emailEnabled && practice.cliente_email) {
+    steps.client_payment_email = await invoke("send-email", {
+      to: practice.cliente_email,
+      template: "richiesta_pagamento_cliente",
+      data: {
+        nome: practice.cliente_nome ?? "",
+        reseller: resellerName,
+        prodotto: practice.prodotto_installato ?? "l'intervento",
+        link: `https://app.praticarapida.it/paga/${practice.form_token}`,
+        practice_id,
+      },
+    });
+  } else if (attesaPagamentoCliente && !practice.cliente_email) {
+    // Senza email il cliente non puo' ricevere il link: va segnalato, non
+    // silenziato, altrimenti la pratica resta ferma senza che nessuno lo sappia.
+    console.error("[on-practice-created] cliente_finale senza email:", practice_id);
+    steps.client_payment_email = false;
   }
 
   const allOk = Object.values(steps).every(Boolean);

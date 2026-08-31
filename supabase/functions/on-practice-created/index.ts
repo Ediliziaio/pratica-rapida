@@ -192,6 +192,13 @@ serve(async (req) => {
   //    servizio e' a suo carico il link per pagare deve comunque arrivargli —
   //    altrimenti nessuno gli chiederebbe mai nulla.
   if (attesaPagamentoCliente && emailEnabled && practice.cliente_email) {
+    // "Cosa succede dopo il pagamento" cambia col percorso: col servizio
+    // completo c'e' un breve modulo da compilare, con i documenti forniti
+    // il rivenditore ha gia' consegnato tutto e il cliente non fa altro.
+    const dopoPagamento =
+      practice.tipo_servizio === "documenti_forniti"
+        ? `Dopo il pagamento non dovrai fare nient'altro: ${resellerName} ci ha già consegnato tutti i documenti necessari. Prepariamo la pratica e ti avvisiamo appena è pronta.`
+        : "Dopo il pagamento ti chiediamo gli ultimi dati sull'immobile con un breve modulo online — bastano circa 5 minuti — e da lì in poi pensiamo a tutto noi.";
     steps.client_payment_email = await invoke("send-email", {
       to: practice.cliente_email,
       template: "richiesta_pagamento_cliente",
@@ -199,6 +206,7 @@ serve(async (req) => {
         nome: practice.cliente_nome ?? "",
         reseller: resellerName,
         prodotto: practice.prodotto_installato ?? "l'intervento",
+        dopo_pagamento: dopoPagamento,
         link: `https://app.praticarapida.it/paga/${practice.form_token}`,
         practice_id,
       },

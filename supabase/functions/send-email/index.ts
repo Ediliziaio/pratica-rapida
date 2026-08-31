@@ -403,19 +403,29 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
 
     case "richiesta_pagamento_cliente":
       // Pratica caricata da un rivenditore che ha scelto "a carico del cliente
-      // finale". Il cliente non ci conosce: il messaggio deve dire subito chi
-      // ci ha incaricati e perche' sta ricevendo una richiesta di pagamento.
-      // Tono volutamente pacato: nessun "devi pagare", nessuna scadenza.
+      // finale". Il cliente non ci conosce: prima di chiedergli qualcosa
+      // l'email deve spiegare chi siamo, a cosa serve la pratica e cosa
+      // riceve. Persuasiva per chiarezza del beneficio (la detrazione),
+      // MAI per pressione: niente imperativi, niente scadenze.
+      // {{dopo_pagamento}} arriva dal chiamante e varia col tipo_servizio.
       return {
-        subject: r("La tua pratica ENEA con {{reseller}}"),
+        subject: r("La tua pratica ENEA per {{prodotto}}"),
         html: base(`
           <h2>Ciao ${r("{{nome}}")},</h2>
-          <p><strong>${r("{{reseller}}")}</strong> ci ha incaricati di preparare la tua pratica ENEA relativa a <strong>${r("{{prodotto}}")}</strong>.</p>
-          <p>Come da accordi presi con lui, il costo del servizio e' a tuo carico. Da questa pagina trovi il riepilogo e puoi procedere quando ti e' comodo.</p>
-          ${cta("Apri la pagina", r("{{link}}"))}
+          <p><strong>${r("{{reseller}}")}</strong> ci ha incaricati di occuparci della tua pratica ENEA per l'installazione di <strong>${r("{{prodotto}}")}</strong>.</p>
+          <p>La comunicazione ENEA &egrave; il passaggio necessario per accedere alla <strong>detrazione fiscale</strong> sui lavori che hai fatto: va preparata con i dati corretti e trasmessa all'ente. &Egrave; esattamente quello che facciamo ogni giorno.</p>
+          <p style="margin-bottom:6px;"><strong>Ecco cosa faremo per te:</strong></p>
+          <ul style="margin-top:0;padding-left:20px;line-height:1.8;">
+            <li>prepariamo la comunicazione ENEA e verifichiamo che i dati siano corretti;</li>
+            <li>la trasmettiamo noi all'ente, senza che tu debba registrarti da nessuna parte;</li>
+            <li>ti consegniamo la documentazione completa, pronta da dare al commercialista o al CAF per la dichiarazione dei redditi.</li>
+          </ul>
+          <p>Come da accordi presi con ${r("{{reseller}}")}, il costo del servizio &egrave; a tuo carico. Nella pagina qui sotto trovi il riepilogo con l'importo e puoi procedere quando preferisci: il pagamento avviene su Stripe, il circuito sicuro usato in tutto il mondo, e i dati della tua carta non passano mai dai nostri sistemi.</p>
+          <p>${r("{{dopo_pagamento}}")}</p>
+          ${cta("Vedi il riepilogo e procedi", r("{{link}}"))}
           <p style="color:#888;font-size:13px;">
-            Conserva questa email: il link resta valido, puoi riaprirlo in qualsiasi momento.<br>
-            Per assistenza scrivi a <a href="mailto:modulistica@praticarapida.it" style="color:#888;">modulistica@praticarapida.it</a>.
+            Conserva questa email: il link non scade e puoi riaprirlo in qualsiasi momento.<br>
+            Se hai dubbi o vuoi parlarne prima con una persona, scrivici a <a href="mailto:modulistica@praticarapida.it" style="color:#888;">modulistica@praticarapida.it</a>: rispondiamo volentieri.
           </p>
         `),
       };

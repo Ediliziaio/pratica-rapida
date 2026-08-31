@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { reportError } from "../_shared/error.ts";
 import { normalizePhone } from "../_shared/phone.ts";
+import { resellerDisplayName } from "../_shared/reseller.ts";
 
 const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 for (const k of REQUIRED_ENV) {
@@ -348,8 +349,31 @@ serve(async () => {
             // e continuare con le altre, non bloccare l'intero loop. La
             // pratica fallita verrà riprovata al prossimo cron tick perché
             // `ultimo_sollecito_privato` non viene aggiornato.
+            // Pratica a carico del cliente finale non ancora pagata: il
+            // sollecito "compila il modulo" sarebbe sbagliato due volte — lo
+            // inviterebbe a compilare senza pagare (il submit ora lo blocca)
+            // e suonerebbe come se il pagamento non servisse. Il promemoria
+            // giusto e' quello del pagamento, solo email: su WhatsApp non
+            // esiste un template adatto e non inventiamo messaggi di soldi.
+            const attesaPagamento =
+              p.tipo_fatturazione === "cliente_finale" && p.pagamento_stato !== "pagata";
+            if (attesaPagamento && rule.channel !== "email") continue;
+            if (attesaPagamento && !p.cliente_email) continue;
             try {
-              if (rule.channel === "email" && p.cliente_email) {
+              if (attesaPagamento) {
+                await invoke(supabase, "send-email", {
+                  to: p.cliente_email,
+                  template: "promemoria_pagamento_cliente",
+                  data: {
+                    nome: p.cliente_nome,
+                    reseller: resellerDisplayName(p),
+                    prodotto: p.prodotto_installato ?? "l'intervento",
+                    link: `https://app.praticarapida.it/paga/${p.form_token}`,
+                    practice_id: p.id,
+                    trigger_event: rule.trigger_event,
+                  },
+                });
+              } else if (rule.channel === "email" && p.cliente_email) {
                 await invoke(supabase, "send-email", {
                   to: p.cliente_email,
                   // rule.template_id è il nome del template salvato dall'admin
@@ -364,7 +388,7 @@ serve(async () => {
                   },
                 });
               }
-              if (rule.channel === "whatsapp" && p.cliente_telefono) {
+              if (!attesaPagamento && rule.channel === "whatsapp" && p.cliente_telefono) {
                 await invoke(supabase, "send-whatsapp", {
                   to: normalizePhone(p.cliente_telefono),
                   // Idem per WhatsApp: usa template_id dalla rule. L'admin può

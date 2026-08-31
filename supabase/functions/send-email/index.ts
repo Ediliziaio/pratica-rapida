@@ -38,6 +38,7 @@ const TEMPLATE_RECIPIENT: Record<string, RecipientType | "internal"> = {
   sollecito_privato:       "client",
   pagamento_privato_ok:    "client",
   richiesta_pagamento_cliente: "client",
+  promemoria_pagamento_cliente: "client",
 
   // Rivenditore / azienda
   benvenuto_azienda:           "reseller",
@@ -158,6 +159,7 @@ const HARDCODED_TEMPLATES = new Set<string>([
   "rivenditore_invito",     // richiesta dal sito, azienda non registrata
   "pagamento_privato_ok",   // privato che ha pagato la pratica ENEA dal sito
   "richiesta_pagamento_cliente", // pratica a carico del cliente finale: link a /paga/:token
+  "promemoria_pagamento_cliente", // sollecito gentile a 7 giorni se non ha ancora pagato
 ]);
 
 function renderTemplate(template: string, data: Record<string, string>): { subject: string; html: string } {
@@ -426,6 +428,24 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
           <p style="color:#888;font-size:13px;">
             Conserva questa email: il link non scade e puoi riaprirlo in qualsiasi momento.<br>
             Se hai dubbi o vuoi parlarne prima con una persona, scrivici a <a href="mailto:modulistica@praticarapida.it" style="color:#888;">modulistica@praticarapida.it</a>: rispondiamo volentieri.
+          </p>
+        `),
+      };
+
+    case "promemoria_pagamento_cliente":
+      // Sollecito a 7+ giorni per chi non ha ancora pagato. Ancora piu'
+      // leggero della prima email: magari l'ha persa, magari ha un dubbio.
+      // Nessuna urgenza artificiale, la porta resta aperta.
+      return {
+        subject: r("Ti aspettiamo per la tua pratica ENEA"),
+        html: base(`
+          <h2>Ciao ${r("{{nome}}")},</h2>
+          <p>qualche giorno fa ti abbiamo scritto per la tua pratica ENEA relativa a <strong>${r("{{prodotto}}")}</strong>, quella che <strong>${r("{{reseller}}")}</strong> ci ha chiesto di preparare per farti accedere alla detrazione fiscale.</p>
+          <p>Non risulta ancora il pagamento del servizio, quindi per ora la pratica &egrave; in attesa: appena ricevuto, partiamo subito con la preparazione.</p>
+          ${cta("Riprendi da dove eri", r("{{link}}"))}
+          <p style="color:#888;font-size:13px;">
+            Se hai gi&agrave; provveduto negli ultimi minuti, ignora pure questo messaggio.<br>
+            Se invece hai un dubbio o preferisci parlarne prima, scrivici a <a href="mailto:modulistica@praticarapida.it" style="color:#888;">modulistica@praticarapida.it</a>: nessun problema.
           </p>
         `),
       };

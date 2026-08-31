@@ -167,11 +167,31 @@ export default function FormPubblico() {
     let cancelled = false;
     // Usa RPC SECURITY DEFINER (accesso anon controllato via form_token).
     // La tabella enea_practices non ha policy anon → SELECT diretto restituisce [].
-    supabase
-      .rpc("get_practice_by_form_token", { p_token: token })
-      .then(({ data, error }) => {
+    // In parallelo lo stato pagamento: se il servizio è a carico del cliente e
+    // non è ancora pagato, il posto giusto è /paga/:token, non il modulo.
+    // (Il vero blocco sta in submit_form_by_token; questo evita solo che il
+    // cliente compili tutto per poi vedersi rifiutare l'invio.)
+    Promise.all([
+      supabase.rpc("get_practice_by_form_token", { p_token: token }),
+      // Non-fatale: se questo check fallisce si apre comunque il form —
+      // il blocco vero e' server-side dentro submit_form_by_token.
+      supabase
+        .rpc("get_pagamento_by_form_token", { p_token: token })
+        .then((r) => r, () => ({ data: null })),
+    ])
+      .then(([{ data, error }, pagamentoRes]) => {
         if (cancelled) return;
         const row = Array.isArray(data) ? data[0] : null;
+        const pagamento = Array.isArray(pagamentoRes.data) ? pagamentoRes.data[0] : null;
+        if (
+          pagamento &&
+          pagamento.tipo_fatturazione === "cliente_finale" &&
+          pagamento.pagamento_stato !== "pagata" &&
+          !row?.form_compilato_at
+        ) {
+          navigate(`/paga/${token}`, { replace: true });
+          return;
+        }
         if (error || !row) {
           setError("Pratica non trovata o link non valido.");
         } else if (row.archived_at) {

@@ -131,3 +131,25 @@ export function isPositiveInteger(value: string | number): boolean {
   const n = typeof value === "string" ? Number(value) : value;
   return Number.isInteger(n) && n > 0;
 }
+
+/**
+ * Formattazione della data di nascita durante la digitazione: tiene solo le
+ * cifre e inserisce le "/" automaticamente per ottenere gg/mm/aaaa.
+ * Sostituisce il vecchio <input type="date"> nativo, ostico per molti clienti.
+ */
+export function maskDataNascita(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 8); // gg mm aaaa
+  const parts = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)].filter(Boolean);
+  return parts.join("/");
+}
+
+/**
+ * Valore da mostrare nell'input: se il dato salvato è in ISO (yyyy-mm-dd,
+ * es. da una bozza precedente col vecchio date picker) lo converte in
+ * gg/mm/aaaa; altrimenti lo restituisce così com'è.
+ */
+export function formatDataNascitaInput(value: string): string {
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+  return value;
+}

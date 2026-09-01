@@ -167,11 +167,7 @@ export function validateProdotto(d: FormClienteData, tipo: ProdottoTipo): ErrorM
       if (!it.direzione) e[`prodotto.items.${idx}.direzione`] = "Direzione obbligatoria";
     });
   }
-  if (tipo === "impianto_termico" && p.tipo === "impianto_termico") {
-    if (!d.impianto.libretto_url) {
-      e["prodotto.libretto"] = "Carica il certificato F-GAS";
-    }
-  }
+  // impianto_termico: nessun dato di prodotto richiesto al cliente.
   return e;
 }
 

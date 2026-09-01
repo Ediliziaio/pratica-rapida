@@ -176,8 +176,8 @@ export function StepRecap({ data, prodottoTipo }: Props) {
         )}
         {prodottoTipo === "impianto_termico" && (
           <Row
-            label="Certificato F-GAS"
-            value={i.libretto_url ? "Caricato" : "—"}
+            label="Impianto termico"
+            value="Nessun dato specifico richiesto al cliente"
           />
         )}
         {prodottoTipo === "insufflaggio" && (

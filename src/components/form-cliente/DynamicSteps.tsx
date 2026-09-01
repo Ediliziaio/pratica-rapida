@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { maskDataNascita, formatDataNascitaInput } from "./validation-utils";
 import { uploadPublicFormFile } from "./uploadFormFile";
 
 import type { FormField, FormSchema, FormStep } from "@/types/form-module";
@@ -195,7 +196,7 @@ function FieldControl(props: FieldControlProps) {
     case "number":
       return <NumberControl {...props} />;
     case "date":
-      return <SimpleInputControl {...props} type="date" />;
+      return <DateControl {...props} />;
     case "time":
       return <SimpleInputControl {...props} type="time" />;
     case "email":
@@ -244,6 +245,22 @@ function TextareaControl({ field, fieldId, value, onChange }: FieldControlProps)
       value={typeof value === "string" ? value : ""}
       placeholder={field.placeholder}
       onChange={(e) => onChange(e.target.value)}
+    />
+  );
+}
+
+// Campo data: input testuale con formattazione automatica gg/mm/aaaa al posto
+// del calendario nativo (ostico per molti clienti, soprattutto su desktop).
+function DateControl({ field, fieldId, value, onChange }: FieldControlProps) {
+  return (
+    <Input
+      id={fieldId}
+      type="text"
+      inputMode="numeric"
+      placeholder={field.placeholder || "gg/mm/aaaa"}
+      maxLength={10}
+      value={typeof value === "string" ? formatDataNascitaInput(value) : ""}
+      onChange={(e) => onChange(maskDataNascita(e.target.value))}
     />
   );
 }

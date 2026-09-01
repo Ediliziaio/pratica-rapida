@@ -40,6 +40,7 @@ import {
 
 import { FieldError } from "./FieldError";
 import type { ErrorMap } from "./validation";
+import { maskDataNascita, formatDataNascitaInput } from "./validation-utils";
 
 // ── Tipi handler condivisi ────────────────────────────────────────────────────
 type Section = keyof FormClienteData;
@@ -123,10 +124,15 @@ export function StepRichiedente({ data, errors, patchSection }: StepProps) {
         <Label htmlFor="data_nascita">Data di nascita *</Label>
         <Input
           id="data_nascita"
-          type="date"
-          value={r.data_nascita}
-          onChange={(e) => set("data_nascita", e.target.value)}
+          type="text"
+          inputMode="numeric"
+          autoComplete="bday"
+          placeholder="gg/mm/aaaa"
+          maxLength={10}
+          value={formatDataNascitaInput(r.data_nascita)}
+          onChange={(e) => set("data_nascita", maskDataNascita(e.target.value))}
         />
+        <p className="text-xs text-muted-foreground">Formato: giorno/mese/anno (es. 25/12/1980)</p>
         <FieldError errors={errors} field="richiedente.data_nascita" />
       </div>
 
@@ -475,6 +481,9 @@ export function StepEdificio({ data, errors, patchSection }: StepProps) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="space-y-1">
           <Label htmlFor="anno">Anno costruzione *</Label>
+          <p className="text-xs text-muted-foreground">
+            Anno di costruzione dell'edificio (anche presunto).
+          </p>
           <Input
             id="anno"
             type="number"
@@ -488,6 +497,9 @@ export function StepEdificio({ data, errors, patchSection }: StepProps) {
         </div>
         <div className="space-y-1">
           <Label htmlFor="superficie">Superficie (mq) *</Label>
+          <p className="text-xs text-muted-foreground">
+            Superficie in mq del suo appartamento.
+          </p>
           <Input
             id="superficie"
             type="number"
@@ -500,6 +512,10 @@ export function StepEdificio({ data, errors, patchSection }: StepProps) {
         </div>
         <div className="space-y-1">
           <Label htmlFor="appartamenti">N. appartamenti *</Label>
+          <p className="text-xs text-muted-foreground">
+            Numero di appartamenti presenti nel suo edificio (se ha più scale, solo
+            nella sua scala; se ha una casa singola, inserisca 1).
+          </p>
           <Input
             id="appartamenti"
             type="number"
@@ -828,120 +844,6 @@ function ProdottoSchermature({ data, errors, patchSection }: StepProps) {
   );
 }
 
-// ── 7. Prodotto: variante IMPIANTO TERMICO ─────────────────────────────────────
-interface ProdottoImpiantoProps extends StepProps {
-  practiceId: string;
-  onUploadStart: () => void;
-  onUploadEnd: () => void;
-  uploading: boolean;
-  /** Form pubblico (cliente anonimo): upload via edge function form-upload. */
-  publicToken?: string;
-}
-
-function ProdottoImpianto({
-  data,
-  errors,
-  patchSection,
-  practiceId,
-  onUploadStart,
-  onUploadEnd,
-  uploading,
-  publicToken,
-}: ProdottoImpiantoProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const libretto = data.impianto.libretto_url;
-
-  const onFile = async (file: File) => {
-    // Use toast (non-blocking) instead of alert() (blocca UI thread + look
-    // browser-native rotto su mobile). Comportamento identico per l'utente:
-    // vede il messaggio di errore e l'upload viene rifiutato.
-    if (file.size > 20 * 1024 * 1024) {
-      toast({ variant: "destructive", title: "File troppo grande", description: "Massimo 20 MB." });
-      return;
-    }
-    onUploadStart();
-    try {
-      let path: string;
-      if (publicToken) {
-        // Cliente anonimo (form pubblico): l'upload diretto su enea-documents è
-        // bloccato da RLS → passa dalla edge function con il token.
-        path = await uploadPublicFormFile(publicToken, "libretto", file);
-      } else {
-        // Staff autenticato: upload diretto.
-        const { supabase } = await import("@/integrations/supabase/client");
-        const ext = file.name.split(".").pop() ?? "bin";
-        const directPath = `${practiceId}/libretto/${crypto.randomUUID()}.${ext}`;
-        const { error } = await supabase.storage
-          .from("enea-documents")
-          .upload(directPath, file, { upsert: false });
-        if (error) throw error;
-        path = directPath;
-      }
-      patchSection("impianto", { libretto_url: path } as SectionPatch<"impianto">);
-    } catch (err) {
-      console.error("Upload libretto failed:", err);
-      toast({ variant: "destructive", title: "Caricamento fallito", description: "Riprova o contatta il supporto." });
-    } finally {
-      onUploadEnd();
-    }
-  };
-
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Per le pratiche di impianto termico (es. pompe di calore) è necessario il
-        certificato F-GAS. Carica un file PDF, JPG o PNG (max 20MB).
-      </p>
-
-      <input
-        ref={inputRef}
-        type="file"
-        accept="application/pdf,image/jpeg,image/png"
-        className="hidden"
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) void onFile(f);
-          e.target.value = "";
-        }}
-      />
-
-      {libretto ? (
-        <div className="rounded-md border p-3 flex items-center justify-between">
-          <div className="text-sm">
-            <p className="font-medium">Certificato F-GAS caricato</p>
-            <p className="text-xs text-muted-foreground break-all">{libretto.split("/").pop()}</p>
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => inputRef.current?.click()}
-            disabled={uploading}
-          >
-            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sostituisci"}
-          </Button>
-        </div>
-      ) : (
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={() => inputRef.current?.click()}
-          disabled={uploading}
-        >
-          {uploading ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Upload className="h-4 w-4 mr-2" />
-          )}
-          Carica certificato F-GAS
-        </Button>
-      )}
-      <FieldError errors={errors} field="prodotto.libretto" />
-    </div>
-  );
-}
-
 // ── 7. Prodotto: dispatcher ───────────────────────────────────────────────────
 export interface StepProdottoProps extends StepProps {
   prodottoTipo: ProdottoTipo;
@@ -957,7 +859,9 @@ export function StepProdotto(props: StepProdottoProps) {
   if (props.prodottoTipo === "infissi") return <ProdottoInfissi {...props} />;
   if (props.prodottoTipo === "schermature") return <ProdottoSchermature {...props} />;
   if (props.prodottoTipo === "insufflaggio") return <ProdottoInsufflaggio {...props} />;
-  return <ProdottoImpianto {...props} />;
+  // impianto_termico: nessun dato di prodotto richiesto al cliente. Lo step
+  // "prodotto" viene saltato dal wizard; questo è solo un fallback difensivo.
+  return null;
 }
 
 /**

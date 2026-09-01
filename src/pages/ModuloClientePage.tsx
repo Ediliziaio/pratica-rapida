@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle2, AlertTriangle, Clock, FileText } from "lucide-react";
+import { maskDataNascita, formatDataNascitaInput } from "@/components/form-cliente/validation-utils";
 
 type TipoModulo = "schermature-solari" | "infissi" | "impianto-termico" | "vepa";
 
@@ -152,6 +153,9 @@ function Field({
   onChange: (v: string) => void; type?: string;
   placeholder?: string; required?: boolean;
 }) {
+  // I campi data usano un input testuale con formattazione automatica gg/mm/aaaa
+  // invece del calendario nativo, ostico per molti clienti.
+  const isDate = type === "date";
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id} className="text-sm font-medium">
@@ -159,10 +163,12 @@ function Field({
       </Label>
       <Input
         id={id}
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
+        type={isDate ? "text" : type}
+        inputMode={isDate ? "numeric" : undefined}
+        maxLength={isDate ? 10 : undefined}
+        value={isDate ? formatDataNascitaInput(value) : value}
+        onChange={(e) => onChange(isDate ? maskDataNascita(e.target.value) : e.target.value)}
+        placeholder={isDate ? "gg/mm/aaaa" : placeholder}
         required={required}
         className="h-11 text-base"
       />

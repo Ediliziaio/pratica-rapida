@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
-import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, Loader2, Send, Briefcase, LayoutDashboard } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, Loader2, Send, Briefcase, LayoutDashboard, FileText } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -149,6 +149,9 @@ export default function FormPubblico() {
   const [prodottoTipo, setProdottoTipo] = useState<ProdottoTipo>("infissi");
 
   // ── Wizard state ────────────────────────────────────────────────────────────
+  // Schermata introduttiva mostrata prima del wizard: avvisa il cliente dei
+  // documenti (bonifici + fatture) che dovrà avere a portata di mano.
+  const [showIntro, setShowIntro] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
   const [formData, setFormData] = useState<FormClienteData>(emptyFormData());
   const [uploading, setUploading] = useState(false);
@@ -271,7 +274,17 @@ export default function FormPubblico() {
     return getVisibleSteps(dbModule.schema, dynamicData);
   }, [useDynamic, dbModule, dynamicData]);
 
-  const totalSteps = useDynamic ? visibleDynamicSteps.length : STEPS.length;
+  // Path hardcoded: per l'impianto termico non c'è alcun dato di prodotto da
+  // raccogliere, quindi lo step "prodotto" viene rimosso del tutto.
+  const hardcodedSteps = useMemo(
+    () =>
+      prodottoTipo === "impianto_termico"
+        ? STEPS.filter((s) => s.id !== "prodotto")
+        : STEPS,
+    [prodottoTipo],
+  );
+
+  const totalSteps = useDynamic ? visibleDynamicSteps.length : hardcodedSteps.length;
   const safeStepIndex = totalSteps > 0 ? Math.min(stepIndex, totalSteps - 1) : 0;
 
   // Se il numero di step "visibili" si riduce sotto stepIndex (perché un
@@ -287,7 +300,7 @@ export default function FormPubblico() {
 
   // ── Validazione step corrente ───────────────────────────────────────────────
   // Path hardcoded
-  const hardcodedStep = STEPS[safeStepIndex] ?? STEPS[0];
+  const hardcodedStep = hardcodedSteps[safeStepIndex] ?? hardcodedSteps[0];
   const hardcodedErrors = useMemo(
     () => (useDynamic ? {} : validateStep(hardcodedStep.id, formData, prodottoTipo)),
     [useDynamic, hardcodedStep.id, formData, prodottoTipo],
@@ -593,6 +606,27 @@ export default function FormPubblico() {
             I tuoi dati sono stati ricevuti. La tua pratica è ora in lavorazione.
             Riceverai aggiornamenti via email o WhatsApp.
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Render: schermata introduttiva ──────────────────────────────────────────
+  // Prima di far compilare i dati, avvisiamo il cliente dei documenti necessari.
+  if (showIntro && !isProxyCompiler) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md w-full rounded-2xl border bg-card p-6 sm:p-8 shadow-sm text-center space-y-5">
+          <FileText className="h-12 w-12 text-primary mx-auto" />
+          <h1 className="text-xl sm:text-2xl font-bold">Prima di iniziare</h1>
+          <p className="text-muted-foreground leading-relaxed">
+            Per compilare la richiesta le serviranno i <strong>bonifici</strong> e le{" "}
+            <strong>fatture</strong> relativi ai lavori effettuati. Li tenga a portata
+            di mano prima di procedere.
+          </p>
+          <Button className="w-full" size="lg" onClick={() => setShowIntro(false)}>
+            Ho capito, procedi
+          </Button>
         </div>
       </div>
     );

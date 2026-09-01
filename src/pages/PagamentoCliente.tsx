@@ -49,7 +49,11 @@ export default function PagamentoCliente() {
   const esito = params.get("pagamento"); // "ok" | "annullato" | null
 
   const [dati, setDati] = useState<Pagamento | null>(null);
-  const [prezzoCents, setPrezzoCents] = useState<number | null>(null);
+  const [prezzo, setPrezzo] = useState<{
+    imponibileCents: number;
+    ivaPercent: number;
+    totaleCents: number;
+  } | null>(null);
   const [caricamento, setCaricamento] = useState(true);
   const [errore, setErrore] = useState<string | null>(null);
   const [avvio, setAvvio] = useState(false);
@@ -78,7 +82,16 @@ export default function PagamentoCliente() {
 
       const v = (prezzoRes.data?.value ?? {}) as { imponibile_cents?: number; iva_percent?: number };
       const imponibile = v.imponibile_cents ?? 0;
-      setPrezzoCents(imponibile > 0 ? Math.round(imponibile * (1 + (v.iva_percent ?? 0) / 100)) : null);
+      const iva = v.iva_percent ?? 0;
+      setPrezzo(
+        imponibile > 0
+          ? {
+              imponibileCents: imponibile,
+              ivaPercent: iva,
+              totaleCents: Math.round(imponibile * (1 + iva / 100)),
+            }
+          : null,
+      );
       setCaricamento(false);
     })();
     return () => { vivo = false; };
@@ -279,13 +292,20 @@ export default function PagamentoCliente() {
           )}
         </p>
 
-        <div className="rounded-lg border bg-muted/30 p-4 flex items-baseline justify-between">
-          <span className="text-sm text-muted-foreground">Costo del servizio</span>
+        <div className="rounded-lg border bg-muted/30 p-4 flex items-baseline justify-between gap-3">
+          <div>
+            <span className="text-sm text-muted-foreground">Costo del servizio</span>
+            {prezzo && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {euro(prezzo.imponibileCents)} + IVA {prezzo.ivaPercent}%
+              </p>
+            )}
+          </div>
           <span className="text-lg font-bold">
-            {prezzoCents ? `${euro(prezzoCents)}` : "—"}
+            {prezzo ? euro(prezzo.totaleCents) : "—"}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground -mt-3">IVA inclusa</p>
+        <p className="text-xs text-muted-foreground -mt-3">Totale, IVA inclusa</p>
 
         {esito === "annullato" && (
           <p className="text-sm rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-800">
@@ -298,11 +318,11 @@ export default function PagamentoCliente() {
           </p>
         )}
 
-        <Button className="w-full" size="lg" onClick={vaiAlPagamento} disabled={avvio || !prezzoCents}>
+        <Button className="w-full" size="lg" onClick={vaiAlPagamento} disabled={avvio || !prezzo}>
           {avvio ? (
             <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Un attimo…</>
-          ) : prezzoCents ? (
-            `Prosegui — ${euro(prezzoCents)}`
+          ) : prezzo ? (
+            `Prosegui — ${euro(prezzo.totaleCents)}`
           ) : (
             "Pagamento non disponibile"
           )}

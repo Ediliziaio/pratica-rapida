@@ -44,6 +44,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const euro = (cents: number) =>
   (cents / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" });
 
+/** "150,00 € + IVA (183,00 €)" — il totale secco non dice nulla: la gente
+ *  deve vedere imponibile e IVA separati, come su un preventivo. */
+const euroScomposto = (p: { imponibileCents: number; totaleCents: number }) =>
+  `${euro(p.imponibileCents)} + IVA (${euro(p.totaleCents)})`;
+
 type TipoProdotto = "schermature_solari" | "infissi" | "vepa" | "pompe_calore" | "insufflaggio_tetti";
 
 // ── Config prodotti ───────────────────────────────────────────────────────────
@@ -821,8 +826,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                   <>
                     Voglio la pratica ENEA per casa mia.
                     {prezzoPrivato && (
-                      <> Il servizio ha un costo di{" "}
-                      <strong className="text-foreground">{euro(prezzoPrivato.totaleCents)}</strong> IVA inclusa.</>
+                      <> Il servizio costa{" "}
+                      <strong className="text-foreground">{euro(prezzoPrivato.imponibileCents)} + IVA</strong>{" "}
+                      ({euro(prezzoPrivato.totaleCents)} in totale).</>
                     )}
                   </>
                 ) : (
@@ -1195,7 +1201,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         <div className="rounded-lg border border-amber-200 bg-amber-50/60 dark:border-amber-900/40 dark:bg-amber-950/20 p-4 text-sm">
           <p className="font-medium text-amber-900 dark:text-amber-200">
             Al tuo cliente invieremo il link per pagare il servizio
-            {prezzoPrivato ? ` (${euro(prezzoPrivato.totaleCents)} IVA inclusa)` : ""}.
+            {prezzoPrivato ? ` (${euroScomposto(prezzoPrivato)} in totale)` : ""}.
           </p>
           <p className="text-xs text-amber-800/80 dark:text-amber-300/80 mt-1">
             Gli arriva via email, con scritto che sei tu ad averci incaricati.
@@ -1460,8 +1466,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
               <>
                 Acconsento al trattamento dei miei dati (GDPR) per la gestione della pratica ENEA
                 {prezzoPrivato && (
-                  <> e ho preso visione del costo del servizio, <strong>{euro(prezzoPrivato.totaleCents)}</strong> IVA
-                  inclusa. Dopo la conferma potrò completare con calma i dati tecnici della pratica</>
+                  <> e ho preso visione del costo del servizio:{" "}
+                  <strong>{euro(prezzoPrivato.imponibileCents)} + IVA</strong> ({euro(prezzoPrivato.totaleCents)} in
+                  totale). Dopo la conferma potrò completare con calma i dati tecnici della pratica</>
                 )}.
               </>
             ) : (
@@ -1509,7 +1516,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                 azienda. Al privato il totale va invece SEMPRE in chiaro. */}
             {isPrivato
               ? [PRODOTTI.find((p) => p.id === tipoProdotto)?.short,
-                 prezzoPrivato ? `${euro(prezzoPrivato.totaleCents)} IVA inclusa` : undefined,
+                 prezzoPrivato ? euroScomposto(prezzoPrivato) : undefined,
                 ].filter(Boolean).join(" · ")
               : [tipoServizio && (tipoServizio === "servizio_completo" ? "Servizio Completo" : "Documenti Forniti"),
                  PRODOTTI.find((p) => p.id === tipoProdotto)?.short,

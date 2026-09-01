@@ -326,10 +326,15 @@ serve(async () => {
       switch (rule.trigger_event) {
 
         case "days_waiting_7": {
+          // Due popolazioni, stesso giro: servizio completo col modulo non
+          // compilato (sollecito compilazione) E pratiche a carico del
+          // cliente finale non pagate (promemoria pagamento) — queste ultime
+          // anche su "documenti forniti", dove il modulo non esiste ma il
+          // pagamento va comunque chiesto.
           let qPrivato = supabase
             .from("enea_practices")
             .select("*, companies:reseller_id(ragione_sociale)")
-            .eq("tipo_servizio", "servizio_completo")
+            .or("tipo_servizio.eq.servizio_completo,and(tipo_fatturazione.eq.cliente_finale,pagamento_stato.neq.pagata)")
             .is("archived_at", null)
             .is("form_compilato_at", null)
             .or(`ultimo_sollecito_privato.is.null,ultimo_sollecito_privato.lt.${sevenDaysAgo}`);
@@ -359,6 +364,15 @@ serve(async () => {
               p.tipo_fatturazione === "cliente_finale" && p.pagamento_stato !== "pagata";
             if (attesaPagamento && rule.channel !== "email") continue;
             if (attesaPagamento && !p.cliente_email) continue;
+            // Tetto: dopo 4 promemoria (~un mese) si smette di scrivere.
+            // Continuare all'infinito e' spam, e una pratica ferma da un mese
+            // e' un caso da persona, non da cron: resta visibile allo staff
+            // col badge "Non pagata" e il contatore solleciti sulla card.
+            if (attesaPagamento && (p.conteggio_solleciti ?? 0) >= 4) continue;
+            // La query ora include anche i "documenti forniti" non pagati: per
+            // loro esiste SOLO il promemoria pagamento, mai il sollecito
+            // compilazione (il modulo non e' affar loro).
+            if (!attesaPagamento && p.tipo_servizio !== "servizio_completo") continue;
             try {
               if (attesaPagamento) {
                 await invoke(supabase, "send-email", {

@@ -148,6 +148,21 @@ export default function PagamentoCliente() {
         {contatti}
       </>
     );
+  } else if (dati.archived_at && dati.pagamento_stato !== "pagata") {
+    // Pratica annullata/archiviata: il link vecchio non deve incassare soldi
+    // per un lavoro che nessuno fara'. (Anche stripe-checkout la rifiuta:
+    // questo schermo evita solo di far arrivare l'utente fino all'errore.)
+    contenuto = (
+      <>
+        <AlertCircle className="h-10 w-10 text-amber-500" />
+        <h1 className="text-xl font-bold">Pratica non più attiva</h1>
+        <p className="text-sm text-muted-foreground">
+          Questa pratica è stata chiusa e non richiede nessun pagamento. Se pensi sia un
+          errore, scrivici e controlliamo subito.
+        </p>
+        {contatti}
+      </>
+    );
   } else if (dati.pagamento_stato === "pagata" || esito === "ok") {
     // `esito === "ok"` copre la finestra fra il ritorno da Stripe e l'arrivo
     // del webhook: il cliente ha pagato davvero, non ha senso mostrargli

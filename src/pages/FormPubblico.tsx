@@ -183,8 +183,13 @@ export default function FormPubblico() {
         if (cancelled) return;
         const row = Array.isArray(data) ? data[0] : null;
         const pagamento = Array.isArray(pagamentoRes.data) ? pagamentoRes.data[0] : null;
+        // Solo servizio completo: con "documenti forniti" chi compila questo
+        // form e' il RIVENDITORE (percorso form_online), non il cliente —
+        // rimbalzarlo sulla cassa del suo cliente bloccherebbe il suo lavoro.
+        // Il pagamento del cliente viaggia in parallelo via /paga.
         if (
           pagamento &&
+          pagamento.tipo_servizio !== "documenti_forniti" &&
           pagamento.tipo_fatturazione === "cliente_finale" &&
           pagamento.pagamento_stato !== "pagata" &&
           !row?.form_compilato_at

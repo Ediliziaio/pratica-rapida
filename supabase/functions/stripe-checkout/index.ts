@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const lookup = admin
     .from("enea_practices")
-    .select("id, cliente_email, form_token, pagamento_stato");
+    .select("id, cliente_email, form_token, pagamento_stato, archived_at, prodotto_installato");
   const { data: practice } = await (practiceId
     ? lookup.eq("id", practiceId)
     : lookup.eq("form_token", formToken!)
@@ -70,6 +70,11 @@ Deno.serve(async (req) => {
   // Doppio pagamento: se è già pagata non creiamo una seconda sessione.
   if (practice.pagamento_stato === "pagata") {
     return json({ error: "Questa pratica risulta già pagata" }, 409);
+  }
+  // Pratica archiviata = annullata: un vecchio link non deve incassare soldi
+  // per un lavoro che nessuno farà.
+  if (practice.archived_at) {
+    return json({ error: "Questa pratica non è più attiva: nessun pagamento richiesto" }, 409);
   }
 
   // ── Importo ───────────────────────────────────────────────────────────────
@@ -129,7 +134,14 @@ Deno.serve(async (req) => {
         price_data: {
           currency: "eur",
           unit_amount: amount,
-          product_data: { name: body.descrizione?.trim() || "Servizio Pratica Rapida" },
+          product_data: {
+            // Con pricing_key la riga in ricevuta si costruisce qui: la
+            // descrizione dal browser finirebbe su un documento Stripe LIVE
+            // con testo scelto dal client. Per i flussi storici resta com'era.
+            name: body.pricing_key
+              ? `Pratica ENEA — ${practice.prodotto_installato ?? "servizio"}`
+              : body.descrizione?.trim() || "Servizio Pratica Rapida",
+          },
         },
       }],
       customer_email: body.email?.trim() || practice.cliente_email || undefined,

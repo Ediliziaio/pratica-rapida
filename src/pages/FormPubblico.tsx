@@ -213,7 +213,11 @@ export default function FormPubblico() {
           setSubmitted(true);
         } else {
           setPractice(row as unknown as EneaPractice);
-          setResellerName(row.reseller_name ?? "");
+          // I contenitori di sistema ("Da abbinare", "Clienti privati") non
+          // vanno MAI mostrati al cliente: sono nomi interni. Senza nome,
+          // l'header ricade su "Pratica Rapida" e basta.
+          const nomeAzienda = row.reseller_name ?? "";
+          setResellerName(/Da abbinare|Clienti privati/i.test(nomeAzienda) ? "" : nomeAzienda);
 
           const tipo = detectProdottoTipo(row.prodotto_installato);
           setProdottoTipo(tipo);

@@ -212,6 +212,12 @@ export default function PagamentoCliente() {
     );
   } else {
     const documentiForniti = dati.tipo_servizio === "documenti_forniti";
+    // "la tua azienda installatrice" e' la stringa di RIPIEGO della RPC quando
+    // dietro non c'e' un rivenditore reale — in pratica: il privato che ha
+    // comprato la pratica dal sito e ci ripassa dopo aver annullato Stripe.
+    // Per lui "X ci ha incaricati... come da accordi presi con lui" e' falso:
+    // ha deciso tutto da solo.
+    const senzaRivenditore = dati.reseller_name === "la tua azienda installatrice";
     contenuto = (
       <>
         <div>
@@ -223,19 +229,53 @@ export default function PagamentoCliente() {
           )}
         </div>
 
+        {/* Stessa struttura dell'email richiesta_pagamento_cliente: chi ci ha
+            incaricati, a cosa serve la pratica (la detrazione e' SUA), cosa
+            facciamo in concreto, cosa succede dopo. Persuasione per chiarezza
+            del beneficio, mai per pressione. */}
         <p className="text-sm leading-relaxed">
-          {documentiForniti ? (
+          {senzaRivenditore ? (
+            <>Hai chiesto a <strong>Pratica Rapida</strong> di occuparci della tua pratica ENEA.</>
+          ) : documentiForniti ? (
             <>
-              <strong>{dati.reseller_name}</strong> ci ha incaricati di preparare la tua pratica ENEA
-              e ci ha già consegnato tutti i documenti necessari. Come da accordi presi con lui,
-              il costo del servizio è a tuo carico: da qui puoi saldarlo.
+              <strong>{dati.reseller_name}</strong> ci ha incaricati di occuparci della tua pratica ENEA
+              e ci ha già consegnato tutti i documenti necessari: non dovrai fornirci nient'altro.
             </>
           ) : (
             <>
-              <strong>{dati.reseller_name}</strong> ci ha incaricati di preparare la tua pratica ENEA.
-              Come da accordi presi con lui, il costo del servizio è a tuo carico. Dopo il pagamento
-              ti chiediamo di completare alcuni dati sull'immobile, e alla pratica pensiamo noi.
+              <strong>{dati.reseller_name}</strong> ci ha incaricati di occuparci della tua pratica ENEA.
             </>
+          )}
+        </p>
+
+        <p className="text-sm leading-relaxed">
+          La comunicazione ENEA è il passaggio necessario per accedere alla{" "}
+          <strong>detrazione fiscale</strong> sui lavori che hai fatto: va preparata con i dati
+          corretti e trasmessa all'ente. È esattamente quello che facciamo ogni giorno.
+        </p>
+
+        <div className="text-sm leading-relaxed">
+          <p className="font-medium mb-1.5">Ecco cosa faremo per te:</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>prepariamo la comunicazione ENEA e verifichiamo che i dati siano corretti;</li>
+            <li>la trasmettiamo noi all'ente, senza che tu debba registrarti da nessuna parte;</li>
+            <li>ti consegniamo la documentazione completa, pronta da dare al commercialista o al CAF per la dichiarazione dei redditi.</li>
+          </ul>
+        </div>
+
+        <p className="text-sm leading-relaxed">
+          {senzaRivenditore ? (
+            <>Qui sotto trovi il riepilogo del costo, che puoi saldare quando preferisci.</>
+          ) : (
+            <>Come da accordi presi con {dati.reseller_name}, il costo del servizio è a tuo
+            carico. Qui sotto trovi il riepilogo e puoi procedere quando preferisci.</>
+          )}{" "}
+          {documentiForniti ? (
+            <>Dopo il pagamento non dovrai fare nient'altro: prepariamo la pratica e ti
+            avvisiamo appena è pronta.</>
+          ) : (
+            <>Dopo il pagamento ti chiediamo gli ultimi dati sull'immobile con un breve modulo
+            online — bastano circa 5 minuti — e da lì in poi pensiamo a tutto noi.</>
           )}
         </p>
 

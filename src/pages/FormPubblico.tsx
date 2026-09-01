@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, Loader2, Send, Briefcase, LayoutDashboard } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -123,6 +123,13 @@ function initProdottoForVariant(data: FormClienteData, tipo: ProdottoTipo): Form
 
 export default function FormPubblico() {
   const { token } = useParams<{ token: string }>();
+  // ?pagamento=ok = arrivo dal success di Stripe. Il webhook che scrive
+  // "pagata" puo' essere piu' lento del redirect: senza questa eccezione il
+  // form rimbalzerebbe il cliente APPENA PAGATO di nuovo alla cassa, che gli
+  // rioffrirebbe il pagamento. Non e' una porta aperta: aggiungere il param a
+  // mano mostra solo il form, l'invio resta bloccato da submit_form_by_token.
+  const [searchParams] = useSearchParams();
+  const arrivoDaPagamento = searchParams.get("pagamento") === "ok";
   const { toast } = useToast();
   const navigate = useNavigate();
   const { session, isInternal, isReseller } = useAuth();
@@ -188,6 +195,7 @@ export default function FormPubblico() {
         // rimbalzarlo sulla cassa del suo cliente bloccherebbe il suo lavoro.
         // Il pagamento del cliente viaggia in parallelo via /paga.
         if (
+          !arrivoDaPagamento &&
           pagamento &&
           pagamento.tipo_servizio !== "documenti_forniti" &&
           pagamento.tipo_fatturazione === "cliente_finale" &&

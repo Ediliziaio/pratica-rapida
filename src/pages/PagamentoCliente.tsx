@@ -183,7 +183,9 @@ export default function PagamentoCliente() {
               Sono circa 5 minuti.
             </p>
             <Button asChild className="w-full">
-              <Link to={`/form/${token}`}>Completa la pratica</Link>
+              {/* ?pagamento=ok: il webhook potrebbe non aver ancora scritto
+                  "pagata" — senza il param il form rimbalzerebbe alla cassa. */}
+              <Link to={`/form/${token}?pagamento=ok`}>Completa la pratica</Link>
             </Button>
           </>
         ) : (

@@ -982,6 +982,7 @@ export type Database = {
           lingua: string
           logo_url: string | null
           piva: string | null
+          prezzo_cf_imponibile_cents: number | null
           provincia: string | null
           ragione_sociale: string
           settore: string | null
@@ -1006,6 +1007,7 @@ export type Database = {
           lingua?: string
           logo_url?: string | null
           piva?: string | null
+          prezzo_cf_imponibile_cents?: number | null
           provincia?: string | null
           ragione_sociale: string
           settore?: string | null
@@ -1030,6 +1032,7 @@ export type Database = {
           lingua?: string
           logo_url?: string | null
           piva?: string | null
+          prezzo_cf_imponibile_cents?: number | null
           provincia?: string | null
           ragione_sociale?: string
           settore?: string | null
@@ -3047,11 +3050,14 @@ export type Database = {
           archived_at: string
           cliente_cognome: string
           cliente_nome: string
+          imponibile_cents: number
+          iva_percent: number
           pagamento_stato: string
           prodotto_installato: string
           reseller_name: string
           tipo_fatturazione: string
           tipo_servizio: string
+          totale_cents: number
         }[]
       }
       get_practice_by_form_token: {

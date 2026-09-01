@@ -243,6 +243,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   });
   const privatoDisponibile = prezzoPrivato ? prezzoPrivato.attivo : true;
 
+
   // For staff (super_admin/operatore) who don't have a resellerId, let them pick
   // the company (reseller) that will own the practice. Direct-channel clients.
   const [staffSelectedCompanyId, setStaffSelectedCompanyId] = useState<string>("");
@@ -259,6 +260,32 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     },
   });
   const effectiveResellerId = isInternal ? staffSelectedCompanyId || null : resellerId;
+
+  // Listino CF personalizzato dell'azienda (companies.prezzo_cf_imponibile_cents):
+  // nel portale sappiamo chi e' il rivenditore, quindi l'avviso "al tuo cliente
+  // chiederemo X" deve mostrare il SUO prezzo, non lo standard. Dal sito
+  // l'azienda si abbina solo dopo l'invio → si mostra lo standard con riserva.
+  const { data: prezzoCfAzienda } = useQuery({
+    queryKey: ["prezzo-cf-azienda", effectiveResellerId],
+    enabled: !publicMode && !!effectiveResellerId,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("companies")
+        .select("prezzo_cf_imponibile_cents")
+        .eq("id", effectiveResellerId!)
+        .maybeSingle();
+      return data?.prezzo_cf_imponibile_cents ?? null;
+    },
+  });
+  // Prezzo mostrato nell'avviso CF: override azienda se c'e', altrimenti listino.
+  const prezzoCf =
+    prezzoPrivato && prezzoCfAzienda
+      ? {
+          imponibileCents: prezzoCfAzienda,
+          totaleCents: Math.round(prezzoCfAzienda * (1 + prezzoPrivato.ivaPercent / 100)),
+        }
+      : prezzoPrivato;
 
   // ── State ─────────────────────────────────────────────────────────────────
   const [tipoServizio, setTipoServizio] = useState<TipoServizio | null>(null);
@@ -1201,7 +1228,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         <div className="rounded-lg border border-amber-200 bg-amber-50/60 dark:border-amber-900/40 dark:bg-amber-950/20 p-4 text-sm">
           <p className="font-medium text-amber-900 dark:text-amber-200">
             Al tuo cliente invieremo il link per pagare il servizio
-            {prezzoPrivato ? ` (${euroScomposto(prezzoPrivato)} in totale)` : ""}.
+            {prezzoCf ? ` (${euroScomposto(prezzoCf)} in totale)` : ""}.
+            {publicMode ? " Se hai condizioni concordate con Pratica Rapida, al cliente verrà chiesto l'importo dei tuoi accordi." : ""}
           </p>
           <p className="text-xs text-amber-800/80 dark:text-amber-300/80 mt-1">
             Gli arriva via email, con scritto che sei tu ad averci incaricati.

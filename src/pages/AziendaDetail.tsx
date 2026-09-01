@@ -197,6 +197,156 @@ function PriceCard({
   );
 }
 
+// ── Prezzo cliente finale (CF) ─────────────────────────────────────────────────
+/**
+ * Quanto paga il CLIENTE FINALE di questa azienda quando il rivenditore
+ * sceglie "a carico del cliente finale". Diverso dal listino qui sopra, che
+ * e' quanto paga il RIVENDITORE a noi. NULL = listino standard di
+ * piattaforma. L'importo vero lo risolve sempre il server (RPC +
+ * stripe-checkout): questo pannello scrive solo la colonna.
+ */
+function PrezzoClienteFinaleCard({ companyId, ragioneSociale }: { companyId: string; ragioneSociale: string }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [valore, setValore] = useState("");
+  const [dirty, setDirty] = useState(false);
+
+  const { data: listino } = useQuery({
+    queryKey: ["platform-settings", "prezzo_privato_enea"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("platform_settings")
+        .select("value")
+        .eq("key", "prezzo_privato_enea")
+        .maybeSingle();
+      const v = (data?.value ?? {}) as { imponibile_cents?: number; iva_percent?: number };
+      return { imponibileCents: v.imponibile_cents ?? 0, ivaPercent: v.iva_percent ?? 0 };
+    },
+  });
+
+  const { data: override, isLoading } = useQuery({
+    queryKey: ["prezzo-cf-azienda", companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("companies")
+        .select("prezzo_cf_imponibile_cents")
+        .eq("id", companyId)
+        .maybeSingle();
+      return data?.prezzo_cf_imponibile_cents ?? null;
+    },
+  });
+
+  useEffect(() => {
+    if (dirty || isLoading) return;
+    setValore(override != null ? (override / 100).toFixed(2) : "");
+  }, [override, isLoading, dirty]);
+
+  const salva = useMutation({
+    mutationFn: async (cents: number | null) => {
+      const { error } = await supabase
+        .from("companies")
+        .update({ prezzo_cf_imponibile_cents: cents })
+        .eq("id", companyId);
+      if (error) throw error;
+    },
+    onSuccess: (_d, cents) => {
+      setDirty(false);
+      queryClient.invalidateQueries({ queryKey: ["prezzo-cf-azienda", companyId] });
+      toast({ title: cents === null ? "Ripristinato listino standard" : "Prezzo cliente finale salvato" });
+    },
+    onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  const iva = listino?.ivaPercent ?? 0;
+  const standardCents = listino?.imponibileCents ?? 0;
+  const cents = Math.round(parseFloat(valore.replace(",", ".")) * 100);
+  const valido = Number.isFinite(cents) && cents >= 100;
+  const totale = (imp: number) => Math.round(imp * (1 + iva / 100));
+  const fmt = (c: number) => (c / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" });
+  const hasCustom = override != null;
+  const attivoCents = override ?? standardCents;
+
+  return (
+    <Card className={hasCustom ? "border-primary/40 ring-1 ring-primary/20" : ""}>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <Badge className="bg-emerald-100 text-emerald-700">Pagamento cliente finale</Badge>
+              {hasCustom && (
+                <Badge variant="secondary" className="text-xs gap-1">
+                  <Tag className="h-2.5 w-2.5" />Prezzo personalizzato
+                </Badge>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Quanto paga con carta il cliente finale di {ragioneSociale} quando la pratica è
+              «a carico del cliente finale». Non è il listino del rivenditore qui sopra.
+            </p>
+          </div>
+          {hasCustom && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                  onClick={() => salva.mutate(null)}
+                  disabled={salva.isPending}
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Ripristina listino standard ({fmt(standardCents)} + IVA)</TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4 rounded-lg bg-muted/40 p-3 text-sm">
+          <div>
+            <p className="text-xs text-muted-foreground mb-0.5">Listino standard</p>
+            <p className="font-semibold">{fmt(standardCents)} + IVA ({fmt(totale(standardCents))})</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground mb-0.5">Prezzo attivo</p>
+            <p className={`font-bold ${hasCustom ? "text-primary" : "text-muted-foreground"}`}>
+              {fmt(attivoCents)} + IVA ({fmt(totale(attivoCents))})
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs">Imponibile personalizzato (€, IVA {iva}% esclusa)</Label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium pointer-events-none">€</span>
+            <Input
+              inputMode="decimal"
+              value={valore}
+              onChange={(e) => { setValore(e.target.value); setDirty(true); }}
+              className="pl-7"
+              placeholder={(standardCents / 100).toFixed(2)}
+            />
+          </div>
+          {valido && (
+            <p className="text-xs text-muted-foreground">
+              Al cliente verranno chiesti {fmt(cents)} + IVA = <strong>{fmt(totale(cents))}</strong>
+            </p>
+          )}
+        </div>
+
+        <Button
+          className="w-full"
+          onClick={() => salva.mutate(cents)}
+          disabled={!valido || !dirty || salva.isPending}
+        >
+          {salva.isPending ? "Salvataggio..." : hasCustom ? "Aggiorna prezzo" : "Imposta prezzo personalizzato"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function AziendaDetail() {
   const { id } = useParams<{ id: string }>();
@@ -811,6 +961,10 @@ export default function AziendaDetail() {
                     />
                   ))}
                 </div>
+
+                {/* Prezzo pagato dal CLIENTE FINALE di questa azienda (flusso
+                    "a carico del cliente finale" → /paga + Stripe). */}
+                <PrezzoClienteFinaleCard companyId={id!} ragioneSociale={company.ragione_sociale} />
               </div>
             </TabsContent>
           )}

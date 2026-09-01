@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const lookup = admin
     .from("enea_practices")
-    .select("id, cliente_email, form_token, pagamento_stato, archived_at, prodotto_installato");
+    .select("id, cliente_email, form_token, pagamento_stato, archived_at, prodotto_installato, companies:reseller_id(prezzo_cf_imponibile_cents)");
   const { data: practice } = await (practiceId
     ? lookup.eq("id", practiceId)
     : lookup.eq("form_token", formToken!)
@@ -92,7 +92,13 @@ Deno.serve(async (req) => {
     if (!row || cfg.attivo === false) {
       return json({ error: "Servizio momentaneamente non disponibile" }, 409);
     }
-    const imponibile = Math.round(cfg.imponibile_cents ?? 0);
+    // Alcuni rivenditori hanno condizioni proprie per il cliente finale
+    // (companies.prezzo_cf_imponibile_cents): vince sul listino standard.
+    // L'aliquota IVA resta quella di piattaforma per tutti.
+    const override = (practice as unknown as {
+      companies?: { prezzo_cf_imponibile_cents?: number | null } | null;
+    }).companies?.prezzo_cf_imponibile_cents;
+    const imponibile = Math.round(override ?? cfg.imponibile_cents ?? 0);
     const iva = Number(cfg.iva_percent ?? 0);
     amount = Math.round(imponibile * (1 + iva / 100));
     if (!Number.isFinite(amount) || amount < 100) {

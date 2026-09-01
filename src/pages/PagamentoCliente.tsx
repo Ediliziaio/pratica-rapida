@@ -28,6 +28,13 @@ interface Pagamento {
   pagamento_stato: string | null;
   reseller_name: string | null;
   archived_at: string | null;
+  // Prezzo risolto dalla RPC per QUESTA pratica (listino del rivenditore se
+  // ha condizioni sue, altrimenti standard). Assenti finche' in produzione
+  // gira la versione precedente della RPC: in quel caso fallback al listino
+  // di piattaforma letto a parte.
+  imponibile_cents?: number | null;
+  iva_percent?: number | null;
+  totale_cents?: number | null;
 }
 
 const euro = (cents: number) =>
@@ -80,18 +87,29 @@ export default function PagamentoCliente() {
         setDati(riga);
       }
 
-      const v = (prezzoRes.data?.value ?? {}) as { imponibile_cents?: number; iva_percent?: number };
-      const imponibile = v.imponibile_cents ?? 0;
-      const iva = v.iva_percent ?? 0;
-      setPrezzo(
-        imponibile > 0
-          ? {
-              imponibileCents: imponibile,
-              ivaPercent: iva,
-              totaleCents: Math.round(imponibile * (1 + iva / 100)),
-            }
-          : null,
-      );
+      // Il prezzo giusto per QUESTA pratica arriva dalla RPC (tiene conto del
+      // listino personalizzato del rivenditore). Il listino di piattaforma
+      // resta come fallback finche' la RPC vecchia e' in circolazione.
+      if (riga?.totale_cents && riga.imponibile_cents) {
+        setPrezzo({
+          imponibileCents: riga.imponibile_cents,
+          ivaPercent: Number(riga.iva_percent ?? 0),
+          totaleCents: riga.totale_cents,
+        });
+      } else {
+        const v = (prezzoRes.data?.value ?? {}) as { imponibile_cents?: number; iva_percent?: number };
+        const imponibile = v.imponibile_cents ?? 0;
+        const iva = v.iva_percent ?? 0;
+        setPrezzo(
+          imponibile > 0
+            ? {
+                imponibileCents: imponibile,
+                ivaPercent: iva,
+                totaleCents: Math.round(imponibile * (1 + iva / 100)),
+              }
+            : null,
+        );
+      }
       setCaricamento(false);
     })();
     return () => { vivo = false; };

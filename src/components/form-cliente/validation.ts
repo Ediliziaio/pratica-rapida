@@ -15,13 +15,35 @@ import {
   isValidDataNascita,
   isPositiveNumber,
   isPositiveInteger,
+  isValidPiva,
 } from "./validation-utils";
 
 export type ErrorMap = Record<string, string>;
 
-export function validateRichiedente(d: FormClienteData): ErrorMap {
+export function validateRichiedente(d: FormClienteData, isAzienda = false): ErrorMap {
   const e: ErrorMap = {};
   const r = d.richiedente;
+  // Variante azienda/P.IVA: ragione sociale + partita IVA al posto dei dati
+  // anagrafici della persona fisica.
+  if (isAzienda) {
+    if (!r.ragione_sociale.trim()) e["richiedente.ragione_sociale"] = "Ragione sociale obbligatoria";
+    if (!r.piva.trim()) {
+      e["richiedente.piva"] = "Partita IVA obbligatoria";
+    } else if (!isValidPiva(r.piva)) {
+      e["richiedente.piva"] = "Partita IVA non valida (11 cifre)";
+    }
+    if (!r.email.trim()) {
+      e["richiedente.email"] = "Email obbligatoria";
+    } else if (!EMAIL_RE.test(r.email)) {
+      e["richiedente.email"] = "Email non valida";
+    }
+    if (!r.telefono.trim()) {
+      e["richiedente.telefono"] = "Telefono obbligatorio";
+    } else if (!isValidPhone(r.telefono)) {
+      e["richiedente.telefono"] = "Numero di telefono non valido";
+    }
+    return e;
+  }
   if (!r.nome.trim()) e["richiedente.nome"] = "Nome obbligatorio";
   if (!r.cognome.trim()) e["richiedente.cognome"] = "Cognome obbligatorio";
   if (!r.comune_nascita.trim()) e["richiedente.comune_nascita"] = "Comune di nascita obbligatorio";
@@ -187,10 +209,11 @@ export function validateStep(
   step: StepId,
   data: FormClienteData,
   prodottoTipo: ProdottoTipo,
+  isAzienda = false,
 ): ErrorMap {
   switch (step) {
     case "richiedente":
-      return validateRichiedente(data);
+      return validateRichiedente(data, isAzienda);
     case "indirizzo":
       return validateIndirizzo(data);
     case "cointestazione":
@@ -208,7 +231,7 @@ export function validateStep(
     case "recap":
       // Tutti gli step precedenti devono passare prima del submit
       return {
-        ...validateRichiedente(data),
+        ...validateRichiedente(data, isAzienda),
         ...validateIndirizzo(data),
         ...validateCointestazione(data),
         ...validateCatastali(data),

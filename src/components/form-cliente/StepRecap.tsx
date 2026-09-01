@@ -19,6 +19,7 @@ import {
 interface Props {
   data: FormClienteData;
   prodottoTipo: ProdottoTipo;
+  isAzienda?: boolean;
 }
 
 interface RowProps {
@@ -51,7 +52,7 @@ function siNo(v: boolean | null) {
   return v ? "Sì" : "No";
 }
 
-export function StepRecap({ data, prodottoTipo }: Props) {
+export function StepRecap({ data, prodottoTipo, isAzienda = false }: Props) {
   const r = data.richiedente;
   const res = data.residenza;
   const a = data.appartamento_lavori;
@@ -68,16 +69,27 @@ export function StepRecap({ data, prodottoTipo }: Props) {
       </p>
 
       <Section title="Dati richiedente">
-        <Row label="Nome e cognome" value={`${r.nome} ${r.cognome}`.trim()} />
-        <Row label="Comune di nascita" value={`${r.comune_nascita} (${r.provincia_nascita})`} />
-        <Row label="Data di nascita" value={r.data_nascita} />
-        <Row label="Codice fiscale" value={r.cf} />
-        <Row label="Email" value={r.email} />
-        <Row label="Telefono" value={r.telefono} />
-        <Row label="Abitazione principale" value={siNo(r.abitazione_principale)} />
+        {isAzienda ? (
+          <>
+            <Row label="Ragione sociale" value={r.ragione_sociale} />
+            <Row label="Partita IVA" value={r.piva} />
+            <Row label="Email" value={r.email} />
+            <Row label="Telefono" value={r.telefono} />
+          </>
+        ) : (
+          <>
+            <Row label="Nome e cognome" value={`${r.nome} ${r.cognome}`.trim()} />
+            <Row label="Comune di nascita" value={`${r.comune_nascita} (${r.provincia_nascita})`} />
+            <Row label="Data di nascita" value={r.data_nascita} />
+            <Row label="Codice fiscale" value={r.cf} />
+            <Row label="Email" value={r.email} />
+            <Row label="Telefono" value={r.telefono} />
+            <Row label="Abitazione principale" value={siNo(r.abitazione_principale)} />
+          </>
+        )}
       </Section>
 
-      <Section title="Indirizzo di residenza">
+      <Section title={isAzienda ? "Sede legale" : "Indirizzo di residenza"}>
         <Row label="Comune" value={`${res.comune} (${res.provincia})`} />
         <Row label="Indirizzo" value={`${res.indirizzo} ${res.civico}`} />
         <Row label="CAP" value={res.cap} />

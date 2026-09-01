@@ -274,6 +274,10 @@ export default function FormPubblico() {
     return getVisibleSteps(dbModule.schema, dynamicData);
   }, [useDynamic, dbModule, dynamicData]);
 
+  // Richiedente persona giuridica (P.IVA): il form chiede ragione sociale +
+  // partita IVA e "sede legale" al posto dei dati anagrafici e della residenza.
+  const isAzienda = practice?.tipo_soggetto === "azienda_piva";
+
   // Path hardcoded: per l'impianto termico non c'è alcun dato di prodotto da
   // raccogliere, quindi lo step "prodotto" viene rimosso del tutto.
   const hardcodedSteps = useMemo(
@@ -302,8 +306,8 @@ export default function FormPubblico() {
   // Path hardcoded
   const hardcodedStep = hardcodedSteps[safeStepIndex] ?? hardcodedSteps[0];
   const hardcodedErrors = useMemo(
-    () => (useDynamic ? {} : validateStep(hardcodedStep.id, formData, prodottoTipo)),
-    [useDynamic, hardcodedStep.id, formData, prodottoTipo],
+    () => (useDynamic ? {} : validateStep(hardcodedStep.id, formData, prodottoTipo, isAzienda)),
+    [useDynamic, hardcodedStep.id, formData, prodottoTipo, isAzienda],
   );
   // Path dinamico
   const dynamicStep = visibleDynamicSteps[safeStepIndex];
@@ -500,7 +504,7 @@ export default function FormPubblico() {
     }
 
     // ── Path hardcoded (fallback) ─────────────────────────────────────────────
-    const allErrors = validateStep("recap", formData, prodottoTipo);
+    const allErrors = validateStep("recap", formData, prodottoTipo, isAzienda);
     if (Object.keys(allErrors).length > 0) {
       toast({
         variant: "destructive",
@@ -726,6 +730,7 @@ export default function FormPubblico() {
               onUploadStart={() => setUploading(true)}
               onUploadEnd={() => setUploading(false)}
               publicToken={token}
+              isAzienda={isAzienda}
             />
           )}
         </div>
@@ -827,15 +832,16 @@ interface StepBodyProps {
   onUploadStart: () => void;
   onUploadEnd: () => void;
   publicToken?: string;
+  isAzienda?: boolean;
 }
 
 function StepBody(props: StepBodyProps) {
-  const { step, data, errors, patchSection, prodottoTipo } = props;
+  const { step, data, errors, patchSection, prodottoTipo, isAzienda } = props;
   switch (step) {
     case "richiedente":
-      return <StepRichiedente data={data} errors={errors} patchSection={patchSection} />;
+      return <StepRichiedente data={data} errors={errors} patchSection={patchSection} isAzienda={isAzienda} />;
     case "indirizzo":
-      return <StepIndirizzo data={data} errors={errors} patchSection={patchSection} />;
+      return <StepIndirizzo data={data} errors={errors} patchSection={patchSection} isAzienda={isAzienda} />;
     case "cointestazione":
       return <StepCointestazione data={data} errors={errors} patchSection={patchSection} />;
     case "catastali":
@@ -872,7 +878,7 @@ function StepBody(props: StepBodyProps) {
         />
       );
     case "recap":
-      return <StepRecap data={data} prodottoTipo={prodottoTipo} />;
+      return <StepRecap data={data} prodottoTipo={prodottoTipo} isAzienda={isAzienda} />;
     default:
       return null;
   }

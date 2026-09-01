@@ -64,6 +64,10 @@ export interface RichiedenteData {
   email: string;
   telefono: string;
   abitazione_principale: boolean | null;
+  // Variante azienda/P.IVA: usati al posto di nome/cognome/data_nascita/cf
+  // quando il richiedente è una persona giuridica (tipo_soggetto = azienda_piva).
+  ragione_sociale: string;
+  piva: string;
 }
 
 export interface ResidenzaData {
@@ -214,6 +218,8 @@ export function emptyFormData(): FormClienteData {
       email: "",
       telefono: "",
       abitazione_principale: null,
+      ragione_sociale: "",
+      piva: "",
     },
     residenza: {
       comune: "",

@@ -153,3 +153,10 @@ export function formatDataNascitaInput(value: string): string {
   if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
   return value;
 }
+
+/**
+ * Partita IVA italiana: 11 cifre numeriche.
+ */
+export function isValidPiva(value: string): boolean {
+  return /^\d{11}$/.test(value.trim());
+}

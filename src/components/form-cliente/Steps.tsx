@@ -50,6 +50,8 @@ export interface StepProps {
   data: FormClienteData;
   errors: ErrorMap;
   patchSection: <S extends Section>(section: S, patch: SectionPatch<S>) => void;
+  /** true quando il richiedente è una persona giuridica (tipo_soggetto = azienda_piva). */
+  isAzienda?: boolean;
 }
 
 interface RadioYesNoProps {
@@ -78,74 +80,102 @@ function RadioYesNo({ value, onChange, name }: RadioYesNoProps) {
 }
 
 // ── 1. Richiedente ─────────────────────────────────────────────────────────────
-export function StepRichiedente({ data, errors, patchSection }: StepProps) {
+export function StepRichiedente({ data, errors, patchSection, isAzienda = false }: StepProps) {
   const r = data.richiedente;
   const set = <K extends keyof typeof r>(k: K, v: (typeof r)[K]) =>
     patchSection("richiedente", { [k]: v } as SectionPatch<"richiedente">);
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <Label htmlFor="nome">Nome *</Label>
-          <Input id="nome" value={r.nome} onChange={(e) => set("nome", e.target.value)} />
-          <FieldError errors={errors} field="richiedente.nome" />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="cognome">Cognome *</Label>
-          <Input id="cognome" value={r.cognome} onChange={(e) => set("cognome", e.target.value)} />
-          <FieldError errors={errors} field="richiedente.cognome" />
-        </div>
-      </div>
+      {isAzienda ? (
+        <>
+          <div className="space-y-1">
+            <Label htmlFor="ragione_sociale">Ragione sociale *</Label>
+            <Input
+              id="ragione_sociale"
+              value={r.ragione_sociale}
+              onChange={(e) => set("ragione_sociale", e.target.value)}
+            />
+            <FieldError errors={errors} field="richiedente.ragione_sociale" />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="piva">Partita IVA *</Label>
+            <Input
+              id="piva"
+              inputMode="numeric"
+              maxLength={11}
+              placeholder="11 cifre"
+              value={r.piva}
+              onChange={(e) => set("piva", e.target.value.replace(/\D/g, ""))}
+            />
+            <FieldError errors={errors} field="richiedente.piva" />
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label htmlFor="nome">Nome *</Label>
+              <Input id="nome" value={r.nome} onChange={(e) => set("nome", e.target.value)} />
+              <FieldError errors={errors} field="richiedente.nome" />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="cognome">Cognome *</Label>
+              <Input id="cognome" value={r.cognome} onChange={(e) => set("cognome", e.target.value)} />
+              <FieldError errors={errors} field="richiedente.cognome" />
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <Label htmlFor="comune_nascita">Comune di nascita *</Label>
-          <Input
-            id="comune_nascita"
-            value={r.comune_nascita}
-            onChange={(e) => set("comune_nascita", e.target.value)}
-          />
-          <FieldError errors={errors} field="richiedente.comune_nascita" />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="provincia_nascita">Provincia *</Label>
-          <Input
-            id="provincia_nascita"
-            value={r.provincia_nascita}
-            maxLength={2}
-            onChange={(e) => set("provincia_nascita", e.target.value.toUpperCase())}
-          />
-          <FieldError errors={errors} field="richiedente.provincia_nascita" />
-        </div>
-      </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label htmlFor="comune_nascita">Comune di nascita *</Label>
+              <Input
+                id="comune_nascita"
+                value={r.comune_nascita}
+                onChange={(e) => set("comune_nascita", e.target.value)}
+              />
+              <FieldError errors={errors} field="richiedente.comune_nascita" />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="provincia_nascita">Provincia *</Label>
+              <Input
+                id="provincia_nascita"
+                value={r.provincia_nascita}
+                maxLength={2}
+                onChange={(e) => set("provincia_nascita", e.target.value.toUpperCase())}
+              />
+              <FieldError errors={errors} field="richiedente.provincia_nascita" />
+            </div>
+          </div>
 
-      <div className="space-y-1">
-        <Label htmlFor="data_nascita">Data di nascita *</Label>
-        <Input
-          id="data_nascita"
-          type="text"
-          inputMode="numeric"
-          autoComplete="bday"
-          placeholder="gg/mm/aaaa"
-          maxLength={10}
-          value={formatDataNascitaInput(r.data_nascita)}
-          onChange={(e) => set("data_nascita", maskDataNascita(e.target.value))}
-        />
-        <p className="text-xs text-muted-foreground">Formato: giorno/mese/anno (es. 25/12/1980)</p>
-        <FieldError errors={errors} field="richiedente.data_nascita" />
-      </div>
+          <div className="space-y-1">
+            <Label htmlFor="data_nascita">Data di nascita *</Label>
+            <Input
+              id="data_nascita"
+              type="text"
+              inputMode="numeric"
+              autoComplete="bday"
+              placeholder="gg/mm/aaaa"
+              maxLength={10}
+              value={formatDataNascitaInput(r.data_nascita)}
+              onChange={(e) => set("data_nascita", maskDataNascita(e.target.value))}
+            />
+            <p className="text-xs text-muted-foreground">Formato: giorno/mese/anno (es. 25/12/1980)</p>
+            <FieldError errors={errors} field="richiedente.data_nascita" />
+          </div>
 
-      <div className="space-y-1">
-        <Label htmlFor="cf">Codice fiscale *</Label>
-        <Input
-          id="cf"
-          value={r.cf}
-          maxLength={16}
-          onChange={(e) => set("cf", e.target.value.toUpperCase())}
-        />
-        <FieldError errors={errors} field="richiedente.cf" />
-      </div>
+          <div className="space-y-1">
+            <Label htmlFor="cf">Codice fiscale *</Label>
+            <Input
+              id="cf"
+              value={r.cf}
+              maxLength={16}
+              onChange={(e) => set("cf", e.target.value.toUpperCase())}
+            />
+            <FieldError errors={errors} field="richiedente.cf" />
+          </div>
+        </>
+      )}
 
       <div className="space-y-1">
         <Label htmlFor="email">Email di riferimento *</Label>
@@ -170,21 +200,23 @@ export function StepRichiedente({ data, errors, patchSection }: StepProps) {
         <FieldError errors={errors} field="richiedente.telefono" />
       </div>
 
-      <div className="space-y-2">
-        <Label>La casa dove sono stati eseguiti i lavori è la sua abitazione principale (dove risiede)? *</Label>
-        <RadioYesNo
-          name="abitazione_principale"
-          value={r.abitazione_principale}
-          onChange={(v) => set("abitazione_principale", v)}
-        />
-        <FieldError errors={errors} field="richiedente.abitazione_principale" />
-      </div>
+      {!isAzienda && (
+        <div className="space-y-2">
+          <Label>La casa dove sono stati eseguiti i lavori è la sua abitazione principale (dove risiede)? *</Label>
+          <RadioYesNo
+            name="abitazione_principale"
+            value={r.abitazione_principale}
+            onChange={(v) => set("abitazione_principale", v)}
+          />
+          <FieldError errors={errors} field="richiedente.abitazione_principale" />
+        </div>
+      )}
     </div>
   );
 }
 
 // ── 2. Indirizzo (residenza + appartamento lavori) ─────────────────────────────
-export function StepIndirizzo({ data, errors, patchSection }: StepProps) {
+export function StepIndirizzo({ data, errors, patchSection, isAzienda = false }: StepProps) {
   const r = data.residenza;
   const a = data.appartamento_lavori;
   const setR = <K extends keyof typeof r>(k: K, v: (typeof r)[K]) =>
@@ -195,7 +227,7 @@ export function StepIndirizzo({ data, errors, patchSection }: StepProps) {
   return (
     <div className="space-y-6">
       <section className="space-y-4">
-        <h3 className="text-sm font-semibold">Indirizzo di residenza</h3>
+        <h3 className="text-sm font-semibold">{isAzienda ? "Sede legale" : "Indirizzo di residenza"}</h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
@@ -245,7 +277,7 @@ export function StepIndirizzo({ data, errors, patchSection }: StepProps) {
         </div>
 
         <div className="space-y-2">
-          <Label>L'appartamento dove sono stati fatti i lavori è lo stesso della residenza? *</Label>
+          <Label>{isAzienda ? "L'immobile dove sono stati fatti i lavori è lo stesso della sede legale? *" : "L'appartamento dove sono stati fatti i lavori è lo stesso della residenza? *"}</Label>
           <RadioYesNo
             name="stesso_indirizzo_lavori"
             value={r.stesso_indirizzo_lavori}

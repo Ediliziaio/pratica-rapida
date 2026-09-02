@@ -70,6 +70,7 @@ const ClienteDettaglio = lazy(() => import("./pages/admin/ClienteDettaglio"));
 const EmailTemplates = lazy(() => import("./pages/admin/EmailTemplates"));
 const WhatsappPanel = lazy(() => import("./pages/admin/WhatsappPanel"));
 const Moduli = lazy(() => import("./pages/admin/Moduli"));
+const ModuloPreview = lazy(() => import("./pages/admin/ModuloPreview"));
 const ArchivioEnea = lazy(() => import("./pages/rivenditore/ArchivioEnea"));
 
 /**
@@ -321,6 +322,7 @@ const App = () => (
                 <Route path="/admin/impostazioni" element={<ProtectedRoute><RoleGuard allowed={[...ADMIN_ROLES]}><ImpostazioniPiattaforma /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/campi" element={<ProtectedRoute><RoleGuard allowed={[...ADMIN_ROLES]}><ImpostazioniCampi /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/moduli" element={<ProtectedRoute><RoleGuard allowed={[...ADMIN_ROLES]}><Moduli /></RoleGuard></ProtectedRoute>} />
+                <Route path="/admin/moduli/preview/:id" element={<ProtectedRoute><RoleGuard allowed={[...ADMIN_ROLES]}><ModuloPreview /></RoleGuard></ProtectedRoute>} />
 
                 {/* Pratica Rapida v2.0 — ENEA/CT */}
                 {/* /kanban + /enea/* open to staff + resellers + tenant admins */}

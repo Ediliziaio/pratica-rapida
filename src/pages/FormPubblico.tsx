@@ -624,9 +624,10 @@ export default function FormPubblico() {
           <FileText className="h-12 w-12 text-primary mx-auto" />
           <h1 className="text-xl sm:text-2xl font-bold">Prima di iniziare</h1>
           <p className="text-muted-foreground leading-relaxed">
-            Per compilare la richiesta le serviranno i <strong>bonifici</strong> e le{" "}
-            <strong>fatture</strong> relativi ai lavori effettuati. Li tenga a portata
-            di mano prima di procedere.
+            Per compilare la richiesta le serviranno i <strong>bonifici</strong>, le{" "}
+            <strong>fatture</strong> relativi ai lavori effettuati e i{" "}
+            <strong>dati catastali</strong> dell&apos;immobile (foglio, mappale o
+            particella). Li tenga a portata di mano prima di procedere.
           </p>
           <Button className="w-full" size="lg" onClick={() => setShowIntro(false)}>
             Ho capito, procedi

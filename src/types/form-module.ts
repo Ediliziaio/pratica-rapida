@@ -21,6 +21,7 @@ export type FormFieldType =
   | "select"        // scelta singola da dropdown
   | "radio"         // scelta singola con opzioni visibili (radio buttons)
   | "multi_select"  // scelta multipla (checkbox group, più valori)
+  | "comune"        // comune italiano con ricerca (ISTAT); auto-compila provincia/CAP
   | "upload"        // caricamento file
   | "array";        // gruppo dinamico di sub-fields ripetibile
 
@@ -56,6 +57,10 @@ export interface FormField {
   multiple?: boolean;
   /** per type="array", template di sub-fields per ogni elemento */
   item_template?: { fields: FormField[] };
+  /** per type="comune": key del campo (stesso step) da auto-compilare con la sigla provincia. */
+  autofill_provincia_key?: string;
+  /** per type="comune": key del campo (stesso step) da auto-compilare con il CAP. */
+  autofill_cap_key?: string;
 }
 
 export interface FormStep {

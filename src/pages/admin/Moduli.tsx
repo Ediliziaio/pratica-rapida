@@ -68,6 +68,7 @@ import {
   Calendar,
   Clock,
   Upload,
+  MapPin,
   type LucideIcon,
 } from "lucide-react";
 import type {
@@ -101,6 +102,7 @@ const FIELD_TYPE_CATALOG: Array<{
   { type: "radio", label: "Scelta singola (radio)", description: "Opzioni visibili, 1 valore", icon: CircleDot, category: "Scelta" },
   { type: "multi_select", label: "Scelta multipla", description: "Più valori selezionabili (checkbox)", icon: ListChecks, category: "Scelta" },
   { type: "boolean", label: "Sì/No", description: "Toggle vero/falso", icon: ToggleLeft, category: "Scelta" },
+  { type: "comune", label: "Comune (con ricerca)", description: "Menù a tendina dei comuni italiani; auto-compila provincia e CAP", icon: MapPin, category: "Scelta" },
 
   // Numerico
   { type: "number", label: "Numero", description: "Intero o decimale, con min/max", icon: Hash, category: "Numerico" },
@@ -465,6 +467,17 @@ function ModuleCard({
             </span>
           )}
         </div>
+
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() =>
+            window.open(`/admin/moduli/preview/${m.id}`, "_blank", "noopener")
+          }
+          className="w-full gap-1.5"
+        >
+          <Eye className="h-3.5 w-3.5" /> Visualizza
+        </Button>
 
         <div className="flex gap-2 pt-2">
           <Button size="sm" onClick={onEdit} className="flex-1 gap-1">
@@ -962,6 +975,7 @@ function StepEditor({
                             <FieldRow
                               dragHandleProps={p.dragHandleProps}
                               field={f}
+                              siblingFields={step.fields}
                               onChange={(patch) => updateField(i, patch)}
                               onDelete={() => deleteField(i)}
                             />
@@ -1075,12 +1089,15 @@ function FieldRow({
   onChange,
   onDelete,
   dragHandleProps,
+  siblingFields = [],
 }: {
   field: FormField;
   onChange: (patch: Partial<FormField>) => void;
   onDelete: () => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dragHandleProps?: any;
+  /** Altri campi dello stesso step, per configurare l'auto-compilazione del comune. */
+  siblingFields?: FormField[];
 }) {
   const [open, setOpen] = useState(false);
 
@@ -1161,6 +1178,10 @@ function FieldRow({
                   if (!wantsArray && field.item_template !== undefined) patch.item_template = undefined;
                   if (!wantsNumber && field.min !== undefined) patch.min = undefined;
                   if (!wantsNumber && field.max !== undefined) patch.max = undefined;
+                  if (newType !== "comune") {
+                    if (field.autofill_provincia_key !== undefined) patch.autofill_provincia_key = undefined;
+                    if (field.autofill_cap_key !== undefined) patch.autofill_cap_key = undefined;
+                  }
                   // Inizializza i nuovi settings di default
                   if (wantsOptions && !field.options) patch.options = [];
                   if (wantsUpload && field.accept === undefined) patch.accept = ["pdf"];
@@ -1311,6 +1332,67 @@ function FieldRow({
                 onChange({ item_template: { fields } })
               }
             />
+          )}
+
+          {field.type === "comune" && (
+            <div className="space-y-2 rounded-md border border-dashed p-3">
+              <p className="text-xs text-muted-foreground">
+                Alla selezione del comune, questi campi (dello stesso step)
+                vengono compilati in automatico e restano modificabili a mano.
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div>
+                  <Label className="text-xs">Campo Provincia da compilare</Label>
+                  <Select
+                    value={field.autofill_provincia_key ?? "__none__"}
+                    onValueChange={(v) =>
+                      onChange({
+                        autofill_provincia_key: v === "__none__" ? undefined : v,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Nessuno" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Nessuno</SelectItem>
+                      {siblingFields
+                        .filter((f) => f.key && f.key !== field.key)
+                        .map((f) => (
+                          <SelectItem key={f.key} value={f.key}>
+                            {f.label || f.key}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Campo CAP da compilare</Label>
+                  <Select
+                    value={field.autofill_cap_key ?? "__none__"}
+                    onValueChange={(v) =>
+                      onChange({
+                        autofill_cap_key: v === "__none__" ? undefined : v,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Nessuno" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Nessuno</SelectItem>
+                      {siblingFields
+                        .filter((f) => f.key && f.key !== field.key)
+                        .map((f) => (
+                          <SelectItem key={f.key} value={f.key}>
+                            {f.label || f.key}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
           )}
 
           <VisibleIfEditor

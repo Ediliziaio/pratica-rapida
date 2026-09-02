@@ -31,6 +31,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { maskDataNascita, formatDataNascitaInput } from "./validation-utils";
 import { uploadPublicFormFile } from "./uploadFormFile";
+import { ComuneCombobox } from "./ComuneCombobox";
 
 import type { FormField, FormSchema, FormStep } from "@/types/form-module";
 import { checkVisibleIf } from "./dynamicValidation";
@@ -104,6 +105,7 @@ export function DynamicSteps({
             stepKey={step.key}
             value={formData[step.key]?.[field.key]}
             onChange={(v) => onChange(step.key, field.key, v)}
+            onSetField={(fieldKey, v) => onChange(step.key, fieldKey, v)}
             errors={errors}
             practiceId={practiceId}
             publicToken={publicToken}
@@ -121,6 +123,8 @@ interface DynamicFieldProps {
   stepKey: string;
   value: unknown;
   onChange: (value: unknown) => void;
+  /** Imposta un altro campo dello stesso step (usato dal comune per auto-compilare provincia/CAP). */
+  onSetField?: (fieldKey: string, value: unknown) => void;
   errors: Record<string, string>;
   practiceId: string;
   publicToken?: string;
@@ -135,6 +139,7 @@ function DynamicField({
   stepKey,
   value,
   onChange,
+  onSetField,
   errors,
   practiceId,
   publicToken,
@@ -157,6 +162,7 @@ function DynamicField({
         fieldId={fieldId}
         value={value}
         onChange={onChange}
+        onSetField={onSetField}
         errors={errors}
         practiceId={practiceId}
         publicToken={publicToken}
@@ -179,6 +185,7 @@ interface FieldControlProps {
   fieldId: string;
   value: unknown;
   onChange: (value: unknown) => void;
+  onSetField?: (fieldKey: string, value: unknown) => void;
   errors: Record<string, string>;
   practiceId: string;
   publicToken?: string;
@@ -213,6 +220,8 @@ function FieldControl(props: FieldControlProps) {
       return <RadioControl {...props} />;
     case "multi_select":
       return <MultiSelectControl {...props} />;
+    case "comune":
+      return <ComuneControl {...props} />;
     case "upload":
       return <UploadControl {...props} />;
     case "array":
@@ -347,6 +356,34 @@ function SelectControl({ field, fieldId, value, onChange }: FieldControlProps) {
         ))}
       </SelectContent>
     </Select>
+  );
+}
+
+function ComuneControl({
+  field,
+  fieldId,
+  value,
+  onChange,
+  onSetField,
+}: FieldControlProps) {
+  const current = typeof value === "string" ? value : "";
+  return (
+    <ComuneCombobox
+      id={fieldId}
+      value={current}
+      placeholder={field.placeholder}
+      onChange={(v) => onChange(v)}
+      onPick={(c) => {
+        // Auto-compila provincia/CAP nei campi collegati (stesso step),
+        // se configurati nell'editor. Restano modificabili a mano.
+        if (field.autofill_provincia_key && onSetField) {
+          onSetField(field.autofill_provincia_key, c.p);
+        }
+        if (field.autofill_cap_key && onSetField) {
+          onSetField(field.autofill_cap_key, c.c);
+        }
+      }}
+    />
   );
 }
 

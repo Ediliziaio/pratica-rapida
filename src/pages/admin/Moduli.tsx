@@ -1181,6 +1181,7 @@ function FieldRow({
                   if (newType !== "comune") {
                     if (field.autofill_provincia_key !== undefined) patch.autofill_provincia_key = undefined;
                     if (field.autofill_cap_key !== undefined) patch.autofill_cap_key = undefined;
+                    if (field.allow_estero !== undefined) patch.allow_estero = undefined;
                   }
                   // Inizializza i nuovi settings di default
                   if (wantsOptions && !field.options) patch.options = [];
@@ -1392,6 +1393,15 @@ function FieldRow({
                   </Select>
                 </div>
               </div>
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={field.allow_estero ?? /nascit/i.test(field.key)}
+                  onChange={(e) => onChange({ allow_estero: e.target.checked })}
+                  className="h-4 w-4 accent-primary"
+                />
+                <span>Consenti «nato/a all&apos;estero» (per il comune di nascita)</span>
+              </label>
             </div>
           )}
 

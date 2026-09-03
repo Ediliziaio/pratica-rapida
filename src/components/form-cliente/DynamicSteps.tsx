@@ -367,11 +367,17 @@ function ComuneControl({
   onSetField,
 }: FieldControlProps) {
   const current = typeof value === "string" ? value : "";
+  // L'opzione "nato all'estero" ha senso solo per il comune di nascita:
+  // abilitata da un flag di schema o, per retro-compatibilità, dai campi
+  // la cui key contiene "nascita".
+  const allowEstero =
+    field.allow_estero ?? /nascit/i.test(field.key);
   return (
     <ComuneCombobox
       id={fieldId}
       value={current}
       placeholder={field.placeholder}
+      allowEstero={allowEstero}
       onChange={(v) => onChange(v)}
       onPick={(c) => {
         // Auto-compila provincia/CAP nei campi collegati (stesso step),
@@ -381,6 +387,16 @@ function ComuneControl({
         }
         if (field.autofill_cap_key && onSetField) {
           onSetField(field.autofill_cap_key, c.c);
+        }
+      }}
+      onPickEstero={() => {
+        // Nato all'estero: provincia di nascita = "EE" (codice anagrafico
+        // per stato estero); eventuale CAP collegato azzerato.
+        if (field.autofill_provincia_key && onSetField) {
+          onSetField(field.autofill_provincia_key, "EE");
+        }
+        if (field.autofill_cap_key && onSetField) {
+          onSetField(field.autofill_cap_key, "");
         }
       }}
     />

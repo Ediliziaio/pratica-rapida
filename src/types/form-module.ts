@@ -61,6 +61,9 @@ export interface FormField {
   autofill_provincia_key?: string;
   /** per type="comune": key del campo (stesso step) da auto-compilare con il CAP. */
   autofill_cap_key?: string;
+  /** per type="comune": mostra l'opzione "nato/a all'estero" (comune di nascita).
+   *  Se non impostato, viene dedotto dalla key del campo (contiene "nascita"). */
+  allow_estero?: boolean;
 }
 
 export interface FormStep {

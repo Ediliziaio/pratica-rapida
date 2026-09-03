@@ -12,7 +12,7 @@
 // ============================================================
 
 import { useMemo, useState } from "react";
-import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { Check, ChevronsUpDown, Globe, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,15 +50,24 @@ interface ComuneComboboxProps {
   onChange: (value: string) => void;
   /** Chiamato con il comune completo quando l'utente ne seleziona uno dalla lista. */
   onPick?: (comune: Comune) => void;
+  /** Se true, offre l'opzione "nato/a all'estero" (usato per il comune di nascita). */
+  allowEstero?: boolean;
+  /** Chiamato quando l'utente sceglie l'opzione estero. `paese` è il testo digitato ("" se generico). */
+  onPickEstero?: (paese: string) => void;
   placeholder?: string;
   invalid?: boolean;
 }
+
+/** Valore memorizzato quando l'utente è nato all'estero senza specificare il Paese. */
+export const ESTERO_VALUE = "Estero";
 
 export function ComuneCombobox({
   id,
   value,
   onChange,
   onPick,
+  allowEstero,
+  onPickEstero,
   placeholder,
   invalid,
 }: ComuneComboboxProps) {
@@ -82,6 +91,14 @@ export function ComuneCombobox({
   function select(c: Comune) {
     onChange(c.n);
     onPick?.(c);
+    setOpen(false);
+    setQuery("");
+  }
+
+  function selectEstero() {
+    const paese = query.trim();
+    onChange(paese || ESTERO_VALUE);
+    onPickEstero?.(paese);
     setOpen(false);
     setQuery("");
   }
@@ -123,18 +140,19 @@ export function ComuneCombobox({
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Cerca comune…"
+            placeholder={allowEstero ? "Cerca comune o Paese estero…" : "Cerca comune…"}
             className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-10 px-2"
           />
         </div>
         <div className="max-h-64 overflow-y-auto py-1">
           {norm(query).length < 2 ? (
             <p className="px-3 py-3 text-sm text-muted-foreground">
-              Digita almeno 2 lettere per cercare.
+              Digita almeno 2 lettere per cercare
+              {allowEstero ? ", oppure usa l’opzione qui sotto se sei nato all’estero." : "."}
             </p>
           ) : results.length === 0 ? (
             <p className="px-3 py-3 text-sm text-muted-foreground">
-              Nessun comune trovato.
+              Nessun comune italiano trovato.
             </p>
           ) : (
             results.map((c) => (
@@ -156,6 +174,21 @@ export function ComuneCombobox({
                 </span>
               </button>
             ))
+          )}
+
+          {allowEstero && (
+            <button
+              type="button"
+              onClick={selectEstero}
+              className="flex w-full items-center gap-2 border-t px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+            >
+              <Globe className="h-4 w-4 shrink-0 opacity-70" />
+              <span className="flex-1">
+                {query.trim()
+                  ? <>Sono nato/a all’estero: <strong>{query.trim()}</strong></>
+                  : "Sono nato/a all’estero"}
+              </span>
+            </button>
           )}
         </div>
       </PopoverContent>

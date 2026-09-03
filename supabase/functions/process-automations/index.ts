@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { reportError } from "../_shared/error.ts";
 import { normalizePhone } from "../_shared/phone.ts";
 import { resellerDisplayName } from "../_shared/reseller.ts";
+import { puoContattareCliente } from "../_shared/contatto-cliente.ts";
 
 const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 for (const k of REQUIRED_ENV) {
@@ -372,7 +373,7 @@ serve(async () => {
             // La query ora include anche i "documenti forniti" non pagati: per
             // loro esiste SOLO il promemoria pagamento, mai il sollecito
             // compilazione (il modulo non e' affar loro).
-            if (!attesaPagamento && p.tipo_servizio !== "servizio_completo") continue;
+            if (!attesaPagamento && !puoContattareCliente(p)) continue;
             try {
               if (attesaPagamento) {
                 await invoke(supabase, "send-email", {
@@ -522,8 +523,10 @@ serve(async () => {
             if (!rulePassesConditions(rule as Record<string, unknown>, p as Record<string, unknown>)) {
               continue;
             }
-            // "Documenti forniti": nessun messaggio al cliente finale (né recensione).
-            if (p.tipo_servizio === "documenti_forniti") continue;
+            // "Documenti forniti": nessun messaggio al cliente finale (né
+            // recensione). Il controllo passa da puoContattareCliente, che
+            // copre anche l'alias legacy "pratica_only" e i tipi sconosciuti.
+            if (!puoContattareCliente(p)) continue;
             try {
               // Skip if we already sent a review follow-up.
               // PRIMA: si faceva match testuale `subject ILIKE %recensione%` OR
@@ -617,7 +620,7 @@ serve(async () => {
               continue;
             }
             // "Documenti forniti": nessun messaggio al cliente finale.
-            if (p.tipo_servizio === "documenti_forniti") continue;
+            if (!puoContattareCliente(p)) continue;
             // Idempotency: skip se questa rule è già scattata su questa pratica
             // dopo la data di incasso.
             // PRIMA: si faceva `body_preview ILIKE %templateId%` ma il

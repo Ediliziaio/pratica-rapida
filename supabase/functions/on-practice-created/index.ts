@@ -2,6 +2,10 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { reportError } from "../_shared/error.ts";
 import { resellerDisplayName } from "../_shared/reseller.ts";
+import {
+  isDocumentiForniti,
+  puoContattareCliente,
+} from "../_shared/contatto-cliente.ts";
 
 const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 for (const k of REQUIRED_ENV) {
@@ -154,7 +158,7 @@ serve(async (req) => {
   }
 
   // 2. Primo contatto WA al cliente privato (gated by practice_created/whatsapp)
-  if (!reseller_only && !attesaPagamentoCliente && whatsappEnabled && practice.tipo_servizio === "servizio_completo" && practice.cliente_telefono) {
+  if (!reseller_only && !attesaPagamentoCliente && whatsappEnabled && puoContattareCliente(practice) && practice.cliente_telefono) {
     const phone = practice.cliente_telefono.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
     steps.client_wa = await invoke("send-whatsapp", {
       to: phone,
@@ -172,7 +176,7 @@ serve(async (req) => {
   }
 
   // 3. Email al cliente finale (solo servizio_completo, gated by practice_created/email)
-  if (!reseller_only && !attesaPagamentoCliente && emailEnabled && practice.tipo_servizio === "servizio_completo" && practice.cliente_email) {
+  if (!reseller_only && !attesaPagamentoCliente && emailEnabled && puoContattareCliente(practice) && practice.cliente_email) {
     steps.client_email = await invoke("send-email", {
       to: practice.cliente_email,
       template: "richiesta_form",
@@ -196,7 +200,7 @@ serve(async (req) => {
     // completo c'e' un breve modulo da compilare, con i documenti forniti
     // il rivenditore ha gia' consegnato tutto e il cliente non fa altro.
     const dopoPagamento =
-      practice.tipo_servizio === "documenti_forniti"
+      isDocumentiForniti(practice)
         ? `Dopo il pagamento non dovrai fare nient'altro: ${resellerName} ci ha già consegnato tutti i documenti necessari. Prepariamo la pratica e ti avvisiamo appena è pronta.`
         : "Dopo il pagamento ti chiediamo gli ultimi dati sull'immobile con un breve modulo online — bastano circa 5 minuti — e da lì in poi pensiamo a tutto noi.";
     steps.client_payment_email = await invoke("send-email", {

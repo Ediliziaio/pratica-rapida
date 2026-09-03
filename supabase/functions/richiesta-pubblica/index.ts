@@ -29,6 +29,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { reportError } from "../_shared/error.ts";
 import { normalizePhone } from "../_shared/phone.ts";
 import { PLACEHOLDER_COMPANY, PRIVATI_COMPANY } from "../_shared/reseller.ts";
+import { isDocumentiForniti } from "../_shared/contatto-cliente.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -236,9 +237,9 @@ serve(async (req) => {
     //    compila lui il /form; al submit submit_form_by_token promuove a
     //    "pronte_da_fare".
     //  In OGNI caso documenti_forniti il CLIENTE NON va MAI contattato: i guard
-    //  tipo_servizio==='documenti_forniti' in on-stage-changed e
-    //  process-automations bloccano ogni messaggio/email al privato.
-    const tipoServizio = p.tipo_servizio === "documenti_forniti" ? "documenti_forniti" : "servizio_completo";
+    //  di _shared/contatto-cliente.ts in on-stage-changed, on-practice-created
+    //  e process-automations bloccano ogni messaggio/email al privato.
+    const tipoServizio = isDocumentiForniti(p) ? "documenti_forniti" : "servizio_completo";
     const targetStageType =
       tipoServizio === "servizio_completo"
         ? "inviata"

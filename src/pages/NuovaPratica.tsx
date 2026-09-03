@@ -269,7 +269,11 @@ export default function NuovaPratica() {
 
   // ── Selection ──────────────────────────────────────────────────────────────
   const [brand, setBrand] = useState<Brand | null>(null);
-  const [tipoServizio, setTipoServizio] = useState<"servizio_completo" | "pratica_only" | null>(null);
+  // "documenti_forniti" era scritto qui come "pratica_only" (nome storico dello
+  // stesso servizio). I guard che impediscono di contattare il cliente finale
+  // riconoscono entrambi i valori, ma le pratiche nuove nascono col nome
+  // corrente, così restano allineate a quelle create dal portale rivenditore.
+  const [tipoServizio, setTipoServizio] = useState<"servizio_completo" | "documenti_forniti" | null>(null);
 
   // ── Wizard ─────────────────────────────────────────────────────────────────
   const [step, setStep] = useState(0);
@@ -604,7 +608,7 @@ export default function NuovaPratica() {
 
           <button
             type="button"
-            onClick={() => setTipoServizio("pratica_only")}
+            onClick={() => setTipoServizio("documenti_forniti")}
             className="group relative rounded-xl border-2 border-border bg-card p-6 text-left transition-all hover:-translate-y-1 hover:border-foreground/30 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground shadow-sm group-hover:bg-foreground group-hover:text-background transition-all">

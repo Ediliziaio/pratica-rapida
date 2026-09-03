@@ -4,6 +4,10 @@ import { reportError } from "../_shared/error.ts";
 import { normalizePhone } from "../_shared/phone.ts";
 import { resellerDisplayName } from "../_shared/reseller.ts";
 import {
+  puoContattareCliente,
+  puoInviarePraticaAlCliente,
+} from "../_shared/contatto-cliente.ts";
+import {
   buildDichiarazioneData,
   renderDichiarazioneHtml,
 } from "../_shared/dichiarazione.ts";
@@ -268,24 +272,29 @@ serve(async (req) => {
       let clientEmailOk = true;
       let clientWaOk = true;
 
-      // Per "documenti forniti" il cliente finale non va contattato: ha fatto
-      // tutto il rivenditore. UNICA eccezione, scelta da lui nel form: se ha
-      // risposto sì a "mandiamo la pratica ENEA al cliente una volta conclusa?"
-      // (invia_pratica_al_cliente), gli arriva la mail con la pratica allegata.
-      // Il default della colonna è false, quindi le pratiche già a sistema e chi
-      // non ha risposto restano al comportamento storico.
-      const skipClientMessages =
-        practice.tipo_servizio === "documenti_forniti" && !practice.invia_pratica_al_cliente;
+      // Chi può ricevere questi messaggi lo decide _shared/contatto-cliente.ts:
+      // si scrive al cliente finale SOLO col servizio completo. Con i documenti
+      // forniti ha fatto tutto il rivenditore e il cliente non va contattato —
+      // e la regola vale anche per l'alias legacy "pratica_only" e per le
+      // pratiche con tipo_servizio nullo o sconosciuto, che prima passavano di
+      // qui come se fossero servizio completo.
+      //
+      // UNICA eccezione, scelta dal rivenditore nel form: se ha risposto sì a
+      // "mandiamo la pratica ENEA al cliente una volta conclusa?"
+      // (invia_pratica_al_cliente) gli arriva la mail con la pratica allegata.
+      // Il default della colonna è false, quindi chi non ha risposto resta nel
+      // silenzio.
+      const mailAlCliente =
+        puoContattareCliente(practice) || puoInviarePraticaAlCliente(practice);
       // In quell'eccezione gli mandiamo SOLO la mail con la pratica allegata:
       // è quello che il form promette al rivenditore ("gli inviamo la pratica
       // tramite mail"), niente WhatsApp.
-      const soloMailAlCliente =
-        practice.tipo_servizio === "documenti_forniti" && practice.invia_pratica_al_cliente === true;
+      const waAlCliente = puoContattareCliente(practice);
 
       // Email al cliente finale (gated by stage_changed/email; no such rule in DB → defaults to enabled).
       // CON ALLEGATI: recupera tutti i documenti della pratica e li allega base64.
       // Resend limita gli allegati totali a 40MB.
-      if (!skipClientMessages && stageEmailEnabled && practice.cliente_email) {
+      if (mailAlCliente && stageEmailEnabled && practice.cliente_email) {
         const attachments = await collectPracticeAttachments(supabase, practice_id);
         clientEmailOk = await invoke("send-email", {
           to: practice.cliente_email,
@@ -306,7 +315,7 @@ serve(async (req) => {
       // Escluso il caso "documenti forniti + invia_pratica_al_cliente": lì il
       // form promette al rivenditore la sola mail, e il suo cliente non è mai
       // stato contattato prima — un WhatsApp a sorpresa sarebbe fuori posto.
-      if (!skipClientMessages && !soloMailAlCliente && stageWhatsappEnabled && practice.cliente_telefono) {
+      if (waAlCliente && stageWhatsappEnabled && practice.cliente_telefono) {
         clientWaOk = await invoke("send-whatsapp", {
           to: normalizePhone(practice.cliente_telefono),
           template_name: "pratica_completata",
@@ -365,7 +374,7 @@ serve(async (req) => {
 
     // Messaggio 3 — form compilato, pronte da fare → email+WA conferma al cliente
     case "pronte_da_fare": {
-      if (practice.tipo_servizio === "servizio_completo" && practice.form_compilato_at) {
+      if (puoContattareCliente(practice) && practice.form_compilato_at) {
         const formEmailEnabled = await isRuleEnabled(supabase, "form_compiled", "email");
 
         // Email al cliente (gated by form_compiled/email)

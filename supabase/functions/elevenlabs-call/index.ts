@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { puoContattareCliente } from "../_shared/contatto-cliente.ts";
 
 const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY")!;
 const DEFAULT_AGENT_ID = Deno.env.get("ELEVENLABS_AGENT_ID") ?? "";
@@ -44,7 +45,7 @@ serve(async (req) => {
   // Fetch the practice
   const { data: practice, error: practiceError } = await supabase
     .from("enea_practices")
-    .select("id, cliente_telefono, cliente_nome, brand")
+    .select("id, cliente_telefono, cliente_nome, brand, tipo_servizio")
     .eq("id", practice_id)
     .single();
 
@@ -58,6 +59,23 @@ serve(async (req) => {
   if (!practice.cliente_telefono) {
     return Response.json(
       { success: false, error: "Practice has no phone number" },
+      { status: 422 }
+    );
+  }
+
+  // Con "documenti forniti" il cliente finale non va contattato su NESSUN
+  // canale, e una telefonata a sorpresa e' il contatto piu' invadente di tutti:
+  // quel cliente non ci ha chiesto niente, ha comprato dal rivenditore e
+  // spesso non sa nemmeno che esistiamo. Il blocco sta qui e non nel chiamante
+  // perche' questa function e' raggiungibile sia dalle automazioni
+  // (action type elevenlabs_call) sia a mano dal CRM.
+  if (!puoContattareCliente(practice)) {
+    return Response.json(
+      {
+        success: false,
+        error:
+          "Pratica con documenti forniti dal rivenditore: il cliente finale non va contattato.",
+      },
       { status: 422 }
     );
   }

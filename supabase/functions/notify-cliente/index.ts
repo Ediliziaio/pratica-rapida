@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { isDocumentiForniti } from "../_shared/contatto-cliente.ts";
 
 // WhatsApp passa dalla edge function send-whatsapp (router provider):
 // niente più chiamate dirette a Meta da qui → nessun WA_* env richiesto.
@@ -169,11 +170,29 @@ serve(async (req) => {
     }
 
     const pratica = token.pratiche as {
+      id?: string;
+      dati_pratica?: { tipo_servizio?: string | null } | null;
       clienti_finali?: {
         nome?: string | null; cognome?: string | null;
         email?: string | null; telefono?: string | null;
       } | null;
     } | null;
+
+    // Il modulo lo compila il cliente finale: con i documenti forniti il
+    // rivenditore ci ha gia' dato tutto e il suo cliente non va contattato.
+    // Qui si guarda dati_pratica perche' e' il percorso legacy sulla tabella
+    // `pratiche`, e per lo stesso motivo si blocca solo sui documenti forniti
+    // invece di pretendere il servizio completo: le pratiche piu' vecchie del
+    // campo non hanno alcun tipo_servizio, e un default-deny bloccherebbe
+    // l'invio anche a chi il modulo lo aspetta.
+    if (isDocumentiForniti({ tipo_servizio: pratica?.dati_pratica?.tipo_servizio })) {
+      return new Response(
+        JSON.stringify({
+          error: "Pratica con documenti forniti dal rivenditore: il cliente finale non va contattato.",
+        }),
+        { status: 422, headers: { ...CORS, "Content-Type": "application/json" } },
+      );
+    }
     const cliente = pratica?.clienti_finali ?? null;
     const nome = cliente ? `${cliente.nome ?? ""} ${cliente.cognome ?? ""}`.trim() : "Cliente";
     const email = cliente?.email ?? null;

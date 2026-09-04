@@ -453,9 +453,22 @@ export default function FormPubblico() {
       // Validazione completa su tutti gli step visibili
       const allErrors = validateAllDynamicSteps(dbModule.schema, dynamicData);
       if (Object.keys(allErrors).length > 0) {
+        // Le chiavi d'errore sono "step.campo": riportiamo l'utente allo step
+        // che blocca. Senza questo, chi ha un campo mancante a meta' modulo
+        // resta sull'ultima pagina con un messaggio generico e nessun modo di
+        // capire dove intervenire — sembra semplicemente che "l'invio non
+        // funzioni".
+        const sezioniConErrore = new Set(Object.keys(allErrors).map((k) => k.split(".")[0]));
+        const idx = visibleDynamicSteps.findIndex((st) => sezioniConErrore.has(st.key));
+        if (idx >= 0) {
+          setStepIndex(idx);
+          if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+        }
         toast({
           variant: "destructive",
-          title: "Compila tutti i campi obbligatori",
+          title: idx >= 0
+            ? `Manca qualcosa in «${visibleDynamicSteps[idx].label ?? visibleDynamicSteps[idx].key}»`
+            : "Compila tutti i campi obbligatori",
           description: Object.values(allErrors).slice(0, 3).join(" · "),
         });
         return;
@@ -490,7 +503,14 @@ export default function FormPubblico() {
 
       if (submitError) {
         console.error("submit_form_by_token failed:", submitError);
-        toast({ variant: "destructive", title: "Errore", description: "Impossibile salvare. Riprova." });
+        // Il messaggio vero arriva dal DB ed e' scritto per il cliente
+        // ("serve prima il pagamento", "fattura obbligatoria"...). Nasconderlo
+        // dietro un generico "Riprova" rende il blocco indiagnosticabile.
+        toast({
+          variant: "destructive",
+          title: "Invio non riuscito",
+          description: submitError.message || "Riprova tra poco o scrivici.",
+        });
         setSubmitting(false);
         return;
       }
@@ -538,7 +558,11 @@ export default function FormPubblico() {
 
     if (submitError) {
       console.error("submit_form_by_token failed:", submitError);
-      toast({ variant: "destructive", title: "Errore", description: "Impossibile salvare. Riprova." });
+      toast({
+        variant: "destructive",
+        title: "Invio non riuscito",
+        description: submitError.message || "Riprova tra poco o scrivici.",
+      });
       setSubmitting(false);
       return;
     }
